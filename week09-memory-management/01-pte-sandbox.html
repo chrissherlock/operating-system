@@ -3,19 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>1. Structure of a Page Table Entry (PTE) — COSC240</title>
+  <title>Structure of a Page Table Entry (PTE) — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
+      --border-dark: #94a3b8;
       --accent: #0284c7;
+      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --badge-bg: #f1f5f9;
-      --badge-color: #64748b;
+      --bit-pfn: #0284c7;
+      --bit-pfn-bg: #e0f2fe;
+      --bit-flag: #d97706;
+      --bit-flag-bg: #fef3c7;
+      --bit-valid: #16a34a;
+      --bit-valid-bg: #dcfce7;
+      --bit-invalid: #dc2626;
+      --bit-invalid-bg: #fee2e2;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
@@ -25,61 +34,396 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 16px;
     }
-    .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 16px; }
+
+    .nav-back {
+      width: 100%;
+      max-width: 1050px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.7rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1050px;
+    }
+
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 28px;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    .meta { display: flex; justify-content: space-between; align-items: center; }
-    .badge {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 9999px;
-      background-color: var(--badge-bg);
-      color: var(--badge-color);
-      border: 1px solid #cbd5e1;
-      text-transform: uppercase;
-    }
-    h1 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
-    p.description { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
-    .notice {
-      background: #f8fafc;
-      border: 1px dashed var(--border);
-      border-radius: 6px;
+
+    /* Bitfield Display */
+    .bitfield-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #f1f5f9;
       padding: 16px;
-      text-align: center;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .bitfield-bar {
+      display: flex;
+      width: 100%;
+      height: 56px;
+      border: 2px solid var(--border-dark);
+      border-radius: 6px;
+      overflow: hidden;
       font-family: var(--font-mono);
-      font-size: 0.85rem;
+      font-weight: 700;
+      background: #fff;
+    }
+
+    .bit-field {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      font-size: 0.75rem;
+      border-right: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .bit-field:last-child { border-right: none; }
+
+    .field-pfn {
+      flex: 5;
+      background: var(--bit-pfn-bg);
+      color: var(--bit-pfn);
+      cursor: default;
+    }
+    .field-flag {
+      flex: 1;
+      background: #fff;
       color: var(--text-muted);
     }
+    .field-flag.active {
+      background: var(--bit-flag-bg);
+      color: var(--bit-flag);
+    }
+    .field-flag.valid-bit.active {
+      background: var(--bit-valid-bg);
+      color: var(--bit-valid);
+    }
+    .field-flag.valid-bit.inactive {
+      background: var(--bit-invalid-bg);
+      color: var(--bit-invalid);
+    }
+
+    /* Control Buttons */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button.btn-sec {
+      background-color: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button.btn-sec:hover { background-color: #e2e8f0; }
+
+    /* Interactive Inspection Grid */
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 800px) {
+      .details-grid { grid-template-columns: 1fr; }
+    }
+
+    .table-spec {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .table-spec th, .table-spec td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+    }
+    .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
+
+    /* MMU Reaction Terminal */
+    .terminal-box {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 160px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 4px;
+    }
+    .term-log { line-height: 1.4; }
+    .term-ok { color: #4ade80; }
+    .term-fault { color: #f87171; font-weight: 700; }
+    .term-warn { color: #facc15; }
   </style>
 </head>
 <body>
+
   <div class="nav-back">
     <a href="../index.html">&larr; Back to Course Hub</a>
   </div>
-  <div class="container">
+
+  <header>
+    <h1>Structure of a Page Table Entry (PTE)</h1>
+    <p class="subtitle">Tanenbaum Fig 3-11: Anatomy of the hardware control flags and frame index stored inside every page table entry.</p>
+  </header>
+
+  <div class="main-container">
+
+    <!-- Interactive Bitfield Card -->
     <div class="card">
-      <div class="meta">
-        <span style="color:var(--accent); font-weight:bold; font-family:var(--font-mono);">Week 09</span>
-        <span class="badge">Draft Placeholder</span>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">PTE Bit Allocations (Click flags to toggle)</span>
+        <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent);">Total: 64 Bits</span>
       </div>
-      <h1>1. Structure of a Page Table Entry (PTE)</h1>
-      <p class="description">Anatomy of the 64-bit PTE (Fig. 3-11): PFN, Present/Absent, Protection, Modified, and Referenced bits.</p>
-      <div class="notice">
-        Interactive visualization matching Tanenbaum Memory Management text will be placed here.
+
+      <div class="bitfield-container">
+        <div class="bitfield-bar">
+          <div class="bit-field field-pfn" title="Page Frame Number: Physical frame index in DRAM">
+            <span>Page Frame Number (PFN)</span>
+            <span id="pfnDisplay" style="font-size:0.7rem; font-weight:normal;">Bits 63..12 (PFN 0x00041)</span>
+          </div>
+          <div class="bit-field field-flag" id="btnSupervisor" onclick="toggleBit('supervisor')" title="Supervisor Bit: 0 = User & Kernel, 1 = Kernel Only">
+            <span>U/S</span>
+            <span id="valSupervisor">0</span>
+          </div>
+          <div class="bit-field field-flag" id="btnCaching" onclick="toggleBit('caching')" title="Caching Disabled: 1 = Bypass CPU Cache (for Memory-Mapped I/O)">
+            <span>PCD</span>
+            <span id="valCaching">0</span>
+          </div>
+          <div class="bit-field field-flag active" id="btnModified" onclick="toggleBit('modified')" title="Modified (Dirty) Bit: 1 = Written to; must be saved to disk on eviction">
+            <span>M</span>
+            <span id="valModified">1</span>
+          </div>
+          <div class="bit-field field-flag active" id="btnReferenced" onclick="toggleBit('referenced')" title="Referenced Bit: 1 = Read or written in current interval; used by Clock/Aging">
+            <span>R</span>
+            <span id="valReferenced">1</span>
+          </div>
+          <div class="bit-field field-flag active" id="btnProtection" onclick="toggleBit('protection')" title="Protection Bit: 0 = Read Only, 1 = Read/Write">
+            <span>R/W</span>
+            <span id="valProtection">1</span>
+          </div>
+          <div class="bit-field field-flag valid-bit active" id="btnPresent" onclick="toggleBit('present')" title="Present/Absent Bit: 1 = In DRAM, 0 = On Disk (Triggers Page Fault)">
+            <span>P</span>
+            <span id="valPresent">1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulated CPU Operation Actions -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <span style="font-weight:600; font-size:0.9rem;">Simulate CPU Instruction:</span>
+        <div class="button-group">
+          <button onclick="simulateAccess('read', false)">User Read</button>
+          <button onclick="simulateAccess('write', false)">User Write</button>
+          <button class="btn-sec" onclick="simulateAccess('write', true)">Kernel Write (Supervisor)</button>
+          <button class="btn-sec" onclick="clearFlags()">Clear R/M Bits (Clock Tick)</button>
+        </div>
       </div>
     </div>
+
+    <!-- Inspector & Terminal -->
+    <div class="details-grid">
+      <!-- Bit Breakdown Table -->
+      <div class="card">
+        <span style="font-weight:700; font-size:0.9rem;">Flag Definitions (Tanenbaum Sec 3.3.1)</span>
+        <table class="table-spec">
+          <thead>
+            <tr>
+              <th>Flag</th>
+              <th>Name</th>
+              <th>Hardware MMU Function</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>P</strong></td>
+              <td>Present/Absent</td>
+              <td>1 = Page is loaded in physical DRAM. 0 = Page is absent (access causes a <strong>Page Fault</strong>).</td>
+            </tr>
+            <tr>
+              <td><strong>R/W</strong></td>
+              <td>Protection</td>
+              <td>0 = Read-Only access allowed. 1 = Read and Write allowed.</td>
+            </tr>
+            <tr>
+              <td><strong>R</strong></td>
+              <td>Referenced</td>
+              <td>Hardware automatically sets to 1 on read or write. Cleared periodically by clock interrupt.</td>
+            </tr>
+            <tr>
+              <td><strong>M</strong></td>
+              <td>Modified (Dirty)</td>
+              <td>Hardware automatically sets to 1 on write. If 1, page must be written to disk on eviction.</td>
+            </tr>
+            <tr>
+              <td><strong>PCD</strong></td>
+              <td>Caching Disabled</td>
+              <td>1 = Bypasses CPU cache. Vital for memory-mapped I/O device registers.</td>
+            </tr>
+            <tr>
+              <td><strong>U/S</strong></td>
+              <td>User/Supervisor</td>
+              <td>0 = Accessible by userland. 1 = Supervisor (kernel mode) access only.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Live MMU Trace Log -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:700; font-size:0.9rem;">Hardware MMU Reaction Trace</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Real-time response</span>
+        </div>
+        <div id="mmuTerminal" class="terminal-box"></div>
+      </div>
+    </div>
+
   </div>
+
+  <script>
+    const pte = {
+      pfn: 0x41,
+      present: 1,
+      protection: 1, // 1 = R/W, 0 = Read Only
+      referenced: 1,
+      modified: 1,
+      caching: 0,
+      supervisor: 0  // 0 = User, 1 = Supervisor only
+    };
+
+    function updateUI() {
+      // Toggle element visual states
+      setFieldState('btnPresent', 'valPresent', pte.present, true);
+      setFieldState('btnProtection', 'valProtection', pte.protection);
+      setFieldState('btnReferenced', 'valReferenced', pte.referenced);
+      setFieldState('btnModified', 'valModified', pte.modified);
+      setFieldState('btnCaching', 'valCaching', pte.caching);
+      setFieldState('btnSupervisor', 'valSupervisor', pte.supervisor);
+    }
+
+    function setFieldState(btnId, valId, value, isValidBit = false) {
+      const el = document.getElementById(btnId);
+      document.getElementById(valId).textContent = value;
+      if (isValidBit) {
+        el.className = `bit-field field-flag valid-bit ${value ? 'active' : 'inactive'}`;
+      } else {
+        el.className = `bit-field field-flag ${value ? 'active' : ''}`;
+      }
+    }
+
+    function toggleBit(bitName) {
+      pte[bitName] = pte[bitName] ? 0 : 1;
+      logTrace(`User manually toggled ${bitName.toUpperCase()} bit to ${pte[bitName]}`, 'term-warn');
+      updateUI();
+    }
+
+    function clearFlags() {
+      pte.referenced = 0;
+      logTrace("OS Clock Interrupt: Cleared Referenced (R) bit across all page table entries.", "term-warn");
+      updateUI();
+    }
+
+    function logTrace(msg, cssClass = "") {
+      const term = document.getElementById("mmuTerminal");
+      const entry = document.createElement("div");
+      entry.className = `term-log ${cssClass}`;
+      entry.textContent = `> ${msg}`;
+      term.prepend(entry);
+    }
+
+    function simulateAccess(type, isSupervisorMode) {
+      logTrace(`CPU requests ${type.toUpperCase()} (Mode: ${isSupervisorMode ? 'Kernel/Supervisor' : 'User'})...`);
+
+      // 1. Check Present Bit
+      if (pte.present === 0) {
+        logTrace("HARD PAGE FAULT: Present bit is 0! Hardware traps to kernel to load page from disk/SSD.", "term-fault");
+        return;
+      }
+
+      // 2. Check User/Supervisor bit
+      if (pte.supervisor === 1 && !isSupervisorMode) {
+        logTrace("PROTECTION FAULT: Page marked Supervisor-only (U/S=1), but CPU in User mode! SIGSEGV dispatched.", "term-fault");
+        return;
+      }
+
+      // 3. Check Read vs Write permissions
+      if (type === 'write' && pte.protection === 0) {
+        logTrace("ACCESS VIOLATION: Attempted write to Read-Only page (R/W=0)! Hardware traps.", "term-fault");
+        return;
+      }
+
+      // 4. Successful translation: Hardware side-effects
+      pte.referenced = 1;
+      if (type === 'write') {
+        pte.modified = 1;
+        logTrace(`SUCCESS: Write permitted. Hardware automatically set R=1 and M=1 (Page marked Dirty). Base PFN: 0x${pte.pfn.toString(16).toUpperCase()}`, "term-ok");
+      } else {
+        logTrace(`SUCCESS: Read permitted. Hardware automatically set R=1. Translated to PFN: 0x${pte.pfn.toString(16).toUpperCase()}`, "term-ok");
+      }
+      updateUI();
+    }
+
+    // Initial state setup
+    logTrace("PTE initialized: Page mapped to PFN 0x41 with Read/Write enabled.");
+    updateUI();
+  </script>
 </body>
 </html>
