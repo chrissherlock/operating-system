@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COSC240: Operating Systems — Course Portal</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --badge-ready-bg: #ecfdf5;
+      --badge-ready-color: #059669;
+      --badge-ready-border: #a7f3d0;
+      --badge-plan-bg: #f1f5f9;
+      --badge-plan-color: #64748b;
+      --badge-plan-border: #cbd5e1;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 36px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 20px;
+    }
+
+    .institution {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: var(--text);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      border-color: var(--border-dark);
+    }
+
+    .card-top {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .week-number {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge.ready {
+      background-color: var(--badge-ready-bg);
+      color: var(--badge-ready-color);
+      border-color: var(--badge-ready-border);
+    }
+
+    .badge.planned {
+      background-color: var(--badge-plan-bg);
+      color: var(--badge-plan-color);
+      border-color: var(--badge-plan-border);
+    }
+
+    .topic-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .description {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .links-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 4px 10px;
+      border-radius: 4px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-link:hover {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-link.disabled {
+      color: #94a3b8;
+      background-color: #f8fafc;
+      border-color: var(--border);
+      pointer-events: none;
+      cursor: default;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="institution">University of New England • COSC240</div>
+      <h1>Operating Systems: Interactive Portal</h1>
+      <p class="subtitle">
+        Course study guides, visual interactive tutorials, and micro-step sandboxes covering core OS design and architecture.
+      </p>
+    </header>
+
+    <main class="grid">
+
+      <!-- Week 1 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 01</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">Operating System Concepts</h2>
+          <p class="description">
+            Kernel vs. user mode, system call execution, architectural layering, interrupt dispatching, and hardware protection rings.
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Interactive Tutorial</a>
+          <a class="btn-link disabled" href="#">Sandbox</a>
+        </div>
+      </div>
+
+      <!-- Week 2 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 02</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">Processes</h2>
+          <p class="description">
+            Process Control Blocks (PCBs), process state transitions, context switching mechanics, and address space layout.
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Process Lifecycle</a>
+          <a class="btn-link disabled" href="#">State Visualizer</a>
+        </div>
+      </div>
+
+      <!-- Week 3 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 03</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">Process Scheduling</h2>
+          <p class="description">
+            CPU scheduling algorithms: FCFS, Shortest Job First (SJF), Round Robin (RR), multi-level feedback queues, and turnaround/response metrics.
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Gantt Simulator</a>
+          <a class="btn-link disabled" href="#">Algorithm Sandbox</a>
+        </div>
+      </div>
+
+      <!-- Week 4 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 04</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">Concurrency &amp; Mutual Exclusion</h2>
+          <p class="description">
+            Race conditions, critical sections, software synchronization (Peterson's Algorithm), and hardware atomic primitives (CAS, Test-and-Set).
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Race Condition Sim</a>
+          <a class="btn-link disabled" href="#">Atomic Step-Through</a>
+        </div>
+      </div>
+
+      <!-- Week 5 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 05</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">I/O &amp; Disk Scheduling</h2>
+          <p class="description">
+            Device controllers, interrupt-driven I/O, DMA, and disk arm scheduling (SSTF, SCAN, C-SCAN, LOOK).
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Elevator/SCAN Demo</a>
+          <a class="btn-link disabled" href="#">DMA Trace</a>
+        </div>
+      </div>
+
+      <!-- Week 6 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 06</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">Synchronisation &amp; Deadlock</h2>
+          <p class="description">
+            Semaphores, condition variables, Resource Allocation Graphs (RAGs), and Dijkstra's Banker's algorithm for deadlock avoidance.
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Banker's Algorithm</a>
+          <a class="btn-link disabled" href="#">Deadlock Grapher</a>
+        </div>
+      </div>
+
+      <!-- Week 9 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 09</span>
+            <span class="badge ready">Active</span>
+          </div>
+          <h2 class="topic-title">Memory Management</h2>
+          <p class="description">
+            Virtual memory, page translation, Page Frame Numbers (PFNs), free lists, and kernel buddy allocator splitting and coalescing.
+          </p>
+        </div>
+        <div class="links-area">
+          <!-- Update this relative link to point to your buddy allocator file -->
+          <a class="btn-link" href="buddy_light_tutorial.html">Buddy Allocator Tutorial</a>
+          <a class="btn-link disabled" href="#">Page Table Walker</a>
+        </div>
+      </div>
+
+      <!-- Week 10 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 10</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">File Management</h2>
+          <p class="description">
+            File system layout, inode structures, extent allocation, directory structures, and journaled file system recovery.
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Inode Pointer Tree</a>
+          <a class="btn-link disabled" href="#">Directory Walker</a>
+        </div>
+      </div>
+
+      <!-- Week 11 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 11</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">Multiprocessor Scheduling &amp; Distributed Computing</h2>
+          <p class="description">
+            SMP topologies, cache affinity, NUMA awareness, work stealing, and clock synchronisation across distributed nodes.
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">NUMA Visualizer</a>
+          <a class="btn-link disabled" href="#">Work-Stealing Sim</a>
+        </div>
+      </div>
+
+      <!-- Week 12 -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="week-number">Week 12</span>
+            <span class="badge planned">Draft</span>
+          </div>
+          <h2 class="topic-title">Security</h2>
+          <p class="description">
+            Access control matrices, capabilities vs. ACLs, stack buffer overflows, address space layout randomization (ASLR), and hardware enclaves.
+          </p>
+        </div>
+        <div class="links-area">
+          <a class="btn-link disabled" href="#">Stack Smashing Demo</a>
+          <a class="btn-link disabled" href="#">ACL Explorer</a>
+        </div>
+      </div>
+
+    </main>
+
+    <footer>
+      COSC240 Operating Systems • Hosted via GitHub Pages
+    </footer>
+  </div>
+
+</body>
+</html>

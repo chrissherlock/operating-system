@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Deadlock Simulator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: #fff;
+        }
+        .nav-back {
+            margin-bottom: 15px;
+        }
+        .nav-back a {
+            text-decoration: none;
+            color: #2980b9;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .nav-back a:hover {
+            text-decoration: underline;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 5px;
+        }
+        p.instruction {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        #alert-banner {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.05em;
+            background-color: #e8f8f5;
+            color: #117a65;
+            border: 1px solid #a3e4d7;
+            transition: all 0.3s;
+        }
+        #alert-banner.deadlock {
+            background-color: #f5b7b1;
+            color: #78281f;
+            border: 1px solid #e6b0aa;
+        }
+        #alert-banner.resolved {
+            background-color: #fcf3cf;
+            color: #9a7d0a;
+            border: 1px solid #f7dc6f;
+        }
+        .grid-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .column {
+            flex: 1;
+            min-width: 300px;
+            background: #fdfefe;
+            border: 1px solid #dcdde1;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .column h3 {
+            margin-top: 0;
+            text-align: center;
+            font-size: 1.1em;
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        /* Database Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        .lock-status {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .locked-a { background-color: #d6eaf8; color: #21618c; font-weight: bold; }
+        .locked-b { background-color: #f5eef8; color: #5b2c6f; font-weight: bold; }
+
+        /* Transaction Code Styles */
+        .code-line {
+            font-family: monospace;
+            font-size: 0.9em;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            background: #f4f6f7;
+            color: #555;
+            transition: all 0.2s;
+        }
+        .code-line.active-a { background: #3498db; color: white; font-weight: bold; }
+        .code-line.active-b { background: #9b59b6; color: white; font-weight: bold; }
+        .code-line.waiting { background: #e74c3c; color: white; font-weight: bold; border: 2px dashed #c0392b; }
+        .code-line.aborted { background: #95a5a6; color: white; text-decoration: line-through; }
+        .code-line.success { background: #2ecc71; color: white; font-weight: bold; }
+
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        button {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.05em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin: 0 10px;
+        }
+        button:hover { background-color: #1a252f; }
+        button:disabled { background-color: #95a5a6; cursor: not-allowed; }
+        .btn-reset { background-color: #7f8c8d; }
+        .btn-reset:hover { background-color: #616a6b; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-back">
+        <a href="index.html">&larr; Back to Course Hub</a>
+    </div>
+
+    <h2>Database Transaction Deadlock</h2>
+    <p class="instruction">Step through time to watch two concurrent database transactions acquire row-level locks, enter a circular wait, and trigger a DBMS rollback.</p>
+
+    <div id="alert-banner">Step 0: Transactions initialized. Click "Next Step" to begin executing SQL statements.</div>
+
+    <div class="grid-container">
+        <!-- Transaction A -->
+        <div class="column" style="border-top: 4px solid #3498db;">
+            <h3>Transaction A (Transfer $100)</h3>
+            <div id="ta-1" class="code-line">BEGIN TRANSACTION;</div>
+            <div id="ta-2" class="code-line">UPDATE Accounts SET bal = bal - 100 WHERE id = 101;</div>
+            <div id="ta-3" class="code-line">UPDATE Accounts SET bal = bal + 100 WHERE id = 102;</div>
+            <div id="ta-4" class="code-line">COMMIT;</div>
+        </div>
+
+        <!-- Database State -->
+        <div class="column">
+            <h3>Database: Accounts Table</h3>
+            <table>
+                <tr>
+                    <th>Account ID</th>
+                    <th>Balance</th>
+                    <th>Row Lock Status</th>
+                </tr>
+                <tr id="row-101">
+                    <td>101 (Alice)</td>
+                    <td id="bal-101">$500</td>
+                    <td id="lock-101" class="lock-status">Unlocked</td>
+                </tr>
+                <tr id="row-102">
+                    <td>102 (Bob)</td>
+                    <td id="bal-102">$500</td>
+                    <td id="lock-102" class="lock-status">Unlocked</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Transaction B -->
+        <div class="column" style="border-top: 4px solid #9b59b6;">
+            <h3>Transaction B (Transfer $50)</h3>
+            <div id="tb-1" class="code-line">BEGIN TRANSACTION;</div>
+            <div id="tb-2" class="code-line">UPDATE Accounts SET bal = bal - 50 WHERE id = 102;</div>
+            <div id="tb-3" class="code-line">UPDATE Accounts SET bal = bal + 50 WHERE id = 101;</div>
+            <div id="tb-4" class="code-line">COMMIT;</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-next" onclick="nextStep()">Execute Next Time Step &rarr;</button>
+        <button class="btn-reset" onclick="resetSim()">Reset Simulation</button>
+    </div>
+
+<script>
+    let step = 0;
+
+    function resetUI() {
+        // Clear all code line classes
+        document.querySelectorAll('.code-line').forEach(el => {
+            el.className = 'code-line';
+        });
+
+        // Reset Database UI
+        document.getElementById('row-101').className = '';
+        document.getElementById('row-102').className = '';
+        document.getElementById('lock-101').innerText = 'Unlocked';
+        document.getElementById('lock-102').innerText = 'Unlocked';
+        document.getElementById('bal-101').innerText = '$500';
+        document.getElementById('bal-102').innerText = '$500';
+
+        // Reset Banner
+        const banner = document.getElementById('alert-banner');
+        banner.className = '';
+        banner.innerText = 'Step 0: Transactions initialized. Click "Next Step" to begin.';
+
+        // Reset Button
+        document.getElementById('btn-next').disabled = false;
+    }
+
+    function setLineState(id, stateClass) {
+        document.getElementById(id).classList.add(stateClass);
+    }
+
+    function removeLineState(id, stateClass) {
+        document.getElementById(id).classList.remove(stateClass);
+    }
+
+    function nextStep() {
+        step++;
+        const banner = document.getElementById('alert-banner');
+
+        if (step === 1) {
+            setLineState('ta-1', 'active-a');
+            setLineState('tb-1', 'active-b');
+            banner.innerText = "Step 1: Both transactions begin concurrently.";
+        }
+        else if (step === 2) {
+            removeLineState('ta-1', 'active-a');
+            removeLineState('tb-1', 'active-b');
+
+            setLineState('ta-2', 'active-a');
+            document.getElementById('row-101').className = 'locked-a';
+            document.getElementById('lock-101').innerText = 'Exclusive Lock (Tx A)';
+            document.getElementById('bal-101').innerText = '$400';
+
+            banner.innerText = "Step 2: Transaction A locks Row 101 and deducts $100.";
+        }
+        else if (step === 3) {
+            removeLineState('ta-2', 'active-a');
+
+            setLineState('tb-2', 'active-b');
+            document.getElementById('row-102').className = 'locked-b';
+            document.getElementById('lock-102').innerText = 'Exclusive Lock (Tx B)';
+            document.getElementById('bal-102').innerText = '$450';
+
+            banner.innerText = "Step 3: Transaction B concurrently locks Row 102 and deducts $50.";
+        }
+        else if (step === 4) {
+            removeLineState('tb-2', 'active-b');
+
+            setLineState('ta-3', 'waiting');
+            banner.innerText = "Step 4: Transaction A attempts to lock Row 102, but must WAIT because Transaction B holds the lock.";
+        }
+        else if (step === 5) {
+            setLineState('tb-3', 'waiting');
+
+            banner.className = 'deadlock';
+            banner.innerText = "Step 5: DEADLOCK! Transaction B attempts to lock Row 101 but must WAIT on Transaction A. Circular wait detected.";
+        }
+        else if (step === 6) {
+            // DBMS Intervention
+            setLineState('tb-1', 'aborted');
+            setLineState('tb-2', 'aborted');
+            setLineState('tb-3', 'aborted');
+            setLineState('tb-4', 'aborted');
+            removeLineState('tb-3', 'waiting');
+
+            // Release B's locks
+            document.getElementById('row-102').className = '';
+            document.getElementById('lock-102').innerText = 'Unlocked';
+            document.getElementById('bal-102').innerText = '$500'; // Rollback
+
+            banner.className = 'resolved';
+            banner.innerText = "Step 6: DBMS Deadlock Detector intervenes! It ABORTS and ROLLS BACK Transaction B, releasing its locks.";
+        }
+        else if (step === 7) {
+            // A can now proceed
+            removeLineState('ta-3', 'waiting');
+            setLineState('ta-3', 'active-a');
+
+            document.getElementById('row-102').className = 'locked-a';
+            document.getElementById('lock-102').innerText = 'Exclusive Lock (Tx A)';
+            document.getElementById('bal-102').innerText = '$600'; // $500 + $100
+
+            banner.className = '';
+            banner.innerText = "Step 7: Because Row 102 is now free, Transaction A successfully acquires the lock and continues.";
+        }
+        else if (step === 8) {
+            removeLineState('ta-3', 'active-a');
+            setLineState('ta-4', 'success');
+
+            // A releases locks
+            document.getElementById('row-101').className = '';
+            document.getElementById('row-102').className = '';
+            document.getElementById('lock-101').innerText = 'Unlocked';
+            document.getElementById('lock-102').innerText = 'Unlocked';
+
+            banner.innerText = "Step 8: Transaction A COMMITs successfully and releases all locks. Transaction B can now be safely retried.";
+            document.getElementById('btn-next').disabled = true;
+        }
+    }
+
+    function resetSim() {
+        step = 0;
+        resetUI();
+    }
+</script>
+
+</body>
+</html>

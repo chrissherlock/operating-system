@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock Detection Simulator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fcfcfc;
+            color: #333;
+            max-width: 950px;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: #fff;
+        }
+        .nav-back {
+            margin-bottom: 15px;
+        }
+        .nav-back a {
+            text-decoration: none;
+            color: #2980b9;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .nav-back a:hover {
+            text-decoration: underline;
+        }
+        h2 {
+            text-align: center;
+            color: #4a4033;
+            margin-top: 5px;
+        }
+        p.instruction {
+            text-align: center;
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+        .generator-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 6px;
+            color: #4a4033;
+            font-size: 1.05em;
+        }
+        .tables-row {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 15px;
+        }
+        .table-container {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+        th, td {
+            border: 1px solid #fff;
+            padding: 9px;
+            text-align: center;
+            font-size: 0.95em;
+        }
+
+        /* Slide Color Palette Mapping */
+        .table-e th, .table-e td, .table-a th, .table-a td {
+            background-color: #dcd3c2;
+            color: #2c251e;
+        }
+        .table-c th, .table-c td {
+            background-color: #7b9ba6;
+            color: #fff;
+        }
+        .table-r th, .table-r td {
+            background-color: #d1c57d;
+            color: #2c251e;
+        }
+
+        .table-c td {
+            background-color: #92b0bc;
+        }
+        .table-r td {
+            background-color: #e2d794;
+            color: #111;
+        }
+        .table-e td, .table-a td {
+            background-color: #eae3d5;
+            font-weight: bold;
+        }
+
+        tr.clickable {
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+        tr.clickable:hover {
+            filter: brightness(0.95);
+        }
+        .green {
+            color: #145a32 !important;
+            font-weight: bold;
+        }
+        .red {
+            color: #922b21 !important;
+            font-weight: bold;
+        }
+        .highlight-red {
+            background-color: #f5b7b1 !important;
+            color: #78281f;
+            font-weight: bold;
+        }
+        #status-box {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            background-color: #e8f8f5;
+            color: #117a65;
+            border: 1px solid #a3e4d7;
+        }
+        #status-box.deadlock {
+            background-color: #f5b7b1;
+            color: #78281f;
+            border: 1px solid #e6b0aa;
+        }
+        #explanation-box {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 6px;
+            background-color: #fdf2e9;
+            color: #7e5109;
+            border: 1px solid #f5cba7;
+            font-size: 0.95em;
+            display: none;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #5c6b73;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 0.95em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #434f56;
+        }
+        button.gen-safe {
+            background-color: #27ae60;
+        }
+        button.gen-safe:hover {
+            background-color: #1e8449;
+        }
+        button.gen-partial {
+            background-color: #d35400;
+        }
+        button.gen-partial:hover {
+            background-color: #ba4a00;
+        }
+        button.gen-deadlock {
+            background-color: #c0392b;
+        }
+        button.gen-deadlock:hover {
+            background-color: #a93226;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-back">
+        <a href="index.html">&larr; Back to Course Hub</a>
+    </div>
+
+    <h2>Deadlock Detection Simulator</h2>
+    <p class="instruction">Click rows in the <strong>Currently Allocated (C)</strong> table to evaluate processes. Test safe, partial, and total deadlock states!</p>
+
+    <div class="generator-controls">
+        <button class="gen-safe" onclick="generateScenario('safe')">Generate Safe Scenario</button>
+        <button class="gen-partial" onclick="generateScenario('partial')">Generate Non-Total Deadlock</button>
+        <button class="gen-deadlock" onclick="generateScenario('deadlock')">Generate Total Deadlock</button>
+    </div>
+
+    <!-- Existing Resources -->
+    <div class="section-title">E: Existing resources</div>
+    <table class="table-e">
+        <tr>
+            <th>Tape drives</th>
+            <th>Plotters</th>
+            <th>Printers</th>
+            <th>CD ROMs</th>
+        </tr>
+        <tr>
+            <td id="e-tape">0</td>
+            <td id="e-plotter">0</td>
+            <td id="e-printer">0</td>
+            <td id="e-cd">0</td>
+        </tr>
+    </table>
+
+    <!-- Side-by-Side Tables for C and R -->
+    <div class="tables-row">
+        <div class="table-container">
+            <div class="section-title">C: Currently allocated (Click row to test)</div>
+            <table class="table-c">
+                <thead>
+                    <tr>
+                        <th>Process</th>
+                        <th>Tape</th>
+                        <th>Plot</th>
+                        <th>Print</th>
+                        <th>CD</th>
+                    </tr>
+                </thead>
+                <tbody id="allocation-tbody"></tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <div class="section-title">R: Resources still needed</div>
+            <table class="table-r">
+                <thead>
+                    <tr>
+                        <th>Process</th>
+                        <th>Tape</th>
+                        <th>Plot</th>
+                        <th>Print</th>
+                        <th>CD</th>
+                    </tr>
+                </thead>
+                <tbody id="needed-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Available Resources -->
+    <div class="section-title">A: Available resources</div>
+    <table class="table-a">
+        <tr>
+            <th>Tape drives</th>
+            <th>Plotters</th>
+            <th>Printers</th>
+            <th>CD ROMs</th>
+        </tr>
+        <tr>
+            <td id="a-tape">0</td>
+            <td id="a-plotter">0</td>
+            <td id="a-printer">0</td>
+            <td id="a-cd">0</td>
+        </tr>
+    </table>
+
+    <div id="status-box">System initialized. Click a scenario generator or select a process.</div>
+    <div id="explanation-box"></div>
+
+    <div class="controls">
+        <button onclick="resetCurrentScenario()">Reset Current Scenario</button>
+    </div>
+
+<script>
+    let state = { E: [], C: [], R: [], A: [] };
+    let initialSnapshot = null;
+    let completed = [false, false, false];
+    let deadlocked = false;
+    const resourceNames = ["Tape drives", "Plotters", "Printers", "CD ROMs"];
+
+    function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateScenario(type) {
+        completed = [false, false, false];
+        deadlocked = false;
+        document.getElementById('explanation-box').style.display = 'none';
+
+        let E, C, R, A;
+        let valid = false;
+
+        while (!valid) {
+            E = [rand(4, 7), rand(4, 7), rand(4, 7), rand(4, 7)];
+            C = [];
+            let totalC = [0, 0, 0, 0];
+            for (let i = 0; i < 3; i++) {
+                let pAlloc = [rand(0, 2), rand(0, 2), rand(0, 2), rand(0, 2)];
+                C.push(pAlloc);
+                for (let j = 0; j < 4; j++) totalC[j] += pAlloc[j];
+            }
+
+            let possibleE = true;
+            for (let j = 0; j < 4; j++) {
+                if (totalC[j] > E[j]) possibleE = false;
+            }
+            if (!possibleE) continue;
+
+            A = E.map((val, idx) => val - totalC[idx]);
+            R = [];
+            for (let i = 0; i < 3; i++) {
+                R.push([rand(0, 2), rand(0, 2), rand(0, 2), rand(0, 2)]);
+            }
+
+            // Test completion simulation
+            let simA = [...A];
+            let simCompleted = [false, false, false];
+            let progress = true;
+
+            while (progress) {
+                progress = false;
+                for (let i = 0; i < 3; i++) {
+                    if (!simCompleted[i]) {
+                        let canRun = true;
+                        for (let j = 0; j < 4; j++) {
+                            if (R[i][j] > simA[j]) {
+                                canRun = false;
+                                break;
+                            }
+                        }
+                        if (canRun) {
+                            simCompleted[i] = true;
+                            for (let j = 0; j < 4; j++) simA[j] += C[i][j];
+                            progress = true;
+                        }
+                    }
+                }
+            }
+
+            let completedCount = simCompleted.filter(Boolean).length;
+
+            if (type === 'safe' && completedCount === 3) {
+                valid = true;
+            } else if (type === 'deadlock' && completedCount === 0) {
+                valid = true;
+            } else if (type === 'partial' && completedCount > 0 && completedCount < 3) {
+                valid = true; // Non-total deadlock (some can finish, but others get stuck)
+            }
+        }
+
+        state = { E, C, R, A };
+        initialSnapshot = JSON.parse(JSON.stringify(state));
+
+        const statusBox = document.getElementById('status-box');
+        statusBox.className = '';
+        if (type === 'safe') {
+            statusBox.innerText = "Safe Scenario generated! All processes can finish successfully.";
+        } else if (type === 'partial') {
+            statusBox.innerText = "Non-Total Deadlock generated! Some processes can finish, but others will lock up.";
+        } else {
+            statusBox.innerText = "Total Deadlock generated! Zero processes can run.";
+        }
+        render();
+    }
+
+    function render() {
+        document.getElementById('e-tape').innerText = state.E[0];
+        document.getElementById('e-plotter').innerText = state.E[1];
+        document.getElementById('e-printer').innerText = state.E[2];
+        document.getElementById('e-cd').innerText = state.E[3];
+
+        const allocTbody = document.getElementById('allocation-tbody');
+        const neededTbody = document.getElementById('needed-tbody');
+        allocTbody.innerHTML = '';
+        neededTbody.innerHTML = '';
+
+        for (let i = 0; i < 3; i++) {
+            let trC = document.createElement('tr');
+            trC.className = 'clickable';
+            if (completed[i]) trC.style.opacity = '0.4';
+
+            let pNameC = document.createElement('td');
+            pNameC.innerText = `P${i+1}`;
+            if (completed[i]) pNameC.className = 'green';
+            trC.appendChild(pNameC);
+
+            for (let j = 0; j < 4; j++) {
+                let td = document.createElement('td');
+                td.innerText = state.C[i][j];
+                trC.appendChild(td);
+            }
+            trC.onclick = () => evaluateProcess(i);
+            allocTbody.appendChild(trC);
+
+            let trR = document.createElement('tr');
+            if (completed[i]) trR.style.opacity = '0.4';
+
+            let pNameR = document.createElement('td');
+            pNameR.innerText = `P${i+1}`;
+            trR.appendChild(pNameR);
+
+            for (let j = 0; j < 4; j++) {
+                let td = document.createElement('td');
+                td.innerText = state.R[i][j];
+                trR.appendChild(td);
+            }
+            neededTbody.appendChild(trR);
+        }
+
+        document.getElementById('a-tape').innerText = state.A[0];
+        document.getElementById('a-plotter').innerText = state.A[1];
+        document.getElementById('a-printer').innerText = state.A[2];
+        document.getElementById('a-cd').innerText = state.A[3];
+    }
+
+    function evaluateProcess(index) {
+        if (completed[index] || deadlocked) return;
+
+        let canRun = true;
+        let failingResource = "";
+        for (let j = 0; j < 4; j++) {
+            if (state.R[index][j] > state.A[j]) {
+                canRun = false;
+                failingResource = resourceNames[j];
+                break;
+            }
+        }
+
+        const statusBox = document.getElementById('status-box');
+        const expBox = document.getElementById('explanation-box');
+        const allocRows = document.getElementById('allocation-tbody').children;
+
+        if (canRun) {
+            allocRows[index].children[0].className = 'green';
+            for (let j = 0; j < 4; j++) {
+                state.A[j] += state.C[index][j];
+            }
+            completed[index] = true;
+            render();
+            highlightAvailableRed();
+
+            if (completed.every(val => val === true)) {
+                statusBox.className = '';
+                statusBox.innerText = "All processes completed successfully. No deadlock processes!";
+                expBox.style.display = 'none';
+            } else {
+                statusBox.className = '';
+                statusBox.innerText = `Process P${index+1} executed successfully and released resources! Check remaining active processes.`;
+            }
+        } else {
+            deadlocked = true;
+            allocRows[index].className = 'highlight-red';
+            statusBox.className = 'deadlock';
+            statusBox.innerText = `STUCK / DEADLOCK DETECTED! Process P${index+1} cannot run.`;
+
+            let neededVal = state.R[index][["Tape drives", "Plotters", "Printers", "CD ROMs"].indexOf(failingResource)];
+            let availVal = state.A[["Tape drives", "Plotters", "Printers", "CD ROMs"].indexOf(failingResource)];
+            expBox.style.display = 'block';
+            expBox.innerHTML = `<strong>Why it failed:</strong> Process P${index+1} requires <strong>${neededVal} ${failingResource}</strong>, but the system only has <strong>${availVal}</strong> available in pool <strong>A</strong>. Because no other runnable processes can free up resources to help this process, it represents an unresolvable block.`;
+        }
+    }
+
+    function highlightAvailableRed() {
+        const ids = ['a-tape', 'a-plotter', 'a-printer', 'a-cd'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            el.className = 'red';
+            setTimeout(() => { el.className = ''; }, 800);
+        });
+    }
+
+    function resetCurrentScenario() {
+        if (!initialSnapshot) return;
+        state = JSON.parse(JSON.stringify(initialSnapshot));
+        completed = [false, false, false];
+        deadlocked = false;
+        const statusBox = document.getElementById('status-box');
+        statusBox.className = '';
+        statusBox.innerText = "Scenario reset.";
+        document.getElementById('explanation-box').style.display = 'none';
+        render();
+    }
+
+    generateScenario('safe');
+</script>
+
+</body>
+</html>
