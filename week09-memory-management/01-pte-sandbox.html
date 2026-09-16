@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Structure of a Page Table Entry (PTE) — COSC240</title>
+  <title>Page Table Entry (PTE): Tutorial & Sandbox — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -22,6 +22,7 @@
       --bit-valid-bg: #dcfce7;
       --bit-invalid: #dc2626;
       --bit-invalid-bg: #fee2e2;
+      --highlight: #fef08a;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
@@ -34,7 +35,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 18px;
     }
 
     .nav-back {
@@ -55,17 +56,18 @@
       border: 1px solid #bae6fd;
       padding: 6px 12px;
       border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
     }
     .nav-back a:hover { background-color: var(--accent); color: #fff; }
 
     header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.7rem; color: var(--accent); margin-bottom: 6px; }
+    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 6px; }
     p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
 
     .main-container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
       width: 100%;
       max-width: 1050px;
     }
@@ -74,21 +76,68 @@
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 18px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 14px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
-    /* Bitfield Display */
+    /* Tutorial Panel */
+    .tutorial-panel {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+    }
+
+    .tutorial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tutorial-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #075985;
+    }
+
+    .tutorial-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #0c4a6e;
+    }
+
+    .tutorial-formula {
+      background: #ffffff;
+      border: 1px solid #bae6fd;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #0369a1;
+      display: inline-block;
+    }
+
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    /* Bitfield Visualizer */
     .bitfield-container {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      background: #f1f5f9;
-      padding: 16px;
-      border-radius: 8px;
+      gap: 6px;
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: 6px;
       border: 1px solid var(--border);
     }
 
@@ -112,9 +161,8 @@
       padding: 4px;
       font-size: 0.75rem;
       border-right: 1px solid var(--border);
-      cursor: pointer;
       user-select: none;
-      transition: all 0.15s ease;
+      transition: all 0.2s ease;
     }
     .bit-field:last-child { border-right: none; }
 
@@ -122,7 +170,6 @@
       flex: 5;
       background: var(--bit-pfn-bg);
       color: var(--bit-pfn);
-      cursor: default;
     }
     .field-flag {
       flex: 1;
@@ -142,18 +189,24 @@
       color: var(--bit-invalid);
     }
 
-    /* Control Buttons */
-    .button-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+    .bit-field.targeted {
+      outline: 3px solid #f59e0b;
+      outline-offset: -3px;
+      background-color: var(--highlight) !important;
+      animation: pulseTarget 1s infinite alternate;
     }
 
+    @keyframes pulseTarget {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.02); }
+    }
+
+    /* Action Buttons */
     button {
       background-color: var(--accent);
       color: #fff;
       border: none;
-      padding: 8px 14px;
+      padding: 8px 16px;
       border-radius: 6px;
       font-weight: 600;
       font-size: 0.85rem;
@@ -161,8 +214,10 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      transition: background-color 0.15s ease;
     }
     button:hover { background-color: var(--accent-hover); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
     button.btn-sec {
       background-color: #f1f5f9;
       color: var(--text);
@@ -170,14 +225,14 @@
     }
     button.btn-sec:hover { background-color: #e2e8f0; }
 
-    /* Interactive Inspection Grid */
-    .details-grid {
+    /* Playground Area */
+    .playground-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
-    @media (max-width: 800px) {
-      .details-grid { grid-template-columns: 1fr; }
+    @media (max-width: 820px) {
+      .playground-grid { grid-template-columns: 1fr; }
     }
 
     .table-spec {
@@ -192,25 +247,25 @@
     }
     .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
 
-    /* MMU Reaction Terminal */
+    /* Subsystem Trace Box */
     .terminal-box {
       background: #0f172a;
       color: #f8fafc;
       border-radius: 6px;
       padding: 12px;
       font-family: var(--font-mono);
-      font-size: 0.85rem;
-      min-height: 160px;
-      max-height: 220px;
+      font-size: 0.82rem;
+      height: 220px;
       overflow-y: auto;
       display: flex;
       flex-direction: column-reverse;
       gap: 4px;
     }
-    .term-log { line-height: 1.4; }
-    .term-ok { color: #4ade80; }
-    .term-fault { color: #f87171; font-weight: 700; }
-    .term-warn { color: #facc15; }
+    .log-row { line-height: 1.4; }
+    .log-ok { color: #4ade80; }
+    .log-fault { color: #f87171; font-weight: 700; }
+    .log-warn { color: #facc15; }
+    .log-info { color: #38bdf8; }
   </style>
 </head>
 <body>
@@ -221,147 +276,270 @@
 
   <header>
     <h1>Structure of a Page Table Entry (PTE)</h1>
-    <p class="subtitle">Tanenbaum Fig 3-11: Anatomy of the hardware control flags and frame index stored inside every page table entry.</p>
+    <p class="subtitle">Tanenbaum Section 3.3.1 (Fig. 3-11): A step-by-step walkthrough of PTE hardware bits, followed by an interactive MMU test playground.</p>
   </header>
 
   <div class="main-container">
 
-    <!-- Interactive Bitfield Card -->
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">PTE Bit Allocations (Click flags to toggle)</span>
-        <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent);">Total: 64 Bits</span>
+    <!-- PART 1: GUIDED TUTORIAL -->
+    <div class="card tutorial-panel">
+      <div class="tutorial-header">
+        <span id="stepCounter">Part 1: Step 1 of 6</span>
+        <span>Guided Tutorial</span>
       </div>
+      <div id="tutorialTitle" class="tutorial-title">1. The 64-Bit Entry &amp; Page Frame Number (PFN)</div>
+      <div id="tutorialText" class="tutorial-body"></div>
+      <div id="tutorialFormula" class="tutorial-formula"></div>
 
+      <!-- Live Tutorial Bitfield Bar -->
       <div class="bitfield-container">
         <div class="bitfield-bar">
-          <div class="bit-field field-pfn" title="Page Frame Number: Physical frame index in DRAM">
+          <div class="bit-field field-pfn" id="tutPfn">
             <span>Page Frame Number (PFN)</span>
-            <span id="pfnDisplay" style="font-size:0.7rem; font-weight:normal;">Bits 63..12 (PFN 0x00041)</span>
+            <span style="font-size:0.7rem; font-weight:normal;">Bits 63..12 (PFN 0x00041)</span>
           </div>
-          <div class="bit-field field-flag" id="btnSupervisor" onclick="toggleBit('supervisor')" title="Supervisor Bit: 0 = User & Kernel, 1 = Kernel Only">
+          <div class="bit-field field-flag" id="tutSupervisor">
             <span>U/S</span>
-            <span id="valSupervisor">0</span>
+            <span id="tutValSupervisor">0</span>
           </div>
-          <div class="bit-field field-flag" id="btnCaching" onclick="toggleBit('caching')" title="Caching Disabled: 1 = Bypass CPU Cache (for Memory-Mapped I/O)">
+          <div class="bit-field field-flag" id="tutCaching">
             <span>PCD</span>
-            <span id="valCaching">0</span>
+            <span id="tutValCaching">0</span>
           </div>
-          <div class="bit-field field-flag active" id="btnModified" onclick="toggleBit('modified')" title="Modified (Dirty) Bit: 1 = Written to; must be saved to disk on eviction">
+          <div class="bit-field field-flag" id="tutModified">
             <span>M</span>
-            <span id="valModified">1</span>
+            <span id="tutValModified">0</span>
           </div>
-          <div class="bit-field field-flag active" id="btnReferenced" onclick="toggleBit('referenced')" title="Referenced Bit: 1 = Read or written in current interval; used by Clock/Aging">
+          <div class="bit-field field-flag" id="tutReferenced">
             <span>R</span>
-            <span id="valReferenced">1</span>
+            <span id="tutValReferenced">0</span>
           </div>
-          <div class="bit-field field-flag active" id="btnProtection" onclick="toggleBit('protection')" title="Protection Bit: 0 = Read Only, 1 = Read/Write">
+          <div class="bit-field field-flag" id="tutProtection">
             <span>R/W</span>
-            <span id="valProtection">1</span>
+            <span id="tutValProtection">1</span>
           </div>
-          <div class="bit-field field-flag valid-bit active" id="btnPresent" onclick="toggleBit('present')" title="Present/Absent Bit: 1 = In DRAM, 0 = On Disk (Triggers Page Fault)">
+          <div class="bit-field field-flag valid-bit active" id="tutPresent">
             <span>P</span>
-            <span id="valPresent">1</span>
+            <span id="tutValPresent">1</span>
           </div>
         </div>
       </div>
 
-      <!-- Simulated CPU Operation Actions -->
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <span style="font-weight:600; font-size:0.9rem;">Simulate CPU Instruction:</span>
-        <div class="button-group">
-          <button onclick="simulateAccess('read', false)">User Read</button>
-          <button onclick="simulateAccess('write', false)">User Write</button>
-          <button class="btn-sec" onclick="simulateAccess('write', true)">Kernel Write (Supervisor)</button>
-          <button class="btn-sec" onclick="clearFlags()">Clear R/M Bits (Clock Tick)</button>
-        </div>
+      <div class="tour-nav">
+        <button id="tutPrevBtn" class="btn-sec" onclick="stepBackward()">Back</button>
+        <button id="tutNextBtn" onclick="stepForward()">Next Step &rarr;</button>
+        <button class="btn-sec" style="margin-left:auto;" onclick="scrollToPlayground()">Jump to Playground &darr;</button>
       </div>
     </div>
 
-    <!-- Inspector & Terminal -->
-    <div class="details-grid">
-      <!-- Bit Breakdown Table -->
-      <div class="card">
-        <span style="font-weight:700; font-size:0.9rem;">Flag Definitions (Tanenbaum Sec 3.3.1)</span>
-        <table class="table-spec">
-          <thead>
-            <tr>
-              <th>Flag</th>
-              <th>Name</th>
-              <th>Hardware MMU Function</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>P</strong></td>
-              <td>Present/Absent</td>
-              <td>1 = Page is loaded in physical DRAM. 0 = Page is absent (access causes a <strong>Page Fault</strong>).</td>
-            </tr>
-            <tr>
-              <td><strong>R/W</strong></td>
-              <td>Protection</td>
-              <td>0 = Read-Only access allowed. 1 = Read and Write allowed.</td>
-            </tr>
-            <tr>
-              <td><strong>R</strong></td>
-              <td>Referenced</td>
-              <td>Hardware automatically sets to 1 on read or write. Cleared periodically by clock interrupt.</td>
-            </tr>
-            <tr>
-              <td><strong>M</strong></td>
-              <td>Modified (Dirty)</td>
-              <td>Hardware automatically sets to 1 on write. If 1, page must be written to disk on eviction.</td>
-            </tr>
-            <tr>
-              <td><strong>PCD</strong></td>
-              <td>Caching Disabled</td>
-              <td>1 = Bypasses CPU cache. Vital for memory-mapped I/O device registers.</td>
-            </tr>
-            <tr>
-              <td><strong>U/S</strong></td>
-              <td>User/Supervisor</td>
-              <td>0 = Accessible by userland. 1 = Supervisor (kernel mode) access only.</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- PART 2: INTERACTIVE PLAYGROUND -->
+    <div class="card" id="playgroundSection">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-size:1.25rem; font-weight:700;">Part 2: Interactive Sandbox &amp; MMU Tester</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
+            Click on any flag bit in the PTE below to toggle it manually, then issue read/write requests to watch the MMU react in real time.
+          </p>
+        </div>
+        <button class="btn-sec" onclick="resetSandbox()">Reset State</button>
       </div>
 
-      <!-- Live MMU Trace Log -->
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-weight:700; font-size:0.9rem;">Hardware MMU Reaction Trace</span>
-          <span style="font-size:0.75rem; color:var(--text-muted);">Real-time response</span>
+      <!-- Clickable Bitfield -->
+      <div class="bitfield-container">
+        <div class="bitfield-bar">
+          <div class="bit-field field-pfn" title="PFN is set by the OS when allocating a physical DRAM frame">
+            <span>Page Frame Number (PFN)</span>
+            <span id="playPfnDisplay" style="font-size:0.7rem; font-weight:normal;">Bits 63..12 (PFN 0x00041)</span>
+          </div>
+          <div class="bit-field field-flag" id="playSupervisor" onclick="togglePlayBit('supervisor')" title="Click to toggle User/Supervisor">
+            <span>U/S</span>
+            <span id="playValSupervisor">0</span>
+          </div>
+          <div class="bit-field field-flag" id="playCaching" onclick="togglePlayBit('caching')" title="Click to toggle Caching Disabled">
+            <span>PCD</span>
+            <span id="playValCaching">0</span>
+          </div>
+          <div class="bit-field field-flag active" id="playModified" onclick="togglePlayBit('modified')" title="Click to toggle Modified/Dirty">
+            <span>M</span>
+            <span id="playValModified">1</span>
+          </div>
+          <div class="bit-field field-flag active" id="playReferenced" onclick="togglePlayBit('referenced')" title="Click to toggle Referenced">
+            <span>R</span>
+            <span id="playValReferenced">1</span>
+          </div>
+          <div class="bit-field field-flag active" id="playProtection" onclick="togglePlayBit('protection')" title="Click to toggle Read/Write">
+            <span>R/W</span>
+            <span id="playValProtection">1</span>
+          </div>
+          <div class="bit-field field-flag valid-bit active" id="playPresent" onclick="togglePlayBit('present')" title="Click to toggle Present/Absent">
+            <span>P</span>
+            <span id="playValPresent">1</span>
+          </div>
         </div>
-        <div id="mmuTerminal" class="terminal-box"></div>
+      </div>
+
+      <!-- CPU Stimulus Controls -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Simulate CPU Instruction:</span>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button onclick="simulateAccess('read', false)">User Read</button>
+          <button onclick="simulateAccess('write', false)">User Write</button>
+          <button class="btn-sec" onclick="simulateAccess('write', true)">Kernel Write (Supervisor)</button>
+          <button class="btn-sec" onclick="clockTick()">Clock Tick (Clear R)</button>
+        </div>
+      </div>
+
+      <!-- Two-Column Breakdown & Log -->
+      <div class="playground-grid">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Bit Definitions (Tanenbaum Sec 3.3.1)</span>
+          <table class="table-spec">
+            <thead>
+              <tr><th>Bit</th><th>Full Name</th><th>Role in Hardware MMU</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>P</strong></td><td>Present / Absent</td><td>1 = Frame in DRAM. 0 = On disk; access triggers a <strong>Page Fault</strong>.</td></tr>
+              <tr><td><strong>R/W</strong></td><td>Protection</td><td>0 = Read-only. 1 = Read &amp; Write allowed.</td></tr>
+              <tr><td><strong>R</strong></td><td>Referenced</td><td>Hardware sets to 1 on read/write. Cleared by OS clock ticks.</td></tr>
+              <tr><td><strong>M</strong></td><td>Modified (Dirty)</td><td>Hardware sets to 1 on write. If 1, page must be saved to disk on eviction.</td></tr>
+              <tr><td><strong>PCD</strong></td><td>Caching Disabled</td><td>1 = Bypasses CPU L1/L2 caches; used for memory-mapped I/O registers.</td></tr>
+              <tr><td><strong>U/S</strong></td><td>User / Supervisor</td><td>0 = Userland accessible. 1 = Kernel/Supervisor mode only.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Hardware MMU Execution Log</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Real-time reaction</span>
+          </div>
+          <div id="mmuTerminal" class="terminal-box"></div>
+        </div>
       </div>
     </div>
 
   </div>
 
   <script>
-    const pte = {
+    /* ==========================================================
+       PART 1: GUIDED TUTORIAL LOGIC
+       ========================================================== */
+    const tutorialSteps = [
+      {
+        title: "1. The 64-Bit Entry & Page Frame Number (PFN)",
+        text: "A Page Table Entry (PTE) is the core hardware data structure mapping virtual to physical addresses. With 4 KB pages (2<sup>12</sup>), the lowest 12 bits of any address represent the in-page offset. The remaining upper bits represent the <strong>Page Frame Number (PFN)</strong>. In a 64-bit PTE, the PFN is the address pointer to physical DRAM.",
+        formula: "Physical Address = (PFN << 12) | Offset",
+        target: "tutPfn",
+        state: { pfn: 0x41, present: 1, protection: 1, referenced: 0, modified: 0, caching: 0, supervisor: 0 }
+      },
+      {
+        title: "2. The Present / Absent Bit (P)",
+        text: "The <strong>Present/Absent bit (P)</strong> tells the CPU whether this virtual page is currently resident in physical DRAM (1) or resides on swap storage/SSD (0). If a process accesses a page with <strong>P = 0</strong>, the MMU hardware halts instruction execution and immediately raises a <strong>Page Fault exception</strong>.",
+        formula: "P = 1 -> Translation proceeds to DRAM | P = 0 -> Hardware traps to Page Fault handler",
+        target: "tutPresent",
+        state: { pfn: 0x41, present: 0, protection: 1, referenced: 0, modified: 0, caching: 0, supervisor: 0 }
+      },
+      {
+        title: "3. Protection Bits (Read / Write / Execute)",
+        text: "The <strong>R/W bit</strong> enforces access control. A value of <code>1</code> permits both reads and writes (e.g., stack and heap data). A value of <code>0</code> marks the page as <strong>Read-Only</strong> (e.g., executable code segments or shared libraries). Writing to a page with R/W = 0 causes a protection fault trap.",
+        formula: "R/W = 0 -> Read: OK, Write: CRASH (SIGSEGV / Protection Fault)",
+        target: "tutProtection",
+        state: { pfn: 0x41, present: 1, protection: 0, referenced: 0, modified: 0, caching: 0, supervisor: 0 }
+      },
+      {
+        title: "4. The Referenced Bit (R)",
+        text: "The hardware sets the <strong>Referenced bit (R)</strong> to <code>1</code> automatically whenever the page is accessed (read or written). This bit is the foundation of replacement algorithms like <strong>Clock</strong> and <strong>Aging</strong>. The OS periodically clears this bit to <code>0</code> on timer ticks to track working set activity.",
+        formula: "CPU Access -> Hardware forces R = 1 | Timer Interrupt -> OS clears R = 0",
+        target: "tutReferenced",
+        state: { pfn: 0x41, present: 1, protection: 1, referenced: 1, modified: 0, caching: 0, supervisor: 0 }
+      },
+      {
+        title: "5. The Modified (Dirty) Bit (M)",
+        text: "The hardware sets the <strong>Modified bit (M)</strong> to <code>1</code> whenever a write occurs. When the OS needs to evict a page to free memory, it checks M: if <code>M = 0</code> (clean), the page can be instantly discarded because the copy on disk is identical; if <code>M = 1</code> (dirty), it <strong>must be written back to disk</strong> first.",
+        formula: "M = 0 -> Free instantly (Zero I/O) | M = 1 -> Must write to disk before reclaiming frame",
+        target: "tutModified",
+        state: { pfn: 0x41, present: 1, protection: 1, referenced: 1, modified: 1, caching: 0, supervisor: 0 }
+      },
+      {
+        title: "6. User/Supervisor (U/S) & Caching Disabled (PCD)",
+        text: "<strong>U/S</strong> controls privilege: <code>1</code> limits access to kernel supervisor mode, while <code>0</code> allows user applications. <strong>PCD</strong> disables CPU caching for pages mapped directly to device registers (memory-mapped I/O) so reads and writes reflect hardware state directly rather than cache copies.",
+        formula: "U/S = 1 -> Kernel only | PCD = 1 -> Bypasses L1/L2/L3 caches",
+        target: "tutSupervisor",
+        state: { pfn: 0x41, present: 1, protection: 1, referenced: 1, modified: 1, caching: 1, supervisor: 1 }
+      }
+    ];
+
+    let currentStep = 0;
+
+    function renderTutorialStep() {
+      const step = tutorialSteps[currentStep];
+      document.getElementById("stepCounter").textContent = `Part 1: Step ${currentStep + 1} of ${tutorialSteps.length}`;
+      document.getElementById("tutorialTitle").textContent = step.title;
+      document.getElementById("tutorialText").innerHTML = step.text;
+      document.getElementById("tutorialFormula").innerHTML = step.formula;
+
+      // Update Bit Display
+      document.getElementById("tutValPresent").textContent = step.state.present;
+      document.getElementById("tutValProtection").textContent = step.state.protection;
+      document.getElementById("tutValReferenced").textContent = step.state.referenced;
+      document.getElementById("tutValModified").textContent = step.state.modified;
+      document.getElementById("tutValCaching").textContent = step.state.caching;
+      document.getElementById("tutValSupervisor").textContent = step.state.supervisor;
+
+      setBitClass("tutPresent", step.state.present, true);
+      setBitClass("tutProtection", step.state.protection);
+      setBitClass("tutReferenced", step.state.referenced);
+      setBitClass("tutModified", step.state.modified);
+      setBitClass("tutCaching", step.state.caching);
+      setBitClass("tutSupervisor", step.state.supervisor);
+
+      // Highlight target field
+      ["tutPfn", "tutSupervisor", "tutCaching", "tutModified", "tutReferenced", "tutProtection", "tutPresent"].forEach(id => {
+        document.getElementById(id).classList.remove("targeted");
+      });
+      if (step.target) {
+        document.getElementById(step.target).classList.add("targeted");
+      }
+
+      document.getElementById("tutPrevBtn").disabled = (currentStep === 0);
+      document.getElementById("tutNextBtn").textContent = (currentStep === tutorialSteps.length - 1) ? "Finish Tutorial & Play" : "Next Step →";
+    }
+
+    function stepForward() {
+      if (currentStep < tutorialSteps.length - 1) {
+        currentStep++;
+        renderTutorialStep();
+      } else {
+        scrollToPlayground();
+      }
+    }
+
+    function stepBackward() {
+      if (currentStep > 0) {
+        currentStep--;
+        renderTutorialStep();
+      }
+    }
+
+    function scrollToPlayground() {
+      document.getElementById("playgroundSection").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ==========================================================
+       PART 2: INTERACTIVE PLAYGROUND LOGIC
+       ========================================================== */
+    const playPte = {
       pfn: 0x41,
       present: 1,
-      protection: 1, // 1 = R/W, 0 = Read Only
+      protection: 1,
       referenced: 1,
       modified: 1,
       caching: 0,
-      supervisor: 0  // 0 = User, 1 = Supervisor only
+      supervisor: 0
     };
 
-    function updateUI() {
-      // Toggle element visual states
-      setFieldState('btnPresent', 'valPresent', pte.present, true);
-      setFieldState('btnProtection', 'valProtection', pte.protection);
-      setFieldState('btnReferenced', 'valReferenced', pte.referenced);
-      setFieldState('btnModified', 'valModified', pte.modified);
-      setFieldState('btnCaching', 'valCaching', pte.caching);
-      setFieldState('btnSupervisor', 'valSupervisor', pte.supervisor);
-    }
-
-    function setFieldState(btnId, valId, value, isValidBit = false) {
-      const el = document.getElementById(btnId);
-      document.getElementById(valId).textContent = value;
+    function setBitClass(elementId, value, isValidBit = false) {
+      const el = document.getElementById(elementId);
       if (isValidBit) {
         el.className = `bit-field field-flag valid-bit ${value ? 'active' : 'inactive'}`;
       } else {
@@ -369,61 +547,89 @@
       }
     }
 
-    function toggleBit(bitName) {
-      pte[bitName] = pte[bitName] ? 0 : 1;
-      logTrace(`User manually toggled ${bitName.toUpperCase()} bit to ${pte[bitName]}`, 'term-warn');
-      updateUI();
+    function updatePlaygroundUI() {
+      document.getElementById("playValPresent").textContent = playPte.present;
+      document.getElementById("playValProtection").textContent = playPte.protection;
+      document.getElementById("playValReferenced").textContent = playPte.referenced;
+      document.getElementById("playValModified").textContent = playPte.modified;
+      document.getElementById("playValCaching").textContent = playPte.caching;
+      document.getElementById("playValSupervisor").textContent = playPte.supervisor;
+
+      setBitClass("playPresent", playPte.present, true);
+      setBitClass("playProtection", playPte.protection);
+      setBitClass("playReferenced", playPte.referenced);
+      setBitClass("playModified", playPte.modified);
+      setBitClass("playCaching", playPte.caching);
+      setBitClass("playSupervisor", playPte.supervisor);
     }
 
-    function clearFlags() {
-      pte.referenced = 0;
-      logTrace("OS Clock Interrupt: Cleared Referenced (R) bit across all page table entries.", "term-warn");
-      updateUI();
+    function togglePlayBit(bitName) {
+      playPte[bitName] = playPte[bitName] ? 0 : 1;
+      logTrace(`Toggled ${bitName.toUpperCase()} bit to ${playPte[bitName]}`, 'log-warn');
+      updatePlaygroundUI();
+    }
+
+    function clockTick() {
+      playPte.referenced = 0;
+      logTrace("OS Clock Interrupt: Cleared Referenced (R) bit across page entries.", "log-info");
+      updatePlaygroundUI();
+    }
+
+    function resetSandbox() {
+      playPte.present = 1;
+      playPte.protection = 1;
+      playPte.referenced = 0;
+      playPte.modified = 0;
+      playPte.caching = 0;
+      playPte.supervisor = 0;
+      logTrace("PTE reset to clean state: Present=1, R/W=1, R=0, M=0, User Mode.", "log-info");
+      updatePlaygroundUI();
     }
 
     function logTrace(msg, cssClass = "") {
       const term = document.getElementById("mmuTerminal");
-      const entry = document.createElement("div");
-      entry.className = `term-log ${cssClass}`;
-      entry.textContent = `> ${msg}`;
-      term.prepend(entry);
+      const row = document.createElement("div");
+      row.className = `log-row ${cssClass}`;
+      row.textContent = `> ${msg}`;
+      term.prepend(row);
     }
 
-    function simulateAccess(type, isSupervisorMode) {
-      logTrace(`CPU requests ${type.toUpperCase()} (Mode: ${isSupervisorMode ? 'Kernel/Supervisor' : 'User'})...`);
+    function simulateAccess(type, isSupervisor) {
+      logTrace(`CPU requests ${type.toUpperCase()} (Execution Mode: ${isSupervisor ? 'Supervisor' : 'User'})...`);
 
-      // 1. Check Present Bit
-      if (pte.present === 0) {
-        logTrace("HARD PAGE FAULT: Present bit is 0! Hardware traps to kernel to load page from disk/SSD.", "term-fault");
+      // 1. Present Bit Check
+      if (playPte.present === 0) {
+        logTrace("HARD PAGE FAULT: Present bit is 0! Hardware traps to kernel to fetch frame from disk.", "log-fault");
         return;
       }
 
-      // 2. Check User/Supervisor bit
-      if (pte.supervisor === 1 && !isSupervisorMode) {
-        logTrace("PROTECTION FAULT: Page marked Supervisor-only (U/S=1), but CPU in User mode! SIGSEGV dispatched.", "term-fault");
+      // 2. Supervisor Check
+      if (playPte.supervisor === 1 && !isSupervisor) {
+        logTrace("PROTECTION FAULT: Page is Supervisor-only (U/S=1), but CPU in User mode! SIGSEGV sent.", "log-fault");
         return;
       }
 
-      // 3. Check Read vs Write permissions
-      if (type === 'write' && pte.protection === 0) {
-        logTrace("ACCESS VIOLATION: Attempted write to Read-Only page (R/W=0)! Hardware traps.", "term-fault");
+      // 3. Protection / Write Check
+      if (type === 'write' && playPte.protection === 0) {
+        logTrace("ACCESS VIOLATION: Write attempted on Read-Only page (R/W=0)! Hardware traps.", "log-fault");
         return;
       }
 
-      // 4. Successful translation: Hardware side-effects
-      pte.referenced = 1;
+      // 4. Successful translation & bit updates
+      playPte.referenced = 1;
       if (type === 'write') {
-        pte.modified = 1;
-        logTrace(`SUCCESS: Write permitted. Hardware automatically set R=1 and M=1 (Page marked Dirty). Base PFN: 0x${pte.pfn.toString(16).toUpperCase()}`, "term-ok");
+        playPte.modified = 1;
+        logTrace(`SUCCESS: Write completed. Hardware set R=1 and M=1 (Page is now Dirty). PFN: 0x${playPte.pfn.toString(16).toUpperCase()}`, "log-ok");
       } else {
-        logTrace(`SUCCESS: Read permitted. Hardware automatically set R=1. Translated to PFN: 0x${pte.pfn.toString(16).toUpperCase()}`, "term-ok");
+        logTrace(`SUCCESS: Read completed. Hardware set R=1. Address translated to PFN: 0x${playPte.pfn.toString(16).toUpperCase()}`, "log-ok");
       }
-      updateUI();
+      updatePlaygroundUI();
     }
 
-    // Initial state setup
-    logTrace("PTE initialized: Page mapped to PFN 0x41 with Read/Write enabled.");
-    updateUI();
+    // Initialize
+    renderTutorialStep();
+    logTrace("Sandbox initialized: PFN 0x41 loaded in DRAM with R/W permissions.");
+    updatePlaygroundUI();
   </script>
 </body>
 </html>
