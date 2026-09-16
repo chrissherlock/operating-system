@@ -39,7 +39,7 @@
 
     .nav-back {
       width: 100%;
-      max-width: 1050px;
+      max-width: 1100px;
       display: flex;
     }
     .nav-back a {
@@ -68,7 +68,7 @@
       flex-direction: column;
       gap: 20px;
       width: 100%;
-      max-width: 1050px;
+      max-width: 1100px;
     }
 
     .card {
@@ -109,25 +109,26 @@
     /* Flowchart Stage Graphic */
     .figure-container {
       width: 100%;
-      max-width: 900px;
+      max-width: 950px;
       margin: 0 auto;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-    /* Interactive Node Styles in SVG */
+    /* SVG Flowchart Dynamic State Classes */
     .flow-node {
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
     }
-    .flow-node.active-node rect,
-    .flow-node.active-node polygon {
+    .flow-node.current-step rect,
+    .flow-node.current-step polygon {
       stroke: #0284c7 !important;
-      stroke-width: 3px !important;
-      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.5));
+      stroke-width: 3.5px !important;
+      fill: #e0f2fe !important;
+      filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.6));
     }
-    .flow-node.node-success rect,
-    .flow-node.node-success polygon {
+    .flow-node.node-ok rect,
+    .flow-node.node-ok polygon {
       stroke: #16a34a !important;
       stroke-width: 3.5px !important;
       fill: #dcfce7 !important;
@@ -156,25 +157,25 @@
     }
 
     .flow-edge {
-      transition: stroke 0.3s ease, stroke-width 0.3s ease;
+      transition: stroke 0.25s ease, stroke-width 0.25s ease;
     }
-    .flow-edge.active-edge {
+    .flow-edge.edge-active {
       stroke: #0284c7 !important;
       stroke-width: 3px !important;
     }
-    .flow-edge.active-edge-success {
+    .flow-edge.edge-ok {
       stroke: #16a34a !important;
       stroke-width: 3px !important;
     }
-    .flow-edge.active-edge-soft {
+    .flow-edge.edge-soft {
       stroke: #d97706 !important;
       stroke-width: 3px !important;
     }
-    .flow-edge.active-edge-hard {
+    .flow-edge.edge-hard {
       stroke: #dc2626 !important;
       stroke-width: 3px !important;
     }
-    .flow-edge.active-edge-segv {
+    .flow-edge.edge-segv {
       stroke: #991b1b !important;
       stroke-width: 3px !important;
     }
@@ -208,6 +209,13 @@
       color: #0c4a6e;
     }
 
+    .scenario-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
     .tour-nav {
       display: flex;
       gap: 10px;
@@ -220,7 +228,7 @@
       background-color: var(--accent);
       color: #fff;
       border: none;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 6px;
       font-weight: 600;
       font-size: 0.85rem;
@@ -238,26 +246,30 @@
       border: 1px solid var(--border);
     }
     button.btn-sec:hover { background-color: #e2e8f0; }
+    button.btn-active-scenario {
+      background-color: #0369a1 !important;
+      color: #ffffff !important;
+    }
 
     /* Sandbox Grid */
     .sandbox-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.1fr 0.9fr;
       gap: 20px;
     }
-    @media (max-width: 860px) {
+    @media (max-width: 900px) {
       .sandbox-grid { grid-template-columns: 1fr; }
     }
 
     .table-spec {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-family: var(--font-mono);
     }
     .table-spec th, .table-spec td {
       border: 1px solid var(--border);
-      padding: 6px 10px;
+      padding: 6px 8px;
       text-align: center;
     }
     .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
@@ -270,13 +282,14 @@
       padding: 12px;
       font-family: var(--font-mono);
       font-size: 0.82rem;
-      height: 240px;
+      height: 250px;
       overflow-y: auto;
       display: flex;
       flex-direction: column-reverse;
       gap: 5px;
     }
     .log-row { line-height: 1.4; }
+    .log-step { color: #38bdf8; font-weight: 600; }
     .log-ok { color: #4ade80; font-weight: 700; }
     .log-soft { color: #facc15; font-weight: 700; }
     .log-hard { color: #f87171; font-weight: 700; }
@@ -291,7 +304,7 @@
 
   <header>
     <h1>Classifying Translation Failures</h1>
-    <p class="subtitle">Tanenbaum Section 3.3.4 (Page 203): Tracing execution flow through the hardware MMU and kernel fault handlers.</p>
+    <p class="subtitle">Tanenbaum Section 3.3.4 (Page 203): Granular decision-path stepping across TLB hits, minor soft faults, major disk faults, and segmentation violations.</p>
   </header>
 
   <div class="main-container">
@@ -299,32 +312,24 @@
     <!-- CONCEPT EXPLANATION -->
     <div class="card">
       <div class="theory-section">
-        <h2>Not All "Page Faults" Are Created Equal</h2>
+        <h2>The Hardware-to-Kernel Fault Pipeline</h2>
         <p>
-          Whenever the CPU attempts to dereference a virtual address, translation follows a strict hierarchy of decision points. Depending on where the mapping breaks down, the cost and handling mechanism vary radically:
+          Whenever the CPU fetches an instruction or reads/writes memory, the hardware MMU attempts translation. If the mapping is not immediately resolvable, execution is interrupted by a hardware trap. The cost of resolving this trap spans five orders of magnitude depending on where the pipeline halts:
         </p>
-        <ol style="padding-left: 20px;">
-          <li>
-            <strong>TLB Hit:</strong> The address translation exists directly in CPU associative registers. Translated to physical DRAM in &lt; 1 ns without consulting memory.
-          </li>
-          <li>
-            <strong>Soft Miss (Minor Page Fault):</strong> The page is <em>already in physical RAM</em> (e.g. shared libraries or a reclaimed standby page), but absent from this thread's PTE or TLB. The kernel simply maps the PTE to the existing DRAM frame. <strong>Cost: ~15 instructions, 0 disk I/O.</strong>
-          </li>
-          <li>
-            <strong>Hard Miss (Major Page Fault):</strong> The page is missing from RAM entirely and resides on swap or an executable file on SSD. The kernel puts the thread to sleep while an asynchronous DMA storage transfer executes. <strong>Cost: Millions of clock cycles.</strong>
-          </li>
-          <li>
-            <strong>Segmentation Violation (SIGSEGV):</strong> The requested address does not correspond to any valid allocated memory region (VMA) in the process address space. The kernel dispatches a termination signal immediately.
-          </li>
-        </ol>
+        <ul style="padding-left: 20px;">
+          <li><strong>TLB Hit (&lt; 1 ns):</strong> Resolved purely in CPU associative registers. Zero DRAM access, zero OS code.</li>
+          <li><strong>Soft Miss / Minor Fault (10–50 ns):</strong> The physical frame is <em>already in DRAM</em> (e.g. shared libraries, clean standby page, or copy-on-write clone). The kernel handles the trap entirely in software by inserting the translation into the PTE and TLB. <strong>Zero disk I/O.</strong></li>
+          <li><strong>Hard Miss / Major Fault (1–10 ms):</strong> The page is completely absent from physical RAM. The thread is put to sleep while an asynchronous DMA storage read fetches the page from SSD swap or an ELF binary on disk.</li>
+          <li><strong>Segmentation Violation / SIGSEGV:</strong> The address does not fall within any allocated Virtual Memory Area (VMA) belonging to the process. The kernel sends <code>SIGSEGV</code> to terminate the offending thread.</li>
+        </ul>
       </div>
     </div>
 
-    <!-- FLOWCHART STAGE -->
+    <!-- FLOWCHART CANVAS -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Interactive Architectural Flowchart</span>
-        <span id="flowchartStatus" style="font-family:var(--font-mono); font-size:0.8rem; font-weight:700; color:var(--accent);">Status: Ready</span>
+        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Architectural Decision Pipeline</span>
+        <span id="flowchartStatus" style="font-family:var(--font-mono); font-size:0.85rem; font-weight:700; color:var(--accent);">Idle</span>
       </div>
 
       <div class="figure-container">
@@ -332,6 +337,9 @@
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+            </marker>
+            <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
             </marker>
             <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
@@ -431,17 +439,29 @@
       </div>
     </div>
 
-    <!-- PART 1: GUIDED TUTORIAL -->
+    <!-- PART 1: GRANULAR GUIDED WALKTHROUGH -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
-        <span id="tutStepLabel">Part 1: Step 1 of 4</span>
-        <span>Guided Tutorial Following Flowchart</span>
+        <span id="tutStepLabel">Part 1: Micro-Step 1 of X</span>
+        <span>Granular Flowchart Stepper</span>
       </div>
-      <div id="tutStepTitle" class="tutorial-title">1. The Fast Path: TLB Hit</div>
+
+      <!-- Scenario Selector Tabs -->
+      <div class="scenario-picker">
+        <button id="tab-scen-0" class="btn-sec" onclick="selectScenario(0)">1. Hot Stack Page</button>
+        <button id="tab-scen-1" class="btn-sec" onclick="selectScenario(1)">2. Shared Library (printf)</button>
+        <button id="tab-scen-2" class="btn-sec" onclick="selectScenario(2)">3. Reclaimed Standby Page</button>
+        <button id="tab-scen-3" class="btn-sec" onclick="selectScenario(3)">4. Swapped Heap</button>
+        <button id="tab-scen-4" class="btn-sec" onclick="selectScenario(4)">5. Demand-Paged Code</button>
+        <button id="tab-scen-5" class="btn-sec" onclick="selectScenario(5)">6. Null Pointer (Crash)</button>
+      </div>
+
+      <div id="tutStepTitle" class="tutorial-title">1. Initial Virtual Memory Generation</div>
       <div id="tutStepBody" class="tutorial-body"></div>
+
       <div class="tour-nav">
         <button id="tutPrevBtn" class="btn-sec" onclick="stepBackward()">Back</button>
-        <button id="tutNextBtn" onclick="stepForward()">Next Step &rarr;</button>
+        <button id="tutNextBtn" onclick="stepForward()">Next Decision &rarr;</button>
         <button class="btn-sec" style="margin-left:auto;" onclick="scrollToSandbox()">Jump to Live Sandbox &darr;</button>
       </div>
     </div>
@@ -452,40 +472,44 @@
         <div>
           <h2 style="font-size:1.25rem; font-weight:700;">Part 2: Interactive Fault Dispatcher</h2>
           <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Click a button to dispatch an access instruction. Watch the decision tree branches illuminate on the flowchart above.
+            Dispatch instructions against real virtual memory segments to watch the hardware gates and OS handlers trigger step-by-step.
           </p>
         </div>
-        <button class="btn-sec" onclick="resetSandbox()">Reset State</button>
+        <button class="btn-sec" onclick="resetSandbox()">Clear Simulation</button>
       </div>
 
-      <!-- Action Buttons -->
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button onclick="executeFlow('tlb-hit')">1. Access Stack (TLB Hit)</button>
-        <button onclick="executeFlow('shared')">2. Access Libc (Soft Miss)</button>
-        <button onclick="executeFlow('swap')">3. Access Swapped Heap (Hard Fault)</button>
-        <button onclick="executeFlow('unmapped')">4. Dereference NULL (SIGSEGV)</button>
+      <!-- Quick Dispatcher Buttons -->
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button onclick="dispatchScenario(0)">Hot Stack (TLB Hit)</button>
+        <button onclick="dispatchScenario(1)">Shared Libc (Soft Miss)</button>
+        <button onclick="dispatchScenario(2)">Standby Page (Soft Miss)</button>
+        <button onclick="dispatchScenario(3)">Heap Page (Hard Swap Fault)</button>
+        <button onclick="dispatchScenario(4)">Executable Code (Hard Disk Fault)</button>
+        <button onclick="dispatchScenario(5)">NULL Pointer (SIGSEGV)</button>
       </div>
 
       <div class="sandbox-grid">
-        <!-- Address Space Layout Table -->
+        <!-- VMA Table -->
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Process Address Space Segments</span>
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Process Address Space Segments (mm_struct)</span>
           <table class="table-spec">
             <thead>
-              <tr><th>VMA Region</th><th>Virt Page</th><th>DRAM Status</th><th>Backing Store</th></tr>
+              <tr><th>VMA Region</th><th>Virt Page</th><th>Hardware Status</th><th>Physical Location</th></tr>
             </thead>
             <tbody id="vmaBody">
-              <tr id="row-stack"><td>Stack Segment</td><td>0x7FF0</td><td>Mapped in TLB</td><td>In DRAM</td></tr>
-              <tr id="row-shared"><td>Shared Lib (.so)</td><td>0x5000</td><td>Absent in PTE (In RAM)</td><td>DRAM Page Cache</td></tr>
-              <tr id="row-swap"><td>Anonymous Heap</td><td>0x2000</td><td>P = 0 (Absent)</td><td>Swap SSD</td></tr>
-              <tr id="row-unmapped"><td>Unmapped Space</td><td>0x0000</td><td>Null Pointer</td><td>None (Illegal)</td></tr>
+              <tr id="vma-0"><td>User Stack</td><td>0x7FF0</td><td>Mapped in TLB</td><td>DRAM Frame 42</td></tr>
+              <tr id="vma-1"><td>Shared Library</td><td>0x5000</td><td>Uncached in TLB</td><td>DRAM Page Cache</td></tr>
+              <tr id="vma-2"><td>Inactive Standby</td><td>0x3200</td><td>Unmapped in PTE</td><td>DRAM Free List</td></tr>
+              <tr id="vma-3"><td>Anonymous Heap</td><td>0x2000</td><td>P = 0 (Absent)</td><td>Swap Partition (SSD)</td></tr>
+              <tr id="vma-4"><td>ELF Text Segment</td><td>0x0400</td><td>P = 0 (Demand-paged)</td><td>Binary Executable (Disk)</td></tr>
+              <tr id="vma-5"><td>Unmapped Space</td><td>0x0000</td><td>NULL Pointer</td><td>None (Invalid VMA)</td></tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Kernel & Hardware Execution Log -->
+        <!-- Terminal Log -->
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Hardware MMU &amp; Kernel Trap Log</span>
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">MMU Hardware &amp; Kernel Trap Stream</span>
           <div id="mmuLog" class="terminal-box"></div>
         </div>
       </div>
@@ -495,24 +519,22 @@
 
   <script>
     /* =========================================================================
-       FLOWCHART VISUAL HIGHLIGHT LOGIC
+       FLOWCHART SVG RENDER ENGINE
        ========================================================================= */
-    function clearFlowchart() {
-      // Clear all nodes
+    function resetFlowchartVisuals() {
       document.querySelectorAll(".flow-node").forEach(node => {
         node.className.baseVal = "flow-node";
       });
-      // Clear all edges
       document.querySelectorAll(".flow-edge").forEach(edge => {
         edge.className.baseVal = "flow-edge";
         edge.setAttribute("stroke", "#cbd5e1");
         edge.setAttribute("marker-end", "url(#arrow)");
       });
+
       document.getElementById("edge-cpu-tlb").setAttribute("stroke", "#334155");
       document.getElementById("edge-tlb-miss").setAttribute("stroke", "#334155");
       document.getElementById("edge-pt-vma").setAttribute("stroke", "#334155");
 
-      // Reset label colors
       document.getElementById("label-tlb-hit").setAttribute("fill", "#94a3b8");
       document.getElementById("label-tlb-miss").setAttribute("fill", "#64748b");
       document.getElementById("label-pt-soft").setAttribute("fill", "#94a3b8");
@@ -521,121 +543,468 @@
       document.getElementById("label-vma-no").setAttribute("fill", "#94a3b8");
     }
 
-    function highlightFlowPath(pathType) {
-      clearFlowchart();
+    function renderActiveFlowStep(stepData) {
+      resetFlowchartVisuals();
 
-      // CPU node is always the origin
-      document.getElementById("node-cpu").classList.add("active-node");
-      document.getElementById("edge-cpu-tlb").classList.add("active-edge");
-      document.getElementById("node-tlb").classList.add("active-node");
+      // Highlight historical active nodes
+      (stepData.activeNodes || []).forEach(nodeId => {
+        const el = document.getElementById(nodeId);
+        if (el) el.classList.add("current-step");
+      });
 
-      if (pathType === 'tlb-hit') {
-        document.getElementById("edge-tlb-hit").className.baseVal = "flow-edge active-edge-success";
-        document.getElementById("edge-tlb-hit").setAttribute("marker-end", "url(#arrow-green)");
-        document.getElementById("label-tlb-hit").setAttribute("fill", "#16a34a");
-        document.getElementById("node-dram").classList.add("node-success");
-        document.getElementById("flowchartStatus").textContent = "Branch: TLB Hit -> Physical DRAM";
-        document.getElementById("flowchartStatus").style.color = "#16a34a";
+      // Highlight terminal node
+      if (stepData.terminalNode) {
+        const el = document.getElementById(stepData.terminalNode.id);
+        if (el) el.className.baseVal = `flow-node ${stepData.terminalNode.className}`;
       }
-      else if (pathType === 'soft') {
-        document.getElementById("edge-tlb-miss").classList.add("active-edge");
-        document.getElementById("label-tlb-miss").setAttribute("fill", "#dc2626");
-        document.getElementById("node-pt").classList.add("active-node");
 
-        document.getElementById("edge-pt-soft").className.baseVal = "flow-edge active-edge-soft";
-        document.getElementById("edge-pt-soft").setAttribute("marker-end", "url(#arrow-amber)");
-        document.getElementById("label-pt-soft").setAttribute("fill", "#d97706");
-        document.getElementById("node-soft").classList.add("node-soft");
-        document.getElementById("flowchartStatus").textContent = "Branch: TLB Miss -> Present=1 (Soft Miss)";
-        document.getElementById("flowchartStatus").style.color = "#d97706";
-      }
-      else if (pathType === 'hard') {
-        document.getElementById("edge-tlb-miss").classList.add("active-edge");
-        document.getElementById("label-tlb-miss").setAttribute("fill", "#dc2626");
-        document.getElementById("node-pt").classList.add("active-node");
+      // Highlight edges
+      (stepData.activeEdges || []).forEach(item => {
+        const edgeEl = document.getElementById(item.id);
+        if (edgeEl) {
+          edgeEl.className.baseVal = `flow-edge ${item.className}`;
+          if (item.marker) edgeEl.setAttribute("marker-end", `url(#${item.marker})`);
+        }
+      });
 
-        document.getElementById("edge-pt-vma").classList.add("active-edge");
-        document.getElementById("label-pt-absent").setAttribute("fill", "#dc2626");
-        document.getElementById("node-vma").classList.add("active-node");
+      // Highlight labels
+      (stepData.activeLabels || []).forEach(item => {
+        const lblEl = document.getElementById(item.id);
+        if (lblEl) lblEl.setAttribute("fill", item.color);
+      });
 
-        document.getElementById("edge-vma-hard").className.baseVal = "flow-edge active-edge-hard";
-        document.getElementById("edge-vma-hard").setAttribute("marker-end", "url(#arrow-red)");
-        document.getElementById("label-vma-yes").setAttribute("fill", "#dc2626");
-        document.getElementById("node-hard").classList.add("node-hard");
-        document.getElementById("flowchartStatus").textContent = "Branch: Absent -> Valid VMA (Hard Disk Fault)";
-        document.getElementById("flowchartStatus").style.color = "#dc2626";
-      }
-      else if (pathType === 'segv') {
-        document.getElementById("edge-tlb-miss").classList.add("active-edge");
-        document.getElementById("label-tlb-miss").setAttribute("fill", "#dc2626");
-        document.getElementById("node-pt").classList.add("active-node");
-
-        document.getElementById("edge-pt-vma").classList.add("active-edge");
-        document.getElementById("label-pt-absent").setAttribute("fill", "#dc2626");
-        document.getElementById("node-vma").classList.add("active-node");
-
-        document.getElementById("edge-vma-segv").className.baseVal = "flow-edge active-edge-segv";
-        document.getElementById("edge-vma-segv").setAttribute("marker-end", "url(#arrow-darkred)");
-        document.getElementById("label-vma-no").setAttribute("fill", "#991b1b");
-        document.getElementById("node-segv").classList.add("node-segv");
-        document.getElementById("flowchartStatus").textContent = "Branch: Unmapped VMA (SIGSEGV Crash)";
-        document.getElementById("flowchartStatus").style.color = "#991b1b";
-      }
+      const statusEl = document.getElementById("flowchartStatus");
+      statusEl.textContent = stepData.statusText || "Active";
+      statusEl.style.color = stepData.statusColor || "var(--accent)";
     }
 
     /* =========================================================================
-       PART 1: GUIDED TUTORIAL SCRIPT
+       GRANULAR SCENARIO DEFINITIONS
        ========================================================================= */
-    const tutorialSteps = [
+    const scenarios = [
+      // Scenario 0: Hot Stack Page (Instant TLB Hit)
       {
-        title: "1. The Fast Path: TLB Hit",
-        body: "Look at the top branch of the flowchart. When the CPU emits an address whose translation is already cached in the TLB, the hardware delivers the Page Frame Number directly to DRAM in less than 1 nanosecond. <strong>Zero memory lookups and zero OS kernel code execute.</strong>",
-        path: "tlb-hit"
+        name: "1. Hot Stack Page",
+        vmaIndex: 0,
+        steps: [
+          {
+            title: "1. CPU Generates Stack Address",
+            body: "The CPU executes a function call (e.g. <code>push %rbp</code>). It generates virtual address <code>0x7FF01A40</code> inside the active stack segment. The address is split into VPN <code>0x7FF0</code> and in-page offset <code>0xA40</code>.",
+            activeNodes: ["node-cpu"],
+            activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
+            statusText: "CPU -> Emitting Virtual Address 0x7FF01A40",
+            statusColor: "var(--accent)"
+          },
+          {
+            title: "2. Associative TLB Query (Hit!)",
+            body: "The MMU broadcasts VPN <code>0x7FF0</code> across all associative TLB lines simultaneously. Because stack memory is accessed continuously, entry <code>0x7FF0 &rarr; PFN 42</code> is found immediately.",
+            activeNodes: ["node-cpu", "node-tlb"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-hit", className: "edge-ok", marker: "arrow-green" }
+            ],
+            activeLabels: [{ id: "label-tlb-hit", color: "#16a34a" }],
+            statusText: "TLB Hit Detected (1ns)",
+            statusColor: "#16a34a"
+          },
+          {
+            title: "3. Direct DRAM Physical Access",
+            body: "The MMU combines PFN 42 with offset <code>0xA40</code> to emit physical bus address <code>0x0002A1A40</code>. Physical DRAM executes the read/write in less than 1 nanosecond. <strong>Zero page table walks and zero kernel traps occurred.</strong>",
+            activeNodes: ["node-cpu", "node-tlb"],
+            terminalNode: { id: "node-dram", className: "node-ok" },
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-hit", className: "edge-ok", marker: "arrow-green" }
+            ],
+            activeLabels: [{ id: "label-tlb-hit", color: "#16a34a" }],
+            statusText: "Success: Direct DRAM Delivery",
+            statusColor: "#16a34a"
+          }
+        ]
       },
+
+      // Scenario 1: Shared Library printf (Minor Soft Fault via Shared Page Cache)
       {
-        title: "2. Soft Miss (Minor Page Fault)",
-        body: "Follow the middle branch: <code>TLB Miss &rarr; PTE in RAM? &rarr; Present = 1</code>. This occurs when a page is in physical DRAM (e.g. shared library pages or a page freshly allocated), but the thread's PTE or TLB hasn't registered it yet. The kernel merely links the PTE and loads the TLB. <strong>Zero disk I/O occurs.</strong>",
-        path: "soft"
+        name: "2. Shared Library (printf)",
+        vmaIndex: 1,
+        steps: [
+          {
+            title: "1. Calling Shared libc Function",
+            body: "A newly spawned process invokes <code>printf()</code> at virtual address <code>0x50000320</code>. The address is decoded to VPN <code>0x5000</code>.",
+            activeNodes: ["node-cpu"],
+            activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
+            statusText: "CPU -> Accessing shared libc code (0x5000)",
+            statusColor: "var(--accent)"
+          },
+          {
+            title: "2. TLB Query: Miss!",
+            body: "The MMU queries the hardware TLB. Because this specific process has never called <code>printf()</code> before, its TLB contains no translation. A <strong>TLB Miss</strong> occurs.",
+            activeNodes: ["node-cpu", "node-tlb"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" }
+            ],
+            activeLabels: [{ id: "label-tlb-miss", color: "#dc2626" }],
+            statusText: "TLB Miss -> Initiating Page Table Walk",
+            statusColor: "#dc2626"
+          },
+          {
+            title: "3. Page Table Inspection: Present = 1",
+            body: "The hardware or OS walks the multi-level page table hierarchy in DRAM. Another process on the system already loaded <code>libc.so</code>, so the frame is present in the OS unified page cache! The PTE points to PFN 108 with <strong>Present = 1</strong>.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-soft", className: "edge-soft", marker: "arrow-amber" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-soft", color: "#d97706" }
+            ],
+            statusText: "PTE Found in DRAM (Present = 1)",
+            statusColor: "#d97706"
+          },
+          {
+            title: "4. Soft Miss Resolved (Minor Fault)",
+            body: "Because the frame is already in DRAM, <strong>zero disk I/O is required</strong>. The kernel simply populates the TLB with <code>0x5000 &rarr; PFN 108</code> in ~15 CPU instructions and resumes execution immediately.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
+            terminalNode: { id: "node-soft", className: "node-soft" },
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-soft", className: "edge-soft", marker: "arrow-amber" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-soft", color: "#d97706" }
+            ],
+            statusText: "Soft Miss: Fast In-Memory Resolution",
+            statusColor: "#d97706"
+          }
+        ]
       },
+
+      // Scenario 2: Reclaiming an Inactive Standby Page (Soft Fault from Free List)
       {
-        title: "3. Hard Miss (Major Page Fault)",
-        body: "Trace downward: <code>TLB Miss &rarr; Present = 0 &rarr; Valid VMA? &rarr; Yes</code>. The address is legal (such as dynamically allocated heap), but its contents were swapped to SSD to free RAM. The OS halts the thread and schedules an asynchronous disk transfer. <strong>Takes milliseconds.</strong>",
-        path: "hard"
+        name: "3. Standby Page Reclaim",
+        vmaIndex: 2,
+        steps: [
+          {
+            title: "1. Accessing Inactive Heap Data",
+            body: "A background worker thread wakes up and accesses data array page <code>0x3200</code> that hasn't been used in several minutes.",
+            activeNodes: ["node-cpu"],
+            activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
+            statusText: "CPU -> Accessing inactive data page 0x3200",
+            statusColor: "var(--accent)"
+          },
+          {
+            title: "2. TLB Query: Miss!",
+            body: "The TLB was flushed long ago during a context switch. A <strong>TLB Miss</strong> is raised.",
+            activeNodes: ["node-cpu", "node-tlb"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" }
+            ],
+            activeLabels: [{ id: "label-tlb-miss", color: "#dc2626" }],
+            statusText: "TLB Miss -> Walking Page Table",
+            statusColor: "#dc2626"
+          },
+          {
+            title: "3. Page Table Walk & Kernel Trap",
+            body: "The page table shows <code>Present = 0</code> because the OS reclaimed this frame to the inactive standby list. However, because memory pressure remained low, <em>the OS never overwrote the DRAM frame!</em>",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-soft", className: "edge-soft", marker: "arrow-amber" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-soft", color: "#d97706" }
+            ],
+            statusText: "Reclaiming Clean Frame from Standby List",
+            statusColor: "#d97706"
+          },
+          {
+            title: "4. Soft Fault: Instant Reattachment",
+            body: "The kernel reclaims the standby frame, sets <code>Present = 1</code> in the PTE, installs it into the TLB, and resumes the thread without any storage reads.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
+            terminalNode: { id: "node-soft", className: "node-soft" },
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-soft", className: "edge-soft", marker: "arrow-amber" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-soft", color: "#d97706" }
+            ],
+            statusText: "Soft Miss: Standby Frame Restored",
+            statusColor: "#d97706"
+          }
+        ]
       },
+
+      // Scenario 3: Swapped Anonymous Heap (Major Hard Fault)
       {
-        title: "4. Illegal Access: SIGSEGV",
-        body: "Follow the bottom branch: <code>TLB Miss &rarr; Present = 0 &rarr; Valid VMA? &rarr; No</code>. If code dereferences a NULL pointer or accesses an unmapped virtual region, the OS checks its memory descriptors and finds nothing. The kernel delivers a <code>SIGSEGV</code> signal, terminating the process.",
-        path: "segv"
+        name: "4. Swapped Heap Page",
+        vmaIndex: 3,
+        steps: [
+          {
+            title: "1. Accessing Swapped Memory",
+            body: "A thread writes to an allocated heap buffer at address <code>0x20000010</code>. This data was swapped out to SSD storage under heavy system memory load.",
+            activeNodes: ["node-cpu"],
+            activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
+            statusText: "CPU -> Writing to swapped heap page (0x2000)",
+            statusColor: "var(--accent)"
+          },
+          {
+            title: "2. TLB Miss",
+            body: "The TLB contains no translation for VPN <code>0x2000</code>. Hardware initiates a Page Table walk in memory.",
+            activeNodes: ["node-cpu", "node-tlb"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" }
+            ],
+            activeLabels: [{ id: "label-tlb-miss", color: "#dc2626" }],
+            statusText: "TLB Miss -> Walking Page Table",
+            statusColor: "#dc2626"
+          },
+          {
+            title: "3. Page Table: Present = 0 (Page Absent)",
+            body: "The MMU inspects the PTE and discovers <strong>Present = 0</strong>. The hardware halts execution and triggers a <strong>Page Fault exception</strong>, transferring control to the kernel trap vector.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" }
+            ],
+            statusText: "Present = 0 -> Trapping to Kernel",
+            statusColor: "#dc2626"
+          },
+          {
+            title: "4. Kernel VMA Validation: Legal Address",
+            body: "The kernel searches the process's Virtual Memory Area (VMA) tree. <code>0x2000</code> is confirmed as a valid, readable/writable heap segment. The PTE contains swap partition identifiers.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" },
+              { id: "edge-vma-hard", className: "edge-hard", marker: "arrow-red" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" },
+              { id: "label-vma-yes", color: "#dc2626" }
+            ],
+            statusText: "Valid VMA -> Scheduling Swap Disk I/O",
+            statusColor: "#dc2626"
+          },
+          {
+            title: "5. Major Hard Fault (Disk DMA Transfer)",
+            body: "The kernel allocates an empty physical frame in DRAM, queues an asynchronous DMA read from the SSD swap device, puts the thread to <strong>SLEEP</strong>, and switches to another process. Once I/O completes (~2–5 ms), the thread awakens and restarts the instruction.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
+            terminalNode: { id: "node-hard", className: "node-hard" },
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" },
+              { id: "edge-vma-hard", className: "edge-hard", marker: "arrow-red" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" },
+              { id: "label-vma-yes", color: "#dc2626" }
+            ],
+            statusText: "Hard Fault: Thread Sleeping on Storage DMA",
+            statusColor: "#dc2626"
+          }
+        ]
+      },
+
+      // Scenario 4: Demand Paging Executable Code
+      {
+        name: "5. Demand-Paged Code",
+        vmaIndex: 4,
+        steps: [
+          {
+            title: "1. Branching to Unloaded Function",
+            body: "The CPU executes a function jump into code address <code>0x04001000</code>. Modern operating systems use <strong>demand paging</strong>: binaries are never loaded entirely into RAM on startup; pages are read on demand.",
+            activeNodes: ["node-cpu"],
+            activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
+            statusText: "CPU -> Instruction fetch at 0x04001000",
+            statusColor: "var(--accent)"
+          },
+          {
+            title: "2. TLB Miss & Page Table Walk",
+            body: "The TLB has no entry. The MMU examines the PTE and finds <code>Present = 0</code>. Execution halts with a hardware page fault trap.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" }
+            ],
+            statusText: "Present = 0 -> Checking Executable VMA",
+            statusColor: "#dc2626"
+          },
+          {
+            title: "3. Hard Fault: Reading from ELF Binary",
+            body: "The kernel checks the VMA and finds a file-backed executable mapping. The kernel allocates a physical frame, issues an I/O read directly to the executable file on disk, fills the page with machine instructions, marks the PTE Read-Only, and resumes execution.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
+            terminalNode: { id: "node-hard", className: "node-hard" },
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" },
+              { id: "edge-vma-hard", className: "edge-hard", marker: "arrow-red" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" },
+              { id: "label-vma-yes", color: "#dc2626" }
+            ],
+            statusText: "Hard Fault: Loading Code Page from Binary File",
+            statusColor: "#dc2626"
+          }
+        ]
+      },
+
+      // Scenario 5: Null Pointer Dereference (SIGSEGV)
+      {
+        name: "6. Null Pointer Dereference",
+        vmaIndex: 5,
+        steps: [
+          {
+            title: "1. Dereferencing NULL Pointer (0x0000)",
+            body: "A buggy program executes <code>int val = *ptr</code> where <code>ptr == NULL (0x00000000)</code>. Virtual address <code>0x0000</code> is dispatched to the MMU.",
+            activeNodes: ["node-cpu"],
+            activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
+            statusText: "CPU -> Reading address 0x00000000 (NULL)",
+            statusColor: "var(--accent)"
+          },
+          {
+            title: "2. TLB Miss & Empty Page Table Entry",
+            body: "The TLB misses. The MMU examines the root page directory and finds that Page 0 is marked absent (<code>P = 0</code>). Hardware traps immediately to the kernel page fault handler.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" }
+            ],
+            statusText: "Present = 0 -> Querying Memory Descriptors",
+            statusColor: "#dc2626"
+          },
+          {
+            title: "3. VMA Search: Unmapped Address!",
+            body: "The kernel searches the process's address space descriptor (<code>mm_struct</code>). Address <code>0x0000</code> does not fall within code, data, heap, or stack boundaries. It is an illegal address.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" },
+              { id: "edge-vma-segv", className: "edge-segv", marker: "arrow-darkred" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" },
+              { id: "label-vma-no", color: "#991b1b" }
+            ],
+            statusText: "Address Not in VMA -> Illegal Access!",
+            statusColor: "#991b1b"
+          },
+          {
+            title: "4. Fatal Segmentation Violation (SIGSEGV)",
+            body: "Because no backing store exists and the address is outside valid program memory, the kernel dispatches a <code>SIGSEGV</code> signal. The default handler halts process execution and dumps core.",
+            activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
+            terminalNode: { id: "node-segv", className: "node-segv" },
+            activeEdges: [
+              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
+              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
+              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" },
+              { id: "edge-vma-segv", className: "edge-segv", marker: "arrow-darkred" }
+            ],
+            activeLabels: [
+              { id: "label-tlb-miss", color: "#dc2626" },
+              { id: "label-pt-absent", color: "#dc2626" },
+              { id: "label-vma-no", color: "#991b1b" }
+            ],
+            statusText: "CRASH: Process Terminated via SIGSEGV",
+            statusColor: "#991b1b"
+          }
+        ]
       }
     ];
 
-    let currentStep = 0;
+    let currentScenarioIdx = 0;
+    let currentStepIdx = 0;
 
-    function renderTutorial() {
-      const step = tutorialSteps[currentStep];
-      document.getElementById("tutStepLabel").textContent = `Part 1: Step ${currentStep + 1} of ${tutorialSteps.length}`;
+    function selectScenario(scenIdx) {
+      currentScenarioIdx = scenIdx;
+      currentStepIdx = 0;
+
+      for (let i = 0; i < scenarios.length; i++) {
+        const tab = document.getElementById(`tab-scen-${i}`);
+        if (i === scenIdx) {
+          tab.className = "btn-sec btn-active-scenario";
+        } else {
+          tab.className = "btn-sec";
+        }
+      }
+
+      highlightVmaRow(scenarios[scenIdx].vmaIndex);
+      renderGranularStep();
+    }
+
+    function renderGranularStep() {
+      const scenario = scenarios[currentScenarioIdx];
+      const step = scenario.steps[currentStepIdx];
+
+      document.getElementById("tutStepLabel").textContent = `Part 1: ${scenario.name} (Step ${currentStepIdx + 1} of ${scenario.steps.length})`;
       document.getElementById("tutStepTitle").textContent = step.title;
       document.getElementById("tutStepBody").innerHTML = step.body;
 
-      highlightFlowPath(step.path);
+      renderActiveFlowStep(step);
 
-      document.getElementById("tutPrevBtn").disabled = (currentStep === 0);
-      document.getElementById("tutNextBtn").textContent = (currentStep === tutorialSteps.length - 1) ? "Finish & Try Sandbox" : "Next Step →";
+      document.getElementById("tutPrevBtn").disabled = (currentStepIdx === 0);
+      if (currentStepIdx === scenario.steps.length - 1) {
+        document.getElementById("tutNextBtn").textContent = (currentScenarioIdx < scenarios.length - 1) ? "Next Scenario →" : "Finish & Try Sandbox";
+      } else {
+        document.getElementById("tutNextBtn").textContent = "Next Decision Gate →";
+      }
     }
 
     function stepForward() {
-      if (currentStep < tutorialSteps.length - 1) {
-        currentStep++;
-        renderTutorial();
+      const scenario = scenarios[currentScenarioIdx];
+      if (currentStepIdx < scenario.steps.length - 1) {
+        currentStepIdx++;
+        renderGranularStep();
+      } else if (currentScenarioIdx < scenarios.length - 1) {
+        selectScenario(currentScenarioIdx + 1);
       } else {
         scrollToSandbox();
       }
     }
 
     function stepBackward() {
-      if (currentStep > 0) {
-        currentStep--;
-        renderTutorial();
+      if (currentStepIdx > 0) {
+        currentStepIdx--;
+        renderGranularStep();
+      } else if (currentScenarioIdx > 0) {
+        selectScenario(currentScenarioIdx - 1);
+        currentStepIdx = scenarios[currentScenarioIdx].steps.length - 1;
+        renderGranularStep();
       }
     }
 
@@ -646,6 +1015,12 @@
     /* =========================================================================
        PART 2: INTERACTIVE SANDBOX LOGIC
        ========================================================================= */
+    function highlightVmaRow(rowIdx) {
+      for (let i = 0; i < 6; i++) {
+        document.getElementById(`vma-${i}`).className = (i === rowIdx) ? "active-row" : "";
+      }
+    }
+
     function logMmu(msg, type = "log-row") {
       const term = document.getElementById("mmuLog");
       const row = document.createElement("div");
@@ -654,64 +1029,70 @@
       term.prepend(row);
     }
 
-    function clearRowHighlights() {
-      ["row-stack", "row-shared", "row-swap", "row-unmapped"].forEach(id => {
-        document.getElementById(id).className = "";
-      });
-    }
+    function dispatchScenario(scenIdx) {
+      highlightVmaRow(scenIdx);
+      const scen = scenarios[scenIdx];
+      const finalStep = scen.steps[scen.steps.length - 1];
 
-    function executeFlow(kind) {
-      clearRowHighlights();
+      // Play through terminal log with sequential logging
+      logMmu(`--------------------------------------------------`);
+      logMmu(`[DISPATCH] CPU executes instruction against: ${scen.name}`, "log-step");
 
-      if (kind === 'tlb-hit') {
-        document.getElementById("row-stack").className = "active-row";
-        highlightFlowPath('tlb-hit');
-        logMmu("CPU requests read at 0x7FF0 (Stack Pointer)...");
-        logMmu("[FLOW] TLB Hit? -> YES. Direct to Physical DRAM.", "log-ok");
-        logMmu("SUCCESS: Instant translation to PFN 42 (< 1ns). Zero DRAM table walks.", "log-ok");
+      if (scenIdx === 0) {
+        logMmu("Step 1: Broadcast VPN 0x7FF0 to TLB associative lines...", "log-step");
+        logMmu("Step 2: TLB HIT! PFN 42 delivered in < 1ns.", "log-ok");
+        logMmu("RESULT: Instant DRAM access. Zero table walks or kernel overhead.", "log-ok");
       }
-      else if (kind === 'shared') {
-        document.getElementById("row-shared").className = "active-row";
-        highlightFlowPath('soft');
-        logMmu("CPU requests execution at 0x5000 (libc.so)...");
-        logMmu("[FLOW] TLB Hit? -> NO. Walking Page Table in RAM...", "log-soft");
-        logMmu("[FLOW] PTE in RAM? -> YES (Present=1). Frame 108 in Page Cache.", "log-soft");
-        logMmu("SOFT MISS RESOLVED: Kernel updates TLB and PTE in ~15 instructions. 0ms disk I/O.", "log-ok");
+      else if (scenIdx === 1) {
+        logMmu("Step 1: Broadcast VPN 0x5000 to TLB -> TLB MISS!", "log-step");
+        logMmu("Step 2: Walking DRAM Page Table... Found PTE with Present = 1.", "log-soft");
+        logMmu("Step 3: Frame 108 already cached in RAM by another process!", "log-soft");
+        logMmu("RESULT: SOFT MISS. PTE mapped and TLB updated in 15 instructions. 0 disk I/O.", "log-ok");
       }
-      else if (kind === 'swap') {
-        document.getElementById("row-swap").className = "active-row";
-        highlightFlowPath('hard');
-        logMmu("CPU requests write at 0x2000 (Heap Array)...");
-        logMmu("[FLOW] TLB Hit? -> NO. Walking Page Table...", "log-hard");
-        logMmu("[FLOW] PTE in RAM? -> NO (Present=0). Trapping to OS Page Fault handler.", "log-hard");
-        logMmu("[FLOW] Valid VMA Descriptor? -> YES (Heap segment).", "log-hard");
-        logMmu("HARD FAULT: Allocating physical frame, starting async SSD DMA read (+5ms).", "log-hard");
+      else if (scenIdx === 2) {
+        logMmu("Step 1: Broadcast VPN 0x3200 to TLB -> TLB MISS!", "log-step");
+        logMmu("Step 2: Walking Page Table... PTE Present = 0.", "log-soft");
+        logMmu("Step 3: Kernel Trap: Frame resides on inactive clean standby list.", "log-soft");
+        logMmu("RESULT: SOFT FAULT. Frame reattached to PTE without disk read.", "log-ok");
+      }
+      else if (scenIdx === 3) {
+        logMmu("Step 1: Broadcast VPN 0x2000 to TLB -> TLB MISS!", "log-step");
+        logMmu("Step 2: Walking Page Table... PTE Present = 0 (Page absent).", "log-hard");
+        logMmu("Step 3: Trapping to Kernel. Checking mm_struct VMAs -> Legal Heap segment.", "log-hard");
+        logMmu("Step 4: MAJOR FAULT: Allocating frame, queuing SSD swap read, putting thread to SLEEP.", "log-hard");
         setTimeout(() => {
-          logMmu("I/O COMPLETE: Frame populated. Thread resumed.", "log-ok");
+          logMmu("Step 5: SSD DMA Complete -> Thread awakened, instruction restarted (+3ms).", "log-ok");
         }, 500);
       }
-      else if (kind === 'unmapped') {
-        document.getElementById("row-unmapped").className = "active-row";
-        highlightFlowPath('segv');
-        logMmu("CPU requests dereference of 0x0000 (NULL Pointer)...");
-        logMmu("[FLOW] TLB Hit? -> NO. Walking Page Table...", "log-segv");
-        logMmu("[FLOW] PTE in RAM? -> NO (P=0). Trapping to Kernel.", "log-segv");
-        logMmu("[FLOW] Valid VMA Descriptor? -> NO (Address out of bounds!).", "log-segv");
-        logMmu("CRASH: Kernel sends SIGSEGV (Segmentation Violation) to process. Terminated.", "log-segv");
+      else if (scenIdx === 4) {
+        logMmu("Step 1: Broadcast VPN 0x0400 to TLB -> TLB MISS!", "log-step");
+        logMmu("Step 2: Walking Page Table... PTE Present = 0 (Demand-paged code).", "log-hard");
+        logMmu("Step 3: Trapping to Kernel. VMA maps directly to ELF binary on storage.", "log-hard");
+        logMmu("RESULT: MAJOR FAULT. Reading text page from disk file into new physical frame.", "log-hard");
       }
+      else if (scenIdx === 5) {
+        logMmu("Step 1: Broadcast VPN 0x0000 to TLB -> TLB MISS!", "log-step");
+        logMmu("Step 2: Walking Page Table... Root entry completely unmapped.", "log-segv");
+        logMmu("Step 3: Trapping to Kernel. Searching VMAs... 0x0000 is an ILLEGAL ADDRESS!", "log-segv");
+        logMmu("CRASH: Kernel sends SIGSEGV (Segmentation Violation). Process killed with core dump.", "log-segv");
+      }
+
+      renderActiveFlowStep(finalStep);
     }
 
     function resetSandbox() {
-      clearRowHighlights();
-      clearFlowchart();
-      document.getElementById("flowchartStatus").textContent = "Status: Ready";
+      for (let i = 0; i < 6; i++) {
+        document.getElementById(`vma-${i}`).className = "";
+      }
+      resetFlowchartVisuals();
+      document.getElementById("flowchartStatus").textContent = "Idle";
       document.getElementById("flowchartStatus").style.color = "var(--accent)";
       document.getElementById("mmuLog").innerHTML = "";
-      logMmu("Simulator initialized. Select an access type to trace the flowchart.");
+      logMmu("Sandbox initialized. Click a dispatch button to trace its execution.");
     }
 
     // Initialize
-    renderTutorial();
+    selectScenario(0);
     resetSandbox();
   </script>
 </body>
