@@ -17,14 +17,9 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
+      padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;
     }
     .nav-back { width: 100%; max-width: 1050px; display: flex; }
     .nav-back a {
@@ -42,45 +37,184 @@
       padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     .theory-section { line-height: 1.7; font-size: 0.95rem; color: #334155; display: flex; flex-direction: column; gap: 14px; }
-    .theory-section h2 { font-size: 1.25rem; color: var(--text); margin-top: 4px; }
+    .theory-section h2 { font-size: 1.25rem; color: var(--text); margin-top: 4px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
+    .theory-section h3 { font-size: 1.05rem; color: var(--accent); margin-top: 4px; }
     .theory-callout {
-      background-color: #f0f9ff; border-left: 4px solid var(--accent); padding: 12px 16px;
-      border-radius: 0 6px 6px 0; font-size: 0.9rem; color: #0369a1; font-family: var(--font-mono);
+      background-color: #f0f9ff; border-left: 4px solid var(--accent); padding: 12px 18px;
+      border-radius: 0 6px 6px 0; font-size: 0.92rem; color: #0369a1; font-family: var(--font-mono);
     }
+    .code-block {
+      background: #0f172a; color: #f8fafc; padding: 12px 16px; border-radius: 6px;
+      font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.5; overflow-x: auto;
+    }
+    /* Interactive Allocator Sandbox */
+    .sandbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
+    @media (max-width: 800px) { .sandbox-grid { grid-template-columns: 1fr; } }
+    .ram-box {
+      border: 1px solid var(--border); border-radius: 6px; padding: 16px; background: #fafafa;
+      display: flex; flex-direction: column; gap: 10px; font-family: var(--font-mono); font-size: 0.85rem;
+    }
+    .frame-row {
+      display: flex; justify-content: space-between; padding: 6px 10px; background: #ffffff;
+      border: 1px solid var(--border); border-radius: 4px;
+    }
+    .frame-row.allocated { background: #dcfce7; border-color: #16a34a; font-weight: 700; color: #15803d; }
+    .frame-row.swapped { background: #fee2e2; border-color: #dc2626; font-weight: 700; color: #b91c1c; }
+    button {
+      background-color: var(--accent); color: #fff; border: none; padding: 8px 14px; border-radius: 6px;
+      font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+    button.btn-sec:hover { background-color: #e2e8f0; }
   </style>
 </head>
 <body>
   <div class="nav-back"><a href="index.html">&larr; Back to Week Overview</a></div>
   <header>
     <h1>What Is Virtual Memory?</h1>
-    <p class="subtitle">Tanenbaum Section 3.1 &amp; 3.2: The historical evolution from raw physical addressing to the modern virtual illusion.</p>
+    <p class="subtitle">Tanenbaum Chapter 3 (Sec 3.1 &amp; 3.2): The historical evolution from raw physical addressing, overlays, and swapping to modern virtual isolation.</p>
   </header>
   <div class="main-container">
+
+    <!-- Section 1 -->
     <div class="card">
       <div class="theory-section">
-        <h2>The Problem Before Virtual Memory</h2>
+        <h2>1. The Historical Context: The Memory Constraint Problem</h2>
         <p>
-          In early computing (such as 1960s mainframes), programs referenced <strong>physical memory addresses directly</strong>. If a program was loaded into physical RAM starting at byte <code>0x1000</code>, every internal jump and pointer had to be hardcoded relative to <code>0x1000</code>.
+          In the earliest decades of computing, physical memory (RAM) was extraordinarily expensive and strictly limited in capacity. If a mainframe computer had 64 KB of RAM, but a scientific simulation required 256 KB of instructions and data, the program simply could not run.
         </p>
         <p>
-          This created two severe limitations:
-        </p>
-        <ol style="padding-left: 20px;">
-          <li><strong>No Multiprogramming Protection:</strong> Program A could easily write a stray pointer to physical address <code>0x5000</code> and wipe out Program B or crash the operating system kernel.</li>
-          <li><strong>Memory Size Limit:</strong> If physical RAM was 32 MB, a program larger than 32 MB could never run because physical space was strictly bounded.</li>
-        </ol>
-        <h2>The Virtual Memory Revolution</h2>
-        <p>
-          Invented to solve these exact bottlenecks, <strong>Virtual Memory</strong> decouples the addresses used by a program (virtual addresses) from the actual storage locations in physical DRAM chips (physical addresses).
+          To bypass this, programmers had to manually restructure their software using a technique called <strong>overlays</strong>. The programmer manually divided their program into independent chunks. When Chunk A finished executing, it had to explicitly call system routines to load Chunk B from magnetic tape or disk into RAM over top of itself.
         </p>
         <div class="theory-callout">
-          Virtual Address Space &rarr; (Translated on the fly by hardware MMU) &rarr; Physical DRAM Frames
+          Overlays placed the entire burden of memory management on the human programmer, making large software development exceptionally tedious and error-prone.
         </div>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>2. The Birth of Virtual Memory &amp; The Principle of Locality</h2>
         <p>
-          Every process gets its own private, contiguous address space starting at <code>0x00000000</code>. The operating system, assisted by CPU hardware (the Memory Management Unit or MMU), intercepts every memory reference and translates it transparently.
+          In the early 1960s, computer scientists realized that at any given moment during a program's execution, <strong>only a small fraction of its code and data is actually being accessed</strong>. This observation is formalized as the <strong>Principle of Locality</strong>:
+        </p>
+        <ul style="padding-left: 20px;">
+          <li><strong>Temporal Locality:</strong> If a memory location is referenced once, it is likely to be referenced again soon (e.g., variables inside a tight loop).</li>
+          <li><strong>Spatial Locality:</strong> If a memory location is referenced, nearby memory locations are likely to be accessed soon (e.g., sequential array traversal or sequential instruction execution).</li>
+        </ul>
+        <p>
+          Leveraging locality, <strong>Virtual Memory</strong> allows a program's virtual address space to be vastly larger than physical RAM. Only the active portions (working set) reside in physical DRAM; the rest remain safely stored on fast SSD swap partitions.
         </p>
       </div>
     </div>
+
+    <!-- Section 3 -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>3. Address Spaces &amp; The MMU</h2>
+        <p>
+          An <strong>address space</strong> is the set of all memory addresses that a process can generate.
+        </p>
+        <ul style="padding-left: 20px;">
+          <li><strong>Virtual Address Space:</strong> The abstract address range seen by the application code (e.g., <code>0x00000000</code> to <code>0x7FFFFFFF</code> on a 32-bit process).</li>
+          <li><strong>Physical Address Space:</strong> The actual hardware wiring of the DRAM chips plugged into the motherboard.</li>
+        </ul>
+        <p>
+          The hardware bridge between these two spaces is the <strong>Memory Management Unit (MMU)</strong>—a dedicated hardware circuit residing directly on the CPU chip. Every time the CPU issues a load or store instruction, the MMU intercepts the virtual address, consults translation tables, and outputs the translated physical address to the memory bus in under a nanosecond.
+        </p>
+      </div>
+    </div>
+
+    <!-- Interactive Sandbox -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <h2>4. Interactive Sandbox: Virtual-to-Physical Mapping &amp; Swapping</h2>
+        <div style="display:flex; gap:8px;">
+          <button onclick="requestVirtualPage()">Request New Virtual Page</button>
+          <button class="btn-sec" onclick="resetSandbox()">Reset RAM</button>
+        </div>
+      </div>
+      <p style="font-size:0.88rem; color:var(--text-muted);">
+        Simulate a system with only 4 physical DRAM frames. Watch what happens when virtual memory requests exceed physical RAM capacity.
+      </p>
+
+      <div class="sandbox-grid">
+        <div class="ram-box">
+          <strong>Physical DRAM Frames (4 Slots)</strong>
+          <div id="dramFrames" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;"></div>
+        </div>
+        <div class="ram-box">
+          <strong>SSD Swap Partition (Overflow)</strong>
+          <div id="swapFrames" style="display:flex; flex-direction:column; gap:6px; margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
+
+  <script>
+    let physicalFrames = [
+      { id: 0, status: "free", label: "Empty Frame" },
+      { id: 1, status: "free", label: "Empty Frame" },
+      { id: 2, status: "free", label: "Empty Frame" },
+      { id: 3, status: "free", label: "Empty Frame" }
+    ];
+    let swapPages = [];
+    let pageCounter = 1;
+
+    function renderSandbox() {
+      const dramDiv = document.getElementById("dramFrames");
+      dramDiv.innerHTML = "";
+      physicalFrames.forEach(f => {
+        const div = document.createElement("div");
+        div.className = `frame-row ${f.status === 'allocated' ? 'allocated' : ''}`;
+        div.innerHTML = `<span>Frame #${f.id}</span><span>${f.label}</span>`;
+        dramDiv.appendChild(div);
+      });
+
+      const swapDiv = document.getElementById("swapFrames");
+      swapDiv.innerHTML = "";
+      if (swapPages.length === 0) {
+        swapDiv.innerHTML = `<span style="color:#64748b; font-size:0.8rem;">Swap space empty (No pressure).</span>`;
+      } else {
+        swapPages.forEach(p => {
+          const div = document.createElement("div");
+          div.className = "frame-row swapped";
+          div.innerHTML = `<span>Swap ID #${p.id}</span><span>${p.label} (Swapped Out)</span>`;
+          swapDiv.appendChild(div);
+        });
+      }
+    }
+
+    function requestVirtualPage() {
+      const freeIdx = physicalFrames.findIndex(f => f.status === 'free');
+      if (freeIdx !== -1) {
+        physicalFrames[freeIdx].status = 'allocated';
+        physicalFrames[freeIdx].label = `Virtual Page #${pageCounter++}`;
+      } else {
+        // DRAM is full! Trigger swap
+        swapPages.push({ id: pageCounter, label: `Virtual Page #${pageCounter}` });
+        alert(`Physical RAM is full! Virtual Page #${pageCounter} was automatically swapped out to SSD storage.`);
+        pageCounter++;
+      }
+      renderSandbox();
+    }
+
+    function resetSandbox() {
+      physicalFrames = [
+        { id: 0, status: "free", label: "Empty Frame" },
+        { id: 1, status: "free", label: "Empty Frame" },
+        { id: 2, status: "free", label: "Empty Frame" },
+        { id: 3, status: "free", label: "Empty Frame" }
+      ];
+      swapPages = [];
+      pageCounter = 1;
+      renderSandbox();
+    }
+
+    renderSandbox();
+  </script>
 </body>
 </html>
