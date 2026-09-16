@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memory Bookkeeping, Allocation Strategies &amp; Buddy Allocator — COSC240</title>
+  <title>Memory Bookkeeping, Free/Used Lists &amp; Buddy Allocator — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -387,17 +387,39 @@
   </div>
 
   <header>
-    <h1>Memory Bookkeeping &amp; Allocation Strategies</h1>
-    <p class="subtitle">Tanenbaum Chapter 3: Bookkeeping via Bitmaps, Linked Lists, Allocation Lists Purpose, and Binary Buddy Systems.</p>
+    <h1>Memory Bookkeeping, Free/Used Lists &amp; Buddy Allocator</h1>
+    <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
 
   <div class="main-container">
 
+    <!-- FRONT AND CENTRE: The Point of Allocation Lists (Free & Used Lists) -->
+    <div class="card" style="border-left: 4px solid var(--accent); background: #f0f9ff;">
+      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem;">1. Up Front &amp; Centre: The Point of Allocation Lists (Free &amp; Used Trackers)</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155;">
+        When an operating system manages raw hardware RAM, it cannot simply guess what memory is free. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. Here is why they are indispensable:
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px;">
+        <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
+          <strong style="color: #0284c7; font-size: 0.9rem;">Free Lists (Availability)</strong>
+          <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
+            Group unallocated blocks or holes together. When a program requests memory, the kernel checks these lists to instantly find a block of sufficient size without searching every byte of RAM.
+          </p>
+        </div>
+        <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
+          <strong style="color: #0284c7; font-size: 0.9rem;">Used Lists / Trackers (Ownership)</strong>
+          <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
+            Record active allocations (starting addresses, lengths, and ownership metadata). When a process frees a pointer, the kernel uses this tracker to know the exact size and boundary of the block for deallocation and coalescing.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- Tanenbaum Section 1: Bitmaps -->
     <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">1. Tanenbaum's Method 1: Bookkeeping with Bitmaps</div>
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">2. Tanenbaum's Method 1: Bookkeeping with Bitmaps</div>
       <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
-        Memory is partitioned into allocation units (e.g., 4 KB blocks). Each unit is represented by a single bit in a bitmap: <code>0</code> if the unit is free, and <code>1</code> if it is allocated to a process.
+        Memory is partitioned into fixed allocation units (e.g., 4 KB blocks). Each unit corresponds to a single bit in a bitmap: <code>0</code> if free, and <code>1</code> if allocated to a process.
       </p>
 
       <div class="figure-container">
@@ -425,9 +447,9 @@
 
     <!-- Tanenbaum Section 2: Linked Lists -->
     <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">2. Tanenbaum's Method 2: Bookkeeping with Linked Lists</div>
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">3. Tanenbaum's Method 2: Bookkeeping with Linked Lists of Segments</div>
       <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
-        The operating system maintains a linked list of memory segments. Each node specifies whether the block is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
+        The operating system maintains a linked list where each node indicates whether a region is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
       </p>
 
       <div class="figure-container">
@@ -484,20 +506,6 @@
           </defs>
         </svg>
       </div>
-    </div>
-
-    <!-- Section 3: The Point of Allocation Lists -->
-    <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">3. The Core Purpose of Allocation Lists</div>
-      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
-        Allocation lists (comprising <strong>free lists</strong> and <strong>used trackers</strong>) serve as the fundamental bookkeeping engine bridging raw hardware RAM and software requests:
-      </p>
-      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
-        <li><strong>Instantaneous Block Location:</strong> Instead of linearly scanning raw byte arrays or lengthy bitmapped fields, list-based structures allow the kernel to locate appropriately sized memory blocks efficiently.</li>
-        <li><strong>Clear Separation of Ownership:</strong> Lists cleanly distinguish between available memory (free holes or unallocated frames) and active allocations, preventing accidental memory collisions or double-allocations.</li>
-        <li><strong>Efficient Coalescing and Merging:</strong> When a process terminates or frees memory, allocation lists allow the kernel to inspect adjacent memory boundaries immediately, enabling rapid fusing of adjacent free blocks to combat fragmentation.</li>
-        <li><strong>Dynamic Lifecycle Tracking:</strong> Unlike rigid static partitions, allocation lists adapt fluidly as processes request, resize, and release varying chunks of memory over their runtime.</li>
-      </ul>
     </div>
 
     <!-- Section 4: Classical Placement Strategies -->
