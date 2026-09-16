@@ -40,11 +40,12 @@
     .theory-section h2 { font-size: 1.25rem; color: var(--text); margin-top: 4px; border-bottom: 1px solid #f1f5f9; padding-bottom: 4px; }
     .theory-section h3 { font-size: 1.05rem; color: var(--accent); margin-top: 4px; }
     .theory-callout {
-      background-color: #f0f9ff; border-left: 4px solid var(--accent); padding: 12px 18px;
+      background-color: #f0f9ff; border-left: 4px solid var(--accent); padding: 14px 18px;
       border-radius: 0 6px 6px 0; font-size: 0.92rem; color: #0369a1; font-family: var(--font-mono);
+      line-height: 1.55;
     }
     .figure-container {
-      width: 100%; max-width: 650px; margin: 10px auto; display: flex; flex-direction: column;
+      width: 100%; max-width: 720px; margin: 10px auto; display: flex; flex-direction: column;
       align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
       border-radius: 8px; padding: 20px;
     }
@@ -74,35 +75,36 @@
   <div class="nav-back"><a href="index.html">&larr; Back to Week Overview</a></div>
   <header>
     <h1>What Is Virtual Memory?</h1>
-    <p class="subtitle">Tanenbaum Chapter 3 (Sec 3.1 &amp; 3.2): The historical evolution from raw physical addressing, overlays, and swapping to modern virtual isolation.</p>
+    <p class="subtitle">Tanenbaum Chapter 3 (Sec 3.1 &amp; 3.2): From manual overlays to automated virtual paging, direct mapping, and the principle of locality.</p>
   </header>
   <div class="main-container">
 
-    <!-- Section 1: Overlays -->
+    <!-- Section 1: Detailed Manual Overlays -->
     <div class="card">
       <div class="theory-section">
-        <h2>1. The Historical Context: The Memory Constraint &amp; Overlays</h2>
+        <h2>1. The Root of Memory Management: Detailed Mechanics of Manual Overlays</h2>
         <p>
-          In early computing, physical memory (RAM) was strictly limited in capacity. If a mainframe computer had <strong>64 KB of RAM</strong>, but a scientific simulation required 160 KB of code and data, the program simply could not fit into hardware.
+          In early computing, physical memory (RAM) was strictly limited in capacity. If a mainframe computer had <strong>64 KB of RAM</strong>, but a scientific simulation or database engine required 160 KB of code and data to execute, the program could never fit into hardware all at once.
         </p>
         <p>
-          To bypass this, programmers invented <strong>Overlays</strong>: manually partitioning a program into independent functional blocks that shared the exact same physical memory addresses. When Module A finished executing, it explicitly invoked disk-loading routines to overwrite itself in RAM with Module B.
+          To solve this without modern virtual hardware, programmers invented <strong>Overlays</strong>. The application was manually partitioned into independent modules that shared the exact same physical memory address space.
+        </p>
+        <p>
+          For example, a program might have a <strong>Resident Root</strong> (main loop and I/O handlers) occupying the bottom 24 KB of RAM permanently, leaving a shared upper region (e.g., addresses <code>0x6000</code> to <code>0xFFFF</code>). When the program needed to perform complex math, it loaded <strong>Module A</strong> into that shared space. When it needed to generate a report, Module A was overwritten in place by <strong>Module B</strong> from disk or magnetic tape.
         </p>
       </div>
 
       <!-- SVG Diagram: 64 KB Physical RAM Partitioning -->
       <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 1: The 64 KB Physical RAM Partitioning</span>
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 1: The 64 KB Physical RAM Partitioning in Overlay Systems</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <rect x="100" y="20" width="300" height="260" fill="#f8fafc" stroke="#334155" stroke-width="2" rx="6"/>
           <text x="250" y="40" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Physical RAM (64 KB Total)</text>
 
-          <!-- Resident Root -->
           <rect x="120" y="55" width="260" height="75" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="4"/>
           <text x="250" y="82" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Resident Root (Always in RAM)</text>
           <text x="250" y="100" font-size="10" fill="#16a34a" text-anchor="middle">OS Kernels, I/O Handlers, Main Loop (24 KB)</text>
 
-          <!-- Shared Overlay Region -->
           <rect x="120" y="145" width="260" height="115" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="4"/>
           <text x="250" y="168" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Shared Overlay Region (Addresses 0x6000 – 0xFFFF)</text>
           <text x="250" y="184" font-size="9" fill="#92400e" text-anchor="middle">Only ONE module can occupy this physical box at a time!</text>
@@ -129,7 +131,6 @@
             </marker>
           </defs>
 
-          <!-- Disk Storage -->
           <rect x="20" y="30" width="100" height="135" fill="#f1f5f9" stroke="#334155" stroke-width="1.5" rx="4"/>
           <text x="70" y="52" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Disk / Storage</text>
           <rect x="30" y="65" width="80" height="32" fill="#fee2e2" stroke="#dc2626" rx="3"/>
@@ -140,14 +141,12 @@
           <path d="M 125 90 L 185 90" stroke="#d97706" stroke-width="2" fill="none" marker-end="url(#arr-orange)" />
           <text x="155" y="80" font-size="9" font-weight="700" fill="#b45309" text-anchor="middle">1. Overwrite</text>
 
-          <!-- RAM Overlay Box -->
           <rect x="195" y="30" width="135" height="135" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="4"/>
           <text x="262" y="52" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">RAM Overlay Box</text>
           <rect x="212" y="75" width="100" height="75" fill="#ffffff" stroke="#d97706" stroke-width="1.5" rx="3"/>
           <text x="262" y="105" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Module B</text>
           <text x="262" y="122" font-size="9" fill="#78350f" text-anchor="middle">(Replaced A)</text>
 
-          <!-- Explanation Box -->
           <rect x="345" y="30" width="175" height="135" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="4" rx="4"/>
           <text x="432" y="55" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">The Developer's Burden:</text>
           <text x="432" y="75" font-size="9" fill="#475569" text-anchor="middle">If Module B needed to call</text>
@@ -159,37 +158,228 @@
       </div>
     </div>
 
-    <!-- Section 2: Locality & Virtual Memory -->
+    <!-- Section 2: Evolution Pathway -->
     <div class="card">
       <div class="theory-section">
-        <h2>2. The Birth of Virtual Memory &amp; The Principle of Locality</h2>
+        <h2>2. The Evolutionary Bridge: From Manual Overlays to Paged Virtual Memory</h2>
         <p>
-          Overlays placed the entire burden of memory management on the programmer. In the 1960s, operating systems automated this through <strong>Virtual Memory</strong>, enabled by the <strong>Principle of Locality</strong>:
+          While manual overlays worked, they placed an immense burden on human software engineers. As operating systems evolved, computer science progressed through three distinct generations of memory management:
         </p>
-        <ul style="padding-left: 20px;">
-          <li><strong>Temporal Locality:</strong> If a memory location is referenced once, it is likely to be referenced again soon (e.g., loop counters).</li>
-          <li><strong>Spatial Locality:</strong> If a memory location is referenced, nearby locations are likely to be accessed soon (e.g., sequential array iteration).</li>
-        </ul>
-        <p>
-          Because of locality, only active working sets need to sit in DRAM; inactive pages reside safely on SSD swap storage.
-        </p>
+      </div>
+
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3: The Historical Evolution of Memory Management</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <defs>
+            <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+
+          <rect x="20" y="30" width="180" height="100" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
+          <text x="110" y="55" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">1. Manual Overlays</text>
+          <text x="110" y="78" font-size="9" fill="#475569" text-anchor="middle">&bull; Managed by Programmer</text>
+          <text x="110" y="94" font-size="9" fill="#475569" text-anchor="middle">&bull; Static shared code blocks</text>
+          <text x="110" y="110" font-size="9" fill="#b91c1c" text-anchor="middle">High developer overhead</text>
+
+          <path d="M 205 80 L 245 80" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arr-blue)"/>
+
+          <rect x="250" y="30" width="180" height="100" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
+          <text x="340" y="55" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">2. Process Swapping</text>
+          <text x="340" y="78" font-size="9" fill="#475569" text-anchor="middle">&bull; Managed by OS Kernel</text>
+          <text x="340" y="94" font-size="9" fill="#475569" text-anchor="middle">&bull; Whole programs to disk</text>
+          <text x="340" y="110" font-size="9" fill="#d97706" text-anchor="middle">Requires contiguous RAM</text>
+
+          <path d="M 435 80 L 475 80" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arr-blue)"/>
+
+          <rect x="480" y="30" width="200" height="100" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="6"/>
+          <text x="580" y="55" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">3. Paged Virtual Memory</text>
+          <text x="580" y="78" font-size="9" fill="#0369a1" text-anchor="middle">&bull; Hardware MMU + OS</text>
+          <text x="580" y="94" font-size="9" fill="#0369a1" text-anchor="middle">&bull; Fixed 4 KB page swapping</text>
+          <text x="580" y="110" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">Fully transparent &amp; flexible</text>
+        </svg>
       </div>
     </div>
 
-    <!-- Section 3: Address Spaces & MMU -->
+    <!-- Section 3: Direct Comparison: Overlays vs Paged Virtual Memory -->
     <div class="card">
       <div class="theory-section">
-        <h2>3. Address Spaces &amp; The MMU</h2>
+        <h2>3. Direct Comparison: How Paging Automates &amp; Generalizes Overlays</h2>
         <p>
-          The <strong>Memory Management Unit (MMU)</strong> is a hardware circuit on the CPU that translates virtual addresses to physical RAM addresses transparently in under a nanosecond, giving every process its own isolated private address space.
+          Notice the profound structural similarity between <strong>manual overlays</strong> (Figure 1) and <strong>paged virtual memory</strong> (Figure 5 below). In both systems, physical memory is smaller than total code size, so blocks are swapped in and out from disk storage.
         </p>
+        <p>
+          The difference is that <strong>virtual memory paging turns the rigid, manual overlay box into a dynamic, hardware-managed mapping array</strong>. Instead of the programmer declaring a single static overlay region, the MMU maps <em>every</em> virtual page independently to <em>any</em> physical frame on the fly.
+        </p>
+      </div>
+
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 5: From Static Overlays to Dynamic Virtual Pages pointing to Physical RAM</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 260" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <defs>
+            <marker id="arr-map" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+            <marker id="arr-swap" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626" />
+            </marker>
+          </defs>
+
+          <!-- Virtual Space -->
+          <rect x="20" y="20" width="150" height="210" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
+          <text x="95" y="42" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Virtual Address Space</text>
+          <text x="95" y="56" font-size="9" fill="#64748b" text-anchor="middle">(Program's Illusion)</text>
+
+          <rect x="35" y="70" width="120" height="35" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
+          <text x="95" y="92" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle">Virtual Page 0</text>
+
+          <rect x="35" y="115" width="120" height="35" fill="#fef3c7" stroke="#d97706" rx="3"/>
+          <text x="95" y="137" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">Virtual Page 1 (Math)</text>
+
+          <rect x="35" y="160" width="120" height="35" fill="#fef3c7" stroke="#d97706" rx="3"/>
+          <text x="95" y="182" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">Virtual Page 2 (Report)</text>
+
+          <!-- Mapping Arrows -->
+          <path d="M 175 87 L 315 87" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arr-map)"/>
+          <path d="M 175 132 L 315 132" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arr-map)"/>
+          <path d="M 175 177 L 525 105" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="4" fill="none" marker-end="url(#arr-swap)"/>
+          <text x="350" y="165" font-size="9" font-weight="700" fill="#dc2626">Paged out to SSD Swap (Present = 0)</text>
+
+          <!-- Physical RAM Frames -->
+          <rect x="320" y="45" width="160" height="150" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" rx="6"/>
+          <text x="400" y="68" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Physical DRAM Frames</text>
+
+          <rect x="335" y="80" width="130" height="42" fill="#ffffff" stroke="#86efac" rx="3"/>
+          <text x="400" y="98" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Frame 0 &larr; Page 0</text>
+          <text x="400" y="112" font-size="9" fill="#16a34a" text-anchor="middle">(Resident Root)</text>
+
+          <rect x="335" y="130" width="130" height="42" fill="#ffffff" stroke="#86efac" rx="3"/>
+          <text x="400" y="148" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Frame 1 &larr; Page 1</text>
+          <text x="400" y="162" font-size="9" fill="#16a34a" text-anchor="middle">(Dynamic Overlay Box)</text>
+
+          <!-- SSD Swap Storage -->
+          <rect x="530" y="70" width="160" height="90" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="6"/>
+          <text x="610" y="92" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">SSD Swap Storage</text>
+          <rect x="545" y="105" width="130" height="38" fill="#fef3c7" stroke="#fcd34d" rx="3"/>
+          <text x="610" y="122" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">Page 2 Stored on Disk</text>
+          <text x="610" y="136" font-size="8" fill="#b45309" text-anchor="middle">(Awaiting Page Fault)</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Section 4: How Paging Automates Swapping -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>4. How Virtual Memory Paging Automates Swapping</h2>
+        <p>
+          Virtual memory paging took the core concept of swapping—moving inactive blocks between RAM and disk—and <strong>automated it at the hardware level in units of small, fixed 4 KB pages</strong>.
+        </p>
+        <p>
+          When a CPU instruction tries to read a virtual address whose page is currently stored on SSD swap, the MMU detects that the PTE's <strong>Present bit is 0</strong>. The hardware triggers an immediate page fault exception. The operating system kernel intercepts this fault, selects an empty physical frame in DRAM (or evicts a cold page to swap), issues an asynchronous disk read to fetch the missing 4 KB page, updates the page table, and restarts the instruction—<strong>all without the application program ever knowing it happened</strong>.
+        </p>
+      </div>
+
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 6: The Hardware Address Translation Bridge</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 220" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <defs>
+            <marker id="arr-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
+            </marker>
+          </defs>
+
+          <rect x="30" y="40" width="150" height="140" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
+          <text x="105" y="65" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Virtual Address Space</text>
+          <rect x="45" y="85" width="120" height="30" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
+          <text x="105" y="104" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle">Page 0 (Code)</text>
+          <rect x="45" y="125" width="120" height="30" fill="#fef3c7" stroke="#d97706" rx="3"/>
+          <text x="105" y="144" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">Page 1 (Data / Swap)</text>
+
+          <rect x="220" y="70" width="100" height="80" fill="#f1f5f9" stroke="#334155" stroke-width="2" rx="6"/>
+          <text x="270" y="102" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Hardware MMU</text>
+          <text x="270" y="122" font-size="9" fill="#64748b" text-anchor="middle">&amp; Page Table</text>
+
+          <path d="M 185 110 L 215 110" stroke="#334155" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+          <rect x="360" y="40" width="150" height="140" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" rx="6"/>
+          <text x="435" y="65" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Physical RAM (DRAM)</text>
+          <rect x="375" y="85" width="120" height="30" fill="#ffffff" stroke="#86efac" rx="3"/>
+          <text x="435" y="104" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Frame 12 (Mapped)</text>
+          <rect x="375" y="125" width="120" height="30" fill="#fee2e2" stroke="#fca5a5" rx="3"/>
+          <text x="435" y="144" font-size="10" font-weight="700" fill="#b91c1c" text-anchor="middle">Not in RAM (Fault!)</text>
+
+          <path d="M 325 110 L 355 110" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+          <rect x="540" y="40" width="130" height="140" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="6"/>
+          <text x="605" y="65" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">SSD Swap Storage</text>
+          <rect x="555" y="125" width="100" height="30" fill="#fef3c7" stroke="#fcd34d" rx="3"/>
+          <text x="605" y="144" font-size="9" font-weight="700" fill="#92400e" text-anchor="middle">Page 1 on Disk</text>
+
+          <path d="M 515 140 L 535 140" stroke="#d97706" stroke-width="1.5" stroke-dasharray="3" marker-end="url(#arr-green)"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Section 5: Principle of Locality & Embedded Locality SVG -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>5. The Principle of Locality (Temporal vs. Spatial)</h2>
+        <p>
+          Virtual memory paging works so efficiently because real-world programs exhibit the <strong>Principle of Locality</strong>. Without this behavioral pattern, swapping 4 KB pages to disk would cause catastrophic performance degradation ("thrashing").
+        </p>
+        <ul style="padding-left: 20px;">
+          <li><strong>Temporal Locality:</strong> If a CPU accesses a memory address at time $t$, it is highly likely to access that exact same address again in the near future (e.g., loop control variables, active stack frames).</li>
+          <li><strong>Spatial Locality:</strong> If a CPU accesses memory address $X$, it will likely access nearby addresses ($X+1, X+2$, etc.) shortly thereafter (e.g., looping through arrays or executing contiguous machine instructions).</li>
+        </ul>
+      </div>
+
+      <!-- NEW SVG: Principle of Locality (Temporal & Spatial) -->
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 7: Visualizing Temporal and Spatial Locality</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Temporal Box -->
+          <rect x="20" y="20" width="310" height="160" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
+          <text x="175" y="45" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Temporal Locality (Reuse Over Time)</text>
+
+          <rect x="45" y="75" width="80" height="60" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="4"/>
+          <text x="85" y="100" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Address</text>
+          <text x="85" y="115" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">0x1004</text>
+
+          <!-- Circular feedback arrows representing repeated access -->
+          <path d="M 140 90 C 180 70, 180 120, 140 110" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arr-green)"/>
+          <text x="210" y="105" font-size="10" fill="#15803d" font-weight="700">Repeated Access</text>
+          <text x="210" y="120" font-size="9" fill="#475569">(e.g., Loop Counter)</text>
+
+          <!-- Spatial Box -->
+          <rect x="370" y="20" width="310" height="160" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
+          <text x="525" y="45" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Spatial Locality (Sequential Access)</text>
+
+          <!-- Array elements in memory -->
+          <g transform="translate(385, 75)">
+            <rect x="0" y="0" width="45" height="50" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
+            <text x="22" y="22" font-size="9" fill="#0369a1" text-anchor="middle">data[0]</text>
+            <text x="22" y="38" font-size="8" fill="#0284c7" text-anchor="middle">0x2000</text>
+
+            <rect x="50" y="0" width="45" height="50" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
+            <text x="72" y="22" font-size="9" fill="#0369a1" text-anchor="middle">data[1]</text>
+            <text x="72" y="38" font-size="8" fill="#0284c7" text-anchor="middle">0x2004</text>
+
+            <rect x="100" y="0" width="45" height="50" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
+            <text x="122" y="22" font-size="9" fill="#0369a1" text-anchor="middle">data[2]</text>
+            <text x="122" y="38" font-size="8" fill="#0284c7" text-anchor="middle">0x2008</text>
+
+            <rect x="150" y="0" width="45" height="50" fill="#f1f5f9" stroke="#94a3b8" stroke-dasharray="3" rx="3"/>
+            <text x="172" y="28" font-size="12" fill="#64748b" text-anchor="middle">&rarr;</text>
+          </g>
+          <text x="525" y="152" font-size="9" fill="#475569" text-anchor="middle">CPU traverses adjacent addresses sequentially</text>
+        </svg>
       </div>
     </div>
 
     <!-- Interactive Sandbox -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <h2>4. Interactive Sandbox: Virtual-to-Physical Mapping &amp; Swapping</h2>
+        <h2>6. Interactive Sandbox: Virtual-to-Physical Mapping &amp; Swapping</h2>
         <div style="display:flex; gap:8px;">
           <button onclick="requestVirtualPage()">Request New Virtual Page</button>
           <button class="btn-sec" onclick="resetSandbox()">Reset RAM</button>
