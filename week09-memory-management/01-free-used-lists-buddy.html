@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memory Allocation Strategies &amp; The Buddy Allocator — COSC240</title>
+  <title>Memory Management &amp; Allocation Strategies — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -387,94 +387,114 @@
   </div>
 
   <header>
-    <h1>Memory Allocation Strategies &amp; The Buddy Allocator</h1>
-    <p class="subtitle">Tanenbaum Chapter 3: Classical contiguous allocation algorithms (First Fit, Best Fit, Worst Fit) and kernel binary buddy systems.</p>
+    <h1>Memory Management &amp; Allocation Strategies</h1>
+    <p class="subtitle">Tanenbaum Chapter 3: Bookkeeping via Bitmaps, Linked Lists of Free/Allocated Segments, First/Best/Worst Fit, and Binary Buddy Systems.</p>
   </header>
 
   <div class="main-container">
 
-    <!-- Classical Allocators Overview Card -->
+    <!-- Tanenbaum Section: Bookkeeping with Bitmaps & Linked Lists -->
     <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">Classical Contiguous Memory Allocation Strategies</div>
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">Tanenbaum's Bookkeeping Methods: Bitmaps vs. Linked Lists</div>
       <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
-        Before diving into advanced binary buddy allocators and paged virtual memory, operating systems historically managed raw memory as a continuous pool of free and allocated holes. When a process requests memory, the kernel uses one of several classical placement strategies to find a suitable free hole:
+        According to Tanenbaum, when managing memory with variable-sized allocation, an operating system can track free and used space using two primary mechanisms:
       </p>
 
-      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; color: #334155; margin-top: 4px;">
-        <li><strong>First Fit:</strong> Scan the free list from the beginning and allocate the <em>first</em> hole that is big enough. <em>Pros:</em> Extremely fast. <em>Cons:</em> Tends to clutter the front of memory with small fragmented splinters.</li>
-        <li><strong>Best Fit:</strong> Search the <em>entire</em> free list and choose the hole that is closest in size to the request (minimizing leftover waste). <em>Pros:</em> Leaves smaller leftover fragments. <em>Cons:</em> Slowest search time, and leaves behind tiny, unusable memory slivers ("external fragmentation").</li>
-        <li><strong>Worst Fit:</strong> Allocate from the <em>largest</em> available hole. <em>Pros:</em> Leaves behind larger leftover holes that might still be useful for subsequent processes. <em>Cons:</em> Rapidly exhausts large blocks.</li>
-        <li><strong>Next Fit:</strong> Similar to First Fit, but starts scanning from the location of the <em>last allocation</em> rather than the beginning. <em>Pros:</em> Spreads allocation evenly across memory.</li>
-      </ul>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 4px;">
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+          <strong style="color: #0f172a; font-size: 0.9rem;">1. Memory Management with Bitmaps</strong>
+          <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
+            Memory is divided into allocation units (e.g., 4 KB blocks). Each unit corresponds to a bit in a bitmap: <code>0</code> if free, <code>1</code> if allocated.
+            <em>Tradeoff:</em> Simple to maintain and fixed in size, but searching for a contiguous run of <em>k</em> free units requires scanning sequential bits slowly.
+          </p>
+        </div>
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
+          <strong style="color: #0369a1; font-size: 0.9rem;">2. Memory Management with Linked Lists</strong>
+          <p style="font-size: 0.85rem; color: #075985; margin-top: 4px; line-height: 1.5;">
+            The operating system maintains a linked list of allocated and free memory segments. Each entry specifies whether the region is a <strong>Hole (H)</strong> or a <strong>Process (P)</strong>, its starting address, and its length.
+          </p>
+        </div>
+      </div>
 
-      <!-- Embedded SVG for Classical Allocators -->
+      <!-- Embedded SVG for Tanenbaum's Linked List Structure -->
       <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Comparing First Fit vs. Best Fit Placement for a 15 KB Request</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Memory bar container -->
-          <rect x="20" y="30" width="640" height="50" fill="#e2e8f0" stroke="#334155" stroke-width="1.5" rx="4"/>
-          <!-- Holes -->
-          <rect x="20" y="30" width="100" height="50" fill="#e11d48" opacity="0.8"/>
-          <text x="70" y="60" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Alloc (100K)</text>
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Tanenbaum's Linked List of Segments (Holes &amp; Processes)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Memory Bar View -->
+          <rect x="30" y="25" width="640" height="45" fill="#e2e8f0" stroke="#334155" stroke-width="1.5" rx="4"/>
 
-          <rect x="120" y="30" width="60" height="50" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
-          <text x="150" y="60" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole 1 (20K)</text>
+          <rect x="30" y="25" width="140" height="45" fill="#e11d48" opacity="0.8"/>
+          <text x="100" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process A (Addr 0, Len 140)</text>
 
-          <rect x="180" y="30" width="180" height="50" fill="#e11d48" opacity="0.8"/>
-          <text x="270" y="60" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Alloc (200K)</text>
+          <rect x="170" y="25" width="90" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+          <text x="215" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 140, 90)</text>
 
-          <rect x="360" y="30" width="140" height="50" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
-          <text x="430" y="60" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole 2 (80K)</text>
+          <rect x="260" y="25" width="200" height="45" fill="#e11d48" opacity="0.8"/>
+          <text x="360" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process B (Addr 230, Len 200)</text>
 
-          <rect x="500" y="30" width="160" height="50" fill="#e11d48" opacity="0.8"/>
-          <text x="580" y="60" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Alloc (150K)</text>
+          <rect x="460" y="25" width="210" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+          <text x="565" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 430, 210)</text>
 
-          <!-- Annotations for Request -->
-          <text x="20" y="115" font-size="11" font-weight="700" fill="#0f172a">Incoming Request: Allocate 15 KB block</text>
+          <!-- Linked List Nodes Below -->
+          <g transform="translate(30, 95)">
+            <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Linked List Nodes:</text>
 
-          <path d="M 150 125 L 150 90" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-blue)"/>
-          <text x="150" y="142" font-size="9" font-weight="700" fill="#0284c7" text-anchor="middle">First Fit chooses Hole 1 (20K)</text>
-          <text x="150" y="154" font-size="8" fill="#64748b" text-anchor="middle">Fast, leaves 5K splinter</text>
+            <!-- Node 1 -->
+            <rect x="0" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="65" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 0 | Len: 140 ]</text>
+            <line x1="0" y1="60" x2="130" y2="60" stroke="#f1f5f9"/>
+            <text x="65" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
 
-          <path d="M 430 125 L 430 90" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-green)"/>
-          <text x="430" y="142" font-size="9" font-weight="700" fill="#16a34a" text-anchor="middle">Best Fit also considers Hole 2 (80K)</text>
-          <text x="430" y="154" font-size="8" fill="#64748b" text-anchor="middle">Closer fit: Hole 1 (20K) is chosen (min leftover)</text>
+            <path d="M 130 62 L 175 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
+
+            <!-- Node 2 -->
+            <rect x="175" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="240" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 140 | Len: 90 ]</text>
+            <line x1="175" y1="60" x2="305" y2="60" stroke="#f1f5f9"/>
+            <text x="240" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
+
+            <path d="M 305 62 L 350 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
+
+            <!-- Node 3 -->
+            <rect x="350" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="415" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 230 | Len: 200 ]</text>
+            <line x1="350" y1="60" x2="480" y2="60" stroke="#f1f5f9"/>
+            <text x="415" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
+
+            <path d="M 480 62 L 525 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
+
+            <!-- Node 4 -->
+            <rect x="525" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="590" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 430 | Len: 210 ]</text>
+            <line x1="525" y1="60" x2="655" y2="60" stroke="#f1f5f9"/>
+            <text x="590" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; NULL</text>
+          </g>
 
           <defs>
             <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-            </marker>
-            <marker id="arr-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
             </marker>
           </defs>
         </svg>
       </div>
     </div>
 
-    <!-- Dual Pillars of Physical Memory Management -->
+    <!-- Classical Allocators Overview Card -->
     <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.05rem;">The Dual Pillars of Physical Memory Management: Free Lists vs. Used Lists</div>
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">Classical Contiguous Allocation Strategies (First Fit, Best Fit, Worst Fit, Next Fit)</div>
       <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
-        When a kernel manages raw physical RAM (such as through the binary buddy allocator), it must maintain strict bookkeeping to track which memory is available and which is currently assigned to processes or kernel subsystems. This is accomplished using two core data structures:
+        When a process requests memory against a linked list of holes, the operating system uses placement algorithms to decide which hole to assign:
       </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px;">
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px;">
-          <strong style="color: #166534; font-size: 0.9rem;">1. The Free Lists (<code>free_area[0..MAX_ORDER]</code>)</strong>
-          <p style="font-size: 0.85rem; color: #15803d; margin-top: 4px; line-height: 1.5;">
-            An array of linked lists where each entry groups unallocated blocks of a specific power-of-two size (2<sup>order</sup> pages). When memory is requested, the allocator scans these lists from smallest sufficient order upward to find free blocks instantly.
-          </p>
-        </div>
-        <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; padding: 12px;">
-          <strong style="color: #9f1239; font-size: 0.9rem;">2. The Used Tracking (Descriptors &amp; Used Lists)</strong>
-          <p style="font-size: 0.85rem; color: #be123c; margin-top: 4px; line-height: 1.5;">
-            Tracks active allocations. In Linux and modern kernels, frame metadata (stored in <code>struct page</code> arrays) records ownership flags, reference counts, and order sizes so that when a process frees a pointer, the kernel immediately knows its exact boundaries and buddy address without scanning.
-          </p>
-        </div>
-      </div>
+
+      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; color: #334155; margin-top: 4px;">
+        <li><strong>First Fit:</strong> Scan the list from the beginning and choose the <em>first</em> hole that is big enough. Fast, but creates many small splinters at the front.</li>
+        <li><strong>Best Fit:</strong> Search the <em>entire</em> list and choose the hole closest in size to the request. Minimizes waste per allocation, but leaves behind tiny, unusable slivers and requires exhaustive searching.</li>
+        <li><strong>Worst Fit:</strong> Allocate from the <em>largest</em> available hole so the leftover fragment remains useful. In practice, it performs poorly and rapidly exhausts large blocks.</li>
+        <li><strong>Next Fit:</strong> Like First Fit, but starts scanning from where the <em>last search left off</em> rather than the beginning. Spreads allocation evenly.</li>
+      </ul>
     </div>
 
-    <!-- PFN Explanation Banner -->
+    <!-- Dual Pillars & PFN Explanation -->
     <div class="concept-box">
       <strong>What is a PFN (Page Frame Number)?</strong><br>
       Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
@@ -585,7 +605,7 @@
         title: "2. Incoming Request: Allocate 4 KB (Order 0)",
         phase: "Scanning Lists",
         text: "A process calls <code>kmalloc(4096)</code>. The kernel translates 4 KB into <strong>Order 0</strong> (2<sup>0</sup> pages). It inspects <code>free_area[0]</code> first: <strong>empty!</strong> It checks <code>free_area[1]</code> through <code>[3]</code> (all empty), and finally reaches <code>free_area[4]</code> where PFN 0 is available.",
-        math: "Target Order = 0. Scanning upward: free_area[0]=NULL → [1]=NULL → [2]=NULL → [3]=NULL → [4]=PFN 0.",
+        math: "Target Order = 0. Scanning upward: free_area[0]=NULL &rarr; [1]=NULL &rarr; [2]=NULL &rarr; [3]=NULL &rarr; [4]=PFN 0.",
         inspectRow: 0,
         setup: () => { resetTree(); root.inspecting = true; }
       },
@@ -609,7 +629,7 @@
         title: "5. Allocation Complete: Block #A Claimed",
         phase: "Allocated",
         text: "PFN 0 is marked as <strong>Allocated</strong> (Block #A) and registered into the <strong>Used Tracker</strong>. Notice how PFN 0 is removed from the free lists entirely while PFN 1 remains free in <code>free_area[0]</code>.",
-        math: "Allocated: PFN 0 (Order 0).<br>Used List Entry: Block #A → PFN 0 (4 KB).",
+        math: "Allocated: PFN 0 (Order 0).<br>Used List Entry: Block #A &rarr; PFN 0 (4 KB).",
         inspectRow: 0,
         setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.isAllocated = true; leaf.tag = "A"; }
       },
@@ -617,7 +637,7 @@
         title: "6. Second Allocation: Immediate O(1) Hit",
         phase: "Instant Hit",
         text: "A second request for Order 0 arrives. The allocator checks <code>free_area[0]</code>. PFN 1 is right there! It pops PFN 1 off <code>free_area[0]</code> in O(1) time, assigns it as Block #B, and adds it to the Used list.",
-        math: "free_area[0] POP → PFN 1 assigned as Block #B.<br>Used List now tracks both #A and #B.",
+        math: "free_area[0] POP &rarr; PFN 1 assigned as Block #B.<br>Used List now tracks both #A and #B.",
         inspectRow: 0,
         setup: () => {
           resetTree();
@@ -634,7 +654,7 @@
         title: "7. Freeing Block #A: The Buddy Check",
         phase: "Checking Buddy",
         text: "The owner frees Block #A (PFN 0). It is removed from the Used list. Before coalescing, the kernel calculates buddy: <code>0 ^ (1 &lt;&lt; 0) = 1</code>. It inspects PFN 1. <strong>PFN 1 is allocated (#B)!</strong> Because its buddy is occupied, PFN 0 cannot merge. It is returned to <code>free_area[0]</code>.",
-        math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) → 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
+        math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) &rarr; 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
         inspectRow: 0,
         setup: () => {
           resetTree();
@@ -651,7 +671,7 @@
         title: "8. Freeing Block #B: The Coalescing Cascade",
         phase: "Coalesce / Merge",
         text: "Now Block #B (PFN 1) is freed and removed from the Used list. The kernel recalculates buddy <code>1 ^ 1 = 0</code>. PFN 0 is FREE! They fuse into Order 1 (PFN 0). The cascade ripples upward until the pool is restored to a single 64 KB block in <code>free_area[4]</code> and the Used list is completely empty.",
-        math: "Cascade:<br>[PFN 0 + PFN 1] → Order 1 (PFN 0)<br>[PFN 0 + PFN 2] → Order 2 (PFN 0)<br>[PFN 0 + PFN 4] → Order 3 (PFN 0)<br>[PFN 0 + PFN 8] → Order 4 (PFN 0)",
+        math: "Cascade:<br>[PFN 0 + PFN 1] &rarr; Order 1 (PFN 0)<br>[PFN 0 + PFN 2] &rarr; Order 2 (PFN 0)<br>[PFN 0 + PFN 4] &rarr; Order 3 (PFN 0)<br>[PFN 0 + PFN 8] &rarr; Order 4 (PFN 0)",
         inspectRow: 4,
         setup: () => { resetTree(); root.inspecting = true; }
       }
@@ -706,7 +726,7 @@
       step.setup();
       render();
       document.getElementById("prevBtn").disabled = (currentStep === 0);
-      document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step →";
+      document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step &rarr;";
       log(`[Step ${currentStep + 1}] ${step.title}`, "inspect");
     }
     function render() { renderMemoryBar(); renderFreeLists(); renderUsedList(); }
