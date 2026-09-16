@@ -18,7 +18,6 @@
       --tlb-hit-bg: #dcfce7;
       --tlb-miss: #dc2626;
       --tlb-miss-bg: #fee2e2;
-      --wire-active: #0284c7;
       --highlight: #fef08a;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
@@ -89,9 +88,9 @@
       gap: 12px;
     }
     .theory-section h2 {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       color: var(--text);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     .theory-callout {
       background-color: #f0fdf4;
@@ -101,121 +100,74 @@
       font-size: 0.9rem;
       color: #166534;
       font-family: var(--font-mono);
+      line-height: 1.5;
     }
-
-    /* Interactive Hardware Stage */
-    .hardware-stage {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .code-block {
       background: #0f172a;
-      padding: 20px;
-      border-radius: 8px;
       color: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 6px;
       font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.5;
       overflow-x: auto;
     }
 
-    .circuit-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 780px;
+    /* Comparison Race Visualizer */
+    .race-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
     }
-
-    .cpu-register-box {
-      width: 180px;
-      background: #1e293b;
-      border: 2px solid #38bdf8;
-      border-radius: 6px;
-      padding: 10px;
-      text-align: center;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+    @media (max-width: 768px) {
+      .race-container { grid-template-columns: 1fr; }
     }
-    .cpu-register-box .val {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #38bdf8;
-      margin-top: 4px;
-    }
-
-    .bus-wire {
-      flex: 1;
-      height: 4px;
-      background: #334155;
-      position: relative;
-      transition: background 0.3s ease;
-    }
-    .bus-wire.active {
-      background: #38bdf8;
-      box-shadow: 0 0 8px #38bdf8;
-    }
-    .bus-wire.hit {
-      background: #4ade80;
-      box-shadow: 0 0 10px #4ade80;
-    }
-    .bus-wire.miss {
-      background: #f87171;
-      box-shadow: 0 0 10px #f87171;
-    }
-
-    /* TLB Bank Layout */
-    .tlb-bank {
+    .race-lane {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      background: #1e293b;
-      border: 2px solid #475569;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 12px;
-      width: 100%;
-      min-width: 780px;
+      padding: 14px;
     }
+    .race-lane.lane-tlb { border-top: 4px solid var(--tlb-hit); }
+    .race-lane.lane-notlb { border-top: 4px solid var(--tlb-miss); }
 
-    .tlb-row {
-      display: grid;
-      grid-template-columns: 70px 100px 90px 80px 80px 110px 1fr;
-      align-items: center;
-      padding: 6px 10px;
-      border-radius: 4px;
-      background: #0f172a;
-      border: 1px solid #334155;
+    .race-stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
-      transition: all 0.25s ease;
+      padding: 3px 0;
+      border-bottom: 1px dashed var(--border);
     }
-    .tlb-row.comparing {
-      border-color: #38bdf8;
-      background: #1e293b;
+    .race-bar-bg {
+      background: #e2e8f0;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 4px;
     }
-    .tlb-row.matched {
-      background: #064e3b !important;
-      border-color: #10b981 !important;
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
-    }
-    .tlb-row.evicting {
-      background: #7f1d1d !important;
-      border-color: #ef4444 !important;
+    .race-bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.1s linear;
     }
 
-    .comparator-badge {
-      display: inline-flex;
-      align-items: center;
+    /* SVG Container */
+    .figure-container {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
       justify-content: center;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      background: #334155;
-      color: #94a3b8;
-    }
-    .comparator-badge.match {
-      background: #10b981;
-      color: #ffffff;
-      box-shadow: 0 0 8px #10b981;
-    }
-    .comparator-badge.mismatch {
-      background: #334155;
-      color: #64748b;
+      align-items: center;
+      overflow-x: auto;
     }
 
     /* Tutorial Panel */
@@ -278,7 +230,31 @@
     }
     button.btn-sec:hover { background-color: #e2e8f0; }
 
-    /* Performance Math Box */
+    /* Sandbox Grid */
+    .sandbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 860px) {
+      .sandbox-grid { grid-template-columns: 1fr; }
+    }
+
+    .table-spec {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+    }
+    .table-spec th, .table-spec td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      text-align: center;
+    }
+    .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
+    .table-spec tr.hit-row { background-color: var(--tlb-hit-bg); font-weight: 700; }
+
+    /* EMAT Box */
     .emat-calc-box {
       background: #0f172a;
       color: #f8fafc;
@@ -318,7 +294,6 @@
     .log-hit { color: #4ade80; font-weight: 700; }
     .log-miss { color: #f87171; font-weight: 700; }
     .log-info { color: #38bdf8; }
-    .log-step { color: #facc15; }
   </style>
 </head>
 <body>
@@ -329,148 +304,271 @@
 
   <header>
     <h1>Speeding Up Paging: TLB &amp; EMAT</h1>
-    <p class="subtitle">Tanenbaum Section 3.3.3 (Fig. 3-12): Visualizing the internal associative comparator circuits, hit paths, and DRAM page table walks.</p>
+    <p class="subtitle">Tanenbaum Section 3.3.3 (Fig. 3-12): The real-world necessity of associative caching, array locality, and Effective Memory Access Time.</p>
   </header>
 
   <div class="main-container">
 
-    <!-- THEORY EXPLANATION -->
+    <!-- CONCEPT EXPLANATION & MOTIVATING SCENARIO -->
     <div class="card">
       <div class="theory-section">
-        <h2>How Hardware Associativity Actually Operates</h2>
+        <h2>Why Is the TLB Essential? The Array Bottleneck</h2>
         <p>
-          Standard RAM is indexed: to find entry <code>i</code>, an address decoder energizes row <code>i</code>. However, the TLB does not work by index; it works by <strong>associative content search</strong>.
+          To understand why a TLB is critical to modern computer architecture, consider what happens during everyday programming routines—such as summing an array of 1,024 integers (4,096 bytes, exactly 1 standard 4 KB page):
         </p>
+
+        <div class="code-block">
+int total = 0;
+for (int i = 0; i &lt; 1024; i++) {
+    total += data[i]; // All 1,024 integers reside on the same 4 KB virtual page!
+}
+        </div>
+
         <p>
-          Inside the CPU MMU, every single TLB slot has its own dedicated hardware comparator circuit. When the CPU emits a <strong>Virtual Page Number (VPN)</strong>:
+          Assume a typical system: CPU execution core access takes <strong>1 ns</strong>, but an off-chip DRAM lookup takes <strong>50 ns</strong>. On a 64-bit architecture with 4-level paging (PML4 &rarr; PDPT &rarr; PD &rarr; PT):
         </p>
-        <ol style="padding-left: 20px;">
-          <li>The VPN is broadcast simultaneously across a parallel wire bus to all comparators at the exact same instant.</li>
-          <li>Each slot compares its stored tag against the incoming VPN.</li>
-          <li>If a slot matches and its <code>Valid = 1</code>, it pulls a match wire high, immediately outputting its stored <strong>Page Frame Number (PFN)</strong>.</li>
-        </ol>
+
+        <ul style="padding-left: 20px;">
+          <li>
+            <strong>Architecture WITHOUT a TLB:</strong> For <em>every single element</em> in the loop, the CPU must resolve the virtual address of <code>data[i]</code>. It reads Level 4 (50 ns), Level 3 (50 ns), Level 2 (50 ns), and Level 1 (50 ns), then finally reads <code>data[i]</code> itself (50 ns).<br>
+            <strong>Cost per loop iteration:</strong> 250 ns.<br>
+            <strong>Total cost for 1,024 integers:</strong> 1,024 &times; 250 ns = <strong>256,000 ns (0.256 ms)</strong>. The CPU spends 80% of its execution time stalled on redundant pointer reads for the exact same page!
+          </li>
+          <li>
+            <strong>Architecture WITH a TLB:</strong><br>
+            <em>Iteration 0:</em> Compulsory TLB Miss &rarr; Walk 4 levels of DRAM (200 ns) &rarr; Cache translation in TLB &rarr; Fetch data (50 ns) = <strong>250 ns</strong>.<br>
+            <em>Iterations 1 to 1,023:</em> <strong>TLB Hit!</strong> The associative register matches the Virtual Page Number in &lt; 0.5 ns. The 4-level DRAM walk is bypassed completely! Fetch data from L1 cache (~1 ns) = <strong>~1.5 ns per element</strong>.<br>
+            <strong>Total cost for 1,024 integers:</strong> 250 ns + (1,023 &times; 1.5 ns) &approx; <strong>1,784 ns (0.00178 ms)</strong>.
+          </li>
+        </ul>
+
         <div class="theory-callout">
-          TLB Hit: Output delivered to DRAM address bus in &lt; 1 nanosecond.<br>
-          TLB Miss: All comparator lines output low &rarr; MMU stalls CPU and starts multi-cycle DRAM walk.
+          Speedup = 256,000 ns / 1,784 ns &approx; 143x Faster!<br>
+          Without a TLB, modern 3.0 GHz processors would spend nearly all their cycles waiting on memory bus lookups. The TLB cuts translation overhead to zero for &gt;98% of instructions.
         </div>
       </div>
     </div>
 
-    <!-- LIVE HARDWARE ASSOCIATIVE STAGE -->
+    <!-- LIVE ARRAY TRAVERSAL RACE SIMULATOR -->
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">MMU Silicon Hardware Stage</span>
-        <span id="hwStatusBadge" style="font-family:var(--font-mono); font-size:0.85rem; font-weight:700; color:#38bdf8;">Circuit: Idle</span>
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Demonstration: 1,024-Element Array Traversal Race</span>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">Simulate running the array summation loop with vs. without a TLB in real time.</p>
+        </div>
+        <button id="btnRunRace" onclick="runArrayRace()">Run 1,024-Iteration Loop Race</button>
       </div>
 
-      <div class="hardware-stage">
-        <!-- CPU Register & Broadcast Bus -->
-        <div class="circuit-row">
-          <div class="cpu-register-box">
-            <span style="font-size:0.75rem; color:#94a3b8; text-transform:uppercase;">CPU Instruction VPN</span>
-            <div class="val" id="cpuVpnRegister">---</div>
+      <div class="race-container">
+        <!-- Lane A: Without TLB -->
+        <div class="race-lane lane-notlb">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:var(--tlb-miss);">Without TLB (DRAM Walk Every Iteration)</strong>
+            <span id="raceStatusNoTlb" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">Idle</span>
           </div>
-          <div class="bus-wire" id="broadcastBus"></div>
-          <div style="font-size:0.8rem; color:#94a3b8; text-align:right;">
-            &rarr; Parallel Broadcast to All Associative Comparators
+          <div class="race-stat-row">
+            <span>Elements Processed:</span>
+            <span id="raceElemNoTlb">0 / 1024</span>
+          </div>
+          <div class="race-stat-row">
+            <span>DRAM Page Table Lookups:</span>
+            <span id="racePtReadsNoTlb" style="color:var(--tlb-miss); font-weight:700;">0 reads</span>
+          </div>
+          <div class="race-stat-row">
+            <span>Elapsed Simulated Time:</span>
+            <span id="raceTimeNoTlb" style="font-weight:700;">0.00 &mu;s</span>
+          </div>
+          <div class="race-bar-bg">
+            <div id="raceBarNoTlb" class="race-bar-fill" style="background:var(--tlb-miss);"></div>
           </div>
         </div>
 
-        <!-- TLB Register Array (Figure 3-12 Reproduction in Silicon) -->
-        <div class="tlb-bank">
-          <div style="display:grid; grid-template-columns: 70px 100px 90px 80px 80px 110px 1fr; font-size:0.75rem; color:#94a3b8; padding:4px 10px; font-weight:700; border-bottom:1px solid #334155;">
-            <span>Slot</span>
-            <span>Valid Bit</span>
-            <span>Tag (VPN)</span>
-            <span>Dirty</span>
-            <span>Perm</span>
-            <span>Frame (PFN)</span>
-            <span>Hardware Comparator</span>
+        <!-- Lane B: With TLB -->
+        <div class="race-lane lane-tlb">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:var(--tlb-hit);">With Hardware TLB (Associative Cache)</strong>
+            <span id="raceStatusTlb" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">Idle</span>
           </div>
-          <div id="tlbRowsContainer" style="display:flex; flex-direction:column; gap:4px;"></div>
-        </div>
-
-        <!-- Resulting Data Delivery Path -->
-        <div class="circuit-row" style="margin-top:6px;">
-          <div style="font-size:0.8rem; color:#94a3b8;">
-            MMU Output Bus:
+          <div class="race-stat-row">
+            <span>Elements Processed:</span>
+            <span id="raceElemTlb">0 / 1024</span>
           </div>
-          <div class="bus-wire" id="outputBus"></div>
-          <div id="outputDestination" style="padding:6px 14px; border-radius:4px; font-weight:700; font-size:0.85rem; background:#1e293b; color:#64748b;">
-            Physical DRAM Bus (Standby)
+          <div class="race-stat-row">
+            <span>DRAM Page Table Lookups:</span>
+            <span id="racePtReadsTlb" style="color:var(--tlb-hit); font-weight:700;">0 reads</span>
+          </div>
+          <div class="race-stat-row">
+            <span>Elapsed Simulated Time:</span>
+            <span id="raceTimeTlb" style="color:var(--tlb-hit); font-weight:700;">0.00 &mu;s</span>
+          </div>
+          <div class="race-bar-bg">
+            <div id="raceBarTlb" class="race-bar-fill" style="background:var(--tlb-hit);"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- PART 1: GUIDED MICRO-STEPPING TUTORIAL -->
+    <!-- TEXTBOOK FIGURE 3-12 SVG REPRODUCTION -->
+    <div class="card">
+      <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Textbook Diagram: Figure 3-12 (A TLB to speed up paging)</span>
+      <div class="figure-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 280" width="100%" height="100%" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+          <rect x="20" y="20" width="700" height="220" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4"/>
+          <rect x="20" y="20" width="700" height="36" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <text x="65" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Valid</text>
+          <text x="185" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Virtual page</text>
+          <text x="315" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Modified</text>
+          <text x="445" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Protection</text>
+          <text x="605" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Page frame</text>
+
+          <line x1="110" y1="20" x2="110" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="260" y1="20" x2="260" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="370" y1="20" x2="370" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="520" y1="20" x2="520" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+
+          <!-- Entries from Textbook Page 202, Fig 3-12 -->
+          <line x1="20" y1="78" x2="720" y2="78" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="71" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="71" font-size="13" fill="#0f172a" text-anchor="middle">140</text>
+          <text x="315" y="71" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="71" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="71" font-size="13" fill="#0f172a" text-anchor="middle">31</text>
+
+          <line x1="20" y1="100" x2="720" y2="100" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="93" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="93" font-size="13" fill="#0f172a" text-anchor="middle">20</text>
+          <text x="315" y="93" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="93" font-size="13" fill="#0f172a" text-anchor="middle">R X</text>
+          <text x="605" y="93" font-size="13" fill="#0f172a" text-anchor="middle">38</text>
+
+          <line x1="20" y1="122" x2="720" y2="122" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="115" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="115" font-size="13" fill="#0f172a" text-anchor="middle">130</text>
+          <text x="315" y="115" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="115" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="115" font-size="13" fill="#0f172a" text-anchor="middle">29</text>
+
+          <line x1="20" y1="144" x2="720" y2="144" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="137" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="137" font-size="13" fill="#0f172a" text-anchor="middle">129</text>
+          <text x="315" y="137" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="137" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="137" font-size="13" fill="#0f172a" text-anchor="middle">62</text>
+
+          <line x1="20" y1="166" x2="720" y2="166" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="159" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="159" font-size="13" fill="#0f172a" text-anchor="middle">19</text>
+          <text x="315" y="159" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="159" font-size="13" fill="#0f172a" text-anchor="middle">R X</text>
+          <text x="605" y="159" font-size="13" fill="#0f172a" text-anchor="middle">50</text>
+
+          <line x1="20" y1="188" x2="720" y2="188" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="181" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="181" font-size="13" fill="#0f172a" text-anchor="middle">21</text>
+          <text x="315" y="181" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="181" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="181" font-size="13" fill="#0f172a" text-anchor="middle">45</text>
+
+          <line x1="20" y1="210" x2="720" y2="210" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="203" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="203" font-size="13" fill="#0f172a" text-anchor="middle">860</text>
+          <text x="315" y="203" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="203" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="203" font-size="13" fill="#0f172a" text-anchor="middle">14</text>
+
+          <text x="65" y="225" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="225" font-size="13" fill="#0f172a" text-anchor="middle">861</text>
+          <text x="315" y="225" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="225" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="225" font-size="13" fill="#0f172a" text-anchor="middle">75</text>
+        </svg>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-muted); text-align:center;">
+        Figure 3-12. A typical 8-entry hardware TLB snapshot showing mapped virtual pages and execution permissions.
+      </p>
+    </div>
+
+    <!-- PART 1: GUIDED TUTORIAL -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
-        <span id="tutStepLabel">Part 1: Step 1 of 4</span>
-        <span>Granular Hardware Stepper</span>
+        <span id="tutStepLabel">Part 1: Step 1 of 5</span>
+        <span>Guided Walkthrough</span>
       </div>
-      <div id="tutStepTitle" class="tutorial-title">1. Parallel Broadcast</div>
+      <div id="tutStepTitle" class="tutorial-title">1. The Array Traversal Example</div>
       <div id="tutStepBody" class="tutorial-body"></div>
       <div class="tour-nav">
-        <button id="tutPrevBtn" class="btn-sec" onclick="tutBackward()">Back</button>
-        <button id="tutNextBtn" onclick="tutForward()">Next Step &rarr;</button>
+        <button id="tutPrevBtn" class="btn-sec" onclick="stepBackward()">Back</button>
+        <button id="tutNextBtn" onclick="stepForward()">Next Step &rarr;</button>
         <button class="btn-sec" style="margin-left:auto;" onclick="scrollToSandbox()">Jump to Live Sandbox &darr;</button>
       </div>
     </div>
 
-    <!-- PART 2: INTERACTIVE PLAYGROUND & EMAT LAB -->
+    <!-- PART 2: INTERACTIVE PLAYGROUND & EMAT CALCULATOR -->
     <div class="card" id="sandboxSection">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <div>
           <h2 style="font-size:1.25rem; font-weight:700;">Part 2: Interactive TLB Simulator &amp; EMAT Lab</h2>
           <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Dispatch memory requests to watch the broadcast comparator wires pulse and observe the EMAT impact.
+            Issue memory requests across virtual pages to trigger hardware TLB Hits and DRAM Misses.
           </p>
         </div>
-        <button class="btn-sec" onclick="resetSimulator()">Reset TLB &amp; Stats</button>
+        <button class="btn-sec" onclick="resetSimulator()">Reset Stats</button>
       </div>
 
-      <!-- Quick Action Buttons -->
+      <!-- Input Bar -->
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <span style="font-weight:600; font-size:0.85rem;">Test Known Pages:</span>
-        <button onclick="executeLookup(140, 'R')">Page 140 (Slot 0 Hit)</button>
-        <button onclick="executeLookup(20, 'X')">Page 20 (Slot 1 Hit)</button>
-        <button onclick="executeLookup(861, 'W')">Page 861 (Slot 7 Hit)</button>
-        <button onclick="executeLookup(500, 'R')" style="background-color:#b91c1c;">Page 500 (TLB Miss &rarr; DRAM Walk)</button>
+        <span style="font-weight:600; font-size:0.85rem;">Request Virtual Page:</span>
+        <button onclick="requestPage(140, 'R')">Page 140 (In TLB)</button>
+        <button onclick="requestPage(20, 'X')">Page 20 (Exec)</button>
+        <button onclick="requestPage(500, 'R')">Page 500 (Miss)</button>
+        <button onclick="requestPage(860, 'W')">Page 860 (Write)</button>
         <div style="display:flex; gap:6px; margin-left:auto;">
           <input type="number" id="customPageInput" placeholder="VPN (0..1023)" style="padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-mono); width:130px;">
-          <button class="btn-sec" onclick="executeCustom()">Lookup</button>
+          <button class="btn-sec" onclick="requestCustom()">Access</button>
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:6px;">
-        <!-- Telemetry & EMAT -->
-        <div class="emat-calc-box">
-          <span style="color:#94a3b8; text-transform:uppercase; font-size:0.75rem; font-weight:700;">Live Performance Telemetry</span>
-          <div class="emat-metric">
-            <span>Total Requests:</span>
-            <span id="metricRequests" class="emat-highlight">0</span>
-          </div>
-          <div class="emat-metric">
-            <span>TLB Hits / Misses:</span>
-            <span><span id="metricHits" style="color:#4ade80; font-weight:700;">0</span> / <span id="metricMisses" style="color:#f87171; font-weight:700;">0</span></span>
-          </div>
-          <div class="emat-metric">
-            <span>Hit Ratio (&alpha;):</span>
-            <span id="metricHitRatio" class="emat-highlight">0.0%</span>
-          </div>
-          <div class="emat-metric">
-            <span>Effective Access Time (EMAT):</span>
-            <span id="metricEmat" style="color:#facc15; font-weight:800; font-size:1rem;">-- ns</span>
-          </div>
-          <p style="font-size:0.75rem; color:#94a3b8; line-height:1.4; margin-top:4px;">
-            EMAT Formula: &alpha; &times; (1ns + 100ns) + (1 - &alpha;) &times; (1ns + 100ns [walk] + 100ns [read]).
-          </p>
+      <div class="sandbox-grid">
+        <!-- Live Hardware TLB Table -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Active 8-Entry MMU TLB State</span>
+          <table class="table-spec">
+            <thead>
+              <tr><th>Valid</th><th>Virtual Page</th><th>Dirty</th><th>Perm</th><th>Page Frame</th></tr>
+            </thead>
+            <tbody id="tlbBody"></tbody>
+          </table>
         </div>
 
-        <!-- Log Box -->
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">MMU Internal Bus Activity</span>
+        <!-- EMAT & Telemetry Metrics -->
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div class="emat-calc-box">
+            <span style="color:#94a3b8; text-transform:uppercase; font-size:0.75rem; font-weight:700;">Live EMAT Performance Telemetry</span>
+            <div class="emat-metric">
+              <span>Total Requests:</span>
+              <span id="metricRequests" class="emat-highlight">0</span>
+            </div>
+            <div class="emat-metric">
+              <span>TLB Hits / Misses:</span>
+              <span><span id="metricHits" style="color:#4ade80; font-weight:700;">0</span> / <span id="metricMisses" style="color:#f87171; font-weight:700;">0</span></span>
+            </div>
+            <div class="emat-metric">
+              <span>Hit Ratio (&alpha;):</span>
+              <span id="metricHitRatio" class="emat-highlight">0.0%</span>
+            </div>
+            <div class="emat-metric">
+              <span>Effective Memory Access Time (EMAT):</span>
+              <span id="metricEmat" style="color:#facc15; font-weight:800; font-size:1rem;">-- ns</span>
+            </div>
+            <p style="font-size:0.75rem; color:#94a3b8; line-height:1.4; margin-top:4px;">
+              Assumes TLB lookup = 1 ns, DRAM access = 100 ns. Misses incur 1 TLB check + 2 DRAM accesses (walk + data read).
+            </p>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">MMU Hardware Trace</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Real-time log</span>
+          </div>
           <div id="mmuLog" class="terminal-box"></div>
         </div>
       </div>
@@ -480,7 +578,118 @@
 
   <script>
     /* =========================================================================
-       SILICON DATA MODEL (Tanenbaum Figure 3-12, Page 202)
+       ARRAY RACE SIMULATOR SCRIPT
+       ========================================================================= */
+    let raceRunning = false;
+
+    function runArrayRace() {
+      if (raceRunning) return;
+      raceRunning = true;
+
+      const btn = document.getElementById("btnRunRace");
+      btn.disabled = true;
+
+      document.getElementById("raceStatusNoTlb").textContent = "Executing...";
+      document.getElementById("raceStatusTlb").textContent = "Executing...";
+
+      // Counters
+      let elemTlb = 0;
+      let elemNoTlb = 0;
+
+      // Speed scale: with TLB finishes in ~1.5 seconds visually, without TLB finishes in ~7 seconds
+      const timerTlb = setInterval(() => {
+        elemTlb += 32;
+        if (elemTlb >= 1024) {
+          elemTlb = 1024;
+          clearInterval(timerTlb);
+          document.getElementById("raceStatusTlb").textContent = "Finished in 1.78 us!";
+          document.getElementById("raceStatusTlb").style.color = "var(--tlb-hit)";
+        }
+        document.getElementById("raceElemTlb").textContent = `${elemTlb} / 1024`;
+        document.getElementById("racePtReadsTlb").textContent = "4 reads (Cold miss only)";
+        const elapsedUs = ((elemTlb / 1024) * 1.78).toFixed(2);
+        document.getElementById("raceTimeTlb").textContent = `${elapsedUs} us`;
+        document.getElementById("raceBarTlb").style.width = `${(elemTlb / 1024) * 100}%`;
+      }, 40);
+
+      const timerNoTlb = setInterval(() => {
+        elemNoTlb += 8;
+        if (elemNoTlb >= 1024) {
+          elemNoTlb = 1024;
+          clearInterval(timerNoTlb);
+          document.getElementById("raceStatusNoTlb").textContent = "Finished in 256 us";
+          document.getElementById("raceStatusNoTlb").style.color = "var(--tlb-miss)";
+          raceRunning = false;
+          btn.disabled = false;
+        }
+        document.getElementById("raceElemNoTlb").textContent = `${elemNoTlb} / 1024`;
+        document.getElementById("racePtReadsNoTlb").textContent = `${elemNoTlb * 4} reads!`;
+        const elapsedUs = ((elemNoTlb / 1024) * 256.0).toFixed(2);
+        document.getElementById("raceTimeNoTlb").textContent = `${elapsedUs} us`;
+        document.getElementById("raceBarNoTlb").style.width = `${(elemNoTlb / 1024) * 100}%`;
+      }, 50);
+    }
+
+    /* =========================================================================
+       PART 1: GUIDED TUTORIAL SCRIPT
+       ========================================================================= */
+    const tutorialSteps = [
+      {
+        title: "1. The Spatial Locality of an Array Loop",
+        body: "Consider summing <code>data[0..1023]</code>. All 1,024 integers reside contiguously on a single 4 KB page. Without a cache, an architecture must resolve the exact same virtual page translation 1,024 separate times in a row, wasting thousands of bus cycles reading identical page directory pointers."
+      },
+      {
+        title: "2. Iteration 0: The Compulsory Cold Miss",
+        body: "On the very first access (<code>data[0]</code>), the TLB is cold. The MMU queries the TLB, finds no translation, walks the multi-level page table in off-chip DRAM (costing ~200 ns), and loads <code>VPN &rarr; PFN</code> into the TLB register."
+      },
+      {
+        title: "3. Iterations 1 to 1023: 1,023 Consecutive Hits!",
+        body: "For every subsequent element (<code>data[1]</code> through <code>data[1023]</code>), the VPN matches the TLB in &lt; 0.5 ns! The 4-level DRAM walk is completely bypassed for all 1,023 accesses, reducing translation latency from 200 ns down to effectively 0 ns."
+      },
+      {
+        title: "4. Associative Parallel Search Circuitry",
+        body: "The TLB is not an array indexed in memory; it is an on-chip associative content-addressable memory (CAM). When any VPN is presented, hardware comparators query <strong>every single entry simultaneously in parallel</strong> in less than 1 clock cycle."
+      },
+      {
+        title: "5. Measuring Performance via EMAT",
+        body: "Because real programs exhibit strong spatial and temporal locality, realistic TLB hit rates exceed 98%. With a 98% hit rate (&alpha; = 0.98), the Effective Memory Access Time drops from 250 ns down to near-cache speeds of ~102 ns."
+      }
+    ];
+
+    let currentStep = 0;
+
+    function renderTutorial() {
+      const step = tutorialSteps[currentStep];
+      document.getElementById("tutStepLabel").textContent = `Part 1: Step ${currentStep + 1} of ${tutorialSteps.length}`;
+      document.getElementById("tutStepTitle").textContent = step.title;
+      document.getElementById("tutStepBody").innerHTML = step.body;
+
+      document.getElementById("tutPrevBtn").disabled = (currentStep === 0);
+      document.getElementById("tutNextBtn").textContent = (currentStep === tutorialSteps.length - 1) ? "Finish Tutorial & Test Sandbox" : "Next Step →";
+    }
+
+    function stepForward() {
+      if (currentStep < tutorialSteps.length - 1) {
+        currentStep++;
+        renderTutorial();
+      } else {
+        scrollToSandbox();
+      }
+    }
+
+    function stepBackward() {
+      if (currentStep > 0) {
+        currentStep--;
+        renderTutorial();
+      }
+    }
+
+    function scrollToSandbox() {
+      document.getElementById("sandboxSection").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* =========================================================================
+       PART 2: INTERACTIVE SIMULATOR & EMAT LOGIC
        ========================================================================= */
     let tlbData = [
       { valid: 1, vpn: 140, modified: 1, protection: "RW", pfn: 31 },
@@ -493,153 +702,33 @@
       { valid: 1, vpn: 861, modified: 1, protection: "RW", pfn: 75 }
     ];
 
-    let fifoPointer = 0;
     let stats = { requests: 0, hits: 0, misses: 0 };
+    let fifoPointer = 0;
 
-    function renderTlbRows(comparingVpn = null, matchedIdx = -1, evictIdx = -1) {
-      const container = document.getElementById("tlbRowsContainer");
-      container.innerHTML = "";
+    function renderTlbTable(highlightIdx = -1) {
+      const tbody = document.getElementById("tlbBody");
+      tbody.innerHTML = "";
 
       tlbData.forEach((row, idx) => {
-        const div = document.createElement("div");
-        div.className = "tlb-row";
-
-        let compStatus = '<span class="comparator-badge mismatch">Idle</span>';
-        if (comparingVpn !== null) {
-          if (row.valid === 1 && row.vpn === comparingVpn) {
-            compStatus = '<span class="comparator-badge match">MATCH (==)</span>';
-          } else {
-            compStatus = `<span class="comparator-badge mismatch">!= (${row.vpn})</span>`;
-          }
-        }
-
-        if (idx === matchedIdx) div.classList.add("matched");
-        if (idx === evictIdx) div.classList.add("evicting");
-        if (comparingVpn !== null && idx !== matchedIdx && idx !== evictIdx) {
-          div.classList.add("comparing");
-        }
-
-        div.innerHTML = `
-          <span style="color:#94a3b8;">[Slot ${idx}]</span>
-          <span><span style="color:${row.valid ? '#4ade80':'#f87171'}; font-weight:bold;">${row.valid}</span></span>
-          <span style="color:#38bdf8; font-weight:bold;">${row.vpn}</span>
-          <span>${row.modified}</span>
-          <span style="color:#cbd5e1;">${row.protection}</span>
-          <span style="color:#facc15; font-weight:bold;">PFN ${row.pfn}</span>
-          <div>${compStatus}</div>
+        const tr = document.createElement("tr");
+        if (idx === highlightIdx) tr.className = "hit-row";
+        tr.innerHTML = `
+          <td>${row.valid}</td>
+          <td><strong>${row.vpn}</strong></td>
+          <td>${row.modified}</td>
+          <td>${row.protection}</td>
+          <td style="color:var(--accent); font-weight:bold;">${row.pfn}</td>
         `;
-        container.appendChild(div);
+        tbody.appendChild(tr);
       });
     }
 
-    /* =========================================================================
-       PART 1: GUIDED TUTORIAL LOGIC
-       ========================================================================= */
-    const tutSteps = [
-      {
-        title: "1. The Parallel Broadcast Bus",
-        body: "Watch the CPU register on the left load <strong>VPN 140</strong>. The blue bus wire immediately energizes and fans out to all 8 slots simultaneously. In silicon, this is not an indexed table look-up; the bits are broadcast in parallel to all comparator gates.",
-        setup: () => {
-          document.getElementById("cpuVpnRegister").textContent = "140";
-          document.getElementById("broadcastBus").className = "bus-wire active";
-          document.getElementById("outputBus").className = "bus-wire";
-          document.getElementById("outputDestination").style.background = "#1e293b";
-          document.getElementById("outputDestination").style.color = "#64748b";
-          document.getElementById("outputDestination").textContent = "Physical DRAM Bus (Standby)";
-          document.getElementById("hwStatusBadge").textContent = "Broadcasting VPN 140 to All Comparators";
-          document.getElementById("hwStatusBadge").style.color = "#38bdf8";
-          renderTlbRows(140, -1, -1);
-        }
-      },
-      {
-        title: "2. The Instant Match (TLB Hit Path)",
-        body: "Notice <strong>Slot 0</strong>! Its comparator detects <code>140 == 140</code> and pulls its match line high. The green wire turns on. In less than 1 nanosecond, <strong>PFN 31</strong> is gated onto the memory output bus. The slow off-chip DRAM page table is completely bypassed!",
-        setup: () => {
-          document.getElementById("cpuVpnRegister").textContent = "140";
-          document.getElementById("broadcastBus").className = "bus-wire active";
-          document.getElementById("outputBus").className = "bus-wire hit";
-          const dest = document.getElementById("outputDestination");
-          dest.style.background = "#064e3b";
-          dest.style.color = "#4ade80";
-          dest.textContent = "DRAM Frame 31 (Delivered < 1ns)";
-          document.getElementById("hwStatusBadge").textContent = "TLB Hit in Slot 0!";
-          document.getElementById("hwStatusBadge").style.color = "#4ade80";
-          renderTlbRows(140, 0, -1);
-        }
-      },
-      {
-        title: "3. Broadcast with No Match (TLB Miss)",
-        body: "Now the CPU emits <strong>VPN 500</strong>. Look at the comparator column: every single slot evaluates to <code>!= (Mismatch)</code>. No slot pulls its match line high. The hardware MMU detects that no valid translation exists on-chip.",
-        setup: () => {
-          document.getElementById("cpuVpnRegister").textContent = "500";
-          document.getElementById("broadcastBus").className = "bus-wire active";
-          document.getElementById("outputBus").className = "bus-wire miss";
-          const dest = document.getElementById("outputDestination");
-          dest.style.background = "#7f1d1d";
-          dest.style.color = "#f87171";
-          dest.textContent = "Miss: DRAM Walk Triggered (+100ns)";
-          document.getElementById("hwStatusBadge").textContent = "TLB Miss: All Comparators Negative";
-          document.getElementById("hwStatusBadge").style.color = "#f87171";
-          renderTlbRows(500, -1, -1);
-        }
-      },
-      {
-        title: "4. The DRAM Table Walk & Replacement",
-        body: "Because all comparators failed, the MMU halts the instruction, walks the multi-level page table in physical DRAM (+100 ns), and retrieves the translation. It evicts Slot 0 (red) via FIFO, writes in <code>VPN 500 &rarr; PFN 110</code>, and restarts the instruction.",
-        setup: () => {
-          document.getElementById("cpuVpnRegister").textContent = "500";
-          document.getElementById("broadcastBus").className = "bus-wire active";
-          document.getElementById("outputBus").className = "bus-wire";
-          document.getElementById("outputDestination").textContent = "TLB Updated from DRAM Walk";
-          document.getElementById("hwStatusBadge").textContent = "Evicting Slot 0 -> Loading VPN 500";
-          document.getElementById("hwStatusBadge").style.color = "#facc15";
-          renderTlbRows(500, -1, 0);
-        }
-      }
-    ];
-
-    let currentTutStep = 0;
-
-    function renderTutorial() {
-      const step = tutSteps[currentTutStep];
-      document.getElementById("tutStepLabel").textContent = `Part 1: Step ${currentTutStep + 1} of ${tutSteps.length}`;
-      document.getElementById("tutStepTitle").textContent = step.title;
-      document.getElementById("tutStepBody").innerHTML = step.body;
-      step.setup();
-
-      document.getElementById("tutPrevBtn").disabled = (currentTutStep === 0);
-      document.getElementById("tutNextBtn").textContent = (currentTutStep === tutSteps.length - 1) ? "Finish & Try Sandbox" : "Next Step →";
-    }
-
-    function tutForward() {
-      if (currentTutStep < tutSteps.length - 1) {
-        currentTutStep++;
-        renderTutorial();
-      } else {
-        scrollToSandbox();
-      }
-    }
-
-    function tutBackward() {
-      if (currentTutStep > 0) {
-        currentTutStep--;
-        renderTutorial();
-      }
-    }
-
-    function scrollToSandbox() {
-      document.getElementById("sandboxSection").scrollIntoView({ behavior: 'smooth' });
-    }
-
-    /* =========================================================================
-       PART 2: INTERACTIVE SIMULATION & EMAT ENGINE
-       ========================================================================= */
     function logMmu(msg, type = "log-info") {
-      const term = document.getElementById("mmuLog");
-      const row = document.createElement("div");
-      row.className = `log-row ${type}`;
-      row.textContent = `> ${msg}`;
-      term.prepend(row);
+      const log = document.getElementById("mmuLog");
+      const entry = document.createElement("div");
+      entry.className = `log-row ${type}`;
+      entry.textContent = `> ${msg}`;
+      log.prepend(entry);
     }
 
     function updateEmat() {
@@ -655,129 +744,69 @@
 
       const alpha = stats.hits / stats.requests;
       document.getElementById("metricHitRatio").textContent = (alpha * 100).toFixed(1) + "%";
+
       const emat = (alpha * 101) + ((1 - alpha) * 201);
       document.getElementById("metricEmat").textContent = emat.toFixed(1) + " ns";
     }
 
-    function executeLookup(vpn, accessType = "R") {
+    function requestPage(vpn, accessType = "R") {
       stats.requests++;
-      document.getElementById("cpuVpnRegister").textContent = vpn;
-      document.getElementById("broadcastBus").className = "bus-wire active";
+      logMmu(`CPU requests access to Virtual Page ${vpn} [Op: ${accessType}]...`);
 
-      logMmu(`--------------------------------------------------`);
-      logMmu(`CPU broadcasts VPN ${vpn} across associative bus...`, "log-step");
+      const foundIdx = tlbData.findIndex(entry => entry.valid === 1 && entry.vpn === vpn);
 
-      // 1. Hardware Parallel Comparator Search
-      const matchIdx = tlbData.findIndex(row => row.valid === 1 && row.vpn === vpn);
-
-      if (matchIdx !== -1) {
-        // HIT
+      if (foundIdx !== -1) {
         stats.hits++;
-        const entry = tlbData[matchIdx];
-        if (accessType === 'W') entry.modified = 1;
-
-        renderTlbRows(vpn, matchIdx, -1);
-        document.getElementById("outputBus").className = "bus-wire hit";
-        const dest = document.getElementById("outputDestination");
-        dest.style.background = "#064e3b";
-        dest.style.color = "#4ade80";
-        dest.textContent = `PFN ${entry.pfn} Sent to DRAM (<1ns)`;
-
-        document.getElementById("hwStatusBadge").textContent = `TLB HIT in Slot ${matchIdx}! Delivery in <1ns`;
-        document.getElementById("hwStatusBadge").style.color = "#4ade80";
-
-        logMmu(`COMPARATOR HIT: Slot ${matchIdx} matched VPN ${vpn}. Gating PFN ${entry.pfn} to DRAM.`, "log-hit");
-        logMmu(`LATENCY: < 1 ns. Zero physical memory table walks.`, "log-hit");
+        const entry = tlbData[foundIdx];
+        if (accessType === 'W' && !entry.protection.includes('W')) {
+          logMmu(`PROTECTION FAULT: Write denied to Read-Only Page ${vpn}!`, "log-miss");
+        } else {
+          if (accessType === 'W') entry.modified = 1;
+          logMmu(`TLB HIT! Page ${vpn} -> PFN ${entry.pfn} translated in <1ns (DRAM walk bypassed).`, "log-hit");
+        }
+        renderTlbTable(foundIdx);
       } else {
-        // MISS
         stats.misses++;
-        renderTlbRows(vpn, -1, -1);
+        logMmu(`TLB MISS: Page ${vpn} not in associative registers. Walking multi-level DRAM table (+100ns)...`, "log-miss");
 
-        document.getElementById("outputBus").className = "bus-wire miss";
-        const dest = document.getElementById("outputDestination");
-        dest.style.background = "#7f1d1d";
-        dest.style.color = "#f87171";
-        dest.textContent = "DRAM Page Table Walk (+100ns)";
+        const assignedPfn = 100 + (vpn % 50);
+        const evictedVpn = tlbData[fifoPointer].vpn;
 
-        document.getElementById("hwStatusBadge").textContent = "TLB MISS: Walking DRAM Page Table (+100ns)";
-        document.getElementById("hwStatusBadge").style.color = "#f87171";
-
-        logMmu(`ALL COMPARATORS MISMATCH: VPN ${vpn} not present in TLB.`, "log-miss");
-        logMmu(`STALL: CPU walking multi-level page tables in off-chip DRAM (+100ns)...`, "log-miss");
-
-        // Simulate replacement
-        setTimeout(() => {
-          const evictIdx = fifoPointer;
-          const oldVpn = tlbData[evictIdx].vpn;
-          const newPfn = 100 + (vpn % 50);
-
-          renderTlbRows(vpn, -1, evictIdx);
-          logMmu(`FIFO REPLACEMENT: Evicting Slot ${evictIdx} (VPN ${oldVpn}) &rarr; Loading VPN ${vpn} (PFN ${newPfn}).`, "log-step");
-
-          tlbData[evictIdx] = {
-            valid: 1,
-            vpn: vpn,
-            modified: (accessType === 'W' ? 1 : 0),
-            protection: (accessType === 'X' ? 'RX' : 'RW'),
-            pfn: newPfn
-          };
-          fifoPointer = (fifoPointer + 1) % tlbData.length;
-
-          setTimeout(() => {
-            renderTlbRows(vpn, evictIdx, -1);
-            document.getElementById("outputBus").className = "bus-wire hit";
-            dest.style.background = "#064e3b";
-            dest.style.color = "#4ade80";
-            dest.textContent = `PFN ${newPfn} Cached & Delivered`;
-            document.getElementById("hwStatusBadge").textContent = `Installed VPN ${vpn} into Slot ${evictIdx}`;
-            document.getElementById("hwStatusBadge").style.color = "#4ade80";
-          }, 300);
-        }, 400);
+        logMmu(`Evicting TLB slot ${fifoPointer} (Page ${evictedVpn}) -> Installing Page ${vpn} (PFN ${assignedPfn}).`, "log-info");
+        tlbData[fifoPointer] = {
+          valid: 1,
+          vpn: vpn,
+          modified: (accessType === 'W' ? 1 : 0),
+          protection: (accessType === 'X' ? 'RX' : 'RW'),
+          pfn: assignedPfn
+        };
+        renderTlbTable(fifoPointer);
+        fifoPointer = (fifoPointer + 1) % tlbData.length;
       }
 
       updateEmat();
     }
 
-    function executeCustom() {
+    function requestCustom() {
       const val = parseInt(document.getElementById("customPageInput").value, 10);
       if (!isNaN(val) && val >= 0) {
-        executeLookup(val, 'R');
+        requestPage(val, 'R');
         document.getElementById("customPageInput").value = "";
       }
     }
 
     function resetSimulator() {
-      tlbData = [
-        { valid: 1, vpn: 140, modified: 1, protection: "RW", pfn: 31 },
-        { valid: 1, vpn: 20,  modified: 0, protection: "RX", pfn: 38 },
-        { valid: 1, vpn: 130, modified: 1, protection: "RW", pfn: 29 },
-        { valid: 1, vpn: 129, modified: 1, protection: "RW", pfn: 62 },
-        { valid: 1, vpn: 19,  modified: 0, protection: "RX", pfn: 50 },
-        { valid: 1, vpn: 21,  modified: 0, protection: "RW", pfn: 45 },
-        { valid: 1, vpn: 860, modified: 1, protection: "RW", pfn: 14 },
-        { valid: 1, vpn: 861, modified: 1, protection: "RW", pfn: 75 }
-      ];
-      fifoPointer = 0;
       stats = { requests: 0, hits: 0, misses: 0 };
-      document.getElementById("cpuVpnRegister").textContent = "---";
-      document.getElementById("broadcastBus").className = "bus-wire";
-      document.getElementById("outputBus").className = "bus-wire";
-      document.getElementById("outputDestination").style.background = "#1e293b";
-      document.getElementById("outputDestination").style.color = "#64748b";
-      document.getElementById("outputDestination").textContent = "Physical DRAM Bus (Standby)";
-      document.getElementById("hwStatusBadge").textContent = "Circuit: Idle";
-      document.getElementById("hwStatusBadge").style.color = "#38bdf8";
       document.getElementById("mmuLog").innerHTML = "";
-
-      renderTlbRows();
+      logMmu("Telemetry reset. TLB re-initialized to Figure 3-12 state.");
       updateEmat();
-      logMmu("MMU Simulator reset to initial Tanenbaum Figure 3-12 state.");
+      renderTlbTable();
     }
 
-    // Initialize
-    renderTlbRows();
     renderTutorial();
-    resetSimulator();
+    renderTlbTable();
+    updateEmat();
+    logMmu("System active. TLB loaded with 8 working set pages.");
   </script>
 </body>
 </html>
