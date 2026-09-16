@@ -3,19 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2. Speeding Up Paging: TLB & EMAT — COSC240</title>
+  <title>Speeding Up Paging: TLB &amp; EMAT — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
+      --border-dark: #94a3b8;
       --accent: #0284c7;
+      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --badge-bg: #f1f5f9;
-      --badge-color: #64748b;
+      --tlb-hit: #16a34a;
+      --tlb-hit-bg: #dcfce7;
+      --tlb-miss: #dc2626;
+      --tlb-miss-bg: #fee2e2;
+      --highlight: #fef08a;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
@@ -27,59 +33,628 @@
       align-items: center;
       gap: 18px;
     }
-    .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 16px; }
+
+    .nav-back {
+      width: 100%;
+      max-width: 1050px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 1050px;
+    }
+
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 28px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    .meta { display: flex; justify-content: space-between; align-items: center; }
-    .badge {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 9999px;
-      background-color: var(--badge-bg);
-      color: var(--badge-color);
-      border: 1px solid #cbd5e1;
-      text-transform: uppercase;
+
+    /* Conceptual Explanation Styling */
+    .theory-section {
+      line-height: 1.65;
+      font-size: 0.95rem;
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-    h1 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
-    p.description { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
-    .notice {
-      background: #f8fafc;
-      border: 1px dashed var(--border);
+    .theory-section h2 {
+      font-size: 1.2rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .theory-callout {
+      background-color: #f0fdf4;
+      border-left: 4px solid var(--tlb-hit);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #166534;
+      font-family: var(--font-mono);
+    }
+
+    /* Textbook SVG Graphic Container */
+    .figure-container {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: auto;
+    }
+
+    /* Tutorial Panel */
+    .tutorial-panel {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+    }
+
+    .tutorial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tutorial-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #075985;
+    }
+
+    .tutorial-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #0c4a6e;
+    }
+
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    /* Buttons */
+    button {
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
       border-radius: 6px;
-      padding: 16px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.15s ease;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.btn-sec {
+      background-color: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button.btn-sec:hover { background-color: #e2e8f0; }
+
+    /* Sandbox Layout */
+    .sandbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 860px) {
+      .sandbox-grid { grid-template-columns: 1fr; }
+    }
+
+    .table-spec {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+    }
+    .table-spec th, .table-spec td {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
       text-align: center;
+    }
+    .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
+    .table-spec tr.hit-row { background-color: var(--tlb-hit-bg); font-weight: 700; }
+    .table-spec tr.evict-target { background-color: #fef08a; }
+
+    /* Performance Math Box */
+    .emat-calc-box {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       font-family: var(--font-mono);
       font-size: 0.85rem;
-      color: var(--text-muted);
     }
+    .emat-metric {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 4px;
+    }
+    .emat-highlight {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    .terminal-box {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 4px;
+    }
+    .log-row { line-height: 1.4; }
+    .log-hit { color: #4ade80; font-weight: 700; }
+    .log-miss { color: #f87171; font-weight: 700; }
+    .log-info { color: #38bdf8; }
   </style>
 </head>
 <body>
+
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week Overview</a>
   </div>
-  <div class="container">
+
+  <header>
+    <h1>Speeding Up Paging: TLB &amp; EMAT</h1>
+    <p class="subtitle">Tanenbaum Section 3.3.3 (Fig. 3-12): The Translation Lookaside Buffer, hardware associativity, and Effective Memory Access Time.</p>
+  </header>
+
+  <div class="main-container">
+
+    <!-- CONCEPT EXPLANATION -->
     <div class="card">
-      <div class="meta">
-        <span style="color:var(--accent); font-weight:bold; font-family:var(--font-mono);">Week 09</span>
-        <span class="badge">Draft Placeholder</span>
-      </div>
-      <h1>2. Speeding Up Paging: TLB & EMAT</h1>
-      <p class="description">Associative hardware lookups (Fig. 3-12), TLB hits vs. DRAM walks, and Effective Memory Access Time.</p>
-      <div class="notice">
-        Interactive visualization matching Tanenbaum Memory Management text will be placed here.
+      <div class="theory-section">
+        <h2>The Paging Performance Dilemma</h2>
+        <p>
+          Virtual memory offers elegant protection and isolation, but introduces a major speed penalty. In basic paging, <strong>every memory reference requires at least two physical DRAM accesses</strong>:
+        </p>
+        <ol style="padding-left: 20px;">
+          <li>Look up the Page Table Entry (PTE) in physical DRAM to translate the virtual address to a physical frame.</li>
+          <li>Access the actual operand, variable, or instruction at that physical address in DRAM.</li>
+        </ol>
+        <p>
+          Because reading DRAM takes tens of nanoseconds (100–200 CPU clock cycles), cutting program execution speed in half is unacceptable. The situation worsens with multi-level paging (such as 4-level x86-64 page tables), where a single memory access would require 4 table lookups plus the final data access—a 5x penalty!
+        </p>
+        <h2>The Solution: Translation Lookaside Buffer (TLB)</h2>
+        <p>
+          Computer systems leverage the <strong>principle of locality</strong>: programs tend to access a relatively small cluster of pages repeatedly over any given execution interval. Computer designers equip the MMU with a small, high-speed associative hardware cache called the <strong>Translation Lookaside Buffer (TLB)</strong>.
+        </p>
+        <p>
+          The TLB holds between 64 and 1024 entries. When a virtual address arrives, the hardware queries <em>all TLB entries simultaneously in parallel</em> (associative search).
+        </p>
+        <div class="theory-callout">
+          TLB Hit &rarr; PFN delivered in &lt; 1 clock cycle (Bypasses Page Table DRAM walk completely)<br>
+          TLB Miss &rarr; Hardware MMU or OS walks DRAM Page Table, loads entry into TLB, restarts instruction
+        </div>
+        <h2>Effective Memory Access Time (EMAT)</h2>
+        <p>
+          The overall memory speed is determined by the TLB hit ratio ($lpha$). If access to the TLB takes $	ext{time}_{tlb}$ (e.g., 1 ns) and DRAM takes $	ext{time}_{mem}$ (e.g., 100 ns):
+        </p>
+        <div class="theory-callout">
+          EMAT = &alpha; &times; (time_tlb + time_mem) + (1 - &alpha;) &times; (time_tlb + 2 &times; time_mem)
+        </div>
+        <p>
+          With a 98% hit rate ($lpha = 0.98$), the average access time drops from 200 ns down to ~103 ns.
+        </p>
       </div>
     </div>
+
+    <!-- TEXTBOOK FIGURE 3-12 SVG REPRODUCTION -->
+    <div class="card">
+      <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Textbook Diagram: Figure 3-12 (A TLB to speed up paging)</span>
+      <div class="figure-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 280" width="100%" height="100%" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+          <!-- Outer border -->
+          <rect x="20" y="20" width="700" height="220" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4"/>
+
+          <!-- Header Row -->
+          <rect x="20" y="20" width="700" height="36" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <text x="65" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Valid</text>
+          <text x="185" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Virtual page</text>
+          <text x="315" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Modified</text>
+          <text x="445" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Protection</text>
+          <text x="605" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Page frame</text>
+
+          <!-- Column dividers -->
+          <line x1="110" y1="20" x2="110" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="260" y1="20" x2="260" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="370" y1="20" x2="370" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="520" y1="20" x2="520" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+
+          <!-- Entries from Textbook Page 202, Fig 3-12 -->
+          <!-- Row 1 -->
+          <line x1="20" y1="78" x2="720" y2="78" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="71" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="71" font-size="13" fill="#0f172a" text-anchor="middle">140</text>
+          <text x="315" y="71" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="71" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="71" font-size="13" fill="#0f172a" text-anchor="middle">31</text>
+
+          <!-- Row 2 -->
+          <line x1="20" y1="100" x2="720" y2="100" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="93" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="93" font-size="13" fill="#0f172a" text-anchor="middle">20</text>
+          <text x="315" y="93" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="93" font-size="13" fill="#0f172a" text-anchor="middle">R X</text>
+          <text x="605" y="93" font-size="13" fill="#0f172a" text-anchor="middle">38</text>
+
+          <!-- Row 3 -->
+          <line x1="20" y1="122" x2="720" y2="122" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="115" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="115" font-size="13" fill="#0f172a" text-anchor="middle">130</text>
+          <text x="315" y="115" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="115" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="115" font-size="13" fill="#0f172a" text-anchor="middle">29</text>
+
+          <!-- Row 4 -->
+          <line x1="20" y1="144" x2="720" y2="144" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="137" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="137" font-size="13" fill="#0f172a" text-anchor="middle">129</text>
+          <text x="315" y="137" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="137" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="137" font-size="13" fill="#0f172a" text-anchor="middle">62</text>
+
+          <!-- Row 5 -->
+          <line x1="20" y1="166" x2="720" y2="166" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="159" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="159" font-size="13" fill="#0f172a" text-anchor="middle">19</text>
+          <text x="315" y="159" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="159" font-size="13" fill="#0f172a" text-anchor="middle">R X</text>
+          <text x="605" y="159" font-size="13" fill="#0f172a" text-anchor="middle">50</text>
+
+          <!-- Row 6 -->
+          <line x1="20" y1="188" x2="720" y2="188" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="181" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="181" font-size="13" fill="#0f172a" text-anchor="middle">21</text>
+          <text x="315" y="181" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="181" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="181" font-size="13" fill="#0f172a" text-anchor="middle">45</text>
+
+          <!-- Row 7 -->
+          <line x1="20" y1="210" x2="720" y2="210" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="203" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="203" font-size="13" fill="#0f172a" text-anchor="middle">860</text>
+          <text x="315" y="203" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="203" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="203" font-size="13" fill="#0f172a" text-anchor="middle">14</text>
+
+          <!-- Row 8 -->
+          <text x="65" y="225" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="225" font-size="13" fill="#0f172a" text-anchor="middle">861</text>
+          <text x="315" y="225" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="225" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="225" font-size="13" fill="#0f172a" text-anchor="middle">75</text>
+        </svg>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-muted); text-align:center;">
+        Figure 3-12. A typical 8-entry hardware TLB snapshot showing mapped virtual pages and execution permissions.
+      </p>
+    </div>
+
+    <!-- PART 1: GUIDED TUTORIAL -->
+    <div class="card tutorial-panel">
+      <div class="tutorial-header">
+        <span id="tutStepLabel">Part 1: Step 1 of 4</span>
+        <span>Guided Tutorial</span>
+      </div>
+      <div id="tutStepTitle" class="tutorial-title">1. Parallel Associative Lookup</div>
+      <div id="tutStepBody" class="tutorial-body"></div>
+      <div class="tour-nav">
+        <button id="tutPrevBtn" class="btn-sec" onclick="stepBackward()">Back</button>
+        <button id="tutNextBtn" onclick="stepForward()">Next Step &rarr;</button>
+        <button class="btn-sec" style="margin-left:auto;" onclick="scrollToSandbox()">Jump to Live Sandbox &darr;</button>
+      </div>
+    </div>
+
+    <!-- PART 2: INTERACTIVE PLAYGROUND & EMAT CALCULATOR -->
+    <div class="card" id="sandboxSection">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-size:1.25rem; font-weight:700;">Part 2: Interactive TLB Simulator &amp; EMAT Lab</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
+            Issue memory requests across virtual pages to trigger hardware TLB Hits and DRAM Misses.
+          </p>
+        </div>
+        <button class="btn-sec" onclick="resetSimulator()">Reset Stats</button>
+      </div>
+
+      <!-- Input Bar -->
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <span style="font-weight:600; font-size:0.85rem;">Request Virtual Page:</span>
+        <button onclick="requestPage(140, 'R')">Page 140 (In TLB)</button>
+        <button onclick="requestPage(20, 'X')">Page 20 (Exec)</button>
+        <button onclick="requestPage(500, 'R')">Page 500 (Miss)</button>
+        <button onclick="requestPage(860, 'W')">Page 860 (Write)</button>
+        <div style="display:flex; gap:6px; margin-left:auto;">
+          <input type="number" id="customPageInput" placeholder="VPN (0..1023)" style="padding:6px 10px; border:1px solid var(--border); border-radius:4px; font-family:var(--font-mono); width:130px;">
+          <button class="btn-sec" onclick="requestCustom()">Access</button>
+        </div>
+      </div>
+
+      <div class="sandbox-grid">
+        <!-- Live Hardware TLB Table -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Active 8-Entry MMU TLB State</span>
+          <table class="table-spec">
+            <thead>
+              <tr><th>Valid</th><th>Virtual Page</th><th>Dirty</th><th>Perm</th><th>Page Frame</th></tr>
+            </thead>
+            <tbody id="tlbBody"></tbody>
+          </table>
+        </div>
+
+        <!-- EMAT & Telemetry Metrics -->
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div class="emat-calc-box">
+            <span style="color:#94a3b8; text-transform:uppercase; font-size:0.75rem; font-weight:700;">Live EMAT Performance Telemetry</span>
+            <div class="emat-metric">
+              <span>Total Requests:</span>
+              <span id="metricRequests" class="emat-highlight">0</span>
+            </div>
+            <div class="emat-metric">
+              <span>TLB Hits / Misses:</span>
+              <span><span id="metricHits" style="color:#4ade80; font-weight:700;">0</span> / <span id="metricMisses" style="color:#f87171; font-weight:700;">0</span></span>
+            </div>
+            <div class="emat-metric">
+              <span>Hit Ratio (&alpha;):</span>
+              <span id="metricHitRatio" class="emat-highlight">0.0%</span>
+            </div>
+            <div class="emat-metric">
+              <span>Effective Memory Access Time (EMAT):</span>
+              <span id="metricEmat" style="color:#facc15; font-weight:800; font-size:1rem;">-- ns</span>
+            </div>
+            <p style="font-size:0.75rem; color:#94a3b8; line-height:1.4; margin-top:4px;">
+              Assumes TLB lookup = 1 ns, DRAM access = 100 ns. Misses incur 1 TLB check + 2 DRAM accesses (walk + data read).
+            </p>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">MMU Hardware Trace</span>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Real-time log</span>
+          </div>
+          <div id="mmuLog" class="terminal-box"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
+
+  <script>
+    /* =========================================================================
+       PART 1: GUIDED TUTORIAL SCRIPT
+       ========================================================================= */
+    const tutorialSteps = [
+      {
+        title: "1. The Associative Search Hardware",
+        body: "When the CPU generates a virtual memory address, the Virtual Page Number (VPN) is presented to the TLB. Unlike a RAM table that requires indexing, the TLB uses specialized associative circuitry to compare the requested VPN against <strong>every valid slot simultaneously</strong> in a single clock cycle."
+      },
+      {
+        title: "2. The Instant TLB Hit Path",
+        body: "If a match is found (e.g., Virtual Page 140) and the protection bits permit the operation, it is a <strong>TLB Hit</strong>. The MMU grabs the Page Frame Number (PFN 31) directly from the TLB register and sends it to the physical bus. DRAM page tables are completely bypassed."
+      },
+      {
+        title: "3. Handling a TLB Miss",
+        body: "If the requested page is not in the TLB (e.g., Page 500), a <strong>TLB Miss</strong> occurs. The hardware MMU (on CISC/x86) or operating system software (on RISC like MIPS or SPARC) walks the multi-level page table hierarchy in DRAM. Once located, an existing TLB entry is evicted, the new mapping is loaded into the TLB, and the instruction restarts."
+      },
+      {
+        title: "4. Minimizing the Miss Penalty (EMAT)",
+        body: "Because a miss costs multiple slow memory bus cycles, maintaining a high hit ratio (&alpha; &ge; 98%) is paramount. Even a tiny 2% increase in misses can degrade overall program execution speed by more than 30%."
+      }
+    ];
+
+    let currentStep = 0;
+
+    function renderTutorial() {
+      const step = tutorialSteps[currentStep];
+      document.getElementById("tutStepLabel").textContent = `Part 1: Step ${currentStep + 1} of ${tutorialSteps.length}`;
+      document.getElementById("tutStepTitle").textContent = step.title;
+      document.getElementById("tutStepBody").innerHTML = step.body;
+
+      document.getElementById("tutPrevBtn").disabled = (currentStep === 0);
+      document.getElementById("tutNextBtn").textContent = (currentStep === tutorialSteps.length - 1) ? "Finish Tutorial & Test" : "Next Step →";
+    }
+
+    function stepForward() {
+      if (currentStep < tutorialSteps.length - 1) {
+        currentStep++;
+        renderTutorial();
+      } else {
+        scrollToSandbox();
+      }
+    }
+
+    function stepBackward() {
+      if (currentStep > 0) {
+        currentStep--;
+        renderTutorial();
+      }
+    }
+
+    function scrollToSandbox() {
+      document.getElementById("sandboxSection").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* =========================================================================
+       PART 2: INTERACTIVE SIMULATOR & EMAT LOGIC
+       ========================================================================= */
+    // Initial data exactly from Tanenbaum Fig 3-12 (page 202)
+    let tlbData = [
+      { valid: 1, vpn: 140, modified: 1, protection: "RW", pfn: 31 },
+      { valid: 1, vpn: 20,  modified: 0, protection: "RX", pfn: 38 },
+      { valid: 1, vpn: 130, modified: 1, protection: "RW", pfn: 29 },
+      { valid: 1, vpn: 129, modified: 1, protection: "RW", pfn: 62 },
+      { valid: 1, vpn: 19,  modified: 0, protection: "RX", pfn: 50 },
+      { valid: 1, vpn: 21,  modified: 0, protection: "RW", pfn: 45 },
+      { valid: 1, vpn: 860, modified: 1, protection: "RW", pfn: 14 },
+      { valid: 1, vpn: 861, modified: 1, protection: "RW", pfn: 75 }
+    ];
+
+    let stats = { requests: 0, hits: 0, misses: 0 };
+    let fifoPointer = 0; // Simple eviction pointer
+
+    function renderTlbTable(highlightIdx = -1) {
+      const tbody = document.getElementById("tlbBody");
+      tbody.innerHTML = "";
+
+      tlbData.forEach((row, idx) => {
+        const tr = document.createElement("tr");
+        if (idx === highlightIdx) tr.className = "hit-row";
+        tr.innerHTML = `
+          <td>${row.valid}</td>
+          <td><strong>${row.vpn}</strong></td>
+          <td>${row.modified}</td>
+          <td>${row.protection}</td>
+          <td style="color:var(--accent); font-weight:bold;">${row.pfn}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function logMmu(msg, type = "log-info") {
+      const log = document.getElementById("mmuLog");
+      const entry = document.createElement("div");
+      entry.className = `log-row ${type}`;
+      entry.textContent = `> ${msg}`;
+      log.prepend(entry);
+    }
+
+    function updateEmat() {
+      document.getElementById("metricRequests").textContent = stats.requests;
+      document.getElementById("metricHits").textContent = stats.hits;
+      document.getElementById("metricMisses").textContent = stats.misses;
+
+      if (stats.requests === 0) {
+        document.getElementById("metricHitRatio").textContent = "0.0%";
+        document.getElementById("metricEmat").textContent = "-- ns";
+        return;
+      }
+
+      const alpha = stats.hits / stats.requests;
+      document.getElementById("metricHitRatio").textContent = (alpha * 100).toFixed(1) + "%";
+
+      // Time assumptions: TLB = 1ns, Memory = 100ns
+      // Hit Time = 1 + 100 = 101ns (TLB + Data Access)
+      // Miss Time = 1 + 100 (PT Walk) + 100 (Data Access) = 201ns
+      const emat = (alpha * 101) + ((1 - alpha) * 201);
+      document.getElementById("metricEmat").textContent = emat.toFixed(1) + " ns";
+    }
+
+    function requestPage(vpn, accessType = "R") {
+      stats.requests++;
+      logMmu(`CPU requests access to Virtual Page ${vpn} [Op: ${accessType}]...`);
+
+      // 1. Associative Search
+      const foundIdx = tlbData.findIndex(entry => entry.valid === 1 && entry.vpn === vpn);
+
+      if (foundIdx !== -1) {
+        // TLB HIT
+        stats.hits++;
+        const entry = tlbData[foundIdx];
+        if (accessType === 'W' && !entry.protection.includes('W')) {
+          logMmu(`PROTECTION FAULT: Write denied to Read-Only Page ${vpn}!`, "log-miss");
+        } else {
+          if (accessType === 'W') entry.modified = 1;
+          logMmu(`TLB HIT! Page ${vpn} -> PFN ${entry.pfn} translated in 1ns (Zero DRAM table lookups).`, "log-hit");
+        }
+        renderTlbTable(foundIdx);
+      } else {
+        // TLB MISS
+        stats.misses++;
+        logMmu(`TLB MISS: Page ${vpn} not present in associative cache. Walking DRAM Page Table (+100ns)...`, "log-miss");
+
+        // Fictional PFN generation for simulator
+        const assignedPfn = 100 + (vpn % 50);
+        const evictedVpn = tlbData[fifoPointer].vpn;
+
+        logMmu(`Evicting TLB slot ${fifoPointer} (Page ${evictedVpn}) -> Installing Page ${vpn} (PFN ${assignedPfn}).`, "log-info");
+        tlbData[fifoPointer] = {
+          valid: 1,
+          vpn: vpn,
+          modified: (accessType === 'W' ? 1 : 0),
+          protection: (accessType === 'X' ? 'RX' : 'RW'),
+          pfn: assignedPfn
+        };
+        renderTlbTable(fifoPointer);
+        fifoPointer = (fifoPointer + 1) % tlbData.length;
+      }
+
+      updateEmat();
+    }
+
+    function requestCustom() {
+      const val = parseInt(document.getElementById("customPageInput").value, 10);
+      if (!isNaN(val) && val >= 0) {
+        requestPage(val, 'R');
+        document.getElementById("customPageInput").value = "";
+      }
+    }
+
+    function resetSimulator() {
+      stats = { requests: 0, hits: 0, misses: 0 };
+      document.getElementById("mmuLog").innerHTML = "";
+      logMmu("Telemetry reset. TLB re-initialized to Figure 3-12 state.");
+      updateEmat();
+      renderTlbTable();
+    }
+
+    // Initialize
+    renderTutorial();
+    renderTlbTable();
+    updateEmat();
+    logMmu("System active. TLB loaded with 8 working set pages.");
+  </script>
 </body>
 </html>

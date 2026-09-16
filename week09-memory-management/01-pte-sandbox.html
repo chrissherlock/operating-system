@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page Table Entry (PTE): Tutorial & Sandbox — COSC240</title>
+  <title>Structure of a Page Table Entry (PTE) — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -76,14 +76,37 @@
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 20px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 14px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
-    /* Textbook SVG Graphic Container */
+    /* Theory Narrative Block */
+    .theory-section {
+      line-height: 1.65;
+      font-size: 0.95rem;
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .theory-section h2 {
+      font-size: 1.2rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .theory-callout {
+      background-color: #f8fafc;
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #0369a1;
+      font-family: var(--font-mono);
+    }
+
     .figure-container {
       width: 100%;
       max-width: 780px;
@@ -257,7 +280,6 @@
     }
     .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
 
-    /* Subsystem Trace Box */
     .terminal-box {
       background: #0f172a;
       color: #f8fafc;
@@ -286,14 +308,37 @@
 
   <header>
     <h1>Structure of a Page Table Entry (PTE)</h1>
-    <p class="subtitle">Tanenbaum Section 3.3.1 (Fig. 3-11): A step-by-step walkthrough of PTE hardware bits, followed by an interactive MMU test playground.</p>
+    <p class="subtitle">Tanenbaum Section 3.3.1 (Fig. 3-11): Conceptual grounding, hardware bit dissection, and live MMU fault sandbox.</p>
   </header>
 
   <div class="main-container">
 
+    <!-- CONCEPT EXPLANATION -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>What is a Page Table Entry?</h2>
+        <p>
+          Virtual memory relies on a contract between hardware (the Memory Management Unit, or MMU) and the operating system kernel. When a process issues a virtual memory address, the hardware extracts the high-order bits representing the <strong>Virtual Page Number (VPN)</strong> and uses them as an array index into the process's page table.
+        </p>
+        <p>
+          Each slot in that array is a single <strong>Page Table Entry (PTE)</strong>. In modern 64-bit systems, each PTE is typically an 8-byte (64-bit) data structure. Its job is twofold:
+        </p>
+        <ul style="padding-left: 20px;">
+          <li><strong>Provide Physical Translation:</strong> Map the virtual page to its current physical frame in DRAM via the <em>Page Frame Number (PFN)</em>.</li>
+          <li><strong>Store Hardware Control Flags:</strong> Convey permissions, memory residency, and access history via status bits inspected directly by hardware on every instruction fetch, read, or write.</li>
+        </ul>
+        <div class="theory-callout">
+          Physical Address = (Page Frame Number &lt;&lt; Page_Shift) | In_Page_Offset
+        </div>
+        <p>
+          Because physical DRAM is partitioned into fixed 4 KB (2<sup>12</sup>-byte) boundaries, the low 12 bits of any address are identical in both virtual and physical memory. This leaves the lowest bits of the PTE free to store critical control flags rather than redundant address bits.
+        </p>
+      </div>
+    </div>
+
     <!-- TEXTBOOK FIGURE REPRODUCTION -->
     <div class="card">
-      <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Textbook Diagram Reproduction</span>
+      <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Textbook Diagram: Figure 3-11</span>
       <div class="figure-container">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 250" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <defs>
@@ -335,23 +380,18 @@
                   <tspan x="0" dy="14">disabled</tspan>
                 </text>
               </g>
-
               <g transform="translate(442.5, 70)">
                 <text x="0" y="0" transform="rotate(-55)" text-anchor="start">Referenced</text>
               </g>
-
               <g transform="translate(497.5, 70)">
                 <text x="0" y="0" transform="rotate(-55)" text-anchor="start">Modified</text>
               </g>
-
               <g transform="translate(552.5, 70)">
                 <text x="0" y="0" transform="rotate(-55)" text-anchor="start">Protection</text>
               </g>
-
               <g transform="translate(607.5, 70)">
                 <text x="0" y="0" transform="rotate(-55)" text-anchor="start">Supervisor</text>
               </g>
-
               <g transform="translate(672.5, 70)">
                 <text x="0" y="0" transform="rotate(-55)" text-anchor="start">Present/absent</text>
               </g>
@@ -505,27 +545,24 @@
   </div>
 
   <script>
-    /* ==========================================================
-       PART 1: GUIDED TUTORIAL LOGIC
-       ========================================================== */
     const tutorialSteps = [
       {
         title: "1. The 64-Bit Entry & Page Frame Number (PFN)",
-        text: "A Page Table Entry (PTE) is the core hardware data structure mapping virtual to physical addresses. With 4 KB pages (2<sup>12</sup>), the lowest 12 bits of any address represent the in-page offset. The remaining upper bits represent the <strong>Page Frame Number (PFN)</strong>. In a 64-bit PTE, the PFN is the address pointer to physical DRAM.",
+        text: "A Page Table Entry (PTE) is the core hardware data structure mapping virtual to physical addresses. With 4 KB pages (2<sup>12</sup>), the lowest 12 bits represent the in-page offset. The remaining upper bits represent the <strong>Page Frame Number (PFN)</strong>. In a 64-bit PTE, the PFN is the physical base address index in DRAM.",
         formula: "Physical Address = (PFN << 12) | Offset",
         target: "tutPfn",
         state: { pfn: 0x41, present: 1, protection: 1, referenced: 0, modified: 0, caching: 0, supervisor: 0 }
       },
       {
         title: "2. The Present / Absent Bit",
-        text: "The <strong>Present/Absent bit</strong> tells the CPU whether this virtual page is currently resident in physical DRAM (1) or resides on swap storage/SSD (0). If a process accesses a page with <strong>Present = 0</strong>, the MMU hardware halts instruction execution and immediately raises a <strong>Page Fault exception</strong>.",
+        text: "The <strong>Present/Absent bit</strong> tells the CPU whether this virtual page is currently resident in physical DRAM (1) or resides on swap storage/SSD (0). If a process accesses a page with <strong>Present = 0</strong>, the MMU hardware halts instruction execution and raises a <strong>Page Fault exception</strong>.",
         formula: "Present = 1 -> Translation proceeds to DRAM | Present = 0 -> Hardware traps to Page Fault handler",
         target: "tutPresent",
         state: { pfn: 0x41, present: 0, protection: 1, referenced: 0, modified: 0, caching: 0, supervisor: 0 }
       },
       {
         title: "3. The Protection Bit",
-        text: "The <strong>Protection bit</strong> enforces access control. A value of <code>1</code> permits both reads and writes (e.g., stack and heap data). A value of <code>0</code> marks the page as <strong>Read-Only</strong> (e.g., executable code segments or shared libraries). Writing to a page with Protection = 0 causes a protection fault trap.",
+        text: "The <strong>Protection bit</strong> enforces access control. A value of <code>1</code> permits both reads and writes (e.g., stack and heap data). A value of <code>0</code> marks the page as <strong>Read-Only</strong> (e.g., executable code segments or shared libraries). Writing to a page with Protection = 0 triggers a protection fault trap.",
         formula: "Protection = 0 -> Read: OK, Write: CRASH (SIGSEGV / Protection Fault)",
         target: "tutProtection",
         state: { pfn: 0x41, present: 1, protection: 0, referenced: 0, modified: 0, caching: 0, supervisor: 0 }
@@ -539,7 +576,7 @@
       },
       {
         title: "5. The Modified (Dirty) Bit",
-        text: "The hardware sets the <strong>Modified bit</strong> to <code>1</code> whenever a write occurs. When the OS needs to evict a page to free memory, it checks Modified: if <code>Modified = 0</code> (clean), the page can be instantly discarded because the copy on disk is identical; if <code>Modified = 1</code> (dirty), it <strong>must be written back to disk</strong> first.",
+        text: "The hardware sets the <strong>Modified bit</strong> to <code>1</code> whenever a write occurs. When the OS needs to evict a page to free memory, it checks Modified: if <code>Modified = 0</code> (clean), the page can be instantly discarded because disk is identical; if <code>Modified = 1</code> (dirty), it <strong>must be written back to disk</strong> first.",
         formula: "Modified = 0 -> Free instantly (Zero I/O) | Modified = 1 -> Must write to disk before reclaiming frame",
         target: "tutModified",
         state: { pfn: 0x41, present: 1, protection: 1, referenced: 1, modified: 1, caching: 0, supervisor: 0 }
@@ -607,9 +644,6 @@
       document.getElementById("playgroundSection").scrollIntoView({ behavior: 'smooth' });
     }
 
-    /* ==========================================================
-       PART 2: INTERACTIVE PLAYGROUND LOGIC
-       ========================================================== */
     const playPte = {
       pfn: 0x41,
       present: 1,
