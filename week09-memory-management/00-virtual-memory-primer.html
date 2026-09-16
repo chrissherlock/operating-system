@@ -43,9 +43,10 @@
       background-color: #f0f9ff; border-left: 4px solid var(--accent); padding: 12px 18px;
       border-radius: 0 6px 6px 0; font-size: 0.92rem; color: #0369a1; font-family: var(--font-mono);
     }
-    .code-block {
-      background: #0f172a; color: #f8fafc; padding: 12px 16px; border-radius: 6px;
-      font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.5; overflow-x: auto;
+    .figure-container {
+      width: 100%; max-width: 650px; margin: 10px auto; display: flex; flex-direction: column;
+      align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px;
     }
     /* Interactive Allocator Sandbox */
     .sandbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
@@ -77,52 +78,110 @@
   </header>
   <div class="main-container">
 
-    <!-- Section 1 -->
+    <!-- Section 1: Overlays -->
     <div class="card">
       <div class="theory-section">
-        <h2>1. The Historical Context: The Memory Constraint Problem</h2>
+        <h2>1. The Historical Context: The Memory Constraint &amp; Overlays</h2>
         <p>
-          In the earliest decades of computing, physical memory (RAM) was extraordinarily expensive and strictly limited in capacity. If a mainframe computer had 64 KB of RAM, but a scientific simulation required 256 KB of instructions and data, the program simply could not run.
+          In early computing, physical memory (RAM) was strictly limited in capacity. If a mainframe computer had <strong>64 KB of RAM</strong>, but a scientific simulation required 160 KB of code and data, the program simply could not fit into hardware.
         </p>
         <p>
-          To bypass this, programmers had to manually restructure their software using a technique called <strong>overlays</strong>. The programmer manually divided their program into independent chunks. When Chunk A finished executing, it had to explicitly call system routines to load Chunk B from magnetic tape or disk into RAM over top of itself.
+          To bypass this, programmers invented <strong>Overlays</strong>: manually partitioning a program into independent functional blocks that shared the exact same physical memory addresses. When Module A finished executing, it explicitly invoked disk-loading routines to overwrite itself in RAM with Module B.
         </p>
-        <div class="theory-callout">
-          Overlays placed the entire burden of memory management on the human programmer, making large software development exceptionally tedious and error-prone.
-        </div>
+      </div>
+
+      <!-- SVG Diagram: 64 KB Physical RAM Partitioning -->
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 1: The 64 KB Physical RAM Partitioning</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <rect x="100" y="20" width="300" height="260" fill="#f8fafc" stroke="#334155" stroke-width="2" rx="6"/>
+          <text x="250" y="40" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Physical RAM (64 KB Total)</text>
+
+          <!-- Resident Root -->
+          <rect x="120" y="55" width="260" height="75" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="4"/>
+          <text x="250" y="82" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Resident Root (Always in RAM)</text>
+          <text x="250" y="100" font-size="10" fill="#16a34a" text-anchor="middle">OS Kernels, I/O Handlers, Main Loop (24 KB)</text>
+
+          <!-- Shared Overlay Region -->
+          <rect x="120" y="145" width="260" height="115" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="4"/>
+          <text x="250" y="168" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Shared Overlay Region (Addresses 0x6000 – 0xFFFF)</text>
+          <text x="250" y="184" font-size="9" fill="#92400e" text-anchor="middle">Only ONE module can occupy this physical box at a time!</text>
+
+          <rect x="140" y="198" width="95" height="45" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="3"/>
+          <text x="187" y="218" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Module A</text>
+          <text x="187" y="231" font-size="9" fill="#64748b" text-anchor="middle">(Math Engine)</text>
+
+          <text x="250" y="223" font-size="12" font-weight="700" fill="#94a3b8" text-anchor="middle">&or;</text>
+
+          <rect x="265" y="198" width="95" height="45" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="3"/>
+          <text x="312" y="218" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Module B</text>
+          <text x="312" y="231" font-size="9" fill="#64748b" text-anchor="middle">(Report Writer)</text>
+        </svg>
+      </div>
+
+      <!-- SVG Diagram: Manual Overlay Swapping -->
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 2: Manual Overlay Swapping Sequence</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <defs>
+            <marker id="arr-orange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
+            </marker>
+          </defs>
+
+          <!-- Disk Storage -->
+          <rect x="20" y="30" width="100" height="135" fill="#f1f5f9" stroke="#334155" stroke-width="1.5" rx="4"/>
+          <text x="70" y="52" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Disk / Storage</text>
+          <rect x="30" y="65" width="80" height="32" fill="#fee2e2" stroke="#dc2626" rx="3"/>
+          <text x="70" y="85" font-size="10" font-weight="700" fill="#b91c1c" text-anchor="middle">Module B</text>
+          <rect x="30" y="108" width="80" height="32" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
+          <text x="70" y="128" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle">Module A</text>
+
+          <path d="M 125 90 L 185 90" stroke="#d97706" stroke-width="2" fill="none" marker-end="url(#arr-orange)" />
+          <text x="155" y="80" font-size="9" font-weight="700" fill="#b45309" text-anchor="middle">1. Overwrite</text>
+
+          <!-- RAM Overlay Box -->
+          <rect x="195" y="30" width="135" height="135" fill="#fef3c7" stroke="#d97706" stroke-width="2" rx="4"/>
+          <text x="262" y="52" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">RAM Overlay Box</text>
+          <rect x="212" y="75" width="100" height="75" fill="#ffffff" stroke="#d97706" stroke-width="1.5" rx="3"/>
+          <text x="262" y="105" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Module B</text>
+          <text x="262" y="122" font-size="9" fill="#78350f" text-anchor="middle">(Replaced A)</text>
+
+          <!-- Explanation Box -->
+          <rect x="345" y="30" width="175" height="135" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="4" rx="4"/>
+          <text x="432" y="55" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">The Developer's Burden:</text>
+          <text x="432" y="75" font-size="9" fill="#475569" text-anchor="middle">If Module B needed to call</text>
+          <text x="432" y="90" font-size="9" fill="#475569" text-anchor="middle">Module A, the programmer</text>
+          <text x="432" y="105" font-size="9" fill="#475569" text-anchor="middle">had to manually manage disk</text>
+          <text x="432" y="120" font-size="9" fill="#475569" text-anchor="middle">swapping code in application</text>
+          <text x="432" y="135" font-size="9" fill="#475569" text-anchor="middle">logic.</text>
+        </svg>
       </div>
     </div>
 
-    <!-- Section 2 -->
+    <!-- Section 2: Locality & Virtual Memory -->
     <div class="card">
       <div class="theory-section">
         <h2>2. The Birth of Virtual Memory &amp; The Principle of Locality</h2>
         <p>
-          In the early 1960s, computer scientists realized that at any given moment during a program's execution, <strong>only a small fraction of its code and data is actually being accessed</strong>. This observation is formalized as the <strong>Principle of Locality</strong>:
+          Overlays placed the entire burden of memory management on the programmer. In the 1960s, operating systems automated this through <strong>Virtual Memory</strong>, enabled by the <strong>Principle of Locality</strong>:
         </p>
         <ul style="padding-left: 20px;">
-          <li><strong>Temporal Locality:</strong> If a memory location is referenced once, it is likely to be referenced again soon (e.g., variables inside a tight loop).</li>
-          <li><strong>Spatial Locality:</strong> If a memory location is referenced, nearby memory locations are likely to be accessed soon (e.g., sequential array traversal or sequential instruction execution).</li>
+          <li><strong>Temporal Locality:</strong> If a memory location is referenced once, it is likely to be referenced again soon (e.g., loop counters).</li>
+          <li><strong>Spatial Locality:</strong> If a memory location is referenced, nearby locations are likely to be accessed soon (e.g., sequential array iteration).</li>
         </ul>
         <p>
-          Leveraging locality, <strong>Virtual Memory</strong> allows a program's virtual address space to be vastly larger than physical RAM. Only the active portions (working set) reside in physical DRAM; the rest remain safely stored on fast SSD swap partitions.
+          Because of locality, only active working sets need to sit in DRAM; inactive pages reside safely on SSD swap storage.
         </p>
       </div>
     </div>
 
-    <!-- Section 3 -->
+    <!-- Section 3: Address Spaces & MMU -->
     <div class="card">
       <div class="theory-section">
         <h2>3. Address Spaces &amp; The MMU</h2>
         <p>
-          An <strong>address space</strong> is the set of all memory addresses that a process can generate.
-        </p>
-        <ul style="padding-left: 20px;">
-          <li><strong>Virtual Address Space:</strong> The abstract address range seen by the application code (e.g., <code>0x00000000</code> to <code>0x7FFFFFFF</code> on a 32-bit process).</li>
-          <li><strong>Physical Address Space:</strong> The actual hardware wiring of the DRAM chips plugged into the motherboard.</li>
-        </ul>
-        <p>
-          The hardware bridge between these two spaces is the <strong>Memory Management Unit (MMU)</strong>—a dedicated hardware circuit residing directly on the CPU chip. Every time the CPU issues a load or store instruction, the MMU intercepts the virtual address, consults translation tables, and outputs the translated physical address to the memory bus in under a nanosecond.
+          The <strong>Memory Management Unit (MMU)</strong> is a hardware circuit on the CPU that translates virtual addresses to physical RAM addresses transparently in under a nanosecond, giving every process its own isolated private address space.
         </p>
       </div>
     </div>
@@ -194,7 +253,6 @@
         physicalFrames[freeIdx].status = 'allocated';
         physicalFrames[freeIdx].label = `Virtual Page #${pageCounter++}`;
       } else {
-        // DRAM is full! Trigger swap
         swapPages.push({ id: pageCounter, label: `Virtual Page #${pageCounter}` });
         alert(`Physical RAM is full! Virtual Page #${pageCounter} was automatically swapped out to SSD storage.`);
         pageCounter++;
