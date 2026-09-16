@@ -328,7 +328,7 @@
           Virtual memory paging works so efficiently because real-world programs exhibit the <strong>Principle of Locality</strong>. Without this behavioral pattern, swapping 4 KB pages to disk would cause catastrophic performance degradation ("thrashing").
         </p>
         <ul style="padding-left: 20px;">
-          <li><strong>Temporal Locality:</strong> If a CPU accesses a memory address at time $t$, it is highly likely to access that exact same address again in the near future (e.g., loop control variables, active stack frames).</li>
+          <li><strong>Temporal Locality:</strong> If a CPU accesses a memory address at time <i>t</i>, it is highly likely to access that exact same address again in the near future (e.g., loop control variables, active stack frames).</li>
           <li><strong>Spatial Locality:</strong> If a CPU accesses memory address $X$, it will likely access nearby addresses ($X+1, X+2$, etc.) shortly thereafter (e.g., looping through arrays or executing contiguous machine instructions).</li>
         </ul>
       </div>
