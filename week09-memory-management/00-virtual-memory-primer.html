@@ -97,27 +97,27 @@
       <!-- SVG Diagram: 64 KB Physical RAM Partitioning -->
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 1: The 64 KB Physical RAM Partitioning in Overlay Systems</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 300" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="100" y="20" width="300" height="260" fill="#f8fafc" stroke="#334155" stroke-width="2" rx="6"/>
-          <text x="250" y="40" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Physical RAM (64 KB Total)</text>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 300" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <rect x="70" y="20" width="420" height="260" fill="#f8fafc" stroke="#334155" stroke-width="2" rx="6"/>
+          <text x="280" y="40" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Physical RAM (64 KB Total)</text>
 
-          <rect x="120" y="55" width="260" height="75" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="4"/>
-          <text x="250" y="82" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Resident Root (Always in RAM)</text>
-          <text x="250" y="100" font-size="10" fill="#16a34a" text-anchor="middle">OS Kernels, I/O Handlers, Main Loop (24 KB)</text>
+          <rect x="90" y="55" width="380" height="75" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="4"/>
+          <text x="280" y="82" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Resident Root (Always in RAM)</text>
+          <text x="280" y="100" font-size="10" fill="#16a34a" text-anchor="middle">OS Kernels, I/O Handlers, Main Loop (24 KB)</text>
 
-          <rect x="120" y="145" width="260" height="115" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="4"/>
-          <text x="250" y="168" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Shared Overlay Region (Addresses 0x6000 – 0xFFFF)</text>
-          <text x="250" y="184" font-size="9" fill="#92400e" text-anchor="middle">Only ONE module can occupy this physical box at a time!</text>
+          <rect x="90" y="145" width="380" height="115" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="4"/>
+          <text x="280" y="168" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">Shared Overlay Region (Addresses 0x6000 – 0xFFFF)</text>
+          <text x="280" y="184" font-size="9" fill="#92400e" text-anchor="middle">Only ONE module can occupy this physical box at a time!</text>
 
-          <rect x="140" y="198" width="95" height="45" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="3"/>
-          <text x="187" y="218" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Module A</text>
-          <text x="187" y="231" font-size="9" fill="#64748b" text-anchor="middle">(Math Engine)</text>
+          <rect x="120" y="198" width="115" height="45" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="3"/>
+          <text x="177" y="218" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Module A</text>
+          <text x="177" y="231" font-size="9" fill="#64748b" text-anchor="middle">(Math Engine)</text>
 
-          <text x="250" y="223" font-size="12" font-weight="700" fill="#94a3b8" text-anchor="middle">&or;</text>
+          <text x="280" y="223" font-size="14" font-weight="700" fill="#94a3b8" text-anchor="middle">or</text>
 
-          <rect x="265" y="198" width="95" height="45" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="3"/>
-          <text x="312" y="218" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Module B</text>
-          <text x="312" y="231" font-size="9" fill="#64748b" text-anchor="middle">(Report Writer)</text>
+          <rect x="325" y="198" width="115" height="45" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" rx="3"/>
+          <text x="382" y="218" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Module B</text>
+          <text x="382" y="231" font-size="9" fill="#64748b" text-anchor="middle">(Report Writer)</text>
         </svg>
       </div>
 
@@ -329,7 +329,7 @@
         </p>
         <ul style="padding-left: 20px;">
           <li><strong>Temporal Locality:</strong> If a CPU accesses a memory address at time <i>t</i>, it is highly likely to access that exact same address again in the near future (e.g., loop control variables, active stack frames).</li>
-          <li><strong>Spatial Locality:</strong> If a CPU accesses memory address $X$, it will likely access nearby addresses ($X+1, X+2$, etc.) shortly thereafter (e.g., looping through arrays or executing contiguous machine instructions).</li>
+          <li><strong>Spatial Locality:</strong> If a CPU accesses memory address <i>X</i>, it will likely access nearby addresses (<i>X</i>+1, <i>X</i>+2, etc.) shortly thereafter (e.g., looping through arrays or executing contiguous machine instructions).</li>
         </ul>
       </div>
 
