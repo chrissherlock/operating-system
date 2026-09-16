@@ -3,162 +3,654 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Managing Physical Memory: Free/Used Lists &amp; Buddy Allocator — COSC240</title>
+  <title>Buddy Allocator: Granular Interactive Tutorial — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
+      --border-dark: #94a3b8;
       --accent: #0284c7;
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --free-color: #16a34a;
-      --free-bg: #dcfce7;
-      --used-color: #dc2626;
-      --used-bg: #fee2e2;
+      --free-color: #059669;
+      --free-bg: #ecfdf5;
+      --alloc-color: #e11d48;
+      --alloc-bg: #ffe4e6;
+      --inspect-color: #d97706;
+      --inspect-bg: #fef3c7;
+      --buddy-glow: #ca8a04;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg); color: var(--text);
+      background-color: var(--bg);
+      color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
     }
-    .nav-back { width: 100%; max-width: 1050px; display: flex; }
-    .nav-back a {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600;
-      font-family: var(--font-mono); text-decoration: none; color: var(--accent); background-color: #f0f9ff;
-      border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 6px;
-    }
-    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+
     header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 6px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
     p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .main-container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1050px; }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
     .card {
-      background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
-      padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    .theory-section { line-height: 1.68; font-size: 0.95rem; color: #334155; display: flex; flex-direction: column; gap: 14px; }
-    .theory-section h2 { font-size: 1.25rem; color: var(--text); margin-bottom: 2px; }
-    .theory-callout {
-      background-color: #f8fafc; border-left: 4px solid var(--accent); padding: 12px 18px;
-      border-radius: 0 6px 6px 0; font-size: 0.92rem; color: #0369a1; font-family: var(--font-mono);
+
+    .concept-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #0369a1;
     }
-    /* Buddy Sandbox */
-    .buddy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 800px) { .buddy-grid { grid-template-columns: 1fr; } }
-    .block-card {
-      border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #fafafa;
-      display: flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 0.85rem;
+    .concept-box strong { color: #075985; }
+
+    .math-formula {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0369a1;
     }
-    .block-card.free { border-left: 4px solid var(--free-color); background: var(--free-bg); }
-    .block-card.used { border-left: 4px solid var(--used-color); background: var(--used-bg); }
+
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+    }
+
+    .numerator {
+      border-bottom: 1.5px solid currentColor;
+      padding-bottom: 2px;
+    }
+
+    .denominator {
+      padding-top: 2px;
+    }
+
+    .tutorial-panel {
+      border: 1px solid #fed7aa;
+      border-left: 4px solid var(--inspect-color);
+      background: #fffbeb;
+      transition: all 0.3s ease;
+    }
+
+    .tutorial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--inspect-color);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tutorial-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #78350f;
+    }
+
+    .tutorial-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #451a03;
+    }
+
+    .math-callout {
+      background: #ffffff;
+      border: 1px solid #fcd34d;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #b45309;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
     button {
-      background-color: var(--accent); color: #fff; border: none; padding: 8px 14px; border-radius: 6px;
-      font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
     }
     button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    button.btn-sec:hover { background-color: #e2e8f0; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.btn-secondary {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    button.btn-secondary:hover { background: #e2e8f0; }
+
+    .memory-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .memory-bar {
+      display: flex;
+      width: 100%;
+      height: 76px;
+      border: 2px solid var(--border-dark);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #e2e8f0;
+    }
+
+    .block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-right: 1px solid #cbd5e1;
+      transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease;
+      cursor: default;
+      user-select: none;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 4px;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .block:last-child { border-right: none; }
+
+    .block.free {
+      background-color: var(--free-bg);
+      color: var(--free-color);
+      border-top: 4px solid var(--free-color);
+    }
+
+    .block.allocated {
+      background-color: var(--alloc-bg);
+      color: var(--alloc-color);
+      border-top: 4px solid var(--alloc-color);
+    }
+
+    .block.state-inspecting {
+      background-color: var(--inspect-bg) !important;
+      border-top: 4px solid var(--inspect-color) !important;
+      animation: pulseInspect 0.8s infinite alternate;
+    }
+
+    .block.state-buddy-active {
+      border: 2px dashed var(--buddy-glow) !important;
+      animation: pulseBuddy 0.7s infinite alternate;
+    }
+
+    @keyframes pulseInspect {
+      0% { box-shadow: inset 0 0 4px rgba(217, 119, 6, 0.2); }
+      100% { box-shadow: inset 0 0 14px rgba(217, 119, 6, 0.5); }
+    }
+
+    @keyframes pulseBuddy {
+      0% { box-shadow: inset 0 0 6px rgba(202, 138, 4, 0.3); }
+      100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
+    }
+
+    .free-area-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .order-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.25s ease;
+    }
+
+    .order-row.inspecting-row {
+      background-color: #fef3c7;
+      border-left: 3px solid var(--inspect-color);
+    }
+
+    .order-label {
+      width: 155px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+
+    .list-nodes {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .node {
+      background-color: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .node.inspecting {
+      border-color: var(--inspect-color);
+      color: var(--inspect-color);
+      background-color: #fffbeb;
+      transform: scale(1.08);
+    }
+    .node.buddy-target {
+      border-color: var(--buddy-glow);
+      color: var(--buddy-glow);
+      background-color: #fefce8;
+      font-weight: bold;
+    }
+
+    .node-empty { color: #94a3b8; font-style: italic; }
+    .arrow { color: #94a3b8; }
+
+    .log-terminal {
+      background-color: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      height: 130px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 3px;
+    }
+    .log-entry { line-height: 1.4; color: #334155; }
+    .log-entry.inspect { color: #d97706; font-weight: 600; }
+    .log-entry.alloc { color: #0284c7; }
+    .log-entry.free { color: #059669; }
+    .log-entry.merge { color: #ca8a04; }
+
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      text-decoration: none;
+      color: #0284c7;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
-  <div class="nav-back"><a href="index.html">&larr; Back to Week Overview</a></div>
+  <div class="nav-back">
+    <a href="index.html">&larr; Back to Week Overview</a>
+  </div>
+
   <header>
-    <h1>Managing Physical Memory: Free/Used Lists &amp; Buddy Allocator</h1>
-    <p class="subtitle">Tanenbaum Section 3.2: How operating systems track physical RAM allocation using free lists, bitmaps, and the binary buddy algorithm.</p>
+    <h1>Buddy Allocator: Granular Stepping Tutorial</h1>
+    <p class="subtitle">A micro-step inspection of memory splits, buddy lookup math, and coalescing cascades.</p>
   </header>
+
   <div class="main-container">
-    <div class="card">
-      <div class="theory-section">
-        <h2>1. Tracking Physical Memory: Free Lists &amp; Used Lists</h2>
-        <p>
-          Before virtual memory maps individual pages, the operating system kernel must manage raw physical RAM. How does the kernel know which physical page frames are occupied and which are available?
-        </p>
-        <p>
-          Historically, operating systems use two primary bookkeeping structures:
-        </p>
-        <ul style="padding-left: 20px;">
-          <li><strong>The Free List:</strong> A linked list of unallocated memory blocks or page frames that processes can claim instantly.</li>
-          <li><strong>The Used List:</strong> A linked list or table tracking active allocations so the kernel knows who owns what when processes terminate.</li>
-        </ul>
-        <div class="theory-callout">
-          Alternative: Bitmaps. A bit array where <code>0</code> represents a free frame and <code>1</code> represents an allocated frame. While compact, bitmaps require linear scans to find contiguous blocks.
+
+    <div class="concept-box">
+      <strong>What is a PFN (Page Frame Number)?</strong><br>
+      Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
+
+      <div class="math-formula">
+        <span>PFN</span>
+        <span>=</span>
+        <div class="fraction">
+          <span class="numerator">Physical Address</span>
+          <span class="denominator">4096</span>
         </div>
+        <span>=</span>
+        <span>Physical Address &gt;&gt; 12</span>
+      </div>
+
+      Physical address <code>0x0000</code> is PFN 0, <code>0x1000</code> is PFN 1, <code>0x2000</code> is PFN 2, and so on. The buddy system performs all pairing directly on this integer index.
+    </div>
+
+    <div class="card tutorial-panel" id="tutorialCard">
+      <div class="tutorial-header">
+        <span id="stepCounter">Step 1 of 8</span>
+        <span id="stepPhase">State: Idle</span>
+      </div>
+      <div id="tutorialTitle" class="tutorial-title">1. Initial Setup: The Single Max Block</div>
+      <div id="tutorialText" class="tutorial-body"></div>
+      <div id="mathBox" class="math-callout" style="display:none;"></div>
+
+      <div class="tour-nav">
+        <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Micro-Step</button>
+        <button id="nextBtn">Next Micro-Step &rarr;</button>
+        <button id="jumpSandboxBtn" class="btn-secondary" style="margin-left:auto;">Jump to Sandbox</button>
       </div>
     </div>
 
-    <!-- BUDDY ALLOCATOR INTERACTIVE SIMULATOR -->
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <div>
-          <h2>2. The Binary Buddy Allocator</h2>
-          <p style="font-size:0.85rem; color:var(--text-muted);">Manage a 16-page memory block using binary splitting and coalescing.</p>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button onclick="buddyAlloc(4)">Allocate 4 Pages</button>
-          <button onclick="buddyAlloc(2)">Allocate 2 Pages</button>
-          <button class="btn-sec" onclick="resetBuddy()">Reset RAM</button>
-        </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:600;">Physical Memory Range (PFN 0 to 15)</span>
+        <span style="font-size:0.8rem; color:var(--text-muted);">16 Pages &times; 4 KB = 64 KB Total Pool</span>
       </div>
-      <div class="buddy-grid" id="buddyDisplay"></div>
+      <div class="memory-label-row">
+        <span>PFN 0 (0x0000)</span>
+        <span>PFN 4 (0x4000)</span>
+        <span>PFN 8 (0x8000)</span>
+        <span>PFN 12 (0xC000)</span>
+        <span>PFN 15 (0xF000)</span>
+      </div>
+      <div id="memoryBar" class="memory-bar"></div>
     </div>
+
+    <div class="card">
+      <span style="font-weight:600;">Kernel Free List Array (<code>free_area[0..4]</code>)</span>
+      <div id="freeAreaLists" class="free-area-list"></div>
+    </div>
+
+    <div class="card">
+      <span style="font-weight:600;">Kernel Memory Allocator Trace</span>
+      <div id="actionLog" class="log-terminal"></div>
+    </div>
+
   </div>
 
   <script>
-    let memoryBlocks = [
-      { id: 1, size: 16, status: "free", label: "16-Page Block" }
+    const MAX_ORDER = 4;
+    const PAGE_SIZE_KB = 4;
+
+    class BuddyNode {
+      constructor(pfn, order, parent = null) {
+        this.pfn = pfn;
+        this.order = order;
+        this.parent = parent;
+        this.left = null;
+        this.right = null;
+        this.isAllocated = false;
+        this.isSplit = false;
+        this.tag = null;
+        this.inspecting = false;
+        this.isBuddyHighlighted = false;
+      }
+      get size() { return (1 << this.order); }
+    }
+
+    let root = null;
+    let currentStep = 0;
+    let inspectingOrderRow = null;
+
+    const steps = [
+      {
+        title: "1. The Starting Pool (Order 4)",
+        phase: "Inspection",
+        text: "The kernel starts with 16 continuous page frames (PFN 0 through 15). Because 16 = 2<sup>4</sup>, this is managed as a single block of <strong>Order 4</strong>. Notice that <code>free_area[4]</code> holds <code>[PFN 0]</code>, while lists 0 through 3 are empty (NULL).",
+        math: "Block size = 2<sup>4</sup> = 16 pages (64 KB). Base PFN = 0.",
+        inspectRow: 4,
+        setup: () => { resetTree(); }
+      },
+      {
+        title: "2. Incoming Request: Allocate 4 KB (Order 0)",
+        phase: "Scanning Lists",
+        text: "A process calls <code>kmalloc(4096)</code>. The kernel translates 4 KB into <strong>Order 0</strong> (2<sup>0</sup> pages). It inspects <code>free_area[0]</code> first: <strong>empty!</strong> It checks <code>free_area[1]</code>, <code>[2]</code>, <code>[3]</code>: all empty. Finally, it reaches <code>free_area[4]</code> and spots an available block at PFN 0.",
+        math: "Target Order = 0. Scanning upward: free_area[0]=NULL &rarr; [1]=NULL &rarr; [2]=NULL &rarr; [3]=NULL &rarr; [4]=PFN 0.",
+        inspectRow: 0,
+        setup: () => { resetTree(); root.inspecting = true; }
+      },
+      {
+        title: "3. Granular Split: Order 4 down to Order 3",
+        phase: "Splitting Block",
+        text: "The kernel removes PFN 0 from <code>free_area[4]</code> and splits it in half. Two Order 3 blocks are created: Left child (PFN 0) and Right child (PFN 8). PFN 8 is parked on <code>free_area[3]</code> as an idle buddy!",
+        math: "Split PFN 0 (Order 4): Buddy PFN = 0 ^ (1 &lt;&lt; 3) = 0 ^ 8 = PFN 8.<br>free_area[3] now gets [PFN 8].",
+        inspectRow: 3,
+        setup: () => { resetTree(); splitNode(root); root.left.inspecting = true; root.right.isBuddyHighlighted = true; }
+      },
+      {
+        title: "4. Cascading Down to Order 0",
+        phase: "Splitting Cascades",
+        text: "The left halves are recursively split until an Order 0 block is reached. At each split, the unused right half registers as a free buddy: PFN 4 enters <code>free_area[2]</code>, PFN 2 enters <code>free_area[1]</code>, and PFN 1 enters <code>free_area[0]</code>.",
+        math: "Unused buddies deposited:<br>free_area[2] gets PFN 4<br>free_area[1] gets PFN 2<br>free_area[0] gets PFN 1",
+        inspectRow: 0,
+        setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.inspecting = true; }
+      },
+      {
+        title: "5. Allocation Complete: Block #A Claimed",
+        phase: "Allocated",
+        text: "PFN 0 is marked as <strong>Allocated</strong> (Block #A) and returned to the caller. Notice the address space now: Block #A occupies PFN 0, and right next to it sits its buddy PFN 1 on <code>free_area[0]</code>, ready for another single-page request.",
+        math: "Allocated: PFN 0 (Order 0).<br>Buddy: PFN 1 (Order 0) sitting free in free_area[0].",
+        inspectRow: 0,
+        setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.isAllocated = true; leaf.tag = "A"; }
+      },
+      {
+        title: "6. Second Allocation: Immediate O(1) Hit",
+        phase: "Instant Hit",
+        text: "A second request for Order 0 arrives. The allocator checks <code>free_area[0]</code>. It doesn't need to split anything! PFN 1 is right there. It pops PFN 1 off the list in O(1) time and assigns it as Block #B. Both buddies (PFN 0 and 1) are now active.",
+        math: "free_area[0] POP &rarr; PFN 1 assigned as Block #B.<br>free_area[0] is now empty.",
+        inspectRow: 0,
+        setup: () => {
+          resetTree();
+          const leafA = splitDownTo(root, 0);
+          leafA.isAllocated = true;
+          leafA.tag = "A";
+          const leafB = root.left.left.left.right;
+          leafB.isAllocated = true;
+          leafB.tag = "B";
+          leafB.inspecting = true;
+        }
+      },
+      {
+        title: "7. Freeing Block #A: The Buddy Check",
+        phase: "Checking Buddy",
+        text: "The owner frees Block #A (PFN 0). Before coalescing, the kernel must check if its buddy is free. It calculates: <code>0 ^ (1 &lt;&lt; 0) = 1</code>. It inspects PFN 1. <strong>PFN 1 is allocated (#B)!</strong> Because its buddy is occupied, PFN 0 cannot merge. It is placed back into <code>free_area[0]</code>.",
+        math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) &rarr; 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
+        inspectRow: 0,
+        setup: () => {
+          resetTree();
+          const leafA = splitDownTo(root, 0);
+          leafA.isAllocated = false;
+          const leafB = root.left.left.left.right;
+          leafB.isAllocated = true;
+          leafB.tag = "B";
+          leafA.inspecting = true;
+          leafB.isBuddyHighlighted = true;
+        }
+      },
+      {
+        title: "8. Freeing Block #B: The Coalescing Cascade",
+        phase: "Coalesce / Merge",
+        text: "Now Block #B (PFN 1) is freed. The kernel recalculates buddy <code>1 ^ 1 = 0</code>. PFN 0 is FREE! They fuse into Order 1 (PFN 0). Then the kernel checks Order 1's buddy: <code>0 ^ 2 = 2</code>. PFN 2 is FREE! They fuse into Order 2. The cascade ripples upward until the pool is restored to a single 64 KB block.",
+        math: "Cascade:<br>[PFN 0 + PFN 1] &rarr; Order 1 (PFN 0)<br>[PFN 0 + PFN 2] &rarr; Order 2 (PFN 0)<br>[PFN 0 + PFN 4] &rarr; Order 3 (PFN 0)<br>[PFN 0 + PFN 8] &rarr; Order 4 (PFN 0)",
+        inspectRow: 4,
+        setup: () => { resetTree(); root.inspecting = true; }
+      }
     ];
 
-    function renderBuddy() {
-      const container = document.getElementById("buddyDisplay");
-      container.innerHTML = "";
-      memoryBlocks.forEach((block, idx) => {
+    function resetTree() { root = new BuddyNode(0, MAX_ORDER); }
+    function splitNode(node) {
+      const nextOrder = node.order - 1;
+      const buddySize = 1 << nextOrder;
+      node.isSplit = true;
+      node.left = new BuddyNode(node.pfn, nextOrder, node);
+      node.right = new BuddyNode(node.pfn + buddySize, nextOrder, node);
+      return node;
+    }
+    function splitDownTo(node, targetOrder) {
+      if (node.order === targetOrder) return node;
+      splitNode(node);
+      return splitDownTo(node.left, targetOrder);
+    }
+    function collectLeaves(node, result = []) {
+      if (!node.isSplit) { result.push(node); }
+      else { collectLeaves(node.left, result); collectLeaves(node.right, result); }
+      return result;
+    }
+    function collectFreeLists() {
+      const lists = Array.from({ length: MAX_ORDER + 1 }, () => []);
+      function traverse(n) {
+        if (!n.isSplit && !n.isAllocated) { lists[n.order].push(n); }
+        else if (n.isSplit) { traverse(n.left); traverse(n.right); }
+      }
+      traverse(root);
+      return lists;
+    }
+    function updateStep() {
+      const step = steps[currentStep];
+      document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${steps.length}`;
+      document.getElementById("stepPhase").textContent = `Phase: ${step.phase}`;
+      document.getElementById("tutorialTitle").textContent = step.title;
+      document.getElementById("tutorialText").innerHTML = step.text;
+      const mBox = document.getElementById("mathBox");
+      if (step.math) { mBox.style.display = "flex"; mBox.innerHTML = step.math; }
+      else { mBox.style.display = "none"; }
+      inspectingOrderRow = step.inspectRow;
+      step.setup();
+      render();
+      document.getElementById("prevBtn").disabled = (currentStep === 0);
+      document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step &rarr;";
+      log(`[Step ${currentStep + 1}] ${step.title}`, "inspect");
+    }
+    function render() { renderMemoryBar(); renderFreeLists(); }
+    function renderMemoryBar() {
+      const bar = document.getElementById("memoryBar");
+      bar.innerHTML = "";
+      collectLeaves(root).forEach(node => {
         const div = document.createElement("div");
-        div.className = `block-card ${block.status}`;
-        div.innerHTML = `
-          <strong>Block #${idx + 1} (${block.size} Pages)</strong>
-          <span>Status: ${block.status.toUpperCase()}</span>
-          <span>${block.label}</span>
-          ${block.status === 'used' ? `<button class="btn-sec" style="margin-top:4px;" onclick="buddyFree(${idx})">Free Block</button>` : ''}
-        `;
-        container.appendChild(div);
+        div.className = `block ${node.isAllocated ? 'allocated' : 'free'}`;
+        if (node.inspecting) div.classList.add("state-inspecting");
+        if (node.isBuddyHighlighted) div.classList.add("state-buddy-active");
+        div.style.flex = node.size;
+        const sizeKb = node.size * PAGE_SIZE_KB;
+        const pfnText = node.size === 1 ? `PFN ${node.pfn}` : `PFN ${node.pfn}..${node.pfn + node.size - 1}`;
+        if (node.isAllocated) {
+          div.innerHTML = `<strong>#${node.tag} [Alloc]</strong><span>${sizeKb}KB (O${node.order})</span><span>${pfnText}</span>`;
+        } else {
+          div.innerHTML = `<strong>Free</strong><span>${sizeKb}KB (O${node.order})</span><span>${pfnText}</span>`;
+        }
+        bar.appendChild(div);
       });
     }
-
-    function buddyAlloc(reqSize) {
-      // Find smallest free block >= reqSize
-      const idx = memoryBlocks.findIndex(b => b.status === 'free' && b.size >= reqSize);
-      if (idx === -1) {
-        alert("Out of contiguous memory blocks!");
-        return;
+    function renderFreeLists() {
+      const container = document.getElementById("freeAreaLists");
+      container.innerHTML = "";
+      const freeLists = collectFreeLists();
+      for (let order = MAX_ORDER; order >= 0; order--) {
+        const row = document.createElement("div");
+        row.className = "order-row";
+        if (inspectingOrderRow === order) row.classList.add("inspecting-row");
+        const label = document.createElement("span");
+        label.className = "order-label";
+        label.textContent = `free_area[${order}] (${(1 << order) * PAGE_SIZE_KB}KB):`;
+        const nodesList = document.createElement("div");
+        nodesList.className = "list-nodes";
+        if (freeLists[order].length === 0) {
+          nodesList.innerHTML = `<span class="node-empty">NULL</span>`;
+        } else {
+          freeLists[order].forEach((n, idx) => {
+            const nodeEl = document.createElement("span");
+            nodeEl.className = "node";
+            if (n.inspecting) nodeEl.classList.add("inspecting");
+            if (n.isBuddyHighlighted) nodeEl.classList.add("buddy-target");
+            nodeEl.textContent = `[PFN ${n.pfn}]`;
+            nodesList.appendChild(nodeEl);
+            if (idx < freeLists[order].length - 1) {
+              const arrow = document.createElement("span");
+              arrow.className = "arrow";
+              arrow.textContent = "&⇄";
+              nodesList.appendChild(arrow);
+            }
+          });
+        }
+        row.appendChild(label);
+        row.appendChild(nodesList);
+        container.appendChild(row);
       }
-
-      let block = memoryBlocks[idx];
-      while (block.size > reqSize && block.size >= 2) {
-        block.size /= 2;
-        const buddy = { id: Math.random(), size: block.size, status: "free", label: `Buddy (${block.size} Pages)` };
-        memoryBlocks.splice(idx + 1, 0, buddy);
-      }
-      block.status = "used";
-      block.label = `Allocated (${reqSize} Pages)`;
-      renderBuddy();
     }
-
-    function buddyFree(idx) {
-      memoryBlocks[idx].status = "free";
-      memoryBlocks[idx].label = `Free Block (${memoryBlocks[idx].size} Pages)`;
-      renderBuddy();
+    function log(msg, type = "") {
+      const terminal = document.getElementById("actionLog");
+      const el = document.createElement("div");
+      el.className = `log-entry ${type}`;
+      el.textContent = `> ${msg}`;
+      terminal.prepend(el);
     }
-
-    function resetBuddy() {
-      memoryBlocks = [{ id: 1, size: 16, status: "free", label: "16-Page Block" }];
-      renderBuddy();
-    }
-
-    renderBuddy();
+    document.getElementById("nextBtn").onclick = () => {
+      currentStep = (currentStep < steps.length - 1) ? currentStep + 1 : 0;
+      updateStep();
+    };
+    document.getElementById("prevBtn").onclick = () => {
+      if (currentStep > 0) { currentStep--; updateStep(); }
+    };
+    document.getElementById("jumpSandboxBtn").onclick = () => {
+      alert("Tutorial completed! You can now freely review the 8 micro-steps.");
+    };
+    updateStep();
   </script>
 </body>
 </html>
