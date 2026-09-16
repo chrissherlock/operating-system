@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buddy Allocator: Granular Interactive Tutorial — COSC240</title>
+  <title>Memory Allocation Strategies &amp; Buddy Allocator Tutorial — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -71,6 +71,12 @@
     }
     .concept-box strong { color: #075985; }
 
+    .figure-container {
+      width: 100%; max-width: 720px; margin: 10px auto; display: flex; flex-direction: column;
+      align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px;
+    }
+
     .math-formula {
       display: flex;
       align-items: center;
@@ -91,14 +97,8 @@
       padding: 0 4px;
     }
 
-    .numerator {
-      border-bottom: 1.5px solid currentColor;
-      padding-bottom: 2px;
-    }
-
-    .denominator {
-      padding-top: 2px;
-    }
+    .numerator { border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
+    .denominator { padding-top: 2px; }
 
     .tutorial-panel {
       border: 1px solid #fed7aa;
@@ -242,6 +242,15 @@
       100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
     }
 
+    .lists-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media(max-width: 768px) {
+      .lists-container { grid-template-columns: 1fr; }
+    }
+
     .free-area-list {
       display: flex;
       flex-direction: column;
@@ -265,7 +274,7 @@
     }
 
     .order-label {
-      width: 155px;
+      width: 140px;
       color: var(--text-muted);
       flex-shrink: 0;
       font-weight: 500;
@@ -303,6 +312,27 @@
 
     .node-empty { color: #94a3b8; font-style: italic; }
     .arrow { color: #94a3b8; }
+
+    .used-list-box {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .used-item {
+      background: #ffffff;
+      border: 1px solid #fda4af;
+      padding: 6px 10px;
+      border-radius: 4px;
+      color: #9f1239;
+      display: flex;
+      justify-content: space-between;
+    }
 
     .log-terminal {
       background-color: #f8fafc;
@@ -357,12 +387,94 @@
   </div>
 
   <header>
-    <h1>Buddy Allocator: Granular Stepping Tutorial</h1>
-    <p class="subtitle">A micro-step inspection of memory splits, buddy lookup math, and coalescing cascades.</p>
+    <h1>Memory Allocation Strategies &amp; The Buddy Allocator</h1>
+    <p class="subtitle">Tanenbaum Chapter 3: Classical contiguous allocation algorithms (First Fit, Best Fit, Worst Fit) and kernel binary buddy systems.</p>
   </header>
 
   <div class="main-container">
 
+    <!-- Classical Allocators Overview Card -->
+    <div class="card">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">Classical Contiguous Memory Allocation Strategies</div>
+      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+        Before diving into advanced binary buddy allocators and paged virtual memory, operating systems historically managed raw memory as a continuous pool of free and allocated holes. When a process requests memory, the kernel uses one of several classical placement strategies to find a suitable free hole:
+      </p>
+
+      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem; color: #334155; margin-top: 4px;">
+        <li><strong>First Fit:</strong> Scan the free list from the beginning and allocate the <em>first</em> hole that is big enough. <em>Pros:</em> Extremely fast. <em>Cons:</em> Tends to clutter the front of memory with small fragmented splinters.</li>
+        <li><strong>Best Fit:</strong> Search the <em>entire</em> free list and choose the hole that is closest in size to the request (minimizing leftover waste). <em>Pros:</em> Leaves smaller leftover fragments. <em>Cons:</em> Slowest search time, and leaves behind tiny, unusable memory slivers ("external fragmentation").</li>
+        <li><strong>Worst Fit:</strong> Allocate from the <em>largest</em> available hole. <em>Pros:</em> Leaves behind larger leftover holes that might still be useful for subsequent processes. <em>Cons:</em> Rapidly exhausts large blocks.</li>
+        <li><strong>Next Fit:</strong> Similar to First Fit, but starts scanning from the location of the <em>last allocation</em> rather than the beginning. <em>Pros:</em> Spreads allocation evenly across memory.</li>
+      </ul>
+
+      <!-- Embedded SVG for Classical Allocators -->
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Comparing First Fit vs. Best Fit Placement for a 15 KB Request</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Memory bar container -->
+          <rect x="20" y="30" width="640" height="50" fill="#e2e8f0" stroke="#334155" stroke-width="1.5" rx="4"/>
+          <!-- Holes -->
+          <rect x="20" y="30" width="100" height="50" fill="#e11d48" opacity="0.8"/>
+          <text x="70" y="60" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Alloc (100K)</text>
+
+          <rect x="120" y="30" width="60" height="50" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+          <text x="150" y="60" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole 1 (20K)</text>
+
+          <rect x="180" y="30" width="180" height="50" fill="#e11d48" opacity="0.8"/>
+          <text x="270" y="60" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Alloc (200K)</text>
+
+          <rect x="360" y="30" width="140" height="50" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+          <text x="430" y="60" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole 2 (80K)</text>
+
+          <rect x="500" y="30" width="160" height="50" fill="#e11d48" opacity="0.8"/>
+          <text x="580" y="60" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Alloc (150K)</text>
+
+          <!-- Annotations for Request -->
+          <text x="20" y="115" font-size="11" font-weight="700" fill="#0f172a">Incoming Request: Allocate 15 KB block</text>
+
+          <path d="M 150 125 L 150 90" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-blue)"/>
+          <text x="150" y="142" font-size="9" font-weight="700" fill="#0284c7" text-anchor="middle">First Fit chooses Hole 1 (20K)</text>
+          <text x="150" y="154" font-size="8" fill="#64748b" text-anchor="middle">Fast, leaves 5K splinter</text>
+
+          <path d="M 430 125 L 430 90" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-green)"/>
+          <text x="430" y="142" font-size="9" font-weight="700" fill="#16a34a" text-anchor="middle">Best Fit also considers Hole 2 (80K)</text>
+          <text x="430" y="154" font-size="8" fill="#64748b" text-anchor="middle">Closer fit: Hole 1 (20K) is chosen (min leftover)</text>
+
+          <defs>
+            <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+            <marker id="arr-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Dual Pillars of Physical Memory Management -->
+    <div class="card">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.05rem;">The Dual Pillars of Physical Memory Management: Free Lists vs. Used Lists</div>
+      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+        When a kernel manages raw physical RAM (such as through the binary buddy allocator), it must maintain strict bookkeeping to track which memory is available and which is currently assigned to processes or kernel subsystems. This is accomplished using two core data structures:
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px;">
+          <strong style="color: #166534; font-size: 0.9rem;">1. The Free Lists (<code>free_area[0..MAX_ORDER]</code>)</strong>
+          <p style="font-size: 0.85rem; color: #15803d; margin-top: 4px; line-height: 1.5;">
+            An array of linked lists where each entry groups unallocated blocks of a specific power-of-two size (2<sup>order</sup> pages). When memory is requested, the allocator scans these lists from smallest sufficient order upward to find free blocks instantly.
+          </p>
+        </div>
+        <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; padding: 12px;">
+          <strong style="color: #9f1239; font-size: 0.9rem;">2. The Used Tracking (Descriptors &amp; Used Lists)</strong>
+          <p style="font-size: 0.85rem; color: #be123c; margin-top: 4px; line-height: 1.5;">
+            Tracks active allocations. In Linux and modern kernels, frame metadata (stored in <code>struct page</code> arrays) records ownership flags, reference counts, and order sizes so that when a process frees a pointer, the kernel immediately knows its exact boundaries and buddy address without scanning.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PFN Explanation Banner -->
     <div class="concept-box">
       <strong>What is a PFN (Page Frame Number)?</strong><br>
       Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
@@ -381,6 +493,7 @@
       Physical address <code>0x0000</code> is PFN 0, <code>0x1000</code> is PFN 1, <code>0x2000</code> is PFN 2, and so on. The buddy system performs all pairing directly on this integer index.
     </div>
 
+    <!-- Tutorial Control Box -->
     <div class="card tutorial-panel" id="tutorialCard">
       <div class="tutorial-header">
         <span id="stepCounter">Step 1 of 8</span>
@@ -393,10 +506,11 @@
       <div class="tour-nav">
         <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Micro-Step</button>
         <button id="nextBtn">Next Micro-Step &rarr;</button>
-        <button id="jumpSandboxBtn" class="btn-secondary" style="margin-left:auto;">Jump to Sandbox</button>
+        <button id="jumpSandboxBtn" class="btn-secondary" style="margin-left:auto;">Jump to Summary</button>
       </div>
     </div>
 
+    <!-- Physical Memory Bar -->
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <span style="font-weight:600;">Physical Memory Range (PFN 0 to 15)</span>
@@ -412,11 +526,21 @@
       <div id="memoryBar" class="memory-bar"></div>
     </div>
 
-    <div class="card">
-      <span style="font-weight:600;">Kernel Free List Array (<code>free_area[0..4]</code>)</span>
-      <div id="freeAreaLists" class="free-area-list"></div>
+    <!-- Kernel Free Area & Used Tracking Grid -->
+    <div class="lists-container">
+      <div class="card">
+        <span style="font-weight:600;">Kernel Free List Array (<code>free_area[0..4]</code>)</span>
+        <div id="freeAreaLists" class="free-area-list"></div>
+      </div>
+      <div class="card">
+        <span style="font-weight:600;">Active Allocations (Used Tracker)</span>
+        <div id="usedListBox" class="used-list-box">
+          <span style="color: #94a3b8; font-style: italic;">No active allocations (Used list empty).</span>
+        </div>
+      </div>
     </div>
 
+    <!-- Execution Terminal -->
     <div class="card">
       <span style="font-weight:600;">Kernel Memory Allocator Trace</span>
       <div id="actionLog" class="log-terminal"></div>
@@ -452,7 +576,7 @@
       {
         title: "1. The Starting Pool (Order 4)",
         phase: "Inspection",
-        text: "The kernel starts with 16 continuous page frames (PFN 0 through 15). Because 16 = 2<sup>4</sup>, this is managed as a single block of <strong>Order 4</strong>. Notice that <code>free_area[4]</code> holds <code>[PFN 0]</code>, while lists 0 through 3 are empty (NULL).",
+        text: "The kernel starts with 16 continuous page frames (PFN 0 through 15). Because 16 = 2<sup>4</sup>, this is managed as a single block of <strong>Order 4</strong>. Notice that <code>free_area[4]</code> holds <code>[PFN 0]</code>, while lists 0 through 3 are empty (NULL). The Used list has no entries.",
         math: "Block size = 2<sup>4</sup> = 16 pages (64 KB). Base PFN = 0.",
         inspectRow: 4,
         setup: () => { resetTree(); }
@@ -460,7 +584,7 @@
       {
         title: "2. Incoming Request: Allocate 4 KB (Order 0)",
         phase: "Scanning Lists",
-        text: "A process calls <code>kmalloc(4096)</code>. The kernel translates 4 KB into <strong>Order 0</strong> (2<sup>0</sup> pages). It inspects <code>free_area[0]</code> first: <strong>empty!</strong> It checks <code>free_area[1]</code>, <code>[2]</code>, <code>[3]</code>: all empty. Finally, it reaches <code>free_area[4]</code> and spots an available block at PFN 0.",
+        text: "A process calls <code>kmalloc(4096)</code>. The kernel translates 4 KB into <strong>Order 0</strong> (2<sup>0</sup> pages). It inspects <code>free_area[0]</code> first: <strong>empty!</strong> It checks <code>free_area[1]</code> through <code>[3]</code> (all empty), and finally reaches <code>free_area[4]</code> where PFN 0 is available.",
         math: "Target Order = 0. Scanning upward: free_area[0]=NULL &rarr; [1]=NULL &rarr; [2]=NULL &rarr; [3]=NULL &rarr; [4]=PFN 0.",
         inspectRow: 0,
         setup: () => { resetTree(); root.inspecting = true; }
@@ -476,7 +600,7 @@
       {
         title: "4. Cascading Down to Order 0",
         phase: "Splitting Cascades",
-        text: "The left halves are recursively split until an Order 0 block is reached. At each split, the unused right half registers as a free buddy: PFN 4 enters <code>free_area[2]</code>, PFN 2 enters <code>free_area[1]</code>, and PFN 1 enters <code>free_area[0]</code>.",
+        text: "The left halves are recursively split until an Order 0 block is reached. At each split, the unused right half registers as a free buddy deposited into its respective free list: PFN 4 in <code>free_area[2]</code>, PFN 2 in <code>free_area[1]</code>, and PFN 1 in <code>free_area[0]</code>.",
         math: "Unused buddies deposited:<br>free_area[2] gets PFN 4<br>free_area[1] gets PFN 2<br>free_area[0] gets PFN 1",
         inspectRow: 0,
         setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.inspecting = true; }
@@ -484,16 +608,16 @@
       {
         title: "5. Allocation Complete: Block #A Claimed",
         phase: "Allocated",
-        text: "PFN 0 is marked as <strong>Allocated</strong> (Block #A) and returned to the caller. Notice the address space now: Block #A occupies PFN 0, and right next to it sits its buddy PFN 1 on <code>free_area[0]</code>, ready for another single-page request.",
-        math: "Allocated: PFN 0 (Order 0).<br>Buddy: PFN 1 (Order 0) sitting free in free_area[0].",
+        text: "PFN 0 is marked as <strong>Allocated</strong> (Block #A) and registered into the <strong>Used Tracker</strong>. Notice how PFN 0 is removed from the free lists entirely while PFN 1 remains free in <code>free_area[0]</code>.",
+        math: "Allocated: PFN 0 (Order 0).<br>Used List Entry: Block #A &rarr; PFN 0 (4 KB).",
         inspectRow: 0,
         setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.isAllocated = true; leaf.tag = "A"; }
       },
       {
         title: "6. Second Allocation: Immediate O(1) Hit",
         phase: "Instant Hit",
-        text: "A second request for Order 0 arrives. The allocator checks <code>free_area[0]</code>. It doesn't need to split anything! PFN 1 is right there. It pops PFN 1 off the list in O(1) time and assigns it as Block #B. Both buddies (PFN 0 and 1) are now active.",
-        math: "free_area[0] POP &rarr; PFN 1 assigned as Block #B.<br>free_area[0] is now empty.",
+        text: "A second request for Order 0 arrives. The allocator checks <code>free_area[0]</code>. PFN 1 is right there! It pops PFN 1 off <code>free_area[0]</code> in O(1) time, assigns it as Block #B, and adds it to the Used list.",
+        math: "free_area[0] POP &rarr; PFN 1 assigned as Block #B.<br>Used List now tracks both #A and #B.",
         inspectRow: 0,
         setup: () => {
           resetTree();
@@ -509,7 +633,7 @@
       {
         title: "7. Freeing Block #A: The Buddy Check",
         phase: "Checking Buddy",
-        text: "The owner frees Block #A (PFN 0). Before coalescing, the kernel must check if its buddy is free. It calculates: <code>0 ^ (1 &lt;&lt; 0) = 1</code>. It inspects PFN 1. <strong>PFN 1 is allocated (#B)!</strong> Because its buddy is occupied, PFN 0 cannot merge. It is placed back into <code>free_area[0]</code>.",
+        text: "The owner frees Block #A (PFN 0). It is removed from the Used list. Before coalescing, the kernel calculates buddy: <code>0 ^ (1 &lt;&lt; 0) = 1</code>. It inspects PFN 1. <strong>PFN 1 is allocated (#B)!</strong> Because its buddy is occupied, PFN 0 cannot merge. It is returned to <code>free_area[0]</code>.",
         math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) &rarr; 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
         inspectRow: 0,
         setup: () => {
@@ -526,7 +650,7 @@
       {
         title: "8. Freeing Block #B: The Coalescing Cascade",
         phase: "Coalesce / Merge",
-        text: "Now Block #B (PFN 1) is freed. The kernel recalculates buddy <code>1 ^ 1 = 0</code>. PFN 0 is FREE! They fuse into Order 1 (PFN 0). Then the kernel checks Order 1's buddy: <code>0 ^ 2 = 2</code>. PFN 2 is FREE! They fuse into Order 2. The cascade ripples upward until the pool is restored to a single 64 KB block.",
+        text: "Now Block #B (PFN 1) is freed and removed from the Used list. The kernel recalculates buddy <code>1 ^ 1 = 0</code>. PFN 0 is FREE! They fuse into Order 1 (PFN 0). The cascade ripples upward until the pool is restored to a single 64 KB block in <code>free_area[4]</code> and the Used list is completely empty.",
         math: "Cascade:<br>[PFN 0 + PFN 1] &rarr; Order 1 (PFN 0)<br>[PFN 0 + PFN 2] &rarr; Order 2 (PFN 0)<br>[PFN 0 + PFN 4] &rarr; Order 3 (PFN 0)<br>[PFN 0 + PFN 8] &rarr; Order 4 (PFN 0)",
         inspectRow: 4,
         setup: () => { resetTree(); root.inspecting = true; }
@@ -561,6 +685,14 @@
       traverse(root);
       return lists;
     }
+    function collectUsedNodes(node, result = []) {
+      if (node.isAllocated) { result.push(node); }
+      else if (node.isSplit) {
+        collectUsedNodes(node.left, result);
+        collectUsedNodes(node.right, result);
+      }
+      return result;
+    }
     function updateStep() {
       const step = steps[currentStep];
       document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${steps.length}`;
@@ -577,7 +709,7 @@
       document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step &rarr;";
       log(`[Step ${currentStep + 1}] ${step.title}`, "inspect");
     }
-    function render() { renderMemoryBar(); renderFreeLists(); }
+    function render() { renderMemoryBar(); renderFreeLists(); renderUsedList(); }
     function renderMemoryBar() {
       const bar = document.getElementById("memoryBar");
       bar.innerHTML = "";
@@ -623,7 +755,7 @@
             if (idx < freeLists[order].length - 1) {
               const arrow = document.createElement("span");
               arrow.className = "arrow";
-              arrow.textContent = "&⇄";
+              arrow.textContent = "⇄";
               nodesList.appendChild(arrow);
             }
           });
@@ -632,6 +764,22 @@
         row.appendChild(nodesList);
         container.appendChild(row);
       }
+    }
+    function renderUsedList() {
+      const box = document.getElementById("usedListBox");
+      box.innerHTML = "";
+      const usedNodes = collectUsedNodes(root);
+      if (usedNodes.length === 0) {
+        box.innerHTML = `<span style="color: #94a3b8; font-style: italic;">No active allocations (Used list empty).</span>`;
+        return;
+      }
+      usedNodes.forEach(n => {
+        const item = document.createElement("div");
+        item.className = "used-item";
+        const sizeKb = n.size * PAGE_SIZE_KB;
+        item.innerHTML = `<span>Block #${n.tag} (Order ${n.order})</span><span>PFN ${n.pfn} (${sizeKb} KB)</span>`;
+        box.appendChild(item);
+      });
     }
     function log(msg, type = "") {
       const terminal = document.getElementById("actionLog");
