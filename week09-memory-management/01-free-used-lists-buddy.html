@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Managing Physical Memory: Free/Used Lists &amp; Buddy Allocator — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --free-color: #16a34a;
+      --free-bg: #dcfce7;
+      --used-color: #dc2626;
+      --used-bg: #fee2e2;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 18px;
+    }
+    .nav-back { width: 100%; max-width: 1050px; display: flex; }
+    .nav-back a {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600;
+      font-family: var(--font-mono); text-decoration: none; color: var(--accent); background-color: #f0f9ff;
+      border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 6px;
+    }
+    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1050px; }
+    .card {
+      background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .theory-section { line-height: 1.68; font-size: 0.95rem; color: #334155; display: flex; flex-direction: column; gap: 14px; }
+    .theory-section h2 { font-size: 1.25rem; color: var(--text); margin-bottom: 2px; }
+    .theory-callout {
+      background-color: #f8fafc; border-left: 4px solid var(--accent); padding: 12px 18px;
+      border-radius: 0 6px 6px 0; font-size: 0.92rem; color: #0369a1; font-family: var(--font-mono);
+    }
+    /* Buddy Sandbox */
+    .buddy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 800px) { .buddy-grid { grid-template-columns: 1fr; } }
+    .block-card {
+      border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #fafafa;
+      display: flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 0.85rem;
+    }
+    .block-card.free { border-left: 4px solid var(--free-color); background: var(--free-bg); }
+    .block-card.used { border-left: 4px solid var(--used-color); background: var(--used-bg); }
+    button {
+      background-color: var(--accent); color: #fff; border: none; padding: 8px 14px; border-radius: 6px;
+      font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+    button.btn-sec:hover { background-color: #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="nav-back"><a href="index.html">&larr; Back to Week Overview</a></div>
+  <header>
+    <h1>Managing Physical Memory: Free/Used Lists &amp; Buddy Allocator</h1>
+    <p class="subtitle">Tanenbaum Section 3.2: How operating systems track physical RAM allocation using free lists, bitmaps, and the binary buddy algorithm.</p>
+  </header>
+  <div class="main-container">
+    <div class="card">
+      <div class="theory-section">
+        <h2>1. Tracking Physical Memory: Free Lists &amp; Used Lists</h2>
+        <p>
+          Before virtual memory maps individual pages, the operating system kernel must manage raw physical RAM. How does the kernel know which physical page frames are occupied and which are available?
+        </p>
+        <p>
+          Historically, operating systems use two primary bookkeeping structures:
+        </p>
+        <ul style="padding-left: 20px;">
+          <li><strong>The Free List:</strong> A linked list of unallocated memory blocks or page frames that processes can claim instantly.</li>
+          <li><strong>The Used List:</strong> A linked list or table tracking active allocations so the kernel knows who owns what when processes terminate.</li>
+        </ul>
+        <div class="theory-callout">
+          Alternative: Bitmaps. A bit array where <code>0</code> represents a free frame and <code>1</code> represents an allocated frame. While compact, bitmaps require linear scans to find contiguous blocks.
+        </div>
+      </div>
+    </div>
+
+    <!-- BUDDY ALLOCATOR INTERACTIVE SIMULATOR -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h2>2. The Binary Buddy Allocator</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Manage a 16-page memory block using binary splitting and coalescing.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button onclick="buddyAlloc(4)">Allocate 4 Pages</button>
+          <button onclick="buddyAlloc(2)">Allocate 2 Pages</button>
+          <button class="btn-sec" onclick="resetBuddy()">Reset RAM</button>
+        </div>
+      </div>
+      <div class="buddy-grid" id="buddyDisplay"></div>
+    </div>
+  </div>
+
+  <script>
+    let memoryBlocks = [
+      { id: 1, size: 16, status: "free", label: "16-Page Block" }
+    ];
+
+    function renderBuddy() {
+      const container = document.getElementById("buddyDisplay");
+      container.innerHTML = "";
+      memoryBlocks.forEach((block, idx) => {
+        const div = document.createElement("div");
+        div.className = `block-card ${block.status}`;
+        div.innerHTML = `
+          <strong>Block #${idx + 1} (${block.size} Pages)</strong>
+          <span>Status: ${block.status.toUpperCase()}</span>
+          <span>${block.label}</span>
+          ${block.status === 'used' ? `<button class="btn-sec" style="margin-top:4px;" onclick="buddyFree(${idx})">Free Block</button>` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function buddyAlloc(reqSize) {
+      // Find smallest free block >= reqSize
+      const idx = memoryBlocks.findIndex(b => b.status === 'free' && b.size >= reqSize);
+      if (idx === -1) {
+        alert("Out of contiguous memory blocks!");
+        return;
+      }
+
+      let block = memoryBlocks[idx];
+      while (block.size > reqSize && block.size >= 2) {
+        block.size /= 2;
+        const buddy = { id: Math.random(), size: block.size, status: "free", label: `Buddy (${block.size} Pages)` };
+        memoryBlocks.splice(idx + 1, 0, buddy);
+      }
+      block.status = "used";
+      block.label = `Allocated (${reqSize} Pages)`;
+      renderBuddy();
+    }
+
+    function buddyFree(idx) {
+      memoryBlocks[idx].status = "free";
+      memoryBlocks[idx].label = `Free Block (${memoryBlocks[idx].size} Pages)`;
+      renderBuddy();
+    }
+
+    function resetBuddy() {
+      memoryBlocks = [{ id: 1, size: 16, status: "free", label: "16-Page Block" }];
+      renderBuddy();
+    }
+
+    renderBuddy();
+  </script>
+</body>
+</html>

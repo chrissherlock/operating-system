@@ -3,181 +3,168 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 09: Memory Management — Curriculum Portal</title>
+  <title>Week 09: Memory Management — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
-      --border-dark: #94a3b8;
       --accent: #0284c7;
+      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --badge-active-bg: #ecfdf5;
-      --badge-active-color: #059669;
-      --badge-active-border: #a7f3d0;
-      --badge-plan-bg: #f1f5f9;
-      --badge-plan-color: #64748b;
-      --badge-plan-border: #cbd5e1;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: var(--bg); color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
+      padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 24px;
     }
-    .container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
-    header { border-bottom: 2px solid var(--border); padding-bottom: 16px; }
-    .week-label { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
-    h1 { font-size: 1.8rem; font-weight: 700; color: var(--text); margin: 4px 0 8px 0; }
-    p.description { color: var(--text-muted); font-size: 1rem; line-height: 1.5; }
-    .lesson-grid { display: flex; flex-direction: column; gap: 12px; }
+    .nav-back { width: 100%; max-width: 900px; display: flex; }
+    .nav-back a {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600;
+      font-family: var(--font-mono); text-decoration: none; color: var(--accent); background-color: #f0f9ff;
+      border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 6px;
+    }
+    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+    header { text-align: center; max-width: 800px; }
+    h1 { font-size: 2rem; color: var(--accent); margin-bottom: 8px; }
+    p.subtitle { color: var(--text-muted); font-size: 1rem; line-height: 1.5; }
+    .lesson-grid {
+      display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 900px;
+    }
     .lesson-card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      text-decoration: none;
-      color: inherit;
+      background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;
+      text-decoration: none; color: var(--text); transition: all 0.15s ease;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     }
-    .lesson-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      border-color: var(--border-dark);
-    }
+    .lesson-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     .lesson-info { display: flex; flex-direction: column; gap: 4px; }
-    .lesson-title { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+    .lesson-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
     .lesson-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
     .badge {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 9999px;
-      border: 1px solid transparent;
-      text-transform: uppercase;
-      flex-shrink: 0;
+      font-size: 0.75rem; font-weight: 600; font-family: var(--font-mono); padding: 4px 10px;
+      border-radius: 9999px; background-color: #dcfce7; color: #15803d; white-space: nowrap;
     }
-    .badge.active { background-color: var(--badge-active-bg); color: var(--badge-active-color); border-color: var(--badge-active-border); }
-    .badge.draft { background-color: var(--badge-plan-bg); color: var(--badge-plan-color); border-color: var(--badge-plan-border); }
+    .badge.draft { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
   </style>
 </head>
 <body>
   <div class="nav-back">
-    <a href="../index.html">&larr; Back to Course Hub</a>
+    <a href="../index.html">&larr; Back to Course Root</a>
   </div>
-  <div class="container">
-    <header>
-      <div class="week-label">Week 09</div>
-      <h1>Memory Management</h1>
-      <p class="description">PTE structures, hardware TLB caches, miss classification, multi-level/inverted tables, and replacement policies.</p>
-    </header>
-    <main class="lesson-grid">
-      
-            <a class="lesson-card" href="00-memory-management-intro.html">
-        <div class="lesson-info">
-          <span class="lesson-title">0. Introduction to Memory Management</span>
-          <span class="lesson-desc">The memory hierarchy, the two primary roles of memory management, and the illusion of virtual address spaces (Tanenbaum Ch 3 intro).</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-<a class="lesson-card" href="01-pte-sandbox.html">
-        <div class="lesson-info">
-          <span class="lesson-title">1. Structure of a Page Table Entry (PTE)</span>
-          <span class="lesson-desc">Anatomy of the 64-bit PTE (Fig. 3-11): PFN, Present/Absent, Protection, Modified, and Referenced bits.</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="01b-paging-hardware-dilemma.html">
-        <div class="lesson-info">
-          <span class="lesson-title">1b. Paging in Action &amp; The Implementation Dilemma</span>
-          <span class="lesson-desc">Linear page table array indexing, address bit slicing, and Tanenbaum's two conflicting hardware constraints (Sec 3.3.2/3.3.3).</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="02-tlb-sandbox.html">
-        <div class="lesson-info">
-          <span class="lesson-title">2. Speeding Up Paging: TLB & EMAT</span>
-          <span class="lesson-desc">Associative hardware lookups (Fig. 3-12), TLB hits vs. DRAM walks, and Effective Memory Access Time.</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="03-fault-tracer.html">
-        <div class="lesson-info">
-          <span class="lesson-title">3. Classifying Translation Failures</span>
-          <span class="lesson-desc">Tracing execution paths for Soft/Minor Page Faults, Hard Disk Faults, and Segmentation Violations.</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="04-multilevel-pt.html">
-        <div class="lesson-info">
-          <span class="lesson-title">4. Hierarchical Multilevel Paging</span>
-          <span class="lesson-desc">32-bit address slicing (PT1 -> PT2 -> Offset) and sparse table memory reduction (Fig. 3-13).</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="05-inverted-pt.html">
-        <div class="lesson-info">
-          <span class="lesson-title">5. Inverted Page Tables</span>
-          <span class="lesson-desc">Physical-frame-indexed tables and Hash Anchor collision-chain traversals on 64-bit architectures (Fig. 3-14).</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="buddy-allocator-tutorial.html">
-        <div class="lesson-info">
-          <span class="lesson-title">6. Physical Frame Allocation: Buddy Allocator</span>
-          <span class="lesson-desc">Granular split and bitwise XOR merge mechanics across power-of-two page frame pools.</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="clock.html">
-        <div class="lesson-info">
-          <span class="lesson-title">7. Page Replacement: The Clock Algorithm</span>
-          <span class="lesson-desc">Second-chance circular FIFO replacement inspecting R-bits on page faults (Fig. 3-16).</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="08-aging-algorithm.html">
-        <div class="lesson-info">
-          <span class="lesson-title">8. Simulating LRU: The Aging Algorithm</span>
-          <span class="lesson-desc">Right-shift registers, MSB insertion of R-bits, and tie-breaking mechanics across clock ticks (Fig. 3-17).</span>
-        </div>
-        <span class="badge active">Interactive</span>
-      </a>
-      <a class="lesson-card" href="09-working-set.html">
-        <div class="lesson-info">
-          <span class="lesson-title">9. The Working Set Model</span>
-          <span class="lesson-desc">Tracking w(k, t), virtual time scanning, age threshold evaluation, and thrashing prevention (Fig. 3-19).</span>
-        </div>
-        <span class="badge draft">Draft</span>
-      </a>
-      <a class="lesson-card" href="10-wsclock.html">
-        <div class="lesson-info">
-          <span class="lesson-title">10. The WSClock Algorithm</span>
-          <span class="lesson-desc">Circular ring combining Clock pointers, Age > tau thresholds, and asynchronous dirty writes (Fig. 3-20).</span>
-        </div>
-        <span class="badge draft">Draft</span>
-      </a>
-      <a class="lesson-card" href="11-local-vs-global.html">
-        <div class="lesson-info">
-          <span class="lesson-title">11. Local vs. Global Allocation Policies</span>
-          <span class="lesson-desc">Process-local replacement vs. system-wide global replacement under multiprogrammed memory pressure (Fig. 3-22).</span>
-        </div>
-        <span class="badge draft">Draft</span>
-      </a>
-    </main>
-  </div>
+
+  <header>
+    <h1>Week 09: Memory Management</h1>
+    <p class="subtitle">Exploring physical allocation, binary buddy allocators, virtual memory abstractions, page table structures, TLB performance, and page replacement policies (Tanenbaum Chapter 3).</p>
+  </header>
+
+  <main class="lesson-grid">
+    <a class="lesson-card" href="00-virtual-memory-primer.html">
+      <div class="lesson-info">
+        <span class="lesson-title">0. What Is Virtual Memory?</span>
+        <span class="lesson-desc">The evolution from physical addressing to virtual isolation (Tanenbaum Sec 3.1 &amp; 3.2).</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="01-free-used-lists-buddy.html">
+      <div class="lesson-info">
+        <span class="lesson-title">1. Free/Used Lists &amp; Buddy Allocator</span>
+        <span class="lesson-desc">Tracking physical RAM using free/used lists, bitmaps, and the binary buddy allocation algorithm.</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="02-pte-sandbox.html">
+      <div class="lesson-info">
+        <span class="lesson-title">2. Structure of a Page Table Entry (PTE)</span>
+        <span class="lesson-desc">Anatomy of the 64-bit PTE (Fig. 3-11): PFN, Present/Absent, Protection, Modified, and Referenced bits.</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="02b-paging-hardware-dilemma.html">
+      <div class="lesson-info">
+        <span class="lesson-title">2b. Paging in Action &amp; The Implementation Dilemma</span>
+        <span class="lesson-desc">Linear page table array indexing and Tanenbaum's two conflicting hardware constraints (Sec 3.3.2/3.3.3).</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="03-tlb-sandbox.html">
+      <div class="lesson-info">
+        <span class="lesson-title">3. Speeding Up Paging: TLB &amp; EMAT</span>
+        <span class="lesson-desc">The associative Translation Lookaside Buffer, cache locality, and Effective Memory Access Time.</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="03-fault-tracer.html">
+      <div class="lesson-info">
+        <span class="lesson-title">4. Classifying Translation Failures</span>
+        <span class="lesson-desc">Tracing execution flow through soft minor faults, hard major disk faults, and segmentation violations.</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="04-multilevel-pt.html">
+      <div class="lesson-info">
+        <span class="lesson-title">5. Hierarchical Multilevel Paging</span>
+        <span class="lesson-desc">32-bit address slicing (PT1 &rarr; PT2 &rarr; Offset) and sparse table memory reduction (Fig. 3-13).</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="05-inverted-pt.html">
+      <div class="lesson-info">
+        <span class="lesson-title">6. Inverted Page Tables</span>
+        <span class="lesson-desc">Physical-frame-indexed tables and Hash Anchor collision-chain traversals on 64-bit architectures (Fig. 3-14).</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="clock.html">
+      <div class="lesson-info">
+        <span class="lesson-title">7. Page Replacement: The Clock Algorithm</span>
+        <span class="lesson-desc">Second-chance circular FIFO replacement inspecting R-bits on page faults (Fig. 3-16).</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="08-aging-algorithm.html">
+      <div class="lesson-info">
+        <span class="lesson-title">8. Simulating LRU: The Aging Algorithm</span>
+        <span class="lesson-desc">Right-shift registers, MSB insertion of R-bits, and tie-breaking mechanics across clock ticks (Fig. 3-17).</span>
+      </div>
+      <span class="badge">Interactive</span>
+    </a>
+
+    <a class="lesson-card" href="09-working-set.html">
+      <div class="lesson-info">
+        <span class="lesson-title">9. The Working Set Model</span>
+        <span class="lesson-desc">Tracking w(k, t), virtual time scanning, age threshold evaluation, and thrashing prevention (Fig. 3-19).</span>
+      </div>
+      <span class="badge draft">Draft</span>
+    </a>
+
+    <a class="lesson-card" href="10-wsclock.html">
+      <div class="lesson-info">
+        <span class="lesson-title">10. The WSClock Algorithm</span>
+        <span class="lesson-desc">Circular ring combining Clock pointers, Age > tau thresholds, and asynchronous dirty writes (Fig. 3-20).</span>
+      </div>
+      <span class="badge draft">Draft</span>
+    </a>
+
+    <a class="lesson-card" href="11-local-vs-global.html">
+      <div class="lesson-info">
+        <span class="lesson-title">11. Local vs. Global Allocation Policies</span>
+        <span class="lesson-desc">Process-local replacement vs. system-wide global replacement under multiprogrammed memory pressure (Fig. 3-22).</span>
+      </div>
+      <span class="badge draft">Draft</span>
+    </a>
+  </main>
 </body>
 </html>
