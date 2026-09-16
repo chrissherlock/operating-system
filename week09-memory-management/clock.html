@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock Algorithm: Tutorial & Playground</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-light: #eff6ff;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e2e8f0;
+            --highlight: #fef08a;
+            --font-main: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .section-container {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 850px;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-header {
+            background-color: var(--accent-light);
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header h2 {
+            margin: 0 0 10px 0;
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .section-header p {
+            margin: 0;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        /* Visualization Layouts */
+        .visualization-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .playground-layout {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 30px;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .clock-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            min-width: 300px;
+        }
+
+        /* Clock Elements */
+        .clock-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+
+        .page-node {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background-color: var(--panel-bg);
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.4s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .page-node.highlight {
+            border-color: var(--accent);
+            background-color: var(--highlight);
+            transform: scale(1.15);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .r-bit { font-size: 0.7rem; font-weight: normal; }
+        .r-one .r-bit { color: var(--success); font-weight: bold; }
+        .r-zero .r-bit { color: var(--danger); font-weight: bold; }
+
+        .clock-hand {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 45%;
+            height: 4px;
+            background: var(--accent);
+            transform-origin: left center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 5;
+        }
+
+        .clock-hand::after {
+            content: '';
+            position: absolute;
+            right: -2px;
+            top: -6px;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+            border-left: 14px solid var(--accent);
+        }
+
+        .center-pin {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            background-color: var(--text-primary);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+        }
+
+        /* Controls & Inputs */
+        .controls {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-color);
+        }
+
+        .interactive-panel {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        button {
+            padding: 10px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-primary { background-color: var(--accent); color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: #2563eb; }
+
+        .btn-secondary { background-color: var(--border); color: var(--text-primary); }
+        .btn-secondary:hover:not(:disabled) { background-color: #cbd5e1; }
+
+        .log-box {
+            background-color: #0f172a;
+            color: #f8fafc;
+            border-radius: 8px;
+            padding: 12px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .log-entry { border-left: 3px solid var(--border); padding-left: 8px; }
+        .log-entry.hit { border-color: var(--success); }
+        .log-entry.fault { border-color: var(--danger); }
+        .log-entry.sweep { border-color: var(--accent); color: #cbd5e1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="section-container">
+        <div class="section-header">
+            <h2 id="stepTitle">Part 1: Guided Tutorial</h2>
+            <p id="stepText">Loading tutorial...</p>
+        </div>
+
+        <div class="visualization-area">
+            <div class="clock-container" id="tutorialClock">
+                <div class="clock-hand" id="tutorialHand"></div>
+                <div class="center-pin"></div>
+                </div>
+        </div>
+
+        <div class="controls">
+            <button id="prevBtn" class="btn-secondary" onclick="stepBackward()">Back</button>
+            <div style="font-weight: bold; color: var(--text-secondary);" id="stepCounter">Step 1 of X</div>
+            <button id="nextBtn" class="btn-primary" onclick="stepForward()">Next Step</button>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <div class="section-header" style="background-color: #f0fdf4;">
+            <h2>Part 2: Try It Yourself!</h2>
+            <p>Input your own sequence of pages. Watch how the algorithm sweeps past pages with <strong>R=1</strong> until it finds a page with <strong>R=0</strong> to evict.</p>
+        </div>
+
+        <div class="playground-layout">
+            <div class="clock-wrapper">
+                <div class="clock-container" id="playClock">
+                    <div class="clock-hand" id="playHand"></div>
+                    <div class="center-pin"></div>
+                </div>
+            </div>
+
+            <div class="interactive-panel">
+                <label style="font-weight: bold; color: var(--text-secondary);">Request a Page (A-Z, 0-9):</label>
+                <div class="input-group">
+                    <input type="text" id="pageInput" maxlength="1" placeholder="e.g. X">
+                    <button class="btn-primary" id="requestBtn">Access Page</button>
+                </div>
+                <button class="btn-secondary" id="resetBtn" style="width: 100%;">Reset Playground</button>
+
+                <label style="font-weight: bold; color: var(--text-secondary); margin-top: 10px;">Activity Log:</label>
+                <div class="log-box" id="activityLog">
+                    <div class="log-entry">Playground initialized. Waiting for requests...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           PART 1: GUIDED TUTORIAL LOGIC
+           ========================================= */
+        const tutorialSteps = [
+            {
+                title: "1. Expanded Memory Buffer",
+                text: "We have an 8-page memory buffer. Notice that the next three pages in line (A, B, and C) all have their R-bit set to 1.",
+                frames: [{id:'A', r:1}, {id:'B', r:1}, {id:'C', r:1}, {id:'D', r:0}, {id:'E', r:1}, {id:'F', r:0}, {id:'G', r:1}, {id:'H', r:0}],
+                handIndex: 0, targetId: null
+            },
+            {
+                title: "2. Page Fault (Requesting Page 'X')",
+                text: "The OS requests page 'X', which isn't in memory. This is a <strong>Page Fault</strong>. The hand starts inspecting at Page 'A'.",
+                frames: [{id:'A', r:1}, {id:'B', r:1}, {id:'C', r:1}, {id:'D', r:0}, {id:'E', r:1}, {id:'F', r:0}, {id:'G', r:1}, {id:'H', r:0}],
+                handIndex: 0, targetId: 'A'
+            },
+            {
+                title: "3. First 'Second Chance' (Page A)",
+                text: "Page 'A' has R=1. We give it a second chance by setting its R-bit to 0, and we advance the hand to the next page.",
+                frames: [{id:'A', r:0}, {id:'B', r:1}, {id:'C', r:1}, {id:'D', r:0}, {id:'E', r:1}, {id:'F', r:0}, {id:'G', r:1}, {id:'H', r:0}],
+                handIndex: 1, targetId: 'A'
+            },
+            {
+                title: "4. Second 'Second Chance' (Page B)",
+                text: "The hand now points to Page 'B', but it also has R=1! We flip the R-bit to 0 and advance the hand.",
+                frames: [{id:'A', r:0}, {id:'B', r:0}, {id:'C', r:1}, {id:'D', r:0}, {id:'E', r:1}, {id:'F', r:0}, {id:'G', r:1}, {id:'H', r:0}],
+                handIndex: 2, targetId: 'B'
+            },
+            {
+                title: "5. Third 'Second Chance' (Page C)",
+                text: "Page 'C' also has R=1. We grant it a second chance, flip R to 0, and advance the hand again.",
+                frames: [{id:'A', r:0}, {id:'B', r:0}, {id:'C', r:0}, {id:'D', r:0}, {id:'E', r:1}, {id:'F', r:0}, {id:'G', r:1}, {id:'H', r:0}],
+                handIndex: 3, targetId: 'C'
+            },
+            {
+                title: "6. Finding an Eviction Target (Page D)",
+                text: "Finally, the hand points to Page 'D', which has R=0. We have found our eviction target to swap out.",
+                frames: [{id:'A', r:0}, {id:'B', r:0}, {id:'C', r:0}, {id:'D', r:0}, {id:'E', r:1}, {id:'F', r:0}, {id:'G', r:1}, {id:'H', r:0}],
+                handIndex: 3, targetId: 'D'
+            },
+            {
+                title: "7. Replacement & Advance",
+                text: "We evict 'D' and swap in our new page 'X', setting its R-bit to 1. The hand advances to Page 'E'.",
+                frames: [{id:'A', r:0}, {id:'B', r:0}, {id:'C', r:0}, {id:'X', r:1}, {id:'E', r:1}, {id:'F', r:0}, {id:'G', r:1}, {id:'H', r:0}],
+                handIndex: 4, targetId: 'X'
+            }
+        ];
+
+        let currentStep = 0;
+
+        function renderTutorialNodes(state) {
+            const container = document.getElementById('tutorialClock');
+            const hand = document.getElementById('tutorialHand');
+
+            // Clear nodes but keep hand and pin
+            Array.from(container.children).forEach(child => {
+                if(child.classList.contains('page-node')) child.remove();
+            });
+
+            const radius = 120;
+            const center = 150;
+
+            state.frames.forEach((frame, index) => {
+                const angle = (index * 2 * Math.PI) / state.frames.length - Math.PI / 2;
+                const node = document.createElement('div');
+                node.className = `page-node ${frame.r === 1 ? 'r-one' : 'r-zero'}`;
+                if (frame.id === state.targetId) node.classList.add('highlight');
+
+                node.style.left = `${center + radius * Math.cos(angle) - 24}px`;
+                node.style.top = `${center + radius * Math.sin(angle) - 24}px`;
+                node.innerHTML = `<span>${frame.id}</span><span class="r-bit">R=${frame.r}</span>`;
+                container.appendChild(node);
+            });
+
+            const handAngleDeg = (state.handIndex * 360) / state.frames.length - 90;
+            hand.style.transform = `rotate(${handAngleDeg}deg)`;
+        }
+
+        function refreshTutorialUI() {
+            const state = tutorialSteps[currentStep];
+            document.getElementById('stepTitle').innerHTML = state.title;
+            document.getElementById('stepText').innerHTML = state.text;
+            document.getElementById('stepCounter').innerText = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
+            document.getElementById('prevBtn').disabled = (currentStep === 0);
+            document.getElementById('nextBtn').disabled = (currentStep === tutorialSteps.length - 1);
+            renderTutorialNodes(state);
+        }
+
+        function stepForward() { if (currentStep < tutorialSteps.length - 1) { currentStep++; refreshTutorialUI(); } }
+        function stepBackward() { if (currentStep > 0) { currentStep--; refreshTutorialUI(); } }
+
+        refreshTutorialUI();
+
+
+        /* =========================================
+           PART 2: INTERACTIVE PLAYGROUND LOGIC
+           ========================================= */
+
+        let playFrames = [];
+        let playHandIndex = 0;
+        const totalFrames = 8;
+        const logBox = document.getElementById('activityLog');
+        const pageInput = document.getElementById('pageInput');
+
+        function initializePlayground() {
+            playFrames = [
+                {id: '1', r: 1}, {id: '2', r: 0}, {id: '3', r: 1}, {id: '4', r: 0},
+                {id: '5', r: 1}, {id: '6', r: 1}, {id: '7', r: 1}, {id: '8', r: 0}
+            ];
+            playHandIndex = 0;
+            logBox.innerHTML = '<div class="log-entry">Playground initialized. Waiting for requests...</div>';
+            renderPlaygroundNodes();
+        }
+
+        function writeLog(message, type) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = message;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function renderPlaygroundNodes() {
+            const container = document.getElementById('playClock');
+            const hand = document.getElementById('playHand');
+
+            Array.from(container.children).forEach(child => {
+                if(child.classList.contains('page-node')) child.remove();
+            });
+
+            const radius = 120;
+            const center = 150;
+
+            playFrames.forEach((frame, index) => {
+                const angle = (index * 2 * Math.PI) / totalFrames - Math.PI / 2;
+                const node = document.createElement('div');
+                node.className = `page-node ${frame.r === 1 ? 'r-one' : 'r-zero'}`;
+
+                // Highlight the node the hand is currently pointing to
+                if (index === playHandIndex) node.classList.add('highlight');
+
+                node.style.left = `${center + radius * Math.cos(angle) - 24}px`;
+                node.style.top = `${center + radius * Math.sin(angle) - 24}px`;
+                node.innerHTML = `<span>${frame.id}</span><span class="r-bit">R=${frame.r}</span>`;
+                container.appendChild(node);
+            });
+
+            const handAngleDeg = (playHandIndex * 360) / totalFrames - 90;
+            hand.style.transform = `rotate(${handAngleDeg}deg)`;
+        }
+
+        // The core algorithm implementation
+        function executePageRequest(requestedId) {
+            if (!requestedId) return;
+            requestedId = requestedId.toUpperCase();
+
+            // 1. Check for a Hit
+            const hitIndex = playFrames.findIndex(f => f.id === requestedId);
+            if (hitIndex !== -1) {
+                playFrames[hitIndex].r = 1;
+                writeLog(`<strong>HIT!</strong> Page '${requestedId}' found. R-bit set to 1. Hand stays put.`, 'hit');
+                renderPlaygroundNodes();
+                return;
+            }
+
+            // 2. Page Fault - find an eviction target
+            writeLog(`<strong>FAULT!</strong> Page '${requestedId}' not in memory. Sweeping...`, 'fault');
+
+            let targetFound = false;
+            let sweeps = 0; // Failsafe to prevent infinite loops
+
+            while (!targetFound && sweeps < totalFrames * 2) {
+                const currentFrame = playFrames[playHandIndex];
+
+                if (currentFrame.r === 1) {
+                    writeLog(`&rarr; Page '${currentFrame.id}' has R=1. Flipping to R=0 and moving hand.`, 'sweep');
+                    currentFrame.r = 0;
+                    playHandIndex = (playHandIndex + 1) % totalFrames;
+                } else {
+                    writeLog(`&rarr; Found eviction target: Page '${currentFrame.id}' (R=0). Replacing with '${requestedId}'.`, 'fault');
+                    playFrames[playHandIndex] = { id: requestedId, r: 1 };
+                    playHandIndex = (playHandIndex + 1) % totalFrames;
+                    targetFound = true;
+                }
+                sweeps++;
+            }
+
+            renderPlaygroundNodes();
+        }
+
+        // Event Listeners for Playground
+        document.getElementById('requestBtn').addEventListener('click', () => {
+            executePageRequest(pageInput.value);
+            pageInput.value = '';
+            pageInput.focus();
+        });
+
+        pageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                executePageRequest(pageInput.value);
+                pageInput.value = '';
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', initializePlayground);
+
+        // Start playground
+        initializePlayground();
+
+    </script>
+</body>
+</html>
