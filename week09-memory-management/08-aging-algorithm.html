@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8. Simulating LRU: The Aging Algorithm — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --badge-bg: #f1f5f9;
+      --badge-color: #64748b;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 16px; }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .meta { display: flex; justify-content: space-between; align-items: center; }
+    .badge {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background-color: var(--badge-bg);
+      color: var(--badge-color);
+      border: 1px solid #cbd5e1;
+      text-transform: uppercase;
+    }
+    h1 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    p.description { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
+    .notice {
+      background: #f8fafc;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-back">
+    <a href="../index.html">&larr; Back to Course Hub</a>
+  </div>
+  <div class="container">
+    <div class="card">
+      <div class="meta">
+        <span style="color:var(--accent); font-weight:bold; font-family:var(--font-mono);">Week 09</span>
+        <span class="badge">Draft Placeholder</span>
+      </div>
+      <h1>8. Simulating LRU: The Aging Algorithm</h1>
+      <p class="description">Right-shift registers, MSB insertion of R-bits, and tie-breaking mechanics across clock ticks (Fig. 3-17).</p>
+      <div class="notice">
+        Interactive visualization matching Tanenbaum Memory Management text will be placed here.
+      </div>
+    </div>
+  </div>
+</body>
+</html>

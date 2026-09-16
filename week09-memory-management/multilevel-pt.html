@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Two-Level Page Table Address Translation — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --pt1-color: #0284c7;
+      --pt1-bg: #e0f2fe;
+      --pt2-color: #7c3aed;
+      --pt2-bg: #ede9fe;
+      --offset-color: #059669;
+      --offset-bg: #ecfdf5;
+      --fault-color: #e11d48;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-back {
+      width: 100%;
+      max-width: 1050px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+    }
+    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+
+    header { text-align: center; max-width: 850px; }
+    h1 { font-size: 1.7rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1050px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Bit Slicer */
+    .bit-slicer {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #f1f5f9;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .bit-row {
+      display: flex;
+      width: 100%;
+      height: 48px;
+      border: 2px solid var(--border-dark);
+      border-radius: 6px;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-weight: 700;
+    }
+    .bit-segment {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+    .seg-pt1 { width: 31.25%; background: var(--pt1-bg); color: var(--pt1-color); border-right: 2px solid var(--border); }
+    .seg-pt2 { width: 31.25%; background: var(--pt2-bg); color: var(--pt2-color); border-right: 2px solid var(--border); }
+    .seg-offset { width: 37.5%; background: var(--offset-bg); color: var(--offset-color); }
+
+    /* Translation Graph Layout */
+    .translation-grid {
+      display: grid;
+      grid-template-columns: 240px 240px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 820px) {
+      .translation-grid { grid-template-columns: 1fr; }
+    }
+
+    .table-view {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .table-view-header {
+      background: #f1f5f9;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .table-entries {
+      display: flex;
+      flex-direction: column;
+      max-height: 240px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+    .table-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 12px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .table-row.active-pt1 { background-color: var(--pt1-bg); font-weight: 700; color: var(--pt1-color); }
+    .table-row.active-pt2 { background-color: var(--pt2-bg); font-weight: 700; color: var(--pt2-color); }
+
+    /* Step Narrative */
+    .tutorial-box {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      padding: 14px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .tutorial-box strong { color: var(--accent); }
+
+    .nav-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button.btn-sec { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+    button.btn-sec:hover { background: #e2e8f0; }
+
+    /* Physical Bus Output */
+    .bus-output {
+      background: #0f172a;
+      color: #38bdf8;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav-back">
+    <a href="../index.html">&larr; Back to Course Hub</a>
+  </div>
+
+  <header>
+    <h1>Two-Level Page Table Translation</h1>
+    <p class="subtitle">Tanenbaum Fig 3-13: Deconstructing a 32-bit virtual address into Top-Level (PT1), Second-Level (PT2), and Offset fields.</p>
+  </header>
+
+  <div class="main-container">
+
+    <!-- Interactive Step Tutorial -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--accent);">Guided Walkthrough</span>
+        <span id="stepCounter" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">Step 1 of 4</span>
+      </div>
+      <div id="stepNarrative" class="tutorial-box"></div>
+      <div class="nav-controls">
+        <button id="prevBtn" class="btn-sec">Previous</button>
+        <button id="nextBtn">Next Step &rarr;</button>
+        <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+          <label style="font-size:0.85rem; font-weight:600;">Custom Hex Address:</label>
+          <input type="text" id="customHex" value="0x00403004" maxlength="10" style="padding:5px 8px; font-family:var(--font-mono); border:1px solid var(--border); border-radius:4px; text-transform:uppercase; width:120px;">
+          <button id="loadHexBtn" class="btn-sec">Resolve</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32-Bit Address Slicer -->
+    <div class="card">
+      <span style="font-weight:600; font-size:0.9rem;">32-Bit Virtual Address Breakdown</span>
+      <div class="bit-slicer">
+        <div class="bit-row">
+          <div class="bit-segment seg-pt1" id="segPt1">
+            <span>PT1 (Bits 31-22)</span>
+            <span id="valPt1">0000000001 (1)</span>
+          </div>
+          <div class="bit-segment seg-pt2" id="segPt2">
+            <span>PT2 (Bits 21-12)</span>
+            <span id="valPt2">0000000011 (3)</span>
+          </div>
+          <div class="bit-segment seg-offset" id="segOffset">
+            <span>Offset (Bits 11-0)</span>
+            <span id="valOffset">000000000100 (4)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Architectural Tree Diagram -->
+    <div class="card">
+      <div class="translation-grid">
+        <!-- Top Level Table -->
+        <div class="table-view">
+          <div class="table-view-header">
+            <span>Top-Level Directory</span>
+            <span>Index [0..1023]</span>
+          </div>
+          <div class="table-entries" id="topTableEntries"></div>
+        </div>
+
+        <!-- Second Level Table -->
+        <div class="table-view">
+          <div class="table-view-header">
+            <span id="pt2Header">PT2 Table (for PT1=1)</span>
+            <span>Index [0..1023]</span>
+          </div>
+          <div class="table-entries" id="secondTableEntries"></div>
+        </div>
+
+        <!-- Output Bus -->
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <span style="font-weight:600; font-size:0.9rem;">Hardware MMU Physical Bus</span>
+          <div class="bus-output">
+            <div>Virtual Addr: <span id="outVirt">0x00403004</span></div>
+            <div>Decoded: PT1=<span id="outPt1">1</span>, PT2=<span id="outPt2">3</span>, Offset=<span id="outOff">4</span></div>
+            <hr style="border-color:#1e293b; margin:4px 0;">
+            <div>Page Frame Number (PFN): <span id="outPfn" style="color:#a78bfa;">PFN 65</span></div>
+            <div>Physical Frame Base: <span id="outBase">0x00041000</span></div>
+            <div>Physical Address (+Offset): <strong id="outPhys" style="color:#4ade80;">0x00041004</strong></div>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
+            Notice how top-level entries without active mappings hold <code>NULL</code>, meaning the entire 4 MB second-level table does not need to exist in memory.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentStep = 0;
+    let activeAddress = 0x00403004;
+
+    const tutorialSteps = [
+      {
+        title: "1. The 32-Bit Address Division",
+        text: "Consider virtual address <code>0x00403004</code> (decimal 4,206,596). The hardware MMU splits it into three components: <strong>PT1</strong> (top 10 bits), <strong>PT2</strong> (middle 10 bits), and <strong>Offset</strong> (lowest 12 bits).",
+        highlight: "slicer"
+      },
+      {
+        title: "2. Indexing the Top-Level Directory",
+        text: "The MMU extracts <code>PT1 = 1</code>. It uses 1 to index the top-level page table. Entry 1 points to the second-level page table that handles the 4M–8M address chunk (data area).",
+        highlight: "pt1"
+      },
+      {
+        title: "3. Indexing the Second-Level Page Table",
+        text: "Next, the MMU takes <code>PT2 = 3</code> to index into that second-level table. Entry 3 yields <strong>PFN 65</strong>, and confirms the Present/Absent bit is 1 (in memory).",
+        highlight: "pt2"
+      },
+      {
+        title: "4. Combining PFN with Offset",
+        text: "Finally, the MMU concatenates <strong>PFN 65</strong> (frame base <code>0x00041000</code>) with the 12-bit <code>Offset = 4</code> to emit physical address <strong>0x00041004</strong> directly onto the memory bus.",
+        highlight: "bus"
+      }
+    ];
+
+    function decodeAddress(addr) {
+      const pt1 = (addr >>> 22) & 0x3FF;
+      const pt2 = (addr >>> 12) & 0x3FF;
+      const offset = addr & 0xFFF;
+      return { pt1, pt2, offset };
+    }
+
+    function renderTables(decoded) {
+      // Top Level
+      const topContainer = document.getElementById("topTableEntries");
+      topContainer.innerHTML = "";
+      for (let i = 0; i <= 4; i++) {
+        const row = document.createElement("div");
+        row.className = "table-row" + (i === decoded.pt1 ? " active-pt1" : "");
+        let label = (i === 0) ? "-> PT2 (Text 0-4M)" : (i === 1) ? "-> PT2 (Data 4-8M)" : "NULL (Unmapped)";
+        row.innerHTML = `<span>[${i}]</span><span>${label}</span>`;
+        topContainer.appendChild(row);
+      }
+      const ellipsis = document.createElement("div");
+      ellipsis.className = "table-row";
+      ellipsis.innerHTML = "<span>...</span><span>NULL</span>";
+      topContainer.appendChild(ellipsis);
+
+      // Second Level
+      const secondContainer = document.getElementById("secondTableEntries");
+      document.getElementById("pt2Header").textContent = `PT2 Table (for PT1=${decoded.pt1})`;
+      secondContainer.innerHTML = "";
+      for (let j = 0; j <= 5; j++) {
+        const row = document.createElement("div");
+        row.className = "table-row" + (j === decoded.pt2 ? " active-pt2" : "");
+        let pfn = (decoded.pt1 === 1) ? 62 + j : (decoded.pt1 === 0 ? 10 + j : "FAULT");
+        row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn} (Valid)</span>`;
+        secondContainer.appendChild(row);
+      }
+    }
+
+    function updateView() {
+      const decoded = decodeAddress(activeAddress);
+
+      // Update bit segments
+      document.getElementById("valPt1").textContent = `${decoded.pt1.toString(2).padStart(10, '0')} (${decoded.pt1})`;
+      document.getElementById("valPt2").textContent = `${decoded.pt2.toString(2).padStart(10, '0')} (${decoded.pt2})`;
+      document.getElementById("valOffset").textContent = `${decoded.offset.toString(2).padStart(12, '0')} (${decoded.offset})`;
+
+      // Update Bus output
+      const hexStr = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
+      document.getElementById("outVirt").textContent = hexStr;
+      document.getElementById("outPt1").textContent = decoded.pt1;
+      document.getElementById("outPt2").textContent = decoded.pt2;
+      document.getElementById("outOff").textContent = decoded.offset;
+
+      const pfn = (decoded.pt1 === 1) ? 62 + decoded.pt2 : 10 + decoded.pt2;
+      const physBase = (pfn << 12) >>> 0;
+      const physAddr = (physBase | decoded.offset) >>> 0;
+
+      document.getElementById("outPfn").textContent = `PFN ${pfn}`;
+      document.getElementById("outBase").textContent = "0x" + physBase.toString(16).padStart(8, '0').toUpperCase();
+      document.getElementById("outPhys").textContent = "0x" + physAddr.toString(16).padStart(8, '0').toUpperCase();
+
+      renderTables(decoded);
+
+      // Tutorial text
+      const step = tutorialSteps[currentStep];
+      document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
+      document.getElementById("stepNarrative").innerHTML = `<strong>${step.title}</strong><br>${step.text}`;
+      document.getElementById("prevBtn").disabled = (currentStep === 0);
+      document.getElementById("nextBtn").disabled = (currentStep === tutorialSteps.length - 1);
+    }
+
+    document.getElementById("nextBtn").onclick = () => {
+      if (currentStep < tutorialSteps.length - 1) { currentStep++; updateView(); }
+    };
+    document.getElementById("prevBtn").onclick = () => {
+      if (currentStep > 0) { currentStep--; updateView(); }
+    };
+    document.getElementById("loadHexBtn").onclick = () => {
+      const val = parseInt(document.getElementById("customHex").value, 16);
+      if (!isNaN(val)) {
+        activeAddress = val >>> 0;
+        updateView();
+      }
+    };
+
+    updateView();
+  </script>
+</body>
+</html>
