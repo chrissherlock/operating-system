@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Speeding Up Paging: TLB &amp; EMAT Sandbox — COSC240</title>
+  <title>Speeding Up Paging: TLB &amp; EMAT — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -113,6 +113,99 @@
       overflow-x: auto;
     }
 
+    /* Comparison Race Visualizer */
+    .race-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    @media (max-width: 768px) {
+      .race-container { grid-template-columns: 1fr; }
+    }
+    .race-lane {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+    }
+    .race-lane.lane-tlb { border-top: 4px solid var(--tlb-hit); }
+    .race-lane.lane-notlb { border-top: 4px solid var(--tlb-miss); }
+
+    .race-stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 3px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .race-bar-bg {
+      background: #e2e8f0;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .race-bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* Inline Interactive Tutorial Widgets */
+    .tutorial-panel {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+    }
+    .tutorial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tutorial-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #075985;
+    }
+    .tutorial-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #0c4a6e;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      border-top: 1px solid #bae6fd;
+      padding-top: 12px;
+    }
+    .inline-widget {
+      background: #ffffff;
+      border: 1px solid #bae6fd;
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
     /* Sandbox Layout */
     .sandbox-grid {
       display: grid;
@@ -147,7 +240,6 @@
       border-radius: 3px;
     }
 
-    /* Controls Panel */
     .control-panel {
       background: #f8fafc;
       border: 1px solid var(--border);
@@ -158,7 +250,6 @@
       gap: 12px;
     }
 
-    /* EMAT Box */
     .emat-calc-box {
       background: #0f172a;
       color: #f8fafc;
@@ -222,36 +313,14 @@
     }
     button.btn-sec:hover { background-color: #e2e8f0; }
 
-    /* Tutorial Panel */
-    .tutorial-panel {
-      border-left: 4px solid var(--accent);
-      background: #f0f9ff;
-    }
-    .tutorial-header {
+    .figure-container {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .tutorial-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #075985;
-    }
-    .tutorial-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #0c4a6e;
-    }
-    .tour-nav {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 6px;
+      overflow-x: auto;
     }
   </style>
 </head>
@@ -262,30 +331,209 @@
   </div>
 
   <header>
-    <h1>Speeding Up Paging: TLB &amp; EMAT Workbench</h1>
-    <p class="subtitle">Tanenbaum Section 3.3.3: Fully interactive hardware workbench with editable TLB registers, instruction steppers, and live EMAT calculations.</p>
+    <h1>Speeding Up Paging: TLB &amp; EMAT</h1>
+    <p class="subtitle">Tanenbaum Section 3.3.3: Interactive guided walkthrough with live inline widgets and editable hardware workbenches.</p>
   </header>
 
   <div class="main-container">
 
-    <!-- CONCEPT RECAP -->
+    <!-- CONCEPT EXPLANATION & MOTIVATING SCENARIO -->
     <div class="card">
       <div class="theory-section">
-        <h2>Interactive Hardware Workbench</h2>
+        <h2>Why Is the TLB Essential? The Array Bottleneck</h2>
         <p>
-          In this fully interactive sandbox, you are not restricted to preset buttons. You can <strong>edit any TLB entry directly in the table below</strong>, adjust hardware timing parameters, or step through simulated program loops instruction by instruction to observe associative lookups and FIFO/LRU evictions.
+          To understand why a TLB is critical to modern computer architecture, consider what happens during everyday programming routines—such as summing an array of 1,024 integers (4,096 bytes, exactly 1 standard 4 KB page):
         </p>
+
+        <div class="code-block">
+int total = 0;
+for (int i = 0; i &lt; 1024; i++) {
+    total += data[i]; // All 1,024 integers reside on the same 4 KB virtual page!
+}
+        </div>
+
+        <p>
+          Assume a typical system: CPU execution core access takes <strong>1 ns</strong>, but an off-chip DRAM lookup takes <strong>50 ns</strong>. On a 64-bit architecture with 4-level paging (PML4 &rarr; PDPT &rarr; PD &rarr; PT):
+        </p>
+
+        <ul style="padding-left: 20px;">
+          <li>
+            <strong>Architecture WITHOUT a TLB:</strong> For <em>every single element</em> in the loop, the CPU must resolve the virtual address of <code>data[i]</code>. It reads Level 4 (50 ns), Level 3 (50 ns), Level 2 (50 ns), and Level 1 (50 ns), then finally reads <code>data[i]</code> itself (50 ns).<br>
+            <strong>Cost per loop iteration:</strong> 250 ns.<br>
+            <strong>Total cost for 1,024 integers:</strong> 1,024 &times; 250 ns = <strong>256,000 ns (0.256 ms)</strong>. The CPU spends 80% of its execution time stalled on redundant pointer reads for the exact same page!
+          </li>
+          <li>
+            <strong>Architecture WITH a TLB:</strong><br>
+            <em>Iteration 0:</em> Compulsory TLB Miss &rarr; Walk 4 levels of DRAM (200 ns) &rarr; Cache translation in TLB &rarr; Fetch data (50 ns) = <strong>250 ns</strong>.<br>
+            <em>Iterations 1 to 1,023:</em> <strong>TLB Hit!</strong> The associative register matches the Virtual Page Number in &lt; 0.5 ns. The 4-level DRAM walk is bypassed completely! Fetch data from L1 cache (~1 ns) = <strong>~1.5 ns per element</strong>.<br>
+            <strong>Total cost for 1,024 integers:</strong> 250 ns + (1,023 &times; 1.5 ns) &approx; <strong>1,784 ns (0.00178 ms)</strong>.
+          </li>
+        </ul>
+
+        <div class="theory-callout">
+          Speedup = 256,000 ns / 1,784 ns &approx; 143x Faster!<br>
+          Without a TLB, modern 3.0 GHz processors would spend nearly all their cycles waiting on memory bus lookups. The TLB cuts translation overhead to zero for &gt;98% of instructions.
+        </div>
       </div>
     </div>
 
-    <!-- PART 1: GUIDED TUTORIAL -->
+    <!-- LIVE ARRAY TRAVERSAL RACE SIMULATOR -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Demonstration: 1,024-Element Array Traversal Race</span>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">Simulate running the array summation loop with vs. without a TLB in real time.</p>
+        </div>
+        <button id="btnRunRace" onclick="runArrayRace()">Run 1,024-Iteration Loop Race</button>
+      </div>
+
+      <div class="race-container">
+        <!-- Lane A: Without TLB -->
+        <div class="race-lane lane-notlb">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:var(--tlb-miss);">Without TLB (DRAM Walk Every Iteration)</strong>
+            <span id="raceStatusNoTlb" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">Idle</span>
+          </div>
+          <div class="race-stat-row">
+            <span>Elements Processed:</span>
+            <span id="raceElemNoTlb">0 / 1024</span>
+          </div>
+          <div class="race-stat-row">
+            <span>DRAM Page Table Lookups:</span>
+            <span id="racePtReadsNoTlb" style="color:var(--tlb-miss); font-weight:700;">0 reads</span>
+          </div>
+          <div class="race-stat-row">
+            <span>Elapsed Simulated Time:</span>
+            <span id="raceTimeNoTlb" style="font-weight:700;">0.00 &mu;s</span>
+          </div>
+          <div class="race-bar-bg">
+            <div id="raceBarNoTlb" class="race-bar-fill" style="background:var(--tlb-miss);"></div>
+          </div>
+        </div>
+
+        <!-- Lane B: With TLB -->
+        <div class="race-lane lane-tlb">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:var(--tlb-hit);">With Hardware TLB (Associative Cache)</strong>
+            <span id="raceStatusTlb" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">Idle</span>
+          </div>
+          <div class="race-stat-row">
+            <span>Elements Processed:</span>
+            <span id="raceElemTlb">0 / 1024</span>
+          </div>
+          <div class="race-stat-row">
+            <span>DRAM Page Table Lookups:</span>
+            <span id="racePtReadsTlb" style="color:var(--tlb-hit); font-weight:700;">0 reads</span>
+          </div>
+          <div class="race-stat-row">
+            <span>Elapsed Simulated Time:</span>
+            <span id="raceTimeTlb" style="color:var(--tlb-hit); font-weight:700;">0.00 &mu;s</span>
+          </div>
+          <div class="race-bar-bg">
+            <div id="raceBarTlb" class="race-bar-fill" style="background:var(--tlb-hit);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEXTBOOK FIGURE 3-12 SVG REPRODUCTION -->
+    <div class="card">
+      <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Textbook Diagram: Figure 3-12 (A TLB to speed up paging)</span>
+      <div class="figure-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 280" width="100%" height="100%" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+          <rect x="20" y="20" width="700" height="220" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4"/>
+          <rect x="20" y="20" width="700" height="36" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+          <text x="65" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Valid</text>
+          <text x="185" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Virtual page</text>
+          <text x="315" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Modified</text>
+          <text x="445" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Protection</text>
+          <text x="605" y="44" font-weight="700" font-size="13" fill="#0f172a" text-anchor="middle">Page frame</text>
+
+          <line x1="110" y1="20" x2="110" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="260" y1="20" x2="260" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="370" y1="20" x2="370" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+          <line x1="520" y1="20" x2="520" y2="240" stroke="#cbd5e1" stroke-width="1.5"/>
+
+          <line x1="20" y1="78" x2="720" y2="78" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="71" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="71" font-size="13" fill="#0f172a" text-anchor="middle">140</text>
+          <text x="315" y="71" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="71" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="71" font-size="13" fill="#0f172a" text-anchor="middle">31</text>
+
+          <line x1="20" y1="100" x2="720" y2="100" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="93" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="93" font-size="13" fill="#0f172a" text-anchor="middle">20</text>
+          <text x="315" y="93" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="93" font-size="13" fill="#0f172a" text-anchor="middle">R X</text>
+          <text x="605" y="93" font-size="13" fill="#0f172a" text-anchor="middle">38</text>
+
+          <line x1="20" y1="122" x2="720" y2="122" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="115" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="115" font-size="13" fill="#0f172a" text-anchor="middle">130</text>
+          <text x="315" y="115" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="115" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="115" font-size="13" fill="#0f172a" text-anchor="middle">29</text>
+
+          <line x1="20" y1="144" x2="720" y2="144" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="137" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="137" font-size="13" fill="#0f172a" text-anchor="middle">129</text>
+          <text x="315" y="137" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="137" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="137" font-size="13" fill="#0f172a" text-anchor="middle">62</text>
+
+          <line x1="20" y1="166" x2="720" y2="166" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="159" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="159" font-size="13" fill="#0f172a" text-anchor="middle">19</text>
+          <text x="315" y="159" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="159" font-size="13" fill="#0f172a" text-anchor="middle">R X</text>
+          <text x="605" y="159" font-size="13" fill="#0f172a" text-anchor="middle">50</text>
+
+          <line x1="20" y1="188" x2="720" y2="188" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="181" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="181" font-size="13" fill="#0f172a" text-anchor="middle">21</text>
+          <text x="315" y="181" font-size="13" fill="#0f172a" text-anchor="middle">0</text>
+          <text x="445" y="181" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="181" font-size="13" fill="#0f172a" text-anchor="middle">45</text>
+
+          <line x1="20" y1="210" x2="720" y2="210" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="65" y="203" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="203" font-size="13" fill="#0f172a" text-anchor="middle">860</text>
+          <text x="315" y="203" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="203" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="203" font-size="13" fill="#0f172a" text-anchor="middle">14</text>
+
+          <text x="65" y="225" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="185" y="225" font-size="13" fill="#0f172a" text-anchor="middle">861</text>
+          <text x="315" y="225" font-size="13" fill="#0f172a" text-anchor="middle">1</text>
+          <text x="445" y="225" font-size="13" fill="#0f172a" text-anchor="middle">RW</text>
+          <text x="605" y="225" font-size="13" fill="#0f172a" text-anchor="middle">75</text>
+        </svg>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-muted); text-align:center;">
+        Figure 3-12. A typical 8-entry hardware TLB snapshot showing mapped virtual pages and execution permissions.
+      </p>
+    </div>
+
+    <!-- PART 1: INLINE INTERACTIVE GUIDED TUTORIAL -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
         <span id="tutStepLabel">Part 1: Step 1 of 4</span>
-        <span>Interactive Walkthrough</span>
+        <span>Interactive "Uh-Huh!" Walkthrough</span>
       </div>
-      <div id="tutStepTitle" class="tutorial-title">1. Customizing TLB Registers</div>
-      <div id="tutStepBody" class="tutorial-body"></div>
+      <div id="tutStepTitle" class="tutorial-title">1. The Cold Miss (Iteration 0)</div>
+      <div id="tutStepBody" class="tutorial-body">
+        <p>When our array loop starts, the TLB has never seen Virtual Page 140. Click the button below to execute <code>data[0]</code> and watch the hardware experience a cold miss.</p>
+        <div class="inline-widget">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>Action: Fetch <code>data[0]</code> (Page 140)</strong>
+            <button onclick="inlineStep1Action()" id="inlineBtn1">Execute Fetch</button>
+          </div>
+          <div id="inlineResult1" style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text-muted); background:#f8fafc; padding:8px; border-radius:4px;">
+            Status: Waiting for instruction execution...
+          </div>
+        </div>
+      </div>
       <div class="tour-nav">
         <button id="tutPrevBtn" class="btn-sec" onclick="stepBackward()">Back</button>
         <button id="tutNextBtn" onclick="stepForward()">Next Step &rarr;</button>
@@ -329,7 +577,6 @@
 
         <!-- Right Column: EMAT Telemetry & Live Log -->
         <div style="display:flex; flex-direction:column; gap:12px;">
-          <!-- Configurable Timers -->
           <div class="control-panel">
             <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Hardware Timing Parameters</span>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.8rem; font-family:var(--font-mono);">
@@ -370,25 +617,138 @@
   </div>
 
   <script>
-    /* =========================================================================
-       PART 1: GUIDED TUTORIAL SCRIPT
-       ========================================================================= */
+    let raceRunning = false;
+    function runArrayRace() {
+      if (raceRunning) return;
+      raceRunning = true;
+
+      const btn = document.getElementById("btnRunRace");
+      btn.disabled = true;
+
+      document.getElementById("raceStatusNoTlb").textContent = "Executing...";
+      document.getElementById("raceStatusTlb").textContent = "Executing...";
+
+      let elemTlb = 0;
+      let elemNoTlb = 0;
+
+      const timerTlb = setInterval(() => {
+        elemTlb += 32;
+        if (elemTlb >= 1024) {
+          elemTlb = 1024;
+          clearInterval(timerTlb);
+          document.getElementById("raceStatusTlb").textContent = "Finished in 1.78 us!";
+          document.getElementById("raceStatusTlb").style.color = "var(--tlb-hit)";
+        }
+        document.getElementById("raceElemTlb").textContent = `${elemTlb} / 1024`;
+        document.getElementById("racePtReadsTlb").textContent = "4 reads (Cold miss only)";
+        const elapsedUs = ((elemTlb / 1024) * 1.78).toFixed(2);
+        document.getElementById("raceTimeTlb").textContent = `${elapsedUs} us`;
+        document.getElementById("raceBarTlb").style.width = `${(elemTlb / 1024) * 100}%`;
+      }, 40);
+
+      const timerNoTlb = setInterval(() => {
+        elemNoTlb += 8;
+        if (elemNoTlb >= 1024) {
+          elemNoTlb = 1024;
+          clearInterval(timerNoTlb);
+          document.getElementById("raceStatusNoTlb").textContent = "Finished in 256 us";
+          document.getElementById("raceStatusNoTlb").style.color = "var(--tlb-miss)";
+          raceRunning = false;
+          btn.disabled = false;
+        }
+        document.getElementById("raceElemNoTlb").textContent = `${elemNoTlb} / 1024`;
+        document.getElementById("racePtReadsNoTlb").textContent = `${elemNoTlb * 4} reads!`;
+        const elapsedUs = ((elemNoTlb / 1024) * 256.0).toFixed(2);
+        document.getElementById("raceTimeNoTlb").textContent = `${elapsedUs} us`;
+        document.getElementById("raceBarNoTlb").style.width = `${(elemNoTlb / 1024) * 100}%`;
+      }, 50);
+    }
+
+    /* Inline Tutorial Actions */
+    function inlineStep1Action() {
+      const res = document.getElementById("inlineResult1");
+      res.style.color = "var(--tlb-miss)";
+      res.innerHTML = "<strong>TLB MISS!</strong> Page 140 was not cached. Hardware walked 4 levels of DRAM (Cost: 200ns) and cached VPN 140 &rarr; PFN 31.";
+    }
+
+    function inlineStep2Action() {
+      const res = document.getElementById("inlineResult2");
+      res.style.color = "var(--tlb-hit)";
+      res.innerHTML = "<strong>TLB HIT! (<0.5ns)</strong> Associative hardware matched VPN 140 instantly. <strong>Zero DRAM lookups!</strong>";
+    }
+
+    function inlineStep3Action() {
+      const res = document.getElementById("inlineResult3");
+      res.style.color = "var(--accent)";
+      res.innerHTML = "<strong>Accumulated Savings:</strong> Across 1,023 hits, you bypassed over 4,000 slow DRAM pointer reads. That's the 143x speedup in action!";
+    }
+
+    function inlineStep4Action() {
+      const res = document.getElementById("inlineResult4");
+      res.style.color = "#16a34a";
+      res.innerHTML = "<strong>Formula Verified!</strong> With &alpha; = 98%, EMAT drops from 250ns down to ~103ns. You're ready for the full workbench below!";
+    }
+
     const tutorialSteps = [
       {
-        title: "1. Editing TLB Registers Live",
-        body: "Unlike static diagrams, you can edit any field in the table below right now. Change Virtual Page 140 to 999, or flip a Valid bit from 1 to 0. When you step through instructions, the MMU will evaluate your custom hardware configuration instantly."
+        title: "1. The Cold Miss (Iteration 0)",
+        body: `
+          <p>When our array loop starts, the TLB has never seen Virtual Page 140. Click the button below to execute <code>data[0]</code> and watch the hardware experience a cold miss.</p>
+          <div class="inline-widget">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>Action: Fetch <code>data[0]</code> (Page 140)</strong>
+              <button onclick="inlineStep1Action()" id="inlineBtn1">Execute Fetch</button>
+            </div>
+            <div id="inlineResult1" style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text-muted); background:#f8fafc; padding:8px; border-radius:4px;">
+              Status: Waiting for instruction execution...
+            </div>
+          </div>
+        `
       },
       {
-        title: "2. Stepping Through Instruction Streams",
-        body: "Use the <strong>Step Array Loop</strong> button to simulate a program stepping through contiguous array memory. Watch how the first access triggers a cold miss, while subsequent steps register instant associative hits."
+        title: "2. The Consecutive Hit (Iteration 1)",
+        body: `
+          <p>Now, the CPU immediately fetches <code>data[1]</code> on the exact same page (Page 140). Watch what happens when we query the TLB again:</p>
+          <div class="inline-widget">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>Action: Fetch <code>data[1]</code> (Page 140)</strong>
+              <button onclick="inlineStep2Action()" id="inlineBtn2">Execute Fetch</button>
+            </div>
+            <div id="inlineResult2" style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text-muted); background:#f8fafc; padding:8px; border-radius:4px;">
+              Status: Ready to test associative hit...
+            </div>
+          </div>
+        `
       },
       {
-        title: "3. Tuning Hardware Timers",
-        body: "Use the timing parameters box in the workbench to alter TLB lookup speed or DRAM latency. Notice how EMAT recalculates automatically based on your hit ratio and hardware speeds."
+        title: "3. The Multiplier Effect (Iterations 2 to 1,023)",
+        body: `
+          <p>Because Page 140 is now cached in the TLB, all remaining 1,023 elements in the array skip the 4-level DRAM walk entirely.</p>
+          <div class="inline-widget">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>Action: Simulate remaining loop iterations</strong>
+              <button onclick="inlineStep3Action()" id="inlineBtn3">Run Multiplier</button>
+            </div>
+            <div id="inlineResult3" style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text-muted); background:#f8fafc; padding:8px; border-radius:4px;">
+              Status: Ready to compute loop savings...
+            </div>
+          </div>
+        `
       },
       {
-        title: "4. Dynamic Eviction & Capacity",
-        body: "Try adding extra TLB slots or forcing misses with out-of-range virtual pages to observe FIFO slot replacement in action."
+        title: "4. The "Uh-Huh!" EMAT Moment",
+        body: `
+          <p>That is why the TLB is indispensable. By turning 99% of DRAM table walks into &lt;1ns associative hits, EMAT drops dramatically.</p>
+          <div class="inline-widget">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>Action: Finalize EMAT Concept</strong>
+              <button onclick="inlineStep4Action()" id="inlineBtn4">Confirm Understanding</button>
+            </div>
+            <div id="inlineResult4" style="font-family:var(--font-mono); font-size:0.82rem; color:var(--text-muted); background:#f8fafc; padding:8px; border-radius:4px;">
+              Status: Ready to confirm...
+            </div>
+          </div>
+        `
       }
     ];
 
@@ -424,9 +784,6 @@
       document.getElementById("sandboxSection").scrollIntoView({ behavior: 'smooth' });
     }
 
-    /* =========================================================================
-       PART 2: INTERACTIVE WORKBENCH LOGIC
-       ========================================================================= */
     let tlbData = [];
     let stats = { requests: 0, hits: 0, misses: 0 };
     let fifoPointer = 0;
@@ -512,7 +869,6 @@
       const tlbTime = parseFloat(document.getElementById("paramTlbTime").value) || 1;
       const memTime = parseFloat(document.getElementById("paramMemTime").value) || 100;
 
-      // EMAT formula: Hit = tlb + mem, Miss = tlb + 2*mem
       const emat = (alpha * (tlbTime + memTime)) + ((1 - alpha) * (tlbTime + (2 * memTime)));
       document.getElementById("metricEmat").textContent = emat.toFixed(1) + " ns";
     }
@@ -563,7 +919,7 @@
       if (mode === 'loop') {
         requestPage(loopCursor);
         loopCursor++;
-        if (loopCursor > 147) loopCursor = 140; // Loop across pages 140..147
+        if (loopCursor > 147) loopCursor = 140;
       } else if (mode === 'random') {
         const pages = [20, 130, 500, 140, 860, 999, 21];
         const randPage = pages[Math.floor(Math.random() * pages.length)];
