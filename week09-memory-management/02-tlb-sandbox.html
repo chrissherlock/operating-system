@@ -519,7 +519,7 @@ for (int i = 0; i &lt; 1024; i++) {
     <div class="card tutorial-panel">
       <div class="tutorial-header">
         <span id="tutStepLabel">Part 1: Step 1 of 4</span>
-        <span>Interactive "Uh-Huh!" Walkthrough</span>
+        <span>Interactive Walkthrough</span>
       </div>
       <div id="tutStepTitle" class="tutorial-title">1. The Cold Miss (Iteration 0)</div>
       <div id="tutStepBody" class="tutorial-body">
@@ -674,7 +674,7 @@ for (int i = 0; i &lt; 1024; i++) {
     function inlineStep2Action() {
       const res = document.getElementById("inlineResult2");
       res.style.color = "var(--tlb-hit)";
-      res.innerHTML = "<strong>TLB HIT! (<0.5ns)</strong> Associative hardware matched VPN 140 instantly. <strong>Zero DRAM lookups!</strong>";
+      res.innerHTML = "<strong>TLB HIT! (&lt;0.5ns)</strong> Associative hardware matched VPN 140 instantly. <strong>Zero DRAM lookups!</strong>";
     }
 
     function inlineStep3Action() {
@@ -736,7 +736,7 @@ for (int i = 0; i &lt; 1024; i++) {
         `
       },
       {
-        title: "4. The "Uh-Huh!" EMAT Moment",
+        title: '4. The "Uh-Huh!" EMAT Moment',
         body: `
           <p>That is why the TLB is indispensable. By turning 99% of DRAM table walks into &lt;1ns associative hits, EMAT drops dramatically.</p>
           <div class="inline-widget">
