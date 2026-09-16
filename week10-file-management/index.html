@@ -101,8 +101,42 @@
       text-decoration: underline;
     }
   </style>
+
+  <style id="injected-nav-back-style">
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      text-decoration: none;
+      color: #0284c7;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
+  </style>
+
 </head>
 <body>
+  <div class="nav-back">
+    <a href="../index.html">&larr; Back to Course Hub</a>
+  </div>
+
   <div class="container">
     <a class="back-link" href="../index.html">&larr; Return to Course Portal</a>
     <div class="card">
