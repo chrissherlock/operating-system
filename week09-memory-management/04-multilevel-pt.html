@@ -403,7 +403,7 @@
 <!-- Embedded SVG Diagram for Figure 11-30: Windows 4-Level 48-Bit Paging -->
         <div class="figure-container" style="background:#ffffff; border:1px solid #bae6fd; padding:16px; margin: 10px 0; overflow-x: auto;">
           <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: block; text-align: center;">Figure 11-30: Virtual to Physical Address Translation with a 4-Level Page Table Scheme (48-bits)</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 400" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 500" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             <defs>
               <marker id="arr-ptr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
@@ -415,116 +415,118 @@
 
             <!-- 64-bit Virtual Address Bar -->
             <g transform="translate(0, 20)">
-                <text x="390" y="-8" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">64-bit Virtual Address</text>
+                <text x="410" y="-8" font-size="13" font-weight="700" fill="#0f172a" text-anchor="middle">64-bit Virtual Address</text>
 
                 <!-- Main bounding box for Virtual Address -->
-                <rect x="120" y="0" width="480" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+                <rect x="20" y="0" width="780" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
 
                 <!-- Dividers -->
-                <line x1="220" y1="0" x2="220" y2="40" stroke="#334155" stroke-width="1.5"/>
-                <line x1="290" y1="0" x2="290" y2="40" stroke="#334155" stroke-width="1.5"/>
-                <line x1="360" y1="0" x2="360" y2="40" stroke="#334155" stroke-width="1.5"/>
-                <line x1="430" y1="0" x2="430" y2="40" stroke="#334155" stroke-width="1.5"/>
-                <line x1="500" y1="0" x2="500" y2="40" stroke="#334155" stroke-width="1.5"/>
+                <line x1="140" y1="0" x2="140" y2="40" stroke="#334155" stroke-width="1.5"/>
+                <line x1="270" y1="0" x2="270" y2="40" stroke="#334155" stroke-width="1.5"/>
+                <line x1="400" y1="0" x2="400" y2="40" stroke="#334155" stroke-width="1.5"/>
+                <line x1="530" y1="0" x2="530" y2="40" stroke="#334155" stroke-width="1.5"/>
+                <line x1="660" y1="0" x2="660" y2="40" stroke="#334155" stroke-width="1.5"/>
 
                 <!-- Top labels inside the segments -->
-                <text x="170" y="16" font-size="10" font-weight="700" fill="#475569" text-anchor="middle">Canonical Bits</text>
-                <text x="255" y="16" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle">PXE Index</text>
-                <text x="325" y="16" font-size="10" font-weight="700" fill="#6d28d9" text-anchor="middle">PPE Index</text>
-                <text x="395" y="16" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">PDE Index</text>
-                <text x="465" y="16" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">PTE Index</text>
-                <text x="550" y="16" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Byte Offset</text>
+                <text x="80" y="16" font-size="10" font-weight="700" fill="#475569" text-anchor="middle">Canonical Bits</text>
+                <text x="205" y="16" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle">PXE Index</text>
+                <text x="335" y="16" font-size="10" font-weight="700" fill="#6d28d9" text-anchor="middle">PPE Index</text>
+                <text x="465" y="16" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">PDE Index</text>
+                <text x="595" y="16" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">PTE Index</text>
+                <text x="730" y="16" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Byte Offset</text>
 
                 <!-- Bit ranges at top corners -->
-                <text x="122" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b">63</text>
-                <text x="218" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">48</text>
-                <text x="288" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">39</text>
-                <text x="358" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">30</text>
-                <text x="428" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">21</text>
-                <text x="498" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">12</text>
-                <text x="598" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">0</text>
+                <text x="22" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b">63</text>
+                <text x="138" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">48</text>
+                <text x="268" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">39</text>
+                <text x="398" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">30</text>
+                <text x="528" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">21</text>
+                <text x="658" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">12</text>
+                <text x="798" y="-2" font-size="8" font-family="var(--font-mono)" fill="#64748b" text-anchor="end">0</text>
 
                 <!-- Bit lengths at bottom center -->
-                <text x="255" y="32" font-size="9" fill="#0284c7" text-anchor="middle">9 bits</text>
-                <text x="325" y="32" font-size="9" fill="#7c3aed" text-anchor="middle">9 bits</text>
-                <text x="395" y="32" font-size="9" fill="#d97706" text-anchor="middle">9 bits</text>
-                <text x="465" y="32" font-size="9" fill="#059669" text-anchor="middle">9 bits</text>
-                <text x="550" y="32" font-size="9" fill="#475569" text-anchor="middle">12 bits</text>
+                <text x="205" y="32" font-size="9" fill="#0284c7" text-anchor="middle">9 bits</text>
+                <text x="335" y="32" font-size="9" fill="#7c3aed" text-anchor="middle">9 bits</text>
+                <text x="465" y="32" font-size="9" fill="#d97706" text-anchor="middle">9 bits</text>
+                <text x="595" y="32" font-size="9" fill="#059669" text-anchor="middle">9 bits</text>
+                <text x="730" y="32" font-size="9" fill="#475569" text-anchor="middle">12 bits</text>
             </g>
 
             <!-- CPU Register -->
-            <rect x="20" y="90" width="80" height="30" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="2"/>
-            <text x="60" y="109" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">CPU Register</text>
+            <rect x="30" y="100" width="80" height="30" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="2"/>
+            <text x="70" y="119" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">CPU Register</text>
 
             <!-- CPU to PML4 Solid Line -->
-            <path d="M 100 105 L 145 105 L 145 120" stroke="#334155" stroke-width="1.5" marker-end="url(#arr-ptr)" fill="none"/>
+            <path d="M 110 115 L 195 115 L 195 140" stroke="#334155" stroke-width="1.5" marker-end="url(#arr-ptr)" fill="none"/>
 
             <!-- Tables -->
 
             <!-- Table 1: Page Map Level 4 -->
-            <rect x="100" y="130" width="90" height="120" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-            <rect x="105" y="190" width="80" height="30" fill="#fff" stroke="#bae6fd"/>
-            <text x="145" y="209" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PXE</text>
-            <text x="145" y="265" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Page Map</text>
-            <text x="145" y="278" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Level 4</text>
+            <rect x="140" y="140" width="110" height="140" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" rx="4"/>
+            <rect x="150" y="240" width="90" height="30" fill="#fff" stroke="#bae6fd"/>
+            <text x="195" y="259" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PXE</text>
+            <text x="195" y="300" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Page Map</text>
+            <text x="195" y="313" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Level 4</text>
 
             <!-- Table 2: Page Directory Pointers -->
-            <rect x="240" y="160" width="90" height="120" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
-            <rect x="245" y="220" width="80" height="30" fill="#fff" stroke="#ddd6fe"/>
-            <text x="285" y="239" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PPE</text>
-            <text x="285" y="295" font-size="11" font-weight="700" fill="#6d28d9" text-anchor="middle">Page Directory</text>
-            <text x="285" y="308" font-size="11" font-weight="700" fill="#6d28d9" text-anchor="middle">Pointers</text>
+            <rect x="270" y="180" width="110" height="140" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5" rx="4"/>
+            <rect x="280" y="280" width="90" height="30" fill="#fff" stroke="#ddd6fe"/>
+            <text x="325" y="299" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PPE</text>
+            <text x="325" y="340" font-size="11" font-weight="700" fill="#6d28d9" text-anchor="middle">Page Directory</text>
+            <text x="325" y="353" font-size="11" font-weight="700" fill="#6d28d9" text-anchor="middle">Pointers</text>
 
             <!-- Table 3: Page Directory -->
-            <rect x="380" y="190" width="90" height="120" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-            <rect x="385" y="250" width="80" height="30" fill="#fff" stroke="#fcd34d"/>
-            <text x="425" y="269" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PDE</text>
-            <text x="425" y="325" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Page</text>
-            <text x="425" y="338" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Directory</text>
+            <rect x="400" y="220" width="110" height="140" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="4"/>
+            <rect x="410" y="320" width="90" height="30" fill="#fff" stroke="#fcd34d"/>
+            <text x="455" y="339" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PDE</text>
+            <text x="455" y="380" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Page</text>
+            <text x="455" y="393" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">Directory</text>
 
             <!-- Table 4: Page Table -->
-            <rect x="520" y="220" width="90" height="120" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-            <rect x="525" y="280" width="80" height="30" fill="#fff" stroke="#a7f3d0"/>
-            <text x="565" y="299" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PTE</text>
-            <text x="565" y="355" font-size="11" font-weight="700" fill="#047857" text-anchor="middle">Page</text>
-            <text x="565" y="368" font-size="11" font-weight="700" fill="#047857" text-anchor="middle">Table</text>
+            <rect x="530" y="260" width="110" height="140" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+            <rect x="540" y="360" width="90" height="30" fill="#fff" stroke="#a7f3d0"/>
+            <text x="585" y="379" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">PTE</text>
+            <text x="585" y="420" font-size="11" font-weight="700" fill="#047857" text-anchor="middle">Page</text>
+            <text x="585" y="433" font-size="11" font-weight="700" fill="#047857" text-anchor="middle">Table</text>
 
             <!-- Physical RAM / Page -->
-            <rect x="650" y="240" width="110" height="140" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
-            <text x="740" y="255" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle">RAM</text>
-            <rect x="660" y="270" width="90" height="90" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
-            <text x="705" y="300" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle">Page</text>
+            <rect x="660" y="300" width="120" height="150" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" rx="4"/>
+            <text x="720" y="320" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle">RAM</text>
+            <rect x="670" y="350" width="100" height="90" fill="#dcfce7" stroke="#86efac" stroke-width="1.5" rx="2"/>
+            <text x="720" y="375" font-size="11" font-weight="700" fill="#16a34a" text-anchor="middle">Page</text>
 
-            <rect x="660" y="320" width="90" height="20" fill="#ffffff" stroke="#cbd5e1"/>
-            <text x="705" y="334" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Byte</text>
+            <rect x="670" y="410" width="100" height="30" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="720" y="429" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Byte</text>
 
             <!-- Solid Pointer Lines (Elbows UP then DOWN) -->
             <g stroke="#334155" stroke-width="1.5" fill="none" marker-end="url(#arr-ptr)">
                 <!-- PXE to PDP -->
-                <path d="M 185 205 L 215 205 L 215 140 L 285 140 L 285 155" />
+                <path d="M 240 255 L 255 255 L 255 160 L 325 160 L 325 180" />
                 <!-- PPE to PD -->
-                <path d="M 325 235 L 355 235 L 355 170 L 425 170 L 425 185" />
+                <path d="M 370 295 L 385 295 L 385 200 L 455 200 L 455 220" />
                 <!-- PDE to PT -->
-                <path d="M 465 265 L 495 265 L 495 200 L 565 200 L 565 215" />
+                <path d="M 500 335 L 515 335 L 515 240 L 585 240 L 585 260" />
                 <!-- PTE to RAM Page -->
-                <path d="M 605 295 L 635 295 L 635 250 L 705 250 L 705 265" />
+                <path d="M 630 375 L 645 375 L 645 280 L 720 280 L 720 300" />
             </g>
 
             <!-- Dashed Index Lines (Drop down, left/right, point UP into bottom left corner of entry) -->
             <g stroke="#0284c7" stroke-width="1.5" fill="none" stroke-dasharray="4" marker-end="url(#arr-idx)">
                 <!-- PXE Idx to PXE Entry -->
-                <path d="M 255 60 L 255 235 L 145 235 L 145 225" />
+                <path d="M 205 60 L 205 80 L 130 80 L 130 270 L 150 270" />
                 <!-- PPE Idx to PPE Entry -->
-                <path d="M 325 60 L 325 265 L 285 265 L 285 255" />
+                <path d="M 335 60 L 335 90 L 265 90 L 265 310 L 280 310" />
                 <!-- PDE Idx to PDE Entry -->
-                <path d="M 395 60 L 395 295 L 425 295 L 425 285" />
+                <path d="M 465 60 L 465 100 L 395 100 L 395 350 L 410 350" />
                 <!-- PTE Idx to PTE Entry -->
-                <path d="M 465 60 L 465 325 L 565 325 L 565 315" />
+                <path d="M 595 60 L 595 110 L 525 110 L 525 390 L 540 390" />
                 <!-- Offset to Byte in RAM -->
-                <path d="M 550 60 L 550 360 L 705 360 L 705 345" />
+                <path d="M 730 60 L 730 120 L 655 120 L 655 440 L 670 440" />
             </g>
           </svg>
         </div>
+
+    </div>
 
     <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH GRAPHICAL BIT MANIPULATION -->
     <div class="card tutorial-panel">
@@ -704,32 +706,47 @@
 
     function updateWalkthroughVisuals() {
       const step = tutorialSteps[currentStep];
+      const counter = document.getElementById("stepCounter");
+      if (counter) counter.textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
+      const narrative = document.getElementById("stepNarrative");
+      if (narrative) narrative.innerHTML = `<strong>${step.title}</strong><br>${step.text}`;
 
-      // Update SVG highlights for bit manipulation box
-      const segPt1 = document.getElementById("svgSegPt1").querySelector("rect");
-      const segPt2 = document.getElementById("svgSegPt2").querySelector("rect");
-      const segOffset = document.getElementById("svgSegOffset").querySelector("rect");
+      const prevBtn = document.getElementById("prevBtn");
+      if (prevBtn) prevBtn.disabled = (currentStep === 0);
+      const nextBtn = document.getElementById("nextBtn");
+      if (nextBtn) nextBtn.disabled = (currentStep === tutorialSteps.length - 1);
 
-      segPt1.setAttribute("stroke", step.highlight === "pt1" ? "#0284c7" : "none");
-      segPt1.setAttribute("stroke-width", step.highlight === "pt1" ? "3" : "0");
+      // Math Box
+      const mathBox = document.getElementById("wtMathBox");
+      if (mathBox && step.math) {
+        mathBox.style.display = "flex";
+        mathBox.innerHTML = `<strong>Bitwise Translation Operation:</strong><br>${step.math}`;
+      } else if (mathBox) {
+        mathBox.style.display = "none";
+      }
 
-      segPt2.setAttribute("stroke", step.highlight === "pt2" ? "#7c3aed" : "none");
-      segPt2.setAttribute("stroke-width", step.highlight === "pt2" ? "3" : "0");
+      // Bit SVG Highlights
+      const segPt1 = document.getElementById("svgSegPt1")?.querySelector("rect");
+      const segPt2 = document.getElementById("svgSegPt2")?.querySelector("rect");
+      const segOffset = document.getElementById("svgSegOffset")?.querySelector("rect");
 
-      segOffset.setAttribute("stroke", step.highlight === "offset" ? "#059669" : "none");
-      segOffset.setAttribute("stroke-width", step.highlight === "offset" ? "3" : "0");
+      if (segPt1) {
+        segPt1.setAttribute("stroke", step.highlight === "pt1" || step.highlight === "all" ? "#0284c7" : "none");
+        segPt1.setAttribute("stroke-width", step.highlight === "pt1" || step.highlight === "all" ? "3" : "0");
+      }
+      if (segPt2) {
+        segPt2.setAttribute("stroke", step.highlight === "pt2" || step.highlight === "all" ? "#7c3aed" : "none");
+        segPt2.setAttribute("stroke-width", step.highlight === "pt2" || step.highlight === "all" ? "3" : "0");
+      }
+      if (segOffset) {
+        segOffset.setAttribute("stroke", step.highlight === "offset" || step.highlight === "all" ? "#059669" : "none");
+        segOffset.setAttribute("stroke-width", step.highlight === "offset" || step.highlight === "all" ? "3" : "0");
+      }
 
-      document.getElementById("svgOperationText").textContent = step.opText;
-    }
+      const opText = document.getElementById("svgOperationText");
+      if (opText) opText.textContent = step.opText;
 
-    function decodeAddress(addr) {
-      const pt1 = (addr >>> 22) & 0x3FF;
-      const pt2 = (addr >>> 12) & 0x3FF;
-      const offset = addr & 0xFFF;
-      return { pt1, pt2, offset };
-    }
-
-    function renderWalkthroughTables(decoded) {
+      // Populate Walkthrough Tables independently
       const wtTop = document.getElementById("wtTopEntries");
       if (wtTop) {
         wtTop.innerHTML = "";
@@ -746,20 +763,12 @@
       const wtSec = document.getElementById("wtSecEntries");
       if (wtSec) {
         wtSec.innerHTML = "";
-        if (decoded.pt1 > 1) {
-          const err = document.createElement("div");
-          err.className = "table-row";
-          err.style.color = "var(--fault-color)";
-          err.innerHTML = `<span>[All]</span><span>No Table (NULL)</span>`;
-          wtSec.appendChild(err);
-        } else {
-          for (let j = 0; j <= 5; j++) {
-            const row = document.createElement("div");
-            row.className = "table-row" + (j === decoded.pt2 && currentStep >= 2 ? " active-pt2" : "");
-            let pfn = (decoded.pt1 === 1) ? 62 + j : 10 + j;
-            row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn}</span>`;
-            wtSec.appendChild(row);
-          }
+        for (let j = 0; j <= 5; j++) {
+          const row = document.createElement("div");
+          row.className = "table-row" + (j === 3 && currentStep >= 2 ? " active-pt2" : "");
+          let pfn = 62 + j;
+          row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn}</span>`;
+          wtSec.appendChild(row);
         }
       }
 
@@ -780,6 +789,33 @@
       }
     }
 
+    const nextBtnEl = document.getElementById("nextBtn");
+    if (nextBtnEl) {
+      nextBtnEl.onclick = () => {
+        if (currentStep < tutorialSteps.length - 1) {
+          currentStep++;
+          updateWalkthroughVisuals();
+        }
+      };
+    }
+    const prevBtnEl = document.getElementById("prevBtn");
+    if (prevBtnEl) {
+      prevBtnEl.onclick = () => {
+        if (currentStep > 0) {
+          currentStep--;
+          updateWalkthroughVisuals();
+        }
+      };
+    }
+
+    /* Initialize to step 0 on load */
+    const decoded = decodeAddress(activeAddress);
+    updateWalkthroughVisuals();
+
+    /* =========================================
+       PART 3: SANDBOX STATE & LOGIC
+       ========================================= */
+
     function renderSandboxTables(decoded) {
       const topContainer = document.getElementById("topTableEntries");
       if (topContainer) {
@@ -795,7 +831,7 @@
             activeAddress = (i << 22) | (decoded.pt2 << 12) | decoded.offset;
             const hexInput = document.getElementById("customHex");
             if (hexInput) hexInput.value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
-            updateView();
+            updateSandboxView();
           };
           topContainer.appendChild(row);
         }
@@ -827,7 +863,7 @@
               activeAddress = (decoded.pt1 << 22) | (j << 12) | decoded.offset;
               const hexInput = document.getElementById("customHex");
               if (hexInput) hexInput.value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
-              updateView();
+              updateSandboxView();
             };
             secondContainer.appendChild(row);
           }
@@ -835,7 +871,7 @@
       }
     }
 
-    function updateView() {
+    function updateSandboxView() {
       const decoded = decodeAddress(activeAddress);
 
       const valPt1 = document.getElementById("valPt1");
@@ -844,11 +880,6 @@
       if (valPt2) valPt2.textContent = `${decoded.pt2.toString(2).padStart(10, '0')} (${decoded.pt2})`;
       const valOffset = document.getElementById("valOffset");
       if (valOffset) valOffset.textContent = `${decoded.offset.toString(2).padStart(12, '0')} (${decoded.offset})`;
-
-      // Update bit manipulation graphic binary segments dynamically
-      document.getElementById("binPt1").textContent = decoded.pt1.toString(2).padStart(10, '0');
-      document.getElementById("binPt2").textContent = decoded.pt2.toString(2).padStart(10, '0');
-      document.getElementById("binOffset").textContent = decoded.offset.toString(2).padStart(12, '0');
 
       const busBox = document.getElementById("busOutputBox");
       const line1 = document.getElementById("busResultLine1");
@@ -875,53 +906,7 @@
         if (explanation) explanation.textContent = `Notice how top-level entries without active mappings hold NULL, meaning the entire 4 MB second-level table does not need to exist in memory.`;
       }
 
-      renderWalkthroughTables(decoded);
       renderSandboxTables(decoded);
-
-      // Tutorial text
-      const step = tutorialSteps[currentStep];
-      const stepCounter = document.getElementById("stepCounter");
-      if (stepCounter) stepCounter.textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
-      const stepNarrative = document.getElementById("stepNarrative");
-      if (stepNarrative) stepNarrative.innerHTML = `<strong>${step.title}</strong><br>${step.text}`;
-
-      const mathBox = document.getElementById("wtMathBox");
-      if (mathBox && step.math) {
-        mathBox.style.display = "flex";
-        mathBox.innerHTML = `<strong>Bitwise Translation Operation:</strong><br>${step.math}`;
-      } else if (mathBox) {
-        mathBox.style.display = "none";
-      }
-
-      const prevBtn = document.getElementById("prevBtn");
-      if (prevBtn) prevBtn.disabled = (currentStep === 0);
-      const nextBtn = document.getElementById("nextBtn");
-      if (nextBtn) nextBtn.disabled = (currentStep === tutorialSteps.length - 1);
-
-      updateWalkthroughVisuals();
-    }
-
-    const nextBtn = document.getElementById("nextBtn");
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        if (currentStep < tutorialSteps.length - 1) {
-          currentStep++;
-          updateView();
-        } else {
-          currentStep = 0;
-          updateView();
-        }
-      };
-    }
-
-    const prevBtn = document.getElementById("prevBtn");
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        if (currentStep > 0) {
-          currentStep--;
-          updateView();
-        }
-      };
     }
 
     const loadHexBtn = document.getElementById("loadHexBtn");
@@ -933,15 +918,14 @@
         const val = parseInt(rawVal, 16);
         if (!isNaN(val)) {
           activeAddress = val >>> 0;
-          currentStep = 0;
-          updateView();
+          updateSandboxView();
         } else {
           alert("Invalid hexadecimal address: '" + rawVal + "'. Please use format like 0x00403004.");
         }
       };
     }
 
-    updateView();
+    updateSandboxView();
   </script>
 </body>
 </html>
