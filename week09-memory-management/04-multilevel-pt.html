@@ -119,28 +119,22 @@
       overflow-x: auto;
     }
 
-    /* Graphical SVG Hierarchy Styles for Walkthrough */
-    .wt-box {
+    /* Graphical SVG Hierarchy Styles */
+    .svg-box {
       transition: all 0.3s ease;
-      opacity: 0.4;
     }
-    .wt-box.highlight rect {
+    .svg-box.active rect {
       stroke: var(--accent) !important;
-      stroke-width: 3.5px !important;
+      stroke-width: 3px !important;
       fill: #e0f2fe !important;
-      filter: drop-shadow(0 0 10px rgba(2, 132, 199, 0.5));
+      filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.4));
     }
-    .wt-box.highlight {
-      opacity: 1;
-    }
-    .wt-path {
+    .svg-path {
       transition: stroke 0.3s ease, stroke-width 0.3s ease;
-      opacity: 0.3;
     }
-    .wt-path.highlight {
+    .svg-path.active {
       stroke: var(--accent) !important;
       stroke-width: 3.5px !important;
-      opacity: 1;
     }
 
     /* Bit Slicer */
@@ -176,7 +170,7 @@
     .seg-pt2 { width: 31.25%; background: var(--pt2-bg); color: var(--pt2-color); border-right: 2px solid var(--border); }
     .seg-offset { width: 37.5%; background: var(--offset-bg); color: var(--offset-color); }
 
-    /* Translation Graph Layout */
+    /* Translation Tables & Bus Layout */
     .translation-grid {
       display: grid;
       grid-template-columns: 240px 240px 1fr;
@@ -216,11 +210,16 @@
       justify-content: space-between;
       padding: 6px 12px;
       border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+    .table-row:hover {
+      background-color: #f0f9ff;
     }
     .table-row.active-pt1 { background-color: var(--pt1-bg); font-weight: 700; color: var(--pt1-color); }
     .table-row.active-pt2 { background-color: var(--pt2-bg); font-weight: 700; color: var(--pt2-color); }
 
-    /* Step Narrative */
+    /* Tutorial Panel */
     .tutorial-panel {
       border-left: 4px solid var(--accent);
       background: #f0f9ff;
@@ -473,8 +472,8 @@
     <!-- 3. PLAYPEN / SANDBOX: INTERACTIVE GRAPHICAL TREE & LOOKUPS -->
     <div class="card" id="sandboxSection">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Part 3: Interactive Graphical Traversal Sandbox</span>
-        <span style="font-size:0.8rem; color:var(--text-muted);">Live Tree Path Highlighting</span>
+        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Part 3: Interactive Translation Sandbox (Clickable Tables)</span>
+        <span style="font-size:0.80rem; color:var(--text-muted);">Click any row below to jump address!</span>
       </div>
 
       <!-- Graphical Interactive Tree Diagram -->
@@ -548,7 +547,7 @@
         <div class="table-view">
           <div class="table-view-header">
             <span>Top-Level Directory</span>
-            <span>Index [0..1023]</span>
+            <span>Index [0..4] (Clickable)</span>
           </div>
           <div class="table-entries" id="topTableEntries"></div>
         </div>
@@ -556,8 +555,8 @@
         <!-- Second Level Table -->
         <div class="table-view">
           <div class="table-view-header">
-            <span id="pt2Header">PT2 Table (for PT1=1)</span>
-            <span>Index [0..1023]</span>
+            <span id="pt2Header">PT2 Table (Clickable)</span>
+            <span>Index [0..5]</span>
           </div>
           <div class="table-entries" id="secondTableEntries"></div>
         </div>
@@ -588,20 +587,20 @@
 
     const tutorialSteps = [
       {
-        title: "1. The 32-Bit Address Division",
-        text: "Consider virtual address <code>0x00403004</code>. The hardware MMU splits it into three components: <strong>PT1</strong> (top 10 bits), <strong>PT2</strong> (middle 10 bits), and <strong>Offset</strong> (lowest 12 bits)."
+        title: "1. The 32-Bit Address Generation",
+        text: "Consider virtual address <code>0x00403004</code>. The hardware MMU starts by inspecting the raw 32-bit address value."
       },
       {
         title: "2. Indexing the Top-Level Directory",
-        text: "The MMU extracts <code>PT1 = 1</code>. It uses 1 to index the top-level directory. Entry 1 points to the second-level page table that handles the 4M–8M address chunk (data area)."
+        text: "The MMU extracts <code>PT1 = 1</code> using <code>(addr >> 22) & 0x3FF</code>. It indexes into the Top-Level Directory to find the second-level table pointer."
       },
       {
         title: "3. Indexing the Second-Level Page Table",
-        text: "Next, the MMU takes <code>PT2 = 3</code> to index into that second-level table. Entry 3 yields <strong>PFN 65</strong>, and confirms the Present/Absent bit is 1 (in memory)."
+        text: "Next, the MMU extracts <code>PT2 = 3</code> using <code>(addr >> 12) & 0x3FF</code> and indexes into that second-level table to retrieve <strong>PFN 65</strong>."
       },
       {
         title: "4. Combining PFN with Offset",
-        text: "Finally, the MMU concatenates <strong>PFN 65</strong> (frame base <code>0x00041000</code>) with the 12-bit <code>Offset = 4</code> to emit physical address <strong>0x00041004</strong> directly onto the memory bus."
+        text: "Finally, the MMU combines <strong>PFN 65</strong> (frame base <code>0x00041000</code>) with <code>Offset = 4</code> to emit physical address <strong>0x00041004</strong> onto the memory bus."
       }
     ];
 
@@ -644,6 +643,14 @@
         row.className = "table-row" + (i === decoded.pt1 ? " active-pt1" : "");
         let label = (i === 0) ? "-> PT2 (Text 0-4M)" : (i === 1) ? "-> PT2 (Data 4-8M)" : "NULL (Unmapped)";
         row.innerHTML = `<span>[${i}]</span><span>${label}</span>`;
+
+        // Make Top-Level rows interactive
+        row.onclick = () => {
+          activeAddress = (i << 22) | (decoded.pt2 << 12) | decoded.offset;
+          document.getElementById("customHex").value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
+          updateView();
+        };
+
         topContainer.appendChild(row);
       }
       const ellipsis = document.createElement("div");
@@ -660,6 +667,14 @@
         row.className = "table-row" + (j === decoded.pt2 ? " active-pt2" : "");
         let pfn = (decoded.pt1 === 1) ? 62 + j : (decoded.pt1 === 0 ? 10 + j : "FAULT");
         row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn} (Valid)</span>`;
+
+        // Make Second-Level rows interactive
+        row.onclick = () => {
+          activeAddress = (decoded.pt1 << 22) | (j << 12) | decoded.offset;
+          document.getElementById("customHex").value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
+          updateView();
+        };
+
         secondContainer.appendChild(row);
       }
     }
