@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Classifying Translation Failures — COSC240</title>
+  <title>Classifying Translation Failures &amp; Fault Pipeline — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -96,7 +96,7 @@
       margin-bottom: 4px;
     }
     .theory-callout {
-      background-color: #f8fafc;
+      background-color: #f0f9ff;
       border-left: 4px solid var(--accent);
       padding: 12px 16px;
       border-radius: 0 6px 6px 0;
@@ -105,6 +105,35 @@
       font-family: var(--font-mono);
       line-height: 1.5;
     }
+
+    /* 7-Stage Pipeline Grid */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media(max-width: 800px) {
+      .pipeline-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .pipeline-step {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .pipeline-step.active {
+      border-color: var(--accent);
+      background: #e0f2fe;
+      box-shadow: 0 0 8px rgba(2, 132, 199, 0.3);
+      transform: translateY(-2px);
+    }
+    .pipeline-step strong { color: var(--accent); }
 
     /* Flowchart Stage Graphic */
     .figure-container {
@@ -303,16 +332,78 @@
   </div>
 
   <header>
-    <h1>Classifying Translation Failures</h1>
-    <p class="subtitle">Tanenbaum Section 3.3.4 (Page 203): Granular decision-path stepping across TLB hits, minor soft faults, major disk faults, and segmentation violations.</p>
+    <h1>Classifying Translation Failures &amp; The Fault Pipeline</h1>
+    <p class="subtitle">Tanenbaum Section 3.3.4 (Page 203): Granular decision-path stepping, 7-stage exception handling, inactive standby lists, and fault dispatching.</p>
   </header>
 
   <div class="main-container">
 
-    <!-- CONCEPT EXPLANATION -->
+    <!-- FRONT MATTER SECTION 1: The Hardware-to-Kernel Page Fault Pipeline -->
     <div class="card">
       <div class="theory-section">
-        <h2>The Hardware-to-Kernel Fault Pipeline</h2>
+        <h2>1. The Hardware-to-Kernel Page Fault Pipeline</h2>
+        <p>
+          When a CPU instruction references a virtual memory address whose page table entry (PTE) has its <strong>Present bit set to 0</strong>, the Memory Management Unit (MMU) halts execution and triggers a hardware page fault trap. Here is the complete 7-stage pipeline executed by hardware and the OS kernel:
+        </p>
+
+        <div class="pipeline-grid">
+          <div class="pipeline-step" id="pipeline-stage-1">
+            <strong>Stage 1: MMU Trap</strong>
+            <p>MMU detects Present = 0 during address translation and stops instruction execution.</p>
+          </div>
+          <div class="pipeline-step" id="pipeline-stage-2">
+            <strong>Stage 2: CR2 &amp; Error Code</strong>
+            <p>Hardware saves the faulting virtual address into control register <code>CR2</code> and pushes an error code onto the kernel stack.</p>
+          </div>
+          <div class="pipeline-step" id="pipeline-stage-3">
+            <strong>Stage 3: ISR Interception</strong>
+            <p>CPU switches to ring 0 and jumps to Interrupt Service Routine (Vector 14: Page Fault).</p>
+          </div>
+          <div class="pipeline-step" id="pipeline-stage-4">
+            <strong>Stage 4: VMA Validation</strong>
+            <p>Kernel checks process Virtual Memory Areas (VMAs). If invalid, triggers a <code>SIGSEGV</code> (Segmentation Fault).</p>
+          </div>
+        </div>
+        <div class="pipeline-grid" style="margin-top: 10px;">
+          <div class="pipeline-step" id="pipeline-stage-5">
+            <strong>Stage 5: Frame Resolution</strong>
+            <p>Kernel checks if the page is on the <strong>Inactive Standby List</strong> (Soft Fault) or requires disk I/O (Hard Fault).</p>
+          </div>
+          <div class="pipeline-step" id="pipeline-stage-6">
+            <strong>Stage 6: PTE Update</strong>
+            <p>Kernel assigns a physical frame, loads data if needed, updates the PTE, and sets Present = 1.</p>
+          </div>
+          <div class="pipeline-step" id="pipeline-stage-7">
+            <strong>Stage 7: Instruction Restart</strong>
+            <p>Kernel returns via <code>iret</code>, and the CPU re-executes the exact same instruction seamlessly.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRONT MATTER SECTION 2: What is the Inactive Standby List? -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>2. What is the Inactive Standby List? (Soft Faults)</h2>
+        <p>
+          When memory pressure rises or a page is deemed infrequently accessed ("cold"), the operating system reclaims the physical frame from the process's active working set. However, <strong>reclaiming a frame does not instantly wipe its data or write it back to disk</strong>.
+        </p>
+
+        <div class="theory-callout">
+          <strong>The Standby List Optimization:</strong><br>
+          The OS places the reclaimed frame onto the <strong>inactive standby list</strong>. The data remains completely intact in physical RAM, but the page table entry is marked not present.
+          <ul style="margin-top: 6px; padding-left: 20px;">
+            <li><strong>Soft Page Fault:</strong> If the process references that page again while it is still on the standby list, the kernel performs a <em>soft reclamation</em>—instantly remapping the frame back to the process in microseconds without touching the slow disk swap partition!</li>
+            <li><strong>Recycling:</strong> If another process needs free RAM, the oldest frame on the standby list is finally overwritten or flushed to disk.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONCEPT EXPLANATION & CLASSIFICATION -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>3. Classifying Translation Failures &amp; Cost Spectrum</h2>
         <p>
           Whenever the CPU fetches an instruction or reads/writes memory, the hardware MMU attempts translation. If the mapping is not immediately resolvable, execution is interrupted by a hardware trap. The cost of resolving this trap spans five orders of magnitude depending on where the pipeline halts:
         </p>
@@ -546,6 +637,16 @@
     function renderActiveFlowStep(stepData) {
       resetFlowchartVisuals();
 
+      // Highlight pipeline stages if specified
+      for (let i = 1; i <= 7; i++) {
+        const pStep = document.getElementById(`pipeline-stage-${i}`);
+        if (pStep) pStep.classList.remove("active");
+      }
+      (stepData.activePipelineStages || []).forEach(stIdx => {
+        const pStep = document.getElementById(`pipeline-stage-${stIdx}`);
+        if (pStep) pStep.classList.add("active");
+      });
+
       // Highlight historical active nodes
       (stepData.activeNodes || []).forEach(nodeId => {
         const el = document.getElementById(nodeId);
@@ -579,7 +680,7 @@
     }
 
     /* =========================================================================
-       GRANULAR SCENARIO DEFINITIONS
+       GRANULAR SCENARIO DEFINITIONS WITH PIPELINE STAGES
        ========================================================================= */
     const scenarios = [
       // Scenario 0: Hot Stack Page (Instant TLB Hit)
@@ -589,7 +690,8 @@
         steps: [
           {
             title: "1. CPU Generates Stack Address",
-            body: "The CPU executes a function call (e.g. <code>push %rbp</code>). It generates virtual address <code>0x7FF01A40</code> inside the active stack segment. The address is split into VPN <code>0x7FF0</code> and in-page offset <code>0xA40</code>.",
+            body: "The CPU executes a function call (e.g. <code>push %rbp</code>). It generates virtual address <code>0x7FF01A40</code> inside the active stack segment.",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu"],
             activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
             statusText: "CPU -> Emitting Virtual Address 0x7FF01A40",
@@ -597,7 +699,8 @@
           },
           {
             title: "2. Associative TLB Query (Hit!)",
-            body: "The MMU broadcasts VPN <code>0x7FF0</code> across all associative TLB lines simultaneously. Because stack memory is accessed continuously, entry <code>0x7FF0 &rarr; PFN 42</code> is found immediately.",
+            body: "The MMU broadcasts VPN <code>0x7FF0</code> across all associative TLB lines simultaneously. Entry <code>0x7FF0 &rarr; PFN 42</code> is matched instantly in &lt; 1 ns.",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu", "node-tlb"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
@@ -609,7 +712,8 @@
           },
           {
             title: "3. Direct DRAM Physical Access",
-            body: "The MMU combines PFN 42 with offset <code>0xA40</code> to emit physical bus address <code>0x0002A1A40</code>. Physical DRAM executes the read/write in less than 1 nanosecond. <strong>Zero page table walks and zero kernel traps occurred.</strong>",
+            body: "The MMU combines PFN 42 with offset <code>0xA40</code> to emit physical bus address <code>0x0002A1A40</code>. Physical DRAM executes the read/write immediately. Zero OS traps.",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu", "node-tlb"],
             terminalNode: { id: "node-dram", className: "node-ok" },
             activeEdges: [
@@ -630,27 +734,30 @@
         steps: [
           {
             title: "1. Calling Shared libc Function",
-            body: "A newly spawned process invokes <code>printf()</code> at virtual address <code>0x50000320</code>. The address is decoded to VPN <code>0x5000</code>.",
+            body: "A newly spawned process invokes <code>printf()</code> at virtual address <code>0x50000320</code> (VPN <code>0x5000</code>).",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu"],
             activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
             statusText: "CPU -> Accessing shared libc code (0x5000)",
             statusColor: "var(--accent)"
           },
           {
-            title: "2. TLB Query: Miss!",
-            body: "The MMU queries the hardware TLB. Because this specific process has never called <code>printf()</code> before, its TLB contains no translation. A <strong>TLB Miss</strong> occurs.",
+            title: "2. TLB Miss -> CR2 Capture",
+            body: "TLB lookup misses. Hardware detects Present = 0, traps, saves fault address into <code>CR2</code>, and pushes error code.",
+            activePipelineStages: [1, 2, 3],
             activeNodes: ["node-cpu", "node-tlb"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
               { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" }
             ],
             activeLabels: [{ id: "label-tlb-miss", color: "#dc2626" }],
-            statusText: "TLB Miss -> Initiating Page Table Walk",
+            statusText: "TLB Miss -> CR2 Saved & ISR Intercepted",
             statusColor: "#dc2626"
           },
           {
             title: "3. Page Table Inspection: Present = 1",
-            body: "The hardware or OS walks the multi-level page table hierarchy in DRAM. Another process on the system already loaded <code>libc.so</code>, so the frame is present in the OS unified page cache! The PTE points to PFN 108 with <strong>Present = 1</strong>.",
+            body: "Kernel validates VMA. Another process already loaded <code>libc.so</code>, so the frame is present in the OS page cache (Present = 1, PFN 108).",
+            activePipelineStages: [4, 5],
             activeNodes: ["node-cpu", "node-tlb", "node-pt"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
@@ -665,8 +772,9 @@
             statusColor: "#d97706"
           },
           {
-            title: "4. Soft Miss Resolved (Minor Fault)",
-            body: "Because the frame is already in DRAM, <strong>zero disk I/O is required</strong>. The kernel simply populates the TLB with <code>0x5000 &rarr; PFN 108</code> in ~15 CPU instructions and resumes execution immediately.",
+            title: "4. Soft Miss Resolved & Instruction Restart",
+            body: "Zero disk I/O required. Kernel updates PTE/TLB and executes <code>iret</code> to restart the instruction seamlessly.",
+            activePipelineStages: [6, 7],
             activeNodes: ["node-cpu", "node-tlb", "node-pt"],
             terminalNode: { id: "node-soft", className: "node-soft" },
             activeEdges: [
@@ -691,27 +799,30 @@
         steps: [
           {
             title: "1. Accessing Inactive Heap Data",
-            body: "A background worker thread wakes up and accesses data array page <code>0x3200</code> that hasn't been used in several minutes.",
+            body: "Thread accesses data array page <code>0x3200</code> that was recently reclaimed to the inactive standby list.",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu"],
             activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
             statusText: "CPU -> Accessing inactive data page 0x3200",
             statusColor: "var(--accent)"
           },
           {
-            title: "2. TLB Query: Miss!",
-            body: "The TLB was flushed long ago during a context switch. A <strong>TLB Miss</strong> is raised.",
+            title: "2. TLB Miss & Trap",
+            body: "TLB miss triggers exception. CR2 saves <code>0x3200</code>, and kernel ISR intercepts.",
+            activePipelineStages: [1, 2, 3],
             activeNodes: ["node-cpu", "node-tlb"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
               { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" }
             ],
             activeLabels: [{ id: "label-tlb-miss", color: "#dc2626" }],
-            statusText: "TLB Miss -> Walking Page Table",
+            statusText: "TLB Miss -> ISR Vector 14 Intercepted",
             statusColor: "#dc2626"
           },
           {
-            title: "3. Page Table Walk & Kernel Trap",
-            body: "The page table shows <code>Present = 0</code> because the OS reclaimed this frame to the inactive standby list. However, because memory pressure remained low, <em>the OS never overwrote the DRAM frame!</em>",
+            title: "3. Standby List Inspection",
+            body: "Kernel checks VMA and discovers the physical frame is still intact on the <strong>Inactive Standby List</strong> in RAM.",
+            activePipelineStages: [4, 5],
             activeNodes: ["node-cpu", "node-tlb", "node-pt"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
@@ -726,8 +837,9 @@
             statusColor: "#d97706"
           },
           {
-            title: "4. Soft Fault: Instant Reattachment",
-            body: "The kernel reclaims the standby frame, sets <code>Present = 1</code> in the PTE, installs it into the TLB, and resumes the thread without any storage reads.",
+            title: "4. Soft Fault & Instruction Restart",
+            body: "Kernel reclaims frame instantly, updates PTE (Present = 1), and executes <code>iret</code>.",
+            activePipelineStages: [6, 7],
             activeNodes: ["node-cpu", "node-tlb", "node-pt"],
             terminalNode: { id: "node-soft", className: "node-soft" },
             activeEdges: [
@@ -752,43 +864,30 @@
         steps: [
           {
             title: "1. Accessing Swapped Memory",
-            body: "A thread writes to an allocated heap buffer at address <code>0x20000010</code>. This data was swapped out to SSD storage under heavy system memory load.",
+            body: "Thread writes to heap address <code>0x20000010</code>. Data was swapped out to SSD storage under heavy memory pressure.",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu"],
             activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
             statusText: "CPU -> Writing to swapped heap page (0x2000)",
             statusColor: "var(--accent)"
           },
           {
-            title: "2. TLB Miss",
-            body: "The TLB contains no translation for VPN <code>0x2000</code>. Hardware initiates a Page Table walk in memory.",
+            title: "2. TLB Miss & Trap",
+            body: "TLB miss -> MMU detects Present = 0 -> Hardware traps to kernel and saves address in <code>CR2</code>.",
+            activePipelineStages: [1, 2, 3],
             activeNodes: ["node-cpu", "node-tlb"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
               { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" }
             ],
             activeLabels: [{ id: "label-tlb-miss", color: "#dc2626" }],
-            statusText: "TLB Miss -> Walking Page Table",
-            statusColor: "#dc2626"
-          },
-          {
-            title: "3. Page Table: Present = 0 (Page Absent)",
-            body: "The MMU inspects the PTE and discovers <strong>Present = 0</strong>. The hardware halts execution and triggers a <strong>Page Fault exception</strong>, transferring control to the kernel trap vector.",
-            activeNodes: ["node-cpu", "node-tlb", "node-pt"],
-            activeEdges: [
-              { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
-              { id: "edge-tlb-miss", className: "edge-active", marker: "arrow" },
-              { id: "edge-pt-vma", className: "edge-active", marker: "arrow" }
-            ],
-            activeLabels: [
-              { id: "label-tlb-miss", color: "#dc2626" },
-              { id: "label-pt-absent", color: "#dc2626" }
-            ],
             statusText: "Present = 0 -> Trapping to Kernel",
             statusColor: "#dc2626"
           },
           {
-            title: "4. Kernel VMA Validation: Legal Address",
-            body: "The kernel searches the process's Virtual Memory Area (VMA) tree. <code>0x2000</code> is confirmed as a valid, readable/writable heap segment. The PTE contains swap partition identifiers.",
+            title: "3. VMA Validation: Legal Heap Segment",
+            body: "Kernel inspects process VMAs. Address <code>0x2000</code> is valid, but the page is absent from RAM.",
+            activePipelineStages: [4, 5],
             activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
@@ -805,8 +904,9 @@
             statusColor: "#dc2626"
           },
           {
-            title: "5. Major Hard Fault (Disk DMA Transfer)",
-            body: "The kernel allocates an empty physical frame in DRAM, queues an asynchronous DMA read from the SSD swap device, puts the thread to <strong>SLEEP</strong>, and switches to another process. Once I/O completes (~2–5 ms), the thread awakens and restarts the instruction.",
+            title: "4. Hard Fault: Disk DMA & Sleep",
+            body: "Kernel allocates frame, issues SSD read, puts thread to sleep. After ~3ms, I/O completes, PTE updates (Present = 1), and instruction restarts via <code>iret</code>.",
+            activePipelineStages: [6, 7],
             activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
             terminalNode: { id: "node-hard", className: "node-hard" },
             activeEdges: [
@@ -833,15 +933,17 @@
         steps: [
           {
             title: "1. Branching to Unloaded Function",
-            body: "The CPU executes a function jump into code address <code>0x04001000</code>. Modern operating systems use <strong>demand paging</strong>: binaries are never loaded entirely into RAM on startup; pages are read on demand.",
+            body: "CPU executes jump into code address <code>0x04001000</code> (demand paging).",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu"],
             activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
             statusText: "CPU -> Instruction fetch at 0x04001000",
             statusColor: "var(--accent)"
           },
           {
-            title: "2. TLB Miss & Page Table Walk",
-            body: "The TLB has no entry. The MMU examines the PTE and finds <code>Present = 0</code>. Execution halts with a hardware page fault trap.",
+            title: "2. TLB Miss & Trap",
+            body: "TLB miss -> Present = 0 -> Hardware traps to kernel.",
+            activePipelineStages: [1, 2, 3],
             activeNodes: ["node-cpu", "node-tlb", "node-pt"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
@@ -857,7 +959,8 @@
           },
           {
             title: "3. Hard Fault: Reading from ELF Binary",
-            body: "The kernel checks the VMA and finds a file-backed executable mapping. The kernel allocates a physical frame, issues an I/O read directly to the executable file on disk, fills the page with machine instructions, marks the PTE Read-Only, and resumes execution.",
+            body: "Kernel allocates frame, reads code page from binary file on disk, updates PTE (Present = 1), and restarts instruction.",
+            activePipelineStages: [4, 5, 6, 7],
             activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
             terminalNode: { id: "node-hard", className: "node-hard" },
             activeEdges: [
@@ -884,15 +987,17 @@
         steps: [
           {
             title: "1. Dereferencing NULL Pointer (0x0000)",
-            body: "A buggy program executes <code>int val = *ptr</code> where <code>ptr == NULL (0x00000000)</code>. Virtual address <code>0x0000</code> is dispatched to the MMU.",
+            body: "Program executes <code>int val = *ptr</code> where <code>ptr == NULL (0x00000000)</code>.",
+            activePipelineStages: [1],
             activeNodes: ["node-cpu"],
             activeEdges: [{ id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" }],
             statusText: "CPU -> Reading address 0x00000000 (NULL)",
             statusColor: "var(--accent)"
           },
           {
-            title: "2. TLB Miss & Empty Page Table Entry",
-            body: "The TLB misses. The MMU examines the root page directory and finds that Page 0 is marked absent (<code>P = 0</code>). Hardware traps immediately to the kernel page fault handler.",
+            title: "2. TLB Miss & Absent Bit",
+            body: "TLB miss -> Page table entry marked absent (Present = 0) -> Hardware traps.",
+            activePipelineStages: [1, 2, 3],
             activeNodes: ["node-cpu", "node-tlb", "node-pt"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
@@ -908,7 +1013,8 @@
           },
           {
             title: "3. VMA Search: Unmapped Address!",
-            body: "The kernel searches the process's address space descriptor (<code>mm_struct</code>). Address <code>0x0000</code> does not fall within code, data, heap, or stack boundaries. It is an illegal address.",
+            body: "Kernel searches process VMAs. Address <code>0x0000</code> does not fall within any valid region.",
+            activePipelineStages: [4],
             activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
             activeEdges: [
               { id: "edge-cpu-tlb", className: "edge-active", marker: "arrow-blue" },
@@ -926,7 +1032,8 @@
           },
           {
             title: "4. Fatal Segmentation Violation (SIGSEGV)",
-            body: "Because no backing store exists and the address is outside valid program memory, the kernel dispatches a <code>SIGSEGV</code> signal. The default handler halts process execution and dumps core.",
+            body: "Kernel dispatches <code>SIGSEGV</code> signal, terminating the process immediately.",
+            activePipelineStages: [4],
             activeNodes: ["node-cpu", "node-tlb", "node-pt", "node-vma"],
             terminalNode: { id: "node-segv", className: "node-segv" },
             activeEdges: [
@@ -1034,7 +1141,6 @@
       const scen = scenarios[scenIdx];
       const finalStep = scen.steps[scen.steps.length - 1];
 
-      // Play through terminal log with sequential logging
       logMmu(`--------------------------------------------------`);
       logMmu(`[DISPATCH] CPU executes instruction against: ${scen.name}`, "log-step");
 
@@ -1085,6 +1191,10 @@
         document.getElementById(`vma-${i}`).className = "";
       }
       resetFlowchartVisuals();
+      for (let i = 1; i <= 7; i++) {
+        const pStep = document.getElementById(`pipeline-stage-${i}`);
+        if (pStep) pStep.classList.remove("active");
+      }
       document.getElementById("flowchartStatus").textContent = "Idle";
       document.getElementById("flowchartStatus").style.color = "var(--accent)";
       document.getElementById("mmuLog").innerHTML = "";
