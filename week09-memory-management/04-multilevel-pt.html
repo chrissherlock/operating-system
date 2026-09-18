@@ -20,6 +20,8 @@
       --pt2-bg: #ede9fe;
       --offset-color: #059669;
       --offset-bg: #ecfdf5;
+      --fault-color: #e11d48;
+      --fault-bg: #ffe4e6;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
@@ -137,6 +139,30 @@
       stroke-width: 3.5px !important;
     }
 
+    /* Walkthrough SVG Styles */
+    .wt-box {
+      transition: all 0.3s ease;
+      opacity: 0.35;
+    }
+    .wt-box.highlight rect {
+      stroke: var(--accent) !important;
+      stroke-width: 3.5px !important;
+      fill: #e0f2fe !important;
+      filter: drop-shadow(0 0 10px rgba(2, 132, 199, 0.5));
+    }
+    .wt-box.highlight {
+      opacity: 1;
+    }
+    .wt-path {
+      transition: stroke 0.3s ease, stroke-width 0.3s ease;
+      opacity: 0.25;
+    }
+    .wt-path.highlight {
+      stroke: var(--accent) !important;
+      stroke-width: 3.5px !important;
+      opacity: 1;
+    }
+
     /* Bit Slicer */
     .bit-slicer {
       display: flex;
@@ -213,11 +239,10 @@
       cursor: pointer;
       transition: background-color 0.15s ease;
     }
-    .table-row:hover {
-      background-color: #f0f9ff;
-    }
+    .table-row:hover { background-color: #f0f9ff; }
     .table-row.active-pt1 { background-color: var(--pt1-bg); font-weight: 700; color: var(--pt1-color); }
     .table-row.active-pt2 { background-color: var(--pt2-bg); font-weight: 700; color: var(--pt2-color); }
+    .table-row.null-entry { color: #94a3b8; font-style: italic; }
 
     /* Tutorial Panel */
     .tutorial-panel {
@@ -277,6 +302,11 @@
       flex-direction: column;
       gap: 6px;
     }
+    .bus-output.fault-output {
+      background: #450a0a;
+      color: #fca5a5;
+      border: 1px solid #dc2626;
+    }
   </style>
 </head>
 <body>
@@ -287,7 +317,7 @@
 
   <header>
     <h1>Hierarchical Multilevel Paging &amp; Translation</h1>
-    <p class="subtitle">Tanenbaum Section 3.3.4 (Fig. 3-13): Visualizing how 32-bit address slicing and pointer chasing eliminate linear table memory waste.</p>
+    <p class="subtitle">Tanenbaum Section 3.3.4 (Fig. 3-13): Visualizing full Level-1 directory tables, Level-2 page tables, and physical DRAM walkthroughs.</p>
   </header>
 
   <div class="main-container">
@@ -338,7 +368,7 @@
 
         <!-- Embedded SVG Diagram 2: Two-Level Multilevel Slicing -->
         <div class="figure-container">
-          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 2: Tanenbaum Fig. 3-13 — Two-Level Paging Architecture (PT1 &rarr; PT2 &rarr; Offset)</span>
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 2: Tanenbaum Fig. 3-13 — Two-Level Paging Architecture (PT1 → PT2 → Offset)</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             <defs>
               <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -363,7 +393,7 @@
             <rect x="215" y="70" width="100" height="24" fill="#fff" stroke="#bae6fd" rx="2"/>
             <text x="265" y="86" font-size="9" fill="#64748b" text-anchor="middle">[0] NULL</text>
             <rect x="215" y="98" width="100" height="24" fill="#fef08a" stroke="#ca8a04" rx="2"/>
-            <text x="265" y="114" font-size="9" font-weight="700" fill="#854d0e" text-anchor="middle">[1] &rarr; PT2 Table</text>
+            <text x="265" y="114" font-size="9" font-weight="700" fill="#854d0e" text-anchor="middle">[1] → PT2 Table</text>
             <rect x="215" y="126" width="100" height="24" fill="#fff" stroke="#bae6fd" rx="2"/>
             <text x="265" y="142" font-size="9" fill="#64748b" text-anchor="middle">[2..1023] NULL</text>
 
@@ -375,7 +405,7 @@
             <rect x="395" y="70" width="100" height="24" fill="#fff" stroke="#ddd6fe" rx="2"/>
             <text x="445" y="86" font-size="9" fill="#64748b" text-anchor="middle">[0..2] Invalid</text>
             <rect x="395" y="98" width="100" height="24" fill="#fef08a" stroke="#ca8a04" rx="2"/>
-            <text x="445" y="114" font-size="9" font-weight="700" fill="#854d0e" text-anchor="middle">[3] &rarr; PFN 65</text>
+            <text x="445" y="114" font-size="9" font-weight="700" fill="#854d0e" text-anchor="middle">[3] → PFN 65</text>
             <rect x="395" y="126" width="100" height="24" fill="#fff" stroke="#ddd6fe" rx="2"/>
             <text x="445" y="142" font-size="9" fill="#64748b" text-anchor="middle">[4..1023] Unused</text>
 
@@ -400,16 +430,16 @@
       </div>
     </div>
 
-    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH EMBEDDED GRAPHICAL DIAGRAM -->
+    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH INDEPENDENT POPULATED TABLES -->
     <div class="card tutorial-panel">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--accent);">Part 2: Guided Walkthrough &amp; Visual Tracer</span>
-        <span id="stepCounter" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">Step 1 of 4</span>
+        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--accent);">Part 2: Guided Walkthrough &amp; Independent Table Walk</span>
+        <span id="wtStepCounter" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">Step 1 of 4</span>
       </div>
 
       <!-- Graphical Walkthrough Companion Diagram -->
       <div class="figure-container" style="background:#ffffff; border:1px solid #bae6fd; padding:12px; margin: 6px 0;">
-        <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0369a1; text-transform: uppercase;">Live Graphical Pointer-Chaser</span>
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0369a1; text-transform: uppercase;">Live Graphical Pointer-Chaser (Walkthrough)</span>
         <svg id="walkthroughSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 130" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <defs>
             <marker id="arr-wt" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -457,23 +487,39 @@
         </svg>
       </div>
 
-      <div id="stepNarrative" class="tutorial-box"></div>
+      <div id="wtStepNarrative" class="tutorial-box"></div>
+
+      <!-- Live Walkthrough Populated Tables (Completely Independent) -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px;">
+        <div class="table-view">
+          <div class="table-view-header"><span>Level-1 Directory (Walkthrough)</span><span>Entries [0..4]</span></div>
+          <div class="table-entries" id="wtTopEntries"></div>
+        </div>
+        <div class="table-view">
+          <div class="table-view-header"><span>Level-2 Page Table (Walkthrough)</span><span>Entries [0..5]</span></div>
+          <div class="table-entries" id="wtSecEntries"></div>
+        </div>
+        <div class="table-view">
+          <div class="table-view-header"><span>Physical DRAM Frame</span><span>Target Frame</span></div>
+          <div class="table-entries" id="wtDramEntries"></div>
+        </div>
+      </div>
+
       <div class="tour-nav">
-        <button id="prevBtn" class="btn-sec">Previous</button>
-        <button id="nextBtn">Next Step &rarr;</button>
-        <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <button id="wtPrevBtn" class="btn-sec">&larr; Previous Step</button>
+        <button id="wtNextBtn">Next Step →</button>
+      </div>
+    </div>
+
+    <!-- 3. PLAYPEN / SANDBOX: INTERACTIVE TABLES & FAULT HANDLING -->
+    <div class="card" id="sandboxSection">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Part 3: Interactive Translation Sandbox (Fully Clickable Tables)</span>
+        <div style="display:flex; gap:8px; align-items:center;">
           <label style="font-size:0.85rem; font-weight:600;">Custom Hex Address:</label>
           <input type="text" id="customHex" value="0x00403004" maxlength="10" style="padding:5px 8px; font-family:var(--font-mono); border:1px solid var(--border); border-radius:4px; text-transform:uppercase; width:120px;">
           <button id="loadHexBtn" class="btn-sec">Resolve</button>
         </div>
-      </div>
-    </div>
-
-    <!-- 3. PLAYPEN / SANDBOX: INTERACTIVE GRAPHICAL TREE & LOOKUPS -->
-    <div class="card" id="sandboxSection">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:700; text-transform:uppercase; font-size:0.85rem; color:var(--text-muted);">Part 3: Interactive Translation Sandbox (Clickable Tables)</span>
-        <span style="font-size:0.80rem; color:var(--text-muted);">Click any row below to jump address!</span>
       </div>
 
       <!-- Graphical Interactive Tree Diagram -->
@@ -509,7 +555,7 @@
           <g id="treeNodeSec" class="svg-box active" transform="translate(400, 50)">
             <rect width="140" height="70" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5" rx="6"/>
             <text x="70" y="24" font-size="10" font-weight="700" fill="#6d28d9" text-anchor="middle">Second-Level Table</text>
-            <text x="70" y="45" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle" id="treeSecLabel">Index [3] &rarr; PFN 65</text>
+            <text x="70" y="45" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle" id="treeSecLabel">Index [3] → PFN 65</text>
           </g>
 
           <path id="treeEdge3" class="svg-path active" d="M 542 85 L 598 85" stroke="#16a34a" stroke-width="2.5" fill="none" marker-end="url(#arr-active)"/>
@@ -564,15 +610,15 @@
         <!-- Output Bus -->
         <div style="display:flex; flex-direction:column; gap:12px;">
           <span style="font-weight:600; font-size:0.9rem;">Hardware MMU Physical Bus</span>
-          <div class="bus-output">
+          <div class="bus-output" id="busOutputBox">
             <div>Virtual Addr: <span id="outVirt">0x00403004</span></div>
             <div>Decoded: PT1=<span id="outPt1">1</span>, PT2=<span id="outPt2">3</span>, Offset=<span id="outOff">4</span></div>
             <hr style="border-color:#1e293b; margin:4px 0;">
-            <div>Page Frame Number (PFN): <span id="outPfn" style="color:#a78bfa;">PFN 65</span></div>
-            <div>Physical Frame Base: <span id="outBase">0x00041000</span></div>
-            <div>Physical Address (+Offset): <strong id="outPhys" style="color:#4ade80;">0x00041004</strong></div>
+            <div id="busResultLine1">Page Frame Number (PFN): <span id="outPfn" style="color:#a78bfa;">PFN 65</span></div>
+            <div id="busResultLine2">Physical Frame Base: <span id="outBase">0x00041000</span></div>
+            <div id="busResultLine3">Physical Address (+Offset): <strong id="outPhys" style="color:#4ade80;">0x00041004</strong></div>
           </div>
-          <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
+          <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;" id="busExplanation">
             Notice how top-level entries without active mappings hold <code>NULL</code>, meaning the entire 4 MB second-level table does not need to exist in memory.
           </p>
         </div>
@@ -582,50 +628,119 @@
   </div>
 
   <script>
-    let currentStep = 0;
-    let activeAddress = 0x00403004;
-
-    const tutorialSteps = [
+    /* =========================================
+       PART 2: WALKTHROUGH STATE & LOGIC
+       ========================================= */
+    let wtStep = 0;
+    const walkthroughSteps = [
       {
-        title: "1. The 32-Bit Address Generation",
-        text: "Consider virtual address <code>0x00403004</code>. The hardware MMU starts by inspecting the raw 32-bit address value."
+        title: "Step 1: Virtual Address Emission",
+        text: "The CPU issues virtual address <code>0x00403004</code>. The address is ready for MMU bit slicing into PT1, PT2, and Offset."
       },
       {
-        title: "2. Indexing the Top-Level Directory",
-        text: "The MMU extracts <code>PT1 = 1</code> using <code>(addr >> 22) & 0x3FF</code>. It indexes into the Top-Level Directory to find the second-level table pointer."
+        title: "Step 2: Top-Level Directory Lookup",
+        text: "The MMU extracts <strong>PT1 = 1</strong> and indexes into the Top-Level Directory. Entry <code>[1]</code> points to a valid Second-Level Page Table."
       },
       {
-        title: "3. Indexing the Second-Level Page Table",
-        text: "Next, the MMU extracts <code>PT2 = 3</code> using <code>(addr >> 12) & 0x3FF</code> and indexes into that second-level table to retrieve <strong>PFN 65</strong>."
+        title: "Step 3: Second-Level Table Lookup",
+        text: "The MMU extracts <strong>PT2 = 3</strong> and indexes into that second-level table. Entry <code>[3]</code> yields <strong>PFN 65</strong>."
       },
       {
-        title: "4. Combining PFN with Offset",
-        text: "Finally, the MMU combines <strong>PFN 65</strong> (frame base <code>0x00041000</code>) with <code>Offset = 4</code> to emit physical address <strong>0x00041004</strong> onto the memory bus."
+        title: "Step 4: Physical Address Emission",
+        text: "The MMU combines <strong>PFN 65</strong> (base <code>0x00041000</code>) with <strong>Offset 4</strong> to emit final physical address <strong>0x00041004</strong>."
       }
     ];
 
-    function updateWalkthroughVisuals() {
+    function renderWalkthrough() {
+      const step = walkthroughSteps[wtStep];
+      const counter = document.getElementById("wtStepCounter");
+      if (counter) counter.textContent = `Step ${wtStep + 1} of ${walkthroughSteps.length}`;
+      const narrative = document.getElementById("wtStepNarrative");
+      if (narrative) narrative.innerHTML = `<strong>${step.title}</strong><br>${step.text}`;
+
+      document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
+      document.getElementById("wtNextBtn").disabled = (wtStep === walkthroughSteps.length - 1);
+
+      // Highlight Walkthrough SVG boxes & paths
       ["wtBoxVa", "wtBoxTop", "wtBoxSec", "wtBoxFrame"].forEach(id => {
-        document.getElementById(id).classList.remove("highlight");
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("highlight");
       });
       ["wtPath1", "wtPath2", "wtPath3"].forEach(id => {
-        document.getElementById(id).classList.remove("highlight");
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("highlight");
       });
 
-      if (currentStep >= 0) document.getElementById("wtBoxVa").classList.add("highlight");
-      if (currentStep >= 1) {
+      if (wtStep >= 0) document.getElementById("wtBoxVa").classList.add("highlight");
+      if (wtStep >= 1) {
         document.getElementById("wtPath1").classList.add("highlight");
         document.getElementById("wtBoxTop").classList.add("highlight");
       }
-      if (currentStep >= 2) {
+      if (wtStep >= 2) {
         document.getElementById("wtPath2").classList.add("highlight");
         document.getElementById("wtBoxSec").classList.add("highlight");
       }
-      if (currentStep >= 3) {
+      if (wtStep >= 3) {
         document.getElementById("wtPath3").classList.add("highlight");
         document.getElementById("wtBoxFrame").classList.add("highlight");
       }
+
+      // Populate Walkthrough Tables independently
+      const wtTop = document.getElementById("wtTopEntries");
+      if (wtTop) {
+        wtTop.innerHTML = "";
+        for (let i = 0; i <= 4; i++) {
+          const row = document.createElement("div");
+          row.className = "table-row" + (i === 1 && wtStep >= 1 ? " active-pt1" : "");
+          let lbl = (i === 1) ? "-> Valid PT2" : (i === 0) ? "-> Valid PT2" : "NULL (Unmapped)";
+          if (i > 1) row.classList.add("null-entry");
+          row.innerHTML = `<span>[${i}]</span><span>${lbl}</span>`;
+          wtTop.appendChild(row);
+        }
+      }
+
+      const wtSec = document.getElementById("wtSecEntries");
+      if (wtSec) {
+        wtSec.innerHTML = "";
+        for (let j = 0; j <= 5; j++) {
+          const row = document.createElement("div");
+          row.className = "table-row" + (j === 3 && wtStep >= 2 ? " active-pt2" : "");
+          let pfn = 62 + j;
+          row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn}</span>`;
+          wtSec.appendChild(row);
+        }
+      }
+
+      const wtDram = document.getElementById("wtDramEntries");
+      if (wtDram) {
+        wtDram.innerHTML = "";
+        const dramRow = document.createElement("div");
+        dramRow.className = "table-row" + (wtStep >= 3 ? " active-pt1" : "");
+        dramRow.innerHTML = `<span>Target Frame</span><span>${wtStep >= 3 ? 'PFN 65 (0x41004)' : 'Pending...'}</span>`;
+        wtDram.appendChild(dramRow);
+      }
     }
+
+    document.getElementById("wtNextBtn").onclick = () => {
+      if (wtStep < walkthroughSteps.length - 1) {
+        wtStep++;
+        renderWalkthrough();
+      }
+    };
+    document.getElementById("wtPrevBtn").onclick = () => {
+      if (wtStep > 0) {
+        wtStep--;
+        renderWalkthrough();
+      }
+    };
+
+    renderWalkthrough();
+
+
+    /* =========================================
+       PART 3: SANDBOX STATE & LOGIC
+       ========================================= */
+    let activeAddress = 0x00403004;
 
     function decodeAddress(addr) {
       const pt1 = (addr >>> 22) & 0x3FF;
@@ -634,127 +749,130 @@
       return { pt1, pt2, offset };
     }
 
-    function renderTables(decoded) {
-      // Top Level
+    function renderSandboxTables(decoded) {
       const topContainer = document.getElementById("topTableEntries");
-      topContainer.innerHTML = "";
-      for (let i = 0; i <= 4; i++) {
-        const row = document.createElement("div");
-        row.className = "table-row" + (i === decoded.pt1 ? " active-pt1" : "");
-        let label = (i === 0) ? "-> PT2 (Text 0-4M)" : (i === 1) ? "-> PT2 (Data 4-8M)" : "NULL (Unmapped)";
-        row.innerHTML = `<span>[${i}]</span><span>${label}</span>`;
+      if (topContainer) {
+        topContainer.innerHTML = "";
+        for (let i = 0; i <= 4; i++) {
+          const row = document.createElement("div");
+          row.className = "table-row" + (i === decoded.pt1 ? " active-pt1" : "");
+          let label = (i === 0) ? "-> PT2 (Text 0-4M)" : (i === 1) ? "-> PT2 (Data 4-8M)" : "NULL (Unmapped)";
+          if (i > 1) row.classList.add("null-entry");
+          row.innerHTML = `<span>[${i}]</span><span>${label}</span>`;
 
-        // Make Top-Level rows interactive
-        row.onclick = () => {
-          activeAddress = (i << 22) | (decoded.pt2 << 12) | decoded.offset;
-          document.getElementById("customHex").value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
-          updateView();
-        };
-
-        topContainer.appendChild(row);
+          row.onclick = () => {
+            activeAddress = (i << 22) | (decoded.pt2 << 12) | decoded.offset;
+            const hexInput = document.getElementById("customHex");
+            if (hexInput) hexInput.value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
+            updateSandboxView();
+          };
+          topContainer.appendChild(row);
+        }
+        const ellipsis = document.createElement("div");
+        ellipsis.className = "table-row null-entry";
+        ellipsis.innerHTML = "<span>...</span><span>NULL</span>";
+        topContainer.appendChild(ellipsis);
       }
-      const ellipsis = document.createElement("div");
-      ellipsis.className = "table-row";
-      ellipsis.innerHTML = "<span>...</span><span>NULL</span>";
-      topContainer.appendChild(ellipsis);
 
-      // Second Level
       const secondContainer = document.getElementById("secondTableEntries");
-      document.getElementById("pt2Header").textContent = `PT2 Table (for PT1=${decoded.pt1})`;
-      secondContainer.innerHTML = "";
-      for (let j = 0; j <= 5; j++) {
-        const row = document.createElement("div");
-        row.className = "table-row" + (j === decoded.pt2 ? " active-pt2" : "");
-        let pfn = (decoded.pt1 === 1) ? 62 + j : (decoded.pt1 === 0 ? 10 + j : "FAULT");
-        row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn} (Valid)</span>`;
+      const pt2Header = document.getElementById("pt2Header");
+      if (pt2Header) pt2Header.textContent = `PT2 Table (for PT1=${decoded.pt1})`;
+      if (secondContainer) {
+        secondContainer.innerHTML = "";
+        if (decoded.pt1 > 1) {
+          const errRow = document.createElement("div");
+          errRow.className = "table-row";
+          errRow.style.color = "var(--fault-color)";
+          errRow.innerHTML = `<span>[All]</span><span>No Second-Level Table Exist (NULL)</span>`;
+          secondContainer.appendChild(errRow);
+        } else {
+          for (let j = 0; j <= 5; j++) {
+            const row = document.createElement("div");
+            row.className = "table-row" + (j === decoded.pt2 ? " active-pt2" : "");
+            let pfn = (decoded.pt1 === 1) ? 62 + j : 10 + j;
+            row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn} (Valid)</span>`;
 
-        // Make Second-Level rows interactive
-        row.onclick = () => {
-          activeAddress = (decoded.pt1 << 22) | (j << 12) | decoded.offset;
-          document.getElementById("customHex").value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
-          updateView();
-        };
-
-        secondContainer.appendChild(row);
+            row.onclick = () => {
+              activeAddress = (decoded.pt1 << 22) | (j << 12) | decoded.offset;
+              const hexInput = document.getElementById("customHex");
+              if (hexInput) hexInput.value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
+              updateSandboxView();
+            };
+            secondContainer.appendChild(row);
+          }
+        }
       }
     }
 
-    function updateView() {
+    function updateSandboxView() {
       const decoded = decodeAddress(activeAddress);
 
-      // Update bit segments
-      document.getElementById("valPt1").textContent = `${decoded.pt1.toString(2).padStart(10, '0')} (${decoded.pt1})`;
-      document.getElementById("valPt2").textContent = `${decoded.pt2.toString(2).padStart(10, '0')} (${decoded.pt2})`;
-      document.getElementById("valOffset").textContent = `${decoded.offset.toString(2).padStart(12, '0')} (${decoded.offset})`;
+      const valPt1 = document.getElementById("valPt1");
+      if (valPt1) valPt1.textContent = `${decoded.pt1.toString(2).padStart(10, '0')} (${decoded.pt1})`;
+      const valPt2 = document.getElementById("valPt2");
+      if (valPt2) valPt2.textContent = `${decoded.pt2.toString(2).padStart(10, '0')} (${decoded.pt2})`;
+      const valOffset = document.getElementById("valOffset");
+      if (valOffset) valOffset.textContent = `${decoded.offset.toString(2).padStart(12, '0')} (${decoded.offset})`;
 
-      // Update Graphical Diagram Labels & Active states
-      const elPt1 = document.getElementById("treeVaPt1");
-      if (elPt1) elPt1.textContent = `PT1: ${decoded.pt1}`;
-      const elPt2 = document.getElementById("treeVaPt2");
-      if (elPt2) elPt2.textContent = `PT2: ${decoded.pt2}`;
+      const busBox = document.getElementById("busOutputBox");
+      const line1 = document.getElementById("busResultLine1");
+      const line2 = document.getElementById("busResultLine2");
+      const line3 = document.getElementById("busResultLine3");
+      const explanation = document.getElementById("busExplanation");
 
-      const elTop = document.getElementById("treeTopLabel");
-      if (elTop) elTop.textContent = `Index [${decoded.pt1}] Found`;
+      if (decoded.pt1 > 1) {
+        if (busBox) busBox.className = "bus-output fault-output";
+        if (line1) line1.innerHTML = `<span style="color:#f87171; font-weight:bold;">PAGE FAULT: Unmapped Memory Access</span>`;
+        if (line2) line2.innerHTML = `Top-Level Directory Entry [${decoded.pt1}] is <code>NULL</code>`;
+        if (line3) line3.innerHTML = `Action: Trigger <strong>SIGSEGV</strong> (Segmentation Fault)`;
+        if (explanation) explanation.textContent = `Error: Because entry [${decoded.pt1}] in the Top-Level Directory is NULL, no second-level table exists in physical memory. Accessing this address triggers an immediate page fault / segmentation fault.`;
 
-      const pfn = (decoded.pt1 === 1) ? 62 + decoded.pt2 : 10 + decoded.pt2;
-      const elSec = document.getElementById("treeSecLabel");
-      if (elSec) elSec.textContent = `Index [${decoded.pt2}] -> PFN ${pfn}`;
+        const topLbl = document.getElementById("treeTopLabel");
+        if (topLbl) topLbl.textContent = `Index [${decoded.pt1}] is NULL`;
+        const secLbl = document.getElementById("treeSecLabel");
+        if (secLbl) secLbl.textContent = `No Table Exists`;
+        const frmLbl = document.getElementById("treeFrameLabel");
+        if (frmLbl) frmLbl.textContent = `FAULT / CRASH`;
+      } else {
+        if (busBox) busBox.className = "bus-output";
+        const pfn = (decoded.pt1 === 1) ? 62 + decoded.pt2 : 10 + decoded.pt2;
+        const physBase = (pfn << 12) >>> 0;
+        const physAddr = (physBase | decoded.offset) >>> 0;
+        const physHex = "0x" + physAddr.toString(16).padStart(8, '0').toUpperCase();
 
-      const physBase = (pfn << 12) >>> 0;
-      const physAddr = (physBase | decoded.offset) >>> 0;
-      const physHex = "0x" + physAddr.toString(16).padStart(8, '0').toUpperCase();
+        if (line1) line1.innerHTML = `Page Frame Number (PFN): <span style="color:#a78bfa;">PFN ${pfn}</span>`;
+        if (line2) line2.innerHTML = `Physical Frame Base: <span>0x${physBase.toString(16).padStart(8, '0').toUpperCase()}</span>`;
+        if (line3) line3.innerHTML = `Physical Address (+Offset): <strong style="color:#4ade80;">${physHex}</strong>`;
+        if (explanation) explanation.textContent = `Notice how top-level entries without active mappings hold NULL, meaning the entire 4 MB second-level table does not need to exist in memory.`;
 
-      const elFrame = document.getElementById("treeFrameLabel");
-      if (elFrame) elFrame.textContent = `PFN ${pfn} (${physHex})`;
+        const topLbl = document.getElementById("treeTopLabel");
+        if (topLbl) topLbl.textContent = `Index [${decoded.pt1}] Found`;
+        const secLbl = document.getElementById("treeSecLabel");
+        if (secLbl) secLbl.textContent = `Index [${decoded.pt2}] → PFN ${pfn}`;
+        const frmLbl = document.getElementById("treeFrameLabel");
+        if (frmLbl) frmLbl.textContent = `PFN ${pfn} (${physHex})`;
+      }
 
-      // Update Bus output
-      const hexStr = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
-      document.getElementById("outVirt").textContent = hexStr;
-      document.getElementById("outPt1").textContent = decoded.pt1;
-      document.getElementById("outPt2").textContent = decoded.pt2;
-      document.getElementById("outOff").textContent = decoded.offset;
-
-      document.getElementById("outPfn").textContent = `PFN ${pfn}`;
-      document.getElementById("outBase").textContent = "0x" + physBase.toString(16).padStart(8, '0').toUpperCase();
-      document.getElementById("outPhys").textContent = physHex;
-
-      renderTables(decoded);
-
-      // Tutorial text
-      const step = tutorialSteps[currentStep];
-      document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
-      document.getElementById("stepNarrative").innerHTML = `<strong>${step.title}</strong><br>${step.text}`;
-      document.getElementById("prevBtn").disabled = (currentStep === 0);
-      document.getElementById("nextBtn").disabled = (currentStep === tutorialSteps.length - 1);
-
-      updateWalkthroughVisuals();
+      renderSandboxTables(decoded);
     }
 
-    document.getElementById("nextBtn").onclick = () => {
-      if (currentStep < tutorialSteps.length - 1) {
-        currentStep++;
-        updateView();
-      } else {
-        currentStep = 0;
-        updateView();
-      }
-    };
-    document.getElementById("prevBtn").onclick = () => {
-      if (currentStep > 0) { currentStep--; updateView(); }
-    };
-    document.getElementById("loadHexBtn").onclick = () => {
-      const rawVal = document.getElementById("customHex").value.trim();
-      const val = parseInt(rawVal, 16);
-      if (!isNaN(val)) {
-        activeAddress = val >>> 0;
-        currentStep = 0;
-        updateView();
-      } else {
-        alert("Invalid hexadecimal address: '" + rawVal + "'. Please use format like 0x00403004.");
-      }
-    };
+    const loadHexBtn = document.getElementById("loadHexBtn");
+    if (loadHexBtn) {
+      loadHexBtn.onclick = () => {
+        const hexInput = document.getElementById("customHex");
+        if (!hexInput) return;
+        const rawVal = hexInput.value.trim();
+        const val = parseInt(rawVal, 16);
+        if (!isNaN(val)) {
+          activeAddress = val >>> 0;
+          updateSandboxView();
+        } else {
+          alert("Invalid hexadecimal address: '" + rawVal + "'. Please use format like 0x00403004.");
+        }
+      };
+    }
 
-    updateView();
+    updateSandboxView();
   </script>
 </body>
 </html>
