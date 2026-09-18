@@ -120,7 +120,7 @@
     /* Translation Tables & Grid */
     .translation-grid {
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 20px;
       align-items: start;
     }
@@ -245,23 +245,23 @@
 
         <h2>2. Deep Dive: Understanding RAM Frames vs. Virtual Pages</h2>
         <p>
-          To fully grasp how inverted page tables operate, we must look closely at how physical memory is organized versus how a process sees its own memory:
+          To understand why inverted page tables exist, we must contrast physical hardware memory against the logical memory abstraction:
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
-          <li><strong>Virtual Pages (VPN):</strong> The chunks seen by a running process. To a program, its memory is a contiguous, private address space (e.g., starting at address <code>0x0000</code> up to gigabytes), but these are just logical references.</li>
-          <li><strong>Physical Frames (PFN):</strong> The actual physical chunks of hardware RAM installed on your motherboard. If a machine has 4 GB of RAM split into 4 KB chunks, physical memory is split into exactly <strong>1,048,576 physical frames</strong> (numbered sequentially from <code>0</code> to <code>1,048,575</code>).</li>
+          <li><strong>Virtual Pages (VPN):</strong> The blocks seen by a running program. A process views memory as a vast, private, contiguous address space (e.g., from address <code>0x00000000</code> up to hundreds of gigabytes), but these addresses are purely virtual references.</li>
+          <li><strong>Physical Frames (PFN):</strong> The actual physical silicon storage blocks in the RAM modules on the motherboard. If a system has 16 GB of physical RAM divided into 4 KB chunks, physical memory consists of exactly <strong>4,194,304 frames</strong> (numbered sequentially from Frame <code>0</code> to <code>4,194,303</code>).</li>
         </ul>
         <p style="margin-top: 8px;">
-          In a traditional forward-mapped page table, the table is indexed by the <strong>Virtual Page Number</strong>, which requires a separate table for every single process. Conversely, an inverted page table builds its index directly around the <strong>Physical Frame Number (PFN)</strong>. Because a computer has a fixed amount of physical RAM, the inverted page table size remains completely constant regardless of how many processes are active.
+          In traditional forward-mapped paging, the table is indexed by the <strong>Virtual Page Number</strong>. Because every process has its own private virtual space, every process must maintain its own private page table. Conversely, an Inverted Page Table indexes memory strictly by <strong>Physical Frame Number</strong>. Because physical RAM size never changes during runtime, the inverted page table size remains strictly fixed.
         </p>
 
         <h2>3. The Inverted Page Table Solution</h2>
         <p>
-          An <strong>Inverted Page Table</strong> inverts this design entirely. Instead of maintaining one page table per process mapping virtual pages to physical frames, the system maintains <strong>exactly one global page table for the entire machine</strong>, with precisely one entry per <strong>physical RAM frame</strong>.
+          Instead of maintaining one page table per process mapping virtual pages to physical frames, the operating system maintains <strong>exactly one global page table for the entire machine</strong>, containing one entry per <strong>physical RAM frame</strong>.
         </p>
         <div class="theory-callout">
           <strong>Key Architecture Insight:</strong><br>
-          If a machine has 4 GB of RAM split into 1,048,576 physical frames (4 KB each), the Inverted Page Table contains exactly 1,048,576 entries globally—regardless of whether 1 process or 1,000 processes are running!
+          Each row in the Inverted Page Table represents a Physical Frame and records its owner: <code>[Process ID (PID) | Virtual Page Number (VPN)]</code>. If the computer has 1 million RAM frames, the table contains exactly 1 million entries—whether 1 process or 500 processes are executing.
         </div>
 
         <!-- Embedded SVG Diagram: Inverted Page Table Layout -->
@@ -309,13 +309,30 @@
           </svg>
         </div>
 
-        <h2>4. The Translation Challenge &amp; Hashing Tables</h2>
+        <h2>4. Why x86-64 Doesn't Use It (And Who Does)</h2>
         <p>
-          Because the inverted page table is indexed by <strong>Physical Frame Number (PFN)</strong> rather than Virtual Page Number (VPN), the MMU cannot perform a direct array lookup using the virtual address. Searching through millions of table entries sequentially on every memory reference would introduce catastrophic latency.
+          If Inverted Page Tables save so much physical memory, why does standard x86_64 hardware rely on 4-level and 5-level trees instead?
         </p>
+        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+          <li><strong>Predictable Hardware Tree Walks:</strong> In x86_64, the CPU MMU walks multi-level directories using deterministic pointer dereferencing in silicon. While it requires 4 memory accesses on a TLB miss, each lookup step is fixed and predictable.</li>
+          <li><strong>Hash Collisions Add Latency:</strong> In an IPT, because rows are sorted by frame number rather than virtual address, the MMU cannot index the table directly. It must calculate a hash of <code>(PID, VPN)</code>. If hash collisions occur, the hardware must chase linked collision chains through memory, introducing variable latency.</li>
+          <li><strong>Architectures That Used Inverted Tables:</strong>
+            <ul style="padding-left: 20px; margin-top: 4px;">
+              <li><strong>IBM PowerPC (Power Architecture):</strong> Uses a hardware-managed Hashed Page Table (HPT). Every memory reference hashes virtual segment identifiers directly to Page Table Entry Groups (PTEGs).</li>
+              <li><strong>Intel Itanium (IA-64):</strong> Implemented a Virtual Hash Page Table (VHPT) backed by software TLB miss handling routines.</li>
+              <li><strong>UltraSPARC (Solaris):</strong> Relied on software-managed TLBs backed by Translation Storage Buffers (TSBs) structured like inverted hash tables.</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h2>5. Can Processes Share Pages?</h2>
         <p>
-          To solve this, operating systems employ a <strong>Hash Table</strong> that maps virtual addresses (PID + VPN) to the corresponding Inverted Page Table index. A Hardware Translation Lookaside Buffer (TLB) caches successful hits to avoid hash collision traversal overhead.
+          Yes, but page sharing highlights the biggest trade-off between the two architectures:
         </p>
+        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
+          <li><strong>In Multi-Level Paging (Trivial):</strong> Sharing is natural. Process A and Process B each have their own independent page tables. Process A points its Level-1 entry to Physical Frame 105, and Process B points its own entry to Physical Frame 105. They can even use different virtual addresses and different protection bits (e.g., Process A is Read-Only, Process B is Read-Write).</li>
+          <li><strong>In Inverted Page Tables (Difficult):</strong> Because each physical frame has exactly <strong>one slot</strong> in the global table, that slot can only store one owner tag: <code>[PID | VPN]</code>. If two processes share Frame 105, the table cannot hold both tags simultaneously. To resolve this, systems using IPTs must employ global shared segment IDs (like PowerPC), alias collision lists, or maintain secondary software translation tables in kernel memory.</li>
+        </ul>
       </div>
     </div>
 
@@ -505,7 +522,6 @@
         l3.innerHTML = `Physical Address: <strong style="color:#38bdf8;">0x${(foundFrame << 12).toString(16).padStart(8, '0').toUpperCase()}</strong>`;
       } else {
         box.className = "bus-output";
-        // Let's dynamically add it to simulate mapping on demand!
         let emptyIdx = machineFrames.findIndex(f => f.pid === 0 && f.vpn === 0);
         if (emptyIdx === -1) emptyIdx = Math.floor(Math.random() * machineFrames.length);
         machineFrames[emptyIdx] = { pid: p, vpn: v };
