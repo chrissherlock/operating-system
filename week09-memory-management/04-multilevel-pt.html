@@ -405,11 +405,11 @@
           <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: block; text-align: center;">Figure 11-30: Virtual to physical address translation with a 4-level page table scheme implementing 48-bits of virtual address.</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             <defs>
-              <marker id="arr-dashed" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+              <marker id="arr-dashed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155" />
               </marker>
-              <marker id="arr-solid" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+              <marker id="arr-solid" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0284c7" />
               </marker>
             </defs>
 
@@ -680,7 +680,8 @@
 
   <script>
     let currentStep = 0;
-    let activeAddress = 0x00403004;
+    const walkthroughAddress = 0x00403004;
+    let sandboxAddress = 0x00403004;
 
     const tutorialSteps = [
       {
@@ -713,31 +714,34 @@
       }
     ];
 
-    function updateWalkthroughVisuals() {
-      const step = tutorialSteps[currentStep];
-
-      // Update SVG highlights for bit manipulation box
-      const segPt1 = document.getElementById("svgSegPt1").querySelector("rect");
-      const segPt2 = document.getElementById("svgSegPt2").querySelector("rect");
-      const segOffset = document.getElementById("svgSegOffset").querySelector("rect");
-
-      segPt1.setAttribute("stroke", step.highlight === "pt1" ? "#0284c7" : "none");
-      segPt1.setAttribute("stroke-width", step.highlight === "pt1" ? "3" : "0");
-
-      segPt2.setAttribute("stroke", step.highlight === "pt2" ? "#7c3aed" : "none");
-      segPt2.setAttribute("stroke-width", step.highlight === "pt2" ? "3" : "0");
-
-      segOffset.setAttribute("stroke", step.highlight === "offset" ? "#059669" : "none");
-      segOffset.setAttribute("stroke-width", step.highlight === "offset" ? "3" : "0");
-
-      document.getElementById("svgOperationText").textContent = step.opText;
-    }
-
     function decodeAddress(addr) {
       const pt1 = (addr >>> 22) & 0x3FF;
       const pt2 = (addr >>> 12) & 0x3FF;
       const offset = addr & 0xFFF;
       return { pt1, pt2, offset };
+    }
+
+    // ==========================================
+    // PART 2: WALKTHROUGH LOGIC
+    // ==========================================
+
+    function updateWalkthroughVisuals() {
+      const step = tutorialSteps[currentStep];
+
+      const segPt1 = document.getElementById("svgSegPt1").querySelector("rect");
+      const segPt2 = document.getElementById("svgSegPt2").querySelector("rect");
+      const segOffset = document.getElementById("svgSegOffset").querySelector("rect");
+
+      segPt1.setAttribute("stroke", step.highlight === "pt1" || step.highlight === "all" ? "#0284c7" : "none");
+      segPt1.setAttribute("stroke-width", step.highlight === "pt1" || step.highlight === "all" ? "3" : "0");
+
+      segPt2.setAttribute("stroke", step.highlight === "pt2" || step.highlight === "all" ? "#7c3aed" : "none");
+      segPt2.setAttribute("stroke-width", step.highlight === "pt2" || step.highlight === "all" ? "3" : "0");
+
+      segOffset.setAttribute("stroke", step.highlight === "offset" || step.highlight === "all" ? "#059669" : "none");
+      segOffset.setAttribute("stroke-width", step.highlight === "offset" || step.highlight === "all" ? "3" : "0");
+
+      document.getElementById("svgOperationText").textContent = step.opText;
     }
 
     function renderWalkthroughTables(decoded) {
@@ -791,6 +795,61 @@
       }
     }
 
+    function updateWalkthrough() {
+      const decoded = decodeAddress(walkthroughAddress);
+
+      document.getElementById("binPt1").textContent = decoded.pt1.toString(2).padStart(10, '0');
+      document.getElementById("binPt2").textContent = decoded.pt2.toString(2).padStart(10, '0');
+      document.getElementById("binOffset").textContent = decoded.offset.toString(2).padStart(12, '0');
+
+      renderWalkthroughTables(decoded);
+
+      const step = tutorialSteps[currentStep];
+      const stepCounter = document.getElementById("stepCounter");
+      if (stepCounter) stepCounter.textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
+      const stepNarrative = document.getElementById("stepNarrative");
+      if (stepNarrative) stepNarrative.innerHTML = `<strong>${step.title}</strong><br>${step.text}`;
+
+      const mathBox = document.getElementById("wtMathBox");
+      if (mathBox && step.math) {
+        mathBox.style.display = "flex";
+        mathBox.innerHTML = `<strong>Bitwise Translation Operation:</strong><br>${step.math}`;
+      } else if (mathBox) {
+        mathBox.style.display = "none";
+      }
+
+      const prevBtn = document.getElementById("prevBtn");
+      if (prevBtn) prevBtn.disabled = (currentStep === 0);
+      const nextBtn = document.getElementById("nextBtn");
+      if (nextBtn) nextBtn.disabled = (currentStep === tutorialSteps.length - 1);
+
+      updateWalkthroughVisuals();
+    }
+
+    const nextBtn = document.getElementById("nextBtn");
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        if (currentStep < tutorialSteps.length - 1) {
+          currentStep++;
+          updateWalkthrough();
+        }
+      };
+    }
+
+    const prevBtn = document.getElementById("prevBtn");
+    if (prevBtn) {
+      prevBtn.onclick = () => {
+        if (currentStep > 0) {
+          currentStep--;
+          updateWalkthrough();
+        }
+      };
+    }
+
+    // ==========================================
+    // PART 3: SANDBOX LOGIC
+    // ==========================================
+
     function renderSandboxTables(decoded) {
       const topContainer = document.getElementById("topTableEntries");
       if (topContainer) {
@@ -803,10 +862,10 @@
           row.innerHTML = `<span>[${i}]</span><span>${label}</span>`;
 
           row.onclick = () => {
-            activeAddress = (i << 22) | (decoded.pt2 << 12) | decoded.offset;
+            sandboxAddress = (i << 22) | (decoded.pt2 << 12) | decoded.offset;
             const hexInput = document.getElementById("customHex");
-            if (hexInput) hexInput.value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
-            updateView();
+            if (hexInput) hexInput.value = "0x" + sandboxAddress.toString(16).padStart(8, '0').toUpperCase();
+            updateSandbox();
           };
           topContainer.appendChild(row);
         }
@@ -835,10 +894,10 @@
             row.innerHTML = `<span>[${j}]</span><span>PFN ${pfn} (Valid)</span>`;
 
             row.onclick = () => {
-              activeAddress = (decoded.pt1 << 22) | (j << 12) | decoded.offset;
+              sandboxAddress = (decoded.pt1 << 22) | (j << 12) | decoded.offset;
               const hexInput = document.getElementById("customHex");
-              if (hexInput) hexInput.value = "0x" + activeAddress.toString(16).padStart(8, '0').toUpperCase();
-              updateView();
+              if (hexInput) hexInput.value = "0x" + sandboxAddress.toString(16).padStart(8, '0').toUpperCase();
+              updateSandbox();
             };
             secondContainer.appendChild(row);
           }
@@ -846,8 +905,8 @@
       }
     }
 
-    function updateView() {
-      const decoded = decodeAddress(activeAddress);
+    function updateSandbox() {
+      const decoded = decodeAddress(sandboxAddress);
 
       const valPt1 = document.getElementById("valPt1");
       if (valPt1) valPt1.textContent = `${decoded.pt1.toString(2).padStart(10, '0')} (${decoded.pt1})`;
@@ -856,10 +915,14 @@
       const valOffset = document.getElementById("valOffset");
       if (valOffset) valOffset.textContent = `${decoded.offset.toString(2).padStart(12, '0')} (${decoded.offset})`;
 
-      // Update bit manipulation graphic binary segments dynamically
-      document.getElementById("binPt1").textContent = decoded.pt1.toString(2).padStart(10, '0');
-      document.getElementById("binPt2").textContent = decoded.pt2.toString(2).padStart(10, '0');
-      document.getElementById("binOffset").textContent = decoded.offset.toString(2).padStart(12, '0');
+      const outVirt = document.getElementById("outVirt");
+      if (outVirt) outVirt.textContent = "0x" + sandboxAddress.toString(16).padStart(8, '0').toUpperCase();
+      const outPt1 = document.getElementById("outPt1");
+      if (outPt1) outPt1.textContent = decoded.pt1;
+      const outPt2 = document.getElementById("outPt2");
+      if (outPt2) outPt2.textContent = decoded.pt2;
+      const outOff = document.getElementById("outOff");
+      if (outOff) outOff.textContent = decoded.offset;
 
       const busBox = document.getElementById("busOutputBox");
       const line1 = document.getElementById("busResultLine1");
@@ -886,53 +949,7 @@
         if (explanation) explanation.textContent = `Notice how top-level entries without active mappings hold NULL, meaning the entire 4 MB second-level table does not need to exist in memory.`;
       }
 
-      renderWalkthroughTables(decoded);
       renderSandboxTables(decoded);
-
-      // Tutorial text
-      const step = tutorialSteps[currentStep];
-      const stepCounter = document.getElementById("stepCounter");
-      if (stepCounter) stepCounter.textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
-      const stepNarrative = document.getElementById("stepNarrative");
-      if (stepNarrative) stepNarrative.innerHTML = `<strong>${step.title}</strong><br>${step.text}`;
-
-      const mathBox = document.getElementById("wtMathBox");
-      if (mathBox && step.math) {
-        mathBox.style.display = "flex";
-        mathBox.innerHTML = `<strong>Bitwise Translation Operation:</strong><br>${step.math}`;
-      } else if (mathBox) {
-        mathBox.style.display = "none";
-      }
-
-      const prevBtn = document.getElementById("prevBtn");
-      if (prevBtn) prevBtn.disabled = (currentStep === 0);
-      const nextBtn = document.getElementById("nextBtn");
-      if (nextBtn) nextBtn.disabled = (currentStep === tutorialSteps.length - 1);
-
-      updateWalkthroughVisuals();
-    }
-
-    const nextBtn = document.getElementById("nextBtn");
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        if (currentStep < tutorialSteps.length - 1) {
-          currentStep++;
-          updateView();
-        } else {
-          currentStep = 0;
-          updateView();
-        }
-      };
-    }
-
-    const prevBtn = document.getElementById("prevBtn");
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        if (currentStep > 0) {
-          currentStep--;
-          updateView();
-        }
-      };
     }
 
     const loadHexBtn = document.getElementById("loadHexBtn");
@@ -943,16 +960,17 @@
         const rawVal = hexInput.value.trim();
         const val = parseInt(rawVal, 16);
         if (!isNaN(val)) {
-          activeAddress = val >>> 0;
-          currentStep = 0;
-          updateView();
+          sandboxAddress = val >>> 0;
+          updateSandbox();
         } else {
           alert("Invalid hexadecimal address: '" + rawVal + "'. Please use format like 0x00403004.");
         }
       };
     }
 
-    updateView();
+    // Initialize both sections independently
+    updateWalkthrough();
+    updateSandbox();
   </script>
 </body>
 </html>
