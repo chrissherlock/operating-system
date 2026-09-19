@@ -110,9 +110,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .pioneer-profile img {
       width: 100%;
-      height: 160px;
+      height: 210px;
       object-fit: cover;
-      object-position: top;
+      object-position: center 20%;
       border-radius: 4px;
       border: 1px solid var(--border);
       background: #e2e8f0;
@@ -907,11 +907,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Update pioneer image URLs, download, and crop via ImageMagick
+COMMIT_MSG = """Fix NameError by importing ssl module in fix.py
 
-Update week09-memory-management/01-free-used-lists-buddy.html generation
-script with direct Wikimedia CDN URLs for Knuth and Knowlton. Download
-portraits locally and square-crop via ImageMagick."""
+Include the missing import ssl statement at the top of fix.py to resolve
+NameError when creating unverified SSL contexts for asset downloads."""
 
 def download_assets():
     images_dir = "week09-memory-management/images"
@@ -920,20 +919,22 @@ def download_assets():
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
     ctx = ssl._create_unverified_context()
 
-    for filename, url in ASSET_URLS.items():
+    asset_urls = {
+        "markowitz.jpg": "https://zicklin.baruch.cuny.edu/wp-content/uploads/sites/10/2023/07/Harry-Markowitz-1_WP_350x467.jpg",
+        "knowlton.jpg": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ken_Knowlton_in_2007.jpg",
+        "knuth.jpg": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Donald_Ervin_Knuth_%28cropped%29.jpg"
+    }
+
+    for filename, url in asset_urls.items():
         filepath = os.path.join(images_dir, filename)
         print(f"--> Downloading {filename} from {url}...")
         try:
             req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, context=ctx) as response:
                 data = response.read()
-                print(f"    [Trace] Status: {response.status}, Content-Length: {len(data)} bytes")
                 with open(filepath, "wb") as out:
                     out.write(data)
-            if os.path.exists(filepath):
-                print(f"    [Trace] Successfully saved to {filepath} ({os.path.getsize(filepath)} bytes)")
-            else:
-                print(f"    [Error] File {filepath} was not created.", file=sys.stderr)
+            print(f"    Successfully saved {filepath} ({os.path.getsize(filepath)} bytes)")
         except Exception as e:
             print(f"    [Error] Failed to download {filename}: {e}", file=sys.stderr)
 
@@ -981,7 +982,7 @@ def execute_git_pipeline():
     run_git_step(["git", "add", target_module, images_dir], "Staging HTML and images directory")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Assets updated, cropped, committed, and pushed successfully!")
+    print("--> SSL import fixed, assets downloaded, cropped, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_git_pipeline()
