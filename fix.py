@@ -143,16 +143,39 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 0;
       padding-bottom: 0;
     }
+    .pioneer-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
     .pioneer-name {
       font-weight: 700;
       color: var(--text);
       font-size: 0.9rem;
+    }
+    .pioneer-wiki {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+    }
+    .pioneer-wiki a {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 600;
     }
     .pioneer-meta {
       font-size: 0.78rem;
       color: var(--text-muted);
       margin-top: 1px;
       margin-bottom: 4px;
+    }
+    .pioneer-bio img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      border: 1px solid var(--border);
     }
     .pioneer-bio p {
       color: var(--text-muted);
@@ -354,26 +377,42 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <h3>File System Pioneers</h3>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Ken Thompson</div>
-            <div class="pioneer-meta"><strong>Born:</strong> Feb 4, 1943 | Bell Labs</div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Ken Thompson</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">[Wiki]</a></div>
+            </div>
+            <div class="pioneer-meta"><strong>Born:</strong> Feb 4, 1943 | UC Berkeley | Bell Labs</div>
+            <img src="thompson.jpg" alt="Ken Thompson">
             <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems. You can find out more on <a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">Wikipedia</a>.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Dennis Ritchie</div>
-            <div class="pioneer-meta"><strong>Born:</strong> Sep 9, 1941 — <strong>Died:</strong> Oct 12, 2011 | Bell Labs</div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Dennis Ritchie</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">[Wiki]</a></div>
+            </div>
+            <div class="pioneer-meta"><strong>Born:</strong> Sep 9, 1941 — <strong>Died:</strong> Oct 12, 2011 | Harvard | Bell Labs</div>
+            <img src="ritchie.jpg" alt="Dennis Ritchie">
             <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions. You can find out more on <a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">Wikipedia</a>.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Andrew S. Tanenbaum</div>
-            <div class="pioneer-meta"><strong>Born:</strong> Mar 16, 1944 | Vrije Universiteit</div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Andrew S. Tanenbaum</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">[Wiki]</a></div>
+            </div>
+            <div class="pioneer-meta"><strong>Born:</strong> Mar 16, 1944 | MIT | Vrije Universiteit</div>
+            <img src="tanenbaum.jpg" alt="Andrew S. Tanenbaum">
             <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles. You can find out more on <a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">Wikipedia</a>.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Marshall Kirk McKusick</div>
-            <div class="pioneer-meta"><strong>Born:</strong> Jan 19, 1954 | UC Berkeley</div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Marshall Kirk McKusick</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">[Wiki]</a></div>
+            </div>
+            <div class="pioneer-meta"><strong>Born:</strong> Jan 19, 1954 | Cornell / UC Berkeley</div>
+            <img src="mckusick.jpg" alt="Marshall Kirk McKusick">
             <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation. You can find out more on <a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">Wikipedia</a>.</p>
           </div>
         </aside>
@@ -724,7 +763,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     function loadChallenge(id) {
       const desc = document.getElementById("challengeDesc");
       if (id === 1) {
-        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Observe how the kernel immediately catches the fault.";
+        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
         runInspectionOp('close');
       } else if (id === 2) {
         desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-context systems, shared open file tables cause coupled offsets!";
@@ -740,11 +779,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Harmonize metadata fonts and add natural Wikipedia bio links
+COMMIT_MSG = """Add portraits, metadata, and Wikipedia links to pioneers sidebar
 
-Update week10-file-management/01-files-abstraction.html to format sidebar
-metadata using regular body font with bold labels, and integrate natural
-Wikipedia reference sentences into each pioneer biography."""
+Update week10-file-management/01-files-abstraction.html to include portrait
+images, birth/death dates, alma maters, and natural Wikipedia link sentences
+for Ken Thompson, Dennis Ritchie, Andrew S. Tanenbaum, and Marshall Kirk McKusick."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -764,12 +803,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with harmonized sidebar typography to {target_file}")
+    print(f"Wrote module file with complete pioneers sidebar infobox to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging harmonized sidebar update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging complete pioneers sidebar update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Harmonized Sidebar Module 01 created, committed, and pushed successfully!")
+    print("--> Pioneers Sidebar Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
