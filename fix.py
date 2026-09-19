@@ -8,15 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>1. Files &amp; Naming Abstractions — COSC240 Week 10</title>
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Directory Systems &amp; Hierarchies — COSC240 Week 10</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -32,7 +24,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --danger-color: #dc2626;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
@@ -44,11 +35,69 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       align-items: center;
       gap: 18px;
     }
-
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .card h2 {
+      font-size: 1.25rem;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+    td {
+      color: #334155;
+    }
+    ul, ol {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #334155;
+      font-size: 0.93rem;
+      line-height: 1.5;
+    }
     .nav-back {
       width: 100%;
       max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
       display: flex;
+      flex-direction: column;
     }
     .nav-back a {
       display: inline-flex;
@@ -58,153 +107,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: 600;
       font-family: var(--font-mono);
       text-decoration: none;
-      color: var(--accent);
+      color: #0284c7;
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
       padding: 6px 12px;
       border-radius: 6px;
       transition: background-color 0.15s ease, color 0.15s ease;
+      width: fit-content;
     }
-    .nav-back a:hover { background-color: var(--accent); color: #fff; }
-
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 100%;
-      max-width: 1100px;
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
     }
 
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .theory-section {
-      line-height: 1.7;
-      font-size: 0.95rem;
-      color: #334155;
-      display: block;
-    }
-    .theory-section h2 {
-      font-size: 1.25rem;
-      color: var(--text);
-      margin-top: 16px;
-      margin-bottom: 4px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 4px;
-    }
-    .theory-section p {
-      margin-bottom: 10px;
-    }
-
-    .bio-sidebar {
-      float: right;
-      width: 360px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-top: 4px solid var(--inspect-color);
-      border-radius: 6px;
-      padding: 16px;
-      margin-left: 24px;
-      margin-right: 0px;
-      margin-bottom: 16px;
-      margin-top: 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      font-size: 0.88rem;
-      shape-outside: margin-box;
-    }
-    .bio-sidebar h3 {
-      font-size: 1rem;
-      color: var(--inspect-color);
-      margin-bottom: 2px;
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-    }
-    .pioneer-bio {
-      margin-bottom: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px dashed #cbd5e1;
-    }
-    .pioneer-bio:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
-    .pioneer-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-    .pioneer-name {
-      font-weight: 700;
-      color: var(--text);
-      font-size: 0.9rem;
-    }
-    .pioneer-wiki {
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
-    }
-    .pioneer-wiki a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-weight: 600;
-    }
-    .pioneer-meta {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 1px;
-      margin-bottom: 4px;
-    }
-    .pioneer-bio img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      border-radius: 4px;
-      margin-top: 6px;
-      margin-bottom: 6px;
-      border: 1px solid var(--border);
-    }
-    .pioneer-bio p {
-      color: var(--text-muted);
-      line-height: 1.4;
-      font-size: 0.82rem;
-      margin-top: 2px;
-    }
-    .pioneer-bio a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-weight: 600;
-    }
-
-    .figure-container {
-      width: 100%;
-      max-width: 860px;
-      margin: 10px auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
-      clear: both;
-    }
-
+    /* Sandbox Styles */
     .kernel-sandbox {
       background: #0f172a;
       color: #ffffff;
@@ -264,7 +180,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .inspector-row span.highlight { color: #34d399; font-weight: 700; }
     .inspector-row span.alert { color: #f87171; font-weight: 700; }
-
     .sandbox-controls {
       display: flex;
       gap: 8px;
@@ -279,17 +194,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: 600;
       font-size: 0.85rem;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
     }
     button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    button.btn-sec:hover { background-color: #e2e8f0; }
-    button.btn-danger { background-color: var(--danger-color); color: #ffffff; }
+    button.btn-sec { background-color: #334155; border: 1px solid #475569; color: #fff; }
+    button.btn-sec:hover { background-color: #475569; }
+    button.btn-danger { background-color: var(--danger-color); color: #fff; }
     button.btn-danger:hover { background-color: #b91c1c; }
-    button.btn-active-action { background-color: #34d399 !important; color: #0f172a !important; font-weight: 800; border: 1px solid #059669; }
-
     .kernel-console {
       background-color: #020617;
       color: #38bdf8;
@@ -302,476 +212,167 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       white-space: pre-wrap;
       border: 1px solid #1e293b;
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin-top: 8px;
-      margin-bottom: 8px;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      text-align: left;
-    }
-    th {
-      background-color: #f1f5f9;
-      color: var(--text);
-      font-weight: 600;
-    }
-    td {
-      color: #334155;
-    }
-
-    pre {
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      line-height: 1.6;
-    }
-    .c-kw { color: #f472b6; font-weight: 600; }
-    .c-type { color: #38bdf8; font-weight: 600; }
-    .c-fn { color: #6ee7b7; font-weight: 600; }
-    .c-prep { color: #c084fc; font-weight: 600; }
-    .c-num { color: #fbbf24; }
-    .c-comm { color: #64748b; font-style: italic; }
-
-    @media (max-width: 860px) {
-      .bio-sidebar { float: none; width: 100%; margin-left: 0; }
-    }
-
-    /* State Machine Diagram Styles */
-    .sm-state { transition: all 0.25s ease; }
-    .sm-box { fill: #0f172a; stroke: #38bdf8; stroke-width: 2px; rx: 6px; }
-    .sm-text { font-size: 10px; font-weight: 700; fill: #38bdf8; text-anchor: middle; font-family: var(--font-mono); }
-    .sm-subtext { font-size: 8px; fill: #ffffff; text-anchor: middle; }
-    .active-state .sm-box { fill: #0284c7; stroke: #38bdf8; stroke-width: 3px; filter: drop-shadow(0 4px 8px rgba(2,132,199,0.4)); }
-    .active-state .sm-text { fill: #ffffff; }
-    .active-state .sm-subtext { fill: #e0f2fe; }
   </style>
 </head>
 <body>
-
   <div class="nav-back">
-    <a href="index.html">&larr; Back to Week Overview</a>
+    <a href="index.html">&larr; Back to Week 10 Index</a>
   </div>
-
   <header>
-    <h1>1. Files &amp; Naming Abstractions</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.1: Comprehensive Reference on File Naming, Structures, Types, Access, Attributes, and POSIX System Calls.</p>
+    <h1>02. Directory Systems &amp; Hierarchies</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.2: Comprehensive Reference on Directory Structures, Path Resolution, and Directory System Calls.</p>
   </header>
-
   <div class="main-container">
 
-    <!-- 1. THEORY SECTION WITH FLOATING SIDEBAR -->
+    <!-- Section 4.2.1: Single-Level & Hierarchical Directories -->
     <div class="card">
-      <div class="theory-section">
+      <h2>4.2.1 &amp; 4.2.2 Directory Structures: Single-Level, Two-Level &amp; Hierarchical</h2>
+      <p>
+        To keep track of thousands or millions of individual files stored on persistent media, operating systems organize files using <strong>directories</strong> (folders). A directory acts as a symbol table, translating file names into their corresponding metadata or disk block addresses.
+      </p>
 
-        <!-- Floating Sidebar with Pioneers Infobox -->
-        <aside class="bio-sidebar">
-          <h3>File System Pioneers</h3>
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">1. Single-Level Directory Systems</div>
+      <p>
+        The earliest and simplest directory architecture consists of a single directory containing all files for all users. Every file must possess a completely unique name, leading to frequent naming collisions in multi-user environments.
+      </p>
 
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Ken Thompson</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Feb 4, 1943 | UC Berkeley | Bell Labs</div>
-            <img src="thompson.jpg" alt="Ken Thompson">
-            <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems. You can find out more on <a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">Wikipedia</a>.</p>
-          </div>
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">2. Two-Level Directory Systems</div>
+      <p>
+        Maintains a master directory containing one entry for every user, pointing to separate private user directories. Different users can create files with identical names, but internal subdirectories remain unsupported.
+      </p>
 
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Dennis Ritchie</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Sep 9, 1941 — <strong>Died:</strong> Oct 12, 2011 | Harvard | Bell Labs</div>
-            <img src="ritchie.jpg" alt="Dennis Ritchie">
-            <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions. You can find out more on <a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">Wikipedia</a>.</p>
-          </div>
-
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Andrew S. Tanenbaum</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Mar 16, 1944 | MIT | Vrije Universiteit</div>
-            <img src="tanenbaum.jpg" alt="Andrew S. Tanenbaum">
-            <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles. You can find out more on <a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">Wikipedia</a>.</p>
-          </div>
-
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Marshall Kirk McKusick</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Jan 19, 1954 | Cornell / UC Berkeley</div>
-            <img src="mckusick.jpg" alt="Marshall Kirk McKusick">
-            <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation. You can find out more on <a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">Wikipedia</a>.</p>
-          </div>
-        </aside>
-
-        <h2>4.1.1 File Naming &amp; Structural Abstractions</h2>
-        <p>
-          File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across execution contexts. When a context creates a file, it assigns a unique name; when that context terminates, the file persists and remains accessible to other contexts using that same name. Modern operating systems support extended identifiers up to 255 characters, balancing case sensitivity models across UNIX and Windows environments.
-        </p>
-
-        <h2>4.1.2 File Structure &amp; Organization</h2>
-        <p>
-          File organization models dictate how the operating system or applications perceive and structure internal data layouts. Three primary file structures have historically been utilized: unstructured byte streams (standard across UNIX and Windows), fixed-length record sequences, and key-indexed trees.
-        </p>
-
-        <h2>4.1.3 File Types &amp; Classifications</h2>
-        <p>
-          Operating systems recognize regular files (ASCII and binary), system-managed hierarchical directories, character special files for serial I/O devices, and block special files for disk storage drives.
-        </p>
-
-        <h2>4.1.4 File Access &amp; Positioning Mechanisms</h2>
-        <p>
-          Access models evolved from early sequential magnetic tape traversal to random-access files supported by direct-access storage devices. To specify positions, operating systems utilize separate seek operations (such as <code>lseek</code>) to manipulate logical byte offset pointers before executing stream reads or writes.
-        </p>
-      </div>
-
-      <!-- Figure: File Control Block / I-Node Metadata Layout -->
-      <div class="figure-container" style="max-width: 860px; align-items: stretch;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; margin-bottom: 4px;">Figure: File Control Block (FCB) / I-Node Metadata Layout</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="150" y="15" width="400" height="160" fill="#f8fafc" stroke="#0284c7" stroke-width="2" rx="6"/>
-          <text x="350" y="38" font-size="12" font-weight="700" fill="#0284c7" text-anchor="middle">File Control Block / I-Node Metadata Structure</text>
-
-          <rect x="170" y="50" width="360" height="24" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1" rx="3"/>
-          <text x="180" y="66" font-size="10" font-weight="600" fill="#0369a1">Protection Modes &amp; Owner UID/GID</text>
-
-          <rect x="170" y="79" width="360" height="24" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1" rx="3"/>
-          <text x="180" y="95" font-size="10" font-weight="600" fill="#047857">Flags (Hidden, Read-Only, Archive, Lock)</text>
-
-          <rect x="170" y="108" width="360" height="24" fill="#fffbeb" stroke="#fde68a" stroke-width="1" rx="3"/>
-          <text x="180" y="124" font-size="10" font-weight="600" fill="#b45309">Timestamps (Creation, Access, Modification)</text>
-
-          <rect x="170" y="137" width="360" height="24" fill="#fef2f2" stroke="#fecaca" stroke-width="1" rx="3"/>
-          <text x="180" y="153" font-size="10" font-weight="600" fill="#b91c1c">File Size &amp; Disk Block Address Pointers</text>
-        </svg>
-      </div>
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">3. Hierarchical (Tree-Structured) Directory Systems</div>
+      <p>
+        Modern operating systems implement hierarchical directory structures configured as arbitrary trees starting from a designated root directory (<code>/</code> in UNIX or <code>C:\</code> in Windows).
+      </p>
     </div>
 
-    <!-- 2. INTERACTIVE KERNEL TABLE INSPECTOR & STATE MACHINE SANDBOX -->
-    <div class="card kernel-sandbox" id="sandboxSection">
+    <!-- Section 4.2.3: Path Names -->
+    <div class="card">
+      <h2>4.2.3 Path Names</h2>
+      <p>
+        To locate a file within a hierarchy, applications specify paths using two primary formats:
+      </p>
+      <ul>
+        <li><strong>Absolute Paths:</strong> Specify the exact traversal route starting from the root directory (e.g., <code>/home/student/cosc240/lab10.c</code>).</li>
+        <li><strong>Relative Paths:</strong> Specify a route starting from the calling context's current working directory (CWD), utilizing special directory entries such as <code>.</code> (current directory) and <code>..</code> (parent directory).</li>
+      </ul>
+    </div>
+
+    <!-- Section 4.2.4: Directory Operations -->
+    <div class="card">
+      <h2>4.2.4 Directory Operations &amp; System Calls</h2>
+      <p>
+        Operating systems provide a specialized suite of system calls to manage directories and link namespaces together:
+      </p>
+      <ol>
+        <li><strong>Create:</strong> Creates a new, empty directory (such as <code>mkdir</code>). Initially, it contains only two entries: <code>.</code> (referencing itself) and <code>..</code> (referencing its parent).</li>
+        <li><strong>Delete:</strong> Removes a directory. Most operating systems require the directory to be completely empty (containing only <code>.</code> and <code>..</code>) before deletion is permitted.</li>
+        <li><strong>Opendir:</strong> Opens a directory for reading, returning a directory stream pointer or descriptor.</li>
+        <li><strong>Readdir:</strong> Reads the next entry from an open directory stream, returning file names and i-node numbers. Historically, applications read raw directory bytes directly, but modern systems enforce <code>readdir</code> to abstract internal directory block layouts and prevent direct corruption of symbol tables.</li>
+        <li><strong>Closedir:</strong> Releases directory stream resources when directory traversal concludes.</li>
+        <li><strong>Rename:</strong> Changes a file or directory name within the namespace tree without duplicating underlying data blocks.</li>
+        <li><strong>Link:</strong> Creates a new hard link—an additional directory entry pointing to an existing file's i-node. This allows a single file to exist under multiple names or in different directories simultaneously.</li>
+        <li><strong>Unlink:</strong> Removes a directory entry. If the entry being unlinked is the final hard link pointing to an i-node (and no execution contexts have it open), the i-node and its associated data blocks are deallocated.</li>
+      </ol>
+    </div>
+
+    <!-- Interactive Directory Link & Unlink Sandbox -->
+    <div class="card kernel-sandbox">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;">3. Interactive Kernel Table Inspector &amp; State Machine</div>
+        <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;">Interactive Hard Link &amp; Unlink Simulator</div>
       </div>
 
-      <!-- Sticky Action Control Bar (Pinned at top of sandbox) -->
       <div class="sticky-control-bar">
-        <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">System Call Action Controls:</div>
+        <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">Directory System Call Controls:</div>
         <div class="sandbox-controls">
-          <button onclick="runInspectionOp('creat')" id="btn-creat" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
-          <button onclick="runInspectionOp('open')" id="btn-open" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
-          <button onclick="runInspectionOp('read')" id="btn-read" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
-          <button onclick="runInspectionOp('write')" id="btn-write" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
-          <button onclick="runInspectionOp('seek')" id="btn-seek" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
-          <button onclick="runInspectionOp('close')" id="btn-close" class="btn-sec btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
+          <button onclick="simOp('create')" style="font-size: 0.8rem; padding: 6px 12px;">creat("notes.txt")</button>
+          <button onclick="simOp('link')" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">link("notes.txt", "backup.txt")</button>
+          <button onclick="simOp('unlink1')" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">unlink("notes.txt")</button>
+          <button onclick="simOp('unlink2')" class="btn-sec btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">unlink("backup.txt")</button>
         </div>
       </div>
 
-      <!-- Detailed Instructional Breakdown -->
-      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #ffffff; line-height: 1.6;">
-        <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.8rem; font-family: var(--font-mono);">How to Use This Kernel Inspector &amp; What You Are Seeing:</div>
-        <p style="color: #cbd5e1;">
-          This interactive sandbox simulates how the operating system kernel maintains state across execution contexts during POSIX file operations. Use the sticky system call action buttons (locked above for convenience) to trigger state transitions and examine how the interface updates across three synchronized telemetry views:
-        </p>
-        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px; color: #cbd5e1;">
-          <li><strong style="color: #ffffff;">1. The State Machine Diagram (Below):</strong> Visually tracks the active lifecycle state of your file descriptor in real time.</li>
-          <li><strong style="color: #ffffff;">2. The Three Kernel Tables (Below):</strong>
-            <ul style="padding-left: 18px; margin-top: 2px; color: #94a3b8;">
-              <li><em style="color: #cbd5e1;">Process FD Table:</em> Shows private per-context file descriptor integer slots (e.g., slot <code>3</code>).</li>
-              <li><em style="color: #cbd5e1;">Open File Table:</em> Tracks shared kernel telemetry including access mode flags, active reference counts, and the live byte offset pointer.</li>
-              <li><em style="color: #cbd5e1;">Buffer Cache &amp; i-Node:</em> Monitors volatile RAM block residency, dirty cache status, and file size metrics before persistent disk synchronization.</li>
-            </ul>
-          </li>
-          <li><strong style="color: #ffffff;">3. The Kernel Console &amp; Challenges (Bottom):</strong> Reports exact kernel return codes (such as success or <code>EBADF</code> faults) and lets you test real-world debugging challenges.</li>
-        </ul>
-      </div>
-
-      <!-- Embedded Interactive State Machine Diagram -->
-      <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
-        <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #38bdf8; text-transform: uppercase;">Live File Descriptor Lifecycle State Machine</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 120" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <g id="sm-state-0" class="sm-state active-state">
-            <rect x="20" y="25" width="110" height="55" class="sm-box"/>
-            <text x="75" y="48" class="sm-text">UNALLOCATED</text>
-            <text x="75" y="64" class="sm-subtext">Context Closed</text>
-          </g>
-          <path d="M 130 52 L 180 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="155" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">creat/open()</text>
-
-          <g id="sm-state-1" class="sm-state">
-            <rect x="180" y="25" width="120" height="55" class="sm-box"/>
-            <text x="240" y="48" class="sm-text">FD_ALLOCATED</text>
-            <text x="240" y="64" class="sm-subtext">fd slot bound</text>
-          </g>
-          <path d="M 300 52 L 350 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="325" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">read()</text>
-
-          <g id="sm-state-2" class="sm-state">
-            <rect x="350" y="25" width="110" height="55" class="sm-box"/>
-            <text x="405" y="48" class="sm-text">OFT_BOUND</text>
-            <text x="405" y="64" class="sm-subtext">Offset advancing</text>
-          </g>
-          <path d="M 460 52 L 510 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="485" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">lseek()</text>
-
-          <g id="sm-state-3" class="sm-state">
-            <rect x="510" y="25" width="110" height="55" class="sm-box"/>
-            <text x="565" y="48" class="sm-text">RAM_CACHED</text>
-            <text x="565" y="64" class="sm-subtext">Random Access</text>
-          </g>
-
-          <path d="M 565 80 L 565 102 L 75 102 L 75 80" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#smarrow-close)"/>
-          <text x="320" y="112" font-size="8" fill="#fbbf24" font-weight="700" text-anchor="middle">close() [Flushes Cache &amp; Deallocates FD]</text>
-
-          <defs>
-            <marker id="smarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
-            </marker>
-            <marker id="smarrow-close" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
-            </marker>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- Detailed State Glossary & Explanatory Card -->
-      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5;">
-        <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.78rem; font-family: var(--font-mono);">Kernel State Machine Glossary &amp; Technical Breakdown:</div>
-        <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #94a3b8;">
-          <li><strong style="color: #38bdf8;">UNALLOCATED (Initial State):</strong> No file descriptor exists for this file in the table. Any attempt to read or write without opening returns an <code style="color: #f87171;">EBADF</code> error.</li>
-          <li><strong style="color: #38bdf8;">FD_ALLOCATED (Triggered by creat() / open()):</strong> The kernel has successfully validated permissions, loaded the i-node into RAM, and bound a small integer index (e.g., `fd = 3`) in the descriptor table.</li>
-          <li><strong style="color: #38bdf8;">OFT_BOUND (Triggered by read() / write()):</strong> The shared Open File Table entry is actively tracking access mode flags, reference counts, and the live byte offset pointer as data flows between storage and buffers.</li>
-          <li><strong style="color: #38bdf8;">RAM_CACHED (Triggered by write() / lseek()):</strong> Data resides in memory-resident buffer cache blocks (`DIRTY` until synced). Calling `close()` flushes blocks to disk and returns the state to `UNALLOCATED`.</li>
-        </ul>
-      </div>
-
-      <!-- Side-by-Side Kernel Table Panels -->
       <div class="inspector-grid">
         <div class="inspector-panel">
-          <div class="inspector-title"><span>Process FD Table</span><span>(Private)</span></div>
-          <div class="inspector-row"><span>fd [0]:</span><span>stdin (keyboard)</span></div>
-          <div class="inspector-row"><span>fd [1]:</span><span>stdout (terminal)</span></div>
-          <div class="inspector-row"><span>fd [2]:</span><span>stderr (terminal)</span></div>
-          <div class="inspector-row"><span>fd [3]:</span><span id="insp-fd3" class="alert">-- UNUSED --</span></div>
+          <div class="inspector-title"><span>Directory Namespace</span><span>(/home)</span></div>
+          <div class="inspector-row"><span>notes.txt:</span><span id="dir-notes" class="highlight">i-Node #42</span></div>
+          <div class="inspector-row"><span>backup.txt:</span><span id="dir-backup" class="alert">-- UNUSED --</span></div>
         </div>
 
         <div class="inspector-panel">
-          <div class="inspector-title"><span>Open File Table</span><span>(Shared Kernel)</span></div>
-          <div class="inspector-row"><span>Target File:</span><span id="insp-filename">None</span></div>
-          <div class="inspector-row"><span>Access Flags:</span><span id="insp-flags">--</span></div>
-          <div class="inspector-row"><span>Reference Count:</span><span id="insp-ref">0</span></div>
-          <div class="inspector-row"><span>Byte Offset Pointer:</span><span id="insp-offset" class="highlight">0 Bytes</span></div>
-        </div>
-
-        <div class="inspector-panel">
-          <div class="inspector-title"><span>Buffer Cache &amp; i-Node</span><span>(RAM / Disk)</span></div>
-          <div class="inspector-row"><span>Active i-Node:</span><span id="insp-inode">None</span></div>
-          <div class="inspector-row"><span>Cache Block:</span><span id="insp-block">None</span></div>
-          <div class="inspector-row"><span>Buffer Status:</span><span id="insp-dirty" class="highlight">CLEAN</span></div>
-          <div class="inspector-row"><span>File Size:</span><span id="insp-size">0 Bytes</span></div>
+          <div class="inspector-title"><span>i-Node Table</span><span>(#42 Metadata)</span></div>
+          <div class="inspector-row"><span>Link Count:</span><span id="inode-links" class="highlight">0</span></div>
+          <div class="inspector-row"><span>Storage Blocks:</span><span id="inode-blocks">0 Blocks</span></div>
+          <div class="inspector-row"><span>Status:</span><span id="inode-status" class="alert">DEALLOCATED</span></div>
         </div>
       </div>
 
-      <!-- Guided Debugging Challenge Panel -->
-      <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-        <div style="font-size: 0.78rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; font-family: var(--font-mono);">Guided Debugging Challenge</div>
-        <div style="font-size: 0.85rem; color: #cbd5e1;" id="challengeDesc">
-          <strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> before initializing a file descriptor. Observe how the kernel traps invalid file descriptor references.
-        </div>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button onclick="loadChallenge(1)" style="font-size: 0.72rem; padding: 4px 8px;">1. Missing Open Bug</button>
-          <button onclick="loadChallenge(2)" class="btn-sec" style="font-size: 0.72rem; padding: 4px 8px;">2. Shared Offset Trap</button>
-          <button onclick="loadChallenge(3)" class="btn-sec" style="font-size: 0.72rem; padding: 4px 8px;">3. Unflushed Cache Risk</button>
-        </div>
-      </div>
-
-      <div id="inspectorConsole" class="kernel-console">$ sandbox telemetry initialized. Ready for system calls...</div>
-    </div>
-
-    <!-- 3. EXAMPLE PROGRAM (SYNTAX HIGHLIGHTED) -->
-    <div class="card">
-      <h2>4.1.7 Example: POSIX File-Copy Program</h2>
-      <p>
-        Below is a standard POSIX C implementation illustrating file descriptor error checking and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
-      </p>
-      <pre><span class="c-prep">#include &lt;sys/types.h&gt;</span>
-<span class="c-prep">#include &lt;fcntl.h&gt;</span>
-<span class="c-prep">#include &lt;stdlib.h&gt;</span>
-<span class="c-prep">#include &lt;unistd.h&gt;</span>
-
-<span class="c-prep">#define BUF_SIZE 4096</span>
-<span class="c-prep">#define OUTPUT_MODE 0700</span>
-
-<span class="c-type">int</span> <span class="c-fn">main</span>(<span class="c-type">int</span> argc, <span class="c-type">char</span> *argv[]) {
-    <span class="c-type">int</span> in_fd, out_fd, rd_count, wt_count;
-    <span class="c-type">char</span> buffer[BUF_SIZE];
-
-    <span class="c-kw">if</span> (argc != <span class="c-num">3</span>) <span class="c-fn">exit</span>(<span class="c-num">1</span>); <span class="c-comm">// Syntax error</span>
-
-    in_fd = <span class="c-fn">open</span>(argv[<span class="c-num">1</span>], O_RDONLY);
-    <span class="c-kw">if</span> (in_fd &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">2</span>); <span class="c-comm">// Source open failed</span>
-
-    out_fd = <span class="c-fn">creat</span>(argv[<span class="c-num">2</span>], OUTPUT_MODE);
-    <span class="c-kw">if</span> (out_fd &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">3</span>); <span class="c-comm">// Destination creation failed</span>
-
-    <span class="c-kw">while</span> (<span class="c-num">1</span>) {
-        rd_count = <span class="c-fn">read</span>(in_fd, buffer, BUF_SIZE);
-        <span class="c-kw">if</span> (rd_count &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">4</span>); <span class="c-comm">// Read error</span>
-        <span class="c-kw">if</span> (rd_count == <span class="c-num">0</span>) <span class="c-kw">break</span>; <span class="c-comm">// EOF reached</span>
-
-        wt_count = <span class="c-fn">write</span>(out_fd, buffer, rd_count);
-        <span class="c-kw">if</span> (wt_count &lt;= <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">5</span>); <span class="c-comm">// Write error</span>
-    }
-
-    <span class="c-fn">close</span>(in_fd);
-    <span class="c-fn">close</span>(out_fd);
-    <span class="c-fn">exit</span>(<span class="c-num">0</span>);
-}</pre>
+      <div id="dirConsole" class="kernel-console">$ directory simulation initialized. Ready for link/unlink operations...</div>
     </div>
 
   </div>
 
   <script>
-    let kernelState = {
-      isOpen: false,
-      fd: "-- UNUSED --",
-      filename: "None",
-      flags: "--",
-      ref: 0,
-      offset: 0,
-      inode: "None",
-      block: "None",
-      dirty: "CLEAN",
-      size: 0,
-      stateIndex: 0
+    let state = {
+      notesExists: false,
+      backupExists: false,
+      linkCount: 0,
+      blocks: 0,
+      status: "DEALLOCATED"
     };
 
-    const actionButtons = ['creat', 'open', 'read', 'write', 'seek', 'close'];
+    function updateDirUI(msg) {
+      document.getElementById("dir-notes.txt" || "dir-notes").textContent = state.notesExists ? "i-Node #42" : "-- UNUSED --";
+      document.getElementById("dir-notes").className = state.notesExists ? "highlight" : "alert";
 
-    function refreshInspectionUI(consoleMsg, activeCmd = null) {
-      const fdEl = document.getElementById("insp-fd3");
-      fdEl.textContent = kernelState.fd;
-      fdEl.className = kernelState.isOpen ? "highlight" : "alert";
+      const bEl = document.getElementById("dir-backup");
+      bEl.textContent = state.backupExists ? "i-Node #42" : "-- UNUSED --";
+      bEl.className = state.backupExists ? "highlight" : "alert";
 
-      document.getElementById("insp-filename").textContent = kernelState.filename;
-      document.getElementById("insp-flags").textContent = kernelState.flags;
-      document.getElementById("insp-ref").textContent = kernelState.ref;
-      document.getElementById("insp-offset").textContent = kernelState.offset + " Bytes";
-      document.getElementById("insp-inode").textContent = kernelState.inode;
-      document.getElementById("insp-block").textContent = kernelState.block;
+      document.getElementById("inode-links").textContent = state.linkCount;
+      document.getElementById("inode-blocks").textContent = state.blocks + " Blocks";
 
-      const dirtyEl = document.getElementById("insp-dirty");
-      dirtyEl.textContent = kernelState.dirty;
-      dirtyEl.className = kernelState.dirty === "DIRTY" ? "alert" : "highlight";
+      const stEl = document.getElementById("inode-status");
+      stEl.textContent = state.status;
+      stEl.className = state.status === "ACTIVE" ? "highlight" : "alert";
 
-      document.getElementById("insp-size").textContent = kernelState.size + " Bytes";
-      document.getElementById("inspectorConsole").textContent = consoleMsg;
-
-      for (let i = 0; i < 4; i++) {
-        const node = document.getElementById(`sm-state-${i}`);
-        if (i === kernelState.stateIndex) {
-          node.classList.add('active-state');
-        } else {
-          node.classList.remove('active-state');
-        }
-      }
-
-      actionButtons.forEach(btnName => {
-        const btn = document.getElementById(`btn-${btnName}`);
-        if (btn) {
-          if (btnName === activeCmd) {
-            btn.classList.add('btn-active-action');
-          } else {
-            btn.classList.remove('btn-active-action');
-          }
-        }
-      });
+      document.getElementById("dirConsole").textContent = msg;
     }
 
-    function runInspectionOp(cmd) {
-      if (cmd === 'creat' || cmd === 'open') {
-        kernelState.isOpen = true;
-        kernelState.fd = "fd [3] (Active)";
-        kernelState.filename = cmd === 'creat' ? "app.conf (New)" : "access.log";
-        kernelState.flags = cmd === 'creat' ? "O_CREAT | O_WRONLY" : "O_RDWR | O_APPEND";
-        kernelState.ref = 1;
-        kernelState.offset = cmd === 'creat' ? 0 : 4096;
-        kernelState.inode = "i-node #512";
-        kernelState.block = "Block #104";
-        kernelState.dirty = "CLEAN";
-        kernelState.size = 256;
-        kernelState.stateIndex = 1; // FD_ALLOCATED
-        refreshInspectionUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Table. Created Open File Table entry & loaded i-node #512 into RAM.`, cmd);
-      } else if (cmd === 'read') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ read(3, buf, 4096);\n[Fault] EBADF: Bad file descriptor! You must call open() or creat() before reading.`, cmd);
+    function simOp(op) {
+      if (op === 'create') {
+        state.notesExists = true;
+        state.linkCount = 1;
+        state.blocks = 4;
+        state.status = "ACTIVE";
+        updateDirUI("$ creat(\"notes.txt\");\n[Kernel] Created directory entry 'notes.txt' pointing to i-Node #42. Link count = 1.");
+      } else if (op === 'link') {
+        if (!state.notesExists) {
+          updateDirUI("$ link(\"notes.txt\", \"backup.txt\");\n[Error] No such file or directory: 'notes.txt'");
           return;
         }
-        kernelState.offset += 4096;
-        kernelState.stateIndex = 2; // OFT_BOUND
-        refreshInspectionUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into space. Offset advanced to ${kernelState.offset} Bytes.`, cmd);
-      } else if (cmd === 'write') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ write(3, data, 64);\n[Fault] EBADF: Bad file descriptor! File descriptor is not open.`, cmd);
+        state.backupExists = true;
+        state.linkCount = 2;
+        updateDirUI("$ link(\"notes.txt\", \"backup.txt\");\n[Kernel] Created hard link 'backup.txt' pointing to i-Node #42. Link count incremented to 2.");
+      } else if (op === 'unlink1') {
+        if (!state.notesExists) {
+          updateDirUI("$ unlink(\"notes.txt\");\n[Error] File not found.");
           return;
         }
-        kernelState.offset += 64;
-        kernelState.size += 64;
-        kernelState.dirty = "DIRTY";
-        kernelState.stateIndex = 3; // RAM_CACHED
-        refreshInspectionUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`, cmd);
-      } else if (cmd === 'seek') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ lseek(3, 0, SEEK_SET);\n[Fault] EBADF: Bad file descriptor!`, cmd);
+        state.notesExists = false;
+        state.linkCount = 1;
+        updateDirUI("$ unlink(\"notes.txt\");\n[Kernel] Removed directory entry 'notes.txt'. i-Node #42 link count decreased to 1. File data remains accessible via 'backup.txt'.");
+      } else if (op === 'unlink2') {
+        if (!state.backupExists) {
+          updateDirUI("$ unlink(\"backup.txt\");\n[Error] File not found.");
           return;
         }
-        kernelState.offset = 0;
-        kernelState.stateIndex = 2; // OFT_BOUND
-        refreshInspectionUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`, cmd);
-      } else if (cmd === 'close') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ close(3);\n[Fault] EBADF: File descriptor 3 is already closed or inactive.`, cmd);
-          return;
-        }
-        const flushed = kernelState.dirty === "DIRTY";
-        kernelState.isOpen = false;
-        kernelState.fd = "-- UNUSED --";
-        kernelState.filename = "None";
-        kernelState.flags = "--";
-        kernelState.ref = 0;
-        kernelState.offset = 0;
-        kernelState.inode = "None";
-        kernelState.block = "None";
-        kernelState.dirty = "CLEAN";
-        kernelState.stateIndex = 0; // UNALLOCATED
-        refreshInspectionUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`, cmd);
-      }
-    }
-
-    function loadChallenge(id) {
-      const desc = document.getElementById("challengeDesc");
-      if (id === 1) {
-        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
-        runInspectionOp('close');
-      } else if (id === 2) {
-        desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-context systems, shared open file tables cause coupled offsets!";
-        runInspectionOp('open');
-      } else if (id === 3) {
-        desc.innerHTML = "<strong>Challenge 3 (The Unflushed Cache Risk):</strong> Click <code>write()</code> to make the buffer <strong>DIRTY</strong>. Then notice how calling <code>close()</code> automatically flushes the volatile RAM cache to disk.";
-        runInspectionOp('open');
-        setTimeout(() => runInspectionOp('write'), 200);
+        state.backupExists = false;
+        state.linkCount = 0;
+        state.blocks = 0;
+        state.status = "DEALLOCATED";
+        updateDirUI("$ unlink(\"backup.txt\");\n[Kernel] Removed final directory entry. i-Node #42 link count reached 0. Deallocated disk blocks and purged i-Node.");
       }
     }
   </script>
@@ -779,11 +380,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add portraits, metadata, and Wikipedia links to pioneers sidebar
+COMMIT_MSG = """Add section 4.2.4 directory operations and interactive link sandbox
 
-Update week10-file-management/01-files-abstraction.html to include portrait
-images, birth/death dates, alma maters, and natural Wikipedia link sentences
-for Ken Thompson, Dennis Ritchie, Andrew S. Tanenbaum, and Marshall Kirk McKusick."""
+Update week10-file-management/02-directories.html to include comprehensive
+coverage of directory system calls (link, unlink, opendir, readdir) and an
+interactive hard-link and i-node reference count simulator."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -796,19 +397,19 @@ def run_git_step(cmd, desc):
         print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
 
-def execute_pipeline():
+def deploy_module():
     target_dir = "week10-file-management"
     os.makedirs(target_dir, exist_ok=True)
-    target_file = os.path.join(target_dir, "01-files-abstraction.html")
+    target_file = os.path.join(target_dir, "02-directories.html")
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with complete pioneers sidebar infobox to {target_file}")
+    print(f"Wrote module file 02-directories.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging complete pioneers sidebar update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging 02-directories.html update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Pioneers Sidebar Module 01 created, committed, and pushed successfully!")
+    print("--> Module 02 Directory Systems created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
-    execute_pipeline()
+    deploy_module()
