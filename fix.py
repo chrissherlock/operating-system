@@ -549,9 +549,25 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button onclick="inspectExec('close')" class="btn-secondary btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
         </div>
       </div>
-      <p style="font-size: 0.88rem; color: #94a3b8;">
-        Execute POSIX system calls below to observe how the kernel updates volatile memory tables and file descriptor state transitions in real time.
-      </p>
+
+      <!-- Detailed Instructional Breakdown -->
+      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1; line-height: 1.6;">
+        <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.8rem; font-family: var(--font-mono);">How to Use This Kernel Inspector &amp; What You Are Seeing:</div>
+        <p>
+          This interactive sandbox simulates how the operating system kernel maintains state across process boundaries during POSIX file operations. As you click system call buttons above, examine how the interface updates across three synchronized telemetry views:
+        </p>
+        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+          <li><strong>1. The State Machine Diagram (Above):</strong> Visually tracks the active lifecycle state of your file descriptor (moving from <code>UNALLOCATED</code> to <code>FD_ALLOCATED</code>, <code>OFT_BOUND</code>, and <code>RAM_CACHED</code>) in real time.</li>
+          <li><strong>2. The Three Kernel Tables (Below):</strong>
+            <ul style="padding-left: 18px; margin-top: 2px;">
+              <li><em>Process FD Table:</em> Shows private per-process file descriptor integer slots (e.g., slot <code>3</code>).</li>
+              <li><em>Open File Table:</em> Tracks shared kernel telemetry including access mode flags, active reference counts, and the live byte offset pointer.</li>
+              <li><em>Buffer Cache &amp; i-Node:</em> Monitors volatile RAM block residency, dirty cache status, and file size metrics before persistent disk synchronization.</li>
+            </ul>
+          </li>
+          <li><strong>3. The Kernel Console &amp; Challenges (Bottom):</strong> Reports exact kernel return codes (such as success or <code>EBADF</code> faults) and lets you test real-world debugging challenges.</li>
+        </ul>
+      </div>
 
       <!-- Embedded Interactive State Machine Diagram -->
       <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
@@ -721,7 +737,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       document.getElementById("insp-size").textContent = kernelState.size + " Bytes";
       document.getElementById("inspectorConsole").textContent = consoleMsg;
 
-      // Update State Machine node highlights
       for (let i = 0; i < 4; i++) {
         const node = document.getElementById(`sm-state-${i}`);
         if (i === kernelState.stateIndex) {
@@ -811,11 +826,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Embed state machine diagram directly inside kernel inspector sandbox
+COMMIT_MSG = """Add detailed instructional guide and embedded state machine to inspector
 
-Update week10-file-management/01-files-abstraction.html to include the
-clickable SVG State Machine Diagram inside the interactive Kernel Table
-Inspector card so both visual telemetry tools operate in unison."""
+Update week10-file-management/01-files-abstraction.html to include an
+exhaustive explanatory guide inside the Kernel Table Inspector alongside
+the embedded SVG state machine diagram."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -835,12 +850,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with embedded state machine to {target_file}")
+    print(f"Wrote module file with inspector guide and embedded state machine to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging embedded state machine update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging inspector guide update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Embedded State Machine Module 01 created, committed, and pushed successfully!")
+    print("--> Inspector Guide Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
