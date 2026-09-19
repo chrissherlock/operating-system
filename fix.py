@@ -3,17 +3,18 @@ import os
 import subprocess
 import sys
 
-DIR_HTML = r"""<!DOCTYPE html>
+HTML_CONTENT = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Directories &amp; Hierarchical Layouts — COSC240 Week 10</title>
+  <title>Files &amp; Naming Abstractions — COSC240 Week 10</title>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
+      --border-dark: #94a3b8;
       --accent: #0284c7;
       --accent-hover: #0369a1;
       --text: #0f172a;
@@ -59,148 +60,120 @@ DIR_HTML = r"""<!DOCTYPE html>
       padding-bottom: 6px;
       margin-bottom: 6px;
     }
-    .nav-back {
+    table {
       width: 100%;
-      max-width: 1100px;
-      margin: 0 auto 16px auto;
-      padding: 0 4px;
-      display: flex;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 8px;
+      margin-bottom: 8px;
     }
-    .nav-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      text-decoration: none;
-      color: #0284c7;
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .nav-back a:hover {
-      background-color: #0284c7;
-      color: #ffffff;
-    }
-  </style>
-</head>
-<body>
-  <div class="nav-back">
-    <a href="index.html">&larr; Back to Week 10 Index</a>
-  </div>
-  <header>
-    <h1>02. Directories &amp; Hierarchical Layouts</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.2: Single-Level Systems, Hierarchical Trees, Path Names, and Directory Operations.</p>
-  </header>
-  <div class="main-container">
-
-    <div class="card">
-      <h2>4.2.1 Single-Level &amp; Hierarchical Directories</h2>
-      <p>
-        Early personal computers and embedded systems (such as digital cameras and music players) utilized a single flat directory containing all files[cite: 3, 4]. While simple, modern systems with thousands of files require hierarchical tree structures to group related files and isolate user workspaces[cite: 4].
-      </p>
-
-      <!-- SVG Directory Tree Diagram -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Hierarchical Directory Tree Namespace</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 220" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Root -->
-          <rect x="300" y="20" width="100" height="40" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-          <text x="350" y="45" font-size="12" font-weight="700" fill="#0284c7" text-anchor="middle">/ (Root)</text>
-
-          <!-- Edges from Root -->
-          <path d="M 350 60 L 150 100" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 350 60 L 350 100" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 350 60 L 550 100" stroke="#94a3b8" stroke-width="1.5"/>
-
-          <!-- Subdirs bin, usr, etc -->
-          <rect x="100" y="100" width="100" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
-          <text x="150" y="125" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">bin</text>
-
-          <rect x="300" y="100" width="100" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
-          <text x="350" y="125" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">usr</text>
-
-          <rect x="500" y="100" width="100" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
-          <text x="550" y="125" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">etc</text>
-
-          <!-- Edge from usr to ast -->
-          <path d="M 350 140 L 350 170" stroke="#94a3b8" stroke-width="1.5"/>
-          <rect x="300" y="170" width="100" height="40" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="350" y="195" font-size="11" font-weight="600" fill="#059669" text-anchor="middle">ast (home)</text>
-        </svg>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>4.2.3 Path Names &amp; Operations</h2>
-      <ul>
-        <li><strong>Absolute Path Names:</strong> Start from the root directory (e.g., `/usr/ast/mailbox`) and uniquely identify a file regardless of the current working directory[cite: 4].</li>
-        <li><strong>Relative Path Names:</strong> Resolved relative to the process's current working directory[cite: 4]. Every directory contains special entries `.` (current directory) and `..` (parent directory)[cite: 4].</li>
-        <li><strong>Directory System Calls:</strong> `create`, `delete`, `opendir`, `closedir`, `readdir`, `rename`, `link` (hard links incrementing i-node reference counts), and `unlink` (deleting directory entries)[cite: 4].</li>
-      </ul>
-    </div>
-
-  </div>
-</body>
-</html>
-"""
-
-IMPL_HTML = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File-System Implementation — COSC240 Week 10</title>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --accent: #0284c7;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-    }
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 1100px;
-    }
-    .card {
-      background-color: var(--card-bg);
+    th, td {
       border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+    td {
+      color: #334155;
+    }
+    pre {
+      background-color: #0f172a;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 14px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+    .tutorial-panel {
+      border: 1px solid #fed7aa;
+      border-left: 4px solid var(--inspect-color);
+      background: #fffbeb;
+    }
+    .tutorial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--inspect-color);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tutorial-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #78350f;
+    }
+    .tutorial-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #451a03;
+    }
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    .sandbox-panel {
+      background: #0f172a;
+      color: #f8fafc;
       border-radius: 8px;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      gap: 12px;
     }
-    .card h2 {
-      font-size: 1.25rem;
-      color: var(--accent);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-      margin-bottom: 6px;
+    .sandbox-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button.btn-secondary {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #f8fafc;
+    }
+    button.btn-secondary:hover { background: #475569; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .terminal-screen {
+      background-color: #020617;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 14px;
+      border-radius: 6px;
+      min-height: 140px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      border: 1px solid #1e293b;
+    }
+    ul, ol {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #334155;
+      font-size: 0.93rem;
+      line-height: 1.5;
     }
     .nav-back {
       width: 100%;
@@ -208,6 +181,7 @@ IMPL_HTML = r"""<!DOCTYPE html>
       margin: 0 auto 16px auto;
       padding: 0 4px;
       display: flex;
+      flex-direction: column;
     }
     .nav-back a {
       display: inline-flex;
@@ -223,6 +197,7 @@ IMPL_HTML = r"""<!DOCTYPE html>
       padding: 6px 12px;
       border-radius: 6px;
       transition: background-color 0.15s ease, color 0.15s ease;
+      width: fit-content;
     }
     .nav-back a:hover {
       background-color: #0284c7;
@@ -235,190 +210,253 @@ IMPL_HTML = r"""<!DOCTYPE html>
     <a href="index.html">&larr; Back to Week 10 Index</a>
   </div>
   <header>
-    <h1>03. File-System Implementation</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.3: Layouts, Allocation Strategies, VFS, Journaling, LFS, and Flash-based File Systems.</p>
+    <h1>01. Files &amp; Naming Abstractions</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.1: Exhaustive Reference on File Naming, Structures, Types, Access, Attributes, and POSIX System Calls.</p>
   </header>
   <div class="main-container">
 
+    <!-- Section 4.1.1: File Naming (Expanded) -->
     <div class="card">
-      <h2>4.3.1 &amp; 4.3.2 File-System Layout &amp; Allocation</h2>
+      <h2>4.1.1 File Naming</h2>
       <p>
-        Partitions start with boot blocks (MBR or GPT/UEFI), followed by superblocks (key administrative parameters), free space management bitmaps/lists, i-nodes, root directories, and data blocks[cite: 3, 4]. To track which blocks belong to a file, operating systems utilize several allocation strategies[cite: 4]:
+        File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name.
       </p>
+
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Character Sets and Length Restrictions</div>
       <ul>
-        <li><strong>Contiguous Allocation:</strong> Stores each file as a contiguous run of blocks[cite: 4]. Excellent read performance, but leads to severe disk fragmentation[cite: 4].</li>
-        <li><strong>Linked-List Allocation:</strong> Each block contains a pointer to the next block[cite: 4]. Eliminates external fragmentation but makes random access painfully slow[cite: 4].</li>
-        <li><strong>File Allocation Table (FAT):</strong> Moves pointers into an in-memory table, enabling fast random access while keeping entire blocks free for data[cite: 4].</li>
-        <li><strong>I-Nodes (Index-Nodes):</strong> Associates each file with an i-node containing attributes and direct/indirect disk addresses, scaling efficiently regardless of disk capacity[cite: 4].</li>
+        <li><strong>Character Flexibility:</strong> Modern operating systems permit file names to comprise strings of letters, digits, and various special characters (such as <code>2</code>, <code>urgent!</code>, or <code>Fig.2-14</code>).</li>
+        <li><strong>Historical Limits:</strong> Older operating systems, such as the legacy MS-DOS environment, severely restricted file naming conventions to an 8-character base name with a 3-character extension (the 8+3 format).</li>
+        <li><strong>Modern Capacity:</strong> Contemporary file systems support extended identifiers, allowing file names of up to 255 characters or more, accommodating descriptive and structured naming schemes.</li>
       </ul>
 
-      <!-- SVG Allocation Comparison Diagram -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: I-Node vs FAT Allocation Architecture</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- I-Node Box -->
-          <rect x="30" y="30" width="150" height="90" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
-          <text x="105" y="55" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">I-Node Structure</text>
-          <text x="105" y="75" font-size="10" fill="#475569" text-anchor="middle">Metadata &amp; Attributes</text>
-          <text x="105" y="95" font-size="10" fill="#475569" text-anchor="middle">Direct &amp; Indirect Pointers</text>
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Case Sensitivity Models</div>
+      <ul>
+        <li><strong>Case-Sensitive Systems:</strong> UNIX-based environments (including Linux and macOS) distinguish strictly between uppercase and lowercase letters. Consequently, a single directory can simultaneously house three distinct files named <code>maria</code>, <code>Maria</code>, and <code>MARIA</code>.</li>
+        <li><strong>Case-Insensitive Systems:</strong> Traditional MS-DOS and legacy Windows architectures treat uppercase and lowercase characters as identical, meaning <code>maria</code> and <code>MARIA</code> reference the exact same file. While modern Windows versions support advanced file management features, they maintain backward compatibility with these legacy rules.</li>
+      </ul>
+    </div>
 
-          <path d="M 180 75 L 260 75" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+    <!-- Section 4.1.2: File Structure -->
+    <div class="card">
+      <h2>4.1.2 File Structure</h2>
+      <p>File organization models vary across operating systems and application requirements:</p>
+      <ol>
+        <li><strong>Unsequence of Bytes:</strong> Used by UNIX and Windows. The file is simply a stream of bytes; the operating system does not interpret or structure the contents. Any internal formatting is up to applications.</li>
+        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each with internal structure (historically derived from 80-column punched cards or 132-character printer lines).</li>
+        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, each containing a key field. The file is sorted on the key, allowing applications to retrieve records by key rather than relative position (common in large mainframe commercial data processing).</li>
+      </ol>
+    </div>
 
-          <!-- Data Blocks -->
-          <rect x="260" y="40" width="80" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="300" y="60" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Block 4</text>
+    <!-- Section 4.1.3: File Types -->
+    <div class="card">
+      <h2>4.1.3 File Types</h2>
+      <p>Operating systems recognize and support multiple file classifications:</p>
+      <ul>
+        <li><strong>Regular Files:</strong> User-information containers divided into <em>ASCII files</em> (lines terminated by line feed or carriage return, easily edited and piped) and <em>binary files</em> (executable programs with magic numbers and headers, libraries, or archives).</li>
+        <li><strong>Directories:</strong> System-managed files that maintain the hierarchical structure of the file system.</li>
+        <li><strong>Character Special Files:</strong> Used to model serial I/O devices (terminals, printers, networks).</li>
+        <li><strong>Block Special Files:</strong> Used to model disk storage drives.</li>
+      </ul>
+    </div>
 
-          <rect x="360" y="40" width="80" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="400" y="60" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Block 7</text>
+    <!-- Section 4.1.4: File Access -->
+    <div class="card">
+      <h2>4.1.4 File Access</h2>
+      <p>
+        Early operating systems provided only <strong>sequential access</strong>, where a process had to read all bytes or records in order from the beginning. With the advent of disk storage, <strong>random-access files</strong> emerged, enabling bytes or records to be accessed out of order or by key. Modern systems support explicit seeking via system calls like `lseek` to reposition the file offset pointer.
+      </p>
+    </div>
 
-          <rect x="460" y="40" width="80" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="500" y="60" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Block 12</text>
+    <!-- Section 4.1.5: File Attributes -->
+    <div class="card">
+      <h2>4.1.5 File Attributes (Metadata)</h2>
+      <p>
+        Operating systems associate extra administrative metadata with every file. While attributes differ across platforms, standard metadata includes:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Meaning / Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Protection</strong></td><td>Controls who may access the file and with what permissions (Read/Write/Execute).</td></tr>
+          <tr><td><strong>Owner / Creator</strong></td><td>Identifies the user who created or currently owns the file (UID/GID).</td></tr>
+          <tr><td><strong>Flags</strong></td><td>Hidden, system, read-only, archive (tracks whether file needs backup), temporary, and lock flags.</td></tr>
+          <tr><td><strong>Timestamps</strong></td><td>Exact creation time, time of last access, and time of last attribute/data modification.</td></tr>
+          <tr><td><strong>File Size</strong></td><td>Current byte count and maximum permissible growth limit.</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-            </marker>
-          </defs>
-        </svg>
+    <!-- Section 4.1.6: File Operations -->
+    <div class="card">
+      <h2>4.1.6 File Operations &amp; System Calls</h2>
+      <p>Common system calls provided by operating systems for file management include:</p>
+      <ol>
+        <li><code>create</code>: Initializes a new empty file with specified attributes.</li>
+        <li><code>delete</code>: Removes a file and reclaims its disk space.</li>
+        <li><code>open</code>: Fetches attributes and disk addresses into main memory for rapid access.</li>
+        <li><code>close</code>: Flushes final cached blocks and frees internal table space.</li>
+        <li><code>read</code>: Retrieves data from a file into a user-provided buffer.</li>
+        <li><code>write</code>: Outputs data to a file at the current offset or end.</li>
+        <li><code>append</code>: Restricted write mode adding data exclusively to the end of a file.</li>
+        <li><code>lseek</code>: Repositions the file offset pointer for random access.</li>
+        <li><code>get/set attributes</code>: Reads or modifies file metadata (e.g., protection modes, timestamps).</li>
+        <li><code>rename</code>: Changes a file's name within the directory structure.</li>
+      </ol>
+    </div>
+
+    <!-- Section 4.1.7: Example Program -->
+    <div class="card">
+      <h2>4.1.7 Example: POSIX File-Copy Program</h2>
+      <p>
+        Below is a standard POSIX C implementation illustrating file descriptor handling, error checking, and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
+      </p>
+      <pre>#include &lt;sys/types.h&gt;
+#include &lt;fcntl.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+
+#define BUF_SIZE 4096
+#define OUTPUT_MODE 0700
+
+int main(int argc, char *argv[]) {
+    int in_fd, out_fd, rd_count, wt_count;
+    char buffer[BUF_SIZE];
+
+    if (argc != 3) exit(1); // Syntax error
+
+    in_fd = open(argv[1], O_RDONLY);
+    if (in_fd < 0) exit(2); // Source open failed
+
+    out_fd = creat(argv[2], OUTPUT_MODE);
+    if (out_fd < 0) exit(3); // Destination creation failed
+
+    while (1) {
+        rd_count = read(in_fd, buffer, BUF_SIZE);
+        if (rd_count < 0) exit(4); // Read error
+        if (rd_count == 0) break; // EOF reached
+
+        wt_count = write(out_fd, buffer, rd_count);
+        if (wt_count <= 0) exit(5); // Write error
+    }
+
+    close(in_fd);
+    close(out_fd);
+    exit(0);
+}</pre>
+    </div>
+
+    <!-- Section 2: Guided Interactive Tutorial -->
+    <div class="card tutorial-panel" id="tutorialCard">
+      <div class="tutorial-header">
+        <span id="stepCounter">Step 1 of 4</span>
+        <span id="stepPhase">Concept: File Descriptor Lifecycle</span>
+      </div>
+      <div id="tutorialTitle" class="tutorial-title">1. Opening a File &amp; Allocating Descriptors</div>
+      <div id="tutorialText" class="tutorial-body">
+        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry.
+      </div>
+      <div class="tour-nav">
+        <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Step</button>
+        <button id="nextBtn" onclick="nextTutorialStep()">Next Step &rarr;</button>
       </div>
     </div>
 
-    <div class="card">
-      <h2>4.3.5 - 4.3.8 Advanced File Systems (LFS, Journaling, Flash, VFS)</h2>
-      <ul>
-        <li><strong>Log-Structured File Systems (LFS):</strong> Treats the entire disk as a circular log, batching small random writes into large sequential segment writes[cite: 4].</li>
-        <li><strong>Journaling File Systems:</strong> Maintains an idempotent transaction log of metadata changes (e.g., ext4, NTFS) to ensure fast crash recovery[cite: 4].</li>
-        <li><strong>Flash-Based File Systems (SSDs):</strong> Incorporates Flash Translation Layers (FTL), wear-leveling, garbage collection, and the `TRIM` command to handle asymmetric read/write performance[cite: 4].</li>
-        <li><strong>Virtual File Systems (VFS):</strong> Provides an object-oriented abstraction layer that unifies heterogeneous local and network file systems under standard POSIX system calls[cite: 4].</li>
-      </ul>
+    <!-- Section 3: Interactive Sandbox Playground -->
+    <div class="card sandbox-panel">
+      <div style="font-weight: 700; font-size: 1.1rem; color: #f8fafc;">3. Interactive POSIX System Call Sandbox</div>
+      <p style="font-size: 0.9rem; color: #94a3b8;">
+        Execute simulated POSIX system calls and inspect kernel table state changes in real time.
+      </p>
+
+      <div class="sandbox-controls">
+        <button onclick="sandboxExec('creat')">creat()</button>
+        <button class="btn-secondary" onclick="sandboxExec('open')">open()</button>
+        <button class="btn-secondary" onclick="sandboxExec('write')">write()</button>
+        <button class="btn-secondary" onclick="sandboxExec('seek')">lseek()</button>
+        <button class="btn-secondary" onclick="sandboxExec('close')">close()</button>
+      </div>
+
+      <div id="terminal" class="terminal-screen">$ sandbox initialized. Ready for commands...</div>
     </div>
 
   </div>
+
+  <script>
+    const tutorialSteps = [
+      {
+        title: "1. Opening a File & Allocating Descriptors",
+        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry."
+      },
+      {
+        title: "2. Sequential vs. Random Read Operations",
+        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read."
+      },
+      {
+        title: "3. Arbitrary Offsets via lseek()",
+        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>."
+      },
+      {
+        title: "4. Closing Files & Releasing Resources",
+        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count."
+      }
+    ];
+
+    let currentStep = 0;
+
+    function nextTutorialStep() {
+      if (currentStep < tutorialSteps.length - 1) {
+        currentStep++;
+        updateTutorial();
+      } else {
+        currentStep = 0;
+        updateTutorial();
+      }
+    }
+
+    function updateTutorial() {
+      const step = tutorialSteps[currentStep];
+      document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
+      document.getElementById("tutorialTitle").textContent = step.title;
+      document.getElementById("tutorialText").innerHTML = step.text;
+      document.getElementById("prevBtn").disabled = (currentStep === 0);
+      document.getElementById("nextBtn").textContent = (currentStep === tutorialSteps.length - 1) ? "Restart Tutorial" : "Next Step \u2192";
+    }
+
+    document.getElementById("prevBtn").onclick = () => {
+      if (currentStep > 0) {
+        currentStep--;
+        updateTutorial();
+      }
+    };
+
+    function sandboxExec(cmd) {
+      const term = document.getElementById("terminal");
+      if (cmd === 'creat') {
+        term.textContent = "$ creat(\"config.cfg\", 0644);\n[Kernel] i-node #512 allocated. Directory entry added. Mode set to rw-r--r--.\nStatus: Success (Return code: 0)";
+      } else if (cmd === 'open') {
+        term.textContent = "$ fd = open(\"config.cfg\", O_RDWR);\n[Kernel] Open File Table entry created for UID 1000. Offset pointer set to byte 0.\nStatus: Success (File Descriptor fd = 3)";
+      } else if (cmd === 'write') {
+        term.textContent = "$ write(3, \"TIMEOUT=30\\n\", 11);\n[Kernel] Copied 11 bytes into buffer cache block #104. File size updated to 11 bytes.\nStatus: Success (Bytes written: 11)";
+      } else if (cmd === 'seek') {
+        term.textContent = "$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned file read/write offset pointer for descriptor fd=3 back to byte position 0.\nStatus: Success (Offset: 0)";
+      } else if (cmd === 'close') {
+        term.textContent = "$ close(3);\n[Kernel] Flushed cached blocks to disk. Released file descriptor fd=3.\nStatus: Success (Descriptor closed)";
+      }
+    }
+  </script>
 </body>
 </html>
 """
 
-MGMT_HTML = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Management &amp; Optimization — COSC240 Week 10</title>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --accent: #0284c7;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-    }
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 1100px;
-    }
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    .card h2 {
-      font-size: 1.25rem;
-      color: var(--accent);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-      margin-bottom: 6px;
-    }
-    .nav-back {
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto 16px auto;
-      padding: 0 4px;
-      display: flex;
-    }
-    .nav-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      text-decoration: none;
-      color: #0284c7;
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .nav-back a:hover {
-      background-color: #0284c7;
-      color: #ffffff;
-    }
-  </style>
-</head>
-<body>
-  <div class="nav-back">
-    <a href="index.html">&larr; Back to Week 10 Index</a>
-  </div>
-  <header>
-    <h1>04. Management &amp; Optimization</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.4: Disk-Space Management, Backups, Consistency, Performance, Defragmentation, and Encryption.</p>
-  </header>
-  <div class="main-container">
+COMMIT_MSG = """Expand subsection 4.1.1 file naming in week10 module 01
 
-    <div class="card">
-      <h2>4.4.1 - 4.4.3 Space Management, Backups &amp; Consistency</h2>
-      <ul>
-        <li><strong>Disk-Space Management:</strong> Balances space efficiency and performance via optimal block sizing (e.g., 4 KB to 64 KB) and tracking free space using bitmaps vs. free lists[cite: 4]. Enforces user disk quotas using soft and hard limits[cite: 4].</li>
-        <li><strong>File-System Backups:</strong> Utilizes physical dumps (raw sector copy) or logical dumps (incremental tree-walking using i-node modification bitmaps) to recover from disasters or user mistakes[cite: 4].</li>
-        <li><strong>File-System Consistency:</strong> Consistency checkers (`fsck`) scan metadata tables and bitmaps to repair missing blocks, duplicate allocations, and incorrect link counts[cite: 4].</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>4.4.4 - 4.4.7 Performance &amp; Security Optimization</h2>
-      <ul>
-        <li><strong>Caching &amp; Read-Ahead:</strong> Employs block/buffer caches integrated with virtual memory page caches, write-through vs. write-back policies (`sync`), and read-ahead heuristics[cite: 4].</li>
-        <li><strong>Defragmentation:</strong> Re-aligns fragmented clusters on traditional hard disks (avoided on SSDs to prevent unnecessary wear)[cite: 4].</li>
-        <li><strong>Compression &amp; Deduplication:</strong> Reduces storage footprints using block hashing and pattern encoding[cite: 4].</li>
-        <li><strong>Secure Deletion &amp; Disk Encryption:</strong> Employs full-disk encryption (AES/TPM/SEDs) to protect data at rest against physical extraction[cite: 4].</li>
-      </ul>
-    </div>
-
-  </div>
-</body>
-</html>
-"""
-
-COMMIT_MSG = """Generate comprehensive Week 10 submodules with diagrams and sandboxes
-
-Add detailed HTML modules for directories (02), file-system implementation
-(03), and system management & optimization (04) complete with embedded SVG
-architectural diagrams, interactive tutorials, and live simulation sandboxes."""
+Update week10-file-management/01-files-abstraction.html to include
+exhaustive coverage of file naming conventions, character limits, and
+case-sensitivity models across UNIX and Windows environments."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -434,23 +472,16 @@ def run_git_step(cmd, desc):
 def execute_pipeline():
     target_dir = "week10-file-management"
     os.makedirs(target_dir, exist_ok=True)
+    target_file = os.path.join(target_dir, "01-files-abstraction.html")
 
-    files_map = {
-        "02-directories.html": DIR_HTML,
-        "03-filesystem-implementation.html": IMPL_HTML,
-        "04-management-optimization.html": MGMT_HTML
-    }
+    with open(target_file, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+    print(f"Wrote expanded module file to {target_file}")
 
-    for filename, content in files_map.items():
-        filepath = os.path.join(target_dir, filename)
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(content)
-        print(f"Wrote submodule file to {filepath}")
-
-    run_git_step(["git", "add", target_dir], "Staging week10 submodules")
+    run_git_step(["git", "add", target_file], "Staging expanded 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> All Week 10 submodules created, committed, and pushed successfully!")
+    print("--> Expanded Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()

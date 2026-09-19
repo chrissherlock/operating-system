@@ -14,10 +14,7 @@
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --success-color: #059669;
-      --success-bg: #ecfdf5;
       --inspect-color: #d97706;
-      --inspect-bg: #fef3c7;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,19 +55,6 @@
       padding-bottom: 6px;
       margin-bottom: 6px;
     }
-    .concept-box {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      color: #0369a1;
-    }
-    .concept-box strong { color: #075985; }
-
-    /* Tables for Attributes */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -91,8 +75,6 @@
     td {
       color: #334155;
     }
-
-    /* Code blocks */
     pre {
       background-color: #0f172a;
       color: #38bdf8;
@@ -103,8 +85,6 @@
       overflow-x: auto;
       line-height: 1.5;
     }
-
-    /* Interactive Tutorial Panel */
     .tutorial-panel {
       border: 1px solid #fed7aa;
       border-left: 4px solid var(--inspect-color);
@@ -136,8 +116,6 @@
       margin-top: 10px;
       align-items: center;
     }
-
-    /* Sandbox Terminal */
     .sandbox-panel {
       background: #0f172a;
       color: #f8fafc;
@@ -171,7 +149,6 @@
     }
     button.btn-secondary:hover { background: #475569; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
-
     .terminal-screen {
       background-color: #020617;
       color: #38bdf8;
@@ -184,7 +161,6 @@
       white-space: pre-wrap;
       border: 1px solid #1e293b;
     }
-
     ul, ol {
       padding-left: 20px;
       display: flex;
@@ -230,19 +206,28 @@
   </div>
   <header>
     <h1>01. Files &amp; Naming Abstractions</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.1: Comprehensive Reference on File Naming, Structures, Types, Access, Attributes, and POSIX System Calls.</p>
+    <p class="subtitle">Tanenbaum Chapter 4.1: Exhaustive Reference on File Naming, Structures, Types, Access, Attributes, and POSIX System Calls.</p>
   </header>
   <div class="main-container">
 
-    <!-- Section 4.1.1: File Naming -->
+    <!-- Section 4.1.1: File Naming (Expanded) -->
     <div class="card">
       <h2>4.1.1 File Naming</h2>
       <p>
-        The most important characteristic of any abstraction mechanism is the way objects are named. When a process creates a file, it assigns a name. Upon process termination, the file persists and can be accessed by other processes using that name.
+        File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name.
       </p>
+
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Character Sets and Length Restrictions</div>
       <ul>
-        <li><strong>Character Sets &amp; Length:</strong> Current operating systems allow strings of letters, digits, and special characters (e.g., `2`, `urgent!`, `Fig.2-14`). While older systems like MS-DOS restricted names to 8+3 characters, modern systems support file names up to 255 characters or more.</li>
-        <li><strong>Case Sensitivity:</strong> UNIX systems distinguish between upper- and lowercase letters (treating `maria`, `Maria`, and `MARIA` as three distinct files), whereas MS-DOS and older Windows architectures treat them as identical. Modern Windows versions inherit backward compatibility with FAT-16/FAT-32 file systems while providing advanced file management.</li>
+        <li><strong>Character Flexibility:</strong> Modern operating systems permit file names to comprise strings of letters, digits, and various special characters (such as <code>2</code>, <code>urgent!</code>, or <code>Fig.2-14</code>).</li>
+        <li><strong>Historical Limits:</strong> Older operating systems, such as the legacy MS-DOS environment, severely restricted file naming conventions to an 8-character base name with a 3-character extension (the 8+3 format).</li>
+        <li><strong>Modern Capacity:</strong> Contemporary file systems support extended identifiers, allowing file names of up to 255 characters or more, accommodating descriptive and structured naming schemes.</li>
+      </ul>
+
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Case Sensitivity Models</div>
+      <ul>
+        <li><strong>Case-Sensitive Systems:</strong> UNIX-based environments (including Linux and macOS) distinguish strictly between uppercase and lowercase letters. Consequently, a single directory can simultaneously house three distinct files named <code>maria</code>, <code>Maria</code>, and <code>MARIA</code>.</li>
+        <li><strong>Case-Insensitive Systems:</strong> Traditional MS-DOS and legacy Windows architectures treat uppercase and lowercase characters as identical, meaning <code>maria</code> and <code>MARIA</code> reference the exact same file. While modern Windows versions support advanced file management features, they maintain backward compatibility with these legacy rules.</li>
       </ul>
     </div>
 
