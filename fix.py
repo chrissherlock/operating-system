@@ -197,7 +197,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 0.95rem;
       line-height: 1.6;
       color: #0c4a6e;
-      min-height: 60px;
+      min-height: 72px;
     }
 
     .tour-nav {
@@ -217,6 +217,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     @media (max-width: 980px) {
       .split-grid { grid-template-columns: 1fr; }
       .bio-sidebar { float: none; width: 100%; margin-left: 0; }
+    }
+
+    .table-container {
+      min-height: 250px;
     }
 
     .table-spec {
@@ -271,6 +275,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      user-select: none;
     }
     button:hover { background-color: var(--accent-hover); }
     button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
@@ -638,9 +643,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div id="wtText" class="tutorial-body"></div>
           <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
           <div class="tour-nav">
-            <button id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
-            <button id="wtNextBtn" onclick="stepWtForward()">Next Case &rarr;</button>
-            <button class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Simulator &darr;</button>
+            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
+            <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Case &rarr;</button>
+            <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Simulator &darr;</button>
           </div>
         </div>
       </div>
@@ -656,14 +661,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </p>
         </div>
         <div style="display:flex; gap:8px;">
-          <button class="btn-sec" onclick="resetSimulator()">Reset Ring</button>
+          <button type="button" class="btn-sec" onclick="resetSimulator()">Reset Ring</button>
         </div>
       </div>
 
       <!-- Controls -->
       <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:12px 14px; border:1px solid var(--border); border-radius:6px;">
-        <button onclick="triggerFault()">Trigger Page Fault (Advance Hand)</button>
-        <label style="font-size:0.85rem; font-weight:600;">Working Set Threshold ($\tau$):</label>
+        <button type="button" onclick="triggerFault()">Trigger Page Fault (Advance Hand)</button>
+        <label style="font-size:0.85rem; font-weight:600;">Working Set Threshold (&tau;):</label>
         <input type="range" id="tauSlider" min="100" max="800" value="400" oninput="updateTau(this.value)">
         <span id="tauVal" style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">400 ticks</span>
         <span style="margin-left:auto; font-size:0.85rem; font-family:var(--font-mono); font-weight:700;">Virtual Time: <span id="virtTimeDisplay" style="color:#0284c7;">2200</span></span>
@@ -679,7 +684,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <div class="split-grid">
         <!-- Circular Buffer Table -->
-        <div>
+        <div class="table-container">
           <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Circular Buffer Frames</span>
           <table class="table-spec" style="margin-top:6px;">
             <thead>
@@ -707,7 +712,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     const wtCases = [
       {
         title: "1. The R = 1 Case (Recently Active)",
-        text: "The hand inspects a frame where the hardware Referenced bit $R = 1$. The process touched this page recently, so evicting it would cause thrashing. The algorithm clears $R \\leftarrow 0$, updates its timestamp to current virtual time, and advances the hand.",
+        text: "The hand inspects a frame where the hardware Referenced bit R = 1. The process touched this page recently, so evicting it would cause thrashing. The algorithm clears R &larr; 0, updates its timestamp to current virtual time, and advances the hand.",
         frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400 },
         math: "R = 1 &rarr; Set R=0, Last_Use = 2200. Advance hand without evicting.",
         highlightGate: "walk-gate-r",
@@ -720,10 +725,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         status: "Branch: R == 1 (Reset & Advance)"
       },
       {
-        title: "2. The R = 0, Age <= tau Case (Resident in Working Set)",
-        text: "The hand inspects a frame with $R = 0$, but its age $(2200 - 1950 = 250)$ is less than threshold $\\tau = 400$. Even though it wasn't accessed in the most recent slice, it still belongs to the active working set. The hand steps past it.",
+        title: "2. The R = 0, Age &le; &tau; Case (Resident in Working Set)",
+        text: "The hand inspects a frame with R = 0, but its age (2200 - 1950 = 250) is less than threshold &tau; = 400. Even though it wasn't accessed in the most recent slice, it still belongs to the active working set. The hand steps past it.",
         frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400 },
-        math: "Age = (2200 - 1950) = 250 <= tau (400) &rarr; Keep page in RAM.",
+        math: "Age = (2200 - 1950) = 250 &le; &tau; (400) &rarr; Keep page in RAM.",
         highlightGate: "walk-gate-age",
         highlightAction: "walk-action-inws",
         actionClass: "active-action-blue",
@@ -735,10 +740,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         status: "Branch: In Working Set (Keep & Advance)"
       },
       {
-        title: "3. The R = 0, Age > tau, M = 0 Case (Clean Eviction!)",
-        text: "The hand inspects a frame with $R = 0$, an age $(2200 - 1600 = 600)$ greater than $\\tau$, and a clean Modified bit $M = 0$. This cold, clean page is officially outside the working set and requires zero disk writes. It is evicted immediately!",
+        title: "3. The R = 0, Age &gt; &tau;, M = 0 Case (Clean Eviction!)",
+        text: "The hand inspects a frame with R = 0, an age (2200 - 1600 = 600) greater than &tau;, and a clean Modified bit M = 0. This cold, clean page is officially outside the working set and requires zero disk writes. It is evicted immediately!",
         frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400 },
-        math: "Age = 600 > tau, M = 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty).",
+        math: "Age = 600 &gt; &tau;, M = 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty).",
         highlightGate: "walk-gate-m",
         highlightAction: "walk-action-evict",
         actionClass: "active-action-evict",
@@ -751,10 +756,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         status: "Branch: Clean & Cold (Immediate Eviction!)"
       },
       {
-        title: "4. The R = 0, Age > tau, M = 1 Case (Asynchronous Dirty Flush)",
-        text: "The hand inspects a frame whose age exceeds $\\tau$, but $M = 1$ (dirty). The data must be flushed to disk before the frame can be claimed. To avoid stalling the CPU, WSClock issues an asynchronous disk write and keeps advancing.",
+        title: "4. The R = 0, Age &gt; &tau;, M = 1 Case (Asynchronous Dirty Flush)",
+        text: "The hand inspects a frame whose age exceeds &tau;, but M = 1 (dirty). The data must be flushed to disk before the frame can be claimed. To avoid stalling the CPU, WSClock issues an asynchronous disk write and keeps advancing.",
         frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400 },
-        math: "Age = 700 > tau, M = 1 &rarr; Schedule Async Disk Write. Keep advancing hand.",
+        math: "Age = 700 &gt; &tau;, M = 1 &rarr; Schedule Async Disk Write. Keep advancing hand.",
         highlightGate: "walk-gate-m",
         highlightAction: "walk-action-dirty",
         actionClass: "active-action-dirty",
@@ -795,7 +800,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       document.getElementById("wtMathSummary").innerHTML = c.math;
       document.getElementById("walkActiveStatus").textContent = c.status;
 
-      // Update interactive SVG tree visuals in Part 2 only
       resetWalkTree();
 
       const gateEl = document.getElementById(c.highlightGate);
@@ -812,22 +816,24 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       });
 
-      if (window.MathJax && window.MathJax.typeset) {
-        MathJax.typeset();
-      }
-
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtCases.length - 1);
     }
 
     function stepWtForward() {
-      if (wtStep < wtCases.length - 1) { wtStep++; renderWt(); }
-      document.activeElement.blur();
+      if (wtStep < wtCases.length - 1) {
+        wtStep++;
+        renderWt();
+      }
     }
+
     function stepWtBackward() {
-      if (wtStep > 0) { wtStep--; renderWt(); }
-      document.activeElement.blur();
+      if (wtStep > 0) {
+        wtStep--;
+        renderWt();
+      }
     }
+
     renderWt();
 
     /* =========================================================================
@@ -983,13 +989,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Keep static flowchart in theory and add interactive copy to walkthrough
+COMMIT_MSG = """Fix page jump on button clicks in 10-wsclock.html
 
-Preserve the static Figure 2 decision flowchart under the theory
-section in 10-wsclock.html, and introduce a dedicated interactive SVG
-copy in the Part 2 walkthrough stepper. The interactive copy dynamically
-highlights decision gates (R-bit, age threshold, dirty bit) and active
-branches as each walkthrough case advances."""
+Remove document.activeElement.blur() from stepper functions to prevent
+the browser from jumping scroll position to the document body on click.
+Replace dynamic MathJax re-typesetting in the walkthrough with native
+Unicode symbols to eliminate DOM collapse and layout thrashing. Add
+explicit type="button" attributes and layout stabilization styles."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1007,9 +1013,9 @@ def sync_module():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module to {target_module}")
+    print(f"Wrote stabilized module to {target_module}")
 
-    run_git_step(["git", "add", target_module], "Staging 10-wsclock.html")
+    run_git_step(["git", "add", target_module], "Staging updated 10-wsclock.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
     print("--> Completed successfully!")
