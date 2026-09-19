@@ -217,7 +217,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-top: 2px;
     }
 
-    /* STREAMLINED LFS WALKTHROUGH WIDGET */
+    /* STREAMLINED LFS WALKTHROUGH WIDGETS */
     .lfs-sim-container {
       background: #0f172a;
       border: 1px solid #334155;
@@ -290,6 +290,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .lfs-btn:hover { background-color: #334155; color: #ffffff; }
     .lfs-btn.primary { background-color: #0284c7; color: #fff; border-color: #38bdf8; }
     .lfs-btn.primary:hover { background-color: #0369a1; }
+    .lfs-btn.accent { background-color: #059669; color: #fff; border-color: #34d399; }
+    .lfs-btn.accent:hover { background-color: #047857; }
+    .lfs-btn.danger { background-color: #b91c1c; color: #fff; border-color: #f87171; }
 
     .lfs-segments-grid {
       display: grid;
@@ -334,6 +337,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .blk-free { background: #1e293b; color: #475569; }
     .blk-live { background: #0284c7; color: #fff; }
     .blk-dead { background: #475569; color: #94a3b8; text-decoration: line-through; }
+    .blk-highlight { outline: 2px solid #facc15; box-shadow: 0 0 6px #facc15; }
 
     /* DEFRAGMENTER SHELL & THEMES */
     .defrag-outer-frame {
@@ -654,10 +658,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <figcaption>Figure 4.3.5A: Comparison of random in-place updates versus LFS continuous append logging.</figcaption>
       </figure>
 
-      <!-- STREAMLINED LFS INTERACTIVE WALKTHROUGH -->
+      <!-- STREAMLINED LFS INTERACTIVE WALKTHROUGH 1 -->
       <div class="lfs-sim-container" id="lfsSimulator">
         <div class="lfs-topbar">
-          <span class="lfs-title">Interactive LFS Walkthrough &amp; Segment Simulator</span>
+          <span class="lfs-title">Walkthrough Part 1: Sequential Appends &amp; Dead Space Accumulation</span>
           <span class="lfs-step-indicator" id="lfsStepTag">Step 1 of 3: Ready</span>
         </div>
 
@@ -889,7 +893,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect width="800" height="230" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
           <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5E: Three-Step Block Liveness Verification Pipeline</text>
 
-          <!-- Step 1: Segment Summary -->
           <rect x="40" y="60" width="200" height="135" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
           <text x="140" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">1. Segment Summary Block</text>
           <line x1="50" y1="92" x2="230" y2="92" stroke="#cbd5e1" stroke-width="1"/>
@@ -898,12 +901,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="140" y="139" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0284c7" text-anchor="middle">Summary: (Inode 14, Off 0)</text>
           <text x="140" y="172" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Identifies block ownership</text>
 
-          <!-- Arrow 1 to 2 -->
           <line x1="240" y1="125" x2="295" y2="125" stroke="#0284c7" stroke-width="2"/>
           <polygon points="295,125 287,120 287,130" fill="#0284c7"/>
           <text x="268" y="115" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Query</text>
 
-          <!-- Step 2: Imap Lookup -->
           <rect x="295" y="60" width="195" height="135" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
           <text x="392" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">2. Consult Inode Map</text>
           <line x1="305" y1="92" x2="480" y2="92" stroke="#bae6fd" stroke-width="1"/>
@@ -912,12 +913,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="392" y="139" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">Imap[14] &rarr; Block #8100</text>
           <text x="392" y="172" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Locates latest inode copy</text>
 
-          <!-- Arrow 2 to 3 -->
           <line x1="490" y1="125" x2="545" y2="125" stroke="#0284c7" stroke-width="2"/>
           <polygon points="545,125 537,120 537,130" fill="#0284c7"/>
           <text x="518" y="115" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Compare</text>
 
-          <!-- Step 3: Comparison & Verdict -->
           <rect x="545" y="60" width="215" height="135" fill="#ecfdf5" stroke="#10b981" rx="4"/>
           <text x="652" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">3. Check Inode Offset 0</text>
           <line x1="555" y1="92" x2="750" y2="92" stroke="#a7f3d0" stroke-width="1"/>
@@ -953,9 +952,32 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <li>$\text{Age}$ is the elapsed time since the newest block in the segment was written. An older segment indicates stable, cold data that is unlikely to generate new dead space on its own.</li>
         <li>$(1 + u)$ reflects the physical I/O cost: reading the full segment (cost of $1$) plus rewriting the surviving live fraction (cost of $u$).</li>
       </ul>
-      <p>
-        Under this policy, cold segments are cleaned even if they contain a moderate amount of live data because their live blocks will remain stable once compacted. Conversely, hot segments are left untouched longer to allow rapid churn to destroy remaining blocks naturally, minimizing unnecessary write amplification.
-      </p>
+
+      <!-- NEW INTERACTIVE SEGMENT CLEANER WALKTHROUGH -->
+      <div class="lfs-sim-container" id="lfsCleanerSim">
+        <div class="lfs-topbar">
+          <span class="lfs-title">Walkthrough Part 2: Cost-Benefit Segment Cleaner &amp; Garbage Collector</span>
+          <span class="lfs-step-indicator" id="cleanerStepTag">Interactive Simulation</span>
+        </div>
+
+        <div class="lfs-explanation-box" id="cleanerExplanationBox">
+          <strong>Compare Cleaning Strategies:</strong> Segment 1 contains <em>Hot Data</em> (frequently rewritten), while Segment 2 contains <em>Cold Data</em> (stable). Click <strong>"1. Evaluate Cost-Benefit Scores"</strong> to observe which segment the cleaner chooses!
+        </div>
+
+        <div class="lfs-controls">
+          <button class="lfs-btn primary" onclick="cleanerEvaluateScores()">1. Evaluate Cost-Benefit Scores</button>
+          <button class="lfs-btn accent" onclick="cleanerExecuteCompaction()">2. Compact Winner &amp; Free Segment</button>
+          <button class="lfs-btn" onclick="cleanerSimulateHotChurn()">3. Simulate Churn on Hot Data</button>
+          <button class="lfs-btn" onclick="cleanerResetWalkthrough()" style="margin-left: auto;">Reset Cleaner</button>
+        </div>
+
+        <div class="lfs-segments-grid" id="cleanerSegmentsGrid"></div>
+
+        <div class="lfs-status-panel">
+          <span id="cleanerStatusMsg">Ready to evaluate segment cleaner economics.</span>
+          <span id="cleanerMetricMsg">Clean Free Segments: 1 | Write Amplification: 1.00x</span>
+        </div>
+      </div>
 
       <!-- Diagram: Cost-Benefit Hot vs Cold Cleaning -->
       <figure class="diagram-figure">
@@ -963,7 +985,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
           <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5F: Cost-Benefit Cleaning Dynamics (Hot vs. Cold Data Segments)</text>
 
-          <!-- Hot Segment Box -->
           <rect x="40" y="55" width="340" height="155" fill="#fef2f2" stroke="#f87171" rx="4"/>
           <text x="210" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Hot Segment (Frequent Modifications)</text>
           <line x1="50" y1="88" x2="370" y2="88" stroke="#fecaca" stroke-width="1"/>
@@ -973,7 +994,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="210" y="154" font-family="sans-serif" font-size="10" font-weight="bold" fill="#dc2626" text-anchor="middle">Decision: DELAY CLEANING</text>
           <text x="210" y="190" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">Waiting allows active churn to naturally kill remaining live blocks</text>
 
-          <!-- Cold Segment Box -->
           <rect x="420" y="55" width="340" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
           <text x="590" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Cold Segment (Stable, Read-Only Data)</text>
           <line x1="430" y1="88" x2="750" y2="88" stroke="#bbf7d0" stroke-width="1"/>
@@ -1025,7 +1045,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // --- Streamlined LFS Walkthrough Engine ---
+    // =========================================================
+    // 1. WALKTHROUGH PART 1: SEQUENTIAL APPEND & DEAD SPACE
+    // =========================================================
     const NUM_SEGMENTS = 4;
     const BLOCKS_PER_SEGMENT = 8;
     let lfsSegments = [];
@@ -1163,6 +1185,179 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     lfsResetSim();
+
+    // =========================================================
+    // 2. WALKTHROUGH PART 2: COST-BENEFIT SEGMENT CLEANER
+    // =========================================================
+    let cleanerSegments = [];
+    let cleanerEvaluated = false;
+    let chosenSegmentIndex = -1;
+
+    function cleanerResetWalkthrough() {
+      cleanerEvaluated = false;
+      chosenSegmentIndex = -1;
+      cleanerSegments = [
+        {
+          id: 0,
+          label: "Seg 0 (Cold Media)",
+          type: "cold",
+          age: 400, // old
+          blocks: [
+            { type: "live", id: "C1" }, { type: "live", id: "C2" },
+            { type: "dead", id: "C3" }, { type: "dead", id: "C4" },
+            { type: "dead", id: "C5" }, { type: "dead", id: "C6" },
+            { type: "dead", id: "C7" }, { type: "dead", id: "C8" }
+          ]
+        },
+        {
+          id: 1,
+          label: "Seg 1 (Hot Logs)",
+          type: "hot",
+          age: 5, // very young
+          blocks: [
+            { type: "live", id: "H1" }, { type: "live", id: "H2" },
+            { type: "live", id: "H3" }, { type: "dead", id: "H4" },
+            { type: "dead", id: "H5" }, { type: "dead", id: "H6" },
+            { type: "dead", id: "H7" }, { type: "dead", id: "H8" }
+          ]
+        },
+        {
+          id: 2,
+          label: "Seg 2 (Active Tail)",
+          type: "tail",
+          age: 1,
+          blocks: [
+            { type: "live", id: "T1" }, { type: "live", id: "T2" },
+            { type: "free", id: "·" }, { type: "free", id: "·" },
+            { type: "free", id: "·" }, { type: "free", id: "·" },
+            { type: "free", id: "·" }, { type: "free", id: "·" }
+          ]
+        },
+        {
+          id: 3,
+          label: "Seg 3 (Free Pool)",
+          type: "free_pool",
+          age: 0,
+          blocks: [
+            { type: "free", id: "·" }, { type: "free", id: "·" },
+            { type: "free", id: "·" }, { type: "free", id: "·" },
+            { type: "free", id: "·" }, { type: "free", id: "·" },
+            { type: "free", id: "·" }, { type: "free", id: "·" }
+          ]
+        }
+      ];
+
+      cleanerRender();
+      document.getElementById("cleanerStepTag").textContent = "Step 1: Ready to Compare";
+      document.getElementById("cleanerExplanationBox").innerHTML =
+        "<strong>Compare Segment Economics:</strong> Notice <strong>Seg 0 (Cold)</strong> is old with 2 live blocks ($u=0.25$). <strong>Seg 1 (Hot)</strong> is young with 3 live blocks ($u=0.375$). Click <strong>'1. Evaluate Cost-Benefit Scores'</strong> to see why the cleaner chooses Cold data first!";
+      document.getElementById("cleanerStatusMsg").textContent = "Evaluation reset. Cleaner ready.";
+    }
+
+    function cleanerEvaluateScores() {
+      cleanerEvaluated = true;
+      // Formula: ((1 - u) * age) / (1 + u)
+      // Seg 0: u = 2/8 = 0.25. (0.75 * 400) / 1.25 = 300 / 1.25 = 240.0
+      // Seg 1: u = 3/8 = 0.375. (0.625 * 5) / 1.375 = 3.125 / 1.375 = 2.27
+      chosenSegmentIndex = 0; // Seg 0 wins overwhelmingly due to age
+
+      cleanerRender();
+      document.getElementById("cleanerStepTag").textContent = "Step 2: Candidate Selected";
+      document.getElementById("cleanerExplanationBox").innerHTML =
+        "<strong>Cost-Benefit Winner: Seg 0 (Score: 240.0 vs Seg 1: 2.27)!</strong> Even though both have plenty of dead blocks, <strong>Seg 0 is cold</strong>. Its 2 surviving live blocks will remain permanently stable once moved. Cleaning Hot Seg 1 now would waste write cycles because its blocks are about to be rewritten anyway! Click <strong>'2. Compact Winner & Free Segment'</strong> to complete compaction.";
+      document.getElementById("cleanerStatusMsg").textContent = "Seg 0 selected based on ((1-u)*Age)/(1+u) optimization.";
+    }
+
+    function cleanerExecuteCompaction() {
+      if (!cleanerEvaluated) {
+        document.getElementById("cleanerExplanationBox").innerHTML =
+          "Please click <strong>'1. Evaluate Cost-Benefit Scores'</strong> first so the cleaner can choose a target segment!";
+        return;
+      }
+
+      // Compact Seg 0's live blocks (C1, C2) into Seg 2's active tail
+      let liveToMove = cleanerSegments[0].blocks.filter(b => b.type === "live");
+
+      // Find free slots in Seg 2 (Active Tail)
+      let freeSlots = cleanerSegments[2].blocks.filter(b => b.type === "free");
+      for (let i = 0; i < liveToMove.length && i < freeSlots.length; i++) {
+        freeSlots[i].type = "live";
+        freeSlots[i].id = liveToMove[i].id;
+      }
+
+      // Reclaim Seg 0: turn into clean free pool
+      cleanerSegments[0].blocks = [
+        { type: "free", id: "·" }, { type: "free", id: "·" },
+        { type: "free", id: "·" }, { type: "free", id: "·" },
+        { type: "free", id: "·" }, { type: "free", id: "·" },
+        { type: "free", id: "·" }, { type: "free", id: "·" }
+      ];
+      cleanerSegments[0].label = "Seg 0 (Recycled Clean)";
+      cleanerSegments[0].type = "free_pool";
+
+      chosenSegmentIndex = -1;
+      cleanerEvaluated = false;
+      cleanerRender();
+
+      document.getElementById("cleanerStepTag").textContent = "Compaction Complete!";
+      document.getElementById("cleanerExplanationBox").innerHTML =
+        "<strong>Reclamation Finished!</strong> Live blocks <code>C1</code> and <code>C2</code> were appended contiguously into the Active Tail (Seg 2). <strong>Seg 0 is now completely free and ready to be written again!</strong> Click <strong>'3. Simulate Churn on Hot Data'</strong> to observe how hot blocks naturally die without cleaning overhead.";
+      document.getElementById("cleanerStatusMsg").textContent = "Cleaned Seg 0; 8 blocks reclaimed into free pool.";
+      document.getElementById("cleanerMetricMsg").textContent = "Clean Free Segments: 2 | Write Amplification: 1.25x (Optimal)";
+    }
+
+    function cleanerSimulateHotChurn() {
+      // Show that remaining blocks in Seg 1 die naturally
+      let liveInHot = cleanerSegments[1].blocks.filter(b => b.type === "live");
+      if (liveInHot.length > 0) {
+        liveInHot[0].type = "dead";
+      }
+
+      cleanerRender();
+      document.getElementById("cleanerStepTag").textContent = "Natural Churn Verified";
+      document.getElementById("cleanerExplanationBox").innerHTML =
+        "<strong>Natural Attrition Proved Right!</strong> Because we <em>avoided</em> cleaning Seg 1 earlier, a live block in Seg 1 just got overwritten and became dead space on its own. <strong>We saved write amplification</strong> by letting time clean the hot data for us!";
+      document.getElementById("cleanerStatusMsg").textContent = "Hot block died naturally. Write amplification avoided!";
+    }
+
+    function cleanerRender() {
+      const grid = document.getElementById("cleanerSegmentsGrid");
+      grid.innerHTML = "";
+
+      cleanerSegments.forEach((seg, sIdx) => {
+        let segDiv = document.createElement("div");
+        segDiv.className = "lfs-segment-box";
+        if (sIdx === chosenSegmentIndex) {
+          segDiv.classList.add("blk-highlight");
+        }
+
+        segDiv.innerHTML = `<div class="lfs-seg-header"><span>${seg.label}</span><span>Age: ${seg.age}</span></div>`;
+
+        let blocksDiv = document.createElement("div");
+        blocksDiv.className = "lfs-seg-blocks";
+
+        seg.blocks.forEach(blk => {
+          let bEl = document.createElement("div");
+          bEl.className = "lfs-block";
+          if (blk.type === 'free') {
+            bEl.classList.add("blk-free");
+            bEl.textContent = "·";
+          } else if (blk.type === 'live') {
+            bEl.classList.add("blk-live");
+            bEl.textContent = blk.id;
+          } else if (blk.type === 'dead') {
+            bEl.classList.add("blk-dead");
+            bEl.textContent = blk.id;
+          }
+          blocksDiv.appendChild(bEl);
+        });
+
+        segDiv.appendChild(blocksDiv);
+        grid.appendChild(segDiv);
+      });
+    }
+
+    cleanerResetWalkthrough();
 
     // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 3000;
@@ -1440,7 +1635,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing fleshed out Segment Cleaning & GC sections to {html_file}...")
+    print(f"--> Writing interactive Segment Cleaner walkthrough to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -1448,11 +1643,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Flesh out LFS segment cleaning and garbage collection with theory and SVGs\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html to "
-        "comprehensively explain Rosenblum and Ousterhout's cost-benefit cleaning "
-        "policy, hot vs. cold data dynamics, liveness verification, write "
-        "amplification trade-offs, and embed two dedicated SVG diagrams."
+        "Add interactive Cost-Benefit segment cleaner walkthrough to LFS section\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html with "
+        "a dedicated interactive segment cleaning simulator in section 4.3.5.4, "
+        "demonstrating hot vs. cold data policies, block liveness checks, and WAF."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
