@@ -171,6 +171,137 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 4px;
     }
 
+    /* Interactive Simulator Styles */
+    .fs-sim-card {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .fs-sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+    }
+    .fs-sim-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-family: var(--font-mono);
+    }
+    .fs-sim-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 820px) {
+      .fs-sim-grid { grid-template-columns: 1fr; }
+    }
+    .fs-tree-view {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 14px;
+      height: 300px;
+      overflow-y: auto;
+      line-height: 1.6;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+    .fs-node {
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .fs-node:hover { background: #1e293b; color: #38bdf8; }
+    .fs-node.active { background: #0284c7; color: #ffffff; font-weight: 700; }
+    .fs-node.file { color: #94a3b8; cursor: default; }
+    .fs-table-view {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+    .fs-table-title {
+      font-size: 0.82rem;
+      color: #fbbf24;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .fs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .fs-table th, .fs-table td {
+      border: 1px solid #334155;
+      padding: 5px 8px;
+      text-align: left;
+    }
+    .fs-table th { background: #0f172a; color: #94a3b8; }
+    .fs-terminal {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: var(--font-mono);
+    }
+    .fs-term-log {
+      color: #38bdf8;
+      min-height: 48px;
+      white-space: pre-wrap;
+      line-height: 1.45;
+      font-size: 0.82rem;
+    }
+    .fs-term-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px dashed #1e293b;
+      padding-top: 8px;
+      font-size: 0.85rem;
+    }
+    .fs-prompt { color: #34d399; font-weight: 700; }
+    .fs-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: inherit;
+      flex-grow: 1;
+    }
+    .fs-quick-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: var(--font-mono);
+    }
+    .fs-quick-btn:hover { background: #334155; }
+
     /* Sandbox Styles */
     .kernel-sandbox {
       background: #0f172a;
@@ -344,7 +475,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.2.2: Two-Level Directory Systems (Expanded) -->
+    <!-- Section 4.2.2: Two-Level Directory Systems -->
     <div class="card">
       <h2>4.2.2 Two-Level Directory Systems</h2>
 
@@ -601,38 +732,50 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </ol>
     </div>
 
-    <!-- Section 4.2.3: Hierarchical Directory Systems -->
+    <!-- Section 4.2.3: Hierarchical Directory Systems (Expanded) -->
     <div class="card">
       <h2>4.2.3 Hierarchical (Tree-Structured) Directory Systems</h2>
-      <p>
-        The limitations of the two-level scheme led directly to the generalization of the directory concept: allowing directories to contain not only regular files, but also <strong>subdirectories</strong>. This produces an arbitrary, tree-structured hierarchy.
-      </p>
 
-      <h3>1. Directories as Specialized Regular Files</h3>
+      <h3>1. Generalization from the Two-Level Architecture</h3>
       <p>
-        In modern operating systems (most notably Unix-like systems and Windows NTFS), a directory is conceptually treated just like a regular file with one crucial difference: <strong>its contents are structured as a lookup table of directory entries, and user-space programs are not permitted to write raw bytes to it directly</strong>.
+        The two-level directory system demonstrated that partitioning a namespace into multiple directories completely eliminated inter-user name collisions. However, restricting directory depth to exactly two tiers—where a Master File Directory (MFD) may contain only User File Directories (UFDs), and a UFD may contain only regular files—introduced an artificial boundary.
+      </p>
+      <p>
+        Operating system designers realized that this structure could be generalized: <strong>if a directory is permitted to contain entries that point not only to regular files but also to other directories</strong>, the rigid two-level scheme naturally becomes an arbitrary, multi-level tree hierarchy.
       </p>
       <ul>
-        <li>The operating system kernel retains exclusive write privileges over directory contents to preserve namespace and file system integrity.</li>
-        <li>Each entry in the directory table maps a file name component to an identifier: an <strong>i-node number</strong> (in Unix file systems) or a <strong>file record index / File Control Block pointer</strong> (in FAT/NTFS).</li>
+        <li><strong>Arbitrary Depth:</strong> Subdirectories can be nested to whatever depth suits the application or user.</li>
+        <li><strong>Component-Level Scoping:</strong> Identical file names (e.g., <code>main.c</code>, <code>Makefile</code>, <code>README.md</code>) can coexist without conflict, provided they reside in different directory nodes.</li>
+        <li><strong>Subtree Autonomy:</strong> Whole project subtrees can be created, archived, transferred, or deleted as a single unit without touching unrelated directories.</li>
       </ul>
 
-      <h3>2. Arbitrary Nesting &amp; Path Scoping</h3>
+      <h3>2. The Nature of Directories: Specialized Files</h3>
       <p>
-        Users can construct arbitrary tree topologies to match logical mental models. A software project can place source code in <code>src/</code>, headers in <code>include/</code>, compiled objects in <code>build/</code>, and documentation in <code>doc/</code>. Identical component names (e.g., <code>Makefile</code> or <code>README.txt</code>) coexist cleanly across separate subtrees without collision.
-      </p>
-
-      <h3>3. The Self and Parent Links (<code>.</code> and <code>..</code>)</h3>
-      <p>
-        Every directory created in a standard hierarchical system automatically initializes two structural entries:
+        A central innovation of modern operating systems (pioneered by Multics and Unix) is that <strong>a directory is fundamentally just a file with a special file type</strong>.
       </p>
       <ul>
-        <li><strong><code>.</code> (dot):</strong> A hard reference pointing directly to the directory itself.</li>
-        <li><strong><code>..</code> (dot-dot):</strong> A hard reference pointing to the parent directory immediately above it in the tree hierarchy (in the root directory <code>/</code>, <code>..</code> points back to <code>/</code> itself).</li>
+        <li>
+          <strong>Readable Like Data Files:</strong> In early Unix systems, user programs could issue standard <code>read()</code> calls on directory files to inspect raw entry records. Modern operating systems preserve the abstract concept but enforce dedicated API wrappers (<code>opendir()</code>, <code>readdir()</code>, <code>closedir()</code>) so the kernel can change on-disk layout formats (e.g., linear lists, B-trees, hash tables) without breaking user software.
+        </li>
+        <li>
+          <strong>Kernel-Guarded Writes:</strong> While regular files accept arbitrary user writes, <strong>user programs are strictly prohibited from writing directly to directory files via <code>write()</code></strong>. Only the operating system kernel may alter directory bytes during system calls such as <code>creat()</code>, <code>link()</code>, <code>unlink()</code>, <code>mkdir()</code>, and <code>rmdir()</code>. This protection prevents user-space bugs from corrupting the tree structure or synthesizing invalid pointer references.
+        </li>
       </ul>
+
+      <h3>3. Tree Traversal Mechanics: The Self and Parent Links (<code>.</code> and <code>..</code>)</h3>
       <p>
-        These two built-in entries make tree traversal recursive, allowing programs to navigate upward and downward through relative paths without knowing the absolute location of the directory in the overall file system tree.
+        Every directory created in a hierarchical file system is automatically initialized with two structural entries:
       </p>
+      <ul>
+        <li><strong><code>.</code> (Current Directory / Self):</strong> Points directly to the directory's own metadata node (i-node / file control block). It allows software to explicitly refer to the local directory context without knowing its absolute path.</li>
+        <li><strong><code>..</code> (Parent Directory):</strong> Points directly to the metadata node of the directory immediately above it in the hierarchy.</li>
+      </ul>
+
+      <div class="callout">
+        <strong>The Root Invariant:</strong> In the root directory (<code>/</code>), there is no higher parent. To prevent traversal algorithms from crashing or escaping volume boundaries, the kernel defines:<br>
+        $$\text{Root Directory Invariant: } \quad \text{inode}(\text{"/.."}) \equiv \text{inode}(\text{"/."}) \equiv \text{Root i-node}$$
+        Attempting to traverse above the root simply circles back to the root itself.
+      </div>
 
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-3: Hierarchical Tree &amp; Structural Self/Parent Links</span>
@@ -676,6 +819,88 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <path d="M 634 169 C 680 169, 680 95, 635 95" fill="none" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2,2"/>
           <text x="685" y="135" font-size="8" font-weight="600" fill="#d97706" text-anchor="start">.. points to parent (/home)</text>
         </svg>
+      </div>
+
+      <h3>4. Path Names: Absolute vs. Relative Traversal</h3>
+      <p>
+        A path name is a string representing a sequence of directory transitions needed to reach a target file:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Path Class</th>
+            <th>Starting Point</th>
+            <th>Syntax Signature</th>
+            <th>Example</th>
+            <th>Lookup Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Absolute Path</strong></td>
+            <td>Root directory (<code>/</code> or <code>C:\</code>)</td>
+            <td>Leading slash or drive specifier</td>
+            <td><code>/home/alice/src/main.c</code></td>
+            <td>Traversal starts unconditionally at the root metadata node, regardless of caller location.</td>
+          </tr>
+          <tr>
+            <td><strong>Relative Path</strong></td>
+            <td>Current Working Directory (CWD)</td>
+            <td>No leading slash</td>
+            <td><code>src/main.c</code> or <code>../bob/notes.txt</code></td>
+            <td>Traversal starts from the directory pointer registered in the calling context's kernel record.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Embedded Interactive Hierarchical Tree Simulator -->
+    <div class="card fs-sim-card">
+      <div class="fs-sim-header">
+        <span class="fs-sim-title">Interactive Hierarchical Tree &amp; Path Resolution Simulator</span>
+        <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">Tanenbaum &sect;4.2.3</span>
+      </div>
+
+      <div class="fs-sim-grid">
+        <!-- Visual Tree View -->
+        <div class="fs-tree-view" id="treeDisplay"></div>
+
+        <!-- Active Directory Table Contents -->
+        <div class="fs-table-view">
+          <div class="fs-table-title" id="activeTableTitle">On-Disk Table for: /</div>
+          <table class="fs-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>i-node</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="dirTableBody"></tbody>
+          </table>
+          <div style="margin-top:auto; font-size:0.75rem; color:#94a3b8; line-height:1.4;">
+            Every directory contains structural self-references (<code style="color:#38bdf8;">.</code>) and parent-references (<code style="color:#38bdf8;">..</code>), making path traversal recursive.
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal Controls -->
+      <div class="fs-terminal">
+        <div class="fs-term-log" id="termLog">$ session started. Active working directory set to /</div>
+        <div class="fs-term-input-row">
+          <span class="fs-prompt" id="promptPath">/ $</span>
+          <input type="text" class="fs-input" id="cmdInput" placeholder="Try: cd home/alice, cd .., cd /bin, ls" autocomplete="off" />
+        </div>
+      </div>
+
+      <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+        <span style="font-size:0.75rem; color:#94a3b8; margin-right:4px; font-family:var(--font-mono);">Quick Navigation:</span>
+        <button class="fs-quick-btn" onclick="execCd('/')">cd /</button>
+        <button class="fs-quick-btn" onclick="execCd('home/alice')">cd home/alice</button>
+        <button class="fs-quick-btn" onclick="execCd('src')">cd src</button>
+        <button class="fs-quick-btn" onclick="execCd('..')">cd ..</button>
+        <button class="fs-quick-btn" onclick="execCd('../../bin')">cd ../../bin</button>
       </div>
     </div>
 
@@ -734,6 +959,193 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
+    // --- Interactive Hierarchical Simulator State & Logic ---
+    const fsNodes = {
+      1: { name: "/", type: "DIR", inode: 1, parent: 1, children: [2, 3, 4] },
+      2: { name: "bin", type: "DIR", inode: 2, parent: 1, children: [5, 6] },
+      3: { name: "etc", type: "DIR", inode: 3, parent: 1, children: [7] },
+      4: { name: "home", type: "DIR", inode: 4, parent: 1, children: [8, 9] },
+      5: { name: "cat", type: "FILE", inode: 5, parent: 2 },
+      6: { name: "ls", type: "FILE", inode: 6, parent: 2 },
+      7: { name: "passwd", type: "FILE", inode: 7, parent: 3 },
+      8: { name: "alice", type: "DIR", inode: 8, parent: 4, children: [10, 11, 12] },
+      9: { name: "bob", type: "DIR", inode: 9, parent: 4, children: [13] },
+      10: { name: "docs", type: "DIR", inode: 10, parent: 8, children: [14] },
+      11: { name: "src", type: "DIR", inode: 11, parent: 8, children: [15] },
+      12: { name: "notes.txt", type: "FILE", inode: 12, parent: 8 },
+      13: { name: "build.sh", type: "FILE", inode: 13, parent: 9 },
+      14: { name: "thesis.pdf", type: "FILE", inode: 14, parent: 10 },
+      15: { name: "main.c", type: "FILE", inode: 15, parent: 11 }
+    };
+
+    let currentInode = 1;
+
+    function getPathString(inode) {
+      if (inode === 1) return "/";
+      let segments = [];
+      let curr = fsNodes[inode];
+      while (curr && curr.inode !== 1) {
+        segments.unshift(curr.name);
+        curr = fsNodes[curr.parent];
+      }
+      return "/" + segments.join("/");
+    }
+
+    function renderTree() {
+      const treeEl = document.getElementById("treeDisplay");
+      let out = "";
+
+      function walk(inode, depth, prefix) {
+        const node = fsNodes[inode];
+        const isDir = node.type === "DIR";
+        const isActive = inode === currentInode;
+        const label = node.name + (isDir && inode !== 1 ? "/" : "");
+
+        let clickAttr = isDir ? `onclick="selectNode(${inode})"` : "";
+        let cls = `fs-node ${isDir ? "dir" : "file"} ${isActive ? "active" : ""}`;
+
+        out += `<div>${prefix}<span class="${cls}" ${clickAttr}>${label}</span></div>`;
+
+        if (isDir && node.children) {
+          node.children.forEach((childInode, idx) => {
+            const isLast = idx === node.children.length - 1;
+            const nextPrefix = prefix + (depth === 0 ? "  " : (isLast ? "    " : "│   "));
+            walk(childInode, depth + 1, nextPrefix);
+          });
+        }
+      }
+
+      walk(1, 0, "");
+      treeEl.innerHTML = out;
+    }
+
+    function renderDirTable() {
+      const curr = fsNodes[currentInode];
+      const pathStr = getPathString(currentInode);
+      document.getElementById("activeTableTitle").textContent = `On-Disk Table for: ${pathStr} (i-node #${curr.inode})`;
+
+      const tbody = document.getElementById("dirTableBody");
+      tbody.innerHTML = "";
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="color:#38bdf8; font-weight:700;">.</td>
+          <td>DIR</td>
+          <td>#${curr.inode}</td>
+          <td>Points to self (${curr.name})</td>
+        </tr>
+        <tr>
+          <td style="color:#38bdf8; font-weight:700;">..</td>
+          <td>DIR</td>
+          <td>#${curr.parent}</td>
+          <td>Points to parent (${fsNodes[curr.parent].name})</td>
+        </tr>
+      `;
+
+      if (curr.children) {
+        curr.children.forEach(cid => {
+          const cnode = fsNodes[cid];
+          tbody.innerHTML += `
+            <tr>
+              <td>${cnode.name}${cnode.type === "DIR" ? "/" : ""}</td>
+              <td>${cnode.type}</td>
+              <td>#${cnode.inode}</td>
+              <td>${cnode.type === "DIR" ? "Subdirectory entry" : "File record reference"}</td>
+            </tr>
+          `;
+        });
+      }
+    }
+
+    function updateSimUI(logMessage) {
+      renderTree();
+      renderDirTable();
+      const pathStr = getPathString(currentInode);
+      document.getElementById("promptPath").textContent = `${pathStr === "/" ? "" : pathStr}/ $`;
+      if (logMessage) {
+        document.getElementById("termLog").textContent = logMessage;
+      }
+    }
+
+    function selectNode(inode) {
+      currentInode = inode;
+      updateSimUI(`$ chdir("${getPathString(inode)}");\n[Kernel] CWD updated to i-node #${inode}.`);
+    }
+
+    function resolvePath(pathInput) {
+      let raw = pathInput.trim();
+      if (!raw) return null;
+
+      let targetInode = raw.startsWith("/") ? 1 : currentInode;
+      let parts = raw.split("/").filter(p => p.length > 0);
+
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i];
+        let curr = fsNodes[targetInode];
+
+        if (curr.type !== "DIR") {
+          return { error: `ENOTDIR: Component '${curr.name}' is not a directory.` };
+        }
+
+        if (part === ".") {
+          continue;
+        } else if (part === "..") {
+          targetInode = curr.parent;
+        } else {
+          let foundChild = curr.children ? curr.children.find(cid => fsNodes[cid].name === part) : null;
+          if (!foundChild) {
+            return { error: `ENOENT: No such file or directory component: '${part}'.` };
+          }
+          targetInode = foundChild;
+        }
+      }
+
+      return { inode: targetInode };
+    }
+
+    function execCd(targetPath) {
+      const res = resolvePath(targetPath);
+      if (!res) return;
+
+      if (res.error) {
+        updateSimUI(`$ cd ${targetPath}\n[Kernel Error] ${res.error}`);
+        return;
+      }
+
+      const node = fsNodes[res.inode];
+      if (node.type !== "DIR") {
+        updateSimUI(`$ cd ${targetPath}\n[Kernel Error] ENOTDIR: '${node.name}' is a regular file, cannot change directory.`);
+        return;
+      }
+
+      currentInode = res.inode;
+      const resolvedPath = getPathString(currentInode);
+      updateSimUI(`$ cd ${targetPath}\n[Kernel] Path resolved successfully via hierarchical traversal.\nNew CWD: ${resolvedPath} (i-node #${currentInode})`);
+    }
+
+    document.getElementById("cmdInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        const line = this.value.trim();
+        this.value = "";
+        if (!line) return;
+
+        if (line === "ls") {
+          const curr = fsNodes[currentInode];
+          let items = [".", ".."];
+          if (curr.children) {
+            curr.children.forEach(cid => items.push(fsNodes[cid].name + (fsNodes[cid].type === "DIR" ? "/" : "")));
+          }
+          updateSimUI(`$ ls\n${items.join("   ")}`);
+        } else if (line.startsWith("cd ") || line === "cd") {
+          const arg = line.substring(3).trim() || "/";
+          execCd(arg);
+        } else {
+          updateSimUI(`$ ${line}\n[Shell] Unknown command. Supported commands: 'cd <path>', 'ls'`);
+        }
+      }
+    });
+
+    // --- Hard Link Simulator Logic ---
     let state = {
       notesExists: false,
       backupExists: false,
@@ -796,16 +1208,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         updateDirUI("$ unlink(\"backup.txt\");\n[Kernel] Removed final directory entry. i-Node #42 link count reached 0. Deallocated disk blocks and purged i-Node.");
       }
     }
+
+    // Initialize Simulator
+    updateSimUI();
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Expand section 4.2.2 two-level directories with detailed theory and SVGs
+COMMIT_MSG = """Expand section 4.2.3 with deep hierarchical directory theory and simulator
 
-Update week10-file-management/02-directories.html to expand section 4.2.2
-with complete coverage of MFD/UFD topology, two-stage search fallbacks,
-cross-user sharing conventions, and custom explanatory SVG diagrams."""
+Update week10-file-management/02-directories.html to expand section 4.2.3
+with comprehensive theory on tree structures, dot/dot-dot invariants,
+and an embedded interactive directory traversal and table simulator."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -830,7 +1245,7 @@ def deploy_module():
     run_git_step(["git", "add", target_file], "Staging updated 02-directories.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 02 Two-Level Directories updated, committed, and pushed successfully!")
+    print("--> Module 02 Hierarchical Directories updated, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     deploy_module()
