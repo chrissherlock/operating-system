@@ -48,19 +48,14 @@ def execute_deployment():
     else:
         content = content.replace("</body>", f"  {new_audio_tag}\n</body>")
 
-    # Fix image source paths to use relative ../images/ instead of absolute /images/
-    content = content.replace('src="/images/ousterhout.png"', 'src="../images/ousterhout.png"')
-    content = content.replace('src="/images/rosenblum.jpg"', 'src="../images/rosenblum.jpg"')
-
     with open(html_file, "w", encoding="utf-8") as f:
         f.write(content)
-    print("--> HTML file updated with correct relative image paths!")
+    print("--> HTML file updated successfully!")
 
     commit_msg = (
-        "Fix relative image paths for pioneers portraits in LFS section\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html to use "
-        "relative paths (../images/...) for John Ousterhout and Mendel Rosenblum's "
-        "headshots so they load properly on GitHub Pages."
+        "Fix NameError for html_path in deployment script\n\n"
+        "Update fix.py to correctly define html_path inside execute_deployment() "
+        "before opening and modifying the HTML file."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
