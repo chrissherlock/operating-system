@@ -197,7 +197,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 0.95rem;
       line-height: 1.6;
       color: #0c4a6e;
-      min-height: 75px;
+      min-height: 60px;
     }
 
     .tour-nav {
@@ -209,12 +209,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     .split-grid {
       display: grid;
-      grid-template-columns: 460px 1fr;
-      gap: 24px;
+      grid-template-columns: 550px 1fr;
+      gap: 20px;
       align-items: start;
       margin-top: 10px;
     }
-    @media (max-width: 860px) {
+    @media (max-width: 980px) {
       .split-grid { grid-template-columns: 1fr; }
       .bio-sidebar { float: none; width: 100%; margin-left: 0; }
     }
@@ -275,6 +275,60 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     button:hover { background-color: var(--accent-hover); }
     button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
     button.btn-sec:hover { background-color: #e2e8f0; }
+
+    /* Interactive Decision Flowchart Dynamic Styles */
+    .walk-node polygon, .walk-node rect {
+      transition: all 0.25s ease;
+    }
+    .walk-node.active-gate polygon, .walk-node.active-gate rect {
+      stroke: #0284c7 !important;
+      stroke-width: 2.5px !important;
+      fill: #e0f2fe !important;
+      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.4));
+    }
+    .walk-node.active-action-warn rect {
+      stroke: #d97706 !important;
+      stroke-width: 2.5px !important;
+      fill: #fef3c7 !important;
+      filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.4));
+    }
+    .walk-node.active-action-blue rect {
+      stroke: #0284c7 !important;
+      stroke-width: 2.5px !important;
+      fill: #e0f2fe !important;
+      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.4));
+    }
+    .walk-node.active-action-evict rect {
+      stroke: #16a34a !important;
+      stroke-width: 3px !important;
+      fill: #dcfce7 !important;
+      filter: drop-shadow(0 0 8px rgba(22, 163, 74, 0.5));
+    }
+    .walk-node.active-action-dirty rect {
+      stroke: #dc2626 !important;
+      stroke-width: 2.5px !important;
+      fill: #fee2e2 !important;
+      filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.4));
+    }
+    .walk-edge {
+      transition: stroke 0.25s ease, stroke-width 0.25s ease;
+    }
+    .walk-edge.edge-active {
+      stroke: #0284c7 !important;
+      stroke-width: 2.5px !important;
+    }
+    .walk-edge.edge-active-green {
+      stroke: #16a34a !important;
+      stroke-width: 2.5px !important;
+    }
+    .walk-edge.edge-active-warn {
+      stroke: #d97706 !important;
+      stroke-width: 2.5px !important;
+    }
+    .walk-edge.edge-active-red {
+      stroke: #dc2626 !important;
+      stroke-width: 2.5px !important;
+    }
   </style>
 </head>
 <body>
@@ -290,7 +344,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <div class="main-container">
 
-    <!-- 1. THEORY SECTION WITH PIONEER PROFILE -->
+    <!-- 1. THEORY SECTION WITH PIONEER PROFILE & STATIC FLOWCHART -->
     <div class="card">
       <div class="theory-section">
         <!-- Bio Sidebar on Right -->
@@ -325,7 +379,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           4. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) > \tau$ and $M = 1$:</strong> The page is cold but dirty. To avoid blocking the CPU, schedule an <strong>asynchronous disk write</strong> and keep advancing the hand in search of a clean candidate.
         </div>
 
-        <!-- Dedicated WSClock Decision Pipeline Flowchart -->
+        <!-- Static Textbook Decision Flowchart (Figure 2) -->
         <div class="figure-container" style="margin-top: 14px; margin-bottom: 18px;">
           <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 2: WSClock Per-Frame Decision Pipeline</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
@@ -413,7 +467,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </ul>
       </div>
 
-      <!-- Embedded SVG Diagram for WSClock Ring -->
+      <!-- Embedded SVG Diagram for WSClock Ring (Figure 3-20) -->
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-20: The WSClock Ring Architecture (Tanenbaum)</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
@@ -423,47 +477,43 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             </marker>
           </defs>
 
-          <!-- Title -->
           <text x="380" y="26" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">WSClock Circular Frame Ring Structure</text>
           <text x="380" y="44" font-size="11" fill="#64748b" text-anchor="middle">Circular buffer of physical frames evaluating R-bit, Modified-bit, and Age delta (Current Time - Last Use)</text>
 
-          <!-- Circular Ring Path -->
           <circle cx="380" cy="190" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6"/>
 
-          <!-- Frame Node 0 (Top) -->
+          <!-- Frame Node 0 -->
           <g transform="translate(380, 75)">
             <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
             <text x="0" y="-4" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 0 (Page A)</text>
             <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#334155" text-anchor="middle">R=1 | M=0 | T=2184</text>
           </g>
 
-          <!-- Frame Node 1 (Right) -->
+          <!-- Frame Node 1 -->
           <g transform="translate(495, 190)">
             <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
             <text x="0" y="-4" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 1 (Page B)</text>
             <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#334155" text-anchor="middle">R=0 | M=1 | T=1020</text>
           </g>
 
-          <!-- Frame Node 2 (Bottom) -->
+          <!-- Frame Node 2 -->
           <g transform="translate(380, 305)">
             <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
             <text x="0" y="-4" font-size="11" font-weight="700" fill="#b91c1c" text-anchor="middle">Frame 2 (Page C)</text>
             <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#991b1b" text-anchor="middle">R=0 | M=0 | T=850</text>
           </g>
 
-          <!-- Frame Node 3 (Left) -->
+          <!-- Frame Node 3 -->
           <g transform="translate(265, 190)">
             <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
             <text x="0" y="-4" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 3 (Page D)</text>
             <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#334155" text-anchor="middle">R=0 | M=0 | T=2140</text>
           </g>
 
-          <!-- Clock Center & Moving Hand -->
           <circle cx="380" cy="190" r="16" fill="#0284c7"/>
           <line x1="380" y1="190" x2="380" y2="280" stroke="#0284c7" stroke-width="3" marker-end="url(#arr)"/>
           <text x="380" y="194" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">HAND</text>
 
-          <!-- Annotation pointing to Frame 2 victim -->
           <path d="M 450 305 L 530 305" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3"/>
           <text x="540" y="302" font-size="10.5" font-weight="700" fill="#dc2626">Victim Evicted!</text>
           <text x="540" y="316" font-size="9" fill="#475569">R=0, Age > tau (1350 > 400), M=0</text>
@@ -471,7 +521,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH -->
+    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH DEDICATED INTERACTIVE FLOWCHART -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
         <span id="wtCounter">Step 1 of 4</span>
@@ -480,14 +530,113 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div id="wtTitle" class="tutorial-title">1. The R = 1 Case (Recently Active)</div>
 
       <div class="split-grid">
-        <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:10px;">
-          <span style="font-family:var(--font-mono); font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Hand Inspector (Current Frame)</span>
-          <div id="wtFrameBox" style="font-family:var(--font-mono); font-size:0.85rem; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid var(--border);"></div>
-          <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
+        <!-- Interactive Decision Tree Flowchart -->
+        <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-family:var(--font-mono); font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Live Decision Tree Tracer</span>
+            <span id="walkActiveStatus" style="font-family:var(--font-mono); font-size:0.78rem; font-weight:700; color:var(--accent);">Branch Active</span>
+          </div>
+
+          <svg id="walkTreeSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#ffffff;">
+            <defs>
+              <marker id="w-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+              </marker>
+              <marker id="w-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+              </marker>
+              <marker id="w-amber" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
+              </marker>
+              <marker id="w-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
+              </marker>
+              <marker id="w-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626" />
+              </marker>
+            </defs>
+
+            <!-- Start Node -->
+            <g id="walk-node-start" class="walk-node">
+              <rect x="8" y="72" width="76" height="34" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
+              <text x="46" y="87" font-size="9" font-weight="700" fill="#0f172a" text-anchor="middle">Page Fault</text>
+              <text x="46" y="99" font-size="8" fill="#64748b" text-anchor="middle">Hand &rarr; Frame</text>
+            </g>
+            <line id="walk-edge-start" class="walk-edge" x1="84" y1="89" x2="114" y2="89" stroke="#334155" stroke-width="1.2" marker-end="url(#w-arr)"/>
+
+            <!-- Gate 1: R == 1? -->
+            <g id="walk-gate-r" class="walk-node">
+              <polygon points="145,67 176,89 145,111 114,89" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
+              <text x="145" y="92" font-size="9" font-weight="700" fill="#0f172a" text-anchor="middle">R == 1?</text>
+            </g>
+
+            <!-- Gate 1 Yes: Action 1 (Up) -->
+            <path id="walk-edge-r-yes" class="walk-edge" d="M 145 67 L 145 28 L 182 28" stroke="#cbd5e1" stroke-width="1.2" fill="none" marker-end="url(#w-arr)"/>
+            <text x="153" y="48" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <g id="walk-action-r1" class="walk-node">
+              <rect x="185" y="12" width="112" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="241" y="25" font-size="8.5" font-weight="700" fill="#b45309" text-anchor="middle">R &larr; 0, Time &larr; T_curr</text>
+              <text x="241" y="37" font-size="7.5" fill="#78350f" text-anchor="middle">Advance Hand &rarr;</text>
+            </g>
+
+            <!-- Gate 1 No -> Gate 2 (Right) -->
+            <line id="walk-edge-r-no" class="walk-edge" x1="176" y1="89" x2="216" y2="89" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="194" y="83" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+
+            <!-- Gate 2: Age <= tau? -->
+            <g id="walk-gate-age" class="walk-node">
+              <polygon points="252,67 288,89 252,111 216,89" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
+              <text x="252" y="87" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
+              <text x="252" y="99" font-size="7" fill="#64748b" text-anchor="middle">(In WS?)</text>
+            </g>
+
+            <!-- Gate 2 Yes: Action 2 (Down) -->
+            <line id="walk-edge-age-yes" class="walk-edge" x1="252" y1="111" x2="252" y2="148" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="258" y="132" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <g id="walk-action-inws" class="walk-node">
+              <rect x="196" y="152" width="112" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="252" y="165" font-size="8.5" font-weight="700" fill="#0369a1" text-anchor="middle">In Working Set</text>
+              <text x="252" y="177" font-size="7.5" fill="#0284c7" text-anchor="middle">Advance Hand &rarr;</text>
+            </g>
+
+            <!-- Gate 2 No -> Gate 3 (Right) -->
+            <line id="walk-edge-age-no" class="walk-edge" x1="288" y1="89" x2="330" y2="89" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="306" y="83" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+
+            <!-- Gate 3: M == 0? -->
+            <g id="walk-gate-m" class="walk-node">
+              <polygon points="362,67 394,89 362,111 330,89" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
+              <text x="362" y="87" font-size="9" font-weight="700" fill="#0f172a" text-anchor="middle">M == 0?</text>
+              <text x="362" y="99" font-size="7" fill="#64748b" text-anchor="middle">(Clean?)</text>
+            </g>
+
+            <!-- Gate 3 Yes: Evict Action (Right) -->
+            <line id="walk-edge-m-yes" class="walk-edge" x1="394" y1="89" x2="432" y2="89" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="410" y="83" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <g id="walk-action-evict" class="walk-node">
+              <rect x="436" y="71" width="96" height="36" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="484" y="86" font-size="9.5" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
+              <text x="484" y="99" font-size="7.5" fill="#166534" text-anchor="middle">Claim frame now</text>
+            </g>
+
+            <!-- Gate 3 No: Dirty Action (Down) -->
+            <line id="walk-edge-m-no" class="walk-edge" x1="362" y1="111" x2="362" y2="148" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="368" y="132" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <g id="walk-action-dirty" class="walk-node">
+              <rect x="306" y="152" width="112" height="34" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="362" y="165" font-size="8.5" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
+              <text x="362" y="178" font-size="7.5" fill="#7f1d1d" text-anchor="middle">Advance Hand &rarr;</text>
+            </g>
+          </svg>
+
+          <!-- Frame Inspector State Tag -->
+          <div id="wtFrameBox" style="font-family:var(--font-mono); font-size:0.82rem; padding:8px 10px; border-radius:6px; background:#f8fafc; border:1px solid var(--border);"></div>
         </div>
 
+        <!-- Walkthrough Text and Stepper Controls -->
         <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
           <div id="wtText" class="tutorial-body"></div>
+          <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
           <div class="tour-nav">
             <button id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
             <button id="wtNextBtn" onclick="stepWtForward()">Next Case &rarr;</button>
@@ -552,35 +701,83 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GUIDED WALKTHROUGH LOGIC
+       PART 2: GUIDED WALKTHROUGH WITH DEDICATED INTERACTIVE FLOWCHART
        ========================================================================= */
     let wtStep = 0;
     const wtCases = [
       {
         title: "1. The R = 1 Case (Recently Active)",
-        text: "The hand inspects a frame where the hardware Referenced bit $R = 1$. The process has touched this page recently. Evicting it would risk thrashing. The algorithm clears $R \leftarrow 0$, updates its timestamp to current virtual time, and advances to the next frame.",
+        text: "The hand inspects a frame where the hardware Referenced bit $R = 1$. The process touched this page recently, so evicting it would cause thrashing. The algorithm clears $R \\leftarrow 0$, updates its timestamp to current virtual time, and advances the hand.",
         frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400 },
-        math: "R = 1 &rarr; Set R=0, Last_Use = 2200. Advance hand without evicting."
+        math: "R = 1 &rarr; Set R=0, Last_Use = 2200. Advance hand without evicting.",
+        highlightGate: "walk-gate-r",
+        highlightAction: "walk-action-r1",
+        actionClass: "active-action-warn",
+        activeEdges: [
+          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-r-yes", marker: "w-amber", edgeClass: "edge-active-warn" }
+        ],
+        status: "Branch: R == 1 (Reset & Advance)"
       },
       {
         title: "2. The R = 0, Age <= tau Case (Resident in Working Set)",
-        text: "The hand inspects a frame with $R = 0$, but its age $(2200 - 1950 = 250)$ is less than or equal to threshold $\tau = 400$. Even though it wasn't touched in the latest slice, it still belongs to the process's working set. The hand steps over it.",
+        text: "The hand inspects a frame with $R = 0$, but its age $(2200 - 1950 = 250)$ is less than threshold $\\tau = 400$. Even though it wasn't accessed in the most recent slice, it still belongs to the active working set. The hand steps past it.",
         frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400 },
-        math: "Age = (2200 - 1950) = 250 <= tau (400) &rarr; Keep page in RAM."
+        math: "Age = (2200 - 1950) = 250 <= tau (400) &rarr; Keep page in RAM.",
+        highlightGate: "walk-gate-age",
+        highlightAction: "walk-action-inws",
+        actionClass: "active-action-blue",
+        activeEdges: [
+          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-age-yes", marker: "w-blue", edgeClass: "edge-active" }
+        ],
+        status: "Branch: In Working Set (Keep & Advance)"
       },
       {
         title: "3. The R = 0, Age > tau, M = 0 Case (Clean Eviction!)",
-        text: "The hand inspects a frame with $R = 0$, an age $(2200 - 1600 = 600)$ greater than $\tau$, and a clean Modified bit $M = 0$. This page is officially out of the working set and requires no disk flush. It is evicted immediately!",
+        text: "The hand inspects a frame with $R = 0$, an age $(2200 - 1600 = 600)$ greater than $\\tau$, and a clean Modified bit $M = 0$. This cold, clean page is officially outside the working set and requires zero disk writes. It is evicted immediately!",
         frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400 },
-        math: "Age = 600 > tau, M = 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty)."
+        math: "Age = 600 > tau, M = 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty).",
+        highlightGate: "walk-gate-m",
+        highlightAction: "walk-action-evict",
+        actionClass: "active-action-evict",
+        activeEdges: [
+          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-m-yes", marker: "w-green", edgeClass: "edge-active-green" }
+        ],
+        status: "Branch: Clean & Cold (Immediate Eviction!)"
       },
       {
         title: "4. The R = 0, Age > tau, M = 1 Case (Asynchronous Dirty Flush)",
-        text: "The hand inspects a frame whose age exceeds $\tau$, but $M = 1$ (dirty). The data must be preserved on disk before the frame can be claimed. Instead of stalling the CPU, WSClock issues an asynchronous disk write and keeps advancing.",
+        text: "The hand inspects a frame whose age exceeds $\\tau$, but $M = 1$ (dirty). The data must be flushed to disk before the frame can be claimed. To avoid stalling the CPU, WSClock issues an asynchronous disk write and keeps advancing.",
         frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400 },
-        math: "Age = 700 > tau, M = 1 &rarr; Schedule Async Disk Write. Keep advancing hand."
+        math: "Age = 700 > tau, M = 1 &rarr; Schedule Async Disk Write. Keep advancing hand.",
+        highlightGate: "walk-gate-m",
+        highlightAction: "walk-action-dirty",
+        actionClass: "active-action-dirty",
+        activeEdges: [
+          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
+          { id: "walk-edge-m-no", marker: "w-red", edgeClass: "edge-active-red" }
+        ],
+        status: "Branch: Dirty & Cold (Queue Async Write)"
       }
     ];
+
+    function resetWalkTree() {
+      document.querySelectorAll(".walk-node").forEach(n => {
+        n.className.baseVal = "walk-node";
+      });
+      document.querySelectorAll(".walk-edge").forEach(e => {
+        e.className.baseVal = "walk-edge";
+        e.setAttribute("stroke", "#cbd5e1");
+        e.setAttribute("marker-end", "url(#w-arr)");
+      });
+    }
 
     function renderWt() {
       const c = wtCases[wtStep];
@@ -591,11 +788,33 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const f = c.frame;
       const age = f.currTime - f.time;
       document.getElementById("wtFrameBox").innerHTML = `
-        <strong>${f.name}</strong><br>
-        Referenced (R): <strong>${f.r}</strong> | Modified (M): <strong>${f.m}</strong><br>
-        Last Used: <strong>${f.time}</strong> | Current Time: <strong>${f.currTime}</strong> | Age: <strong>${age}</strong> (Threshold &tau;=${f.tau})
+        <strong>Inspecting ${f.name}:</strong>
+        R = <strong>${f.r}</strong> | M = <strong>${f.m}</strong> |
+        Last Used = <strong>${f.time}</strong> | Age = <strong>${age}</strong> (&tau; = ${f.tau})
       `;
       document.getElementById("wtMathSummary").innerHTML = c.math;
+      document.getElementById("walkActiveStatus").textContent = c.status;
+
+      // Update interactive SVG tree visuals in Part 2 only
+      resetWalkTree();
+
+      const gateEl = document.getElementById(c.highlightGate);
+      if (gateEl) gateEl.classList.add("active-gate");
+
+      const actionEl = document.getElementById(c.highlightAction);
+      if (actionEl) actionEl.classList.add(c.actionClass);
+
+      (c.activeEdges || []).forEach(edgeInfo => {
+        const edgeEl = document.getElementById(edgeInfo.id);
+        if (edgeEl) {
+          edgeEl.className.baseVal = `walk-edge ${edgeInfo.edgeClass}`;
+          edgeEl.setAttribute("marker-end", `url(#${edgeInfo.marker})`);
+        }
+      });
+
+      if (window.MathJax && window.MathJax.typeset) {
+        MathJax.typeset();
+      }
 
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtCases.length - 1);
@@ -764,12 +983,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add decision flowchart to WSClock theoretical breakdown
+COMMIT_MSG = """Keep static flowchart in theory and add interactive copy to walkthrough
 
-Insert an SVG decision tree diagram next to the WSClock decision logic
-callout in 10-wsclock.html. The flowchart visualizes the evaluation gates
-for R=1, working set age thresholds (tau), and dirty bit states (M=0 vs
-M=1) for clean evictions and asynchronous writes."""
+Preserve the static Figure 2 decision flowchart under the theory
+section in 10-wsclock.html, and introduce a dedicated interactive SVG
+copy in the Part 2 walkthrough stepper. The interactive copy dynamically
+highlights decision gates (R-bit, age threshold, dirty bit) and active
+branches as each walkthrough case advances."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -787,12 +1007,12 @@ def sync_module():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module with decision flowchart to {target_module}")
+    print(f"Wrote updated module to {target_module}")
 
     run_git_step(["git", "add", target_module], "Staging 10-wsclock.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> WSClock module updated and pushed successfully!")
+    print("--> Completed successfully!")
 
 if __name__ == "__main__":
     sync_module()
