@@ -197,7 +197,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 0.95rem;
       line-height: 1.6;
       color: #0c4a6e;
-      min-height: 60px;
+      min-height: 72px;
     }
 
     .tour-nav {
@@ -553,7 +553,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
           <path d="M 450 305 L 530 305" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3"/>
           <text x="540" y="302" font-size="10.5" font-weight="700" fill="#dc2626">Victim Evicted!</text>
-          <text x="540" y="316" font-size="9" fill="#475569">R=0, Age > tau (1350 > 400), M=0</text>
+          <text x="540" y="316" font-size="9" fill="#475569">R=0, Age &gt; &tau; (1350 &gt; 400), M=0</text>
         </svg>
       </div>
     </div>
@@ -561,10 +561,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH DUAL INTERACTIVE VISUALS -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
-        <span id="wtCounter">Step 1 of 4</span>
-        <span>Guided Walkthrough: Live Hand & Ring Evaluation</span>
+        <span id="wtCounter">Scenario 1 of 6</span>
+        <span>Guided Walkthrough: Micro-Step Decision Scenarios</span>
       </div>
-      <div id="wtTitle" class="tutorial-title">1. The R = 1 Case (Recently Active)</div>
+      <div id="wtTitle" class="tutorial-title">1. Hand at Frame 0: The R = 1 Case</div>
 
       <div class="split-grid">
         <!-- Dual Interactive Visual Console -->
@@ -611,7 +611,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 1 Yes: Action 1 (Up) -->
             <path id="walk-edge-r-yes" class="walk-edge" d="M 135 60 L 135 24 L 174 24" stroke="#cbd5e1" stroke-width="1.2" fill="none" marker-end="url(#w-arr)"/>
-            <text x="142" y="42" font-size="8" font-weight="700" fill="#64748b">Yes</text>
+            <text x="142" y="42" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-r1" class="walk-node">
               <rect x="178" y="10" width="112" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="234" y="22" font-size="8" font-weight="700" fill="#b45309" text-anchor="middle">R &larr; 0, Time &larr; T_curr</text>
@@ -620,18 +620,18 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 1 No -> Gate 2 (Right) -->
             <line id="walk-edge-r-no" class="walk-edge" x1="164" y1="80" x2="204" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="182" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
+            <text x="182" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 2: Age <= tau? -->
             <g id="walk-gate-age" class="walk-node">
               <polygon points="238,60 272,80 238,100 204,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="238" y="78" font-size="8" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
+              <text x="238" y="78" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
               <text x="238" y="89" font-size="6.5" fill="#64748b" text-anchor="middle">(In WS?)</text>
             </g>
 
             <!-- Gate 2 Yes: Action 2 (Down) -->
             <line id="walk-edge-age-yes" class="walk-edge" x1="238" y1="100" x2="238" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="244" y="120" font-size="8" font-weight="700" fill="#64748b">Yes</text>
+            <text x="244" y="120" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-inws" class="walk-node">
               <rect x="188" y="138" width="100" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="238" y="150" font-size="8" font-weight="700" fill="#0369a1" text-anchor="middle">In Working Set</text>
@@ -640,7 +640,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 2 No -> Gate 3 (Right) -->
             <line id="walk-edge-age-no" class="walk-edge" x1="272" y1="80" x2="312" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="290" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
+            <text x="290" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 3: M == 0? -->
             <g id="walk-gate-m" class="walk-node">
@@ -651,7 +651,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 3 Yes: Evict Action (Right) -->
             <line id="walk-edge-m-yes" class="walk-edge" x1="374" y1="80" x2="416" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="394" y="75" font-size="8" font-weight="700" fill="#64748b">Yes</text>
+            <text x="394" y="75" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-evict" class="walk-node">
               <rect x="420" y="65" width="102" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="471" y="79" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
@@ -660,7 +660,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 3 No: Dirty Action (Down) -->
             <line id="walk-edge-m-no" class="walk-edge" x1="342" y1="100" x2="342" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="348" y="120" font-size="8" font-weight="700" fill="#64748b">No</text>
+            <text x="348" y="120" font-size="8.5" font-weight="700" fill="#64748b">No</text>
             <g id="walk-action-dirty" class="walk-node">
               <rect x="296" y="138" width="112" height="30" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="352" y="150" font-size="8" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
@@ -792,15 +792,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GUIDED WALKTHROUGH WITH DUAL INTERACTIVE VISUALS
+       PART 2: GUIDED WALKTHROUGH WITH 6 DISCRETE MICRO-SCENARIOS
        ========================================================================= */
     let wtStep = 0;
     const wtCases = [
       {
-        title: "1. The R = 1 Case (Recently Active)",
-        text: "The hand inspects Frame 0 where the hardware Referenced bit R = 1. The process touched this page recently, so evicting it would cause thrashing. The algorithm clears R &larr; 0, updates its timestamp to current virtual time, and advances the hand.",
+        title: "1. Scenario 1: Hand at Frame 0 (The R = 1 Case)",
+        text: "The hand inspects Frame 0 holding Page A. The MMU hardware set R = 1 during recent instruction execution. Because the page was actively referenced, evicting it would risk thrashing. The algorithm clears R &larr; 0, resets its timestamp to current virtual time (2200), and advances the hand to Frame 1.",
         frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400, frameId: 0 },
-        math: "R = 1 &rarr; Set R=0, Last_Use = 2200. Advance hand without evicting.",
+        math: "Gate 1: R == 1 &rarr; Set R = 0, Last_Use = 2200. Advance hand to Frame 1.",
         highlightGate: "walk-gate-r",
         highlightAction: "walk-action-r1",
         actionClass: "active-action-warn",
@@ -810,13 +810,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-r-yes", marker: "w-amber", edgeClass: "edge-active-warn" }
         ],
-        status: "Branch: R == 1 (Reset & Advance)"
+        status: "Gate 1: R == 1 (Reset R=0, Advance Hand)"
       },
       {
-        title: "2. The R = 0, Age &le; &tau; Case (Resident in Working Set)",
-        text: "The hand inspects Frame 1 with R = 0, but its age (2200 - 1950 = 250) is less than threshold &tau; = 400. Even though it wasn't accessed in the most recent slice, it still belongs to the active working set. The hand steps past it.",
+        title: "2. Scenario 2: Hand at Frame 1 (Age &le; &tau;, Active in Working Set)",
+        text: "The hand advances to Frame 1 (Page B). Here R = 0, so it proceeds to Gate 2. The page's age is calculated: 2200 - 1950 = 250 ticks. Because 250 &le; &tau; (400), Page B still belongs to the active working set. Evicting it would violate Denning's principle. The hand steps past it without making changes.",
         frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
-        math: "Age = (2200 - 1950) = 250 &le; &tau; (400) &rarr; Keep page in RAM.",
+        math: "Gate 2: Age = (2200 - 1950) = 250 &le; &tau; (400) &rarr; Keep page in RAM. Advance hand to Frame 2.",
         highlightGate: "walk-gate-age",
         highlightAction: "walk-action-inws",
         actionClass: "active-action-blue",
@@ -827,13 +827,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-age-yes", marker: "w-blue", edgeClass: "edge-active" }
         ],
-        status: "Branch: In Working Set (Keep & Advance)"
+        status: "Gate 2: Age &le; &tau; (In Working Set, Advance Hand)"
       },
       {
-        title: "3. The R = 0, Age &gt; &tau;, M = 0 Case (Clean Eviction!)",
-        text: "The hand inspects Frame 2 with R = 0, an age (2200 - 1600 = 600) greater than &tau;, and a clean Modified bit M = 0. This cold, clean page is officially outside the working set and requires zero disk writes. It is evicted immediately!",
+        title: "3. Scenario 3: Hand at Frame 2 (Clean Eviction Victim!)",
+        text: "The hand advances to Frame 2 (Page C). Here R = 0, and its age is 2200 - 1600 = 600 ticks. Gate 2 evaluates 600 &gt; &tau; (400), confirming the page has dropped out of the working set. At Gate 3, M = 0 (clean). No disk write is necessary! Frame 2 is reclaimed immediately as the eviction victim.",
         frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
-        math: "Age = 600 &gt; &tau;, M = 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty).",
+        math: "Gate 3: Age = 600 &gt; &tau;, M == 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty).",
         highlightGate: "walk-gate-m",
         highlightAction: "walk-action-evict",
         actionClass: "active-action-evict",
@@ -845,13 +845,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-m-yes", marker: "w-green", edgeClass: "edge-active-green" }
         ],
-        status: "Branch: Clean & Cold (Immediate Eviction!)"
+        status: "Gate 3: Clean Victim (Claim Frame Immediately)"
       },
       {
-        title: "4. The R = 0, Age &gt; &tau;, M = 1 Case (Asynchronous Dirty Flush)",
-        text: "The hand inspects Frame 3 whose age exceeds &tau;, but M = 1 (dirty). The data must be flushed to disk before the frame can be claimed. To avoid stalling the CPU, WSClock issues an asynchronous disk write and keeps advancing.",
+        title: "4. Scenario 4: Hand at Frame 3 (Asynchronous Dirty Flush)",
+        text: "Suppose instead the hand encountered Frame 3 (Page D), where Age = 2200 - 1500 = 700 &gt; &tau;, but M = 1 (dirty). The modified data must be saved to swap before the frame can be re-allocated. Rather than halting the CPU on synchronous I/O, WSClock schedules an asynchronous disk write and keeps advancing.",
         frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
-        math: "Age = 700 &gt; &tau;, M = 1 &rarr; Schedule Async Disk Write. Keep advancing hand.",
+        math: "Gate 3: Age = 700 &gt; &tau;, M == 1 &rarr; Schedule Async Write. Hand continues advancing.",
         highlightGate: "walk-gate-m",
         highlightAction: "walk-action-dirty",
         actionClass: "active-action-dirty",
@@ -863,7 +863,37 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-m-no", marker: "w-red", edgeClass: "edge-active-red" }
         ],
-        status: "Branch: Dirty & Cold (Queue Async Write)"
+        status: "Gate 3: Dirty Candidate (Queue Write, Advance Hand)"
+      },
+      {
+        title: "5. Scenario 5: Full Ring Sweep (Writes in Flight)",
+        text: "If the hand completes a full 360-degree rotation without finding an evicted clean page, it checks whether any dirty writes were scheduled during the sweep. Because at least one asynchronous write was queued (Scenario 4), the hand simply continues advancing until that write completes, claiming the newly clean frame.",
+        frame: { name: "All Frames (Ring Full Sweep)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 0 },
+        math: "Full Rotation &rarr; Writes in flight &gt; 0 &rarr; Hand advances to await first clean completion.",
+        highlightGate: "walk-gate-m",
+        highlightAction: "walk-action-r1",
+        actionClass: "active-action-warn",
+        ringClass: "active-focus",
+        handTarget: { x: 270, y: 54 },
+        activeEdges: [
+          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }
+        ],
+        status: "Full Sweep: Awaiting In-Flight Disk Write Completion"
+      },
+      {
+        title: "6. Scenario 6: Full Ring Sweep (Thrashing / Degenerate Fallback)",
+        text: "What if the hand completes a full 360-degree rotation and NO writes were scheduled? This means every resident frame is actively needed by the working set (Age &le; &tau;). The process is thrashing under extreme memory pressure! WSClock falls back to evicting the first clean frame it finds, or triggers kernel admission control to suspend a process.",
+        frame: { name: "All Frames (Thrashing State)", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
+        math: "Full Rotation &rarr; Writes in flight == 0 &rarr; Severe memory pressure (Fallback or Suspend).",
+        highlightGate: "walk-gate-age",
+        highlightAction: "walk-action-inws",
+        actionClass: "active-action-blue",
+        ringClass: "active-warn",
+        handTarget: { x: 270, y: 54 },
+        activeEdges: [
+          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }
+        ],
+        status: "Fallback: Thrashing Detected &rarr; Clean Fallback / Suspend"
       }
     ];
 
@@ -886,7 +916,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     function renderWt() {
       const c = wtCases[wtStep];
-      document.getElementById("wtCounter").textContent = `Case ${wtStep + 1} of ${wtCases.length}`;
+      document.getElementById("wtCounter").textContent = `Scenario ${wtStep + 1} of ${wtCases.length}`;
       document.getElementById("wtTitle").textContent = c.title;
       document.getElementById("wtText").innerHTML = c.text;
 
@@ -1105,12 +1135,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add interactive WSClock circular ring to walkthrough stepper
+COMMIT_MSG = """Fix HTML entity encodings and expand WSClock walkthrough cases
 
-Incorporate an interactive SVG copy of the circular frame ring into Part
-2 of 10-wsclock.html alongside the decision tree. Dynamically rotate the
-clock hand and highlight corresponding frame nodes and states as the
-walkthrough advances through evaluation cases."""
+Clean up unencoded HTML/XML entities (&lt;, &gt;, &amp;, &tau;) across
+all SVG and DOM text nodes in 10-wsclock.html. Refactor the walkthrough
+stepper into 6 distinct micro-scenarios covering R=1 resets, resident
+working set checks, clean evictions, dirty async writes, and both full-
+sweep rotation fallbacks."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1128,12 +1159,12 @@ def sync_module():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module with interactive circular ring to {target_module}")
+    print(f"Wrote updated module to {target_module}")
 
     run_git_step(["git", "add", target_module], "Staging 10-wsclock.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Interactive ring added, committed, and pushed successfully!")
+    print("--> Completed successfully!")
 
 if __name__ == "__main__":
     sync_module()
