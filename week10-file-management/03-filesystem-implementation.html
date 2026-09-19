@@ -781,7 +781,7 @@
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        const bufferSize = audioCtx.sampleRate * 0.015; // 15ms click
+        const bufferSize = audioCtx.sampleRate * 0.015;
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
@@ -805,13 +805,11 @@
         gain.connect(audioCtx.destination);
 
         noise.start();
-      } catch(e) {
-        // Audio context restrictions bypassed or ignored
-      }
+      } catch(e) {}
     }
 
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
-    const TOTAL_CELLS = 3000; // 100 cols x 30 rows
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (100 Columns = 3,000 Blocks) ---
+    const TOTAL_CELLS = 3000;
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
@@ -850,7 +848,6 @@
         if (b) b.classList.toggle('active', t === theme);
       });
 
-      // Show/hide legends
       const leg = document.getElementById("modernLegend");
       if (leg) leg.style.display = (theme === 'modern') ? 'flex' : 'none';
 
@@ -1106,7 +1103,7 @@
         return;
       }
 
-      playDriveClick(); // Authentic mechanical click in DOS modes!
+      playDriveClick();
 
       sourceBlocks.forEach(idx => {
         cells[idx].state = "read";

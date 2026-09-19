@@ -786,7 +786,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        const bufferSize = audioCtx.sampleRate * 0.015; // 15ms click
+        const bufferSize = audioCtx.sampleRate * 0.015;
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
@@ -810,13 +810,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         gain.connect(audioCtx.destination);
 
         noise.start();
-      } catch(e) {
-        // Audio context restrictions bypassed or ignored
-      }
+      } catch(e) {}
     }
 
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
-    const TOTAL_CELLS = 3000; // 100 cols x 30 rows
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (100 Columns = 3,000 Blocks) ---
+    const TOTAL_CELLS = 3000;
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
@@ -855,7 +853,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         if (b) b.classList.toggle('active', t === theme);
       });
 
-      // Show/hide legends
       const leg = document.getElementById("modernLegend");
       if (leg) leg.style.display = (theme === 'modern') ? 'flex' : 'none';
 
@@ -1111,7 +1108,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         return;
       }
 
-      playDriveClick(); // Authentic mechanical click in DOS modes!
+      playDriveClick();
 
       sourceBlocks.forEach(idx => {
         cells[idx].state = "read";
@@ -1174,11 +1171,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add mechanical hard drive audio to DOS defrag modes
+COMMIT_MSG = """Default FAT defragmenter simulator theme to modern and fix legend
 
-Update week10-file-management/03-filesystem-implementation.html to synthesize
-authentic vintage hard drive clicking sounds via Web Audio API when clusters
-move, active exclusively in DOS modes.
+Update week10-file-management/03-filesystem-implementation.html to default
+the simulator to the modern theme on load and restore visible color swatches
+in the modern theme legend.
 """
 
 def run_git_step(cmd, desc):
@@ -1201,10 +1198,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging DOS mechanical audio update")
+    run_git_step(["git", "add", target_file], "Staging default modern theme & legend fix update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> DOS mechanical audio successfully deployed!")
+    print("--> Default modern theme and legend successfully deployed!")
 
 if __name__ == "__main__":
-    deploy_output = deploy_module()
+    deploy_module()
