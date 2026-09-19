@@ -271,10 +271,20 @@
       align-items: center;
       gap: 6px;
       user-select: none;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
     }
-    button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    button.btn-sec:hover { background-color: #e2e8f0; }
+    button:hover:not(:disabled) { background-color: var(--accent-hover); }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    button.btn-sec {
+      background-color: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button.btn-sec:hover:not(:disabled) { background-color: #e2e8f0; }
 
     /* Interactive Decision Flowchart Dynamic Styles */
     .walk-node polygon, .walk-node rect {
@@ -638,7 +648,7 @@
           <div id="wtText" class="tutorial-body"></div>
           <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
           <div class="tour-nav">
-            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
+            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous Case</button>
             <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Case &rarr;</button>
             <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Simulator &darr;</button>
           </div>
@@ -811,6 +821,7 @@
         }
       });
 
+      // Update disabled states at bounds
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtCases.length - 1);
     }

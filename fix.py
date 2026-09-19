@@ -276,10 +276,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       align-items: center;
       gap: 6px;
       user-select: none;
+      transition: background-color 0.15s ease, opacity 0.15s ease;
     }
-    button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    button.btn-sec:hover { background-color: #e2e8f0; }
+    button:hover:not(:disabled) { background-color: var(--accent-hover); }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    button.btn-sec {
+      background-color: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button.btn-sec:hover:not(:disabled) { background-color: #e2e8f0; }
 
     /* Interactive Decision Flowchart Dynamic Styles */
     .walk-node polygon, .walk-node rect {
@@ -643,7 +653,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div id="wtText" class="tutorial-body"></div>
           <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
           <div class="tour-nav">
-            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
+            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous Case</button>
             <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Case &rarr;</button>
             <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Simulator &darr;</button>
           </div>
@@ -816,6 +826,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       });
 
+      // Update disabled states at bounds
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtCases.length - 1);
     }
@@ -989,13 +1000,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix page jump on button clicks in 10-wsclock.html
+COMMIT_MSG = """Fix disabled button styling in 10-wsclock.html walkthrough
 
-Remove document.activeElement.blur() from stepper functions to prevent
-the browser from jumping scroll position to the document body on click.
-Replace dynamic MathJax re-typesetting in the walkthrough with native
-Unicode symbols to eliminate DOM collapse and layout thrashing. Add
-explicit type="button" attributes and layout stabilization styles."""
+Add button:disabled CSS rule with opacity and pointer-event controls to
+properly grey out navigation buttons at the boundaries of the WSClock
+walkthrough. Ensure Previous Case is disabled at step 0 and Next Case is
+disabled on the final case."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1013,9 +1023,9 @@ def sync_module():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote stabilized module to {target_module}")
+    print(f"Wrote updated module to {target_module}")
 
-    run_git_step(["git", "add", target_module], "Staging updated 10-wsclock.html")
+    run_git_step(["git", "add", target_module], "Staging 10-wsclock.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
     print("--> Completed successfully!")
