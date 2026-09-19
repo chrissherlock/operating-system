@@ -905,12 +905,34 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Remove borders and enable text wrapping around buddy sidebar
+COMMIT_MSG = """Download pioneer portraits locally and update image paths in HTML
 
-Update week09-memory-management/01-free-used-lists-buddy.html by
-removing the card borders and background container styles from the
-historical introduction. Enable natural text wrapping around the
-right-aligned pioneer bio sidebar for Markowitz, Knowlton, and Knuth."""
+Fetch portraits for Markowitz, Knowlton, and Knuth via Python and store
+them locally in week09-memory-management/images/. Update HTML image src
+attributes to reference local repository assets."""
+
+def download_assets():
+    images_dir = "week09-memory-management/images"
+    os.makedirs(images_dir, exist_ok=True)
+
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+
+    for filename, url in ASSET_URLS.items():
+        filepath = os.path.join(images_dir, filename)
+        print(f"--> Downloading {filename} from {url}...")
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req) as response:
+                data = response.read()
+                print(f"    [Trace] Status: {response.status}, Content-Length: {len(data)} bytes")
+                with open(filepath, "wb") as out:
+                    out.write(data)
+            if os.path.exists(filepath):
+                print(f"    [Trace] Successfully saved to {filepath} ({os.path.getsize(filepath)} bytes)")
+            else:
+                print(f"    [Error] File {filepath} was not created.", file=sys.stderr)
+        except Exception as e:
+            print(f"    [Error] Failed to download {filename}: {e}", file=sys.stderr)
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -923,17 +945,20 @@ def run_git_step(cmd, desc):
         print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
 
-def sync_module():
+def execute_git_pipeline():
+    download_assets()
+
     target_module = "week09-memory-management/01-free-used-lists-buddy.html"
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
     print(f"Wrote updated module to {target_module}")
 
-    run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
+    images_dir = "week09-memory-management/images"
+    run_git_step(["git", "add", target_module, images_dir], "Staging HTML and images directory")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Borderless intro and text wrapping pushed successfully!")
+    print("--> Pioneer assets downloaded, committed, and pushed successfully!")
 
 if __name__ == "__main__":
-    sync_module()
+    execute_git_pipeline()
