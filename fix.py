@@ -58,7 +58,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       width: 100%;
       max-width: 1000px;
     }
-    /* Removed card bounding boxes for continuous document flow */
     .section-block {
       display: flex;
       flex-direction: column;
@@ -129,7 +128,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #ffffff;
     }
 
-    /* Diagram Figure Container */
     .diagram-figure {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
@@ -582,7 +580,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div class="pioneer-info">
                 <strong><a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: none;">John K. Ousterhout</a></strong>
                 <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
-                <span><a href="https://web.stanford.edu/~ouster/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit: Photo2012Small.png</a></span>
+                <span><a href="https://web.stanford.edu/~ouster/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Stanford</a></span>
               </div>
             </div>
             <div class="pioneer-bio">
@@ -595,7 +593,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div class="pioneer-info">
                 <strong><a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: none;">Mendel Rosenblum</a></strong>
                 <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
-                <span><a href="http://www.stanford.edu/~mendel/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit: RosenblumLowRes.jpg</a></span>
+                <span><a href="http://www.stanford.edu/~mendel/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Stanford</a></span>
               </div>
             </div>
             <div class="pioneer-bio">
@@ -1178,7 +1176,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing card-free layout structure to {html_file}...")
+    print(f"--> Updating photo credits to Stanford in {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -1186,9 +1184,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Remove card bounding boxes for a clean continuous document layout\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html to remove "
-        "the surrounding .card borders, presenting sections in an open, unified flow."
+        "Simplify pioneer photo credits to Stanford in LFS infobox\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html so that the "
+        "photo credit labels for both John K. Ousterhout and Mendel Rosenblum read "
+        "simply as Stanford."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
