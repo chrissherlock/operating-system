@@ -712,10 +712,10 @@
           <rect x="200" y="60" width="170" height="135" fill="#f8fafc" stroke="#64748b" rx="4"/>
           <text x="285" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Inode Map (Imap Chunk)</text>
           <line x1="210" y1="92" x2="360" y2="92" stroke="#cbd5e1" stroke-width="1"/>
-          <text x="285" y="110" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 0 &rarr; Sector 1024</text>
+          <text x="285" y="110" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 0 → Sector 1024</text>
           <rect x="210" y="122" width="150" height="22" fill="#e0f2fe" rx="2"/>
-          <text x="285" y="137" font-weight="bold" font-size="10" fill="#0284c7" text-anchor="middle">Inode 42 &rarr; Block 8420</text>
-          <text x="285" y="162" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 43 &rarr; Sector 3120</text>
+          <text x="285" y="137" font-weight="bold" font-size="10" fill="#0284c7" text-anchor="middle">Inode 42 → Block 8420</text>
+          <text x="285" y="162" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 43 → Sector 3120</text>
           <text x="285" y="182" font-family="sans-serif" font-size="9" font-style="italic" fill="#94a3b8" text-anchor="middle">(Decouples static ID from offset)</text>
 
           <line x1="370" y1="133" x2="430" y2="133" stroke="#0284c7" stroke-width="2"/>
@@ -739,7 +739,7 @@
 
           <line x1="725" y1="127" x2="755" y2="127" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3,3"/>
           <polygon points="758,127 750,122 750,132" fill="#38bdf8"/>
-          <text x="600" y="178" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">&rarr; Writes stream contiguously; Frontier advances forward &rarr;</text>
+          <text x="600" y="178" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">→ Writes stream contiguously; Frontier advances forward →</text>
         </svg>
         <figcaption>Figure 4.3.5B: The Inode Map decoupling persistent file numbers from dynamic log tail write offsets.</figcaption>
       </figure>
@@ -1103,7 +1103,7 @@
           <text x="300" y="132" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_flags = O_RDONLY</text>
           <text x="300" y="152" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_count = 1</text>
           <rect x="235" y="165" width="130" height="26" fill="#0284c7" rx="2"/>
-          <text x="300" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; f_op: read, write</text>
+          <text x="300" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">→ f_op: read, write</text>
 
           <line x1="375" y1="140" x2="425" y2="140" stroke="#0284c7" stroke-width="2"/><polygon points="430,140 422,135 422,145" fill="#0284c7"/>
           <rect x="430" y="60" width="150" height="150" fill="#f0fdf4" stroke="#16a34a" rx="4"/>
@@ -1113,7 +1113,7 @@
           <text x="505" y="132" font-family="sans-serif" font-size="10" fill="#166534" text-anchor="middle">d_parent = "log"</text>
           <text x="505" y="152" font-family="sans-serif" font-size="9" fill="#166534" text-anchor="middle">(Cached in Dcache)</text>
           <rect x="440" y="165" width="130" height="26" fill="#16a34a" rx="2"/>
-          <text x="505" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; d_inode Pointer</text>
+          <text x="505" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">→ d_inode Pointer</text>
 
           <line x1="580" y1="140" x2="630" y2="140" stroke="#16a34a" stroke-width="2"/><polygon points="635,140 627,135 627,145" fill="#16a34a"/>
           <rect x="635" y="60" width="140" height="150" fill="#fffbeb" stroke="#d97706" rx="4"/>
@@ -1122,7 +1122,7 @@
           <text x="705" y="112" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_ino = 1048576</text>
           <text x="705" y="132" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_size = 2.4 MB</text>
           <rect x="645" y="145" width="120" height="24" fill="#d97706" rx="2"/>
-          <text x="705" y="161" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; i_op: lookup, link</text>
+          <text x="705" y="161" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">→ i_op: lookup, link</text>
           <text x="705" y="195" font-family="sans-serif" font-size="9" fill="#92400e" text-anchor="middle">&bull; Linked to Superblock</text>
         </svg>
         <figcaption>Figure 4.3.8B: Relationship from process file descriptor down to physical inode and superblock.</figcaption>
@@ -1153,7 +1153,7 @@
         <div class="lfs-controls">
           <button class="lfs-btn primary" onclick="vfsResolveRoot()">1. Walk Path: /home/user/doc.txt (ext4)</button>
           <button class="lfs-btn" onclick="vfsCrossMountPoint()">2. Cross Mount Boundary: /mnt/usb/data (FAT32)</button>
-          <button class="lfs-btn accent" onclick="vfsPolymorphicRead()">3. Invoke read(fd) &rarr; Polymorphic Dispatch</button>
+          <button class="lfs-btn accent" onclick="vfsPolymorphicRead()">3. Invoke read(fd) → Polymorphic Dispatch</button>
           <button class="lfs-btn" onclick="vfsResetWalkthrough()" style="margin-left: auto;">Reset Simulator</button>
         </div>
 
@@ -1675,7 +1675,7 @@
       let jDiv = document.createElement("div");
       jDiv.className = "lfs-segment-box";
       jDiv.style.gridColumn = "span 2";
-      jDiv.innerHTML = `<div class="lfs-seg-header"><span>Circular Journal Ring Buffer</span><span>Head &rarr; Tail</span></div>`;
+      jDiv.innerHTML = `<div class="lfs-seg-header"><span>Circular Journal Ring Buffer</span><span>Head → Tail</span></div>`;
 
       let jBlocksDiv = document.createElement("div");
       jBlocksDiv.className = "lfs-seg-blocks";
@@ -1956,7 +1956,7 @@
       vfsRender();
       document.getElementById("vfsStepTag").textContent = "Path Walk Complete: ext4";
       document.getElementById("vfsExplanationBox").innerHTML =
-        "<strong>Path Walk Resolved via Dcache:</strong> The VFS hashed path components and traversed dentries: <code>/ &rarr; home &rarr; user &rarr; doc.txt</code>. It matched inode 84201 on ext4. An open file descriptor table slot was created. Next, test <strong>'2. Cross Mount Boundary'</strong> or <strong>'3. Invoke read(fd)'</strong>!";
+        "<strong>Path Walk Resolved via Dcache:</strong> The VFS hashed path components and traversed dentries: <code>/ → home → user → doc.txt</code>. It matched inode 84201 on ext4. An open file descriptor table slot was created. Next, test <strong>'2. Cross Mount Boundary'</strong> or <strong>'3. Invoke read(fd)'</strong>!";
       document.getElementById("vfsStatusMsg").textContent = "Path /home/user/doc.txt resolved. ext4 f_op registered.";
       document.getElementById("vfsMetricMsg").textContent = "Active Driver: ext4 | Dcache State: 4 Dentries Cached";
     }
@@ -1973,7 +1973,7 @@
       document.getElementById("vfsStepTag").textContent = "Mount Boundary Crossed!";
       document.getElementById("vfsExplanationBox").innerHTML =
         "<strong>Mount Point Traversal Detected:</strong> When the VFS path walk hit <code>/mnt/usb</code>, it saw the <code>DCACHE_MOUNTED</code> flag. The VFS seamlessly redirected lookup from the root ext4 filesystem to the <strong>FAT32 Superblock</strong>! Inode and file operations dynamically switched to <code>fat_file_operations</code> without changing the user API.";
-      document.getElementById("vfsStatusMsg").textContent = "Mount boundary crossed: ext4 &rarr; FAT32. Polymorphic f_op switched.";
+      document.getElementById("vfsStatusMsg").textContent = "Mount boundary crossed: ext4 → FAT32. Polymorphic f_op switched.";
       document.getElementById("vfsMetricMsg").textContent = "Active Driver: vfat | Dcache State: Cross-Mount Validated";
     }
 
