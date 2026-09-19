@@ -160,10 +160,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       align-items: center;
     }
 
-    /* Kernel Inspector Sandbox Styles */
+    /* Kernel Inspector Sandbox Styles (High Contrast White on Dark) */
     .kernel-sandbox {
       background: #0f172a;
-      color: #f8fafc;
+      color: #ffffff;
       border-radius: 8px;
       padding: 20px;
       display: flex;
@@ -199,7 +199,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .inspector-row {
       display: flex;
       justify-content: space-between;
-      color: #cbd5e1;
+      color: #ffffff;
       padding: 3px 0;
       border-bottom: 1px dashed #1e293b;
     }
@@ -226,10 +226,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     button.btn-secondary {
       background: #334155;
       border: 1px solid #475569;
-      color: #f8fafc;
+      color: #ffffff;
     }
     button.btn-secondary:hover { background: #475569; }
-    button.btn-danger { background: var(--danger-color); }
+    button.btn-danger { background: var(--danger-color); color: #ffffff; }
     button.btn-danger:hover { background: #b91c1c; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -288,7 +288,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .sm-state { transition: all 0.25s ease; }
     .sm-box { fill: #0f172a; stroke: #38bdf8; stroke-width: 2px; rx: 6px; }
     .sm-text { font-size: 10px; font-weight: 700; fill: #38bdf8; text-anchor: middle; font-family: var(--font-mono); }
-    .sm-subtext { font-size: 8px; fill: #94a3b8; text-anchor: middle; }
+    .sm-subtext { font-size: 8px; fill: #ffffff; text-anchor: middle; }
     .active-state .sm-box { fill: #0284c7; stroke: #38bdf8; stroke-width: 3px; filter: drop-shadow(0 4px 8px rgba(2,132,199,0.4)); }
     .active-state .sm-text { fill: #ffffff; }
     .active-state .sm-subtext { fill: #e0f2fe; }
@@ -539,7 +539,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <!-- Section 3: Interactive Kernel Table Inspector & Embedded State Machine Sandbox -->
     <div class="card kernel-sandbox">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div style="font-weight: 700; font-size: 1.1rem; color: #f8fafc;">3. Interactive Kernel Table Inspector &amp; State Machine</div>
+        <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;">3. Interactive Kernel Table Inspector &amp; State Machine</div>
         <div class="sandbox-controls">
           <button onclick="inspectExec('creat')" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
           <button onclick="inspectExec('open')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
@@ -551,21 +551,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
 
       <!-- Detailed Instructional Breakdown -->
-      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #cbd5e1; line-height: 1.6;">
+      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #ffffff; line-height: 1.6;">
         <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.8rem; font-family: var(--font-mono);">How to Use This Kernel Inspector &amp; What You Are Seeing:</div>
-        <p>
+        <p style="color: #cbd5e1;">
           This interactive sandbox simulates how the operating system kernel maintains state across process boundaries during POSIX file operations. As you click system call buttons above, examine how the interface updates across three synchronized telemetry views:
         </p>
-        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px;">
-          <li><strong>1. The State Machine Diagram (Above):</strong> Visually tracks the active lifecycle state of your file descriptor (moving from <code>UNALLOCATED</code> to <code>FD_ALLOCATED</code>, <code>OFT_BOUND</code>, and <code>RAM_CACHED</code>) in real time.</li>
-          <li><strong>2. The Three Kernel Tables (Below):</strong>
-            <ul style="padding-left: 18px; margin-top: 2px;">
-              <li><em>Process FD Table:</em> Shows private per-process file descriptor integer slots (e.g., slot <code>3</code>).</li>
-              <li><em>Open File Table:</em> Tracks shared kernel telemetry including access mode flags, active reference counts, and the live byte offset pointer.</li>
-              <li><em>Buffer Cache &amp; i-Node:</em> Monitors volatile RAM block residency, dirty cache status, and file size metrics before persistent disk synchronization.</li>
+        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px; color: #cbd5e1;">
+          <li><strong style="color: #ffffff;">1. The State Machine Diagram (Above):</strong> Visually tracks the active lifecycle state of your file descriptor (moving from <code>UNALLOCATED</code> to <code>FD_ALLOCATED</code>, <code>OFT_BOUND</code>, and <code>RAM_CACHED</code>) in real time.</li>
+          <li><strong style="color: #ffffff;">2. The Three Kernel Tables (Below):</strong>
+            <ul style="padding-left: 18px; margin-top: 2px; color: #94a3b8;">
+              <li><em style="color: #cbd5e1;">Process FD Table:</em> Shows private per-process file descriptor integer slots (e.g., slot <code>3</code>).</li>
+              <li><em style="color: #cbd5e1;">Open File Table:</em> Tracks shared kernel telemetry including access mode flags, active reference counts, and the live byte offset pointer.</li>
+              <li><em style="color: #cbd5e1;">Buffer Cache &amp; i-Node:</em> Monitors volatile RAM block residency, dirty cache status, and file size metrics before persistent disk synchronization.</li>
             </ul>
           </li>
-          <li><strong>3. The Kernel Console &amp; Challenges (Bottom):</strong> Reports exact kernel return codes (such as success or <code>EBADF</code> faults) and lets you test real-world debugging challenges.</li>
+          <li><strong style="color: #ffffff;">3. The Kernel Console &amp; Challenges (Bottom):</strong> Reports exact kernel return codes (such as success or <code>EBADF</code> faults) and lets you test real-world debugging challenges.</li>
         </ul>
       </div>
 
@@ -826,11 +826,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add detailed instructional guide and embedded state machine to inspector
+COMMIT_MSG = """Fix contrast and add clear instructional guide to inspector sandbox
 
-Update week10-file-management/01-files-abstraction.html to include an
-exhaustive explanatory guide inside the Kernel Table Inspector alongside
-the embedded SVG state machine diagram."""
+Update week10-file-management/01-files-abstraction.html to fix color contrast
+issues on dark panels and add comprehensive, step-by-step instructions
+explaining the kernel inspector and state machine widgets."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -850,12 +850,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with inspector guide and embedded state machine to {target_file}")
+    print(f"Wrote module file with high-contrast guide to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging inspector guide update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging high-contrast guide update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Inspector Guide Module 01 created, committed, and pushed successfully!")
+    print("--> High-Contrast Guide Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
