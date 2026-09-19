@@ -214,22 +214,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 8px;
+      padding: 6px;
       display: flex;
       justify-content: center;
-      min-height: 220px; /* Forced height to contain grid */
+      min-height: 220px;
     }
     .theme-modern .screen-grid {
       display: grid;
       grid-template-columns: repeat(50, 1fr);
       grid-template-rows: repeat(20, 1fr);
-      gap: 2px;
+      gap: 1px; /* Strict 1px gap */
       width: 100%;
       max-width: 1000px;
       min-height: 200px;
     }
     .theme-modern .c-cell {
-      aspect-ratio: 1 / 1;
+      width: 100%;
+      height: 100%;
       border-radius: 1px;
     }
     .theme-modern .c-free { background-color: #1e293b; }
@@ -330,13 +331,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: grid;
       grid-template-columns: repeat(50, 1fr);
       grid-template-rows: repeat(20, 1fr);
-      gap: 2px;
+      gap: 1px;
       width: 100%;
       max-width: 1000px;
       min-height: 200px;
     }
     .theme-win95 .c-cell {
-      aspect-ratio: 1 / 1;
+      width: 100%;
+      height: 100%;
       border-radius: 0;
     }
     .theme-win95 .c-free { background-color: #ffffff; }
@@ -418,7 +420,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       min-height: 200px;
     }
     .theme-dos .c-cell {
-      aspect-ratio: 1 / 1.35;
+      width: 100%;
+      height: 100%;
       border-radius: 0;
       display: flex;
       align-items: center;
@@ -448,7 +451,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (FORCED CONTAINER HEIGHT)
+       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCK FILLS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -502,36 +505,56 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 4px;
       display: flex;
       justify-content: center;
-      min-height: 220px; /* Forces container to stay tall enough */
+      min-height: 220px;
     }
     .theme-olddos .screen-grid {
       display: grid;
       grid-template-columns: repeat(50, 1fr);
       grid-template-rows: repeat(20, 1fr);
-      gap: 1px;
+      gap: 1px; /* 1px gap between cells */
       width: 100%;
       max-width: 950px;
       min-height: 200px;
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.35;
+      width: 100%;
+      height: 100%;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 9px;
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
       user-select: none;
     }
-    /* MS-DOS 6.22 Defrag Palette */
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
-    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
-    .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; }
-    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
-    .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
-    .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
+    /* MS-DOS 6.22 Defrag Pure CSS Full-Cell Block Fills */
+    .theme-olddos .c-free {
+      background-color: #0000aa;
+      background-image: repeating-linear-gradient(45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 4px);
+    }
+    .theme-olddos .c-opt {
+      background-color: #ffff55; /* Solid Yellow Block filling 100% */
+    }
+    .theme-olddos .c-unopt {
+      background-color: #0000aa;
+      background-image: repeating-linear-gradient(-45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 4px);
+    }
+    .theme-olddos .c-system {
+      background-color: #ffff55;
+      color: #aa0000;
+      font-size: 9px;
+      font-weight: 900;
+    }
+    .theme-olddos .c-read {
+      background-color: #ffffff !important;
+      color: #0000aa !important;
+    }
+    .theme-olddos .c-write {
+      background-color: #55ff55 !important;
+      color: #0000aa !important;
+    }
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
@@ -572,20 +595,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
-
-    /* Matrix Dimensions */
-    .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(50, 1fr);
-      gap: 2px;
-      width: 100%;
-      max-width: 1000px;
-    }
-    .c-cell {
-      width: 100%;
-      height: 100%;
-      transition: background-color 0.04s ease;
-    }
   </style>
 </head>
 <body>
@@ -831,7 +840,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs (Matching screenshot exactly)
+        // Pure CSS Block Background Fills (No text padding/overflow bugs)
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";
@@ -843,13 +852,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
-          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
-          el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          el.textContent = "▒";
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1116,11 +1122,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Force minimum grid container height to contain cluster cells
+COMMIT_MSG = """Force grid container height and full cell CSS block background fills
 
 Update week10-file-management/03-filesystem-implementation.html with explicit
-min-height rules on .grid-wrapper and .screen-grid boxes to guarantee all
-20 rows of cluster cells stay fully contained within the box."""
+min-height rules on .grid-wrapper and .screen-grid boxes alongside full CSS
+background fills to guarantee all 20 rows stay contained without padding bugs."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1142,10 +1148,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging forced grid container height update")
+    run_git_step(["git", "add", target_file], "Staging forced grid height and CSS blocks update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Forced grid container height successfully deployed!")
+    print("--> Forced grid container height and CSS block rendering successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
