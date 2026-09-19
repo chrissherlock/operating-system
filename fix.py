@@ -217,7 +217,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-top: 2px;
     }
 
-    /* STREAMLINED LFS & JOURNALING WALKTHROUGH WIDGETS */
+    /* STREAMLINED SIMULATOR CONTAINERS */
     .lfs-sim-container {
       background: #0f172a;
       border: 1px solid #334155;
@@ -341,12 +341,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .blk-identified-live { background: #059669 !important; color: #fff; outline: 2px solid #34d399; }
     .blk-discarded { opacity: 0.25; text-decoration: line-through; }
 
-    /* Journaling Interactive Block States */
-    .blk-journal-head { background: #9333ea; color: #fff; }
-    .blk-journal-tx { background: #3b82f6; color: #fff; }
-    .blk-journal-commit { background: #059669; color: #fff; font-weight: 900; }
-    .blk-journal-corrupt { background: #dc2626; color: #fff; text-decoration: line-through; }
-    .blk-fs-checkpointed { background: #10b981; color: #fff; }
+    /* Flash / FTL / Wear-Leveling Block Classes */
+    .blk-flash-erased { background: #0f172a; border: 1px dashed #38bdf8; color: #38bdf8; }
+    .blk-flash-valid { background: #0284c7; color: #ffffff; }
+    .blk-flash-invalid { background: #64748b; color: #cbd5e1; text-decoration: line-through; }
+    .blk-flash-static { background: #4338ca; color: #ffffff; }
 
     /* DEFRAGMENTER SHELL & THEMES */
     .defrag-outer-frame {
@@ -522,7 +521,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button class="ctrl-btn" onclick="defragInitVolume()" id="btnFormatDisk">Format Disk</button>
           <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">Heavy Churn (Fragment!)</button>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
-          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #059669; color: #fff;">🔊 Audio: On</button>
+          <button class="ctrl-btn onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #059669; color: #fff;">🔊 Audio: On</button>
 
           <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
             <span>Speed:</span>
@@ -630,10 +629,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <h3>1. The Log-Structured Paradigm &amp; The Write Bottleneck</h3>
       <p>
-        In traditional file systems (such as FFS or FAT), modifying a file requires multiple random disk I/O operations: updating the inode, modifying indirect blocks, rewriting data blocks, and updating directory structures scattered across different cylinders. As CPU processing speeds and main memory sizes grew exponentially in the 1980s and 1990s, large main memory caches absorbed most read requests via buffer cache hits. Consequently, <strong>file reads became fast</strong>, but <strong>writes remained bottlenecked by mechanical disk seek times</strong> and rotational latency.
-      </p>
-      <p>
-        Rosenblum and Ousterhout observed that disk technology trends favored sequential throughput over random access. LFS capitalizes on this by buffering all file system updates in memory and writing them out in large, contiguous blocks (called segments) to a single continuous log.
+        In traditional file systems (such as FFS or FAT), modifying a file requires multiple random disk I/O operations. Rosenblum and Ousterhout observed that caching absorbs reads, making writes the primary bottleneck. LFS buffers updates in memory and writes them out sequentially to segments.
       </p>
 
       <!-- Diagram 1: Traditional vs LFS Write Layout -->
@@ -696,24 +692,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <!-- Deepened Inode Map & Log Tail Section -->
       <h3>2. The Inode Map (Imap) Architecture &amp; Indirection</h3>
       <p>
-        In traditional file systems, every file possesses an unchanging identity tied to a static location: <strong>inode number $N$ resides at a mathematically fixed disk offset</strong> within the partition's inode table. An application reading a file simply computes this static address directly.
+        In traditional file systems, inode numbers map to fixed disk offsets. In LFS, inodes relocate on every append, requiring the Inode Map (Imap) indirection layer.
       </p>
-      <p>
-        In an append-only architecture like LFS, however, <strong>a static inode table is impossible</strong>. Whenever an existing file is updated, writing modified data blocks also requires updating its metadata (such as timestamps, file length, and block pointers). Because LFS forbids in-place updates, the updated inode cannot overwrite its original location; instead, it is appended to the current tail of the log. As files are repeatedly modified, their inodes continually relocate across different segments on disk. Without an indirection mechanism, locating a file's latest inode would demand an exhaustive, sequential scan of the entire disk volume.
-      </p>
-      <p>
-        To solve this, Rosenblum and Ousterhout created the <strong>Inode Map (Imap)</strong>. The imap is a table that decouples a file's persistent identifier (its inode number) from its physical location, maintaining the current on-disk block address for every active inode in the file system.
-      </p>
-
-      <h4>The Sequential Log Tail (Active Write Frontier)</h4>
-      <p>
-        The <strong>log tail</strong> is the dynamic write-pointer frontier of the storage volume where all newly generated data enters the media:
-      </p>
-      <ul>
-        <li><strong>Continuous Memory Buffering:</strong> File system operations do not immediately trigger physical writes. Instead, file data blocks, updated directory entries, newly positioned inodes, and even updated chunks of the imap are collected in large main-memory segment buffers (typically 512 KB to 1 MB).</li>
-        <li><strong>High-Speed Streaming:</strong> When the in-memory segment buffer fills, it is flushed to disk in one large, continuous write operation at the <strong>log tail</strong>. By advancing the write frontier sequentially across the disk platter, head seeks and rotational delays are completely eliminated during write operations.</li>
-        <li><strong>Logging the Imap Itself:</strong> Because the imap updates every time an inode moves, the imap itself is divided into small chunks and written to the log tail alongside the file data and inodes it describes. The fixed <strong>Checkpoint Region</strong> at the beginning of the volume periodically stores pointers to the latest imap chunks, completing the lookup chain.</li>
-      </ul>
 
       <!-- Enhanced Diagram 2: Imap Architecture & Log Tail Frontier -->
       <figure class="diagram-figure">
@@ -767,35 +747,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <!-- Section 3: Checkpoints & Crash Recovery -->
       <h3>3. Checkpoint Regions &amp; Rapid Crash Recovery</h3>
       <p>
-        The introduction of the Inode Map introduces an architectural dilemma: <em>if inodes move because files are appended to the log, and chunks of the imap move because inodes are appended to the log, how does the operating system locate the imap itself when mounting the disk?</em>
+        LFS breaks recursive imap indirection using fixed Checkpoint Regions (CRs). To prevent write tearing during power cuts, LFS alternates between dual regions (CR A and CR B), picking the most recent valid checksum upon reboot.
       </p>
-      <p>
-        Without a fixed anchoring point, the file system would suffer infinite recursive indirection. LFS breaks this cycle by reserving fixed physical disk locations known as <strong>Checkpoint Regions (CR)</strong>.
-      </p>
-
-      <h4>The Anatomy of a Checkpoint Region</h4>
-      <p>
-        A Checkpoint Region is written periodically (typically every 30 seconds, or during a clean system unmount). It contains:
-      </p>
-      <ul>
-        <li><strong>Array of Imap Block Addresses:</strong> Pointers to all current, valid chunks of the inode map scattered across the log.</li>
-        <li><strong>Segment Usage Table Pointers:</strong> The locations of blocks tracking the number of live bytes and modification timestamps of every segment on disk (used by the segment cleaner).</li>
-        <li><strong>Active Log Tail Pointer:</strong> The exact segment and block offset where new appends were occurring when the checkpoint was taken.</li>
-        <li><strong>Monotonic Timestamp &amp; Checksum:</strong> Verification records ensuring that the checkpoint region was completely and safely flushed to physical disk.</li>
-      </ul>
-
-      <h4>Dual Alternating Checkpoint Regions (Crash Consistency)</h4>
-      <p>
-        Writing to a fixed location creates an immediate crash vulnerability: if power fails midway through updating the Checkpoint Region, the partially written CR will be corrupt, rendering the entire file system unreadable.
-      </p>
-      <p>
-        To guarantee atomicity, LFS allocates <strong>two identical Checkpoint Regions (CR A and CR B)</strong> at known, fixed disk offsets (typically at the absolute start and end of the partition). LFS alternates writes between them:
-      </p>
-      <ol>
-        <li>At interval $T_1$, LFS flushes dirty buffers to the log tail, writes the latest imap chunks, and writes CR A with timestamp $T_1$.</li>
-        <li>At interval $T_2$, LFS repeats this sequence but writes exclusively to CR B with timestamp $T_2$.</li>
-        <li>During boot recovery, LFS inspects both CR A and CR B, computes their checksums, and mounts whichever region is intact and possesses the most recent valid timestamp. If a crash interrupted writing to CR B, LFS safely discards it and falls back to CR A.</li>
-      </ol>
 
       <!-- Diagram: Dual Alternating Checkpoints -->
       <figure class="diagram-figure">
@@ -826,179 +779,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <figcaption>Figure 4.3.5C: Alternating checkpoints guarantee crash resilience even if power fails mid-write.</figcaption>
       </figure>
 
-      <h4>Roll-Forward Recovery via Segment Summary Blocks</h4>
-      <p>
-        If LFS only recovered data referenced by the most recent checkpoint, all operations committed in the 30-second window between the last checkpoint and the sudden power cut would be lost. LFS overcomes this limitation with <strong>roll-forward recovery</strong>:
-      </p>
-      <ul>
-        <li><strong>Segment Summary Blocks:</strong> Every segment written at the log tail includes a compact summary block at its end. This summary explicitly lists the inode number and logical file offset for every single data block residing in that segment.</li>
-        <li><strong>Scanning from Checkpoint to Tail:</strong> During boot, after mounting the latest valid Checkpoint Region, LFS identifies the segment where the checkpoint concluded and scans forward through subsequent segments until it encounters unwritten media.</li>
-        <li><strong>Rebuilding Recent Inodes:</strong> By reading the Segment Summary Blocks of these recent segments, LFS detects files written after the checkpoint, reconstructs their inodes in memory, updates the imap entries, and establishes a newly verified log tail frontier.</li>
-      </ul>
-      <p>
-        Because LFS only scans the small tail of the log written since the last checkpoint (usually just a few megabytes), recovery completes in milliseconds, avoiding the hours-long volume scans typical of traditional <code>fsck</code> utilities.
-      </p>
-
-      <!-- Diagram: Roll-Forward Mechanism -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 210" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="210" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5D: Roll-Forward Recovery from Checkpoint to Crash Frontier</text>
-
-          <rect x="40" y="70" width="130" height="90" fill="#ecfdf5" stroke="#10b981" rx="4"/>
-          <text x="105" y="98" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">Last Valid CR</text>
-          <text x="105" y="118" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">Timestamp: $T_{CR}$</text>
-          <text x="105" y="138" font-family="sans-serif" font-size="9" fill="#047857" text-anchor="middle">&check; Consistent State</text>
-
-          <path d="M 170 115 L 260 115" stroke="#0284c7" stroke-width="3" stroke-dasharray="4,4"/>
-          <polygon points="260,115 250,109 250,121" fill="#0284c7"/>
-          <text x="215" y="105" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0284c7" text-anchor="middle">Roll Forward</text>
-
-          <rect x="260" y="65" width="220" height="100" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
-          <text x="370" y="86" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Segment Written After Checkpoint</text>
-          <rect x="275" y="98" width="50" height="35" fill="#0284c7" rx="2"/><text x="300" y="120" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Data F7</text>
-          <rect x="335" y="98" width="50" height="35" fill="#0284c7" rx="2"/><text x="360" y="120" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Inode 7</text>
-          <rect x="395" y="98" width="70" height="35" fill="#f59e0b" rx="2"/><text x="430" y="120" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Summary Blk</text>
-          <text x="370" y="152" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">Summary identifies new inode &amp; updates Imap</text>
-
-          <line x1="510" y1="50" x2="510" y2="180" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5"/>
-          <text x="510" y="198" font-family="sans-serif" font-size="10" font-weight="bold" fill="#dc2626" text-anchor="middle">&cross; Sudden Power Cut &cross;</text>
-
-          <rect x="540" y="65" width="220" height="100" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="3,3" rx="4"/>
-          <text x="650" y="110" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">Unwritten / Clean Segments</text>
-          <text x="650" y="128" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">(Becomes new active log tail frontier)</text>
-        </svg>
-        <figcaption>Figure 4.3.5D: Fast roll-forward scan parsing segment summaries to recover blocks committed after checkpoint.</figcaption>
-      </figure>
-
-      <!-- MASSIVELY EXPANDED SECTION 4: SEGMENT CLEANING & GARBAGE COLLECTION -->
+      <!-- Section 4: Segment Cleaning & Garbage Collection -->
       <h3>4. Background Garbage Collection &amp; Segment Cleaning</h3>
       <p>
-        While append-only logging achieves optimal sequential write performance, it creates a fundamental storage management challenge: <strong>free space fragmentation</strong>.
+        Segment cleaning reclaims fragmented dead space using the Cost-Benefit policy $((1-u) \times \text{Age}) / (1+u)$, balancing hot and cold data compaction.
       </p>
-      <p>
-        Because LFS never overwrites existing blocks in place, modifying a file writes new data to the log tail, leaving previous versions of those data blocks and their old inodes orphaned in older segments. Over time, segments become riddled with obsolete &ldquo;holes&rdquo; (dead space). If the disk simply wrapped around in a circular fashion without intervention, the log tail would soon collide with older segments containing a mixture of live data and dead holes, forcing writes to fragment into tiny random slivers and destroying LFS's throughput advantage.
-      </p>
-
-      <h4>Determining Block Liveness via Segment Summaries</h4>
-      <p>
-        To reclaim contiguous free space, LFS runs a background cleaning daemon. The cleaner reads several partially filled candidate segments, identifies which blocks are still <strong>live</strong> (currently referenced by an active file), compacts those live blocks together, and writes them out into a fresh, contiguous clean segment at the log tail. The original segments are then marked completely free and recycled.
-      </p>
-      <p>
-        A central efficiency question is: <em>How does the cleaner determine whether a specific block in an old segment is live or dead without performing a full volume scan?</em>
-      </p>
-      <p>
-        The cleaner uses the <strong>Segment Summary Block</strong> located at the end of each segment. The summary record stores a tuple <code>(inode_number, block_offset)</code> for every block in the segment. The cleaner verifies liveness in three constant-time steps:
-      </p>
-      <ol>
-        <li>Read block $B$'s metadata tuple from the Segment Summary: <code>(Inode 14, Offset 0)</code>.</li>
-        <li>Consult the Inode Map (Imap) to find the current on-disk location of Inode 14.</li>
-        <li>Read Inode 14 and inspect its block pointer for Offset 0. If that pointer matches block $B$'s address, <strong>the block is live</strong> and must be preserved. If the pointer points to a newer block at the log tail (or if Inode 14 was deleted), <strong>block $B$ is dead</strong> and can be discarded immediately.</li>
-      </ol>
-
-      <!-- Diagram: Block Liveness Verification Pipeline -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 230" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="230" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5E: Three-Step Block Liveness Verification Pipeline</text>
-
-          <rect x="40" y="60" width="200" height="135" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="140" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">1. Segment Summary Block</text>
-          <line x1="50" y1="92" x2="230" y2="92" stroke="#cbd5e1" stroke-width="1"/>
-          <text x="140" y="112" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">Candidate Block: #4096</text>
-          <rect x="55" y="122" width="170" height="26" fill="#e0f2fe" rx="3"/>
-          <text x="140" y="139" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0284c7" text-anchor="middle">Summary: (Inode 14, Off 0)</text>
-          <text x="140" y="172" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Identifies block ownership</text>
-
-          <line x1="240" y1="125" x2="295" y2="125" stroke="#0284c7" stroke-width="2"/>
-          <polygon points="295,125 287,120 287,130" fill="#0284c7"/>
-          <text x="268" y="115" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Query</text>
-
-          <rect x="295" y="60" width="195" height="135" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
-          <text x="392" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">2. Consult Inode Map</text>
-          <line x1="305" y1="92" x2="480" y2="92" stroke="#bae6fd" stroke-width="1"/>
-          <text x="392" y="112" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">Query Inode 14 address</text>
-          <rect x="310" y="122" width="165" height="26" fill="#ffffff" stroke="#38bdf8" rx="3"/>
-          <text x="392" y="139" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">Imap[14] &rarr; Block #8100</text>
-          <text x="392" y="172" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Locates latest inode copy</text>
-
-          <line x1="490" y1="125" x2="545" y2="125" stroke="#0284c7" stroke-width="2"/>
-          <polygon points="545,125 537,120 537,130" fill="#0284c7"/>
-          <text x="518" y="115" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Compare</text>
-
-          <rect x="545" y="60" width="215" height="135" fill="#ecfdf5" stroke="#10b981" rx="4"/>
-          <text x="652" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">3. Check Inode Offset 0</text>
-          <line x1="555" y1="92" x2="750" y2="92" stroke="#a7f3d0" stroke-width="1"/>
-          <text x="652" y="112" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">Does Inode.ptr[0] == #4096?</text>
-          <text x="652" y="136" font-family="sans-serif" font-size="10" font-weight="bold" fill="#047857" text-anchor="middle">&check; YES: Keep block (Live)</text>
-          <text x="652" y="154" font-family="sans-serif" font-size="10" font-weight="bold" fill="#dc2626" text-anchor="middle">&cross; NO: Discard hole (Dead)</text>
-          <text x="652" y="178" font-family="sans-serif" font-size="9" fill="#065f46" text-anchor="middle">Constant time $O(1)$ decision</text>
-        </svg>
-        <figcaption>Figure 4.3.5E: The three-step constant time liveness check comparing segment summary entries against current inode pointers.</figcaption>
-      </figure>
-
-      <h4>The Cost-Benefit Policy: Managing Hot vs. Cold Data</h4>
-      <p>
-        Segment cleaning is not free. Moving live data incurs <strong>write amplification</strong>: reading live blocks off disk, copying them through memory, and rewriting them at the log tail consumes I/O bandwidth that could otherwise serve user applications.
-      </p>
-      <p>
-        A naive policy would be to clean whichever segment has the highest proportion of dead space (the lowest utilization $u$, where $u$ is the fraction of live bytes in the segment). However, Rosenblum and Ousterhout discovered that this simple greedy policy performs poorly because it ignores data temperature:
-      </p>
-      <ul>
-        <li><strong>Hot Data:</strong> Files that are overwritten or appended to frequently (such as log files or database temporary tables). Dead space accumulates rapidly in hot segments. If a hot segment is cleaned early while its utilization is moderate, the cleaner will expend effort copying live blocks that are destined to become dead shortly thereafter.</li>
-        <li><strong>Cold Data:</strong> Files that are written once and rarely modified (such as system binaries, code libraries, or archived media). If a cold segment reaches 75% dead space, the remaining 25% of live data will likely remain valid for months. Cleaning this segment frees 75% contiguous space permanently without risking repeated re-cleaning.</li>
-      </ul>
-      <p>
-        To balance these dynamics, Rosenblum and Ousterhout formulated the <strong>Cost-Benefit Cleaning Policy</strong>:
-      </p>
-      $$\frac{\text{Benefit}}{\text{Cost}} = \frac{\text{Free Space Reclaimed} \times \text{Age}}{\text{Cost of Cleaning}} = \frac{(1 - u) \times \text{Age}}{1 + u}$$
-      <p>
-        Where:
-      </p>
-      <ul>
-        <li>$u$ is the segment utilization ($0 \le u \le 1$), representing the fraction of blocks that are still live.</li>
-        <li>$(1 - u)$ represents the amount of contiguous free space reclaimed by cleaning the segment.</li>
-        <li>$\text{Age}$ is the elapsed time since the newest block in the segment was written. An older segment indicates stable, cold data that is unlikely to generate new dead space on its own.</li>
-        <li>$(1 + u)$ reflects the physical I/O cost: reading the full segment (cost of $1$) plus rewriting the surviving live fraction (cost of $u$).</li>
-      </ul>
-
-      <!-- Diagram: Cost-Benefit Hot vs Cold Cleaning -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5F: Cost-Benefit Cleaning Dynamics (Hot vs. Cold Data Segments)</text>
-
-          <rect x="40" y="55" width="340" height="155" fill="#fef2f2" stroke="#f87171" rx="4"/>
-          <text x="210" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Hot Segment (Frequent Modifications)</text>
-          <line x1="50" y1="88" x2="370" y2="88" stroke="#fecaca" stroke-width="1"/>
-          <text x="210" y="106" font-family="sans-serif" font-size="10" fill="#7f1d1d" text-anchor="middle">Utilization: $u = 0.40$ (40% Live, 60% Dead)</text>
-          <text x="210" y="124" font-family="sans-serif" font-size="10" fill="#7f1d1d" text-anchor="middle">Age: Low (Recent writes)</text>
-          <rect x="55" y="136" width="310" height="28" fill="#ffffff" stroke="#ef4444" rx="3"/>
-          <text x="210" y="154" font-family="sans-serif" font-size="10" font-weight="bold" fill="#dc2626" text-anchor="middle">Decision: DELAY CLEANING</text>
-          <text x="210" y="190" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">Waiting allows active churn to naturally kill remaining live blocks</text>
-
-          <rect x="420" y="55" width="340" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
-          <text x="590" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Cold Segment (Stable, Read-Only Data)</text>
-          <line x1="430" y1="88" x2="750" y2="88" stroke="#bbf7d0" stroke-width="1"/>
-          <text x="590" y="106" font-family="sans-serif" font-size="10" fill="#14532d" text-anchor="middle">Utilization: $u = 0.60$ (60% Live, 40% Dead)</text>
-          <text x="590" y="124" font-family="sans-serif" font-size="10" fill="#14532d" text-anchor="middle">Age: Very High (Unchanged for hours/days)</text>
-          <rect x="435" y="136" width="310" height="28" fill="#ffffff" stroke="#22c55e" rx="3"/>
-          <text x="590" y="154" font-family="sans-serif" font-size="10" font-weight="bold" fill="#16a34a" text-anchor="middle">Decision: CLEAN &amp; COMPACT</text>
-          <text x="590" y="190" font-family="sans-serif" font-size="9" fill="#166534" text-anchor="middle">Compacting cold data isolates stable blocks into dedicated segments</text>
-        </svg>
-        <figcaption>Figure 4.3.5F: The cost-benefit cleaning policy delays cleaning hot segments to avoid write amplification while proactively compacting cold segments.</figcaption>
-      </figure>
-
-      <h4>The Complete Four-Phase Compaction Cycle</h4>
-      <p>
-        The complete cleaning sequence executes in four discrete, coordinated phases:
-      </p>
-      <ol>
-        <li><strong>Selection:</strong> The cleaner evaluates on-disk segment usage tables, computes cost-benefit metrics across candidates, and selects a batch of segments $S_1, S_2, \ldots, S_k$.</li>
-        <li><strong>Identification:</strong> For each selected segment, the cleaner reads the Segment Summary block and verifies block liveness via the Inode Map.</li>
-        <li><strong>Compaction &amp; Append:</strong> All identified live blocks are bundled into a contiguous in-memory buffer and appended to the <strong>log tail</strong> as part of a new clean segment. Because the live blocks now reside at new physical addresses, their corresponding inodes and imap entries are updated and committed to the log tail as well.</li>
-        <li><strong>Reclamation:</strong> The original segments $S_1, S_2, \ldots, S_k$ are marked as free in the Segment Usage Table and added to the pool of available clean segments for future log tail streaming.</li>
-      </ol>
 
       <!-- WALKTHROUGH PART 2: THE 4-PHASE COMPACTION CYCLE -->
       <div class="lfs-sim-container" id="fourPhaseCompactionSim">
@@ -1037,172 +822,39 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <h3>1. The Crash Consistency Problem</h3>
       <p>
-        Modifying a file in a standard filesystem requires multiple non-atomic disk operations. Consider appending data to an existing file:
-      </p>
-      <ol>
-        <li><strong>Data Block Write:</strong> New file payload bytes must be written to a free data block on storage media.</li>
-        <li><strong>Inode Metadata Update:</strong> The file's inode must be updated with the new file length, modification timestamp, and a direct/indirect pointer addressing the new block.</li>
-        <li><strong>Block Bitmap Modification:</strong> The free block allocation bitmap must clear the bit for the allocated block to mark it as occupied.</li>
-      </ol>
-      <p>
-        Because physical storage devices only guarantee atomic writes for single sectors (typically 512 or 4096 bytes), a sudden power failure or operating system panic occurring midway through these writes produces catastrophic corruption:
-      </p>
-      <ul>
-        <li><strong>If only the data block is written:</strong> The data exists on disk, but neither the inode nor the bitmap references it. The block becomes an undetectable space leak until a complete filesystem scan runs.</li>
-        <li><strong>If only the inode is updated:</strong> The inode points to a block that the bitmap still marks as free. A subsequent file creation may allocate that same block, leading to mutual block theft and corrupted data.</li>
-        <li><strong>If only the bitmap is updated:</strong> A block is marked occupied, but no inode points to it, permanently wasting storage space.</li>
-      </ul>
-      <p>
-        Historically, traditional Unix filesystems relied on the <code>fsck</code> (File System Consistency Check) utility upon reboot. <code>fsck</code> performs a multi-pass sweep across the entire storage partition: scanning every inode, rebuilding allocation bitmaps from scratch, cross-referencing link counts, and resolving orphaned blocks into <code>lost+found</code>. On multi-terabyte drives containing millions of files, an <code>fsck</code> scan can consume many hours, causing unacceptable downtime.
+        Modifying a file requires non-atomic updates across data blocks, inodes, and bitmaps. A crash mid-update leaves metadata desynchronized.
       </p>
 
-      <!-- Diagram 4.3.6A: The Crash Consistency Window & WAL -->
+      <!-- Diagram 4.3.6A: WAL -->
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
           <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6A: Crash Window Vulnerability vs. Write-Ahead Logging (WAL)</text>
 
-          <!-- Vulnerable In-Place Writes -->
           <rect x="30" y="55" width="340" height="155" fill="#fef2f2" stroke="#f87171" rx="4"/>
           <text x="200" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Traditional Non-Atomic Writes</text>
           <line x1="40" y1="88" x2="360" y2="88" stroke="#fecaca" stroke-width="1"/>
-
           <rect x="50" y="100" width="80" height="35" fill="#0284c7" rx="2"/><text x="90" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">1. Data</text>
           <line x1="135" y1="117" x2="160" y2="117" stroke="#dc2626" stroke-width="2"/>
           <rect x="165" y="100" width="80" height="35" fill="#f59e0b" rx="2"/><text x="205" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">2. Inode</text>
-
-          <!-- Crash Bolt -->
           <line x1="260" y1="92" x2="260" y2="145" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,3"/>
           <text x="260" y="88" font-family="sans-serif" font-size="14" fill="#dc2626" text-anchor="middle">&#9889;</text>
-          <text x="260" y="160" font-family="sans-serif" font-size="9" font-weight="bold" fill="#dc2626" text-anchor="middle">Crash Window</text>
-
           <rect x="275" y="100" width="80" height="35" fill="#94a3b8" rx="2" stroke="#dc2626" stroke-dasharray="2,2"/><text x="315" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">3. Bitmap</text>
-          <text x="200" y="192" font-family="sans-serif" font-size="9" fill="#7f1d1d" text-anchor="middle">Partial write leaves bitmap desynchronized from inode!</text>
 
-          <!-- WAL Journaling -->
           <rect x="410" y="55" width="360" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
           <text x="590" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Write-Ahead Logging (WAL) Protocol</text>
           <line x1="420" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
-
           <rect x="430" y="100" width="70" height="35" fill="#3b82f6" rx="2"/><text x="465" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Tx Header</text>
           <rect x="505" y="100" width="70" height="35" fill="#3b82f6" rx="2"/><text x="540" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Metadata</text>
           <rect x="580" y="100" width="70" height="35" fill="#059669" rx="2"/><text x="615" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Commit Blk</text>
-
           <line x1="655" y1="117" x2="680" y2="117" stroke="#16a34a" stroke-width="2"/>
           <polygon points="685,117 678,112 678,122" fill="#16a34a"/>
-
           <rect x="685" y="100" width="75" height="35" fill="#10b981" rx="2"/><text x="722" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Checkpoint</text>
-          <text x="590" y="160" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Atomic commit record precedes permanent in-place update</text>
-          <text x="590" y="180" font-family="sans-serif" font-size="9" font-style="italic" fill="#166534" text-anchor="middle">Boot recovery replays commit or discards uncommitted partial write</text>
         </svg>
         <figcaption>Figure 4.3.6A: Write-Ahead Logging isolates multi-block updates behind an atomic commit boundary.</figcaption>
       </figure>
 
-      <h3>2. Write-Ahead Logging &amp; The Transaction Lifecycle</h3>
-      <p>
-        Journaling file systems borrow the technique of <strong>Write-Ahead Logging (WAL)</strong> from relational database engines. The fundamental invariant of WAL states: <em>No modified metadata or data may overwrite its permanent disk location until the corresponding change description has been committed to a non-volatile log.</em>
-      </p>
-      <p>
-        The dedicated log space is arranged as a circular ring buffer (either inside a reserved inode or on a separate partition). Changes execute across four strict stages:
-      </p>
-      <ol>
-        <li><strong>Journal Write:</strong> The operating system bundles related updates into a transaction. A transaction descriptor header is emitted, followed by modified filesystem blocks (such as inodes, allocation bitmaps, or directory entries).</li>
-        <li><strong>Journal Commit:</strong> Once all transaction records reach disk, an explicit <strong>commit block</strong> containing a sequence number and transaction checksum is written. The arrival of the commit block marks the <em>commit boundary</em>: the transaction is now formally committed and durable.</li>
-        <li><strong>Checkpointing:</strong> With the transaction safely committed to the journal, the operating system writes the pending changes to their permanent in-place filesystem blocks across disk cylinders.</li>
-        <li><strong>Journal Free:</strong> Once in-place checkpointing finishes, the circular journal marks that transaction's ring buffer space as free for reuse.</li>
-      </ol>
-
-      <!-- Diagram 4.3.6B: Circular Journal Ring Buffer & Lifecycle -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6B: Circular Journal Ring Buffer &amp; In-Place Checkpoint Pipeline</text>
-
-          <!-- Circular Ring Buffer Representation -->
-          <rect x="40" y="60" width="440" height="150" fill="#0f172a" stroke="#334155" rx="6"/>
-          <text x="260" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">Circular Journal Ring Buffer</text>
-
-          <!-- Ring slots -->
-          <rect x="55" y="102" width="70" height="50" fill="#1e293b" stroke="#334155" rx="3"/>
-          <text x="90" y="125" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Tx 101</text>
-          <text x="90" y="140" font-family="sans-serif" font-size="8" fill="#4ade80" text-anchor="middle">(Freed)</text>
-
-          <rect x="135" y="102" width="85" height="50" fill="#3b82f6" rx="3"/>
-          <text x="177" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 102 Data</text>
-          <text x="177" y="140" font-family="sans-serif" font-size="8" fill="#dbeafe" text-anchor="middle">Descriptor</text>
-
-          <rect x="230" y="102" width="85" height="50" fill="#059669" rx="3"/>
-          <text x="272" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 102 Commit</text>
-          <text x="272" y="140" font-family="sans-serif" font-size="8" fill="#d1fae5" text-anchor="middle">CRC Checksum</text>
-
-          <rect x="325" y="102" width="80" height="50" fill="#3b82f6" rx="3"/>
-          <text x="365" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 103 Writing</text>
-          <text x="365" y="140" font-family="sans-serif" font-size="8" fill="#dbeafe" text-anchor="middle">Pending</text>
-
-          <rect x="415" y="102" width="55" height="50" fill="#1e293b" stroke="#334155" rx="3"/>
-          <text x="442" y="132" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Unused</text>
-
-          <text x="260" y="190" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">&larr; Checkpoint Head advances &bull; Journal Tail writes forward &rarr;</text>
-
-          <!-- Checkpointing Arrow -->
-          <path d="M 480 127 L 530 127" stroke="#10b981" stroke-width="3"/>
-          <polygon points="535,127 525,121 525,133" fill="#10b981"/>
-          <text x="507" y="115" font-family="sans-serif" font-size="9" font-weight="bold" fill="#10b981" text-anchor="middle">Flush</text>
-
-          <!-- Permanent In-Place File System Structures -->
-          <rect x="535" y="60" width="225" height="150" fill="#f8fafc" stroke="#cbd5e1" rx="6"/>
-          <text x="647" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Permanent In-Place Blocks</text>
-
-          <rect x="550" y="102" width="60" height="40" fill="#0284c7" rx="3"/><text x="580" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Inode Table</text>
-          <rect x="620" y="102" width="60" height="40" fill="#f59e0b" rx="3"/><text x="650" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Bitmap</text>
-          <rect x="690" y="102" width="60" height="40" fill="#10b981" rx="3"/><text x="720" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Data Block</text>
-
-          <text x="647" y="180" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Checkpointing writes in-place;</text>
-          <text x="647" y="196" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Transaction 102 can then be freed</text>
-        </svg>
-        <figcaption>Figure 4.3.6B: Transactions advance through the circular ring buffer before updating permanent in-place structures.</figcaption>
-      </figure>
-
-      <h3>3. Journaling Modes &amp; Performance Trade-offs</h3>
-      <p>
-        Writing every piece of data twice (once to the journal, and once to its permanent location) imposes significant I/O overhead. To balance write performance against data safety, modern journaling filesystems (such as Linux <strong>ext3</strong> and <strong>ext4</strong>) provide three distinct journaling operational modes:
-      </p>
-      <ul>
-        <li><strong>Journal Mode (Full Data Journaling):</strong> Both file payload data and filesystem metadata are written to the journal before being committed and checkpointed to permanent blocks.
-          <ul>
-            <li><em>Safety:</em> Highest possible consistency guarantee. Neither metadata nor file data can be lost or corrupted on crash.</li>
-            <li><em>Trade-off:</em> Lowest throughput. Every byte is written twice, imposing an unavoidable 2&times; write amplification penalty.</li>
-          </ul>
-        </li>
-        <li><strong>Ordered Mode (Metadata-Only with Ordered Data Writes):</strong> Only filesystem metadata is recorded in the journal. However, the operating system enforces a strict ordering rule: <em>all user data blocks must be flushed to their permanent in-place disk blocks before the associated metadata transaction commits to the journal.</em>
-          <ul>
-            <li><em>Safety:</em> Guaranteed metadata consistency with strong data protection. A crash cannot leave an inode pointing to unwritten garbage or stale remnants of deleted files.</li>
-            <li><em>Trade-off:</em> Highly optimized. Data is written to disk exactly once, eliminating write amplification while maintaining crash consistency. (Default mode in ext3/ext4).</li>
-          </ul>
-        </li>
-        <li><strong>Writeback Mode (Metadata-Only with Relaxed Ordering):</strong> Only metadata is journaled, and no ordering constraints are imposed between user data writes and journal commits. Metadata can commit before user data blocks reach persistent media.
-          <ul>
-            <li><em>Safety:</em> Metadata integrity is preserved, but files modified just before a crash may contain stale remnants of previous deleted files from those blocks.</li>
-            <li><em>Trade-off:</em> Maximum write performance and lowest I/O latency.</li>
-          </ul>
-        </li>
-      </ul>
-
-      <h3>4. Fast Crash Recovery: Redo Logging</h3>
-      <p>
-        When an operating system boots after a crash, the recovery sequence replaces exhaustive disk scans with an immediate inspection of the journal:
-      </p>
-      <ol>
-        <li><strong>Locate Journal Boundaries:</strong> Read the journal superblock to determine the active head and tail offsets of the circular ring buffer.</li>
-        <li><strong>Scan for Committed Transactions:</strong> Scan sequentially from the head. If a transaction possesses a valid header, intact payload blocks, and a matching checksum commit block, it is recognized as durable.</li>
-        <li><strong>Redo Logging (Replay):</strong> For every valid committed transaction, the recovery engine reads the logged metadata blocks and writes them directly into their corresponding in-place filesystem disk blocks. This guarantees that all committed updates survive.</li>
-        <li><strong>Discard Uncommitted Writes:</strong> If a transaction was interrupted mid-write (evidenced by a missing commit block or a checksum mismatch), the recovery engine discards it entirely. The filesystem cleanly reverts to the exact state it held prior to the uncommitted transaction.</li>
-      </ol>
-      <p>
-        Because recovery only scans the compact journal ring buffer, the entire process completes in seconds regardless of partition capacity.
-      </p>
-
-      <!-- WALKTHROUGH PART 3: JOURNALING TRANSACTION & RECOVERY SIMULATOR -->
+      <!-- Section 4.3.6 Walkthrough -->
       <div class="lfs-sim-container" id="journalingSim">
         <div class="lfs-topbar">
           <span class="lfs-title">Walkthrough Part 3: Journaling Transaction &amp; Crash Recovery Simulator</span>
@@ -1230,12 +882,197 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.3.7: Flash Storage & Wear-Leveling -->
+    <!-- MASSIVELY EXPANDED SECTION 4.3.7: FLASH STORAGE & WEAR-LEVELING -->
     <div class="section-block">
       <h2>4.3.7 Flash Storage &amp; Wear-Leveling Systems</h2>
       <p>
-        Solid-state drives built on NAND flash memory replace mechanical platters with electronic memory cells, requiring specialized FTL layers and wear-leveling algorithms.
+        Solid-state drives (SSDs) and embedded raw flash media depart completely from the mechanical geometry of rotating magnetic disks. Flash devices contain no moving read/write heads, platters, or stepper motors. However, the quantum electronics governing solid-state storage introduce a radical architectural asymmetry: <strong>flash media cannot perform random in-place updates</strong>.
       </p>
+
+      <h3>1. NAND Flash Physics &amp; Structural Asymmetry</h3>
+      <p>
+        NAND flash stores data bits within floating-gate or charge-trap field-effect transistor cells. Electrons are tunneled through an insulating dielectric oxide layer into an isolated gate trap; the trapped electrical charge shifts the transistor's threshold voltage, encoding logical bits (SLC stores 1 bit per cell, MLC stores 2, TLC stores 3, and QLC stores 4).
+      </p>
+      <p>
+        The underlying physical geometry creates a sharp operational divergence between reading, writing, and deleting:
+      </p>
+      <ul>
+        <li><strong>Pages (The Read/Program Unit):</strong> Cells are grouped into physical <strong>pages</strong> (typically 4 KB, 8 KB, or 16 KB in modern NAND dies). The storage controller reads and writes (programs) data strictly in integer page multiples. Writing changes cell charge from logical <code>1</code> to logical <code>0</code>.</li>
+        <li><strong>Erase Blocks (The Erase Unit):</strong> Hundreds of pages are grouped into an <strong>erase block</strong> (typically 2 MB to 8 MB, containing 128 to 512 pages).</li>
+        <li><strong>The Erase-Before-Write Constraint:</strong> While an individual page can be programmed from <code>1</code> to <code>0</code>, tunneling electrons back out to restore a cell to <code>1</code> requires applying a high-voltage electrical field (approx. 20 volts) across the entire substrate. This high-voltage charge cannot be isolated to a single page; it wipes the entire multi-megabyte <strong>erase block</strong>.</li>
+      </ul>
+      <p>
+        Consequently, an SSD cannot overwrite a single 4 KB sector in place. To update page 5 within a block, the controller cannot simply erase page 5; erasing would destroy the neighboring 255 pages sharing that physical block.
+      </p>
+
+      <!-- Diagram 4.3.7A: Physical Asymmetry & Overwrite Failure -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.7A: NAND Flash Physical Asymmetry (Page Program vs. Block Erase)</text>
+
+          <!-- Read/Write Page Unit -->
+          <rect x="40" y="55" width="340" height="155" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
+          <text x="210" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0369a1" text-anchor="middle">Read / Program Unit: Physical Page</text>
+          <line x1="50" y1="88" x2="370" y2="88" stroke="#bae6fd" stroke-width="1"/>
+          <text x="210" y="108" font-family="sans-serif" font-size="10" fill="#0f172a" text-anchor="middle">Granularity: 4 KB &ndash; 16 KB</text>
+
+          <rect x="60" y="120" width="65" height="40" fill="#0284c7" rx="2"/><text x="92.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 0 (4K)</text>
+          <rect x="135" y="120" width="65" height="40" fill="#0284c7" rx="2"/><text x="167.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 1 (4K)</text>
+          <rect x="210" y="120" width="65" height="40" fill="#0284c7" rx="2"/><text x="242.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 2 (4K)</text>
+          <rect x="285" y="120" width="65" height="40" fill="#38bdf8" rx="2"/><text x="317.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 3 (4K)</text>
+
+          <text x="210" y="190" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">&check; Controller can read and program single pages independently</text>
+
+          <!-- Erase Unit -->
+          <rect x="420" y="55" width="340" height="155" fill="#fef2f2" stroke="#f87171" rx="4"/>
+          <text x="590" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Erase Unit: Physical Block</text>
+          <line x1="430" y1="88" x2="750" y2="88" stroke="#fecaca" stroke-width="1"/>
+          <text x="590" y="108" font-family="sans-serif" font-size="10" fill="#7f1d1d" text-anchor="middle">Granularity: 2 MB &ndash; 8 MB (128 &ndash; 512 Pages)</text>
+
+          <rect x="440" y="120" width="300" height="40" fill="#ef4444" rx="3"/>
+          <text x="590" y="145" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Single High-Voltage Bulk Erase Pulse (20V)</text>
+
+          <text x="590" y="180" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">&cross; In-place overwrites are physically impossible without</text>
+          <text x="590" y="194" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">erasing all neighboring pages sharing the physical block</text>
+        </svg>
+        <figcaption>Figure 4.3.7A: Physical pages can be read and written, but resets require bulk erase blocks.</figcaption>
+      </figure>
+
+      <h3>2. The Flash Translation Layer (FTL) &amp; Out-of-Place Writes</h3>
+      <p>
+        Operating systems and legacy applications expect storage to behave as a conventional block device supporting arbitrary, in-place sector overwrites. To bridge this gap, all solid-state drives embed an onboard microcontroller running firmware known as the <strong>Flash Translation Layer (FTL)</strong>.
+      </p>
+      <p>
+        The FTL acts as a transparent, high-speed translation runtime that exposes a virtual disk of sequential <strong>Logical Block Addresses (LBAs)</strong> to the operating system host, while dynamically mapping them to arbitrary <strong>Physical Block Addresses (PBAs)</strong> across raw NAND flash dies.
+      </p>
+
+      <h4>Out-of-Place Writes &amp; Invalidation</h4>
+      <p>
+        When the host operating system updates an existing block (e.g., rewriting LBA 50):
+      </p>
+      <ol>
+        <li>The FTL does not overwrite LBA 50's current physical page.</li>
+        <li>Instead, the FTL writes the updated data into an unwritten, pre-erased physical page in an active write block.</li>
+        <li>The FTL updates its internal RAM <strong>Mapping Table</strong> so that LBA 50 now points to the new physical page address.</li>
+        <li>The previous physical page holding the old data is marked as <strong>invalid (dead space)</strong>.</li>
+      </ol>
+
+      <!-- Diagram 4.3.7B: FTL Architecture & Wear-Leveling -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.7B: Flash Translation Layer (FTL) Dynamic Mapping &amp; Invalidation</text>
+
+          <!-- Host Logical Space -->
+          <rect x="30" y="60" width="160" height="150" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <text x="110" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Host Logical Space (LBA)</text>
+          <line x1="40" y1="92" x2="180" y2="92" stroke="#cbd5e1" stroke-width="1"/>
+          <rect x="45" y="105" width="130" height="26" fill="#e0f2fe" rx="3"/><text x="110" y="122" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">LBA 10: File A</text>
+          <rect x="45" y="140" width="130" height="26" fill="#fef3c7" rx="3"/><text x="110" y="157" font-family="sans-serif" font-size="10" font-weight="bold" fill="#b45309" text-anchor="middle">LBA 25: (Updated!)</text>
+
+          <!-- FTL Mapping Table -->
+          <rect x="230" y="60" width="220" height="150" fill="#0f172a" stroke="#334155" rx="6"/>
+          <text x="340" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">FTL RAM Mapping Table</text>
+          <line x1="240" y1="92" x2="440" y2="92" stroke="#334155" stroke-width="1"/>
+          <text x="340" y="112" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">LBA 10 &rarr; Die 0, Blk 2, Page 0</text>
+
+          <rect x="245" y="125" width="190" height="28" fill="#1e293b" stroke="#38bdf8" rx="3"/>
+          <text x="340" y="143" font-family="sans-serif" font-size="10" font-weight="bold" fill="#38bdf8" text-anchor="middle">LBA 25 &rarr; Remapped to Page 9</text>
+          <text x="340" y="185" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">(Translates logical addresses to physical flash)</text>
+
+          <!-- Physical Flash Media -->
+          <rect x="490" y="60" width="280" height="150" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+          <text x="630" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Physical Flash Blocks (PBA)</text>
+          <line x1="500" y1="92" x2="760" y2="92" stroke="#cbd5e1" stroke-width="1"/>
+
+          <!-- Block 1 (Contains old invalid page) -->
+          <rect x="505" y="105" width="120" height="90" fill="#fef2f2" stroke="#fca5a5" rx="3"/>
+          <text x="565" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Physical Block 1</text>
+          <rect x="515" y="132" width="100" height="20" fill="#0284c7" rx="2"/><text x="565" y="146" font-family="sans-serif" font-size="8" fill="#fff" text-anchor="middle">P0: LBA 10 (Live)</text>
+          <rect x="515" y="158" width="100" height="20" fill="#94a3b8" rx="2" stroke="#ef4444"/><text x="565" y="172" font-family="sans-serif" font-size="8" fill="#fff" text-decoration="line-through" text-anchor="middle">P1: LBA 25 (DEAD)</text>
+
+          <!-- Block 2 (Contains fresh out-of-place page) -->
+          <rect x="640" y="105" width="120" height="90" fill="#ecfdf5" stroke="#86efac" rx="3"/>
+          <text x="700" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#15803d" text-anchor="middle">Physical Block 2</text>
+          <rect x="650" y="132" width="100" height="20" fill="#059669" rx="2"/><text x="700" y="146" font-family="sans-serif" font-size="8" font-weight="bold" fill="#fff" text-anchor="middle">P9: LBA 25 (NEW)</text>
+          <rect x="650" y="158" width="100" height="20" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="2,2"/><text x="700" y="172" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">P10: Unwritten</text>
+        </svg>
+        <figcaption>Figure 4.3.7B: Updating LBA 25 allocates a fresh physical page while invalidating the old page.</figcaption>
+      </figure>
+
+      <h3>3. Garbage Collection &amp; The Write Amplification Factor</h3>
+      <p>
+        As out-of-place writes continue, flash blocks accumulate invalid dead pages. When the pool of pre-erased clean blocks runs low, the FTL initiates background <strong>Garbage Collection</strong>:
+      </p>
+      <ol>
+        <li><strong>Victim Block Selection:</strong> The controller selects an erase block containing a high percentage of invalid pages.</li>
+        <li><strong>Live Page Relocation:</strong> The surviving valid pages in that block are read into controller cache and copied out to fresh pages in an active write block.</li>
+        <li><strong>Block Erasure:</strong> The victim block, now containing exclusively invalid data, is completely erased with a high-voltage pulse and recycled into the free block pool.</li>
+      </ol>
+      <p>
+        Moving surviving valid data generates <strong>Write Amplification</strong>. The Write Amplification Factor (WAF) represents the ratio of total physical data programmed to flash media relative to the data dispatched by the host OS:
+      </p>
+      $$\text{WAF} = \frac{\text{Bytes Programmed to Flash Memory}}{\text{Bytes Dispatched by Host OS}}$$
+      <p>
+        Under pure sequential writes, WAF approaches $1.0$. Under scattered random writes on a full drive, garbage collection copying causes WAF to escalate to $3.0$ or higher, cutting sustainable drive write throughput and accelerating hardware wear.
+      </p>
+
+      <h3>4. Wear-Leveling Algorithms &amp; Endurance Limits</h3>
+      <p>
+        Every high-voltage erase cycle physically degrades the cell dielectric oxide insulator by trapping stray electrons. Eventually, the oxide breaks down, causing cells to leak charge and corrupt stored data.
+      </p>
+      <p>
+        Flash cells are rated for a finite number of <strong>Program/Erase (P/E) cycles</strong>:
+      </p>
+      <ul>
+        <li><strong>SLC (Single-Level Cell):</strong> 50,000 to 100,000 P/E cycles.</li>
+        <li><strong>MLC (Multi-Level Cell):</strong> 3,000 to 10,000 P/E cycles.</li>
+        <li><strong>TLC (Triple-Level Cell):</strong> 1,000 to 3,000 P/E cycles.</li>
+        <li><strong>QLC (Quad-Level Cell):</strong> 100 to 1,000 P/E cycles.</li>
+      </ul>
+      <p>
+        If an operating system frequently modifies a single cluster (such as a FAT partition table or journal superblock), writing to that same physical block repeatedly would burn out the cells within weeks, causing device failure while the rest of the drive remains unused. To prevent uneven destruction, the FTL implements <strong>Wear-Leveling</strong>:
+      </p>
+      <ul>
+        <li><strong>Dynamic Wear-Leveling:</strong> When active, incoming writes occur, the FTL always chooses the free physical block that has the lowest historical erase count. This spreads active writes evenly across available free space.</li>
+        <li><strong>Static Wear-Leveling:</strong> Dynamic leveling alone fails when a drive holds &ldquo;cold&rdquo; read-only data (such as OS system files or game assets). These static files sit in physical blocks whose erase counters stay low while the remaining &ldquo;hot&rdquo; blocks wear out rapidly. The FTL actively detects this disparity, reads the cold data out of its low-wear block, relocates it into a heavily worn block, and frees the low-wear block so it can absorb harsh write churn.</li>
+      </ul>
+
+      <h3>5. The Operating System Interface: The TRIM Command</h3>
+      <p>
+        In traditional hard disks, deleting a file does not touch the data blocks; the filesystem merely clears directory entries and bitmap records. Because standard storage interfaces (SATA and SAS) only supported <code>READ</code> and <code>WRITE</code>, the underlying SSD controller had no knowledge that those blocks were deleted. The FTL continued dutifully preserving and copying discarded file blocks during garbage collection, unnecessarily inflating write amplification.
+      </p>
+      <p>
+        To eliminate this blind spot, modern interfaces provide explicit deallocation commands: <strong>TRIM</strong> in SATA and <strong>Dataset Management (Deallocate)</strong> in NVMe. When an application deletes a file, the OS sends a TRIM notification containing the affected LBAs to the SSD. The FTL marks those physical pages as invalid immediately, allowing garbage collection to discard them without moving them, dropping WAF and restoring drive longevity.
+      </p>
+
+      <!-- WALKTHROUGH PART 4: FTL WEAR-LEVELING & TRIM SIMULATOR -->
+      <div class="lfs-sim-container" id="ftlSim">
+        <div class="lfs-topbar">
+          <span class="lfs-title">Walkthrough Part 4: FTL Page Remapping, Wear-Leveling &amp; TRIM Simulator</span>
+          <span class="lfs-step-indicator" id="ftlStepTag">P/E Telemetry Active</span>
+        </div>
+
+        <div class="lfs-explanation-box" id="ftlExplanationBox">
+          <strong>Interactive FTL &amp; Flash Memory Walkthrough:</strong> Test out-of-place writes, trigger an OS <code>TRIM</code> notification to invalidate dead records, and observe how <strong>Static Wear-Leveling</strong> moves cold data to preserve flash cells.
+        </div>
+
+        <div class="lfs-controls">
+          <button class="lfs-btn primary" onclick="ftlWriteLba()">1. Write LBA (Out-of-Place)</button>
+          <button class="lfs-btn" onclick="ftlIssueTrim()">2. Issue OS TRIM on LBA 1</button>
+          <button class="lfs-btn accent" onclick="ftlRunGarbageCollection()">3. Run Garbage Collection (GC)</button>
+          <button class="lfs-btn" onclick="ftlStaticWearLevel()">4. Execute Static Wear-Leveling</button>
+          <button class="lfs-btn" onclick="ftlResetWalkthrough()" style="margin-left: auto;">Reset Simulator</button>
+        </div>
+
+        <div class="lfs-segments-grid" id="ftlSegmentsGrid"></div>
+
+        <div class="lfs-status-panel">
+          <span id="ftlStatusMsg">SSD Initialized. 4 Erase Blocks ready.</span>
+          <span id="ftlMetricMsg">Host Writes: 0 | Flash Writes: 0 | WAF: 1.00x</span>
+        </div>
+      </div>
     </div>
 
     <!-- Section 4.3.8: Virtual File Systems (VFS) -->
@@ -1618,7 +1455,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     // =========================================================
     // 3. WALKTHROUGH PART 3: JOURNALING & CRASH RECOVERY SIM
     // =========================================================
-    let journalState = "idle"; // idle, written, committed, checkpointed, crashed
+    let journalState = "idle";
     let journalBlocks = [];
     let permanentFsBlocks = [];
 
@@ -1696,11 +1533,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
       journalState = "checkpointed";
 
-      // Flush changes to permanent in-place filesystem blocks
       permanentFsBlocks[0] = { id: "Ino: 2*", state: "checkpointed", label: "Inode Table (Updated)" };
       permanentFsBlocks[1] = { id: "Map: *", state: "checkpointed", label: "Bitmap (Updated)" };
 
-      // Free journal ring
       journalBlocks = [
         { id: "·", state: "free", label: "Freed" },
         { id: "·", state: "free", label: "Freed" },
@@ -1722,7 +1557,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     function journalInjectCrash() {
       if (journalState === "written") {
-        // Crash before commit block: torn transaction
         journalState = "crashed_uncommitted";
         journalBlocks[0].state = "corrupt";
         journalBlocks[1].state = "corrupt";
@@ -1735,7 +1569,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         document.getElementById("journalStatusMsg").textContent = "Recovery completed: partial transaction discarded. Filesystem consistent.";
         document.getElementById("journalMetricMsg").textContent = "Journal Ring: Cleaned | Recovery Time: 2 ms";
       } else if (journalState === "committed") {
-        // Crash after commit block: redo recovery
         journalState = "crashed_committed";
         permanentFsBlocks[0] = { id: "Ino: 2*", state: "checkpointed", label: "Inode Table (Replayed)" };
         permanentFsBlocks[1] = { id: "Map: *", state: "checkpointed", label: "Bitmap (Replayed)" };
@@ -1756,7 +1589,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const grid = document.getElementById("journalSegmentsGrid");
       grid.innerHTML = "";
 
-      // Render Journal Ring Container
       let jDiv = document.createElement("div");
       jDiv.className = "lfs-segment-box";
       jDiv.style.gridColumn = "span 2";
@@ -1782,7 +1614,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       jDiv.appendChild(jBlocksDiv);
       grid.appendChild(jDiv);
 
-      // Render Permanent Filesystem Container
       let fsDiv = document.createElement("div");
       fsDiv.className = "lfs-segment-box";
       fsDiv.style.gridColumn = "span 2";
@@ -1798,7 +1629,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         bEl.textContent = blk.id;
 
         if (blk.state === "fs") bEl.classList.add("blk-live");
-        else if (blk.state === "checkpointed") bEl.classList.add("blk-fs-checkpointed");
+        else if (blk.state === "checkpointed") bEl.classList.add("blk-identified-live");
 
         fsBlocksDiv.appendChild(bEl);
       });
@@ -1807,6 +1638,211 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     journalResetWalkthrough();
+
+    // =========================================================
+    // 4. WALKTHROUGH PART 4: FTL WEAR-LEVELING & TRIM SIMULATOR
+    // =========================================================
+    let ftlBlocks = [];
+    let ftlHostWrites = 0;
+    let ftlFlashWrites = 0;
+    let ftlLbaMapping = { 1: null, 2: null };
+
+    function ftlResetWalkthrough() {
+      ftlHostWrites = 0;
+      ftlFlashWrites = 0;
+      ftlLbaMapping = { 1: "B0:P0", 2: "B0:P1" };
+
+      ftlBlocks = [
+        {
+          id: 0,
+          label: "Block 0 (Active)",
+          eraseCount: 42,
+          pages: [
+            { id: "LBA1", state: "valid" },
+            { id: "LBA2", state: "valid" },
+            { id: "·", state: "erased" },
+            { id: "·", state: "erased" }
+          ]
+        },
+        {
+          id: 1,
+          label: "Block 1 (Cold Data)",
+          eraseCount: 3, // Very low wear (static data)
+          pages: [
+            { id: "OS:1", state: "static" },
+            { id: "OS:2", state: "static" },
+            { id: "OS:3", state: "static" },
+            { id: "OS:4", state: "static" }
+          ]
+        },
+        {
+          id: 2,
+          label: "Block 2 (Free Pool)",
+          eraseCount: 41,
+          pages: [
+            { id: "·", state: "erased" },
+            { id: "·", state: "erased" },
+            { id: "·", state: "erased" },
+            { id: "·", state: "erased" }
+          ]
+        },
+        {
+          id: 3,
+          label: "Block 3 (Free Pool)",
+          eraseCount: 40,
+          pages: [
+            { id: "·", state: "erased" },
+            { id: "·", state: "erased" },
+            { id: "·", state: "erased" },
+            { id: "·", state: "erased" }
+          ]
+        }
+      ];
+
+      ftlRender();
+      document.getElementById("ftlStepTag").textContent = "FTL Initialized";
+      document.getElementById("ftlExplanationBox").innerHTML =
+        "<strong>Flash Translation Layer (FTL) Ready:</strong> Notice Block 0 holds dynamic data (Erase: 42), while Block 1 holds cold static OS files (Erase: 3). Click <strong>'1. Write LBA (Out-of-Place)'</strong> to overwrite LBA 1 and observe physical page invalidation.";
+      document.getElementById("ftlStatusMsg").textContent = "FTL running with page-level mapping.";
+      document.getElementById("ftlMetricMsg").textContent = "Host Writes: 0 | Flash Writes: 0 | WAF: 1.00x";
+    }
+
+    function ftlWriteLba() {
+      ftlHostWrites++;
+      ftlFlashWrites++;
+
+      // Invalidate old LBA 1 in Block 0
+      let oldPage = ftlBlocks[0].pages.find(p => p.id === "LBA1" && p.state === "valid");
+      if (oldPage) {
+        oldPage.state = "invalid";
+      }
+
+      // Find first erased page in Block 0
+      let freePage = ftlBlocks[0].pages.find(p => p.state === "erased");
+      if (freePage) {
+        freePage.id = "LBA1*";
+        freePage.state = "valid";
+        ftlLbaMapping[1] = "B0:P2";
+      }
+
+      ftlRender();
+      let waf = (ftlFlashWrites / ftlHostWrites).toFixed(2);
+      document.getElementById("ftlStepTag").textContent = "Out-of-Place Write Applied";
+      document.getElementById("ftlExplanationBox").innerHTML =
+        "<strong>Out-of-Place Programming:</strong> The host updated LBA 1. Because flash cannot overwrite in-place, the FTL wrote to pre-erased Page 2. The old Page 0 is now <s>invalidated dead space</s>. Next, test <strong>'2. Issue OS TRIM'</strong> or <strong>'3. Run Garbage Collection'</strong>!";
+      document.getElementById("ftlStatusMsg").textContent = "LBA 1 remapped out-of-place. Old page marked invalid.";
+      document.getElementById("ftlMetricMsg").textContent = `Host Writes: ${ftlHostWrites} | Flash Writes: ${ftlFlashWrites} | WAF: ${waf}x`;
+    }
+
+    function ftlIssueTrim() {
+      let page = ftlBlocks[0].pages.find(p => p.id.startsWith("LBA1") && p.state === "valid");
+      if (page) {
+        page.state = "invalid";
+        ftlLbaMapping[1] = null;
+      }
+
+      ftlRender();
+      document.getElementById("ftlStepTag").textContent = "TRIM Notification Received";
+      document.getElementById("ftlExplanationBox").innerHTML =
+        "<strong>OS TRIM Notification Received:</strong> The operating system informed the FTL that LBA 1 was deleted. The FTL immediately marked its physical page as <s>invalid</s>. Now, when Garbage Collection runs, it won't waste time copying this dead data!";
+      document.getElementById("ftlStatusMsg").textContent = "TRIM command executed: physical page invalidated before GC.";
+    }
+
+    function ftlRunGarbageCollection() {
+      // Victim selection: Block 0
+      let livePages = ftlBlocks[0].pages.filter(p => p.state === "valid");
+
+      // Copy live pages into Block 2 (free pool)
+      livePages.forEach((p, idx) => {
+        ftlBlocks[2].pages[idx].id = p.id;
+        ftlBlocks[2].pages[idx].state = "valid";
+        ftlFlashWrites++; // GC copy overhead
+      });
+
+      // Erase Block 0
+      ftlBlocks[0].eraseCount++;
+      ftlBlocks[0].pages = [
+        { id: "·", state: "erased" },
+        { id: "·", state: "erased" },
+        { id: "·", state: "erased" },
+        { id: "·", state: "erased" }
+      ];
+      ftlBlocks[0].label = "Block 0 (Clean Free Pool)";
+
+      ftlBlocks[2].label = "Block 2 (Active Compacted)";
+
+      ftlRender();
+      let waf = (ftlFlashWrites / Math.max(1, ftlHostWrites)).toFixed(2);
+      document.getElementById("ftlStepTag").textContent = "Garbage Collection Complete";
+      document.getElementById("ftlExplanationBox").innerHTML =
+        `<strong>Erase Block Recycled!</strong> Surviving live pages were copied to Block 2, and Block 0 was erased (Erase Count: ${ftlBlocks[0].eraseCount}). Moving live pages caused Flash Writes (${ftlFlashWrites}) to exceed Host Writes (${ftlHostWrites}), yielding a <strong>WAF of ${waf}x</strong>.`;
+      document.getElementById("ftlStatusMsg").textContent = `Block 0 bulk-erased with 20V pulse. WAF: ${waf}x.`;
+      document.getElementById("ftlMetricMsg").textContent = `Host Writes: ${ftlHostWrites} | Flash Writes: ${ftlFlashWrites} | WAF: ${waf}x`;
+    }
+
+    function ftlStaticWearLevel() {
+      // Swap Block 1's cold data (Erase: 3) with Block 0's free block (Erase: 43)
+      let coldPages = [...ftlBlocks[1].pages];
+
+      // Copy cold pages into high-erase Block 0
+      coldPages.forEach((p, idx) => {
+        ftlBlocks[0].pages[idx].id = p.id;
+        ftlBlocks[0].pages[idx].state = "static";
+        ftlFlashWrites++;
+      });
+      ftlBlocks[0].label = "Block 0 (Static Data Relocated)";
+
+      // Erase Block 1 so its low-wear cells can absorb hot writes
+      ftlBlocks[1].eraseCount++;
+      ftlBlocks[1].pages = [
+        { id: "·", state: "erased" },
+        { id: "·", state: "erased" },
+        { id: "·", state: "erased" },
+        { id: "·", state: "erased" }
+      ];
+      ftlBlocks[1].label = "Block 1 (Low-Wear Free Pool)";
+
+      ftlRender();
+      let waf = (ftlFlashWrites / Math.max(1, ftlHostWrites)).toFixed(2);
+      document.getElementById("ftlStepTag").textContent = "Static Wear-Leveling Executed";
+      document.getElementById("ftlExplanationBox").innerHTML =
+        "<strong>Static Wear-Leveling in Action:</strong> The FTL noticed Block 1 had only 3 erases because its OS data was static. It relocated the static data to heavily-worn Block 0, freeing low-wear Block 1 to absorb hot writes. This prevents localized cell burnout and prolongs SSD life!";
+      document.getElementById("ftlStatusMsg").textContent = "Cold data swapped to worn block; fresh low-wear block recycled.";
+      document.getElementById("ftlMetricMsg").textContent = `Host Writes: ${ftlHostWrites} | Flash Writes: ${ftlFlashWrites} | WAF: ${waf}x`;
+    }
+
+    function ftlRender() {
+      const grid = document.getElementById("ftlSegmentsGrid");
+      grid.innerHTML = "";
+
+      ftlBlocks.forEach(blk => {
+        let bDiv = document.createElement("div");
+        bDiv.className = "lfs-segment-box";
+        bDiv.innerHTML = `<div class="lfs-seg-header"><span>${blk.label}</span><span>Erases: ${blk.eraseCount}</span></div>`;
+
+        let pagesDiv = document.createElement("div");
+        pagesDiv.className = "lfs-seg-blocks";
+        pagesDiv.style.gridTemplateColumns = "repeat(2, 1fr)";
+
+        blk.pages.forEach(p => {
+          let pEl = document.createElement("div");
+          pEl.className = "lfs-block";
+          pEl.textContent = p.id;
+
+          if (p.state === "erased") pEl.classList.add("blk-flash-erased");
+          else if (p.state === "valid") pEl.classList.add("blk-flash-valid");
+          else if (p.state === "invalid") pEl.classList.add("blk-flash-invalid");
+          else if (p.state === "static") pEl.classList.add("blk-flash-static");
+
+          pagesDiv.appendChild(pEl);
+        });
+
+        bDiv.appendChild(pagesDiv);
+        grid.appendChild(bDiv);
+      });
+    }
+
+    ftlResetWalkthrough();
 
     // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 3000;
@@ -2084,7 +2120,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing expanded Journaling section to {html_file}...")
+    print(f"--> Writing expanded Flash & Wear-Leveling section to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -2092,11 +2128,11 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Expand section 4.3.6 on journaling file systems with theory and diagrams\n\n"
+        "Expand section 4.3.7 on flash storage and wear-leveling with SVGs and sim\n\n"
         "Update week10-file-management/03-filesystem-implementation.html to "
-        "comprehensively expand section 4.3.6 with deep crash consistency theory, "
-        "ordered vs writeback modes, two SVG diagrams, and an interactive crash "
-        "recovery simulation widget."
+        "comprehensively expand section 4.3.7 with NAND physical asymmetry theory, "
+        "FTL address translation, dynamic vs static wear-leveling, TRIM mechanics, "
+        "two SVG diagrams, and an interactive FTL simulator."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
