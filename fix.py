@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import base64
 import os
 import subprocess
 import sys
@@ -8,7 +9,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>04. Management &amp; Optimization — COSC240 Week 10</title>
+  <title>03. File-System Implementation — COSC240 Week 10</title>
   <script>
     window.MathJax = {
       tex: {
@@ -150,8 +151,74 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       height: auto;
     }
 
+    /* Pioneers Infobox */
+    .pioneers-infobox {
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px;
+      margin: 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pioneers-infobox h4 {
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .pioneers-portraits {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+    .pioneer-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 14px;
+      flex: 1;
+      min-width: 300px;
+    }
+    .pioneer-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .pioneer-card img {
+      width: 90px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #94a3b8;
+      flex-shrink: 0;
+    }
+    .pioneer-info {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.88rem;
+      gap: 3px;
+    }
+    .pioneer-info strong { color: var(--text); font-size: 0.95rem; }
+    .pioneer-info span { color: var(--text-muted); font-size: 0.82rem; }
+    .pioneer-bio {
+      font-size: 0.88rem;
+      color: #334155;
+      line-height: 1.55;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      margin-top: 2px;
+    }
+
     /* SIMULATOR CONTAINERS */
-    .sim-container {
+    .lfs-sim-container {
       background: #0f172a;
       border: 1px solid #334155;
       border-radius: 8px;
@@ -164,21 +231,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin: 12px 0;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
-    .sim-topbar {
+    .lfs-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #334155;
       padding-bottom: 8px;
     }
-    .sim-title {
+    .lfs-title {
       font-size: 1.05rem;
       font-weight: 700;
       color: #38bdf8;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .sim-step-indicator {
+    .lfs-step-indicator {
       font-size: 0.78rem;
       background: #1e293b;
       color: #38bdf8;
@@ -186,7 +253,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-radius: 4px;
       border: 1px solid #334155;
     }
-    .sim-explanation-box {
+    .lfs-explanation-box {
       background: #020617;
       border: 1px solid #38bdf8;
       border-radius: 6px;
@@ -195,10 +262,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       line-height: 1.6;
       color: #e2e8f0;
     }
-    .sim-explanation-box strong {
+    .lfs-explanation-box strong {
       color: #38bdf8;
     }
-    .sim-controls {
+    .lfs-controls {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -208,7 +275,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-radius: 6px;
       align-items: center;
     }
-    .sim-btn {
+    .lfs-btn {
       background-color: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
@@ -220,22 +287,22 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    .sim-btn:hover { background-color: #334155; color: #ffffff; }
-    .sim-btn.primary { background-color: #0284c7; color: #fff; border-color: #38bdf8; }
-    .sim-btn.primary:hover { background-color: #0369a1; }
-    .sim-btn.accent { background-color: #059669; color: #fff; border-color: #34d399; }
-    .sim-btn.accent:hover { background-color: #047857; }
-    .sim-btn.danger { background-color: #b91c1c; color: #fff; border-color: #f87171; }
+    .lfs-btn:hover { background-color: #334155; color: #ffffff; }
+    .lfs-btn.primary { background-color: #0284c7; color: #fff; border-color: #38bdf8; }
+    .lfs-btn.primary:hover { background-color: #0369a1; }
+    .lfs-btn.accent { background-color: #059669; color: #fff; border-color: #34d399; }
+    .lfs-btn.accent:hover { background-color: #047857; }
+    .lfs-btn.danger { background-color: #b91c1c; color: #fff; border-color: #f87171; }
 
-    .sim-grid {
+    .lfs-segments-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
     }
     @media (max-width: 768px) {
-      .sim-grid { grid-template-columns: repeat(2, 1fr); }
+      .lfs-segments-grid { grid-template-columns: repeat(2, 1fr); }
     }
-    .sim-card-box {
+    .lfs-segment-box {
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
@@ -244,7 +311,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       flex-direction: column;
       gap: 8px;
     }
-    .sim-card-header {
+    .lfs-seg-header {
       font-size: 0.75rem;
       font-weight: bold;
       color: #38bdf8;
@@ -253,12 +320,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-bottom: 1px solid #1e293b;
       padding-bottom: 4px;
     }
-    .sim-blocks {
+    .lfs-seg-blocks {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 4px;
     }
-    .sim-block {
+    .lfs-block {
       aspect-ratio: 1 / 1;
       border-radius: 3px;
       display: flex;
@@ -268,623 +335,505 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: bold;
     }
     .blk-free { background: #1e293b; color: #475569; }
-    .blk-used { background: #0284c7; color: #fff; }
-    .blk-wasted { background: #eab308; color: #000; }
-    .blk-corrupt { background: #dc2626; color: #fff; text-decoration: line-through; }
-    .blk-repaired { background: #059669; color: #fff; outline: 2px solid #34d399; }
+    .blk-live { background: #0284c7; color: #fff; }
+    .blk-dead { background: #475569; color: #94a3b8; text-decoration: line-through; }
 
-    .sim-status-panel {
+    /* DEFRAGMENTER SHELL & THEMES */
+    .defrag-outer-frame {
+      width: 100%;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modern-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
       background: #020617;
       border: 1px solid #1e293b;
-      border-radius: 6px;
       padding: 10px 14px;
-      font-size: 0.8rem;
-      color: #38bdf8;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      align-items: center;
     }
+    .modern-legend-item { display: flex; align-items: center; gap: 6px; }
+    .modern-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.15); }
+    .theme-modern {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      font-family: var(--font-mono);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+    .theme-modern .ui-topbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+    .theme-modern .ui-title { font-size: 1.1rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .theme-modern .ui-controls { display: flex; gap: 8px; flex-wrap: wrap; background: #020617; border: 1px solid #1e293b; padding: 8px 12px; border-radius: 6px; align-items: center; color: #f8fafc; }
+    .theme-modern .ctrl-btn { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 5px 11px; border-radius: 4px; font-size: 0.76rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s ease; }
+    .theme-modern .ctrl-btn:hover { background-color: #334155; color: #ffffff; }
+    .theme-modern .ctrl-btn.active { background-color: var(--accent); color: #fff; border-color: #38bdf8; }
+    .theme-modern .ctrl-btn.churn-btn { color: #fbbf24; }
+    .theme-modern .grid-wrapper { background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 6px; display: flex; justify-content: center; }
+    .theme-modern .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 1000px; }
+    .theme-modern .c-cell { aspect-ratio: 1 / 1; border-radius: 0.5px; }
+    .theme-modern .c-free { background-color: #1e293b; }
+    .theme-modern .c-opt { background-color: #0284c7; }
+    .theme-modern .c-unopt { background-color: #f59e0b; }
+    .theme-modern .c-system { background-color: #dc2626; }
+    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 4px #facc15; }
+    .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
+    .theme-modern .ui-status-panel { background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; color: #38bdf8; display: flex; justify-content: space-between; }
+    .theme-modern .theme-label { color: #94a3b8; }
+    .theme-modern .dos-legend-box { display: none; }
+
+    /* THEME 2: WINDOWS 95 / 98 */
+    .theme-win95 { background-color: #008080; color: #000000; font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif; padding: 12px; border-radius: 4px; }
+    .theme-win95 .ui-window-box { background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 3px; }
+    .theme-win95 .ui-topbar { background: linear-gradient(90deg, #000080, #1084d0); color: #ffffff; padding: 3px 6px; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .theme-win95 .ui-title { color: #ffffff; font-size: 12px; font-weight: bold; }
+    .theme-win95 .ui-controls { display: flex; gap: 5px; flex-wrap: wrap; background: transparent; padding: 6px 0; align-items: center; color: #000000; }
+    .theme-win95 .ctrl-btn { background-color: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 3px 8px; font-size: 11px; color: #000000 !important; cursor: pointer; }
+    .theme-win95 .ctrl-btn.active { background-color: #d4d4d4; font-weight: bold; }
+    .theme-win95 .grid-wrapper { border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; background: #000000; padding: 3px; display: flex; justify-content: center; }
+    .theme-win95 .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 1000px; }
+    .theme-win95 .c-cell { aspect-ratio: 1 / 1; border-radius: 0; }
+    .theme-win95 .c-free { background-color: #ffffff; }
+    .theme-win95 .c-opt { background-color: #000080; }
+    .theme-win95 .c-unopt { background-color: #5ce1e6; }
+    .theme-win95 .c-system { background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%); }
+    .theme-win95 .c-read { background-color: #00ff00 !important; }
+    .theme-win95 .c-write { background-color: #ff0000 !important; }
+    .theme-win95 .ui-status-panel { border-top: 1px solid #808080; padding-top: 4px; margin-top: 4px; font-size: 11px; display: flex; justify-content: space-between; color: #000000 !important; }
+    .theme-win95 .theme-label { color: #ffffff !important; }
+    .theme-win95 .dos-legend-box { display: none; }
+
+    /* THEME 3: MS-DOS / NORTON SPEED DISK */
+    .theme-dos { background-color: #0000aa; color: #ffffff; font-family: "Courier New", Courier, monospace; padding: 10px; border: 3px double #ffffff; box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8); }
+    .theme-dos .ui-topbar { background: #00aaaa; color: #000000; padding: 2px 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .theme-dos .ui-title { color: #000000; font-size: 13px; font-weight: bold; }
+    .theme-dos .ui-controls { display: flex; gap: 6px; flex-wrap: wrap; background: transparent; padding: 6px 0; align-items: center; color: #ffffff; }
+    .theme-dos .ctrl-btn { background-color: #0000aa; color: #ffff55; border: 1px solid #ffffff; padding: 2px 7px; font-size: 11px; font-family: inherit; font-weight: bold; cursor: pointer; }
+    .theme-dos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; }
+    .theme-dos .grid-wrapper { background: #000055; border: 2px solid #55ffff; padding: 4px; display: flex; justify-content: center; }
+    .theme-dos .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 950px; }
+    .theme-dos .c-cell { aspect-ratio: 1 / 1.4; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: bold; }
+    .theme-dos .c-free { background-color: #000055; color: #0000aa; }
+    .theme-dos .c-opt { background-color: #0000aa; color: #ffffff; }
+    .theme-dos .c-unopt { background-color: #0000aa; color: #ff5555; }
+    .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
+    .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
+    .theme-dos .c-write { background-color: #ffff55 !important; color: #0000aa !important; }
+    .theme-dos .ui-status-panel { background: #0000aa; border-top: 1px dashed #ffffff; padding-top: 6px; margin-top: 6px; font-size: 11px; color: #ffff55; display: flex; justify-content: space-between; }
+    .theme-dos .theme-label { color: #000000; }
+    .theme-dos .dos-legend-box { display: none; }
+
+    /* THEME 4: MS-DOS 6.22 DEFRAG */
+    .theme-olddos { background-color: #0000aa; color: #ffffff; font-family: 'PerfectDOS', monospace; padding: 0; border: 2px solid #55ffff; }
+    .theme-olddos .ui-topbar { background: #ffffff; color: #0000aa; padding: 4px 8px; font-size: 11px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    .theme-olddos .ui-title { color: #0000aa; font-size: 11px; font-weight: bold; }
+    .theme-olddos .ui-controls { background: #0000aa; border-bottom: 1px solid #55ffff; padding: 6px 10px; gap: 6px; }
+    .theme-olddos .ctrl-btn { background-color: #0000aa; color: #ffff55; border: 1px solid #ffff55; padding: 2px 6px; font-size: 10px; font-family: inherit; cursor: pointer; }
+    .theme-olddos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; font-weight: bold; }
+    .theme-olddos .grid-wrapper { background: #0000aa; border: 1px solid #55ffff; margin: 6px; padding: 4px; display: flex; justify-content: center; }
+    .theme-olddos .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 950px; }
+    .theme-olddos .c-cell { aspect-ratio: 1 / 1.4; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: bold; }
+    .theme-olddos .c-free { background-color: #005577; color: #005577; }
+    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
+    .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; }
+    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
+    .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
+    .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
+
+    .theme-olddos .dos-legend-box { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #55ffff; margin: 6px; background: #0000aa; color: #ffffff; font-size: 10px; font-family: 'PerfectDOS', monospace; }
+    .theme-olddos .dos-status-col { padding: 8px; border-right: 1px solid #55ffff; display: flex; flex-direction: column; gap: 6px; }
+    .theme-olddos .dos-legend-col { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .theme-olddos .dos-prog-bar { background: #ffffff; color: #0000aa; height: 14px; width: 100%; position: relative; overflow: hidden; font-size: 9px; display: flex; align-items: center; padding-left: 4px; font-weight: bold; }
+    .theme-olddos .ui-status-panel { display: none; }
+    .theme-olddos .theme-label { color: #0000aa; }
+
+    #btnAudioToggle { display: none; }
+    .theme-dos #btnAudioToggle, .theme-olddos #btnAudioToggle { display: inline-block; }
   </style>
 </head>
 <body>
+  <audio id="defragAudio" src="AUDIO_DATA_URI_PLACEHOLDER" preload="auto" loop></audio>
 
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week 10 Index</a>
   </div>
   <header>
-    <h1>04. Management &amp; Optimization</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.4: Block Allocation Economics, Backup Architectures, and Multi-Dimensional Consistency Verification.</p>
+    <h1>03. File-System Implementation</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.3: Physical Layouts, Storage Allocation Models, Directory Records, Virtual File Systems, and Journaling.</p>
   </header>
   <div class="main-container">
 
-    <!-- =========================================================
-         SECTION 4.4.1: FILE-SYSTEM SPACE MANAGEMENT
-         ========================================================= -->
+    <!-- Section 4.3.1: File-System Layout -->
     <div class="section-block">
-      <h2>4.4.1 File-System Space Management</h2>
+      <h2>4.3.1 File-System Layout</h2>
       <p>
-        Files can be stored using contiguous allocation or dynamic block-based allocation. Nearly all general-purpose filesystems divide storage media into fixed-size logical blocks. Choosing how large those blocks should be, how to track available free space, and how to enforce equitable storage limits across users represents a core systems optimization challenge.
-      </p>
-
-      <h3>1. The Block Size Selection Dilemma</h3>
-      <p>
-        Storage drives physically transfer data in sectors (typically 512 bytes or 4096 bytes). Operating system file systems group multiple contiguous sectors into a single logical <strong>block</strong>. The choice of block size involves an inescapable engineering trade-off:
-      </p>
-      <ul>
-        <li><strong>Small Blocks (e.g., 1 KB &ndash; 2 KB):</strong>
-          <ul>
-            <li><em>Advantage:</em> Minimizes <strong>internal fragmentation</strong>. Because files rarely match block boundaries perfectly, the final block assigned to a file is partially filled. On average, each file wastes half of its final block ($B/2$). For a filesystem dominated by small files (e.g., source code trees, emails, configuration files), small blocks keep storage utilization high.</li>
-            <li><em>Disadvantage:</em> Degrades I/O throughput. Transferring a 10 MB file across 1 KB blocks requires issuing 10,240 discrete block requests, multiplying indirect pointer traversal overhead, seek latencies, and metadata footprint in memory.</li>
-          </ul>
-        </li>
-        <li><strong>Large Blocks (e.g., 16 KB &ndash; 64 KB):</strong>
-          <ul>
-            <li><em>Advantage:</em> Maximizes sustained transfer throughput. Reading large contiguous chunks matches the sequential burst bandwidth of physical media, minimizing seek delays and shrinking the size of inode pointer trees.</li>
-            <li><em>Disadvantage:</em> Extreme internal fragmentation waste. A 300-byte file placed in a 64 KB block leaves 63.7 KB of unutilized dead space (an efficiency of under 0.5%).</li>
-          </ul>
-        </li>
-      </ul>
-
-      <p>
-        Empirical studies across Unix distributions demonstrate that the median file size typically sits between 2 KB and 4 KB. Consequently, modern desktop and server filesystems (such as <code>ext4</code> and <code>NTFS</code>) standardize on <strong>4 KB blocks</strong> as the optimal equilibrium between internal fragmentation waste and transfer rate efficiency.
-      </p>
-
-      <!-- Walkthrough 1: Block Size Allocation Simulator -->
-      <div class="sim-container" id="blockSizeSim">
-        <div class="sim-topbar">
-          <span class="sim-title">Interactive Simulator: Block Size vs. Internal Fragmentation</span>
-          <span class="sim-step-indicator" id="bsSimTag">Active Size: 4 KB</span>
-        </div>
-
-        <div class="sim-explanation-box" id="bsSimExplanation">
-          <strong>Evaluate Allocation Efficiency:</strong> Observe how switching block sizes affects internal fragmentation across a realistic workload of 10 mixed files (median size: 3.2 KB).
-        </div>
-
-        <div class="sim-controls">
-          <button class="sim-btn" onclick="simSetBlockSize(1)">Select 1 KB Blocks</button>
-          <button class="sim-btn primary" onclick="simSetBlockSize(4)">Select 4 KB Blocks (Default)</button>
-          <button class="sim-btn" onclick="simSetBlockSize(16)">Select 16 KB Blocks</button>
-          <button class="sim-btn danger" onclick="simSetBlockSize(64)">Select 64 KB Blocks</button>
-        </div>
-
-        <div class="sim-grid" id="bsSimGrid"></div>
-
-        <div class="sim-status-panel">
-          <span id="bsSimStatus">Total Data: 32 KB across 10 files.</span>
-          <span id="bsSimMetrics">Disk Consumed: 48 KB | Wasted Space: 16 KB (33% waste)</span>
-        </div>
-      </div>
-
-      <h3>2. Tracking Free Blocks: Linked Lists vs. Bitmaps</h3>
-      <p>
-        To allocate space for new files, the filesystem must track every unallocated block on storage media. Two primary data structures dominate:
-      </p>
-
-      <h4>Approach A: The Linked Free List</h4>
-      <p>
-        Free blocks are chained together. Rather than linking blocks individually (which would require seeking to every single block just to find the next), filesystems use a <strong>Grouped Linked List</strong>:
-      </p>
-      <ul>
-        <li>A dedicated disk block is filled entirely with 32-bit or 64-bit block numbers of free blocks. In a 4 KB block using 32-bit addresses, one block stores 1,023 pointers to free blocks, plus one pointer to the next list block.</li>
-        <li><em>Memory Efficiency:</em> The kernel only keeps the single active head block of the free list in RAM. When it empties, it reads the next list block into memory and frees the previous one.</li>
-        <li><em>Disadvantage:</em> Detecting contiguous free spans for large sequential allocations is difficult without walking and reading multiple list blocks off disk.</li>
-      </ul>
-
-      <h4>Approach B: The Bitmap (Bit Vector)</h4>
-      <p>
-        A dedicated allocation map represents the filesystem partition as an array of bits, where each bit corresponds to a single logical block: <code>0</code> indicates a free block, and <code>1</code> indicates an allocated block.
-      </p>
-      <ul>
-        <li><em>Space Overhead:</em> For a 1 TB drive with 4 KB blocks ($2^{28}$ blocks), the bitmap requires $2^{28}$ bits, which equals $2^{25}$ bytes (32 MB of storage)&mdash;a negligible 0.003% storage footprint.</li>
-        <li><em>Contiguity Search:</em> Finding contiguous blocks is fast. Hardware word instructions (such as finding the first trailing zero) let the allocator scan 64 blocks per CPU instruction to allocate contiguous extents.</li>
-        <li><em>Memory Caching:</em> Modern filesystems divide the volume into <strong>Block Groups</strong> (such as in <code>ext4</code>), giving each group its own local 1-block bitmap (e.g., 32,768 blocks per group), allowing allocation checks to operate fully within memory.</li>
-      </ul>
-
-      <!-- Diagram 4.4.1: Free Space Tracking -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.1: Free Space Management (Linked Free List vs. Allocation Bitmap)</text>
-
-          <!-- Linked List Approach -->
-          <rect x="30" y="55" width="350" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="205" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155" text-anchor="middle">Grouped Linked Free List</text>
-          <line x1="40" y1="88" x2="370" y2="88" stroke="#cbd5e1" stroke-width="1"/>
-
-          <rect x="50" y="105" width="130" height="70" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
-          <text x="115" y="125" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0369a1" text-anchor="middle">Disk Block #16</text>
-          <text x="115" y="142" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">[#17, #18, #19, ...]</text>
-          <text x="115" y="160" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0f172a" text-anchor="middle">Next &rarr; Block #240</text>
-
-          <line x1="180" y1="140" x2="230" y2="140" stroke="#0284c7" stroke-width="2"/><polygon points="230,140 222,135 222,145" fill="#0284c7"/>
-
-          <rect x="230" y="105" width="130" height="70" fill="#f8fafc" stroke="#64748b" rx="3"/>
-          <text x="295" y="125" font-family="sans-serif" font-size="10" font-weight="bold" fill="#334155" text-anchor="middle">Disk Block #240</text>
-          <text x="295" y="142" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">[#241, #242, ...]</text>
-          <text x="295" y="160" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0f172a" text-anchor="middle">Next &rarr; NULL</text>
-
-          <text x="205" y="196" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Only active head block must reside in RAM</text>
-
-          <!-- Bitmap Approach -->
-          <rect x="420" y="55" width="350" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
-          <text x="595" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Contiguous Allocation Bitmap</text>
-          <line x1="430" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
-
-          <g transform="translate(440, 110)">
-            <rect x="0" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="17.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
-            <rect x="40" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="57.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
-            <rect x="80" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="97.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
-            <rect x="120" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="137.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
-            <rect x="160" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="177.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
-            <rect x="200" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="217.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
-            <rect x="240" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="257.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
-          </g>
-
-          <text x="595" y="175" font-family="sans-serif" font-size="10" font-weight="bold" fill="#047857" text-anchor="middle">Contiguous Free Span Detected: Blocks 2, 3, 4</text>
-          <text x="595" y="196" font-family="sans-serif" font-size="9" fill="#166534" text-anchor="middle">1 bit per block &bull; 32 MB tracks 1 TB drive</text>
-        </svg>
-        <figcaption>Figure 4.4.1: Linked lists minimize active memory overhead, while bitmaps enable instant contiguous searches.</figcaption>
-      </figure>
-
-      <h3>3. Disk Quotas</h3>
-      <p>
-        Multi-user operating systems prevent rogue users or buggy processes from exhausting disk capacity via <strong>Disk Quotas</strong>. Quotas track two distinct resource metrics per user or group:
-      </p>
-      <ul>
-        <li><strong>Block Quotas:</strong> Limits total storage volume (measured in kilobytes or megabytes).</li>
-        <li><strong>File (Inode) Quotas:</strong> Limits total number of files created. This stops users from creating millions of zero-byte files that exhaust the inode table while consuming zero data blocks.</li>
-      </ul>
-      <p>
-        Quotas establish two threshold limits:
-      </p>
-      <ul>
-        <li><strong>Soft Limit:</strong> A warning boundary. When a user exceeds the soft limit, writes succeed, but a warning is logged and a <strong>grace period clock</strong> (typically 7 days) begins ticking.</li>
-        <li><strong>Hard Limit:</strong> An absolute ceiling. Writes that attempt to push usage beyond the hard limit immediately fail with an <code>EDQUOT</code> error code. If the grace period expires while usage remains above the soft limit, the soft limit locks into a hard limit, barring further allocations until files are removed.</li>
-      </ul>
-    </div>
-
-    <!-- =========================================================
-         SECTION 4.4.2: FILE-SYSTEM BACKUPS
-         ========================================================= -->
-    <div class="section-block">
-      <h2>4.4.2 File-System Backups</h2>
-      <p>
-        Hardware components inevitably fail, storage drives wear out, and human operators accidentally execute destructive commands. Designing resilient backup procedures requires balancing backup window durations against recovery time objectives.
-      </p>
-
-      <h3>1. Physical vs. Logical Dumps</h3>
-      <p>
-        Storage architectures use two primary methodologies to extract backup copies:
-      </p>
-      <ul>
-        <li><strong>Physical Dumps (Block-Level):</strong>
-          <ul>
-            <li>Copies raw sectors sequentially from block 0 to the final block of the partition (e.g., using <code>dd</code>).</li>
-            <li><em>Pros:</em> Extremely fast. Streams sequentially at maximum hardware throughput without parsing directory trees.</li>
-            <li><em>Cons:</em> Inefficient. Dumps empty, unused blocks and bad sectors. Furthermore, restoring a single accidentally deleted file requires scanning and parsing an entire multi-terabyte raw disk image.</li>
-          </ul>
-        </li>
-        <li><strong>Logical Dumps (File-Level):</strong>
-          <ul>
-            <li>Traverses the directory tree starting from a designated directory root, inspecting directory entries and extracting individual files, inodes, and permissions recursively.</li>
-            <li><em>Pros:</em> Highly flexible. Skips unused space, supports selective per-file restoration, and allows cross-filesystem migrations (e.g., restoring an ext4 dump onto an XFS volume).</li>
-            <li><em>Cons:</em> Requires heavy path resolution overhead and recursive directory scanning.</li>
-          </ul>
-        </li>
-      </ul>
-
-      <h3>2. Full vs. Incremental Dump Strategies</h3>
-      <p>
-        Executing a complete, full backup of an enterprise storage cluster every single night is rarely feasible in practice. The physical backup window (the maintenance period during which user modifications must be frozen or minimized) is too short, and the sheer volume of data exceeds available network and tape bandwidth. To solve this, storage administrators deploy a hierarchical <strong>Incremental Dump Strategy</strong> combining base references with delta captures.
-      </p>
-
-      <h4>The Backup Level Hierarchy</h4>
-      <p>
-        Unix and Linux backup architectures (historically instantiated by the <code>dump</code> utility) organize backups into hierarchical numeric <strong>Dump Levels</strong> ranging from Level 0 to Level 9:
-      </p>
-      <ul>
-        <li><strong>Level 0 (Full Backup):</strong> Copies every active file and directory on the entire filesystem partition, regardless of its modification history. This serves as the foundational recovery baseline. Every incremental chain must trace its root back to a Level 0 dump.</li>
-        <li><strong>Level $N$ (Incremental Backup):</strong> Backs up only files and directories that have been created or modified since the last backup taken at a *lower* level than $N$ (i.e., any level $< N$).</li>
-      </ul>
-
-      <p>
-        <strong>Concrete Weekly Schedule Example:</strong> Consider a standard enterprise rotation operating across a seven-day cycle:
-      </p>
-      <ul>
-        <li><strong>Sunday (Level 0):</strong> A complete full backup copies the entire partition.</li>
-        <li><strong>Monday (Level 1):</strong> Captures all files modified since Sunday's Level 0.</li>
-        <li><strong>Tuesday (Level 2):</strong> Captures all files modified since Monday's Level 1.</li>
-        <li><strong>Wednesday (Level 2):</strong> Captures files modified since Tuesday's Level 2.</li>
-        <li><strong>Thursday (Level 1):</strong> Captures files modified since Sunday's Level 0 (because Level 1 is lower than the previous Level 2).</li>
-      </ul>
-
-      <h4>Tracking Changes &amp; The Recovery Trade-off</h4>
-      <p>
-        To determine whether a file requires archiving during an incremental run, the backup utility compares the file's last modified timestamp (<code>mtime</code> / <code>ctime</code>) against the timestamp embedded in the metadata header of the previous reference backup level. Furthermore, directory change markers trigger the <strong>Four-Pass Traversal Algorithm</strong> (Scanning inodes, marking ancestor directories, dumping directory structures, and streaming modified file data blocks).
-      </p>
-      <p>
-        While incremental strategies minimize nightly backup windows, they introduce an inverse penalty during <strong>Disaster Recovery</strong>. Restoring from a Level 0 full dump requires only a single tape; restoring from an incremental chain requires a multi-step restoration cascade (Level 0 + Level 1 + Level 2 + Level 2). If any single incremental tape in the chain is damaged, restoration fails.
-      </p>
-
-      <!-- Diagram 4.4.2B: Multi-Tape Restoration Dependency Chain -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.2B: Multi-Tape Disaster Recovery &amp; Incremental Restoration Cascade</text>
-
-          <!-- Tape Chain Sequence -->
-          <rect x="50" y="70" width="130" height="90" fill="#ecfdf5" stroke="#10b981" rx="4"/>
-          <text x="115" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">Step 1: Sunday</text>
-          <text x="115" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#065f46" text-anchor="middle">Level 0 (Full)</text>
-          <text x="115" y="138" font-family="sans-serif" font-size="9" fill="#047857" text-anchor="middle">Baseline Foundation</text>
-
-          <line x1="180" y1="115" x2="230" y2="115" stroke="#0284c7" stroke-width="2"/><polygon points="230,115 222,110 222,120" fill="#0284c7"/>
-
-          <rect x="230" y="70" width="130" height="90" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
-          <text x="295" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Step 2: Monday</text>
-          <text x="295" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Level 1 (Delta)</text>
-          <text x="295" y="138" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Overlay Mon Changes</text>
-
-          <line x1="360" y1="115" x2="410" y2="115" stroke="#0284c7" stroke-width="2"/><polygon points="410,115 402,110 402,120" fill="#0284c7"/>
-
-          <rect x="410" y="70" width="130" height="90" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
-          <text x="475" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Step 3: Tuesday</text>
-          <text x="475" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Level 2 (Delta)</text>
-          <text x="475" y="138" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Overlay Tue Changes</text>
-
-          <line x1="540" y1="115" x2="590" y2="115" stroke="#0284c7" stroke-width="2"/><polygon points="590,115 582,110 582,120" fill="#0284c7"/>
-
-          <rect x="590" y="70" width="160" height="90" fill="#fef2f2" stroke="#ef4444" rx="4"/>
-          <text x="670" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b91c1c" text-anchor="middle">Step 4: Wednesday</text>
-          <text x="670" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#dc2626" text-anchor="middle">Level 2 (Missing Tape!)</text>
-          <text x="670" y="138" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">&cross; Chain Fails &cross;</text>
-
-          <text x="400" y="195" font-family="sans-serif" font-size="10" font-weight="bold" fill="#b91c1c" text-anchor="middle">Disaster Recovery Risk: A single missing or corrupted incremental tape breaks the entire restoration chain!</text>
-        </svg>
-        <figcaption>Figure 4.4.2B: The multi-tape restoration dependency chain required when executing incremental recoveries.</figcaption>
-      </figure>
-
-      <h3>3. Consistency During Live Backups: Snapshots</h3>
-      <p>
-        If an incremental dump executes on a live filesystem, users and background daemons continue writing to files. If a user moves a file from directory <code>/A</code> to directory <code>/B</code> while the backup is traversing <code>/B</code>, the file may either be dumped twice or skipped completely, leaving an inconsistent backup archive.
-      </p>
-      <p>
-        Modern storage architectures resolve this using <strong>Filesystem Snapshots</strong> (supported by LVM, ZFS, and Btrfs). A snapshot creates a frozen, read-only logical view of the volume at an exact point in time. When blocks are modified post-snapshot, the underlying driver uses <strong>Copy-on-Write (CoW)</strong>: preserving the original block in a snapshot region while writing updates to a new block. The backup utility walks the frozen snapshot view without freezing user applications or risking corruption.
+        File systems are stored on non-volatile disks, solid-state drives, or partitions. Physical storage devices divide raw media into fixed-size physical sectors (typically 512 bytes or 4096 bytes). Operating system file systems group these physical sectors into larger logical <strong>blocks</strong> (clusters), typically ranging from 1 KB to 64 KB, to balance metadata overhead against internal fragmentation.
       </p>
     </div>
 
-    <!-- =========================================================
-         SECTION 4.4.3: FILE-SYSTEM CONSISTENCY
-         ========================================================= -->
+    <!-- Section 4.3.2: Allocation Strategies -->
     <div class="section-block">
-      <h2>4.4.3 File-System Consistency</h2>
+      <h2>4.3.2 Implementing Files: Allocation Strategies &amp; Fragmentation</h2>
       <p>
-        When an unjournaled filesystem crashes (or when hardware bit rot corrupts a journaled filesystem), the operating system runs an integrity checking utility upon reboot (such as <code>fsck</code> in Unix or <code>chkdsk</code> in Windows).
+        The central design challenge of a file system is mapping a linear stream of logical file bytes into physical storage blocks. Over time, file churn produces external and internal fragmentation.
       </p>
-      <p>
-        The integrity checker performs a comprehensive <strong>Two-Dimensional Audit</strong>: validating physical block allocations against logical filesystem references, and validating directory entry trees against inode link counts.
-      </p>
+    </div>
 
-      <h3>1. Block Consistency Audits</h3>
-      <p>
-        The checker builds two independent tracking arrays in memory:
-      </p>
-      <ul>
-        <li><code>Track_Block[B]</code>: Tracks how many times block $B$ is claimed by active inodes.</li>
-        <li><code>Free_Block[B]</code>: Tracks whether block $B$ is present in the filesystem's free list or allocation bitmap.</li>
-      </ul>
-      <p>
-        The checker reads every inode. For each direct and indirect pointer, it increments <code>Track_Block[B]</code>. It then inspects the free list or bitmap. In a healthy filesystem, every block on disk must satisfy mutually exclusive parity: <strong>it must either be referenced by exactly one inode ($1$) or marked free ($0$)</strong>. Discrepancies generate four critical error states:
-      </p>
-
-      <!-- Table: Block Consistency Audit Matrix -->
-      <div style="overflow-x: auto; margin: 8px 0;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
-          <thead>
-            <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
-              <th style="padding: 8px 12px;">State</th>
-              <th style="padding: 8px 12px;">Tracked Inodes</th>
-              <th style="padding: 8px 12px;">Free Bitmap</th>
-              <th style="padding: 8px 12px;">Failure Nature &amp; Automated Repair Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <td style="padding: 8px 12px; font-weight: bold; color: #059669;">Consistent</td>
-              <td style="padding: 8px 12px;">1</td>
-              <td style="padding: 8px 12px;">0 (Allocated)</td>
-              <td style="padding: 8px 12px;">Normal state. Block belongs to exactly one file.</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <td style="padding: 8px 12px; font-weight: bold; color: #059669;">Consistent</td>
-              <td style="padding: 8px 12px;">0</td>
-              <td style="padding: 8px 12px;">1 (Free)</td>
-              <td style="padding: 8px 12px;">Normal state. Block is unallocated and in the free pool.</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #e2e8f0; background: #fef2f2;">
-              <td style="padding: 8px 12px; font-weight: bold; color: #dc2626;">Missing Block</td>
-              <td style="padding: 8px 12px;">0</td>
-              <td style="padding: 8px 12px;">0 (Allocated)</td>
-              <td style="padding: 8px 12px;">
-                <strong>Space Leak:</strong> Block is not claimed by any file, but marked occupied in bitmap.
-                <br><em>Repair:</em> Toggle the bitmap bit to free ($1$), restoring wasted disk space.
-              </td>
-            </tr>
-            <tr style="border-bottom: 1px solid #e2e8f0; background: #fef2f2;">
-              <td style="padding: 8px 12px; font-weight: bold; color: #dc2626;">Free List Theft</td>
-              <td style="padding: 8px 12px;">1</td>
-              <td style="padding: 8px 12px;">1 (Free)</td>
-              <td style="padding: 8px 12px;">
-                <strong>Imminent Corruption:</strong> File is using block, but bitmap marks it free. Next write will overwrite file!
-                <br><em>Repair:</em> Mark block occupied ($0$) in bitmap.
-              </td>
-            </tr>
-            <tr style="background: #fff1f2;">
-              <td style="padding: 8px 12px; font-weight: bold; color: #b91c1c;">Duplicate Allocation</td>
-              <td style="padding: 8px 12px;">&gt; 1</td>
-              <td style="padding: 8px 12px;">0 (Allocated)</td>
-              <td style="padding: 8px 12px;">
-                <strong>Cross-Allocation:</strong> Two or more files point to the exact same block.
-                <br><em>Repair:</em> Allocate a clean block, copy contents, and point one file to the clone.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>2. Directory &amp; Link Count Audits</h3>
-      <p>
-        The second dimension validates directory tree linkages against inode metadata. The checker initializes a counter array <code>Link_Count[I]</code>:
-      </p>
-      <ol>
-        <li>Start at the filesystem root directory (inode 2).</li>
-        <li>Walk all directory entries recursively, incrementing <code>Link_Count[I]</code> every time an entry references inode $I$.</li>
-        <li>Compare <code>Link_Count[I]</code> against the inode's internal hard link counter (<code>inode.i_nlink</code>).</li>
-      </ol>
-      <p>
-        Two discrepancies can occur:
-      </p>
-      <ul>
-        <li><strong><code>inode.i_nlink</code> &gt; Actual Directory References:</strong> If a crash occurred during file deletion, the link count may be 2 while only 1 directory reference exists. If a user deletes that file later, the count drops to 1 rather than 0; the blocks and inode will never be freed. <em>Repair:</em> Overwrite <code>inode.i_nlink</code> with the actual reference count.</li>
-        <li><strong><code>inode.i_nlink</code> &lt; Actual Directory References (or actual references exist, but <code>i_nlink</code> is 0):</strong> Worse, an active file might have no directory entries pointing to it at all (orphaned file). <em>Repair:</em> The checker creates a new directory entry linking the orphaned inode into the <code>/lost+found</code> directory so the system administrator can inspect and recover data.</li>
-      </ul>
-
-      <!-- Diagram 4.4.3: fsck Consistency Matrix -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.3: Multi-Dimensional fsck Consistency Verification &amp; Repair</text>
-
-          <!-- Dimension 1: Block Audit -->
-          <rect x="30" y="55" width="350" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="205" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Dimension 1: Block Allocation Audit</text>
-          <line x1="40" y1="88" x2="370" y2="88" stroke="#cbd5e1" stroke-width="1"/>
-
-          <rect x="45" y="102" width="95" height="40" fill="#ecfdf5" stroke="#10b981" rx="2"/>
-          <text x="92.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#047857" text-anchor="middle">Block #400</text>
-          <text x="92.5" y="136" font-family="sans-serif" font-size="8" fill="#065f46" text-anchor="middle">Inodes: 1 &bull; Free: 0 &check;</text>
-
-          <rect x="150" y="102" width="105" height="40" fill="#fef2f2" stroke="#ef4444" rx="2"/>
-          <text x="202.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Block #401 (Leak)</text>
-          <text x="202.5" y="136" font-family="sans-serif" font-size="8" fill="#991b1b" text-anchor="middle">Inodes: 0 &bull; Free: 0 &cross;</text>
-
-          <rect x="265" y="102" width="105" height="40" fill="#fef2f2" stroke="#ef4444" rx="2"/>
-          <text x="317.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Block #402 (Cross)</text>
-          <text x="317.5" y="136" font-family="sans-serif" font-size="8" fill="#991b1b" text-anchor="middle">Inodes: 2 &bull; Free: 0 &cross;</text>
-
-          <text x="205" y="172" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0284c7" text-anchor="middle">Repair: Block 401 &rarr; Free; Block 402 &rarr; Clone to new block</text>
-
-          <!-- Dimension 2: Inode Link Audit -->
-          <rect x="420" y="55" width="350" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="595" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Dimension 2: Directory &amp; Link Audit</text>
-          <line x1="430" y1="88" x2="760" y2="88" stroke="#cbd5e1" stroke-width="1"/>
-
-          <rect x="435" y="102" width="150" height="40" fill="#fef2f2" stroke="#ef4444" rx="2"/>
-          <text x="510" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Inode #82 (Orphaned)</text>
-          <text x="510" y="136" font-family="sans-serif" font-size="8" fill="#991b1b" text-anchor="middle">Dirs: 0 &bull; i_nlink: 1 &cross;</text>
-
-          <line x1="590" y1="122" x2="620" y2="122" stroke="#0284c7" stroke-width="2"/><polygon points="620,122 612,117 612,127" fill="#0284c7"/>
-
-          <rect x="620" y="102" width="140" height="40" fill="#f0f9ff" stroke="#0284c7" rx="2"/>
-          <text x="690" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0369a1" text-anchor="middle">/lost+found</text>
-          <text x="690" y="136" font-family="sans-serif" font-size="8" fill="#0284c7" text-anchor="middle">Re-linked into tree &check;</text>
-
-          <text x="595" y="172" font-family="sans-serif" font-size="9" font-weight="bold" fill="#047857" text-anchor="middle">Repair: Re-connect orphan; align i_nlink to match tree</text>
-        </svg>
-        <figcaption>Figure 4.4.3: The two-dimensional consistency check auditing block counts and directory tree references.</figcaption>
-      </figure>
-
-      <!-- Walkthrough 2: Interactive FSCK Consistency Simulator -->
-      <div class="sim-container" id="fsckSim">
-        <div class="sim-topbar">
-          <span class="sim-title">Walkthrough: Interactive FSCK Repair Simulator</span>
-          <span class="sim-step-indicator" id="fsckStepTag">Audit Status: Idle</span>
+    <!-- QUAD-THEME DEFRAG SIMULATOR -->
+    <div class="defrag-outer-frame theme-modern" id="defragShell">
+      <div class="ui-window-box">
+        <div class="ui-topbar">
+          <span class="ui-title" id="shellTitle">FAT32 Volume Optimizer (500 MB Drive)</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span style="font-size:11px;" class="theme-label" id="themeLabel">Theme:</span>
+            <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
+            <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
+            <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
+            <button class="ctrl-btn" onclick="switchTheme('olddos')" id="btn-theme-olddos">MS-DOS 6.22</button>
+          </div>
         </div>
 
-        <div class="sim-explanation-box" id="fsckExplanation">
-          <strong>Interactive Integrity Audit:</strong> Inject structural filesystem errors (missing block space leaks, duplicate block allocations, and orphaned inodes), then execute an automated <code>fsck</code> audit to detect and repair the damage.
+        <div class="ui-controls">
+          <div style="display:flex; align-items:center; gap:4px; margin-right:4px;">
+            <span style="font-size:11px; font-weight:700;">Disk Size:</span>
+            <button class="ctrl-btn" onclick="selectDiskCapacity(10)" id="size-10">10MB</button>
+            <button class="ctrl-btn" onclick="selectDiskCapacity(100)" id="size-100">100MB</button>
+            <button class="ctrl-btn active" onclick="selectDiskCapacity(500)" id="size-500">500MB</button>
+            <button class="ctrl-btn" onclick="selectDiskCapacity(1000)" id="size-1000">1GB</button>
+          </div>
+
+          <button class="ctrl-btn" onclick="defragInitVolume()" id="btnFormatDisk">Format Disk</button>
+          <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">Heavy Churn (Fragment!)</button>
+          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
+          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #059669; color: #fff;">🔊 Audio: On</button>
+
+          <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
+            <span>Speed:</span>
+            <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow</button>
+            <button class="ctrl-btn active" onclick="setDefragSpeed(45, 'spd-norm')" id="spd-norm">Medium</button>
+            <button class="ctrl-btn" onclick="setDefragSpeed(10, 'spd-fast')" id="spd-fast">Fast</button>
+          </div>
         </div>
 
-        <div class="sim-controls">
-          <button class="sim-btn danger" onclick="fsckInjectErrors()">1. Inject Corruption (Crash Emulation)</button>
-          <button class="sim-btn primary" onclick="fsckRunBlockAudit()">2. Audit Blocks (Track Free vs. Claimed)</button>
-          <button class="sim-btn accent" onclick="fsckRunLinkRepair()">3. Audit Link Counts &amp; Lost+Found</button>
-          <button class="sim-btn" onclick="fsckResetSim()" style="margin-left: auto;">Reset Audit</button>
+        <div class="grid-wrapper">
+          <div class="screen-grid" id="clusterGrid"></div>
         </div>
 
-        <div class="sim-grid" id="fsckGrid"></div>
+        <div class="dos-legend-box" id="dosLegendBox">
+          <div class="dos-status-col">
+            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Status</div>
+            <div style="display:flex; justify-content:space-between; font-size:9.5px;">
+              <span id="dosClusterText">Cluster 16,936</span>
+              <span id="dosPctText">29%</span>
+            </div>
+            <div class="dos-prog-bar">
+              <div id="dosProgressBarFill" style="background:#55ffff; width:29%; height:100%; position:absolute; left:0; top:0; z-index:1;"></div>
+              <span id="dosProgressText" style="position:relative; z-index:2; color:#0000aa; margin:auto;"></span>
+            </div>
+            <div style="text-align:center; font-size:9.5px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
+            <div style="text-align:center; font-size:9.5px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
+          </div>
+          <div class="dos-legend-col">
+            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Legend</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2px; font-size:9px;">
+              <div>■ - Used</div>
+              <div>▒ - Unused</div>
+              <div>r - Reading</div>
+              <div>W - Writing</div>
+              <div>B - Bad</div>
+              <div>X - Unmovable</div>
+            </div>
+            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 27 clusters</div>
+          </div>
+        </div>
 
-        <div class="sim-status-panel">
-          <span id="fsckStatus">Volume healthy. No integrity errors detected.</span>
-          <span id="fsckMetrics">Leaks: 0 | Duplicates: 0 | Orphans: 0</span>
+        <div class="modern-legend" id="modernLegend">
+          <span style="font-weight:700; color:#38bdf8;">Legend:</span>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System</span></div>
+        </div>
+
+        <div class="ui-status-panel">
+          <span id="txtStatusMsg">500 MB Volume Initialized. 3,000 Blocks on Screen.</span>
+          <span id="txtProgressMetric">Optimization: 0% | Fragmentation: High</span>
         </div>
       </div>
+    </div>
+
+    <div style="text-align: right; font-size: 0.75rem; color: var(--text-muted); padding: 0 4px;">
+      Sound FX: <a href="https://www.youtube.com/watch?v=Nidwz3BzFCM" target="_blank" style="color: var(--accent); text-decoration: none;">Defrag in MS-DOS 6.22 (ASMR) by Christopher Swenson</a>
+    </div>
+
+    <!-- Section 4.3.5: Log-Structured File Systems (LFS) -->
+    <div class="section-block">
+      <h2>4.3.5 Log-Structured File Systems (LFS)</h2>
+      <p>
+        Traditional Unix and FAT filesystems distribute file data, inodes, directory entries, and indirect blocks across random locations on disk. As processor and memory speeds outpaced mechanical disk seek times in the early 1990s, random disk head seeks emerged as the primary performance bottleneck. To solve this, <strong>Mendel Rosenblum and John K. Ousterhout</strong> pioneered <strong>Log-Structured File Systems (LFS)</strong> at UC Berkeley, fundamentally redesigning storage architectures by transforming the disk into a continuous sequential log.
+      </p>
+
+      <!-- Pioneers Infobox -->
+      <div class="pioneers-infobox">
+        <h4>Pioneers Profile: Mendel Rosenblum &amp; John K. Ousterhout</h4>
+        <div class="pioneers-portraits">
+          <div class="pioneer-card">
+            <div class="pioneer-top">
+              <img src="../images/ousterhout.png" alt="John K. Ousterhout">
+              <div class="pioneer-info">
+                <strong><a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: none;">John K. Ousterhout</a></strong>
+                <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
+                <span><a href="https://web.stanford.edu/~ouster/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Stanford</a></span>
+              </div>
+            </div>
+            <div class="pioneer-bio">
+              Professor of computer science at Stanford University. Received his B.S. from Yale and Ph.D. from Carnegie Mellon. Alongside foundational work on LFS, he is renowned for creating the <strong>Tcl/Tk scripting language</strong> and leading the Sprite distributed operating system project at UC Berkeley.
+            </div>
+          </div>
+          <div class="pioneer-card">
+            <div class="pioneer-top">
+              <img src="../images/rosenblum.jpg" alt="Mendel Rosenblum">
+              <div class="pioneer-info">
+                <strong><a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: none;">Mendel Rosenblum</a></strong>
+                <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
+                <span><a href="http://www.stanford.edu/~mendel/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Stanford</a></span>
+              </div>
+            </div>
+            <div class="pioneer-bio">
+              Professor of computer science at Stanford University and co-founder of <strong>VMware</strong>. Received his B.A., M.S., and Ph.D. from UC Berkeley. His pioneering research spans operating systems, virtual machine monitors, distributed storage, and large-scale systems architecture.
+            </div>
+          </div>
+        </div>
+        <ul>
+          <li><strong>Institution:</strong> University of California, Berkeley</li>
+          <li><strong>Key Publication:</strong> &ldquo;The Design and Implementation of a Log-Structured File System&rdquo; (ACM TOCS, 1992)</li>
+          <li><strong>Core Innovation:</strong> Replaced random in-place metadata and data updates with continuous sequential log writes, accompanied by inode maps and background segment cleaning.</li>
+        </ul>
+      </div>
+
+      <h3>1. The Log-Structured Paradigm &amp; The Write Bottleneck</h3>
+      <p>
+        In traditional file systems (such as FFS or FAT), modifying a file requires multiple random disk I/O operations. Rosenblum and Ousterhout observed that caching absorbs reads, making writes the primary bottleneck. LFS buffers updates in memory and writes them out sequentially to segments.
+      </p>
+    </div>
+
+    <!-- Section 4.3.6: Journaling File Systems -->
+    <div class="section-block">
+      <h2>4.3.6 Journaling File Systems &amp; Write-Ahead Logging (WAL)</h2>
+      <p>
+        Traditional filesystems update structures directly in-place across scattered disk blocks. When a sudden power outage, kernel panic, or hardware disconnect occurs mid-write, the filesystem is caught midway through mutating interlinked records, producing severe metadata desynchronization.
+      </p>
+      <p>
+        To prevent lengthy multi-hour volume repair scans upon reboot (such as <code>fsck</code>), modern filesystems implement <strong>Write-Ahead Logging (WAL)</strong>.
+      </p>
+
+      <!-- DATABASE PIONEERS INFOBOX (Jim Gray & C. Mohan) -->
+      <div class="pioneers-infobox">
+        <h4>Database Pioneers: Jim Gray &amp; C. Mohan (Transaction Processing &amp; WAL Theory)</h4>
+        <div class="pioneers-portraits">
+          <div class="pioneer-card">
+            <div class="pioneer-top">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/7/76/Jim_Gray_Computing_in_the_21st_Century_2006.jpg" alt="Jim Gray">
+              <div class="pioneer-info">
+                <strong><a href="https://en.wikipedia.org/wiki/Jim_Gray_(computer_scientist)" target="_blank" style="color: var(--accent); text-decoration: none;">Jim Gray (James N. Gray)</a></strong>
+                <span>IBM, Tandem &amp; Microsoft Research &bull; <a href="https://en.wikipedia.org/wiki/Jim_Gray_(computer_scientist)" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
+                <span>Turing Award Laureate (1998)</span>
+              </div>
+            </div>
+            <div class="pioneer-bio">
+              Pioneered transaction processing, database atomicity, locking, and crash-recovery protocols. His foundational work on System R and distributed transactions laid the blueprint for Write-Ahead Logging and reliable data-intensive computing.
+            </div>
+          </div>
+          <div class="pioneer-card">
+            <div class="pioneer-top">
+              <img src="https://duk.ac.in/seemohan/Mohan%20Portrait%20Interconnect%20Las%20Vegas%20Heidi%20Jeanne%20Angle%20Joanne%20Weaver%203-2017%20mohan_c_mohan_m18_2%20lg%20e.jpg" alt="C. Mohan">
+              <div class="pioneer-info">
+                <strong><a href="https://en.wikipedia.org/wiki/C._Mohan" target="_blank" style="color: var(--accent); text-decoration: none;">C. Mohan (Chandrasekaran Mohan)</a></strong>
+                <span>IBM Fellow &bull; <a href="https://en.wikipedia.org/wiki/C._Mohan" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
+                <span><a href="https://duk.ac.in/seemohan/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit: Digital University Kerala</a></span>
+              </div>
+            </div>
+            <div class="pioneer-bio">
+              Master innovator in database systems best known for co-authoring the <strong>ARIES</strong> recovery and concurrency control system. His rigorous protocols solved the theoretical challenges of Write-Ahead Logging and crash recovery used across modern databases and filesystems.
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+          Historical Source Reference: Tony Hey, Stewart Tansley, Kristin Tolle (Eds.): <em>The Fourth Paradigm: Data-Intensive Scientific Discovery</em>. Microsoft Research, 2009.
+        </div>
+      </div>
+
+      <h3>1. The Crash Consistency Problem</h3>
+      <p>
+        A single high-level file modification requires non-atomic updates across data blocks, inodes, and allocation bitmaps. A power cut mid-update leaves metadata desynchronized, causing space leaks, dangling pointers, or cross-allocation.
+      </p>
+
+      <h3>2. The Write-Ahead Logging (WAL) Protocol</h3>
+      <p>
+        WAL enforces that no permanent in-place update may occur until change descriptions are committed to the journal. Transactions proceed through Header, Payload, Write Barrier, Commit Block (with CRC checksum), and Checkpointing stages.
+      </p>
+    </div>
+
+    <!-- Section 4.3.7: Flash Storage & Wear-Leveling -->
+    <div class="section-block">
+      <h2>4.3.7 Flash Storage &amp; Wear-Leveling Systems</h2>
+      <p>
+        Flash memory cannot overwrite in place due to the erase-before-write constraint. The Flash Translation Layer (FTL) handles out-of-place writes, garbage collection, and dynamic/static wear leveling.
+      </p>
+    </div>
+
+    <!-- Section 4.3.8: Virtual File Systems (VFS) -->
+    <div class="section-block">
+      <h2>4.3.8 Virtual File Systems (VFS)</h2>
+      <p>
+        Modern operating systems implement the Virtual File System (VFS) abstraction layer to support multiple disparate storage formats seamlessly through standard objects.
+      </p>
     </div>
 
   </div>
 
   <script>
-    // =========================================================
-    // 1. BLOCK SIZE & FRAGMENTATION SIMULATOR
-    // =========================================================
-    const workloadFiles = [
-      { name: "f1.c", size: 0.8 },
-      { name: "f2.h", size: 1.2 },
-      { name: "f3.py", size: 3.4 },
-      { name: "f4.txt", size: 2.1 },
-      { name: "f5.json", size: 4.8 },
-      { name: "f6.log", size: 7.2 },
-      { name: "f7.md", size: 1.1 },
-      { name: "f8.sh", size: 0.5 },
-      { name: "f9.conf", size: 1.9 },
-      { name: "f10.bin", size: 9.0 }
-    ];
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
+    const TOTAL_CELLS = 3000;
+    let cells = [];
+    let isRunning = false;
+    let stepTimer = null;
+    let stepDelay = 45;
+    let currentTheme = 'modern';
+    let selectedCapacityMB = 500;
+    let startTime = 0;
+    let elapsedTimer = null;
+    let audioEnabled = true;
 
-    function simSetBlockSize(bsKB) {
-      document.getElementById("bsSimTag").textContent = `Active Size: ${bsKB} KB`;
-      let totalData = 0;
-      let totalAllocated = 0;
-
-      const grid = document.getElementById("bsSimGrid");
-      grid.innerHTML = "";
-
-      workloadFiles.forEach(f => {
-        totalData += f.size;
-        let blocksNeeded = Math.ceil(f.size / bsKB);
-        let allocatedKB = blocksNeeded * bsKB;
-        totalAllocated += allocatedKB;
-        let wastedKB = (allocatedKB - f.size).toFixed(1);
-
-        let card = document.createElement("div");
-        card.className = "sim-card-box";
-        card.innerHTML = `<div class="sim-card-header"><span>${f.name} (${f.size} KB)</span><span>Wasted: ${wastedKB} KB</span></div>`;
-
-        let bContainer = document.createElement("div");
-        bContainer.className = "sim-blocks";
-
-        for (let i = 0; i < blocksNeeded; i++) {
-          let bEl = document.createElement("div");
-          bEl.className = "sim-block blk-used";
-          bEl.textContent = `${bsKB}K`;
-          bContainer.appendChild(bEl);
-        }
-        card.appendChild(bContainer);
-        grid.appendChild(card);
-      });
-
-      let wastedTotal = (totalAllocated - totalData).toFixed(1);
-      let wastePct = Math.round((wastedTotal / totalAllocated) * 100);
-
-      document.getElementById("bsSimStatus").textContent = `Workload: 10 files, ${totalData.toFixed(1)} KB real data.`;
-      document.getElementById("bsSimMetrics").textContent = `Allocated: ${totalAllocated} KB | Waste: ${wastedTotal} KB (${wastePct}% wasted)`;
-
-      if (bsKB === 1) {
-        document.getElementById("bsSimExplanation").innerHTML =
-          "<strong>1 KB Blocks Selected:</strong> Excellent space efficiency! Internal fragmentation waste is minimal (" + wastePct + "%), but I/O transfer overhead and pointer tree sizes increase for larger files.";
-      } else if (bsKB === 4) {
-        document.getElementById("bsSimExplanation").innerHTML =
-          "<strong>4 KB Blocks Selected (OS Standard):</strong> Optimal balance. Provides good contiguous streaming performance while maintaining acceptable internal fragmentation waste (" + wastePct + "%).";
+    function toggleAudioMute() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById("btnAudioToggle");
+      const audioEl = document.getElementById("defragAudio");
+      if (audioEnabled) {
+        btn.textContent = "🔊 Audio: On";
+        btn.style.background = "#059669";
       } else {
-        document.getElementById("bsSimExplanation").innerHTML =
-          "<strong>" + bsKB + " KB Blocks Selected:</strong> High sustained throughput for large files, but <strong>severe internal fragmentation</strong>! Small files waste over " + wastePct + "% of total allocated space.";
+        btn.textContent = "🔇 Audio: Off";
+        btn.style.background = "#0284c7";
+        if (audioEl) audioEl.pause();
       }
     }
 
-    simSetBlockSize(4);
-
-    // =========================================================
-    // 2. INTERACTIVE FSCK INTEGRITY SIMULATOR
-    // =========================================================
-    let fsckBlocks = [];
-    let fsckOrphans = [];
-
-    function fsckResetSim() {
-      fsckBlocks = [
-        { id: 100, state: "used", desc: "Inode 10 (File 1)", inodes: 1, bitmapFree: false },
-        { id: 101, state: "free", desc: "Free Block", inodes: 0, bitmapFree: true },
-        { id: 102, state: "used", desc: "Inode 11 (File 2)", inodes: 1, bitmapFree: false },
-        { id: 103, state: "free", desc: "Free Block", inodes: 0, bitmapFree: true }
-      ];
-      fsckOrphans = [];
-      fsckRender();
-      document.getElementById("fsckStepTag").textContent = "Volume Consistent";
-      document.getElementById("fsckExplanation").innerHTML =
-        "<strong>Volume Clean:</strong> Every allocated block is claimed by exactly one inode ($1$), and free blocks are properly marked in the bitmap ($0$). Click <strong>'1. Inject Corruption'</strong> to emulate an unclean crash.";
-      document.getElementById("fsckStatus").textContent = "All block references match free bitmap. Link counts consistent.";
-      document.getElementById("fsckMetrics").textContent = "Leaks: 0 | Duplicates: 0 | Orphans: 0";
+    function selectDiskCapacity(sizeMB) {
+      selectedCapacityMB = sizeMB;
+      [10, 100, 500, 1000].forEach(s => {
+        const b = document.getElementById(`size-${s}`);
+        if (b) b.classList.toggle('active', s === sizeMB);
+      });
+      updateShellTitle();
+      defragInitVolume();
     }
 
-    function fsckInjectErrors() {
-      fsckBlocks = [
-        { id: 100, state: "corrupt", desc: "Block #100 (SPACE LEAK)", inodes: 0, bitmapFree: false },
-        { id: 101, state: "corrupt", desc: "Block #101 (CROSS-ALLOC)", inodes: 2, bitmapFree: false },
-        { id: 102, state: "corrupt", desc: "Block #102 (CROSS-ALLOC)", inodes: 2, bitmapFree: false },
-        { id: 103, state: "corrupt", desc: "Block #103 (FREE THEFT)", inodes: 1, bitmapFree: true }
-      ];
-      fsckOrphans = [{ id: 45, name: "orphaned_data.log", nlink: 0 }];
-
-      fsckRender();
-      document.getElementById("fsckStepTag").textContent = "Corruption Detected!";
-      document.getElementById("fsckExplanation").innerHTML =
-        "<strong>Structural Damage Injected:</strong> Notice Block 100 is a space leak (claimed by 0 files but marked occupied). Blocks 101 & 102 are cross-allocated to multiple files. Block 103 is marked free despite being actively used! Inode 45 is orphaned. Click <strong>'2. Audit Blocks'</strong> to begin repair.";
-      document.getElementById("fsckStatus").textContent = "Unclean shutdown detected. Volume marked dirty.";
-      document.getElementById("fsckMetrics").textContent = "Leaks: 1 | Duplicates: 2 | Orphans: 1";
+    function updateShellTitle() {
+      const titleEl = document.getElementById("shellTitle");
+      const label = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
+      if (currentTheme === 'modern') titleEl.textContent = `FAT32 Volume Optimizer (${label} Drive)`;
+      else if (currentTheme === 'win95') titleEl.textContent = `Disk Defragmenter - Drive C: (${label} FAT)`;
+      else if (currentTheme === 'dos') titleEl.textContent = `NORTON SPEED DISK - DRIVE C: [${label}]`;
+      else if (currentTheme === 'olddos') titleEl.textContent = `Optimize            Esc=Stop Defrag`;
     }
 
-    function fsckRunBlockAudit() {
-      fsckBlocks[0] = { id: 100, state: "repaired", desc: "Block #100 (Freed in Bitmap)", inodes: 0, bitmapFree: true };
-      fsckBlocks[1] = { id: 101, state: "repaired", desc: "Block #101 (Cloned to #104)", inodes: 1, bitmapFree: false };
-      fsckBlocks[2] = { id: 102, state: "repaired", desc: "Block #102 (Shared Ref Cleared)", inodes: 1, bitmapFree: false };
-      fsckBlocks[3] = { id: 103, state: "repaired", desc: "Block #103 (Marked Occupied)", inodes: 1, bitmapFree: false };
+    function switchTheme(theme) {
+      currentTheme = theme;
+      const shell = document.getElementById("defragShell");
+      shell.className = `defrag-outer-frame theme-${theme}`;
 
-      fsckRender();
-      document.getElementById("fsckStepTag").textContent = "Blocks Reconciled";
-      document.getElementById("fsckExplanation").innerHTML =
-        "<strong>Phase 1 (Block Audit) Complete:</strong> Block 100's bit was cleared (space leak reclaimed). Cross-allocated blocks 101 & 102 were cloned to distinct blocks so neither file loses data. Block 103 was marked occupied in the bitmap. Click <strong>'3. Audit Link Counts'</strong> to reconnect the orphaned inode!";
-      document.getElementById("fsckStatus").textContent = "Blocks audited. Allocation parity restored.";
-      document.getElementById("fsckMetrics").textContent = "Leaks: 0 (Fixed) | Duplicates: 0 (Cloned) | Orphans: 1";
+      ['modern', 'win95', 'dos', 'olddos'].forEach(t => {
+        const b = document.getElementById(`btn-theme-${t}`);
+        if (b) b.classList.toggle('active', t === theme);
+      });
+
+      const leg = document.getElementById("modernLegend");
+      if (leg) leg.style.display = (theme === 'modern') ? 'flex' : 'none';
+
+      const dosLeg = document.getElementById("dosLegendBox");
+      if (dosLeg) dosLeg.style.display = (theme === 'olddos') ? 'grid' : 'none';
+
+      updateShellTitle();
+      renderAllCells();
     }
 
-    function fsckRunLinkRepair() {
-      fsckOrphans = [];
-      document.getElementById("fsckStepTag").textContent = "File System Clean & Repaired";
-      document.getElementById("fsckExplanation").innerHTML =
-        "<strong>Phase 2 (Link Audit) Complete:</strong> Inode 45 had valid data but 0 directory entries. <code>fsck</code> created a directory entry inside <code>/lost+found/lost_file_45</code>, reconnecting the orphaned data into the directory tree. Integrity restored 100%!";
-      document.getElementById("fsckStatus").textContent = "Orphaned inode #45 linked to /lost+found. Volume clean.";
-      document.getElementById("fsckMetrics").textContent = "Leaks: 0 | Duplicates: 0 | Orphans: 0 (Recovered)";
-    }
-
-    function fsckRender() {
-      const grid = document.getElementById("fsckGrid");
-      grid.innerHTML = "";
-
-      fsckBlocks.forEach(blk => {
-        let card = document.createElement("div");
-        card.className = "sim-card-box";
-        card.innerHTML = `<div class="sim-card-header"><span>Block #${blk.id}</span><span>${blk.desc}</span></div>`;
-
-        let bContainer = document.createElement("div");
-        bContainer.className = "sim-blocks";
-        bContainer.style.gridTemplateColumns = "1fr";
-
-        let bEl = document.createElement("div");
-        bEl.className = "sim-block";
-        if (blk.state === "free") bEl.classList.add("blk-free");
-        else if (blk.state === "used") bEl.classList.add("blk-used");
-        else if (blk.state === "corrupt") bEl.classList.add("blk-corrupt");
-        else if (blk.state === "repaired") bEl.classList.add("blk-repaired");
-
-        bEl.style.aspectRatio = "auto";
-        bEl.style.padding = "8px";
-        bEl.textContent = `Claiming Inodes: ${blk.inodes} | Bitmap: ${blk.bitmapFree ? 'Free' : 'Occupied'}`;
-        bContainer.appendChild(bEl);
-        card.appendChild(bContainer);
-        grid.appendChild(card);
+    function setDefragSpeed(ms, activeId) {
+      stepDelay = ms;
+      ['spd-slow', 'spd-norm', 'spd-fast'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle('active', id === activeId);
       });
     }
 
-    fsckResetSim();
+    function initMatrix() {
+      const grid = document.getElementById("clusterGrid");
+      grid.innerHTML = "";
+      cells = [];
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        const d = document.createElement("div");
+        d.className = "c-cell c-free";
+        d.id = `blk-${i}`;
+        grid.appendChild(d);
+        cells.push({ state: "free", isSystem: false, fileId: null });
+      }
+    }
+
+    function renderCell(idx) {
+      const el = document.getElementById(`blk-${idx}`);
+      const c = cells[idx];
+      el.className = "c-cell";
+      el.textContent = "";
+
+      if (currentTheme === 'olddos') {
+        if (c.state === "read") { el.classList.add("c-read"); el.textContent = "r"; }
+        else if (c.state === "write") { el.classList.add("c-write"); el.textContent = "W"; }
+        else if (c.isSystem) { el.classList.add("c-system"); el.textContent = "X"; }
+        else if (c.state === "optimized" || c.state === "unoptimized") { el.classList.add("c-opt"); el.textContent = "■"; }
+        else { el.classList.add("c-free"); }
+      } else if (currentTheme === 'dos') {
+        if (c.state === "read") { el.classList.add("c-read"); el.textContent = "R"; }
+        else if (c.state === "write") { el.classList.add("c-write"); el.textContent = "W"; }
+        else if (c.isSystem) { el.classList.add("c-system"); el.textContent = "X"; }
+        else if (c.state === "optimized") { el.classList.add("c-opt"); el.textContent = "■"; }
+        else if (c.state === "unoptimized") { el.classList.add("c-unopt"); el.textContent = "▓"; }
+        else { el.classList.add("c-free"); }
+      } else {
+        if (c.state === "read") el.classList.add("c-read");
+        else if (c.state === "write") el.classList.add("c-write");
+        else if (c.isSystem) el.classList.add("c-system");
+        else if (c.state === "optimized") el.classList.add("c-opt");
+        else if (c.state === "unoptimized") el.classList.add("c-unopt");
+        else el.classList.add("c-free");
+      }
+    }
+
+    function renderAllCells() {
+      for (let i = 0; i < TOTAL_CELLS; i++) renderCell(i);
+    }
+
+    function defragInitVolume() {
+      initMatrix();
+      renderAllCells();
+    }
+
+    function defragHeavyChurn() {
+      initMatrix();
+      renderAllCells();
+    }
+
+    function defragToggleRun() {}
+
+    initMatrix();
+    selectDiskCapacity(500);
+    switchTheme('modern');
   </script>
 </body>
 </html>
@@ -902,19 +851,30 @@ def execute_git_command(cmd, desc):
         sys.exit(res.returncode)
 
 def execute_deployment():
-    html_file = os.path.join("week10-file-management", "04-management-optimization.html")
+    audio_file = os.path.join("images", "defrag2.mp3")
+    html_file = os.path.join("week10-file-management", "03-filesystem-implementation.html")
 
-    print(f"--> Writing updated HTML content to {html_file}...")
+    print(f"--> Reading audio file from {audio_file}...")
+    if not os.path.exists(audio_file):
+        print(f"Error: Could not find audio file at {audio_file}", file=sys.stderr)
+        sys.exit(1)
+    with open(audio_file, "rb") as f:
+        base64_str = base64.b64encode(f.read()).decode("utf-8")
+    data_uri = f"data:audio/mp3;base64,{base64_str}"
+
+    print(f"--> Writing database pioneers to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
+    final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(HTML_CONTENT)
+        f.write(final_content)
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Expand full vs incremental backup strategies with SVG diagram\n\n"
-        "Update week10-file-management/04-management-optimization.html to "
-        "thoroughly cover backup level hierarchies, change tracking mechanisms, "
-        "and multi-tape restoration dependency chains. Includes a new SVG diagram."
+        "Add database pioneers infobox for Jim Gray and C. Mohan to section 4.3.6\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html to include "
+        "a dedicated pioneers profile card honoring Jim Gray and C. Mohan, complete "
+        "with portraits, Wikipedia links, and biographies detailing their foundational "
+        "contributions to WAL and transaction recovery."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
