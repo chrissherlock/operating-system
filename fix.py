@@ -18,7 +18,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
-    /* Embed authentic IBM PC CP437 bitmap font with forced non-antialiased rendering */
+    /* Embed authentic IBM PC CP437 bitmap font */
     @font-face {
       font-family: 'PerfectDOS';
       src: url('https://cdn.jsdelivr.net/gh/IdreesInc/Monocraft@main/web/Monocraft.woff2') format('woff2');
@@ -160,6 +160,33 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    /* MODERN THEME LEGEND STYLING (FIXED) */
+    .modern-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      align-items: center;
+    }
+    .modern-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .modern-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     /* THEME 1: MODERN (DEFAULT) */
@@ -506,7 +533,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px; /* Strict 1px gap separating cells */
+      gap: 1px;
       width: 100%;
       max-width: 950px;
     }
@@ -520,11 +547,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: bold;
       line-height: 1;
       user-select: none;
-      padding: 0; /* Zero internal padding */
-      margin: 0;  /* Zero margins */
+      padding: 0;
+      margin: 0;
       image-rendering: pixelated;
     }
-    /* MS-DOS 6.22 Defrag Palette: Yellow background with blue dot/glyph for used blocks, solid cyan/teal for unused */
     .theme-olddos .c-free { background-color: #005577; color: #005577; }
     .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; }
@@ -685,7 +711,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div class="screen-grid" id="clusterGrid"></div>
         </div>
 
-        <!-- Authentic MS-DOS 6.22 Split Status & Legend Box -->
+        <!-- Authentic MS-DOS 6.22 Split Status & Legend Bottom Box -->
         <div class="dos-legend-box" id="dosLegendBox">
           <div class="dos-status-col">
             <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Status</div>
@@ -842,13 +868,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
-          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
-          el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          // c-free uses solid retro background color (no character glyph needed)
+          // Solid retro background fill
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1115,11 +1139,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix MS-DOS 6.22 unused blocks with solid retro color fill
+COMMIT_MSG = """Restore strict zero-padding, pixelated rendering, and DOS colors
 
-Update week10-file-management/03-filesystem-implementation.html to render
-unused blocks with a solid retro teal fill instead of stippling, preventing
-moiré interference while ensuring zero cell padding.
+Update week10-file-management/03-filesystem-implementation.html to lock in
+tight 1px grid gap, zero cell padding, pixelated non-antialiased fonts,
+and authentic yellow/blue MS-DOS 6.22 block styling.
 """
 
 def run_git_step(cmd, desc):
@@ -1142,10 +1166,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging solid retro unused blocks update")
+    run_git_step(["git", "add", target_file], "Staging definitive DOS fix update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Solid retro unused blocks successfully deployed!")
+    print("--> Definitive MS-DOS layout successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
