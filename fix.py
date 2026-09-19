@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import base64
 import os
 import subprocess
 import sys
@@ -9,7 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>03. File-System Implementation — COSC240 Week 10</title>
+  <title>04. File-System Management &amp; Optimization — COSC240 Week 10</title>
   <script>
     window.MathJax = {
       tex: {
@@ -151,74 +150,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       height: auto;
     }
 
-    /* Pioneers Infobox */
-    .pioneers-infobox {
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-left: 4px solid var(--accent);
-      border-radius: 6px;
-      padding: 16px;
-      margin: 14px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .pioneers-infobox h4 {
-      color: var(--accent);
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-    .pioneers-portraits {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-      margin-bottom: 6px;
-    }
-    .pioneer-card {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 14px;
-      flex: 1;
-      min-width: 300px;
-    }
-    .pioneer-top {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-    }
-    .pioneer-card img {
-      width: 90px;
-      height: 110px;
-      object-fit: cover;
-      border-radius: 4px;
-      border: 1px solid #94a3b8;
-      flex-shrink: 0;
-    }
-    .pioneer-info {
-      display: flex;
-      flex-direction: column;
-      font-size: 0.88rem;
-      gap: 3px;
-    }
-    .pioneer-info strong { color: var(--text); font-size: 0.95rem; }
-    .pioneer-info span { color: var(--text-muted); font-size: 0.82rem; }
-    .pioneer-bio {
-      font-size: 0.88rem;
-      color: #334155;
-      line-height: 1.55;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 10px;
-      margin-top: 2px;
-    }
-
-    /* STREAMLINED SIMULATOR CONTAINERS */
-    .lfs-sim-container {
+    /* SIMULATOR CONTAINERS */
+    .sim-container {
       background: #0f172a;
       border: 1px solid #334155;
       border-radius: 8px;
@@ -231,21 +164,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin: 12px 0;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
-    .lfs-topbar {
+    .sim-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #334155;
       padding-bottom: 8px;
     }
-    .lfs-title {
+    .sim-title {
       font-size: 1.05rem;
       font-weight: 700;
       color: #38bdf8;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .lfs-step-indicator {
+    .sim-step-indicator {
       font-size: 0.78rem;
       background: #1e293b;
       color: #38bdf8;
@@ -253,7 +186,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-radius: 4px;
       border: 1px solid #334155;
     }
-    .lfs-explanation-box {
+    .sim-explanation-box {
       background: #020617;
       border: 1px solid #38bdf8;
       border-radius: 6px;
@@ -262,10 +195,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       line-height: 1.6;
       color: #e2e8f0;
     }
-    .lfs-explanation-box strong {
+    .sim-explanation-box strong {
       color: #38bdf8;
     }
-    .lfs-controls {
+    .sim-controls {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -275,7 +208,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-radius: 6px;
       align-items: center;
     }
-    .lfs-btn {
+    .sim-btn {
       background-color: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
@@ -287,22 +220,22 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    .lfs-btn:hover { background-color: #334155; color: #ffffff; }
-    .lfs-btn.primary { background-color: #0284c7; color: #fff; border-color: #38bdf8; }
-    .lfs-btn.primary:hover { background-color: #0369a1; }
-    .lfs-btn.accent { background-color: #059669; color: #fff; border-color: #34d399; }
-    .lfs-btn.accent:hover { background-color: #047857; }
-    .lfs-btn.danger { background-color: #b91c1c; color: #fff; border-color: #f87171; }
+    .sim-btn:hover { background-color: #334155; color: #ffffff; }
+    .sim-btn.primary { background-color: #0284c7; color: #fff; border-color: #38bdf8; }
+    .sim-btn.primary:hover { background-color: #0369a1; }
+    .sim-btn.accent { background-color: #059669; color: #fff; border-color: #34d399; }
+    .sim-btn.accent:hover { background-color: #047857; }
+    .sim-btn.danger { background-color: #b91c1c; color: #fff; border-color: #f87171; }
 
-    .lfs-segments-grid {
+    .sim-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
     }
     @media (max-width: 768px) {
-      .lfs-segments-grid { grid-template-columns: repeat(2, 1fr); }
+      .sim-grid { grid-template-columns: repeat(2, 1fr); }
     }
-    .lfs-segment-box {
+    .sim-card-box {
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
@@ -311,7 +244,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       flex-direction: column;
       gap: 8px;
     }
-    .lfs-seg-header {
+    .sim-card-header {
       font-size: 0.75rem;
       font-weight: bold;
       color: #38bdf8;
@@ -320,12 +253,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-bottom: 1px solid #1e293b;
       padding-bottom: 4px;
     }
-    .lfs-seg-blocks {
+    .sim-blocks {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 4px;
     }
-    .lfs-block {
+    .sim-block {
       aspect-ratio: 1 / 1;
       border-radius: 3px;
       display: flex;
@@ -335,803 +268,449 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: bold;
     }
     .blk-free { background: #1e293b; color: #475569; }
-    .blk-live { background: #0284c7; color: #fff; }
-    .blk-dead { background: #475569; color: #94a3b8; text-decoration: line-through; }
-    .blk-candidate { outline: 2px solid #ef4444; }
-    .blk-identified-live { background: #059669 !important; color: #fff; outline: 2px solid #34d399; }
-    .blk-discarded { opacity: 0.25; text-decoration: line-through; }
+    .blk-used { background: #0284c7; color: #fff; }
+    .blk-wasted { background: #eab308; color: #000; }
+    .blk-corrupt { background: #dc2626; color: #fff; text-decoration: line-through; }
+    .blk-repaired { background: #059669; color: #fff; outline: 2px solid #34d399; }
 
-    /* Flash / FTL Block Classes */
-    .blk-flash-erased { background: #0f172a; border: 1px dashed #38bdf8; color: #38bdf8; }
-    .blk-flash-valid { background: #0284c7; color: #ffffff; }
-    .blk-flash-invalid { background: #64748b; color: #cbd5e1; text-decoration: line-through; }
-    .blk-flash-static { background: #4338ca; color: #ffffff; }
-
-    /* VFS Object Classes */
-    .blk-vfs-fd { background: #6366f1; color: #ffffff; }
-    .blk-vfs-file { background: #0284c7; color: #ffffff; }
-    .blk-vfs-dentry { background: #0d9488; color: #ffffff; }
-    .blk-vfs-inode { background: #d97706; color: #ffffff; }
-
-    /* DEFRAGMENTER SHELL & THEMES */
-    .defrag-outer-frame {
-      width: 100%;
-      border-radius: 8px;
-      transition: all 0.25s ease;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .modern-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
+    .sim-status-panel {
       background: #020617;
       border: 1px solid #1e293b;
-      padding: 10px 14px;
       border-radius: 6px;
-      font-size: 0.78rem;
-      color: #cbd5e1;
-      align-items: center;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .modern-legend-item { display: flex; align-items: center; gap: 6px; }
-    .modern-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.15); }
-    .theme-modern {
-      background: #0f172a;
-      color: #f8fafc;
-      border: 1px solid #334155;
-      font-family: var(--font-mono);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-    }
-    .theme-modern .ui-topbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-    .theme-modern .ui-title { font-size: 1.1rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; }
-    .theme-modern .ui-controls { display: flex; gap: 8px; flex-wrap: wrap; background: #020617; border: 1px solid #1e293b; padding: 8px 12px; border-radius: 6px; align-items: center; color: #f8fafc; }
-    .theme-modern .ctrl-btn { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 5px 11px; border-radius: 4px; font-size: 0.76rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s ease; }
-    .theme-modern .ctrl-btn:hover { background-color: #334155; color: #ffffff; }
-    .theme-modern .ctrl-btn.active { background-color: var(--accent); color: #fff; border-color: #38bdf8; }
-    .theme-modern .ctrl-btn.churn-btn { color: #fbbf24; }
-    .theme-modern .grid-wrapper { background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 6px; display: flex; justify-content: center; }
-    .theme-modern .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 1000px; }
-    .theme-modern .c-cell { aspect-ratio: 1 / 1; border-radius: 0.5px; }
-    .theme-modern .c-free { background-color: #1e293b; }
-    .theme-modern .c-opt { background-color: #0284c7; }
-    .theme-modern .c-unopt { background-color: #f59e0b; }
-    .theme-modern .c-system { background-color: #dc2626; }
-    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 4px #facc15; }
-    .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
-    .theme-modern .ui-status-panel { background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; color: #38bdf8; display: flex; justify-content: space-between; }
-    .theme-modern .theme-label { color: #94a3b8; }
-    .theme-modern .dos-legend-box { display: none; }
-
-    /* THEME 2: WINDOWS 95 / 98 */
-    .theme-win95 { background-color: #008080; color: #000000; font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif; padding: 12px; border-radius: 4px; }
-    .theme-win95 .ui-window-box { background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 3px; }
-    .theme-win95 .ui-topbar { background: linear-gradient(90deg, #000080, #1084d0); color: #ffffff; padding: 3px 6px; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .theme-win95 .ui-title { color: #ffffff; font-size: 12px; font-weight: bold; }
-    .theme-win95 .ui-controls { display: flex; gap: 5px; flex-wrap: wrap; background: transparent; padding: 6px 0; align-items: center; color: #000000; }
-    .theme-win95 .ctrl-btn { background-color: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 3px 8px; font-size: 11px; color: #000000 !important; cursor: pointer; }
-    .theme-win95 .ctrl-btn.active { background-color: #d4d4d4; font-weight: bold; }
-    .theme-win95 .grid-wrapper { border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; background: #000000; padding: 3px; display: flex; justify-content: center; }
-    .theme-win95 .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 1000px; }
-    .theme-win95 .c-cell { aspect-ratio: 1 / 1; border-radius: 0; }
-    .theme-win95 .c-free { background-color: #ffffff; }
-    .theme-win95 .c-opt { background-color: #000080; }
-    .theme-win95 .c-unopt { background-color: #5ce1e6; }
-    .theme-win95 .c-system { background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%); }
-    .theme-win95 .c-read { background-color: #00ff00 !important; }
-    .theme-win95 .c-write { background-color: #ff0000 !important; }
-    .theme-win95 .ui-status-panel { border-top: 1px solid #808080; padding-top: 4px; margin-top: 4px; font-size: 11px; display: flex; justify-content: space-between; color: #000000 !important; }
-    .theme-win95 .theme-label { color: #ffffff !important; }
-    .theme-win95 .dos-legend-box { display: none; }
-
-    /* THEME 3: MS-DOS / NORTON SPEED DISK */
-    .theme-dos { background-color: #0000aa; color: #ffffff; font-family: "Courier New", Courier, monospace; padding: 10px; border: 3px double #ffffff; box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8); }
-    .theme-dos .ui-topbar { background: #00aaaa; color: #000000; padding: 2px 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .theme-dos .ui-title { color: #000000; font-size: 13px; font-weight: bold; }
-    .theme-dos .ui-controls { display: flex; gap: 6px; flex-wrap: wrap; background: transparent; padding: 6px 0; align-items: center; color: #ffffff; }
-    .theme-dos .ctrl-btn { background-color: #0000aa; color: #ffff55; border: 1px solid #ffffff; padding: 2px 7px; font-size: 11px; font-family: inherit; font-weight: bold; cursor: pointer; }
-    .theme-dos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; }
-    .theme-dos .grid-wrapper { background: #000055; border: 2px solid #55ffff; padding: 4px; display: flex; justify-content: center; }
-    .theme-dos .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 950px; }
-    .theme-dos .c-cell { aspect-ratio: 1 / 1.4; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: bold; }
-    .theme-dos .c-free { background-color: #000055; color: #0000aa; }
-    .theme-dos .c-opt { background-color: #0000aa; color: #ffffff; }
-    .theme-dos .c-unopt { background-color: #0000aa; color: #ff5555; }
-    .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
-    .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
-    .theme-dos .c-write { background-color: #ffff55 !important; color: #0000aa !important; }
-    .theme-dos .ui-status-panel { background: #0000aa; border-top: 1px dashed #ffffff; padding-top: 6px; margin-top: 6px; font-size: 11px; color: #ffff55; display: flex; justify-content: space-between; }
-    .theme-dos .theme-label { color: #000000; }
-    .theme-dos .dos-legend-box { display: none; }
-
-    /* THEME 4: MS-DOS 6.22 DEFRAG */
-    .theme-olddos { background-color: #0000aa; color: #ffffff; font-family: 'PerfectDOS', monospace; padding: 0; border: 2px solid #55ffff; }
-    .theme-olddos .ui-topbar { background: #ffffff; color: #0000aa; padding: 4px 8px; font-size: 11px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-    .theme-olddos .ui-title { color: #0000aa; font-size: 11px; font-weight: bold; }
-    .theme-olddos .ui-controls { background: #0000aa; border-bottom: 1px solid #55ffff; padding: 6px 10px; gap: 6px; }
-    .theme-olddos .ctrl-btn { background-color: #0000aa; color: #ffff55; border: 1px solid #ffff55; padding: 2px 6px; font-size: 10px; font-family: inherit; cursor: pointer; }
-    .theme-olddos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; font-weight: bold; }
-    .theme-olddos .grid-wrapper { background: #0000aa; border: 1px solid #55ffff; margin: 6px; padding: 4px; display: flex; justify-content: center; }
-    .theme-olddos .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 950px; }
-    .theme-olddos .c-cell { aspect-ratio: 1 / 1.4; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: bold; }
-    .theme-olddos .c-free { background-color: #005577; color: #005577; }
-    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
-    .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; }
-    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
-    .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
-    .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
-
-    .theme-olddos .dos-legend-box { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #55ffff; margin: 6px; background: #0000aa; color: #ffffff; font-size: 10px; font-family: 'PerfectDOS', monospace; }
-    .theme-olddos .dos-status-col { padding: 8px; border-right: 1px solid #55ffff; display: flex; flex-direction: column; gap: 6px; }
-    .theme-olddos .dos-legend-col { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-    .theme-olddos .dos-prog-bar { background: #ffffff; color: #0000aa; height: 14px; width: 100%; position: relative; overflow: hidden; font-size: 9px; display: flex; align-items: center; padding-left: 4px; font-weight: bold; }
-    .theme-olddos .ui-status-panel { display: none; }
-    .theme-olddos .theme-label { color: #0000aa; }
-
-    #btnAudioToggle { display: none; }
-    .theme-dos #btnAudioToggle, .theme-olddos #btnAudioToggle { display: inline-block; }
   </style>
 </head>
 <body>
-  <audio id="defragAudio" src="AUDIO_DATA_URI_PLACEHOLDER" preload="auto" loop></audio>
 
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week 10 Index</a>
   </div>
   <header>
-    <h1>03. File-System Implementation</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.3: Physical Layouts, Storage Allocation Models, Directory Records, Virtual File Systems, and Journaling.</p>
+    <h1>04. Management &amp; Optimization</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.4: Block Allocation Economics, Backup Architectures, and Multi-Dimensional Consistency Verification.</p>
   </header>
   <div class="main-container">
 
-    <!-- Section 4.3.1: File-System Layout -->
+    <!-- =========================================================
+         SECTION 4.4.1: FILE-SYSTEM SPACE MANAGEMENT
+         ========================================================= -->
     <div class="section-block">
-      <h2>4.3.1 File-System Layout</h2>
+      <h2>4.4.1 File-System Space Management</h2>
       <p>
-        File systems are stored on non-volatile disks, solid-state drives, or partitions. Physical storage devices divide raw media into fixed-size physical sectors (typically 512 bytes or 4096 bytes). Operating system file systems group these physical sectors into larger logical <strong>blocks</strong> (clusters), typically ranging from 1 KB to 64 KB, to balance metadata overhead against internal fragmentation.
+        Files can be stored using contiguous allocation or dynamic block-based allocation. Nearly all general-purpose filesystems divide storage media into fixed-size logical blocks. Choosing how large those blocks should be, how to track available free space, and how to enforce equitable storage limits across users represents a core systems optimization challenge.
       </p>
-    </div>
 
-    <!-- Section 4.3.2: Allocation Strategies -->
-    <div class="section-block">
-      <h2>4.3.2 Implementing Files: Allocation Strategies &amp; Fragmentation</h2>
+      <h3>1. The Block Size Selection Dilemma</h3>
       <p>
-        The central design challenge of a file system is mapping a linear stream of logical file bytes into physical storage blocks. Over time, file churn produces external and internal fragmentation.
+        Storage drives physically transfer data in sectors (typically 512 bytes or 4096 bytes). Operating systems group multiple contiguous sectors into a single logical <strong>block</strong>. The choice of block size involves an inescapable engineering trade-off:
       </p>
-    </div>
+      <ul>
+        <li><strong>Small Blocks (e.g., 1 KB &ndash; 2 KB):</strong>
+          <ul>
+            <li><em>Advantage:</em> Minimizes <strong>internal fragmentation</strong>. Because files rarely match block boundaries perfectly, the final block assigned to a file is partially filled. On average, each file wastes half of its final block ($B/2$). For a filesystem dominated by small files (e.g., source code trees, emails, configuration files), small blocks keep storage utilization high.</li>
+            <li><em>Disadvantage:</em> Degrades I/O throughput. Transferring a 10 MB file across 1 KB blocks requires issuing 10,240 discrete block requests, multiplying indirect pointer traversal overhead, seek latencies, and metadata footprint in memory.</li>
+          </ul>
+        </li>
+        <li><strong>Large Blocks (e.g., 16 KB &ndash; 64 KB):</strong>
+          <ul>
+            <li><em>Advantage:</em> Maximizes sustained transfer throughput. Reading large contiguous chunks matches the sequential burst bandwidth of physical media, minimizing seek delays and shrinking the size of inode pointer trees.</li>
+            <li><em>Disadvantage:</em> Extreme internal fragmentation waste. A 300-byte file placed in a 64 KB block leaves 63.7 KB of unutilized dead space (an efficiency of under 0.5%).</li>
+          </ul>
+        </li>
+      </ul>
 
-    <!-- QUAD-THEME DEFRAG SIMULATOR -->
-    <div class="defrag-outer-frame theme-modern" id="defragShell">
-      <div class="ui-window-box">
-        <div class="ui-topbar">
-          <span class="ui-title" id="shellTitle">FAT32 Volume Optimizer (500 MB Drive)</span>
-          <div style="display:flex; gap:6px; align-items:center;">
-            <span style="font-size:11px;" class="theme-label" id="themeLabel">Theme:</span>
-            <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
-            <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
-            <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
-            <button class="ctrl-btn" onclick="switchTheme('olddos')" id="btn-theme-olddos">MS-DOS 6.22</button>
-          </div>
+      <p>
+        Empirical studies across Unix distributions demonstrate that the median file size typically sits between 2 KB and 4 KB. Consequently, modern desktop and server filesystems (such as <code>ext4</code> and <code>NTFS</code>) standardize on <strong>4 KB blocks</strong> as the optimal equilibrium between internal fragmentation waste and transfer rate efficiency.
+      </p>
+
+      <!-- Walkthrough 1: Block Size Allocation Simulator -->
+      <div class="sim-container" id="blockSizeSim">
+        <div class="sim-topbar">
+          <span class="sim-title">Interactive Simulator: Block Size vs. Internal Fragmentation</span>
+          <span class="sim-step-indicator" id="bsSimTag">Active Size: 4 KB</span>
         </div>
 
-        <div class="ui-controls">
-          <div style="display:flex; align-items:center; gap:4px; margin-right:4px;">
-            <span style="font-size:11px; font-weight:700;">Disk Size:</span>
-            <button class="ctrl-btn" onclick="selectDiskCapacity(10)" id="size-10">10MB</button>
-            <button class="ctrl-btn" onclick="selectDiskCapacity(100)" id="size-100">100MB</button>
-            <button class="ctrl-btn active" onclick="selectDiskCapacity(500)" id="size-500">500MB</button>
-            <button class="ctrl-btn" onclick="selectDiskCapacity(1000)" id="size-1000">1GB</button>
-          </div>
-
-          <button class="ctrl-btn" onclick="defragInitVolume()" id="btnFormatDisk">Format Disk</button>
-          <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">Heavy Churn (Fragment!)</button>
-          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
-          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #059669; color: #fff;">🔊 Audio: On</button>
-
-          <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
-            <span>Speed:</span>
-            <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow</button>
-            <button class="ctrl-btn active" onclick="setDefragSpeed(45, 'spd-norm')" id="spd-norm">Medium</button>
-            <button class="ctrl-btn" onclick="setDefragSpeed(10, 'spd-fast')" id="spd-fast">Fast</button>
-          </div>
+        <div class="sim-explanation-box" id="bsSimExplanation">
+          <strong>Evaluate Allocation Efficiency:</strong> Observe how switching block sizes affects internal fragmentation across a realistic workload of 10 mixed files (median size: 3.2 KB).
         </div>
 
-        <div class="grid-wrapper">
-          <div class="screen-grid" id="clusterGrid"></div>
+        <div class="sim-controls">
+          <button class="sim-btn" onclick="simSetBlockSize(1)">Select 1 KB Blocks</button>
+          <button class="sim-btn primary" onclick="simSetBlockSize(4)">Select 4 KB Blocks (Default)</button>
+          <button class="sim-btn" onclick="simSetBlockSize(16)">Select 16 KB Blocks</button>
+          <button class="sim-btn danger" onclick="simSetBlockSize(64)">Select 64 KB Blocks</button>
         </div>
 
-        <div class="dos-legend-box" id="dosLegendBox">
-          <div class="dos-status-col">
-            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Status</div>
-            <div style="display:flex; justify-content:space-between; font-size:9.5px;">
-              <span id="dosClusterText">Cluster 16,936</span>
-              <span id="dosPctText">29%</span>
-            </div>
-            <div class="dos-prog-bar">
-              <div id="dosProgressBarFill" style="background:#55ffff; width:29%; height:100%; position:absolute; left:0; top:0; z-index:1;"></div>
-              <span id="dosProgressText" style="position:relative; z-index:2; color:#0000aa; margin:auto;"></span>
-            </div>
-            <div style="text-align:center; font-size:9.5px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
-            <div style="text-align:center; font-size:9.5px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
-          </div>
-          <div class="dos-legend-col">
-            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Legend</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2px; font-size:9px;">
-              <div>■ - Used</div>
-              <div>▒ - Unused</div>
-              <div>r - Reading</div>
-              <div>W - Writing</div>
-              <div>B - Bad</div>
-              <div>X - Unmovable</div>
-            </div>
-            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 27 clusters</div>
-          </div>
-        </div>
+        <div class="sim-grid" id="bsSimGrid"></div>
 
-        <div class="modern-legend" id="modernLegend">
-          <span style="font-weight:700; color:#38bdf8;">Legend:</span>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System</span></div>
-        </div>
-
-        <div class="ui-status-panel">
-          <span id="txtStatusMsg">500 MB Volume Initialized. 3,000 Blocks on Screen.</span>
-          <span id="txtProgressMetric">Optimization: 0% | Fragmentation: High</span>
+        <div class="sim-status-panel">
+          <span id="bsSimStatus">Total Data: 32 KB across 10 files.</span>
+          <span id="bsSimMetrics">Disk Consumed: 48 KB | Wasted Space: 16 KB (33% waste)</span>
         </div>
       </div>
-    </div>
 
-    <div style="text-align: right; font-size: 0.75rem; color: var(--text-muted); padding: 0 4px;">
-      Sound FX: <a href="https://www.youtube.com/watch?v=Nidwz3BzFCM" target="_blank" style="color: var(--accent); text-decoration: none;">Defrag in MS-DOS 6.22 (ASMR) by Christopher Swenson</a>
-    </div>
-
-    <!-- Section 4.3.5: Log-Structured File Systems (LFS) -->
-    <div class="section-block">
-      <h2>4.3.5 Log-Structured File Systems (LFS)</h2>
+      <h3>2. Tracking Free Blocks: Linked Lists vs. Bitmaps</h3>
       <p>
-        Traditional Unix and FAT filesystems distribute file data, inodes, directory entries, and indirect blocks across random locations on disk. As processor and memory speeds outpaced mechanical disk seek times in the early 1990s, random disk head seeks emerged as the primary performance bottleneck. To solve this, <strong>Mendel Rosenblum and John K. Ousterhout</strong> pioneered <strong>Log-Structured File Systems (LFS)</strong> at UC Berkeley, fundamentally redesigning storage architectures by transforming the disk into a continuous sequential log.
+        To allocate space for new files, the filesystem must track every unallocated block on storage media. Two primary data structures dominate:
       </p>
 
-      <!-- Pioneers Infobox -->
-      <div class="pioneers-infobox">
-        <h4>Pioneers Profile: Mendel Rosenblum &amp; John K. Ousterhout</h4>
-        <div class="pioneers-portraits">
-          <div class="pioneer-card">
-            <div class="pioneer-top">
-              <img src="../images/ousterhout.png" alt="John K. Ousterhout">
-              <div class="pioneer-info">
-                <strong><a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: none;">John K. Ousterhout</a></strong>
-                <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
-                <span><a href="https://web.stanford.edu/~ouster/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Stanford</a></span>
-              </div>
-            </div>
-            <div class="pioneer-bio">
-              Professor of computer science at Stanford University. Received his B.S. from Yale and Ph.D. from Carnegie Mellon. Alongside foundational work on LFS, he is renowned for creating the <strong>Tcl/Tk scripting language</strong> and leading the Sprite distributed operating system project at UC Berkeley.
-            </div>
-          </div>
-          <div class="pioneer-card">
-            <div class="pioneer-top">
-              <img src="../images/rosenblum.jpg" alt="Mendel Rosenblum">
-              <div class="pioneer-info">
-                <strong><a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: none;">Mendel Rosenblum</a></strong>
-                <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
-                <span><a href="http://www.stanford.edu/~mendel/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Stanford</a></span>
-              </div>
-            </div>
-            <div class="pioneer-bio">
-              Professor of computer science at Stanford University and co-founder of <strong>VMware</strong>. Received his B.A., M.S., and Ph.D. from UC Berkeley. His pioneering research spans operating systems, virtual machine monitors, distributed storage, and large-scale systems architecture.
-            </div>
-          </div>
-        </div>
-        <ul>
-          <li><strong>Institution:</strong> University of California, Berkeley</li>
-          <li><strong>Key Publication:</strong> &ldquo;The Design and Implementation of a Log-Structured File System&rdquo; (ACM TOCS, 1992)</li>
-          <li><strong>Core Innovation:</strong> Replaced random in-place metadata and data updates with continuous sequential log writes, accompanied by inode maps and background segment cleaning.</li>
-        </ul>
-      </div>
-
-      <h3>1. The Log-Structured Paradigm &amp; The Write Bottleneck</h3>
+      <h4>Approach A: The Linked Free List</h4>
       <p>
-        In traditional file systems (such as FFS or FAT), modifying a file requires multiple random disk I/O operations. Rosenblum and Ousterhout observed that caching absorbs reads, making writes the primary bottleneck. LFS buffers updates in memory and writes them out sequentially to segments.
+        Free blocks are chained together. Rather than linking blocks individually (which would require seeking to every single block just to find the next), filesystems use a <strong>Grouped Linked List</strong>:
       </p>
+      <ul>
+        <li>A dedicated disk block is filled entirely with 32-bit or 64-bit block numbers of free blocks. In a 4 KB block using 32-bit addresses, one block stores 1,023 pointers to free blocks, plus one pointer to the next list block.</li>
+        <li><em>Memory Efficiency:</em> The kernel only keeps the single active head block of the free list in RAM. When it empties, it reads the next list block into memory and frees the previous one.</li>
+        <li><em>Disadvantage:</em> Detecting contiguous free spans for large sequential allocations is difficult without walking and reading multiple list blocks off disk.</li>
+      </ul>
 
-      <!-- Diagram 1: Traditional vs LFS Write Layout -->
+      <h4>Approach B: The Bitmap (Bit Vector)</h4>
+      <p>
+        A dedicated allocation map represents the disk as an array of bits, where each bit corresponds to a single logical block: <code>0</code> indicates a free block, and <code>1</code> indicates an allocated block.
+      </p>
+      <ul>
+        <li><em>Space Overhead:</em> For a 1 TB drive with 4 KB blocks ($2^{28}$ blocks), the bitmap requires $2^{28}$ bits, which equals $2^{25}$ bytes (32 MB of storage)&mdash;a negligible 0.003% storage footprint.</li>
+        <li><em>Contiguity Search:</em> Finding contiguous blocks is fast. Hardware word instructions (such as finding the first trailing zero) let the allocator scan 64 blocks per CPU instruction to allocate contiguous extents.</li>
+        <li><em>Memory Caching:</em> Modern filesystems divide the volume into <strong>Block Groups</strong> (such as in <code>ext4</code>), giving each group its own local 1-block bitmap (e.g., 32,768 blocks per group), allowing allocation checks to operate fully within memory.</li>
+      </ul>
+
+      <!-- Diagram 4.4.1: Free Space Tracking -->
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5A: Traditional In-Place Updates vs. LFS Sequential Append Log</text>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.1: Free Space Management (Linked Free List vs. Allocation Bitmap)</text>
 
-          <text x="200" y="55" font-family="sans-serif" font-size="12" font-weight="bold" fill="#dc2626" text-anchor="middle">Traditional File System (Random In-Place Writes)</text>
-          <rect x="50" y="70" width="300" height="130" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <rect x="70" y="90" width="60" height="30" fill="#f59e0b" rx="3"/><text x="100" y="110" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Inode</text>
-          <rect x="170" y="130" width="60" height="30" fill="#38bdf8" rx="3"/><text x="200" y="150" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Data</text>
-          <rect x="250" y="90" width="60" height="30" fill="#dc2626" rx="3"/><text x="280" y="110" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Dir</text>
-          <path d="M 130 105 Q 150 70 170 140" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4"/>
-          <path d="M 230 145 Q 240 70 250 105" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4"/>
-          <text x="200" y="215" font-family="sans-serif" font-size="11" fill="#475569" text-anchor="middle">Multiple random head seeks per write</text>
+          <!-- Linked List Approach -->
+          <rect x="30" y="55" width="350" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <text x="205" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155" text-anchor="middle">Grouped Linked Free List</text>
+          <line x1="40" y1="88" x2="370" y2="88" stroke="#cbd5e1" stroke-width="1"/>
 
-          <text x="600" y="55" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0284c7" text-anchor="middle">Log-Structured File System (Sequential Log)</text>
-          <rect x="450" y="70" width="310" height="130" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <rect x="470" y="110" width="270" height="50" fill="#0284c7" rx="4"/>
-          <text x="500" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Inode</text>
-          <line x1="535" y1="110" x2="535" y2="160" stroke="#fff" stroke-width="2"/>
-          <text x="570" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Data</text>
-          <line x1="605" y1="110" x2="605" y2="160" stroke="#fff" stroke-width="2"/>
-          <text x="640" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Inode</text>
-          <line x1="675" y1="110" x2="675" y2="160" stroke="#fff" stroke-width="2"/>
-          <text x="705" y="140" font-family="sans-serif" font-size="10" fill="#fff" font-weight="bold">Dir</text>
-          <polygon points="745,135 735,125 735,145" fill="#0284c7"/>
-          <text x="605" y="215" font-family="sans-serif" font-size="11" fill="#475569" text-anchor="middle">Single contiguous sequential stream (No seeks)</text>
+          <rect x="50" y="105" width="130" height="70" fill="#e0f2fe" stroke="#0284c7" rx="3"/>
+          <text x="115" y="125" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0369a1" text-anchor="middle">Disk Block #16</text>
+          <text x="115" y="142" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">[#17, #18, #19, ...]</text>
+          <text x="115" y="160" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0f172a" text-anchor="middle">Next &rarr; Block #240</text>
+
+          <line x1="180" y1="140" x2="230" y2="140" stroke="#0284c7" stroke-width="2"/><polygon points="230,140 222,135 222,145" fill="#0284c7"/>
+
+          <rect x="230" y="105" width="130" height="70" fill="#f8fafc" stroke="#64748b" rx="3"/>
+          <text x="295" y="125" font-family="sans-serif" font-size="10" font-weight="bold" fill="#334155" text-anchor="middle">Disk Block #240</text>
+          <text x="295" y="142" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">[#241, #242, ...]</text>
+          <text x="295" y="160" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0f172a" text-anchor="middle">Next &rarr; NULL</text>
+
+          <text x="205" y="196" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Only active head block must reside in RAM</text>
+
+          <!-- Bitmap Approach -->
+          <rect x="420" y="55" width="350" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
+          <text x="595" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Contiguous Allocation Bitmap</text>
+          <line x1="430" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
+
+          <!-- Bit boxes -->
+          <g transform="translate(440, 110)">
+            <rect x="0" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="17.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
+            <rect x="40" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="57.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
+            <rect x="80" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="97.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
+            <rect x="120" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="137.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
+            <rect x="160" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="177.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
+            <rect x="200" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="217.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
+            <rect x="240" y="0" width="35" height="35" fill="#1e293b" rx="2"/><text x="257.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#4ade80" text-anchor="middle">0</text>
+          </g>
+
+          <text x="595" y="175" font-family="sans-serif" font-size="10" font-weight="bold" fill="#047857" text-anchor="middle">Contiguous Free Span Detected: Blocks 2, 3, 4</text>
+          <text x="595" y="196" font-family="sans-serif" font-size="9" fill="#166534" text-anchor="middle">1 bit per block &bull; 32 MB tracks 1 TB drive</text>
         </svg>
-        <figcaption>Figure 4.3.5A: Comparison of random in-place updates versus LFS continuous append logging.</figcaption>
+        <figcaption>Figure 4.4.1: Linked lists minimize active memory overhead, while bitmaps enable instant contiguous searches.</figcaption>
       </figure>
 
-      <!-- STREAMLINED LFS INTERACTIVE WALKTHROUGH 1 -->
-      <div class="lfs-sim-container" id="lfsSimulator">
-        <div class="lfs-topbar">
-          <span class="lfs-title">Walkthrough Part 1: Sequential Appends &amp; Dead Space Accumulation</span>
-          <span class="lfs-step-indicator" id="lfsStepTag">Step 1 of 3: Ready</span>
-        </div>
-
-        <div class="lfs-explanation-box" id="lfsExplanationBox">
-          <strong>Welcome to the LFS Walkthrough!</strong> LFS converts all file system writes into a fast, contiguous sequential stream. Click <strong>'1. Append New File'</strong> to stream files into the log tail.
-        </div>
-
-        <div class="lfs-controls">
-          <button class="lfs-btn primary" onclick="lfsStepAppend()">1. Append New File</button>
-          <button class="lfs-btn" onclick="lfsStepOverwrite()">2. Overwrite / Create Dead Space</button>
-          <button class="lfs-btn primary" onclick="lfsStepClean()">3. Run Segment Cleaner (GC)</button>
-          <button class="lfs-btn" onclick="lfsResetSim()" style="margin-left: auto;">Reset Walkthrough</button>
-        </div>
-
-        <div class="lfs-segments-grid" id="lfsSegmentsGrid"></div>
-
-        <div class="lfs-status-panel">
-          <span id="lfsStatusMsg">Ready to begin LFS demonstration.</span>
-          <span id="lfsMetricMsg">Live Blocks: 0 | Dead Blocks: 0 | Free Blocks: 32</span>
-        </div>
-      </div>
-
-      <!-- Deepened Inode Map & Log Tail Section -->
-      <h3>2. The Inode Map (Imap) Architecture &amp; Indirection</h3>
+      <h3>3. Disk Quotas</h3>
       <p>
-        In traditional file systems, inode numbers map to fixed disk offsets. In LFS, inodes relocate on every append, requiring the Inode Map (Imap) indirection layer.
+        Multi-user operating systems prevent rogue users or buggy processes from exhausting disk capacity via <strong>Disk Quotas</strong>. Quotas track two distinct resource metrics per user or group:
+      </p>
+      <ul>
+        <li><strong>Block Quotas:</strong> Limits total storage volume (measured in kilobytes or megabytes).</li>
+        <li><strong>File (Inode) Quotas:</strong> Limits total number of files created. This stops users from creating millions of zero-byte files that exhaust the inode table while consuming zero data blocks.</li>
+      </ul>
+      <p>
+        Quotas establish two threshold limits:
+      </p>
+      <ul>
+        <li><strong>Soft Limit:</strong> A warning boundary. When a user exceeds the soft limit, writes succeed, but a warning is logged and a <strong>grace period clock</strong> (typically 7 days) begins ticking.</li>
+        <li><strong>Hard Limit:</strong> An absolute ceiling. Writes that attempt to push usage beyond the hard limit immediately fail with an <code>EDQUOT</code> error code. If the grace period expires while usage remains above the soft limit, the soft limit locks into a hard limit, barring further allocations until files are removed.</li>
+      </ul>
+      <p>
+        When a user opens or creates a file, the kernel loads their quota record into the in-memory <strong>quota table</strong>. Any block allocation increments the counter; if the operation exceeds the threshold, the write is aborted before modifying the disk bitmap.
+      </p>
+    </div>
+
+    <!-- =========================================================
+         SECTION 4.4.2: FILE-SYSTEM BACKUPS
+         ========================================================= -->
+    <div class="section-block">
+      <h2>4.4.2 File-System Backups</h2>
+      <p>
+        Hardware components inevitably fail, storage drives wear out, and human operators accidentally execute destructive commands. Designing resilient backup procedures requires balancing backup window durations against recovery time objectives.
       </p>
 
-      <!-- Enhanced Diagram 2: Imap Architecture & Log Tail Frontier -->
+      <h3>1. Physical vs. Logical Dumps</h3>
+      <p>
+        Storage architectures use two primary methodologies to extract backup copies:
+      </p>
+      <ul>
+        <li><strong>Physical Dumps (Block-Level):</strong>
+          <ul>
+            <li>Copies raw sectors sequentially from block 0 to the final block of the partition (e.g., using <code>dd</code>).</li>
+            <li><em>Pros:</em> Extremely fast. Streams sequentially at maximum hardware throughput without parsing directory trees.</li>
+            <li><em>Cons:</em> Inefficient. Dumps empty, unused blocks and bad sectors. Furthermore, restoring a single accidentally deleted file requires scanning and parsing an entire multi-terabyte raw disk image.</li>
+          </ul>
+        </li>
+        <li><strong>Logical Dumps (File-Level):</strong>
+          <ul>
+            <li>Traverses the directory tree starting from a designated directory root, inspecting directory entries and extracting individual files, inodes, and permissions recursively.</li>
+            <li><em>Pros:</em> Highly flexible. Skips unused space, supports selective per-file restoration, and allows cross-filesystem migrations (e.g., restoring an ext4 dump onto an XFS volume).</li>
+            <li><em>Cons:</em> Requires heavy path resolution overhead and recursive directory scanning.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>2. Full vs. Incremental Dump Strategies</h3>
+      <p>
+        Executing a complete full backup of an enterprise storage cluster every night is technically impossible within realistic backup time windows. File systems deploy an <strong>Incremental Dump Strategy</strong>:
+      </p>
+      <ul>
+        <li><strong>Full Dump (Level 0):</strong> Backs up every active file on the volume regardless of modification history. Serves as the foundational recovery baseline.</li>
+        <li><strong>Incremental Dump (Level $N$):</strong> Backs up only files created or modified since the last backup taken at a level lower than $N$.</li>
+      </ul>
+      <p>
+        By using a cascading sequence of backup levels (e.g., Level 0 on Sunday, Level 1 on Monday, Level 2 on Tuesday), the volume of data transferred each night drops by over 95%.
+      </p>
+
+      <h3>3. The Classic 4-Pass Logical Dump Algorithm</h3>
+      <p>
+        To perform a logical dump without missing files or duplicating hard links, Unix systems implement a systematic <strong>Four-Pass Traversal Algorithm</strong>:
+      </p>
+      <ol>
+        <li><strong>Pass 1 (Scan Inodes):</strong> Scan the inode table from inode 1 to the end. Compare each file's modification timestamp (<code>mtime</code>) against the timestamp of the last dump. If modified, flag the inode in a memory bitmap as <em>Modified File</em>.</li>
+        <li><strong>Pass 2 (Mark Ancestor Directories):</strong> Recursively walk the directory tree. If a directory contains any file or subdirectory flagged in Pass 1, flag the directory itself in a second bitmap as <em>Directory to Dump</em>. This ensures the full directory path hierarchy is preserved even if the directory itself was not modified.</li>
+        <li><strong>Pass 3 (Dump Directory Structure):</strong> Write all flagged directories to the backup media, preserving the path structure and hard link mappings.</li>
+        <li><strong>Pass 4 (Dump File Contents):</strong> Stream the data blocks of all flagged files to the backup stream, unsetting the dirty flags upon successful write.</li>
+      </ol>
+
+      <!-- Diagram 4.4.2: Backup Architecture & 4-Pass Traversal -->
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5B: Dynamic Inode Map (Imap) Resolution to the Sequential Log Tail</text>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.2: Incremental Dump Strategy &amp; The 4-Pass Directory Tree Traversal</text>
 
-          <rect x="30" y="90" width="110" height="65" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
-          <text x="85" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">File Inode #</text>
-          <text x="85" y="136" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">Inode 42</text>
+          <!-- Incremental Schedule Box -->
+          <rect x="30" y="55" width="340" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <text x="200" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Hierarchical Dump Levels (Weekly Schedule)</text>
+          <line x1="40" y1="88" x2="360" y2="88" stroke="#cbd5e1" stroke-width="1"/>
 
-          <line x1="140" y1="122" x2="200" y2="122" stroke="#0284c7" stroke-width="2"/>
-          <polygon points="200,122 192,117 192,127" fill="#0284c7"/>
-          <text x="170" y="112" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Index</text>
+          <rect x="45" y="105" width="70" height="40" fill="#0284c7" rx="2"/><text x="80" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Sunday</text><text x="80" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 0 (Full)</text>
+          <rect x="125" y="105" width="70" height="40" fill="#38bdf8" rx="2"/><text x="160" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Monday</text><text x="160" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 1</text>
+          <rect x="205" y="105" width="70" height="40" fill="#38bdf8" rx="2"/><text x="240" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tuesday</text><text x="240" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 2</text>
+          <rect x="285" y="105" width="70" height="40" fill="#38bdf8" rx="2"/><text x="320" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Wed</text><text x="320" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 2</text>
 
-          <rect x="200" y="60" width="170" height="135" fill="#f8fafc" stroke="#64748b" rx="4"/>
-          <text x="285" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Inode Map (Imap Chunk)</text>
-          <line x1="210" y1="92" x2="360" y2="92" stroke="#cbd5e1" stroke-width="1"/>
-          <text x="285" y="110" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 0 &rarr; Sector 1024</text>
-          <rect x="210" y="122" width="150" height="22" fill="#e0f2fe" rx="2"/>
-          <text x="285" y="137" font-weight="bold" font-size="10" fill="#0284c7" text-anchor="middle">Inode 42 &rarr; Block 8420</text>
-          <text x="285" y="162" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 43 &rarr; Sector 3120</text>
-          <text x="285" y="182" font-family="sans-serif" font-size="9" font-style="italic" fill="#94a3b8" text-anchor="middle">(Decouples static ID from offset)</text>
+          <text x="200" y="175" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Recovery requires Level 0 baseline + subsequent incrementals</text>
 
-          <line x1="370" y1="133" x2="430" y2="133" stroke="#0284c7" stroke-width="2"/>
-          <polygon points="430,133 422,128 422,138" fill="#0284c7"/>
-          <text x="400" y="123" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Locates</text>
+          <!-- 4-Pass Algorithm Tree -->
+          <rect x="400" y="55" width="370" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
+          <text x="585" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">The 4-Pass Directory Traversal</text>
+          <line x1="410" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
 
-          <rect x="430" y="60" width="340" height="135" fill="#0f172a" stroke="#334155" rx="4"/>
-          <text x="600" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">Active Log Tail (Append Frontier)</text>
+          <rect x="420" y="102" width="75" height="35" fill="#3b82f6" rx="2"/><text x="457.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 1: Files</text>
+          <line x1="495" y1="120" x2="510" y2="120" stroke="#0284c7" stroke-width="2"/>
+          <rect x="510" y="102" width="75" height="35" fill="#3b82f6" rx="2"/><text x="547.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 2: Dirs</text>
+          <line x1="585" y1="120" x2="600" y2="120" stroke="#0284c7" stroke-width="2"/>
+          <rect x="600" y="102" width="75" height="35" fill="#059669" rx="2"/><text x="637.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 3: Tree</text>
+          <line x1="675" y1="120" x2="690" y2="120" stroke="#0284c7" stroke-width="2"/>
+          <rect x="690" y="102" width="70" height="35" fill="#059669" rx="2"/><text x="725" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 4: Data</text>
 
-          <rect x="445" y="102" width="85" height="50" fill="#0284c7" rx="3"/>
-          <text x="487.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8420</text>
-          <text x="487.5" y="140" font-family="sans-serif" font-size="9" fill="#e0f2fe" text-anchor="middle">Inode 42</text>
-
-          <rect x="535" y="102" width="85" height="50" fill="#0284c7" rx="3"/>
-          <text x="577.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8421</text>
-          <text x="577.5" y="140" font-family="sans-serif" font-size="9" fill="#e0f2fe" text-anchor="middle">File Data Bytes</text>
-
-          <rect x="625" y="102" width="95" height="50" fill="#059669" rx="3"/>
-          <text x="672.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8422</text>
-          <text x="672.5" y="140" font-family="sans-serif" font-size="9" fill="#d1fae5" text-anchor="middle">Updated Imap</text>
-
-          <line x1="725" y1="127" x2="755" y2="127" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3,3"/>
-          <polygon points="758,127 750,122 750,132" fill="#38bdf8"/>
-          <text x="600" y="178" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">&rarr; Writes stream contiguously; Frontier advances forward &rarr;</text>
+          <text x="585" y="165" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Pass 1 &amp; 2 mark bitmaps &bull; Pass 3 &amp; 4 stream to media</text>
+          <text x="585" y="185" font-family="sans-serif" font-size="9" font-style="italic" fill="#166534" text-anchor="middle">Unmodified ancestor directories are dumped to retain path continuity</text>
         </svg>
-        <figcaption>Figure 4.3.5B: The Inode Map decoupling persistent file numbers from dynamic log tail write offsets.</figcaption>
+        <figcaption>Figure 4.4.2: Incremental dump schedules minimize backup windows, while 4-pass traversals preserve tree hierarchy.</figcaption>
       </figure>
 
-      <!-- Section 3: Checkpoints & Crash Recovery -->
-      <h3>3. Checkpoint Regions &amp; Rapid Crash Recovery</h3>
+      <h3>4. Consistency During Live Backups: Snapshots</h3>
       <p>
-        LFS breaks recursive imap indirection using fixed Checkpoint Regions (CRs). To prevent write tearing during power cuts, LFS alternates between dual regions (CR A and CR B), picking the most recent valid checksum upon reboot.
+        If an incremental dump executes on a live filesystem, users and background daemons continue writing to files. If a user moves a file from directory <code>/A</code> to directory <code>/B</code> while the backup is traversing <code>/B</code>, the file may either be dumped twice or skipped completely, leaving an inconsistent backup archive.
       </p>
-
-      <!-- Section 4: Segment Cleaning & Garbage Collection -->
-      <h3>4. Background Garbage Collection &amp; Segment Cleaning</h3>
       <p>
-        Segment cleaning reclaims fragmented dead space using the Cost-Benefit policy $((1-u) \times \text{Age}) / (1+u)$, balancing hot and cold data compaction.
+        Modern storage architectures resolve this using <strong>Filesystem Snapshots</strong> (supported by LVM, ZFS, and Btrfs). A snapshot creates a frozen, read-only logical view of the volume at an exact point in time. When blocks are modified post-snapshot, the underlying driver uses <strong>Copy-on-Write (CoW)</strong>: preserving the original block in a snapshot region while writing updates to a new block. The backup utility walks the frozen snapshot view without freezing user applications or risking corruption.
       </p>
-
-      <!-- WALKTHROUGH PART 2: THE 4-PHASE COMPACTION CYCLE -->
-      <div class="lfs-sim-container" id="fourPhaseCompactionSim">
-        <div class="lfs-topbar">
-          <span class="lfs-title">Walkthrough Part 2: The 4-Phase Compaction Cycle</span>
-          <span class="lfs-step-indicator" id="fourPhaseStepTag">Phase 0: Ready</span>
-        </div>
-
-        <div class="lfs-explanation-box" id="fourPhaseExplanationBox">
-          <strong>Interactive 4-Phase Compaction:</strong> Observe how LFS reclaims fragmented space without taking the file system offline. Click <strong>"1. Phase 1: Selection"</strong> to begin!
-        </div>
-
-        <div class="lfs-controls">
-          <button class="lfs-btn primary" id="btnPhase1" onclick="compactionPhase1Selection()">1. Phase 1: Selection</button>
-          <button class="lfs-btn" id="btnPhase2" onclick="compactionPhase2Identification()">2. Phase 2: Identification</button>
-          <button class="lfs-btn" id="btnPhase3" onclick="compactionPhase3Compaction()">3. Phase 3: Compaction &amp; Append</button>
-          <button class="lfs-btn accent" id="btnPhase4" onclick="compactionPhase4Reclamation()">4. Phase 4: Reclamation</button>
-          <button class="lfs-btn" onclick="compactionResetWalkthrough()" style="margin-left: auto;">Reset Cycle</button>
-        </div>
-
-        <div class="lfs-segments-grid" id="fourPhaseSegmentsGrid"></div>
-
-        <div class="lfs-status-panel">
-          <span id="fourPhaseStatusMsg">Walkthrough ready. Segments 0 &amp; 1 are fragmented candidate segments.</span>
-          <span id="fourPhaseMetricMsg">Selected: None | Live Migrated: 0 | Reclaimed Segments: 0</span>
-        </div>
-      </div>
     </div>
 
-    <!-- MASSIVELY EXPANDED SECTION 4.3.6: JOURNALING & WRITE-AHEAD LOGGING -->
+    <!-- =========================================================
+         SECTION 4.4.3: FILE-SYSTEM CONSISTENCY
+         ========================================================= -->
     <div class="section-block">
-      <h2>4.3.6 Journaling File Systems &amp; Write-Ahead Logging (WAL)</h2>
+      <h2>4.4.3 File-System Consistency</h2>
       <p>
-        Traditional filesystems update structures directly in-place across scattered disk blocks. When a sudden power outage, kernel panic, or hardware disconnect occurs mid-write, the filesystem is caught midway through mutating interlinked records, producing severe metadata desynchronization.
+        When an unjournaled filesystem crashes (or when hardware bit rot corrupts a journaled filesystem), the operating system runs an integrity checking utility upon reboot (such as <code>fsck</code> in Unix or <code>chkdsk</code> in Windows).
       </p>
       <p>
-        To prevent lengthy multi-hour volume repair scans upon reboot (such as <code>fsck</code>), modern filesystems (including Linux <code>ext3</code>, <code>ext4</code>, <code>XFS</code>, and Windows <code>NTFS</code>) implement <strong>Write-Ahead Logging (WAL)</strong>, universally referred to as <strong>Journaling</strong>.
+        The integrity checker performs a comprehensive <strong>Two-Dimensional Audit</strong>: validating physical block allocations against logical filesystem references, and validating directory entry trees against inode link counts.
       </p>
 
-      <h3>1. The Crash Consistency Problem</h3>
+      <h3>1. Block Consistency Audits</h3>
       <p>
-        A single high-level file modification rarely maps to a single physical disk write. Appending data to an existing file requires executing three distinct physical writes:
-      </p>
-      <ol>
-        <li><strong>Data Block Write:</strong> Writing user payload bytes into a newly allocated data block ($D$).</li>
-        <li><strong>Inode Metadata Update:</strong> Modifying the file's inode ($I$) to update file length, modification timestamps, and insert an address pointer referencing block $D$.</li>
-        <li><strong>Data Allocation Bitmap Update:</strong> Toggling the corresponding bit in the block allocation bitmap ($B$) from <code>0</code> (free) to <code>1</code> (allocated) to prevent other files from claiming block $D$.</li>
-      </ol>
-      <p>
-        Physical storage controllers guarantee atomic writes strictly at the granularity of a <strong>single physical sector</strong> (typically 512 bytes or 4 KB). Atomic writes across three completely separate disk blocks located thousands of sectors apart are physically impossible. If the system loses power between any of these operations, the filesystem enters an inconsistent failure state:
+        The checker builds two independent tracking arrays in memory:
       </p>
       <ul>
-        <li><strong>Crash after Inode ($I$), before Bitmap ($B$):</strong> The inode references block $D$, but the bitmap marks block $D$ as free. When another process creates a file, the allocator will grant that exact same block $D$ to the new file, producing <strong>block cross-allocation and catastrophic data theft</strong>.</li>
-        <li><strong>Crash after Bitmap ($B$), before Inode ($I$):</strong> Block $D$ is marked occupied in the bitmap, but no inode in the entire file system points to it. This creates a permanent, silent <strong>storage space leak</strong>.</li>
-        <li><strong>Crash after Inode ($I$), before Data ($D$):</strong> The inode points to block $D$, but block $D$ was never written. Reading the file returns uninitialized remnants of whatever deleted data resided in that sector previously, causing <strong>data corruption and severe security information leakage</strong>.</li>
+        <li><code>Track_Block[B]</code>: Tracks how many times block $B$ is claimed by active inodes.</li>
+        <li><code>Free_Block[B]</code>: Tracks whether block $B$ is present in the filesystem's free list or allocation bitmap.</li>
       </ul>
-
-      <h3>2. The Write-Ahead Logging (WAL) Protocol</h3>
       <p>
-        Journaling solves this vulnerability by importing the <strong>Write-Ahead Logging (WAL)</strong> protocol from relational database engines. The governing invariant of Write-Ahead Logging is absolute:
-      </p>
-      <blockquote>
-        <strong>The Fundamental WAL Rule:</strong> Never overwrite or update the permanent in-place filesystem structures on disk until a complete description of the impending changes has been sequentially logged, flushed to non-volatile media, and anchored by an explicit, atomic commit record.
-      </blockquote>
-      <p>
-        Rather than writing directly to the permanent inode tables and allocation bitmaps, the operating system routes modifications through a dedicated, contiguous circular ring buffer called the <strong>Journal</strong> (or log).
+        The checker reads every inode. For each direct and indirect pointer, it increments <code>Track_Block[B]</code>. It then inspects the free list or bitmap. In a healthy filesystem, every block on disk must satisfy mutually exclusive parity: <strong>it must either be referenced by exactly one inode ($1$) or marked free ($0$)</strong>. Discrepancies generate four critical error states:
       </p>
 
-      <h4>The Anatomy of a Journal Transaction</h4>
-      <p>
-        Related updates are bundled together into an atomic container called a <strong>Transaction</strong>. A transaction proceeds through four chronological stages:
-      </p>
-      <ol>
-        <li><strong>Transaction Header (Tx Begin):</strong> A special descriptor block containing a unique monotonically increasing Transaction ID (TID), starting timestamp, and a manifest of the dirty metadata blocks scheduled for modification.</li>
-        <li><strong>Descriptor &amp; Payload Blocks:</strong> The operating system writes exact in-memory copies of the updated inode ($I$), the updated allocation bitmap ($B$), and any modified directory blocks into the sequential journal stream.</li>
-        <li><strong>Write Barrier &amp; The Commit Block:</strong> The controller issues a strict hardware write barrier (e.g., <code>FLUSH CACHE</code> or <code>FUA</code> &ndash; Force Unit Access) to ensure all payload blocks are physically seated on persistent media. Only then does it append the <strong>Commit Block</strong>. The commit block contains the matching Transaction ID and a cryptographic/CRC32 checksum of the entire transaction payload. The instant this commit block reaches disk, the transaction is durable.</li>
-        <li><strong>Checkpointing (In-Place Flushing):</strong> With the transaction safely recorded in the journal, the operating system writes the modified blocks out to their permanent locations across the disk (the real inode table, the real bitmap).</li>
-        <li><strong>Transaction Release (Journal Free):</strong> Once in-place checkpointing finishes, the circular journal marks that transaction's ring buffer sectors as reclaimed, advancing the journal head pointer.</li>
-      </ol>
-
-      <!-- Diagram 4.3.6A: WAL Pipeline & Invariants -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 250" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="250" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6A: The Write-Ahead Logging (WAL) Architecture and Atomic Commit Boundary</text>
-
-          <rect x="30" y="55" width="340" height="175" fill="#fef2f2" stroke="#f87171" rx="4"/>
-          <text x="200" y="76" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b91c1c" text-anchor="middle">Traditional Non-Atomic Writes (Vulnerable)</text>
-          <line x1="40" y1="86" x2="360" y2="86" stroke="#fecaca" stroke-width="1"/>
-
-          <rect x="45" y="100" width="85" height="40" fill="#0284c7" rx="2"/><text x="87.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">1. Data ($D$)</text>
-          <line x1="130" y1="120" x2="160" y2="120" stroke="#dc2626" stroke-width="2"/>
-          <rect x="160" y="100" width="85" height="40" fill="#f59e0b" rx="2"/><text x="202.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">2. Inode ($I$)</text>
-
-          <line x1="255" y1="92" x2="255" y2="150" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,3"/>
-          <text x="255" y="90" font-family="sans-serif" font-size="14" fill="#dc2626" text-anchor="middle">&#9889;</text>
-          <text x="255" y="165" font-family="sans-serif" font-size="8" font-weight="bold" fill="#dc2626" text-anchor="middle">Power Cut!</text>
-
-          <rect x="270" y="100" width="85" height="40" fill="#94a3b8" rx="2" stroke="#dc2626" stroke-dasharray="2,2"/><text x="312.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">3. Bitmap ($B$)</text>
-
-          <text x="200" y="195" font-family="sans-serif" font-size="9" fill="#7f1d1d" text-anchor="middle">Result: $I$ points to $D$, but $B$ marks $D$ as free!</text>
-          <text x="200" y="212" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Causes cross-allocation, corrupt files, or space leaks.</text>
-
-          <rect x="400" y="55" width="370" height="175" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
-          <text x="585" y="76" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">Write-Ahead Logging (WAL) Protocol (Crash-Proof)</text>
-          <line x1="410" y1="86" x2="760" y2="86" stroke="#bbf7d0" stroke-width="1"/>
-
-          <rect x="415" y="98" width="60" height="38" fill="#3b82f6" rx="2"/><text x="445" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Tx Begin</text>
-          <rect x="480" y="98" width="65" height="38" fill="#3b82f6" rx="2"/><text x="512.5" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Payload ($I, B$)</text>
-
-          <line x1="550" y1="95" x2="550" y2="142" stroke="#0284c7" stroke-width="2"/>
-
-          <rect x="555" y="98" width="70" height="38" fill="#059669" rx="2"/><text x="590" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Commit Blk</text>
-
-          <line x1="630" y1="117" x2="665" y2="117" stroke="#16a34a" stroke-width="2"/>
-          <polygon points="670,117 662,112 662,122" fill="#16a34a"/>
-
-          <rect x="670" y="98" width="90" height="38" fill="#10b981" rx="2"/><text x="715" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">In-Place Write</text>
-
-          <text x="585" y="165" font-family="sans-serif" font-size="9" font-weight="bold" fill="#047857" text-anchor="middle">&uarr; Atomic Commit Boundary (CRC Checksum) &uarr;</text>
-          <text x="585" y="190" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Crash before commit: Drop partial transaction cleanly.</text>
-          <text x="585" y="206" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Crash after commit: Redo logging replays checkpoint.</text>
-        </svg>
-        <figcaption>Figure 4.3.6A: The WAL protocol isolates multi-block updates behind an atomic, checksummed commit boundary.</figcaption>
-      </figure>
-
-      <!-- Section 4.3.6 Walkthrough -->
-      <div class="lfs-sim-container" id="journalingSim">
-        <div class="lfs-topbar">
-          <span class="lfs-title">Walkthrough Part 3: Journaling Transaction &amp; Crash Recovery Simulator</span>
-          <span class="lfs-step-indicator" id="journalStepTag">State: Normal Operation</span>
-        </div>
-
-        <div class="lfs-explanation-box" id="journalExplanationBox">
-          <strong>Interactive Crash Recovery:</strong> Step through a journaling transaction. You can commit normally or inject a sudden power cut midway through to see how <strong>Redo Logging</strong> or <strong>Torn Transaction Discard</strong> protects filesystem integrity.
-        </div>
-
-        <div class="lfs-controls">
-          <button class="lfs-btn primary" onclick="journalStepWriteTx()">1. Write Journal Transaction</button>
-          <button class="lfs-btn accent" onclick="journalStepCommitTx()">2. Commit Transaction (Commit Blk)</button>
-          <button class="lfs-btn" onclick="journalStepCheckpoint()">3. Checkpoint In-Place &amp; Free Log</button>
-          <button class="lfs-btn danger" onclick="journalInjectCrash()">Inject Sudden Power Cut!</button>
-          <button class="lfs-btn" onclick="journalResetWalkthrough()" style="margin-left: auto;">Reset Simulator</button>
-        </div>
-
-        <div class="lfs-segments-grid" id="journalSegmentsGrid"></div>
-
-        <div class="lfs-status-panel">
-          <span id="journalStatusMsg">Filesystem running in Ordered Journaling Mode. Ring buffer empty.</span>
-          <span id="journalMetricMsg">Journal Ring: 0/8 Used | Checkpoint Status: Synchronized</span>
-        </div>
+      <!-- Table: Block Consistency Audit Matrix -->
+      <div style="overflow-x: auto; margin: 8px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+              <th style="padding: 8px 12px;">State</th>
+              <th style="padding: 8px 12px;">Tracked Inodes</th>
+              <th style="padding: 8px 12px;">Free Bitmap</th>
+              <th style="padding: 8px 12px;">Failure Nature &amp; Automated Repair Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 8px 12px; font-weight: bold; color: #059669;">Consistent</td>
+              <td style="padding: 8px 12px;">1</td>
+              <td style="padding: 8px 12px;">0 (Allocated)</td>
+              <td style="padding: 8px 12px;">Normal state. Block belongs to exactly one file.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 8px 12px; font-weight: bold; color: #059669;">Consistent</td>
+              <td style="padding: 8px 12px;">0</td>
+              <td style="padding: 8px 12px;">1 (Free)</td>
+              <td style="padding: 8px 12px;">Normal state. Block is unallocated and in the free pool.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0; background: #fef2f2;">
+              <td style="padding: 8px 12px; font-weight: bold; color: #dc2626;">Missing Block</td>
+              <td style="padding: 8px 12px;">0</td>
+              <td style="padding: 8px 12px;">0 (Allocated)</td>
+              <td style="padding: 8px 12px;">
+                <strong>Space Leak:</strong> Block is not claimed by any file, but marked occupied in bitmap.
+                <br><em>Repair:</em> Toggle the bitmap bit to free ($1$), restoring wasted disk space.
+              </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0; background: #fef2f2;">
+              <td style="padding: 8px 12px; font-weight: bold; color: #dc2626;">Free List Theft</td>
+              <td style="padding: 8px 12px;">1</td>
+              <td style="padding: 8px 12px;">1 (Free)</td>
+              <td style="padding: 8px 12px;">
+                <strong>Imminent Corruption:</strong> File is using block, but bitmap marks it free. Next write will overwrite file!
+                <br><em>Repair:</em> Mark block occupied ($0$) in bitmap.
+              </td>
+            </tr>
+            <tr style="background: #fff1f2;">
+              <td style="padding: 8px 12px; font-weight: bold; color: #b91c1c;">Duplicate Allocation</td>
+              <td style="padding: 8px 12px;">&gt; 1</td>
+              <td style="padding: 8px 12px;">0 (Allocated)</td>
+              <td style="padding: 8px 12px;">
+                <strong>Cross-Allocation:</strong> Two or more files point to the exact same block.
+                <br><em>Repair:</em> Allocate a clean block, copy contents, and point one file to the clone.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
 
-    <!-- Section 4.3.7: Flash Storage & Wear-Leveling -->
-    <div class="section-block">
-      <h2>4.3.7 Flash Storage &amp; Wear-Leveling Systems</h2>
+      <h3>2. Directory &amp; Link Count Audits</h3>
       <p>
-        Flash memory cannot overwrite in place due to the erase-before-write constraint. The Flash Translation Layer (FTL) handles out-of-place writes, garbage collection, and dynamic/static wear leveling.
-      </p>
-
-      <!-- Section 4.3.7 Walkthrough -->
-      <div class="lfs-sim-container" id="ftlSim">
-        <div class="lfs-topbar">
-          <span class="lfs-title">Walkthrough Part 4: FTL Page Remapping, Wear-Leveling &amp; TRIM Simulator</span>
-          <span class="lfs-step-indicator" id="ftlStepTag">P/E Telemetry Active</span>
-        </div>
-
-        <div class="lfs-explanation-box" id="ftlExplanationBox">
-          <strong>Interactive FTL &amp; Flash Memory Walkthrough:</strong> Test out-of-place writes, trigger an OS <code>TRIM</code> notification to invalidate dead records, and observe how <strong>Static Wear-Leveling</strong> moves cold data to preserve flash cells.
-        </div>
-
-        <div class="lfs-controls">
-          <button class="lfs-btn primary" onclick="ftlWriteLba()">1. Write LBA (Out-of-Place)</button>
-          <button class="lfs-btn" onclick="ftlIssueTrim()">2. Issue OS TRIM on LBA 1</button>
-          <button class="lfs-btn accent" onclick="ftlRunGarbageCollection()">3. Run Garbage Collection (GC)</button>
-          <button class="lfs-btn" onclick="ftlStaticWearLevel()">4. Execute Static Wear-Leveling</button>
-          <button class="lfs-btn" onclick="ftlResetWalkthrough()" style="margin-left: auto;">Reset Simulator</button>
-        </div>
-
-        <div class="lfs-segments-grid" id="ftlSegmentsGrid"></div>
-
-        <div class="lfs-status-panel">
-          <span id="ftlStatusMsg">SSD Initialized. 4 Erase Blocks ready.</span>
-          <span id="ftlMetricMsg">Host Writes: 0 | Flash Writes: 0 | WAF: 1.00x</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- MASSIVELY EXPANDED SECTION 4.3.8: VIRTUAL FILE SYSTEMS (VFS) -->
-    <div class="section-block">
-      <h2>4.3.8 Virtual File Systems (VFS)</h2>
-      <p>
-        A contemporary Unix or Linux installation concurrently manages dozens of radically different storage targets: local journaling filesystems (<code>ext4</code>, <code>XFS</code>), legacy FAT volumes on USB drives (<code>vfat</code>), remote network shares (<code>NFS</code>, <code>SMB</code>), optical disc structures (<code>ISO 9660</code>), and volatile kernel introspection pseudo-filesystems (<code>procfs</code>, <code>sysfs</code>).
-      </p>
-      <p>
-        If user applications were required to invoke unique, driver-specific system calls for every storage target (e.g., <code>ext4_read()</code>, <code>nfs_read()</code>, <code>fat_read()</code>), application portability would collapse. To deliver a seamless, uniform programming model, modern operating systems implement the <strong>Virtual File System (VFS)</strong> abstraction layer. Originally pioneered by Sun Microsystems in 1985 to integrate NFS into SunOS, VFS provides an object-oriented polymorphic interface in C that decouples standard POSIX system calls from concrete storage implementations.
-      </p>
-
-      <h3>1. The Polymorphic VFS Architecture</h3>
-      <p>
-        The core design principle of VFS is polymorphism: user processes execute generic POSIX system calls (<code>open()</code>, <code>read()</code>, <code>write()</code>, <code>close()</code>, <code>stat()</code>), which route directly into the VFS layer. The VFS layer contains generic algorithms for path navigation, security validation, and buffer caching.
-      </p>
-      <p>
-        When an action requires interacting with concrete storage, VFS dispatches the call through function pointer tables registered by the specific filesystem driver mounting that path.
-      </p>
-
-      <!-- Diagram 4.3.8A: VFS Polymorphic Dispatch Hierarchy -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="260" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.8A: VFS Polymorphic Dispatch Hierarchy Across Disparate Storage Media</text>
-
-          <rect x="50" y="45" width="700" height="35" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="400" y="67" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155" text-anchor="middle">User Space Applications (POSIX System Calls: open, read, write, close, stat)</text>
-
-          <line x1="50" y1="95" x2="750" y2="95" stroke="#0284c7" stroke-width="2" stroke-dasharray="4,4"/>
-          <text x="400" y="90" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">System Call Interface Boundary (Trap to Kernel Mode)</text>
-
-          <rect x="50" y="105" width="700" height="45" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
-          <text x="400" y="125" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0369a1" text-anchor="middle">Virtual File System (VFS) Abstraction Layer</text>
-          <text x="400" y="141" font-family="sans-serif" font-size="10" fill="#0284c7" text-anchor="middle">Manages Dentry Cache (Dcache), Inode Table, Mount Hierarchy &amp; Function Pointer Tables</text>
-
-          <line x1="140" y1="150" x2="140" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="140,178 135,170 145,170" fill="#0284c7"/>
-          <line x1="310" y1="150" x2="310" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="310,178 305,170 315,170" fill="#0284c7"/>
-          <line x1="490" y1="150" x2="490" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="490,178 485,170 495,170" fill="#0284c7"/>
-          <line x1="660" y1="150" x2="660" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="660,178 655,170 665,170" fill="#0284c7"/>
-
-          <rect x="60" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="140" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">ext4 Driver</text>
-          <text x="140" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Local NVMe / SSD Block</text>
-
-          <rect x="230" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="310" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">VFAT Driver</text>
-          <text x="310" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">USB Removable Drive</text>
-
-          <rect x="410" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="490" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">NFS Client</text>
-          <text x="490" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Remote RPC Socket</text>
-
-          <rect x="580" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="660" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">procfs Driver</text>
-          <text x="660" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Volatile Kernel Memory</text>
-        </svg>
-        <figcaption>Figure 4.3.8A: VFS presents a single POSIX interface while routing operations through driver-specific function pointers.</figcaption>
-      </figure>
-
-      <h3>2. The Four Primary VFS Data Objects</h3>
-      <p>
-        The Linux VFS architecture defines four core data structures that model every filesystem concept in memory:
-      </p>
-
-      <h4>1. The Superblock Object (<code>struct super_block</code>)</h4>
-      <p>
-        Represents an entire mounted filesystem instance. It holds filesystem-wide parameters, such as block size, device identifiers, mount flags, and a pointer to the root dentry. Crucially, it stores the <code>s_op</code> pointer pointing to <strong>Superblock Operations</strong>:
-      </p>
-      <ul>
-        <li><code>alloc_inode()</code>: Allocates memory for a new in-core inode structure.</li>
-        <li><code>write_inode()</code>: Flushes modified inode metadata from memory to storage.</li>
-        <li><code>sync_fs()</code>: Flushes dirty filesystem superblocks and metadata to disk.</li>
-        <li><code>statfs()</code>: Queries filesystem storage statistics (free blocks, total capacity).</li>
-      </ul>
-
-      <h4>2. The Inode Object (<code>struct inode</code>)</h4>
-      <p>
-        Represents a specific file, directory, socket, or device node uniquely within a filesystem. Unlike disk inodes, a VFS inode exists entirely in memory and contains file size, owner UID/GID, permission bits, access/modification timestamps, and locks. It holds two sets of operation tables:
-      </p>
-      <ul>
-        <li><code>i_op</code> (<strong>Inode Operations</strong>): Structural operations that manipulate file namespace and links, such as <code>lookup()</code>, <code>create()</code>, <code>link()</code>, <code>unlink()</code>, <code>mkdir()</code>, and <code>rename()</code>.</li>
-        <li><code>i_fop</code> (<strong>Default File Operations</strong>): Fallback file manipulation methods assigned when a file is opened.</li>
-      </ul>
-
-      <h4>3. The Dentry Object (<code>struct dentry</code>)</h4>
-      <p>
-        In Unix, inodes contain metadata and block pointers, but <em>no file names</em>. File names exist solely as entries within directory payloads. To enable high-speed string path resolution, the VFS introduces <strong>Directory Entries (dentries)</strong>.
-      </p>
-      <p>
-        A dentry represents a single path component (e.g., in <code>/usr/bin/python3</code>, there are dentries for <code>/</code>, <code>usr</code>, <code>bin</code>, and <code>python3</code>). Each dentry links a string name to its corresponding <code>struct inode</code>. Dentries are cached in the high-speed kernel <strong>Dentry Cache (Dcache)</strong>.
-      </p>
-
-      <h4>4. The File Object (<code>struct file</code>)</h4>
-      <p>
-        Represents a dynamic, open file descriptor instantiated when a user space thread invokes <code>open()</code>. While an inode represents the static file on disk, a <code>struct file</code> represents an active interaction context. It stores:
-      </p>
-      <ul>
-        <li><code>f_pos</code>: The current byte seek offset of the process within the file.</li>
-        <li><code>f_flags</code>: Open status flags (e.g., <code>O_RDONLY</code>, <code>O_APPEND</code>, <code>O_NONBLOCK</code>).</li>
-        <li><code>f_count</code>: Atomic reference counter tracking how many processes share this descriptor (e.g., post-<code>fork()</code>).</li>
-        <li><code>f_op</code>: Pointer to the <strong>File Operations</strong> table containing the implementation functions: <code>read()</code>, <code>write()</code>, <code>mmap()</code>, <code>llseek()</code>, and <code>fsync()</code>.</li>
-      </ul>
-
-      <!-- Diagram 4.3.8B: VFS Data Object Relationships -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 250" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="250" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.8B: Interconnection Network of VFS Core Kernel Objects</text>
-
-          <rect x="30" y="60" width="140" height="150" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="100" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">User Process</text>
-          <line x1="40" y1="92" x2="160" y2="92" stroke="#cbd5e1" stroke-width="1"/>
-          <text x="100" y="110" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">task_struct</text>
-          <rect x="40" y="125" width="120" height="30" fill="#e0e7ff" rx="3"/>
-          <text x="100" y="144" font-family="sans-serif" font-size="10" font-weight="bold" fill="#4338ca" text-anchor="middle">fd table [fd 3]</text>
-
-          <line x1="170" y1="140" x2="220" y2="140" stroke="#4338ca" stroke-width="2"/><polygon points="225,140 217,135 217,145" fill="#4338ca"/>
-          <rect x="225" y="60" width="150" height="150" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
-          <text x="300" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">struct file</text>
-          <line x1="235" y1="92" x2="365" y2="92" stroke="#bae6fd" stroke-width="1"/>
-          <text x="300" y="112" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_pos = 4096</text>
-          <text x="300" y="132" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_flags = O_RDONLY</text>
-          <text x="300" y="152" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_count = 1</text>
-          <rect x="235" y="165" width="130" height="26" fill="#0284c7" rx="2"/>
-          <text x="300" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; f_op: read, write</text>
-
-          <line x1="375" y1="140" x2="425" y2="140" stroke="#0284c7" stroke-width="2"/><polygon points="430,140 422,135 422,145" fill="#0284c7"/>
-          <rect x="430" y="60" width="150" height="150" fill="#f0fdf4" stroke="#16a34a" rx="4"/>
-          <text x="505" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">struct dentry</text>
-          <line x1="440" y1="92" x2="570" y2="92" stroke="#bbf7d0" stroke-width="1"/>
-          <text x="505" y="112" font-family="sans-serif" font-size="10" fill="#166534" text-anchor="middle">d_name = "syslog"</text>
-          <text x="505" y="132" font-family="sans-serif" font-size="10" fill="#166534" text-anchor="middle">d_parent = "log"</text>
-          <text x="505" y="152" font-family="sans-serif" font-size="9" fill="#166534" text-anchor="middle">(Cached in Dcache)</text>
-          <rect x="440" y="165" width="130" height="26" fill="#16a34a" rx="2"/>
-          <text x="505" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; d_inode Pointer</text>
-
-          <line x1="580" y1="140" x2="630" y2="140" stroke="#16a34a" stroke-width="2"/><polygon points="635,140 627,135 627,145" fill="#16a34a"/>
-          <rect x="635" y="60" width="140" height="150" fill="#fffbeb" stroke="#d97706" rx="4"/>
-          <text x="705" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b45309" text-anchor="middle">struct inode</text>
-          <line x1="645" y1="92" x2="765" y2="92" stroke="#fde68a" stroke-width="1"/>
-          <text x="705" y="112" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_ino = 1048576</text>
-          <text x="705" y="132" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_size = 2.4 MB</text>
-          <rect x="645" y="145" width="120" height="24" fill="#d97706" rx="2"/>
-          <text x="705" y="161" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; i_op: lookup, link</text>
-          <text x="705" y="195" font-family="sans-serif" font-size="9" fill="#92400e" text-anchor="middle">&bull; Linked to Superblock</text>
-        </svg>
-        <figcaption>Figure 4.3.8B: Relationship from process file descriptor down to physical inode and superblock.</figcaption>
-      </figure>
-
-      <h3>3. Path Resolution &amp; The Dentry Cache (Dcache)</h3>
-      <p>
-        Looking up a path such as <code>/usr/bin/gcc</code> requires stepping down directory structures. The VFS accelerates this through the in-memory <strong>Dentry Cache (Dcache)</strong>:
+        The second dimension validates directory tree linkages against inode metadata. The checker initializes a counter array <code>Link_Count[I]</code>:
       </p>
       <ol>
-        <li><strong>Hash Table Lookup:</strong> The kernel hashes <code>(parent_dentry, "child_name")</code> and queries a global hash table.</li>
-        <li><strong>Dcache Hit:</strong> If cached, VFS retrieves the associated <code>struct inode</code> locklessly via Read-Copy-Update (RCU).</li>
-        <li><strong>Dcache Miss:</strong> If not cached, VFS invokes the driver's <code>inode->i_op->lookup()</code> method, reading directory blocks from storage and inserting the new dentry into the cache.</li>
-        <li><strong>Mount Point Traversal:</strong> If a traversed dentry has the <code>DCACHE_MOUNTED</code> flag, VFS seamlessly redirects lookup to the root dentry of the mounted filesystem's superblock.</li>
+        <li>Start at the filesystem root directory (inode 2).</li>
+        <li>Walk all directory entries recursively, incrementing <code>Link_Count[I]</code> every time an entry references inode $I$.</li>
+        <li>Compare <code>Link_Count[I]</code> against the inode's internal hard link counter (<code>inode.i_nlink</code>).</li>
       </ol>
+      <p>
+        Two discrepancies can occur:
+      </p>
+      <ul>
+        <li><strong><code>inode.i_nlink</code> &gt; Actual Directory References:</strong> If a crash occurred during file deletion, the link count may be 2 while only 1 directory reference exists. If a user deletes that file later, the count drops to 1 rather than 0; the blocks and inode will never be freed. <em>Repair:</em> Overwrite <code>inode.i_nlink</code> with the actual reference count.</li>
+        <li><strong><code>inode.i_nlink</code> &lt; Actual Directory References (or actual references exist, but <code>i_nlink</code> is 0):</strong> Worse, an active file might have no directory entries pointing to it at all (orphaned file). <em>Repair:</em> The checker creates a new directory entry linking the orphaned inode into the <code>/lost+found</code> directory so the system administrator can inspect and recover data.</li>
+      </ul>
 
-      <!-- WALKTHROUGH PART 5: VFS DISPATCH & PATH RESOLUTION -->
-      <div class="lfs-sim-container" id="vfsSim">
-        <div class="lfs-topbar">
-          <span class="lfs-title">Walkthrough Part 5: VFS Dispatch, Path Walk &amp; Mount Resolution</span>
-          <span class="lfs-step-indicator" id="vfsStepTag">Dcache Initialized</span>
+      <!-- Diagram 4.4.3: fsck Consistency Matrix -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.3: Multi-Dimensional fsck Consistency Verification &amp; Repair</text>
+
+          <!-- Dimension 1: Block Audit -->
+          <rect x="30" y="55" width="350" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <text x="205" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Dimension 1: Block Allocation Audit</text>
+          <line x1="40" y1="88" x2="370" y2="88" stroke="#cbd5e1" stroke-width="1"/>
+
+          <rect x="45" y="102" width="95" height="40" fill="#ecfdf5" stroke="#10b981" rx="2"/>
+          <text x="92.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#047857" text-anchor="middle">Block #400</text>
+          <text x="92.5" y="136" font-family="sans-serif" font-size="8" fill="#065f46" text-anchor="middle">Inodes: 1 &bull; Free: 0 &check;</text>
+
+          <rect x="150" y="102" width="105" height="40" fill="#fef2f2" stroke="#ef4444" rx="2"/>
+          <text x="202.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Block #401 (Leak)</text>
+          <text x="202.5" y="136" font-family="sans-serif" font-size="8" fill="#991b1b" text-anchor="middle">Inodes: 0 &bull; Free: 0 &cross;</text>
+
+          <rect x="265" y="102" width="105" height="40" fill="#fef2f2" stroke="#ef4444" rx="2"/>
+          <text x="317.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Block #402 (Cross)</text>
+          <text x="317.5" y="136" font-family="sans-serif" font-size="8" fill="#991b1b" text-anchor="middle">Inodes: 2 &bull; Free: 0 &cross;</text>
+
+          <text x="205" y="172" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0284c7" text-anchor="middle">Repair: Block 401 &rarr; Free; Block 402 &rarr; Clone to new block</text>
+
+          <!-- Dimension 2: Inode Link Audit -->
+          <rect x="420" y="55" width="350" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <text x="595" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Dimension 2: Directory &amp; Link Audit</text>
+          <line x1="430" y1="88" x2="760" y2="88" stroke="#cbd5e1" stroke-width="1"/>
+
+          <rect x="435" y="102" width="150" height="40" fill="#fef2f2" stroke="#ef4444" rx="2"/>
+          <text x="510" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Inode #82 (Orphaned)</text>
+          <text x="510" y="136" font-family="sans-serif" font-size="8" fill="#991b1b" text-anchor="middle">Dirs: 0 &bull; i_nlink: 1 &cross;</text>
+
+          <line x1="590" y1="122" x2="620" y2="122" stroke="#0284c7" stroke-width="2"/><polygon points="620,122 612,117 612,127" fill="#0284c7"/>
+
+          <rect x="620" y="102" width="140" height="40" fill="#f0f9ff" stroke="#0284c7" rx="2"/>
+          <text x="690" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#0369a1" text-anchor="middle">/lost+found</text>
+          <text x="690" y="136" font-family="sans-serif" font-size="8" fill="#0284c7" text-anchor="middle">Re-linked into tree &check;</text>
+
+          <text x="595" y="172" font-family="sans-serif" font-size="9" font-weight="bold" fill="#047857" text-anchor="middle">Repair: Re-connect orphan; align i_nlink to match tree</text>
+        </svg>
+        <figcaption>Figure 4.4.3: The two-dimensional consistency check auditing block counts and directory tree references.</figcaption>
+      </figure>
+
+      <!-- Walkthrough 2: Interactive FSCK Consistency Simulator -->
+      <div class="sim-container" id="fsckSim">
+        <div class="sim-topbar">
+          <span class="sim-title">Walkthrough: Interactive FSCK Repair Simulator</span>
+          <span class="sim-step-indicator" id="fsckStepTag">Audit Status: Idle</span>
         </div>
 
-        <div class="lfs-explanation-box" id="vfsExplanationBox">
-          <strong>Interactive VFS Engine:</strong> Walk a file path, resolve mount boundaries (e.g. crossing into a USB FAT32 filesystem), and execute polymorphic function pointers to see how VFS dynamically routes calls.
+        <div class="sim-explanation-box" id="fsckExplanation">
+          <strong>Interactive Integrity Audit:</strong> Inject structural filesystem errors (missing block space leaks, duplicate block allocations, and orphaned inodes), then execute an automated <code>fsck</code> audit to detect and repair the damage.
         </div>
 
-        <div class="lfs-controls">
-          <button class="lfs-btn primary" onclick="vfsResolveRoot()">1. Walk Path: /home/user/doc.txt (ext4)</button>
-          <button class="lfs-btn" onclick="vfsCrossMountPoint()">2. Cross Mount Boundary: /mnt/usb/data (FAT32)</button>
-          <button class="lfs-btn accent" onclick="vfsPolymorphicRead()">3. Invoke read(fd) &rarr; Polymorphic Dispatch</button>
-          <button class="lfs-btn" onclick="vfsResetWalkthrough()" style="margin-left: auto;">Reset Simulator</button>
+        <div class="sim-controls">
+          <button class="sim-btn danger" onclick="fsckInjectErrors()">1. Inject Corruption (Crash Emulation)</button>
+          <button class="sim-btn primary" onclick="fsckRunBlockAudit()">2. Audit Blocks (Track Free vs. Claimed)</button>
+          <button class="sim-btn accent" onclick="fsckRunLinkRepair()">3. Audit Link Counts &amp; Lost+Found</button>
+          <button class="sim-btn" onclick="fsckResetSim()" style="margin-left: auto;">Reset Audit</button>
         </div>
 
-        <div class="lfs-segments-grid" id="vfsSegmentsGrid"></div>
+        <div class="sim-grid" id="fsckGrid"></div>
 
-        <div class="lfs-status-panel">
-          <span id="vfsStatusMsg">VFS Layer active. Ready for path traversal.</span>
-          <span id="vfsMetricMsg">Active Driver: None | Dcache State: Cold</span>
+        <div class="sim-status-panel">
+          <span id="fsckStatus">Volume healthy. No integrity errors detected.</span>
+          <span id="fsckMetrics">Leaks: 0 | Duplicates: 0 | Orphans: 0</span>
         </div>
       </div>
     </div>
@@ -1140,1148 +719,169 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     // =========================================================
-    // 1. WALKTHROUGH PART 1: SEQUENTIAL APPEND & DEAD SPACE
+    // 1. BLOCK SIZE & FRAGMENTATION SIMULATOR
     // =========================================================
-    const NUM_SEGMENTS = 4;
-    const BLOCKS_PER_SEGMENT = 8;
-    let lfsSegments = [];
-    let currentWriteIndex = 0;
+    const workloadFiles = [
+      { name: "f1.c", size: 0.8 },
+      { name: "f2.h", size: 1.2 },
+      { name: "f3.py", size: 3.4 },
+      { name: "f4.txt", size: 2.1 },
+      { name: "f5.json", size: 4.8 },
+      { name: "f6.log", size: 7.2 },
+      { name: "f7.md", size: 1.1 },
+      { name: "f8.sh", size: 0.5 },
+      { name: "f9.conf", size: 1.9 },
+      { name: "f10.bin", size: 9.0 }
+    ];
 
-    function lfsResetSim() {
-      lfsSegments = [];
-      for (let s = 0; s < NUM_SEGMENTS; s++) {
-        let segBlocks = [];
-        for (let b = 0; b < BLOCKS_PER_SEGMENT; b++) {
-          segBlocks.push({ type: 'free', fileId: null });
-        }
-        lfsSegments.push({ id: s, blocks: segBlocks });
-      }
-      currentWriteIndex = 0;
-      lfsRenderSim();
-      document.getElementById("lfsStepTag").textContent = "Step 1 of 3: Ready";
-      document.getElementById("lfsExplanationBox").innerHTML =
-        "<strong>Welcome to the LFS Walkthrough!</strong> LFS converts all file system writes into a fast, contiguous sequential stream. Click <strong>'1. Append New File'</strong> to stream files into the log tail.";
-      document.getElementById("lfsStatusMsg").textContent = "Walkthrough reset. Ready to append files.";
-    }
+    function simSetBlockSize(bsKB) {
+      document.getElementById("bsSimTag").textContent = `Active Size: ${bsKB} KB`;
+      let totalData = 0;
+      let totalAllocated = 0;
 
-    function lfsStepAppend() {
-      if (currentWriteIndex >= NUM_SEGMENTS * BLOCKS_PER_SEGMENT) {
-        document.getElementById("lfsExplanationBox").innerHTML =
-          "<strong>Log Full!</strong> The disk log has filled up with mixed live and dead blocks. Click <strong>'3. Run Segment Cleaner'</strong> to perform garbage collection.";
-        return;
-      }
-      let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
-      let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
-      let fileId = `F${Math.floor(Math.random() * 90) + 10}`;
-      lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: fileId };
-      currentWriteIndex++;
-
-      lfsRenderSim();
-      document.getElementById("lfsStepTag").textContent = "Step 1: Appending Data";
-      document.getElementById("lfsExplanationBox").innerHTML =
-        `<strong>Sequential Append in Action:</strong> File <code>${fileId}</code> was written instantly to Segment ${segIdx}, Block ${blkIdx} without any mechanical disk head seeks. Keep appending or proceed to step 2 to overwrite files.`;
-      document.getElementById("lfsStatusMsg").textContent = `Successfully appended ${fileId} at sequential log tail.`;
-    }
-
-    function lfsStepOverwrite() {
-      let liveBlocks = [];
-      lfsSegments.forEach((seg, sIdx) => {
-        seg.blocks.forEach((blk, bIdx) => {
-          if (blk.type === 'live') liveBlocks.push({ sIdx, bIdx, fileId: blk.fileId });
-        });
-      });
-      if (liveBlocks.length === 0) {
-        document.getElementById("lfsExplanationBox").innerHTML =
-          "<strong>No files to overwrite!</strong> Please click <strong>'1. Append New File'</strong> a few times first so there is data in the log.";
-        return;
-      }
-      let target = liveBlocks[Math.floor(Math.random() * liveBlocks.length)];
-      lfsSegments[target.sIdx].blocks[target.bIdx].type = 'dead';
-
-      if (currentWriteIndex < NUM_SEGMENTS * BLOCKS_PER_SEGMENT) {
-        let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
-        let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
-        lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: target.fileId };
-        currentWriteIndex++;
-      }
-
-      lfsRenderSim();
-      document.getElementById("lfsStepTag").textContent = "Step 2: Overwriting (Dead Space)";
-      document.getElementById("lfsExplanationBox").innerHTML =
-        `<strong>LFS No-Overwrite Policy:</strong> File <code>${target.fileId}</code> was updated. Its old block in Segment ${target.sIdx} is now marked <s>strikethrough</s> (Dead Space), and the new version is appended at the log tail. This creates fragmentation over time!`;
-      document.getElementById("lfsStatusMsg").textContent = `Overwrote ${target.fileId}; old version marked dead.`;
-    }
-
-    function lfsStepClean() {
-      let liveBlocks = [];
-      lfsSegments.forEach(seg => {
-        seg.blocks.forEach(blk => {
-          if (blk.type === 'live') liveBlocks.push(blk);
-        });
-      });
-
-      lfsResetSim();
-      liveBlocks.forEach(blk => {
-        let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
-        let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
-        if (segIdx < NUM_SEGMENTS) {
-          lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: blk.fileId };
-          currentWriteIndex++;
-        }
-      });
-
-      lfsRenderSim();
-      document.getElementById("lfsStepTag").textContent = "Step 3: Garbage Collection";
-      document.getElementById("lfsExplanationBox").innerHTML =
-        "<strong>Segment Cleaner (GC) Complete:</strong> The background cleaner gathered all active live blocks, discarded the dead holes, and compacted everything neatly back to the front of the log. Free space is successfully reclaimed!";
-      document.getElementById("lfsStatusMsg").textContent = "Segment compaction finished successfully.";
-    }
-
-    function lfsRenderSim() {
-      const grid = document.getElementById("lfsSegmentsGrid");
-      grid.innerHTML = "";
-      let liveCount = 0;
-      let deadCount = 0;
-      let freeCount = 0;
-
-      lfsSegments.forEach((seg, sIdx) => {
-        let segDiv = document.createElement("div");
-        segDiv.className = "lfs-segment-box";
-        let activeTag = (Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT) === sIdx) ? ' (Tail)' : '';
-        segDiv.innerHTML = `<div class="lfs-seg-header"><span>Segment ${sIdx}${activeTag}</span></div>`;
-
-        let blocksDiv = document.createElement("div");
-        blocksDiv.className = "lfs-seg-blocks";
-
-        seg.blocks.forEach((blk, bIdx) => {
-          let bEl = document.createElement("div");
-          bEl.className = "lfs-block";
-          if (blk.type === 'free') {
-            bEl.classList.add("blk-free");
-            bEl.textContent = "·";
-            freeCount++;
-          } else if (blk.type === 'live') {
-            bEl.classList.add("blk-live");
-            bEl.textContent = blk.fileId;
-            liveCount++;
-          } else if (blk.type === 'dead') {
-            bEl.classList.add("blk-dead");
-            bEl.textContent = blk.fileId;
-            deadCount++;
-          }
-          blocksDiv.appendChild(bEl);
-        });
-        segDiv.appendChild(blocksDiv);
-        grid.appendChild(segDiv);
-      });
-
-      document.getElementById("lfsMetricMsg").textContent = `Live Blocks: ${liveCount} | Dead Blocks: ${deadCount} | Free Blocks: ${freeCount}`;
-    }
-
-    lfsResetSim();
-
-    // =========================================================
-    // 2. WALKTHROUGH PART 2: FOUR-PHASE COMPACTION CYCLE
-    // =========================================================
-    let fourPhaseSegments = [];
-    let currentCompactionPhase = 0;
-    let identifiedLiveBlocks = [];
-
-    function compactionResetWalkthrough() {
-      currentCompactionPhase = 0;
-      identifiedLiveBlocks = [];
-
-      fourPhaseSegments = [
-        {
-          id: 0,
-          label: "Segment 0 (Candidate)",
-          status: "normal",
-          blocks: [
-            { id: "A1", state: "live", highlight: false },
-            { id: "A2", state: "dead", highlight: false },
-            { id: "A3", state: "dead", highlight: false },
-            { id: "A4", state: "live", highlight: false },
-            { id: "A5", state: "dead", highlight: false },
-            { id: "A6", state: "dead", highlight: false },
-            { id: "A7", state: "dead", highlight: false },
-            { id: "A8", state: "dead", highlight: false }
-          ]
-        },
-        {
-          id: 1,
-          label: "Segment 1 (Candidate)",
-          status: "normal",
-          blocks: [
-            { id: "B1", state: "dead", highlight: false },
-            { id: "B2", state: "live", highlight: false },
-            { id: "B3", state: "dead", highlight: false },
-            { id: "B4", state: "dead", highlight: false },
-            { id: "B5", state: "dead", highlight: false },
-            { id: "B6", state: "live", highlight: false },
-            { id: "B7", state: "dead", highlight: false },
-            { id: "B8", state: "dead", highlight: false }
-          ]
-        },
-        {
-          id: 2,
-          label: "Segment 2 (Log Tail)",
-          status: "tail",
-          blocks: [
-            { id: "T1", state: "live", highlight: false },
-            { id: "T2", state: "live", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false }
-          ]
-        },
-        {
-          id: 3,
-          label: "Segment 3 (Clean Free Pool)",
-          status: "free_pool",
-          blocks: [
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false },
-            { id: "·", state: "free", highlight: false }
-          ]
-        }
-      ];
-
-      fourPhaseRender();
-      document.getElementById("fourPhaseStepTag").textContent = "Phase 0: Ready";
-      document.getElementById("fourPhaseExplanationBox").innerHTML =
-        "<strong>Ready to Begin 4-Phase Compaction:</strong> Segments 0 and 1 are fragmented with dead space holes. Click <strong>'1. Phase 1: Selection'</strong> to have the cleaner select candidates based on the cost-benefit formula.";
-      document.getElementById("fourPhaseStatusMsg").textContent = "Walkthrough reset. Segments 0 and 1 are ready for cleaning evaluation.";
-      document.getElementById("fourPhaseMetricMsg").textContent = "Selected: None | Live Migrated: 0 | Reclaimed Segments: 0";
-    }
-
-    function compactionPhase1Selection() {
-      currentCompactionPhase = 1;
-      fourPhaseSegments[0].status = "candidate";
-      fourPhaseSegments[1].status = "candidate";
-      fourPhaseSegments[0].label = "Seg 0 [SELECTED CANDIDATE]";
-      fourPhaseSegments[1].label = "Seg 1 [SELECTED CANDIDATE]";
-
-      fourPhaseRender();
-      document.getElementById("fourPhaseStepTag").textContent = "Phase 1: Candidate Selection";
-      document.getElementById("fourPhaseExplanationBox").innerHTML =
-        "<strong>Phase 1 (Selection) Complete:</strong> The cleaner queried the on-disk segment usage table and computed ((1 - u) &times; Age) / (1 + u). Segments 0 and 1 were selected because their low utilization (u = 0.25) yields maximum contiguous free space. Click <strong>'2. Phase 2: Identification'</strong> to check block liveness!";
-      document.getElementById("fourPhaseStatusMsg").textContent = "Phase 1: Segments 0 & 1 selected for compaction.";
-      document.getElementById("fourPhaseMetricMsg").textContent = "Selected: Segments 0 & 1 | Live Migrated: 0 | Reclaimed Segments: 0";
-    }
-
-    function compactionPhase2Identification() {
-      if (currentCompactionPhase < 1) {
-        document.getElementById("fourPhaseExplanationBox").innerHTML = "Please click <strong>'1. Phase 1: Selection'</strong> first!";
-        return;
-      }
-      currentCompactionPhase = 2;
-      identifiedLiveBlocks = [];
-
-      [0, 1].forEach(sIdx => {
-        fourPhaseSegments[sIdx].blocks.forEach(blk => {
-          if (blk.state === "live") {
-            blk.highlight = "live";
-            identifiedLiveBlocks.push(blk.id);
-          } else {
-            blk.highlight = "dead";
-          }
-        });
-      });
-
-      fourPhaseRender();
-      document.getElementById("fourPhaseStepTag").textContent = "Phase 2: Liveness Verification";
-      document.getElementById("fourPhaseExplanationBox").innerHTML =
-        `<strong>Phase 2 (Identification) Complete:</strong> The cleaner read the Segment Summary blocks and performed O(1) Inode Map lookups. It confirmed <strong>4 surviving live blocks</strong> (<code>A1, A4, B2, B6</code> in green), while obsolete dead holes (dimmed) will be discarded. Click <strong>'3. Phase 3: Compaction & Append'</strong> to stream them to the log tail!`;
-      document.getElementById("fourPhaseStatusMsg").textContent = `Phase 2: 4 live blocks verified against Imap (${identifiedLiveBlocks.join(', ')}).`;
-      document.getElementById("fourPhaseMetricMsg").textContent = `Selected: Segments 0 & 1 | Verified Live: ${identifiedLiveBlocks.length} | Reclaimed Segments: 0`;
-    }
-
-    function compactionPhase3Compaction() {
-      if (currentCompactionPhase < 2) {
-        document.getElementById("fourPhaseExplanationBox").innerHTML = "Please complete <strong>Phase 2: Identification</strong> first!";
-        return;
-      }
-      currentCompactionPhase = 3;
-
-      let tailFreeSlots = fourPhaseSegments[2].blocks.filter(b => b.state === "free");
-      for (let i = 0; i < identifiedLiveBlocks.length && i < tailFreeSlots.length; i++) {
-        tailFreeSlots[i].id = identifiedLiveBlocks[i];
-        tailFreeSlots[i].state = "live";
-        tailFreeSlots[i].highlight = "migrated";
-      }
-
-      fourPhaseSegments[2].label = "Segment 2 [COMPACTED APPEND]";
-
-      fourPhaseRender();
-      document.getElementById("fourPhaseStepTag").textContent = "Phase 3: Compaction & Append";
-      document.getElementById("fourPhaseExplanationBox").innerHTML =
-        `<strong>Phase 3 (Compaction & Append) Complete:</strong> The 4 surviving live blocks were bundled into an in-memory segment buffer and written sequentially to the <strong>active log tail</strong> (Segment 2) without seeks! Their Inode Map entries were updated with their new addresses. Click <strong>'4. Phase 4: Reclamation'</strong> to free the old segments!`;
-      document.getElementById("fourPhaseStatusMsg").textContent = "Phase 3: Live blocks written contiguously to log tail; Inode Map updated.";
-      document.getElementById("fourPhaseMetricMsg").textContent = `Selected: Segments 0 & 1 | Live Migrated: ${identifiedLiveBlocks.length} | Reclaimed Segments: 0`;
-    }
-
-    function compactionPhase4Reclamation() {
-      if (currentCompactionPhase < 3) {
-        document.getElementById("fourPhaseExplanationBox").innerHTML = "Please complete <strong>Phase 3: Compaction & Append</strong> first!";
-        return;
-      }
-      currentCompactionPhase = 4;
-
-      [0, 1].forEach(sIdx => {
-        fourPhaseSegments[sIdx].blocks = [
-          { id: "·", state: "free", highlight: false },
-          { id: "·", state: "free", highlight: false },
-          { id: "·", state: "free", highlight: false },
-          { id: "·", state: "free", highlight: false },
-          { id: "·", state: "free", highlight: false },
-          { id: "·", state: "free", highlight: false },
-          { id: "·", state: "free", highlight: false },
-          { id: "·", state: "free", highlight: false }
-        ];
-        fourPhaseSegments[sIdx].status = "free_pool";
-        fourPhaseSegments[sIdx].label = `Segment ${sIdx} (Clean Free Pool)`;
-      });
-
-      fourPhaseSegments[2].blocks.forEach(b => b.highlight = false);
-
-      fourPhaseRender();
-      document.getElementById("fourPhaseStepTag").textContent = "Phase 4: Reclamation Finished!";
-      document.getElementById("fourPhaseExplanationBox").innerHTML =
-        "<strong>Phase 4 (Reclamation) Complete:</strong> Segments 0 and 1 were cleared and added to the Clean Free Pool. <strong>16 contiguous blocks (2 full segments) are now 100% free</strong> for future log streaming! Compaction finished with zero downtime.";
-      document.getElementById("fourPhaseStatusMsg").textContent = "Phase 4: Segments 0 & 1 recycled. Clean free pool expanded!";
-      document.getElementById("fourPhaseMetricMsg").textContent = "Selected: None | Live Migrated: 4 | Reclaimed Segments: 2 (16 Blocks)";
-    }
-
-    function fourPhaseRender() {
-      const grid = document.getElementById("fourPhaseSegmentsGrid");
+      const grid = document.getElementById("bsSimGrid");
       grid.innerHTML = "";
 
-      fourPhaseSegments.forEach(seg => {
-        let segDiv = document.createElement("div");
-        segDiv.className = "lfs-segment-box";
-        if (seg.status === "candidate") segDiv.classList.add("blk-candidate");
+      workloadFiles.forEach(f => {
+        totalData += f.size;
+        let blocksNeeded = Math.ceil(f.size / bsKB);
+        let allocatedKB = blocksNeeded * bsKB;
+        totalAllocated += allocatedKB;
+        let wastedKB = (allocatedKB - f.size).toFixed(1);
 
-        segDiv.innerHTML = `<div class="lfs-seg-header"><span>${seg.label}</span></div>`;
+        let card = document.createElement("div");
+        card.className = "sim-card-box";
+        card.innerHTML = `<div class="sim-card-header"><span>${f.name} (${f.size} KB)</span><span>Wasted: ${wastedKB} KB</span></div>`;
 
-        let blocksDiv = document.createElement("div");
-        blocksDiv.className = "lfs-seg-blocks";
+        let bContainer = document.createElement("div");
+        bContainer.className = "sim-blocks";
 
-        seg.blocks.forEach(blk => {
+        for (let i = 0; i < blocksNeeded; i++) {
           let bEl = document.createElement("div");
-          bEl.className = "lfs-block";
-          bEl.textContent = blk.id;
-
-          if (blk.state === "free") {
-            bEl.classList.add("blk-free");
-          } else if (blk.state === "live") {
-            bEl.classList.add("blk-live");
-          } else if (blk.state === "dead") {
-            bEl.classList.add("blk-dead");
-          }
-
-          if (blk.highlight === "live") {
-            bEl.classList.add("blk-identified-live");
-          } else if (blk.highlight === "dead") {
-            bEl.classList.add("blk-discarded");
-          } else if (blk.highlight === "migrated") {
-            bEl.classList.add("blk-identified-live");
-          }
-
-          blocksDiv.appendChild(bEl);
-        });
-
-        segDiv.appendChild(blocksDiv);
-        grid.appendChild(segDiv);
+          bEl.className = "sim-block blk-used";
+          bEl.textContent = `${bsKB}K`;
+          bContainer.appendChild(bEl);
+        }
+        card.appendChild(bContainer);
+        grid.appendChild(card);
       });
-    }
 
-    compactionResetWalkthrough();
+      let wastedTotal = (totalAllocated - totalData).toFixed(1);
+      let wastePct = Math.round((wastedTotal / totalAllocated) * 100);
 
-    // =========================================================
-    // 3. WALKTHROUGH PART 3: JOURNALING & CRASH RECOVERY SIM
-    // =========================================================
-    let journalState = "idle";
-    let journalBlocks = [];
-    let permanentFsBlocks = [];
+      document.getElementById("bsSimStatus").textContent = `Workload: 10 files, ${totalData.toFixed(1)} KB real data.`;
+      document.getElementById("bsSimMetrics").textContent = `Allocated: ${totalAllocated} KB | Waste: ${wastedTotal} KB (${wastePct}% wasted)`;
 
-    function journalResetWalkthrough() {
-      journalState = "idle";
-      journalBlocks = [
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" }
-      ];
-
-      permanentFsBlocks = [
-        { id: "Ino: 2", state: "fs", label: "Inode Table" },
-        { id: "Map: OK", state: "fs", label: "Bitmap" },
-        { id: "Blk: 10", state: "fs", label: "Data Block" },
-        { id: "Blk: 11", state: "fs", label: "Data Block" }
-      ];
-
-      journalRender();
-      document.getElementById("journalStepTag").textContent = "State: Normal Operation (Idle)";
-      document.getElementById("journalExplanationBox").innerHTML =
-        "<strong>Ready to Trace WAL Transaction:</strong> In Ordered Mode, user data writes directly to disk before metadata commits. Click <strong>'1. Write Journal Transaction'</strong> to start appending to the circular ring buffer.";
-      document.getElementById("journalStatusMsg").textContent = "Filesystem running in Ordered Journaling Mode. Ring buffer empty.";
-      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 0/8 Used | Checkpoint Status: Synchronized";
-    }
-
-    function journalStepWriteTx() {
-      if (journalState !== "idle") {
-        document.getElementById("journalExplanationBox").innerHTML =
-          "A transaction is already in flight! Commit it or reset the simulator.";
-        return;
-      }
-      journalState = "written";
-
-      journalBlocks[0] = { id: "TxHead", state: "head", label: "Header" };
-      journalBlocks[1] = { id: "Ino: 2*", state: "tx", label: "Inode Update" };
-      journalBlocks[2] = { id: "Map: *", state: "tx", label: "Bitmap Update" };
-
-      journalRender();
-      document.getElementById("journalStepTag").textContent = "State: Journal Written (Uncommitted)";
-      document.getElementById("journalExplanationBox").innerHTML =
-        "<strong>Transaction In Flight:</strong> Changes are written to the journal ring buffer, but <strong>NO Commit Block exists yet</strong>. If power cuts right now, this partial transaction will be cleanly ignored. Click <strong>'2. Commit Transaction'</strong> or test <strong>'Inject Sudden Power Cut!'</strong>.";
-      document.getElementById("journalStatusMsg").textContent = "Transaction written to journal. Awaiting atomic commit record.";
-      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 3/8 Used | Checkpoint Status: Pending Commit";
-    }
-
-    function journalStepCommitTx() {
-      if (journalState !== "written") {
-        document.getElementById("journalExplanationBox").innerHTML =
-          "Please write a transaction first by clicking <strong>'1. Write Journal Transaction'</strong>!";
-        return;
-      }
-      journalState = "committed";
-
-      journalBlocks[3] = { id: "COMMIT", state: "commit", label: "Commit Block (CRC)" };
-
-      journalRender();
-      document.getElementById("journalStepTag").textContent = "State: Transaction COMMITTED";
-      document.getElementById("journalExplanationBox").innerHTML =
-        "<strong>Commit Boundary Established!</strong> The Commit Block with CRC checksum reached non-volatile media. The transaction is now formally durable. Even if a crash strikes this instant, <strong>Redo Logging</strong> will guarantee recovery. Click <strong>'3. Checkpoint In-Place'</strong> to flush to permanent blocks.";
-      document.getElementById("journalStatusMsg").textContent = "Transaction committed! Safe from data loss.";
-      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 4/8 Used | Checkpoint Status: Ready to Checkpoint";
-    }
-
-    function journalStepCheckpoint() {
-      if (journalState !== "committed") {
-        document.getElementById("journalExplanationBox").innerHTML =
-          "Transaction must be committed before checkpointing! Click <strong>'2. Commit Transaction'</strong>.";
-        return;
-      }
-      journalState = "checkpointed";
-
-      permanentFsBlocks[0] = { id: "Ino: 2*", state: "checkpointed", label: "Inode Table (Updated)" };
-      permanentFsBlocks[1] = { id: "Map: *", state: "checkpointed", label: "Bitmap (Updated)" };
-
-      journalBlocks = [
-        { id: "·", state: "free", label: "Freed" },
-        { id: "·", state: "free", label: "Freed" },
-        { id: "·", state: "free", label: "Freed" },
-        { id: "·", state: "free", label: "Freed" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" },
-        { id: "·", state: "free", label: "Empty" }
-      ];
-
-      journalRender();
-      document.getElementById("journalStepTag").textContent = "State: Checkpointed & Log Freed";
-      document.getElementById("journalExplanationBox").innerHTML =
-        "<strong>Checkpoint Complete!</strong> Changes were written in-place to the permanent filesystem structures. The journal ring buffer slots are now freed for upcoming transactions. Full cycle executed with zero integrity risk!";
-      document.getElementById("journalStatusMsg").textContent = "In-place blocks synchronized. Circular journal freed.";
-      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 0/8 Used | Checkpoint Status: Fully Checkpointed";
-    }
-
-    function journalInjectCrash() {
-      if (journalState === "written") {
-        journalState = "crashed_uncommitted";
-        journalBlocks[0].state = "corrupt";
-        journalBlocks[1].state = "corrupt";
-        journalBlocks[2].state = "corrupt";
-
-        journalRender();
-        document.getElementById("journalStepTag").textContent = "Crash Recovery: Torn Write Discarded";
-        document.getElementById("journalExplanationBox").innerHTML =
-          "<strong>Power Cut Occurred Before Commit:</strong> On boot, the recovery engine scanned the journal ring and discovered an incomplete transaction without a valid Commit Block. <strong>The uncommitted write was discarded in 2 milliseconds</strong>. Permanent in-place structures remain 100% consistent!";
-        document.getElementById("journalStatusMsg").textContent = "Recovery completed: partial transaction discarded. Filesystem consistent.";
-        document.getElementById("journalMetricMsg").textContent = "Journal Ring: Cleaned | Recovery Time: 2 ms";
-      } else if (journalState === "committed") {
-        journalState = "crashed_committed";
-        permanentFsBlocks[0] = { id: "Ino: 2*", state: "checkpointed", label: "Inode Table (Replayed)" };
-        permanentFsBlocks[1] = { id: "Map: *", state: "checkpointed", label: "Bitmap (Replayed)" };
-
-        journalRender();
-        document.getElementById("journalStepTag").textContent = "Crash Recovery: Redo Logging Replay";
-        document.getElementById("journalExplanationBox").innerHTML =
-          "<strong>Power Cut Occurred After Commit:</strong> Permanent in-place blocks had not been updated yet. On boot, the recovery engine verified the Commit Block CRC and <strong>replayed the transaction into permanent blocks</strong>. Zero committed data was lost!";
-        document.getElementById("journalStatusMsg").textContent = "Recovery completed: Redo logging replayed transaction into in-place blocks.";
-        document.getElementById("journalMetricMsg").textContent = "Journal Ring: Replayed | Recovery Time: 5 ms";
+      if (bsKB === 1) {
+        document.getElementById("bsSimExplanation").innerHTML =
+          "<strong>1 KB Blocks Selected:</strong> Excellent space efficiency! Internal fragmentation waste is minimal (" + wastePct + "%), but I/O transfer overhead and pointer tree sizes increase for larger files.";
+      } else if (bsKB === 4) {
+        document.getElementById("bsSimExplanation").innerHTML =
+          "<strong>4 KB Blocks Selected (OS Standard):</strong> Optimal balance. Provides good contiguous streaming performance while maintaining acceptable internal fragmentation waste (" + wastePct + "%).";
       } else {
-        document.getElementById("journalExplanationBox").innerHTML =
-          "Please write a transaction (Phase 1) or commit it (Phase 2) before testing a crash!";
+        document.getElementById("bsSimExplanation").innerHTML =
+          "<strong>" + bsKB + " KB Blocks Selected:</strong> High sustained throughput for large files, but <strong>severe internal fragmentation</strong>! Small files waste over " + wastePct + "% of total allocated space.";
       }
     }
 
-    function journalRender() {
-      const grid = document.getElementById("journalSegmentsGrid");
+    simSetBlockSize(4);
+
+    // =========================================================
+    // 2. INTERACTIVE FSCK INTEGRITY SIMULATOR
+    // =========================================================
+    let fsckBlocks = [];
+    let fsckOrphans = [];
+
+    function fsckResetSim() {
+      fsckBlocks = [
+        { id: 100, state: "used", desc: "Inode 10 (File 1)", inodes: 1, bitmapFree: false },
+        { id: 101, state: "free", desc: "Free Block", inodes: 0, bitmapFree: true },
+        { id: 102, state: "used", desc: "Inode 11 (File 2)", inodes: 1, bitmapFree: false },
+        { id: 103, state: "free", desc: "Free Block", inodes: 0, bitmapFree: true }
+      ];
+      fsckOrphans = [];
+      fsckRender();
+      document.getElementById("fsckStepTag").textContent = "Volume Consistent";
+      document.getElementById("fsckExplanation").innerHTML =
+        "<strong>Volume Clean:</strong> Every allocated block is claimed by exactly one inode ($1$), and free blocks are properly marked in the bitmap ($0$). Click <strong>'1. Inject Corruption'</strong> to emulate an unclean crash.";
+      document.getElementById("fsckStatus").textContent = "All block references match free bitmap. Link counts consistent.";
+      document.getElementById("fsckMetrics").textContent = "Leaks: 0 | Duplicates: 0 | Orphans: 0";
+    }
+
+    function fsckInjectErrors() {
+      fsckBlocks = [
+        { id: 100, state: "corrupt", desc: "Block #100 (SPACE LEAK)", inodes: 0, bitmapFree: false },
+        { id: 101, state: "corrupt", desc: "Block #101 (CROSS-ALLOC)", inodes: 2, bitmapFree: false },
+        { id: 102, state: "corrupt", desc: "Block #102 (CROSS-ALLOC)", inodes: 2, bitmapFree: false },
+        { id: 103, state: "corrupt", desc: "Block #103 (FREE THEFT)", inodes: 1, bitmapFree: true }
+      ];
+      fsckOrphans = [{ id: 45, name: "orphaned_data.log", nlink: 0 }];
+
+      fsckRender();
+      document.getElementById("fsckStepTag").textContent = "Corruption Detected!";
+      document.getElementById("fsckExplanation").innerHTML =
+        "<strong>Structural Damage Injected:</strong> Notice Block 100 is a space leak (claimed by 0 files but marked occupied). Blocks 101 & 102 are cross-allocated to multiple files. Block 103 is marked free despite being actively used! Inode 45 is orphaned. Click <strong>'2. Audit Blocks'</strong> to begin repair.";
+      document.getElementById("fsckStatus").textContent = "Unclean shutdown detected. Volume marked dirty.";
+      document.getElementById("fsckMetrics").textContent = "Leaks: 1 | Duplicates: 2 | Orphans: 1";
+    }
+
+    function fsckRunBlockAudit() {
+      fsckBlocks[0] = { id: 100, state: "repaired", desc: "Block #100 (Freed in Bitmap)", inodes: 0, bitmapFree: true };
+      fsckBlocks[1] = { id: 101, state: "repaired", desc: "Block #101 (Cloned to #104)", inodes: 1, bitmapFree: false };
+      fsckBlocks[2] = { id: 102, state: "repaired", desc: "Block #102 (Shared Ref Cleared)", inodes: 1, bitmapFree: false };
+      fsckBlocks[3] = { id: 103, state: "repaired", desc: "Block #103 (Marked Occupied)", inodes: 1, bitmapFree: false };
+
+      fsckRender();
+      document.getElementById("fsckStepTag").textContent = "Blocks Reconciled";
+      document.getElementById("fsckExplanation").innerHTML =
+        "<strong>Phase 1 (Block Audit) Complete:</strong> Block 100's bit was cleared (space leak reclaimed). Cross-allocated blocks 101 & 102 were cloned to distinct blocks so neither file loses data. Block 103 was marked occupied in the bitmap. Click <strong>'3. Audit Link Counts'</strong> to reconnect the orphaned inode!";
+      document.getElementById("fsckStatus").textContent = "Blocks audited. Allocation parity restored.";
+      document.getElementById("fsckMetrics").textContent = "Leaks: 0 (Fixed) | Duplicates: 0 (Cloned) | Orphans: 1";
+    }
+
+    function fsckRunLinkRepair() {
+      fsckOrphans = [];
+      document.getElementById("fsckStepTag").textContent = "File System Clean & Repaired";
+      document.getElementById("fsckExplanation").innerHTML =
+        "<strong>Phase 2 (Link Audit) Complete:</strong> Inode 45 had valid data but 0 directory entries. <code>fsck</code> created a directory entry inside <code>/lost+found/lost_file_45</code>, reconnecting the orphaned data into the directory tree. Integrity restored 100%!";
+      document.getElementById("fsckStatus").textContent = "Orphaned inode #45 linked to /lost+found. Volume clean.";
+      document.getElementById("fsckMetrics").textContent = "Leaks: 0 | Duplicates: 0 | Orphans: 0 (Recovered)";
+    }
+
+    function fsckRender() {
+      const grid = document.getElementById("fsckGrid");
       grid.innerHTML = "";
 
-      let jDiv = document.createElement("div");
-      jDiv.className = "lfs-segment-box";
-      jDiv.style.gridColumn = "span 2";
-      jDiv.innerHTML = `<div class="lfs-seg-header"><span>Circular Journal Ring Buffer</span><span>Head &rarr; Tail</span></div>`;
+      fsckBlocks.forEach(blk => {
+        let card = document.createElement("div");
+        card.className = "sim-card-box";
+        card.innerHTML = `<div class="sim-card-header"><span>Block #${blk.id}</span><span>${blk.desc}</span></div>`;
 
-      let jBlocksDiv = document.createElement("div");
-      jBlocksDiv.className = "lfs-seg-blocks";
-      jBlocksDiv.style.gridTemplateColumns = "repeat(8, 1fr)";
+        let bContainer = document.createElement("div");
+        bContainer.className = "sim-blocks";
+        bContainer.style.gridTemplateColumns = "1fr";
 
-      journalBlocks.forEach(blk => {
         let bEl = document.createElement("div");
-        bEl.className = "lfs-block";
-        bEl.textContent = blk.id;
-
+        bEl.className = "sim-block";
         if (blk.state === "free") bEl.classList.add("blk-free");
-        else if (blk.state === "head") bEl.classList.add("blk-journal-head");
-        else if (blk.state === "tx") bEl.classList.add("blk-journal-tx");
-        else if (blk.state === "commit") bEl.classList.add("blk-journal-commit");
-        else if (blk.state === "corrupt") bEl.classList.add("blk-journal-corrupt");
+        else if (blk.state === "used") bEl.classList.add("blk-used");
+        else if (blk.state === "corrupt") bEl.classList.add("blk-corrupt");
+        else if (blk.state === "repaired") bEl.classList.add("blk-repaired");
 
-        jBlocksDiv.appendChild(bEl);
-      });
-      jDiv.appendChild(jBlocksDiv);
-      grid.appendChild(jDiv);
-
-      let fsDiv = document.createElement("div");
-      fsDiv.className = "lfs-segment-box";
-      fsDiv.style.gridColumn = "span 2";
-      fsDiv.innerHTML = `<div class="lfs-seg-header"><span>Permanent In-Place Storage</span><span>Checkpoint Destination</span></div>`;
-
-      let fsBlocksDiv = document.createElement("div");
-      fsBlocksDiv.className = "lfs-seg-blocks";
-      fsBlocksDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
-
-      permanentFsBlocks.forEach(blk => {
-        let bEl = document.createElement("div");
-        bEl.className = "lfs-block";
-        bEl.textContent = blk.id;
-
-        if (blk.state === "fs") bEl.classList.add("blk-live");
-        else if (blk.state === "checkpointed") bEl.classList.add("blk-identified-live");
-
-        fsBlocksDiv.appendChild(bEl);
-      });
-      fsDiv.appendChild(fsBlocksDiv);
-      grid.appendChild(fsDiv);
-    }
-
-    journalResetWalkthrough();
-
-    // =========================================================
-    // 4. WALKTHROUGH PART 4: FTL WEAR-LEVELING & TRIM SIMULATOR
-    // =========================================================
-    let ftlBlocks = [];
-    let ftlHostWrites = 0;
-    let ftlFlashWrites = 0;
-    let ftlLbaMapping = { 1: null, 2: null };
-
-    function ftlResetWalkthrough() {
-      ftlHostWrites = 0;
-      ftlFlashWrites = 0;
-      ftlLbaMapping = { 1: "B0:P0", 2: "B0:P1" };
-
-      ftlBlocks = [
-        {
-          id: 0,
-          label: "Block 0 (Active)",
-          eraseCount: 42,
-          pages: [
-            { id: "LBA1", state: "valid" },
-            { id: "LBA2", state: "valid" },
-            { id: "·", state: "erased" },
-            { id: "·", state: "erased" }
-          ]
-        },
-        {
-          id: 1,
-          label: "Block 1 (Cold Data)",
-          eraseCount: 3,
-          pages: [
-            { id: "OS:1", state: "static" },
-            { id: "OS:2", state: "static" },
-            { id: "OS:3", state: "static" },
-            { id: "OS:4", state: "static" }
-          ]
-        },
-        {
-          id: 2,
-          label: "Block 2 (Free Pool)",
-          eraseCount: 41,
-          pages: [
-            { id: "·", state: "erased" },
-            { id: "·", state: "erased" },
-            { id: "·", state: "erased" },
-            { id: "·", state: "erased" }
-          ]
-        },
-        {
-          id: 3,
-          label: "Block 3 (Free Pool)",
-          eraseCount: 40,
-          pages: [
-            { id: "·", state: "erased" },
-            { id: "·", state: "erased" },
-            { id: "·", state: "erased" },
-            { id: "·", state: "erased" }
-          ]
-        }
-      ];
-
-      ftlRender();
-      document.getElementById("ftlStepTag").textContent = "FTL Initialized";
-      document.getElementById("ftlExplanationBox").innerHTML =
-        "<strong>Flash Translation Layer (FTL) Ready:</strong> Notice Block 0 holds dynamic data (Erase: 42), while Block 1 holds cold static OS files (Erase: 3). Click <strong>'1. Write LBA (Out-of-Place)'</strong> to overwrite LBA 1 and observe physical page invalidation.";
-      document.getElementById("ftlStatusMsg").textContent = "FTL running with page-level mapping.";
-      document.getElementById("ftlMetricMsg").textContent = "Host Writes: 0 | Flash Writes: 0 | WAF: 1.00x";
-    }
-
-    function ftlWriteLba() {
-      ftlHostWrites++;
-      ftlFlashWrites++;
-
-      let oldPage = ftlBlocks[0].pages.find(p => p.id === "LBA1" && p.state === "valid");
-      if (oldPage) {
-        oldPage.state = "invalid";
-      }
-
-      let freePage = ftlBlocks[0].pages.find(p => p.state === "erased");
-      if (freePage) {
-        freePage.id = "LBA1*";
-        freePage.state = "valid";
-        ftlLbaMapping[1] = "B0:P2";
-      }
-
-      ftlRender();
-      let waf = (ftlFlashWrites / ftlHostWrites).toFixed(2);
-      document.getElementById("ftlStepTag").textContent = "Out-of-Place Write Applied";
-      document.getElementById("ftlExplanationBox").innerHTML =
-        "<strong>Out-of-Place Programming:</strong> The host updated LBA 1. Because flash cannot overwrite in-place, the FTL wrote to pre-erased Page 2. The old Page 0 is now <s>invalidated dead space</s>. Next, test <strong>'2. Issue OS TRIM'</strong> or <strong>'3. Run Garbage Collection'</strong>!";
-      document.getElementById("ftlStatusMsg").textContent = "LBA 1 remapped out-of-place. Old page marked invalid.";
-      document.getElementById("ftlMetricMsg").textContent = `Host Writes: ${ftlHostWrites} | Flash Writes: ${ftlFlashWrites} | WAF: ${waf}x`;
-    }
-
-    function ftlIssueTrim() {
-      let page = ftlBlocks[0].pages.find(p => p.id.startsWith("LBA1") && p.state === "valid");
-      if (page) {
-        page.state = "invalid";
-        ftlLbaMapping[1] = null;
-      }
-
-      ftlRender();
-      document.getElementById("ftlStepTag").textContent = "TRIM Notification Received";
-      document.getElementById("ftlExplanationBox").innerHTML =
-        "<strong>OS TRIM Notification Received:</strong> The operating system informed the FTL that LBA 1 was deleted. The FTL immediately marked its physical page as <s>invalid</s>. Now, when Garbage Collection runs, it won't waste time copying this dead data!";
-      document.getElementById("ftlStatusMsg").textContent = "TRIM command executed: physical page invalidated before GC.";
-    }
-
-    function ftlRunGarbageCollection() {
-      let livePages = ftlBlocks[0].pages.filter(p => p.state === "valid");
-
-      livePages.forEach((p, idx) => {
-        ftlBlocks[2].pages[idx].id = p.id;
-        ftlBlocks[2].pages[idx].state = "valid";
-        ftlFlashWrites++;
-      });
-
-      ftlBlocks[0].eraseCount++;
-      ftlBlocks[0].pages = [
-        { id: "·", state: "erased" },
-        { id: "·", state: "erased" },
-        { id: "·", state: "erased" },
-        { id: "·", state: "erased" }
-      ];
-      ftlBlocks[0].label = "Block 0 (Clean Free Pool)";
-      ftlBlocks[2].label = "Block 2 (Active Compacted)";
-
-      ftlRender();
-      let waf = (ftlFlashWrites / Math.max(1, ftlHostWrites)).toFixed(2);
-      document.getElementById("ftlStepTag").textContent = "Garbage Collection Complete";
-      document.getElementById("ftlExplanationBox").innerHTML =
-        `<strong>Erase Block Recycled!</strong> Surviving live pages were copied to Block 2, and Block 0 was erased (Erase Count: ${ftlBlocks[0].eraseCount}). Moving live pages caused Flash Writes (${ftlFlashWrites}) to exceed Host Writes (${ftlHostWrites}), yielding a <strong>WAF of ${waf}x</strong>.`;
-      document.getElementById("ftlStatusMsg").textContent = `Block 0 bulk-erased with 20V pulse. WAF: ${waf}x.`;
-      document.getElementById("ftlMetricMsg").textContent = `Host Writes: ${ftlHostWrites} | Flash Writes: ${ftlFlashWrites} | WAF: ${waf}x`;
-    }
-
-    function ftlStaticWearLevel() {
-      let coldPages = [...ftlBlocks[1].pages];
-
-      coldPages.forEach((p, idx) => {
-        ftlBlocks[0].pages[idx].id = p.id;
-        ftlBlocks[0].pages[idx].state = "static";
-        ftlFlashWrites++;
-      });
-      ftlBlocks[0].label = "Block 0 (Static Data Relocated)";
-
-      ftlBlocks[1].eraseCount++;
-      ftlBlocks[1].pages = [
-        { id: "·", state: "erased" },
-        { id: "·", state: "erased" },
-        { id: "·", state: "erased" },
-        { id: "·", state: "erased" }
-      ];
-      ftlBlocks[1].label = "Block 1 (Low-Wear Free Pool)";
-
-      ftlRender();
-      let waf = (ftlFlashWrites / Math.max(1, ftlHostWrites)).toFixed(2);
-      document.getElementById("ftlStepTag").textContent = "Static Wear-Leveling Executed";
-      document.getElementById("ftlExplanationBox").innerHTML =
-        "<strong>Static Wear-Leveling in Action:</strong> The FTL noticed Block 1 had only 3 erases because its OS data was static. It relocated the static data to heavily-worn Block 0, freeing low-wear Block 1 to absorb hot writes. This prevents localized cell burnout and prolongs SSD life!";
-      document.getElementById("ftlStatusMsg").textContent = "Cold data swapped to worn block; fresh low-wear block recycled.";
-      document.getElementById("ftlMetricMsg").textContent = `Host Writes: ${ftlHostWrites} | Flash Writes: ${ftlFlashWrites} | WAF: ${waf}x`;
-    }
-
-    function ftlRender() {
-      const grid = document.getElementById("ftlSegmentsGrid");
-      grid.innerHTML = "";
-
-      ftlBlocks.forEach(blk => {
-        let bDiv = document.createElement("div");
-        bDiv.className = "lfs-segment-box";
-        bDiv.innerHTML = `<div class="lfs-seg-header"><span>${blk.label}</span><span>Erases: ${blk.eraseCount}</span></div>`;
-
-        let pagesDiv = document.createElement("div");
-        pagesDiv.className = "lfs-seg-blocks";
-        pagesDiv.style.gridTemplateColumns = "repeat(2, 1fr)";
-
-        blk.pages.forEach(p => {
-          let pEl = document.createElement("div");
-          pEl.className = "lfs-block";
-          pEl.textContent = p.id;
-
-          if (p.state === "erased") pEl.classList.add("blk-flash-erased");
-          else if (p.state === "valid") pEl.classList.add("blk-flash-valid");
-          else if (p.state === "invalid") pEl.classList.add("blk-flash-invalid");
-          else if (p.state === "static") pEl.classList.add("blk-flash-static");
-
-          pagesDiv.appendChild(pEl);
-        });
-
-        bDiv.appendChild(pagesDiv);
-        grid.appendChild(bDiv);
+        bEl.style.aspectRatio = "auto";
+        bEl.style.padding = "8px";
+        bEl.textContent = `Claiming Inodes: ${blk.inodes} | Bitmap: ${blk.bitmapFree ? 'Free' : 'Occupied'}`;
+        bContainer.appendChild(bEl);
+        card.appendChild(bContainer);
+        grid.appendChild(card);
       });
     }
 
-    ftlResetWalkthrough();
-
-    // =========================================================
-    // 5. WALKTHROUGH PART 5: VFS DISPATCH & PATH WALK
-    // =========================================================
-    let vfsState = {
-      path: "/",
-      dentries: ["/"],
-      driver: "ext4",
-      activeInode: "ino: 2 (root)",
-      activeFop: "ext4_file_operations"
-    };
-
-    function vfsResetWalkthrough() {
-      vfsState = {
-        path: "/",
-        dentries: ["/"],
-        driver: "ext4",
-        activeInode: "ino: 2 (root)",
-        activeFop: "ext4_file_operations"
-      };
-      vfsRender();
-      document.getElementById("vfsStepTag").textContent = "Dcache Initialized (Root)";
-      document.getElementById("vfsExplanationBox").innerHTML =
-        "<strong>Virtual File System Initialized:</strong> The root dentry <code>/</code> maps to ext4 root inode 2. Click <strong>'1. Walk Path: /home/user/doc.txt'</strong> to trace path resolution through the Dcache.";
-      document.getElementById("vfsStatusMsg").textContent = "VFS root established. Ready for path traversal.";
-      document.getElementById("vfsMetricMsg").textContent = "Active Driver: ext4 | Dcache State: Cold (Root only)";
-    }
-
-    function vfsResolveRoot() {
-      vfsState = {
-        path: "/home/user/doc.txt",
-        dentries: ["/", "home", "user", "doc.txt"],
-        driver: "ext4",
-        activeInode: "ino: 84201 (regular file)",
-        activeFop: "ext4_file_operations"
-      };
-      vfsRender();
-      document.getElementById("vfsStepTag").textContent = "Path Walk Complete: ext4";
-      document.getElementById("vfsExplanationBox").innerHTML =
-        "<strong>Path Walk Resolved via Dcache:</strong> The VFS hashed path components and traversed dentries: <code>/ &rarr; home &rarr; user &rarr; doc.txt</code>. It matched inode 84201 on ext4. An open file descriptor table slot was created. Next, test <strong>'2. Cross Mount Boundary'</strong> or <strong>'3. Invoke read(fd)'</strong>!";
-      document.getElementById("vfsStatusMsg").textContent = "Path /home/user/doc.txt resolved. ext4 f_op registered.";
-      document.getElementById("vfsMetricMsg").textContent = "Active Driver: ext4 | Dcache State: 4 Dentries Cached";
-    }
-
-    function vfsCrossMountPoint() {
-      vfsState = {
-        path: "/mnt/usb/data.bin",
-        dentries: ["/", "mnt", "usb (MOUNT)", "data.bin"],
-        driver: "vfat (FAT32)",
-        activeInode: "ino: 14002 (FAT cluster 12)",
-        activeFop: "fat_file_operations"
-      };
-      vfsRender();
-      document.getElementById("vfsStepTag").textContent = "Mount Boundary Crossed!";
-      document.getElementById("vfsExplanationBox").innerHTML =
-        "<strong>Mount Point Traversal Detected:</strong> When the VFS path walk hit <code>/mnt/usb</code>, it saw the <code>DCACHE_MOUNTED</code> flag. The VFS seamlessly redirected lookup from the root ext4 filesystem to the <strong>FAT32 Superblock</strong>! Inode and file operations dynamically switched to <code>fat_file_operations</code> without changing the user API.";
-      document.getElementById("vfsStatusMsg").textContent = "Mount boundary crossed: ext4 &rarr; FAT32. Polymorphic f_op switched.";
-      document.getElementById("vfsMetricMsg").textContent = "Active Driver: vfat | Dcache State: Cross-Mount Validated";
-    }
-
-    function vfsPolymorphicRead() {
-      let driverName = vfsState.driver;
-      let funcName = driverName.includes("vfat") ? "fat_file_read_iter()" : "ext4_file_read_iter()";
-
-      document.getElementById("vfsStepTag").textContent = "Polymorphic Call Dispatched!";
-      document.getElementById("vfsExplanationBox").innerHTML =
-        `<strong>Polymorphic Dispatch Executed:</strong> Process called <code>read(fd=3, buf, 4096)</code>. The VFS extracted <code>file = current->files->fd[3]</code> and executed <code>file->f_op->read()</code>, which dispatched directly into <strong>${funcName}</strong>! The user application code remains identical regardless of underlying media.`;
-      document.getElementById("vfsStatusMsg").textContent = `read() dispatched to ${funcName}. Buffer returned.`;
-      document.getElementById("vfsMetricMsg").textContent = `Active Driver: ${driverName} | Function: ${funcName}`;
-    }
-
-    function vfsRender() {
-      const grid = document.getElementById("vfsSegmentsGrid");
-      grid.innerHTML = "";
-
-      let b1 = document.createElement("div");
-      b1.className = "lfs-segment-box";
-      b1.innerHTML = `<div class="lfs-seg-header"><span>Process File Table</span><span>fd=3</span></div>`;
-      let b1Content = document.createElement("div");
-      b1Content.className = "lfs-seg-blocks";
-      b1Content.style.gridTemplateColumns = "1fr";
-      let b1El = document.createElement("div");
-      b1El.className = "lfs-block blk-vfs-fd";
-      b1El.style.aspectRatio = "auto";
-      b1El.style.padding = "6px";
-      b1El.textContent = `fd[3] -> ${vfsState.path}`;
-      b1Content.appendChild(b1El);
-      b1.appendChild(b1Content);
-      grid.appendChild(b1);
-
-      let b2 = document.createElement("div");
-      b2.className = "lfs-segment-box";
-      b2.innerHTML = `<div class="lfs-seg-header"><span>Dcache Path Chain</span><span>Dentries</span></div>`;
-      let b2Content = document.createElement("div");
-      b2Content.className = "lfs-seg-blocks";
-      b2Content.style.gridTemplateColumns = "repeat(4, 1fr)";
-      vfsState.dentries.forEach(d => {
-        let dEl = document.createElement("div");
-        dEl.className = "lfs-block blk-vfs-dentry";
-        dEl.textContent = d;
-        b2Content.appendChild(dEl);
-      });
-      b2.appendChild(b2Content);
-      grid.appendChild(b2);
-
-      let b3 = document.createElement("div");
-      b3.className = "lfs-segment-box";
-      b3.innerHTML = `<div class="lfs-seg-header"><span>Active Inode</span><span>${vfsState.driver}</span></div>`;
-      let b3Content = document.createElement("div");
-      b3Content.className = "lfs-seg-blocks";
-      b3Content.style.gridTemplateColumns = "1fr";
-      let b3El = document.createElement("div");
-      b3El.className = "lfs-block blk-vfs-inode";
-      b3El.style.aspectRatio = "auto";
-      b3El.style.padding = "6px";
-      b3El.textContent = vfsState.activeInode;
-      b3Content.appendChild(b3El);
-      b3.appendChild(b3Content);
-      grid.appendChild(b3);
-
-      let b4 = document.createElement("div");
-      b4.className = "lfs-segment-box";
-      b4.innerHTML = `<div class="lfs-seg-header"><span>File Operations (f_op)</span><span>Function Table</span></div>`;
-      let b4Content = document.createElement("div");
-      b4Content.className = "lfs-seg-blocks";
-      b4Content.style.gridTemplateColumns = "1fr";
-      let b4El = document.createElement("div");
-      b4El.className = "lfs-block blk-vfs-file";
-      b4El.style.aspectRatio = "auto";
-      b4El.style.padding = "6px";
-      b4El.textContent = vfsState.activeFop;
-      b4Content.appendChild(b4El);
-      b4.appendChild(b4Content);
-      grid.appendChild(b4);
-    }
-
-    vfsResetWalkthrough();
-
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
-    const TOTAL_CELLS = 3000;
-    let cells = [];
-    let isRunning = false;
-    let stepTimer = null;
-    let stepDelay = 45;
-    let currentTheme = 'modern';
-    let selectedCapacityMB = 500;
-    let startTime = 0;
-    let elapsedTimer = null;
-    let audioEnabled = true;
-
-    function toggleAudioMute() {
-      audioEnabled = !audioEnabled;
-      const btn = document.getElementById("btnAudioToggle");
-      const audioEl = document.getElementById("defragAudio");
-      if (audioEnabled) {
-        btn.textContent = "🔊 Audio: On";
-        btn.style.background = "#059669";
-        if (isRunning && (currentTheme === 'dos' || currentTheme === 'olddos') && audioEl) {
-          audioEl.play().catch(e => console.log("Audio play failed:", e));
-        }
-      } else {
-        btn.textContent = "🔇 Audio: Off";
-        btn.style.background = "#0284c7";
-        if (audioEl) audioEl.pause();
-      }
-    }
-
-    function selectDiskCapacity(sizeMB) {
-      selectedCapacityMB = sizeMB;
-      [10, 100, 500, 1000].forEach(s => {
-        const b = document.getElementById(`size-${s}`);
-        if (b) b.classList.toggle('active', s === sizeMB);
-      });
-      updateShellTitle();
-      defragInitVolume();
-    }
-
-    function updateShellTitle() {
-      const titleEl = document.getElementById("shellTitle");
-      const label = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
-      if (currentTheme === 'modern') titleEl.textContent = `FAT32 Volume Optimizer (${label} Drive)`;
-      else if (currentTheme === 'win95') titleEl.textContent = `Disk Defragmenter - Drive C: (${label} FAT)`;
-      else if (currentTheme === 'dos') titleEl.textContent = `NORTON SPEED DISK - DRIVE C: [${label}]`;
-      else if (currentTheme === 'olddos') titleEl.textContent = `Optimize            Esc=Stop Defrag`;
-    }
-
-    function switchTheme(theme) {
-      currentTheme = theme;
-      const shell = document.getElementById("defragShell");
-      shell.className = `defrag-outer-frame theme-${theme}`;
-
-      ['modern', 'win95', 'dos', 'olddos'].forEach(t => {
-        const b = document.getElementById(`btn-theme-${t}`);
-        if (b) b.classList.toggle('active', t === theme);
-      });
-
-      const leg = document.getElementById("modernLegend");
-      if (leg) leg.style.display = (theme === 'modern') ? 'flex' : 'none';
-
-      const dosLeg = document.getElementById("dosLegendBox");
-      if (dosLeg) dosLeg.style.display = (theme === 'olddos') ? 'grid' : 'none';
-
-      updateShellTitle();
-      renderAllCells();
-
-      if (theme === 'dos' || theme === 'olddos') {
-        setDefragSpeed(150, 'spd-slow');
-        defragHeavyChurn();
-        defragPause();
-        defragToggleRun();
-        if (audioEnabled) {
-          const audioEl = document.getElementById("defragAudio");
-          if (audioEl) {
-            audioEl.currentTime = 0;
-            audioEl.volume = 0.05;
-            audioEl.play().catch(e => console.log("Audio autoplay blocked:", e));
-          }
-        }
-      } else {
-        defragPause();
-      }
-    }
-
-    function setDefragSpeed(ms, activeId) {
-      stepDelay = ms;
-      ['spd-slow', 'spd-norm', 'spd-fast'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.classList.toggle('active', id === activeId);
-      });
-    }
-
-    function initMatrix() {
-      const grid = document.getElementById("clusterGrid");
-      grid.innerHTML = "";
-      cells = [];
-      for (let i = 0; i < TOTAL_CELLS; i++) {
-        const d = document.createElement("div");
-        d.className = "c-cell c-free";
-        d.id = `blk-${i}`;
-        grid.appendChild(d);
-        cells.push({ state: "free", isSystem: false, fileId: null });
-      }
-    }
-
-    function renderCell(idx) {
-      const el = document.getElementById(`blk-${idx}`);
-      const c = cells[idx];
-      el.className = "c-cell";
-      el.textContent = "";
-
-      if (currentTheme === 'olddos') {
-        if (c.state === "read") { el.classList.add("c-read"); el.textContent = "r"; }
-        else if (c.state === "write") { el.classList.add("c-write"); el.textContent = "W"; }
-        else if (c.isSystem) { el.classList.add("c-system"); el.textContent = "X"; }
-        else if (c.state === "optimized" || c.state === "unoptimized") { el.classList.add("c-opt"); el.textContent = "■"; }
-        else { el.classList.add("c-free"); }
-      } else if (currentTheme === 'dos') {
-        if (c.state === "read") { el.classList.add("c-read"); el.textContent = "R"; }
-        else if (c.state === "write") { el.classList.add("c-write"); el.textContent = "W"; }
-        else if (c.isSystem) { el.classList.add("c-system"); el.textContent = "X"; }
-        else if (c.state === "optimized") { el.classList.add("c-opt"); el.textContent = "■"; }
-        else if (c.state === "unoptimized") { el.classList.add("c-unopt"); el.textContent = "▓"; }
-        else { el.classList.add("c-free"); }
-      } else {
-        if (c.state === "read") el.classList.add("c-read");
-        else if (c.state === "write") el.classList.add("c-write");
-        else if (c.isSystem) el.classList.add("c-system");
-        else if (c.state === "optimized") el.classList.add("c-opt");
-        else if (c.state === "unoptimized") el.classList.add("c-unopt");
-        else el.classList.add("c-free");
-      }
-    }
-
-    function renderAllCells() {
-      for (let i = 0; i < TOTAL_CELLS; i++) renderCell(i);
-      updateStatus();
-    }
-
-    function defragInitVolume() {
-      defragPause();
-      initMatrix();
-      const unmovable = [36, 110, 224, 320, 480, 780, 1040, 1420, 1780, 2280, 2760];
-      unmovable.forEach(idx => { if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" }; });
-
-      const optCutoff = Math.floor(TOTAL_CELLS * 0.18);
-      for (let i = 0; i < optCutoff; i++) {
-        if (!cells[i].isSystem) cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
-      }
-      for (let i = optCutoff; i < Math.floor(TOTAL_CELLS * 0.70); i++) {
-        if (!cells[i].isSystem) cells[i] = { state: "unoptimized", isSystem: false, fileId: `f_${i % 25}` };
-      }
-      renderAllCells();
-    }
-
-    function defragHeavyChurn() {
-      defragPause();
-      if (cells.length === 0) initMatrix();
-      for (let i = 0; i < TOTAL_CELLS; i++) {
-        if (cells[i].isSystem) continue;
-        let row = Math.floor(i / 100);
-        if (row < 5) cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
-        else {
-          let seed = (i * 31 + row * 43) % 100;
-          if (seed > 46) cells[i] = { state: "unoptimized", isSystem: false, fileId: `f_${seed % 15}` };
-          else cells[i] = { state: "free", isSystem: false, fileId: null };
-        }
-      }
-      const unmovable = [36, 110, 224, 320, 480, 780, 1040, 1420, 1780, 2280, 2760];
-      unmovable.forEach(idx => { if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" }; });
-      renderAllCells();
-    }
-
-    function updateStatus() {
-      const opt = cells.filter(c => c.state === "optimized").length;
-      const unopt = cells.filter(c => c.state === "unoptimized").length;
-      const totalData = opt + unopt;
-      const pct = totalData > 0 ? Math.round((opt / totalData) * 100) : 0;
-      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/3,000`;
-      const dosPct = document.getElementById("dosPctText");
-      if (dosPct) dosPct.textContent = `${pct}%`;
-      const dosBar = document.getElementById("dosProgressBarFill");
-      if (dosBar) dosBar.style.width = `${pct}%`;
-    }
-
-    function defragToggleRun() {
-      const audioEl = document.getElementById("defragAudio");
-      if (isRunning) {
-        defragPause();
-      } else {
-        if (cells.length === 0 || cells.filter(c => c.state === "unoptimized").length === 0) defragHeavyChurn();
-        isRunning = true;
-        startTime = Date.now();
-        if (audioEnabled && (currentTheme === 'dos' || currentTheme === 'olddos') && audioEl) {
-          audioEl.currentTime = 0;
-          audioEl.volume = 0.05;
-          audioEl.play().catch(e => console.log("Audio play failed:", e));
-        }
-        const btn = document.getElementById("btnStartDefrag");
-        btn.textContent = "Pause";
-        btn.style.background = "#b91c1c";
-        runDefragCycle();
-      }
-    }
-
-    function defragPause() {
-      isRunning = false;
-      if (stepTimer) clearTimeout(stepTimer);
-      const audioEl = document.getElementById("defragAudio");
-      if (audioEl) audioEl.pause();
-      const btn = document.getElementById("btnStartDefrag");
-      if (btn) { btn.textContent = "Start Defrag"; btn.style.background = "#059669"; }
-      renderAllCells();
-    }
-
-    function runDefragCycle() {
-      if (!isRunning) return;
-      let firstFree = -1;
-      for (let i = 0; i < TOTAL_CELLS; i++) { if (cells[i].state === "free") { firstFree = i; break; } }
-      let sourceBlocks = [];
-      for (let i = TOTAL_CELLS - 1; i > firstFree; i--) {
-        if (cells[i].state === "unoptimized" && !cells[i].isSystem) { sourceBlocks.push(i); if (sourceBlocks.length >= 4) break; }
-      }
-      if (firstFree === -1 || sourceBlocks.length === 0) { defragPause(); return; }
-      sourceBlocks.forEach(idx => { cells[idx].state = "read"; renderCell(idx); });
-      stepTimer = setTimeout(() => {
-        if (!isRunning) return;
-        let targetSlots = [];
-        for (let i = firstFree; i < TOTAL_CELLS && targetSlots.length < sourceBlocks.length; i++) {
-          if (cells[i].state === "free") { targetSlots.push(i); cells[i].state = "write"; renderCell(i); }
-        }
-        stepTimer = setTimeout(() => {
-          if (!isRunning) return;
-          sourceBlocks.forEach(idx => { cells[idx] = { state: "free", isSystem: false, fileId: null }; renderCell(idx); });
-          targetSlots.forEach(idx => { cells[idx] = { state: "optimized", isSystem: false, fileId: "opt" }; renderCell(idx); });
-          updateStatus();
-          stepTimer = setTimeout(runDefragCycle, stepDelay);
-        }, stepDelay);
-      }, stepDelay);
-    }
-
-    initMatrix();
-    selectDiskCapacity(500);
-    switchTheme('modern');
+    fsckResetSim();
   </script>
 </body>
 </html>
 """
-
-def read_and_encode_audio(audio_path):
-    print(f"--> Reading audio file from {audio_path}...")
-    if not os.path.exists(audio_path):
-        print(f"Error: Could not find audio file at {audio_path}", file=sys.stderr)
-        sys.exit(1)
-    with open(audio_path, "rb") as f:
-        return base64.b64encode(f.read()).decode("utf-8")
 
 def execute_git_command(cmd, desc):
     print(f"--> {desc}...")
@@ -2295,25 +895,20 @@ def execute_git_command(cmd, desc):
         sys.exit(res.returncode)
 
 def execute_deployment():
-    audio_file = os.path.join("images", "defrag2.mp3")
-    html_file = os.path.join("week10-file-management", "03-filesystem-implementation.html")
+    html_file = os.path.join("week10-file-management", "04-management-optimization.html")
 
-    base64_str = read_and_encode_audio(audio_file)
-    data_uri = f"data:audio/mp3;base64,{base64_str}"
-
-    print(f"--> Writing deepened VFS content and diagrams to {html_file}...")
+    print(f"--> Creating and populating {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
-    final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
-        f.write(final_content)
+        f.write(HTML_CONTENT)
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Deepen section 4.3.8 on Virtual File Systems with theory, SVGs, and sim\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html to "
-        "comprehensively expand section 4.3.8 with deep polymorphic VFS theory, "
-        "the four core VFS kernel objects, dcache path resolution, two SVG diagrams, "
-        "and an interactive dispatch simulator."
+        "Add 04. Management & Optimization with deep coverage of 4.4.1 - 4.4.3\n\n"
+        "Create week10-file-management/04-management-optimization.html covering "
+        "space management trade-offs, linked lists vs bitmaps, disk quotas, "
+        "incremental backup algorithms, and fsck consistency verification with "
+        "three SVG diagrams and two interactive simulation walkthroughs."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
