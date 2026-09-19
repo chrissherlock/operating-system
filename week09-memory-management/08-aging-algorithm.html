@@ -153,6 +153,7 @@
       font-size: 0.95rem;
       line-height: 1.6;
       color: #0c4a6e;
+      min-height: 75px; /* Prevents vertical reflow jumping when text changes */
     }
 
     .tour-nav {
@@ -551,9 +552,11 @@
 
     function stepWtForward() {
       if (wtStep < wtSteps.length - 1) { wtStep++; renderWt(); }
+      document.activeElement.blur();
     }
     function stepWtBackward() {
       if (wtStep > 0) { wtStep--; renderWt(); }
+      document.activeElement.blur();
     }
     renderWt();
 
