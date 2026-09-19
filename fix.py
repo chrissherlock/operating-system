@@ -8,7 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>04. File-System Management &amp; Optimization — COSC240 Week 10</title>
+  <title>04. Management &amp; Optimization — COSC240 Week 10</title>
   <script>
     window.MathJax = {
       tex: {
@@ -309,7 +309,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <h3>1. The Block Size Selection Dilemma</h3>
       <p>
-        Storage drives physically transfer data in sectors (typically 512 bytes or 4096 bytes). Operating systems group multiple contiguous sectors into a single logical <strong>block</strong>. The choice of block size involves an inescapable engineering trade-off:
+        Storage drives physically transfer data in sectors (typically 512 bytes or 4096 bytes). Operating system file systems group multiple contiguous sectors into a single logical <strong>block</strong>. The choice of block size involves an inescapable engineering trade-off:
       </p>
       <ul>
         <li><strong>Small Blocks (e.g., 1 KB &ndash; 2 KB):</strong>
@@ -373,7 +373,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <h4>Approach B: The Bitmap (Bit Vector)</h4>
       <p>
-        A dedicated allocation map represents the disk as an array of bits, where each bit corresponds to a single logical block: <code>0</code> indicates a free block, and <code>1</code> indicates an allocated block.
+        A dedicated allocation map represents the filesystem partition as an array of bits, where each bit corresponds to a single logical block: <code>0</code> indicates a free block, and <code>1</code> indicates an allocated block.
       </p>
       <ul>
         <li><em>Space Overhead:</em> For a 1 TB drive with 4 KB blocks ($2^{28}$ blocks), the bitmap requires $2^{28}$ bits, which equals $2^{25}$ bytes (32 MB of storage)&mdash;a negligible 0.003% storage footprint.</li>
@@ -411,7 +411,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="595" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Contiguous Allocation Bitmap</text>
           <line x1="430" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
 
-          <!-- Bit boxes -->
           <g transform="translate(440, 110)">
             <rect x="0" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="17.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
             <rect x="40" y="0" width="35" height="35" fill="#0284c7" rx="2"/><text x="57.5" y="22" font-family="sans-serif" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
@@ -443,9 +442,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <li><strong>Soft Limit:</strong> A warning boundary. When a user exceeds the soft limit, writes succeed, but a warning is logged and a <strong>grace period clock</strong> (typically 7 days) begins ticking.</li>
         <li><strong>Hard Limit:</strong> An absolute ceiling. Writes that attempt to push usage beyond the hard limit immediately fail with an <code>EDQUOT</code> error code. If the grace period expires while usage remains above the soft limit, the soft limit locks into a hard limit, barring further allocations until files are removed.</li>
       </ul>
-      <p>
-        When a user opens or creates a file, the kernel loads their quota record into the in-memory <strong>quota table</strong>. Any block allocation increments the counter; if the operation exceeds the threshold, the write is aborted before modifying the disk bitmap.
-      </p>
     </div>
 
     <!-- =========================================================
@@ -480,65 +476,76 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <h3>2. Full vs. Incremental Dump Strategies</h3>
       <p>
-        Executing a complete full backup of an enterprise storage cluster every night is technically impossible within realistic backup time windows. File systems deploy an <strong>Incremental Dump Strategy</strong>:
+        Executing a complete, full backup of an enterprise storage cluster every single night is rarely feasible in practice. The physical backup window (the maintenance period during which user modifications must be frozen or minimized) is too short, and the sheer volume of data exceeds available network and tape bandwidth. To solve this, storage administrators deploy a hierarchical <strong>Incremental Dump Strategy</strong> combining base references with delta captures.
+      </p>
+
+      <h4>The Backup Level Hierarchy</h4>
+      <p>
+        Unix and Linux backup architectures (historically instantiated by the <code>dump</code> utility) organize backups into hierarchical numeric <strong>Dump Levels</strong> ranging from Level 0 to Level 9:
       </p>
       <ul>
-        <li><strong>Full Dump (Level 0):</strong> Backs up every active file on the volume regardless of modification history. Serves as the foundational recovery baseline.</li>
-        <li><strong>Incremental Dump (Level $N$):</strong> Backs up only files created or modified since the last backup taken at a level lower than $N$.</li>
+        <li><strong>Level 0 (Full Backup):</strong> Copies every active file and directory on the entire filesystem partition, regardless of its modification history. This serves as the foundational recovery baseline. Every incremental chain must trace its root back to a Level 0 dump.</li>
+        <li><strong>Level $N$ (Incremental Backup):</strong> Backs up only files and directories that have been created or modified since the last backup taken at a *lower* level than $N$ (i.e., any level $< N$).</li>
       </ul>
+
       <p>
-        By using a cascading sequence of backup levels (e.g., Level 0 on Sunday, Level 1 on Monday, Level 2 on Tuesday), the volume of data transferred each night drops by over 95%.
+        <strong>Concrete Weekly Schedule Example:</strong> Consider a standard enterprise rotation operating across a seven-day cycle:
+      </p>
+      <ul>
+        <li><strong>Sunday (Level 0):</strong> A complete full backup copies the entire partition.</li>
+        <li><strong>Monday (Level 1):</strong> Captures all files modified since Sunday's Level 0.</li>
+        <li><strong>Tuesday (Level 2):</strong> Captures all files modified since Monday's Level 1.</li>
+        <li><strong>Wednesday (Level 2):</strong> Captures files modified since Tuesday's Level 2.</li>
+        <li><strong>Thursday (Level 1):</strong> Captures files modified since Sunday's Level 0 (because Level 1 is lower than the previous Level 2).</li>
+      </ul>
+
+      <h4>Tracking Changes &amp; The Recovery Trade-off</h4>
+      <p>
+        To determine whether a file requires archiving during an incremental run, the backup utility compares the file's last modified timestamp (<code>mtime</code> / <code>ctime</code>) against the timestamp embedded in the metadata header of the previous reference backup level. Furthermore, directory change markers trigger the <strong>Four-Pass Traversal Algorithm</strong> (Scanning inodes, marking ancestor directories, dumping directory structures, and streaming modified file data blocks).
+      </p>
+      <p>
+        While incremental strategies minimize nightly backup windows, they introduce an inverse penalty during <strong>Disaster Recovery</strong>. Restoring from a Level 0 full dump requires only a single tape; restoring from an incremental chain requires a multi-step restoration cascade (Level 0 + Level 1 + Level 2 + Level 2). If any single incremental tape in the chain is damaged, restoration fails.
       </p>
 
-      <h3>3. The Classic 4-Pass Logical Dump Algorithm</h3>
-      <p>
-        To perform a logical dump without missing files or duplicating hard links, Unix systems implement a systematic <strong>Four-Pass Traversal Algorithm</strong>:
-      </p>
-      <ol>
-        <li><strong>Pass 1 (Scan Inodes):</strong> Scan the inode table from inode 1 to the end. Compare each file's modification timestamp (<code>mtime</code>) against the timestamp of the last dump. If modified, flag the inode in a memory bitmap as <em>Modified File</em>.</li>
-        <li><strong>Pass 2 (Mark Ancestor Directories):</strong> Recursively walk the directory tree. If a directory contains any file or subdirectory flagged in Pass 1, flag the directory itself in a second bitmap as <em>Directory to Dump</em>. This ensures the full directory path hierarchy is preserved even if the directory itself was not modified.</li>
-        <li><strong>Pass 3 (Dump Directory Structure):</strong> Write all flagged directories to the backup media, preserving the path structure and hard link mappings.</li>
-        <li><strong>Pass 4 (Dump File Contents):</strong> Stream the data blocks of all flagged files to the backup stream, unsetting the dirty flags upon successful write.</li>
-      </ol>
-
-      <!-- Diagram 4.4.2: Backup Architecture & 4-Pass Traversal -->
+      <!-- Diagram 4.4.2B: Multi-Tape Restoration Dependency Chain -->
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.2: Incremental Dump Strategy &amp; The 4-Pass Directory Tree Traversal</text>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.4.2B: Multi-Tape Disaster Recovery &amp; Incremental Restoration Cascade</text>
 
-          <!-- Incremental Schedule Box -->
-          <rect x="30" y="55" width="340" height="155" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="200" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Hierarchical Dump Levels (Weekly Schedule)</text>
-          <line x1="40" y1="88" x2="360" y2="88" stroke="#cbd5e1" stroke-width="1"/>
+          <!-- Tape Chain Sequence -->
+          <rect x="50" y="70" width="130" height="90" fill="#ecfdf5" stroke="#10b981" rx="4"/>
+          <text x="115" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">Step 1: Sunday</text>
+          <text x="115" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#065f46" text-anchor="middle">Level 0 (Full)</text>
+          <text x="115" y="138" font-family="sans-serif" font-size="9" fill="#047857" text-anchor="middle">Baseline Foundation</text>
 
-          <rect x="45" y="105" width="70" height="40" fill="#0284c7" rx="2"/><text x="80" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Sunday</text><text x="80" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 0 (Full)</text>
-          <rect x="125" y="105" width="70" height="40" fill="#38bdf8" rx="2"/><text x="160" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Monday</text><text x="160" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 1</text>
-          <rect x="205" y="105" width="70" height="40" fill="#38bdf8" rx="2"/><text x="240" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tuesday</text><text x="240" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 2</text>
-          <rect x="285" y="105" width="70" height="40" fill="#38bdf8" rx="2"/><text x="320" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Wed</text><text x="320" y="138" font-family="sans-serif" font-size="8" fill="#e0f2fe" text-anchor="middle">Level 2</text>
+          <line x1="180" y1="115" x2="230" y2="115" stroke="#0284c7" stroke-width="2"/><polygon points="230,115 222,110 222,120" fill="#0284c7"/>
 
-          <text x="200" y="175" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Recovery requires Level 0 baseline + subsequent incrementals</text>
+          <rect x="230" y="70" width="130" height="90" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
+          <text x="295" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Step 2: Monday</text>
+          <text x="295" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Level 1 (Delta)</text>
+          <text x="295" y="138" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Overlay Mon Changes</text>
 
-          <!-- 4-Pass Algorithm Tree -->
-          <rect x="400" y="55" width="370" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
-          <text x="585" y="78" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">The 4-Pass Directory Traversal</text>
-          <line x1="410" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
+          <line x1="360" y1="115" x2="410" y2="115" stroke="#0284c7" stroke-width="2"/><polygon points="410,115 402,110 402,120" fill="#0284c7"/>
 
-          <rect x="420" y="102" width="75" height="35" fill="#3b82f6" rx="2"/><text x="457.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 1: Files</text>
-          <line x1="495" y1="120" x2="510" y2="120" stroke="#0284c7" stroke-width="2"/>
-          <rect x="510" y="102" width="75" height="35" fill="#3b82f6" rx="2"/><text x="547.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 2: Dirs</text>
-          <line x1="585" y1="120" x2="600" y2="120" stroke="#0284c7" stroke-width="2"/>
-          <rect x="600" y="102" width="75" height="35" fill="#059669" rx="2"/><text x="637.5" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 3: Tree</text>
-          <line x1="675" y1="120" x2="690" y2="120" stroke="#0284c7" stroke-width="2"/>
-          <rect x="690" y="102" width="70" height="35" fill="#059669" rx="2"/><text x="725" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Pass 4: Data</text>
+          <rect x="410" y="70" width="130" height="90" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
+          <text x="475" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Step 3: Tuesday</text>
+          <text x="475" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Level 2 (Delta)</text>
+          <text x="475" y="138" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Overlay Tue Changes</text>
 
-          <text x="585" y="165" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Pass 1 &amp; 2 mark bitmaps &bull; Pass 3 &amp; 4 stream to media</text>
-          <text x="585" y="185" font-family="sans-serif" font-size="9" font-style="italic" fill="#166534" text-anchor="middle">Unmodified ancestor directories are dumped to retain path continuity</text>
+          <line x1="540" y1="115" x2="590" y2="115" stroke="#0284c7" stroke-width="2"/><polygon points="590,115 582,110 582,120" fill="#0284c7"/>
+
+          <rect x="590" y="70" width="160" height="90" fill="#fef2f2" stroke="#ef4444" rx="4"/>
+          <text x="670" y="95" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b91c1c" text-anchor="middle">Step 4: Wednesday</text>
+          <text x="670" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#dc2626" text-anchor="middle">Level 2 (Missing Tape!)</text>
+          <text x="670" y="138" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">&cross; Chain Fails &cross;</text>
+
+          <text x="400" y="195" font-family="sans-serif" font-size="10" font-weight="bold" fill="#b91c1c" text-anchor="middle">Disaster Recovery Risk: A single missing or corrupted incremental tape breaks the entire restoration chain!</text>
         </svg>
-        <figcaption>Figure 4.4.2: Incremental dump schedules minimize backup windows, while 4-pass traversals preserve tree hierarchy.</figcaption>
+        <figcaption>Figure 4.4.2B: The multi-tape restoration dependency chain required when executing incremental recoveries.</figcaption>
       </figure>
 
-      <h3>4. Consistency During Live Backups: Snapshots</h3>
+      <h3>3. Consistency During Live Backups: Snapshots</h3>
       <p>
         If an incremental dump executes on a live filesystem, users and background daemons continue writing to files. If a user moves a file from directory <code>/A</code> to directory <code>/B</code> while the backup is traversing <code>/B</code>, the file may either be dumped twice or skipped completely, leaving an inconsistent backup archive.
       </p>
@@ -897,18 +904,17 @@ def execute_git_command(cmd, desc):
 def execute_deployment():
     html_file = os.path.join("week10-file-management", "04-management-optimization.html")
 
-    print(f"--> Creating and populating {html_file}...")
+    print(f"--> Writing updated HTML content to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     with open(html_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Add 04. Management & Optimization with deep coverage of 4.4.1 - 4.4.3\n\n"
-        "Create week10-file-management/04-management-optimization.html covering "
-        "space management trade-offs, linked lists vs bitmaps, disk quotas, "
-        "incremental backup algorithms, and fsck consistency verification with "
-        "three SVG diagrams and two interactive simulation walkthroughs."
+        "Expand full vs incremental backup strategies with SVG diagram\n\n"
+        "Update week10-file-management/04-management-optimization.html to "
+        "thoroughly cover backup level hierarchies, change tracking mechanisms, "
+        "and multi-tape restoration dependency chains. Includes a new SVG diagram."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
