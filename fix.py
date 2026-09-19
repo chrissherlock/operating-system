@@ -179,6 +179,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       .split-grid { grid-template-columns: 1fr; }
     }
 
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+    .guide-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.84rem;
+    }
+    .guide-box strong {
+      color: var(--accent);
+      font-size: 0.88rem;
+    }
+
     .telemetry-box {
       background: #0f172a;
       color: #f8fafc;
@@ -256,7 +278,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .ram-slot.slot-a { background: #e0f2fe; border-color: #0284c7; color: #0369a1; font-weight: 700; }
     .ram-slot.slot-b { background: #ede9fe; border-color: #7c3aed; color: #6d28d9; font-weight: 700; }
 
-    /* Walkthrough Dynamic Diagram Styles */
     .walk-box {
       transition: all 0.3s ease;
     }
@@ -452,6 +473,25 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
       </div>
 
+      <!-- Instruction Guide Card -->
+      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+        <strong style="color: var(--accent); font-size: 0.9rem;">How the Sandbox Works &amp; What to Observe:</strong>
+        <div class="guide-grid">
+          <div class="guide-box">
+            <strong>1. Select Policy Mode</strong>
+            <span>Choose <em>Local Allocation</em> to keep quotas strictly fixed at 4/4, or <em>Global Allocation</em> to allow cross-process frame stealing.</span>
+          </div>
+          <div class="guide-box">
+            <strong>2. Trigger Faults</strong>
+            <span>Click <em>Fault Process A</em> or <em>Fault Process B</em> to simulate a page fault. Watch the SVG system memory map update instantly.</span>
+          </div>
+          <div class="guide-box">
+            <strong>3. Observe Frame Stealing</strong>
+            <span>Under Global mode, notice how faulting Process A seizes frames from Process B, accompanied by a visual tracking indicator vector.</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Controls -->
       <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:12px 14px; border:1px solid var(--border); border-radius:6px;">
         <label style="font-size:0.85rem; font-weight:600;">Policy Mode:</label>
@@ -560,7 +600,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       document.getElementById("wtTitle").textContent = s.title;
       document.getElementById("wtText").innerHTML = s.text;
 
-      // Update SVG Walkthrough Schematic
       document.getElementById("tourBoxA").className = `walk-box ${s.boxA}`;
       document.getElementById("tourBoxB").className = `walk-box ${s.boxB}`;
       document.getElementById("tourFrame3").setAttribute("fill", s.frame3Fill);
