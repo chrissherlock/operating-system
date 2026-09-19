@@ -486,8 +486,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <span>Click <em>Fault Process A</em> or <em>Fault Process B</em> to simulate a page fault. Watch the SVG system memory map update instantly.</span>
           </div>
           <div class="guide-box">
-            <strong>3. Observe Frame Stealing</strong>
-            <span>Under Global mode, notice how faulting Process A seizes frames from Process B, accompanied by a visual tracking indicator vector.</span>
+            <strong>3. Observe Frame Stealing vs. Isolation</strong>
+            <span>Under Local mode, notice how faults stay strictly contained within each process's quota. Under Global mode, faulting Process A seizes frames from Process B with a red visual tracking vector!</span>
           </div>
         </div>
       </div>
@@ -515,10 +515,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <marker id="map-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
             </marker>
+            <marker id="map-local-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
+            </marker>
           </defs>
           <g id="mapFramesGroup"></g>
+          <!-- Global Steal Vector -->
           <path id="mapStealVector" d="M 0 0 L 0 0" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="4" fill="none" marker-end="url(#map-arr)" opacity="0"/>
           <text id="mapStealLabel" x="360" y="20" font-size="9" font-weight="700" fill="#dc2626" text-anchor="middle" opacity="0">FRAME STOLEN ACROSS PROCESSES!</text>
+          <!-- Local Containment Vector -->
+          <path id="mapLocalVector" d="M 0 0 L 0 0" stroke="#16a34a" stroke-width="2.5" fill="none" marker-end="url(#map-local-arr)" opacity="0"/>
+          <text id="mapLocalLabel" x="360" y="20" font-size="9" font-weight="700" fill="#16a34a" text-anchor="middle" opacity="0">LOCAL POLICY: Quota isolated. Other process protected!</text>
         </svg>
       </div>
 
@@ -657,7 +664,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       term.prepend(row);
     }
 
-    function renderSandboxMap(stolenFrameIdx = -1, stolenFrom = "") {
+    function renderSandboxMap(stolenFrameIdx = -1, stolenFrom = "", localVictimIdx = -1, localProc = "") {
       const group = document.getElementById("mapFramesGroup");
       group.innerHTML = "";
 
@@ -671,7 +678,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         const x = startX + idx * (boxWidth + gap);
         const y = startY;
 
-        const isStolen = (idx === stolenFrameIdx);
+        const isStolen = (idx === stolenFrameIdx || idx === localVictimIdx);
         const fillColor = (f.owner === "A" ? "#e0f2fe" : "#ede9fe");
         const strokeColor = (f.owner === "A" ? "#0284c7" : "#7c3aed");
         const textColor = (f.owner === "A" ? "#0369a1" : "#6d28d9");
@@ -686,8 +693,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       const vectorPath = document.getElementById("mapStealVector");
       const labelEl = document.getElementById("mapStealLabel");
+      const localVectorPath = document.getElementById("mapLocalVector");
+      const localLabelEl = document.getElementById("mapLocalLabel");
 
       if (stolenFrameIdx !== -1 && policy === "global") {
+        localVectorPath.setAttribute("opacity", "0");
+        localLabelEl.setAttribute("opacity", "0");
+
         const boxX = startX + stolenFrameIdx * (boxWidth + gap) + boxWidth/2;
         vectorPath.setAttribute("d", `M ${boxX} 28 L ${boxX} 15`);
         vectorPath.setAttribute("opacity", "1");
@@ -698,9 +710,25 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           vectorPath.setAttribute("opacity", "0");
           labelEl.setAttribute("opacity", "0");
         }, 1500);
+      } else if (localVictimIdx !== -1 && policy === "local") {
+        vectorPath.setAttribute("opacity", "0");
+        labelEl.setAttribute("opacity", "0");
+
+        const boxX = startX + localVictimIdx * (boxWidth + gap) + boxWidth/2;
+        localVectorPath.setAttribute("d", `M ${boxX} 28 L ${boxX} 15`);
+        localVectorPath.setAttribute("opacity", "1");
+        localLabelEl.textContent = `LOCAL POLICY: Evicting within Process ${localProc} quota. Other process protected!`;
+        localLabelEl.setAttribute("opacity", "1");
+
+        setTimeout(() => {
+          localVectorPath.setAttribute("opacity", "0");
+          localLabelEl.setAttribute("opacity", "0");
+        }, 1500);
       } else {
         vectorPath.setAttribute("opacity", "0");
         labelEl.setAttribute("opacity", "0");
+        localVectorPath.setAttribute("opacity", "0");
+        localLabelEl.setAttribute("opacity", "0");
       }
     }
 
@@ -758,7 +786,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           ramFrames[victimIdx].age = 0;
           ramFrames.forEach(f => f.age += 5);
           logSandbox(`LOCAL POLICY: Evicted Process ${targetProc}'s oldest frame (#${victimIdx}). Quotas strictly maintained (4 A / 4 B).`);
-          renderSandboxMap();
+          renderSandboxMap(-1, "", victimIdx, targetProc);
         }
       } else {
         let oldestAge = -1;
@@ -811,12 +839,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add interactive SVG diagram to Local vs Global walkthrough
+COMMIT_MSG = """Add local allocation indicators and instructions to sandbox
 
-Integrate a dynamic SVG schematic into Part 2 of
-11-local-vs-global.html. The graphic visually synchronizes with the
-4-step guided walkthrough, illustrating baseline quotas, local policy
-barriers, and global frame-stealing vectors."""
+Implement green local containment vectors and instructional cards in
+11-local-vs-global.html. Make local allocation evictions explicitly
+visible on the SVG memory map, highlighting that the other process's
+quota remains fully protected."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -839,7 +867,7 @@ def sync_module():
     run_git_step(["git", "add", target_module], "Staging 11-local-vs-global.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Walkthrough diagram added and pushed successfully!")
+    print("--> Local indicators and instructions published successfully!")
 
 if __name__ == "__main__":
     sync_module()
