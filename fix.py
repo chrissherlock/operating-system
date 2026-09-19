@@ -153,6 +153,121 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       height: auto;
     }
 
+    /* =========================================================
+       LFS INTERACTIVE SIMULATOR STYLING
+       ========================================================= */
+    .lfs-sim-container {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+      margin: 12px 0;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    .lfs-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+    }
+    .lfs-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .lfs-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 10px 12px;
+      border-radius: 6px;
+      align-items: center;
+    }
+    .lfs-btn {
+      background-color: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .lfs-btn:hover { background-color: #334155; color: #ffffff; }
+    .lfs-btn.primary { background-color: #0284c7; color: #fff; border-color: #38bdf8; }
+    .lfs-btn.primary:hover { background-color: #0369a1; }
+    .lfs-btn.danger { background-color: #b91c1c; color: #fff; border-color: #f87171; }
+
+    .lfs-segments-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 768px) {
+      .lfs-segments-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .lfs-segment-box {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .lfs-seg-header {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 4px;
+    }
+    .lfs-seg-blocks {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+    .lfs-block {
+      aspect-ratio: 1 / 1;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: bold;
+    }
+    .blk-free { background: #1e293b; color: #475569; }
+    .blk-live { background: #0284c7; color: #fff; }
+    .blk-dead { background: #475569; color: #94a3b8; text-decoration: line-through; }
+    .blk-inode { background: #10b981; color: #fff; }
+
+    .lfs-status-panel {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
     /* Pioneers Infobox */
     .pioneers-infobox {
       background-color: #f0f9ff;
@@ -511,24 +626,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <!-- Title -->
           <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5A: Traditional In-Place Updates vs. LFS Sequential Append Log</text>
 
-          <!-- Traditional Side -->
           <text x="200" y="55" font-family="sans-serif" font-size="12" font-weight="bold" fill="#dc2626" text-anchor="middle">Traditional File System (Random In-Place Writes)</text>
           <rect x="50" y="70" width="300" height="130" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
           <rect x="70" y="90" width="60" height="30" fill="#f59e0b" rx="3"/><text x="100" y="110" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Inode</text>
           <rect x="170" y="130" width="60" height="30" fill="#38bdf8" rx="3"/><text x="200" y="150" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Data</text>
           <rect x="250" y="90" width="60" height="30" fill="#dc2626" rx="3"/><text x="280" y="110" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Dir</text>
-          <!-- Seek arrows -->
           <path d="M 130 105 Q 150 70 170 140" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4"/>
           <path d="M 230 145 Q 240 70 250 105" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4"/>
           <text x="200" y="215" font-family="sans-serif" font-size="11" fill="#475569" text-anchor="middle">Multiple random head seeks per write</text>
 
-          <!-- LFS Side -->
           <text x="600" y="55" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0284c7" text-anchor="middle">Log-Structured File System (Sequential Log)</text>
           <rect x="450" y="70" width="310" height="130" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <!-- Log stream bar -->
           <rect x="470" y="110" width="270" height="50" fill="#0284c7" rx="4"/>
           <text x="500" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Inode</text>
           <line x1="535" y1="110" x2="535" y2="160" stroke="#fff" stroke-width="2"/>
@@ -537,19 +647,41 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="640" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Inode</text>
           <line x1="675" y1="110" x2="675" y2="160" stroke="#fff" stroke-width="2"/>
           <text x="705" y="140" font-family="sans-serif" font-size="10" fill="#fff" font-weight="bold">Dir</text>
-          <!-- Arrow head -->
           <polygon points="745,135 735,125 735,145" fill="#0284c7"/>
           <text x="605" y="215" font-family="sans-serif" font-size="11" fill="#475569" text-anchor="middle">Single contiguous sequential stream (No seeks)</text>
         </svg>
         <figcaption>Figure 4.3.5A: Comparison of random in-place updates versus LFS continuous append logging.</figcaption>
       </figure>
 
+      <!-- ================= INTERACTIVE LFS SIMULATOR WIDGET ================= -->
+      <div class="lfs-sim-container" id="lfsSimulator">
+        <div class="lfs-topbar">
+          <span class="lfs-title">Interactive LFS Segment Append &amp; Garbage Collector Simulator</span>
+          <span style="font-size: 0.75rem; color: #38bdf8;" id="lfsActiveSegLabel">Active Segment: Segment 0</span>
+        </div>
+
+        <div class="lfs-controls">
+          <button class="lfs-btn primary" onclick="lfsWriteNewFile()">Append New File (Write)</button>
+          <button class="lfs-btn" onclick="lfsUpdateExistingFile()">Overwrite Existing File</button>
+          <button class="lfs-btn danger" onclick="lfsTriggerCleaner()">Run Segment Cleaner (GC)</button>
+          <button class="lfs-btn" onclick="lfsResetSim()" style="margin-left: auto;">Reset Simulator</button>
+        </div>
+
+        <!-- 4 Segments with 8 Blocks Each -->
+        <div class="lfs-segments-grid" id="lfsSegmentsGrid">
+          <!-- Populated via JavaScript -->
+        </div>
+
+        <div class="lfs-status-panel">
+          <span id="lfsStatusMsg">Simulator Ready. Click 'Append New File' to write sequentially to the log tail.</span>
+          <span id="lfsMetricMsg">Live Blocks: 0 | Dead Blocks: 0 | Free Blocks: 32</span>
+        </div>
+      </div>
+      <!-- =================================================================== -->
+
       <h3>2. The Inode Map (Imap) Architecture &amp; Indirection</h3>
       <p>
-        In a traditional Unix file system, every file has a fixed inode number, and its metadata is stored at a static, predetermined disk address within the inode table. If LFS wrote files sequentially without modification, finding an inode would require scanning the entire log from start to finish.
-      </p>
-      <p>
-        To solve this, LFS introduces an <strong>inode map (imap)</strong>. The imap maintains an array of pointers mapping every file's inode number to its current physical disk address within the log. Because files and inodes are continuously rewritten to the tail of the log, their physical locations change constantly; thus, the imap itself is also logged and updated dynamically.
+        In a traditional Unix file system, every file has a fixed static disk address. In an LFS, because files and inodes are continually rewritten to the log tail, the inode's physical location changes with every update, requiring the <strong>inode map (imap)</strong> translation layer.
       </p>
 
       <!-- Diagram 2: Imap Architecture -->
@@ -558,27 +690,22 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect width="800" height="200" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
           <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5B: The Inode Map (Imap) Dynamic Indirection Layer</text>
 
-          <!-- Inode Number Box -->
           <rect x="50" y="80" width="100" height="60" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
           <text x="100" y="105" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">File Inode #</text>
           <text x="100" y="125" font-family="sans-serif" font-size="12" fill="#0f172a" text-anchor="middle">Inode 42</text>
 
-          <!-- Arrow 1 -->
           <line x1="150" y1="110" x2="220" y2="110" stroke="#0284c7" stroke-width="2"/>
           <polygon points="220,110 212,105 212,115" fill="#0284c7"/>
 
-          <!-- Imap Box -->
           <rect x="220" y="60" width="160" height="100" fill="#f1f5f9" stroke="#64748b" rx="4"/>
           <text x="300" y="85" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Inode Map (Imap)</text>
           <text x="300" y="110" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">[0] &rarr; Block 102</text>
           <text x="300" y="130" font-family="sans-serif" font-size="10" fill="#0284c7" font-weight="bold" text-anchor="middle">[42] &rarr; Block 580</text>
           <text x="300" y="150" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">[43] &rarr; Block 312</text>
 
-          <!-- Arrow 2 -->
           <line x1="380" y1="110" x2="450" y2="110" stroke="#0284c7" stroke-width="2"/>
           <polygon points="450,110 442,105 442,115" fill="#0284c7"/>
 
-          <!-- Log Tail Block -->
           <rect x="450" y="80" width="300" height="60" fill="#0284c7" rx="4"/>
           <text x="600" y="105" font-family="sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Sequential Log Tail</text>
           <text x="600" y="125" font-family="sans-serif" font-size="10" fill="#e0f2fe" text-anchor="middle">Inode 42 (Block 580) + File Data</text>
@@ -588,19 +715,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <h3>3. Checkpoint Regions &amp; Rapid Crash Recovery</h3>
       <p>
-        Because an LFS log is continuously expanding, locating the root of the inode map upon system startup without scanning gigabytes of disk history would be prohibitive. LFS solves this by maintaining a fixed <strong>Checkpoint Region (CR)</strong> on disk.
+        To locate the inode map during system startup without scanning the entire log, LFS maintains a fixed <strong>Checkpoint Region (CR)</strong> on disk, enabling fast roll-forward recovery upon reboot.
       </p>
-      <ul>
-        <li><strong>Checkpoint Contents:</strong> The checkpoint region stores pointers to the current blocks of the inode map, the last segment usage summary, and a precise timestamp of the last stable state.</li>
-        <li><strong>Roll-Forward Recovery:</strong> When booting after an abrupt power failure, the operating system reads the last valid checkpoint region and then <em>rolls forward</em> through subsequent segments written after the checkpoint timestamp. This reconstructs any recent updates without requiring a slow multi-pass utility like <code>fsck</code>.</li>
-      </ul>
 
       <h3>4. Background Garbage Collection &amp; Segment Cleaning</h3>
       <p>
-        Appending data sequentially means that when a file is modified or deleted, its previous blocks and old inodes become obsolete ("dead space") within earlier log segments. Over time, free space becomes scattered across partially empty segments.
-      </p>
-      <p>
-        To reclaim this space, LFS runs a background daemon called the <strong>Segment Cleaner</strong>. The cleaner reads existing segments, distinguishes between live blocks (still referenced by the current imap) and dead blocks, compacts the live blocks, and writes them out into new, tightly packed clean segments.
+        Appending data sequentially means that updating a file creates obsolete versions of data blocks and old inodes elsewhere in the log, creating dead space ("holes"). The background <strong>Segment Cleaner</strong> compacts live blocks into clean segments.
       </p>
 
       <!-- Diagram 3: Segment Cleaner Compaction -->
@@ -609,7 +729,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect width="800" height="220" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
           <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5C: Background Segment Cleaner &amp; Compaction Process</text>
 
-          <!-- Old Segment 1 -->
           <rect x="50" y="60" width="200" height="110" fill="#fef2f2" stroke="#f87171" rx="4"/>
           <text x="150" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b91c1c" text-anchor="middle">Old Segment (Fragmented)</text>
           <rect x="70" y="100" width="35" height="40" fill="#0284c7" rx="2"/><text x="87.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live</text>
@@ -617,23 +736,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect x="160" y="100" width="35" height="40" fill="#0284c7" rx="2"/><text x="177.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live</text>
           <rect x="205" y="100" width="35" height="40" fill="#cbd5e1" rx="2"/><text x="222.5" y="125" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">Dead</text>
 
-          <!-- Arrow reading -->
           <line x1="250" y1="115" x2="310" y2="115" stroke="#0284c7" stroke-width="2"/>
           <polygon points="310,115 302,110 302,120" fill="#0284c7"/>
           <text x="280" y="105" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Cleaner Reads</text>
 
-          <!-- Cleaner Logic / Cost-Benefit -->
           <rect x="310" y="75" width="180" height="80" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
           <text x="400" y="98" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Segment Cleaner</text>
           <text x="400" y="120" font-family="sans-serif" font-size="10" fill="#334155" text-anchor="middle">Extracts Live Blocks</text>
           <text x="400" y="138" font-family="sans-serif" font-size="10" fill="#334155" text-anchor="middle">Discards Dead Holes</text>
 
-          <!-- Arrow writing -->
           <line x1="490" y1="115" x2="550" y2="115" stroke="#34d399" stroke-width="2"/>
           <polygon points="550,115 542,110 542,120" fill="#34d399"/>
           <text x="520" y="105" font-family="sans-serif" font-size="9" fill="#059669" text-anchor="middle">Compacts &amp; Writes</text>
 
-          <!-- New Clean Segment -->
           <rect x="550" y="60" width="200" height="110" fill="#ecfdf5" stroke="#34d399" rx="4"/>
           <text x="650" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#059669" text-anchor="middle">New Clean Segment</text>
           <rect x="575" y="100" width="70" height="40" fill="#0284c7" rx="2"/><text x="610" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live Block 1</text>
@@ -670,6 +785,153 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
+    // --- Interactive LFS Simulator Engine ---
+    const NUM_SEGMENTS = 4;
+    const BLOCKS_PER_SEGMENT = 8;
+    let lfsSegments = [];
+    let currentWriteIndex = 0; // Global block pointer across 32 blocks
+
+    function lfsResetSim() {
+      lfsSegments = [];
+      for (let s = 0; s < NUM_SEGMENTS; s++) {
+        let segBlocks = [];
+        for (let b = 0; b < BLOCKS_PER_SEGMENT; b++) {
+          segBlocks.push({ type: 'free', fileId: null });
+        }
+        lfsSegments.push({ id: s, blocks: segBlocks });
+      }
+      currentWriteIndex = 0;
+      lfsRenderSim();
+      document.getElementById("lfsStatusMsg").textContent = "Simulator Reset. 4 Segments (32 total blocks) ready for sequential logging.";
+    }
+
+    function lfsWriteNewFile() {
+      // Find next free block globally
+      if (currentWriteIndex >= NUM_SEGMENTS * BLOCKS_PER_SEGMENT) {
+        document.getElementById("lfsStatusMsg").textContent = "Log is full! Run the Segment Cleaner (GC) to reclaim dead space.";
+        return;
+      }
+
+      let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
+      let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
+
+      let fileId = `F${Math.floor(Math.random() * 90) + 10}`;
+      lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: fileId };
+      currentWriteIndex++;
+
+      lfsRenderSim();
+      document.getElementById("lfsStatusMsg").textContent = `Appended new file (${fileId}) sequentially to Segment ${segIdx}, Block ${blkIdx}.`;
+    }
+
+    function lfsUpdateExistingFile() {
+      // Find a live block to turn into a dead block (simulating overwrite)
+      let liveBlocks = [];
+      lfsSegments.forEach((seg, sIdx) => {
+        seg.blocks.forEach((blk, bIdx) => {
+          if (blk.type === 'live') liveBlocks.push({ sIdx, bIdx, fileId: blk.fileId });
+        });
+      });
+
+      if (liveBlocks.length === 0) {
+        document.getElementById("lfsStatusMsg").textContent = "No live files to overwrite. Click 'Append New File' first.";
+        return;
+      }
+
+      // Pick one random live block and mark it dead
+      let target = liveBlocks[Math.floor(Math.random() * liveBlocks.length)];
+      lfsSegments[target.sIdx].blocks[target.bIdx].type = 'dead';
+
+      // Now append the updated version to the current log tail
+      if (currentWriteIndex < NUM_SEGMENTS * BLOCKS_PER_SEGMENT) {
+        let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
+        let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
+        lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: target.fileId };
+        currentWriteIndex++;
+        document.getElementById("lfsStatusMsg").textContent = `Overwrote file ${target.fileId}: old block marked 'dead', new version appended at log tail.`;
+      } else {
+        document.getElementById("lfsStatusMsg").textContent = `Overwrote file ${target.fileId} (old block dead), but log tail is full! Run Garbage Collection.`;
+      }
+
+      lfsRenderSim();
+    }
+
+    function lfsTriggerCleaner() {
+      // Collect all live blocks across all segments
+      let liveBlocks = [];
+      lfsSegments.forEach(seg => {
+        seg.blocks.forEach(blk => {
+          if (blk.type === 'live') liveBlocks.push(blk);
+        });
+      });
+
+      // Reset all segments to free
+      lfsResetSim();
+
+      // Rewrite live blocks compactly into the beginning of the log
+      liveBlocks.forEach(blk => {
+        let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
+        let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
+        if (segIdx < NUM_SEGMENTS) {
+          lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: blk.fileId };
+          currentWriteIndex++;
+        }
+      });
+
+      lfsRenderSim();
+      document.getElementById("lfsStatusMsg").textContent = `Segment Cleaner (GC) executed! Compacted ${liveBlocks.length} live blocks and discarded all dead holes.`;
+    }
+
+    function lfsRenderSim() {
+      const grid = document.getElementById("lfsSegmentsGrid");
+      grid.innerHTML = "";
+
+      let liveCount = 0;
+      let deadCount = 0;
+      let freeCount = 0;
+
+      lfsSegments.forEach((seg, sIdx) => {
+        let segDiv = document.createElement("div");
+        segDiv.className = "lfs-segment-box";
+
+        let activeTag = (Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT) === sIdx) ? ' (Tail)' : '';
+        segDiv.innerHTML = `<div class="lfs-seg-header"><span>Segment ${sIdx}${activeTag}</span></div>`;
+
+        let blocksDiv = document.createElement("div");
+        blocksDiv.className = "lfs-seg-blocks";
+
+        seg.blocks.forEach((blk, bIdx) => {
+          let bEl = document.createElement("div");
+          bEl.className = "lfs-block";
+          if (blk.type === 'free') {
+            bEl.classList.add("blk-free");
+            bEl.textContent = "·";
+            freeCount++;
+          } else if (blk.type === 'live') {
+            bEl.classList.add("blk-live");
+            bEl.textContent = blk.fileId;
+            liveCount++;
+          } else if (blk.type === 'dead') {
+            bEl.classList.add("blk-dead");
+            bEl.textContent = blk.fileId;
+            deadCount++;
+          }
+          blocksDiv.appendChild(bEl);
+        });
+
+        segDiv.appendChild(blocksDiv);
+        grid.appendChild(segDiv);
+      });
+
+      document.getElementById("lfsMetricMsg").textContent = `Live Blocks: ${liveCount} | Dead Blocks: ${deadCount} | Free Blocks: ${freeCount}`;
+
+      let activeSeg = Math.min(Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT), NUM_SEGMENTS - 1);
+      document.getElementById("lfsActiveSegLabel").textContent = `Active Log Tail: Segment ${activeSeg}`;
+    }
+
+    // Initialize LFS Simulator on Load
+    lfsResetSim();
+
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (100 Columns = 3,000 Blocks) ---
     const TOTAL_CELLS = 3000;
     let cells = [];
     let isRunning = false;
@@ -945,7 +1207,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing fleshed-out LFS section and file structure to {html_file}...")
+    print(f"--> Writing LFS simulator and file structure to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -953,11 +1215,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Massively flesh out LFS section 4.3.5 with diagrams and advanced theory\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html to deeply "
-        "expand section 4.3.5 with comprehensive academic theory, architectural "
-        "breakdowns, and three detailed SVG diagrams illustrating sequential logging, "
-        "imap indirection, and background segment cleaning."
+        "Add interactive LFS segment append and garbage collection simulator\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html with "
+        "an interactive LFS widget in section 4.3.5 allowing users to append files, "
+        "overwrite records to generate dead space, and run background segment cleaning."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
