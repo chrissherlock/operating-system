@@ -381,6 +381,7 @@
       padding: 10px;
       border: 3px double #ffffff;
       box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8);
+      image-rendering: pixelated;
     }
     .theme-dos .ui-topbar {
       background: #00aaaa;
@@ -461,7 +462,7 @@
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (PIXELATED, TIGHT PADDING, DOS COLORS)
+       THEME 4: MS-DOS 6.22 DEFRAG (PIXELATED, DOS AUDIO READY)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -772,7 +773,44 @@
   </div>
 
   <script>
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (100 Columns = 3,000 Blocks) ---
+    // --- Synthesized Mechanical Hard Drive Audio (DOS Modes Only) ---
+    let audioCtx = null;
+    function playDriveClick() {
+      if (currentTheme !== 'dos' && currentTheme !== 'olddos') return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const bufferSize = audioCtx.sampleRate * 0.015; // 15ms click
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1000 + Math.random() * 1000;
+        filter.Q.value = 3.0;
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        noise.start();
+      } catch(e) {
+        // Audio context restrictions bypassed or ignored
+      }
+    }
+
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 3000; // 100 cols x 30 rows
     let cells = [];
     let isRunning = false;
@@ -851,7 +889,6 @@
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";
@@ -869,7 +906,6 @@
           el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          // c-free uses solid retro background color
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -892,7 +928,6 @@
           el.textContent = "·";
         }
       } else {
-        // Modern & Win95 square block rendering
         if (c.state === "read") {
           el.classList.add("c-read");
         } else if (c.state === "write") {
@@ -920,13 +955,11 @@
       defragPause();
       initMatrix();
 
-      // System Unmovable files distributed across 3,000 blocks
       const unmovable = [36, 110, 224, 320, 480, 780, 1040, 1420, 1780, 2280, 2760];
       unmovable.forEach(idx => {
         if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
-      // Front 18% optimized
       const optCutoff = Math.floor(TOTAL_CELLS * 0.18);
       for (let i = 0; i < optCutoff; i++) {
         if (!cells[i].isSystem) {
@@ -934,7 +967,6 @@
         }
       }
 
-      // Remaining sectors initialized as contiguous files
       for (let i = optCutoff; i < Math.floor(TOTAL_CELLS * 0.70); i++) {
         if (!cells[i].isSystem) {
           cells[i] = { state: "unoptimized", isSystem: false, fileId: `f_${i % 25}` };
@@ -992,7 +1024,6 @@
 
       document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/3,000`;
 
-      // Update DOS 6.22 status widget
       const dosPct = document.getElementById("dosPctText");
       if (dosPct) dosPct.textContent = `${pct}%`;
       const dosBar = document.getElementById("dosProgressBarFill");
@@ -1075,6 +1106,8 @@
         return;
       }
 
+      playDriveClick(); // Authentic mechanical click in DOS modes!
+
       sourceBlocks.forEach(idx => {
         cells[idx].state = "read";
         renderCell(idx);
@@ -1127,7 +1160,7 @@
       document.getElementById("txtStatusMsg").textContent = `100% Complete. ${capLabel} Volume Fully Optimized. Free space consolidated at tail.`;
     }
 
-    // Initialize Simulator on Load (Default to Modern Theme as requested)
+    // Initialize Simulator on Load (Default to Modern Theme)
     initMatrix();
     selectDiskCapacity(500);
     switchTheme('modern');
