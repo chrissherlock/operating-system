@@ -117,6 +117,42 @@
       margin-bottom: 12px;
     }
 
+    /* Floating Bio Sidebar */
+    .bio-sidebar {
+      float: right;
+      width: 300px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px;
+      margin-left: 24px;
+      margin-right: 0px;
+      margin-bottom: 16px;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.88rem;
+      shape-outside: margin-box;
+    }
+    .bio-sidebar h3 {
+      font-size: 1rem;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+    .bio-sidebar p {
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+    .bio-sidebar a {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
     .figure-container {
       width: 100%;
       max-width: 860px;
@@ -175,6 +211,7 @@
     }
     @media (max-width: 860px) {
       .split-grid { grid-template-columns: 1fr; }
+      .bio-sidebar { float: none; width: 100%; margin-left: 0; }
     }
 
     .table-spec {
@@ -233,14 +270,6 @@
     button:hover { background-color: var(--accent-hover); }
     button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
     button.btn-sec:hover { background-color: #e2e8f0; }
-
-    .clock-ring-svg {
-      width: 100%;
-      max-width: 440px;
-      height: auto;
-      margin: 0 auto;
-      display: block;
-    }
   </style>
 </head>
 <body>
@@ -256,9 +285,23 @@
 
   <div class="main-container">
 
-    <!-- 1. THEORY SECTION -->
+    <!-- 1. THEORY SECTION WITH PIONEER PROFILE -->
     <div class="card">
       <div class="theory-section">
+        <!-- Bio Sidebar on Right -->
+        <aside class="bio-sidebar">
+          <h3>Pioneer Profile</h3>
+          <p>
+            <strong>Richard W. Carr</strong> and <strong>John L. Hennessy</strong> formulated the <strong>WSClock</strong> algorithm in their seminal 1981 paper, <em>"WSCLOCK—A Simple and Effective Algorithm for Virtual Memory Management"</em>, presented at the 8th ACM Symposium on Operating Systems Principles (SOSP).
+          </p>
+          <p>
+            Recognizing that Denning's pure working set algorithm suffered from an expensive \(O(N)\) linear scan on every page fault, they married the low-overhead circular pointer of the Clock algorithm with working set age thresholds (\(\tau\)).
+          </p>
+          <p>
+            <strong>Dr. John L. Hennessy</strong> later co-developed the MIPS RISC architecture, co-authored the definitive computer architecture textbooks with David Patterson, served as the 10th President of Stanford University, and was awarded the ACM A.M. Turing Award in 2017.
+          </p>
+        </aside>
+
         <h2>1. Why Simple Working Set Is Too Expensive</h2>
         <p>
           While the theoretical Working Set model prevents thrashing by ensuring a process's active pages ($w(k, t)$) remain resident in RAM, implementing it naively is impractical. In a basic working set algorithm, every single page fault triggers a linear scan across <strong>all</strong> allocated page table entries to evaluate whether their age exceeds $\tau$. On systems with gigabytes of RAM and hundreds of thousands of frames, this $O(N)$ traversal consumes an unacceptable number of CPU cycles.
@@ -266,7 +309,7 @@
 
         <h2>2. The WSClock Innovation: Circular List with Asynchronous Flushing</h2>
         <p>
-          To solve this problem, R. W. Carr and J. L. Hennessy formulated <strong>WSClock</strong>. Like the standard Clock algorithm, all allocated page frames are linked in a circular ring traversed by a single moving hand. When a page fault occurs, the hand examines the page pointed to and evaluates four specific criteria:
+          To solve this problem, Carr and Hennessy formulated <strong>WSClock</strong>. Like the standard Clock algorithm, all allocated page frames are linked in a circular ring traversed by a single moving hand. When a page fault occurs, the hand examines the page pointed to and evaluates four specific criteria:
         </p>
         <div class="theory-callout">
           <strong>WSClock Decision Logic per Frame:</strong><br>
@@ -556,7 +599,6 @@
       logSim(`--------------------------------------------------`);
       logSim(`Page fault at Virtual Time = ${virtualTime}. Scanning from Frame ${handIdx}...`);
 
-      let initialHand = handIdx;
       let evicted = false;
 
       for (let i = 0; i < frames.length * 2; i++) {
@@ -598,7 +640,7 @@
         // Case 4: R = 0, Age > tau, M = 1 (Dirty write scheduled)
         if (f.m === 1) {
           statWrites++;
-          f.m = 0; // Simulated write clears dirty bit
+          f.m = 0;
           logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} > tau(${tau}), Dirty (M=1). Scheduled Async Disk Write. Cleared M.`);
           handIdx = (handIdx + 1) % frames.length;
         }

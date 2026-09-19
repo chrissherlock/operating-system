@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import re
 import subprocess
 import sys
 
@@ -123,6 +122,42 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 12px;
     }
 
+    /* Floating Bio Sidebar */
+    .bio-sidebar {
+      float: right;
+      width: 300px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px;
+      margin-left: 24px;
+      margin-right: 0px;
+      margin-bottom: 16px;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.88rem;
+      shape-outside: margin-box;
+    }
+    .bio-sidebar h3 {
+      font-size: 1rem;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+    .bio-sidebar p {
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+    .bio-sidebar a {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
     .figure-container {
       width: 100%;
       max-width: 860px;
@@ -181,6 +216,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     @media (max-width: 860px) {
       .split-grid { grid-template-columns: 1fr; }
+      .bio-sidebar { float: none; width: 100%; margin-left: 0; }
     }
 
     .table-spec {
@@ -239,14 +275,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     button:hover { background-color: var(--accent-hover); }
     button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
     button.btn-sec:hover { background-color: #e2e8f0; }
-
-    .clock-ring-svg {
-      width: 100%;
-      max-width: 440px;
-      height: auto;
-      margin: 0 auto;
-      display: block;
-    }
   </style>
 </head>
 <body>
@@ -262,9 +290,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <div class="main-container">
 
-    <!-- 1. THEORY SECTION -->
+    <!-- 1. THEORY SECTION WITH PIONEER PROFILE -->
     <div class="card">
       <div class="theory-section">
+        <!-- Bio Sidebar on Right -->
+        <aside class="bio-sidebar">
+          <h3>Pioneer Profile</h3>
+          <p>
+            <strong>Richard W. Carr</strong> and <strong>John L. Hennessy</strong> formulated the <strong>WSClock</strong> algorithm in their seminal 1981 paper, <em>"WSCLOCK—A Simple and Effective Algorithm for Virtual Memory Management"</em>, presented at the 8th ACM Symposium on Operating Systems Principles (SOSP).
+          </p>
+          <p>
+            Recognizing that Denning's pure working set algorithm suffered from an expensive \(O(N)\) linear scan on every page fault, they married the low-overhead circular pointer of the Clock algorithm with working set age thresholds (\(\tau\)).
+          </p>
+          <p>
+            <strong>Dr. John L. Hennessy</strong> later co-developed the MIPS RISC architecture, co-authored the definitive computer architecture textbooks with David Patterson, served as the 10th President of Stanford University, and was awarded the ACM A.M. Turing Award in 2017.
+          </p>
+        </aside>
+
         <h2>1. Why Simple Working Set Is Too Expensive</h2>
         <p>
           While the theoretical Working Set model prevents thrashing by ensuring a process's active pages ($w(k, t)$) remain resident in RAM, implementing it naively is impractical. In a basic working set algorithm, every single page fault triggers a linear scan across <strong>all</strong> allocated page table entries to evaluate whether their age exceeds $\tau$. On systems with gigabytes of RAM and hundreds of thousands of frames, this $O(N)$ traversal consumes an unacceptable number of CPU cycles.
@@ -272,7 +314,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <h2>2. The WSClock Innovation: Circular List with Asynchronous Flushing</h2>
         <p>
-          To solve this problem, R. W. Carr and J. L. Hennessy formulated <strong>WSClock</strong>. Like the standard Clock algorithm, all allocated page frames are linked in a circular ring traversed by a single moving hand. When a page fault occurs, the hand examines the page pointed to and evaluates four specific criteria:
+          To solve this problem, Carr and Hennessy formulated <strong>WSClock</strong>. Like the standard Clock algorithm, all allocated page frames are linked in a circular ring traversed by a single moving hand. When a page fault occurs, the hand examines the page pointed to and evaluates four specific criteria:
         </p>
         <div class="theory-callout">
           <strong>WSClock Decision Logic per Frame:</strong><br>
@@ -562,7 +604,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       logSim(`--------------------------------------------------`);
       logSim(`Page fault at Virtual Time = ${virtualTime}. Scanning from Frame ${handIdx}...`);
 
-      let initialHand = handIdx;
       let evicted = false;
 
       for (let i = 0; i < frames.length * 2; i++) {
@@ -604,7 +645,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         // Case 4: R = 0, Age > tau, M = 1 (Dirty write scheduled)
         if (f.m === 1) {
           statWrites++;
-          f.m = 0; // Simulated write clears dirty bit
+          f.m = 0;
           logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} > tau(${tau}), Dirty (M=1). Scheduled Async Disk Write. Cleared M.`);
           handIdx = (handIdx + 1) % frames.length;
         }
@@ -645,66 +686,35 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add WSClock interactive module and activate link in week09 index
+COMMIT_MSG = """Add Carr and Hennessy pioneer sidebar to 10-wsclock.html
 
-Implement 10-wsclock.html covering Tanenbaum Section 3.4.6 (Figure
-3-20). Provide theoretical breakdown of circular buffer mechanics, age
-threshold (tau) checks, and asynchronous dirty writes.
+Introduce a floating bio sidebar in 10-wsclock.html honoring Richard W.
+Carr and John L. Hennessy for formulating the WSClock algorithm in
+1981. Format the sidebar to float on the right with prose wrapping,
+matching the layout established in the working set module."""
 
-Include an SVG circular ring diagram, 4-step guided walkthrough, and a
-live interactive WSClock ring simulator. Update index.html to link to
-10-wsclock.html and mark it as published."""
-
-def run_git(cmd, desc):
-    print(f"--> {desc}...")
+def run_git_step(cmd, step_desc):
+    print(f"--> {step_desc}...")
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.stdout.strip():
         print(res.stdout.strip())
     if res.stderr.strip():
-        print(f"[{desc} stderr]\n{res.stderr.strip()}")
+        print(f"[{step_desc} stderr]\n{res.stderr.strip()}")
     if res.returncode != 0:
-        print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
+        print(f"Error during {step_desc} (exit code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
 
-def sync_wsclock():
+def sync_module():
     target_module = "week09-memory-management/10-wsclock.html"
-    index_file = "week09-memory-management/index.html"
-
-    # 1. Write the new 10-wsclock.html module
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote complete WSClock module to {target_module}")
+    print(f"Wrote updated module to {target_module}")
 
-    # 2. Update index.html to point to 10-wsclock.html and mark published
-    if os.path.exists(index_file):
-        with open(index_file, "r", encoding="utf-8") as f:
-            idx_content = f.read()
-
-        # Update link href and badge status for topic 10
-        # Replace non-existent link 10-ws-07-clock.html or wsclock.html
-        idx_content = re.sub(
-            r'href=["\'](?:10-ws-07-clock\.html|wsclock\.html)["\']',
-            'href="10-wsclock.html"',
-            idx_content
-        )
-
-        # Update badge from draft to published for Module 10
-        idx_content = re.sub(
-            r'(<a[^>]*href=["\']10-wsclock\.html["\'][^>]*>[\s\S]*?<span[^>]*class=["\'])badge\s+draft(["\']>)Draft(</span>)',
-            r'\1badge completed published\2Published\3',
-            idx_content
-        )
-
-        with open(index_file, "w", encoding="utf-8") as f:
-            f.write(idx_content)
-        print(f"Updated link and published badge in {index_file}")
-
-    # 3. Git commit -a -m and push to origin main
-    run_git(["git", "add", target_module, index_file], "Staging files")
-    run_git(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
-    run_git(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> WSClock module and index published successfully!")
+    run_git_step(["git", "add", target_module], "Staging updated 10-wsclock.html")
+    run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
+    run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
+    print("--> Successfully updated, committed, and pushed to origin/main.")
 
 if __name__ == "__main__":
-    sync_wsclock()
+    sync_module()
