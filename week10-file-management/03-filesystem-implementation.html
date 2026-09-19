@@ -194,9 +194,9 @@
       background-color: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
-      padding: 6px 12px;
+      padding: 5px 11px;
       border-radius: 4px;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
@@ -272,7 +272,7 @@
     .theme-win95 .ui-title { color: #ffffff; font-size: 12px; font-weight: bold; }
     .theme-win95 .ui-controls {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
       background: transparent;
       padding: 6px 0;
@@ -286,7 +286,7 @@
       border-right: 2px solid #000000;
       border-bottom: 2px solid #000000;
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
-      padding: 3px 10px;
+      padding: 3px 8px;
       font-size: 11px;
       color: #000000 !important;
       cursor: pointer;
@@ -378,7 +378,7 @@
       background-color: #0000aa;
       color: #ffff55;
       border: 1px solid #ffffff;
-      padding: 3px 8px;
+      padding: 2px 7px;
       font-size: 11px;
       font-family: inherit;
       font-weight: bold;
@@ -430,26 +430,26 @@
     }
     .theme-dos .theme-label { color: #000000; }
 
-    /* THEME 4: REALLY OLD DOS (NON-ANTIALIASED BITMAP CP437 VGA) */
+    /* THEME 4: REALLY OLD DOS (AUTHENTIC IBM PC CGA/VGA BLUE PALETTE + CP437 BITMAP FONT) */
     .theme-olddos {
-      background-color: #000000;
-      color: #00aa00;
+      background-color: #0000aa;
+      color: #ffffff;
       font-family: 'PerfectDOS', monospace;
       padding: 12px;
-      border: 4px solid #00aa00;
+      border: 4px solid #55ffff;
       image-rendering: pixelated;
       -webkit-font-smoothing: none;
       font-smooth: never;
       text-rendering: geometricPrecision;
-      box-shadow: inset 0 0 20px rgba(0, 170, 0, 0.2), 0 0 15px rgba(0, 0, 0, 0.8);
+      box-shadow: inset 0 0 20px rgba(85, 255, 255, 0.2), 0 0 15px rgba(0, 0, 0, 0.8);
     }
     .theme-olddos .ui-window-box {
-      border: 1px solid #00aa00;
+      border: 1px solid #55ffff;
       padding: 6px;
-      background: #001100;
+      background: #000088;
     }
     .theme-olddos .ui-topbar {
-      background: #00aa00;
+      background: #00aaaa;
       color: #000000;
       padding: 3px 6px;
       font-size: 12px;
@@ -462,29 +462,29 @@
     .theme-olddos .ui-title { color: #000000; font-size: 12px; font-weight: bold; }
     .theme-olddos .ui-controls {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
       background: transparent;
       padding: 4px 0;
       align-items: center;
-      color: #00ff00;
+      color: #ffff55;
     }
     .theme-olddos .ctrl-btn {
-      background-color: #000000;
-      color: #00ff00;
-      border: 1px solid #00aa00;
-      padding: 4px 8px;
+      background-color: #0000aa;
+      color: #ffff55;
+      border: 1px solid #ffffff;
+      padding: 3px 7px;
       font-size: 11px;
       font-family: inherit;
       image-rendering: pixelated;
       cursor: pointer;
     }
-    .theme-olddos .ctrl-btn:hover { background-color: #00aa00; color: #000000; }
-    .theme-olddos .ctrl-btn.active { background-color: #00ff00; color: #000000; font-weight: bold; }
-    .theme-olddos .ctrl-btn.churn-btn { color: #ffff00; }
+    .theme-olddos .ctrl-btn:hover { background-color: #00aaaa; color: #000000; }
+    .theme-olddos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; font-weight: bold; }
+    .theme-olddos .ctrl-btn.churn-btn { color: #ffff55; }
     .theme-olddos .grid-wrapper {
-      background: #000000;
-      border: 2px solid #00aa00;
+      background: #000055;
+      border: 2px solid #55ffff;
       padding: 4px;
       display: flex;
       justify-content: center;
@@ -497,7 +497,7 @@
       max-width: 950px;
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.8; /* Authentic tall IBM PC 9x16 text mode glyph */
+      aspect-ratio: 1 / 1.8;
       border-radius: 0;
       display: flex;
       align-items: center;
@@ -508,23 +508,23 @@
       image-rendering: pixelated;
       user-select: none;
     }
-    .theme-olddos .c-free { background-color: #000000; color: #004400; }
-    .theme-olddos .c-opt { background-color: #000000; color: #00ff00; }
-    .theme-olddos .c-unopt { background-color: #000000; color: #ff5555; }
+    .theme-olddos .c-free { background-color: #000055; color: #0000aa; }
+    .theme-olddos .c-opt { background-color: #0000aa; color: #ffffff; }
+    .theme-olddos .c-unopt { background-color: #0000aa; color: #ff5555; }
     .theme-olddos .c-system { background-color: #aa0000; color: #ffffff; }
-    .theme-olddos .c-read { background-color: #ffff55 !important; color: #000000 !important; }
-    .theme-olddos .c-write { background-color: #ffffff !important; color: #000000 !important; }
+    .theme-olddos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
+    .theme-olddos .c-write { background-color: #ffff55 !important; color: #000000 !important; }
     .theme-olddos .ui-status-panel {
-      background: #000000;
-      border-top: 1px dashed #00aa00;
+      background: #0000aa;
+      border-top: 1px dashed #55ffff;
       padding-top: 6px;
       margin-top: 6px;
       font-size: 11px;
-      color: #00ff00;
+      color: #ffff55;
       display: flex;
       justify-content: space-between;
     }
-    .theme-olddos .theme-label { color: #000000; }
+    .theme-olddos .theme-label { color: #ffff55; }
 
     /* Matrix Dimensions */
     .screen-grid {
@@ -593,7 +593,7 @@
       </ul>
     </div>
 
-    <!-- QUAD-THEME 500MB FAT DEFRAGMENTER SIMULATOR -->
+    <!-- QUAD-THEME MULTI-CAPACITY FAT DEFRAGMENTER SIMULATOR -->
     <div class="defrag-outer-frame theme-modern" id="defragShell">
 
       <div class="ui-window-box">
@@ -609,12 +609,24 @@
           </div>
         </div>
 
-        <!-- Controls Bar -->
+        <!-- Controls Bar with Disk Space & Action Controls -->
         <div class="ui-controls">
-          <button class="ctrl-btn" onclick="defragInitVolume()">1. Format 500MB</button>
-          <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">2. Heavy Churn (Fragment!)</button>
-          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="background:#059669; color:#fff; font-weight:700;">Start Defrag</button>
-          <div style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px;">
+          <!-- Disk Size Selectors -->
+          <div style="display:flex; align-items:center; gap:4px; margin-right:4px;">
+            <span style="font-size:11px; font-weight:700;">Disk Size:</span>
+            <button class="ctrl-btn" onclick="selectDiskCapacity(10)" id="size-10">10MB</button>
+            <button class="ctrl-btn" onclick="selectDiskCapacity(100)" id="size-100">100MB</button>
+            <button class="ctrl-btn active" onclick="selectDiskCapacity(500)" id="size-500">500MB</button>
+            <button class="ctrl-btn" onclick="selectDiskCapacity(1000)" id="size-1000">1GB</button>
+          </div>
+
+          <!-- Main Actions -->
+          <button class="ctrl-btn" onclick="defragInitVolume()" id="btnFormatDisk">Format Disk</button>
+          <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">Heavy Churn (Fragment!)</button>
+          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
+
+          <!-- Speed Controls -->
+          <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
             <span>Speed:</span>
             <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow</button>
             <button class="ctrl-btn active" onclick="setDefragSpeed(45, 'spd-norm')" id="spd-norm">Medium</button>
@@ -653,13 +665,33 @@
   </div>
 
   <script>
-    // --- 500 MB FAT Quad-Theme Defragmenter Engine ---
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 1500; // 50 cols x 30 rows fits completely on one screen
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
     let stepDelay = 45;
     let currentTheme = 'modern';
+    let selectedCapacityMB = 500;
+
+    function selectDiskCapacity(sizeMB) {
+      selectedCapacityMB = sizeMB;
+      [10, 100, 500, 1000].forEach(s => {
+        const b = document.getElementById(`size-${s}`);
+        if (b) b.classList.toggle('active', s === sizeMB);
+      });
+      updateShellTitle();
+      defragInitVolume();
+    }
+
+    function updateShellTitle() {
+      const titleEl = document.getElementById("shellTitle");
+      const label = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
+      if (currentTheme === 'modern') titleEl.textContent = `FAT32 Volume Optimizer (${label} Drive)`;
+      else if (currentTheme === 'win95') titleEl.textContent = `Disk Defragmenter - Drive C: (${label} FAT)`;
+      else if (currentTheme === 'dos') titleEl.textContent = `NORTON SPEED DISK - DRIVE C: [${label}]`;
+      else if (currentTheme === 'olddos') titleEl.textContent = `IBM PC DOS 3.30 SPEEDISK - DRIVE C: [${label}]`;
+    }
 
     function switchTheme(theme) {
       currentTheme = theme;
@@ -671,12 +703,7 @@
         if (b) b.classList.toggle('active', t === theme);
       });
 
-      const titleEl = document.getElementById("shellTitle");
-      if (theme === 'modern') titleEl.textContent = "FAT32 Volume Optimizer (500 MB Drive)";
-      else if (theme === 'win95') titleEl.textContent = "Disk Defragmenter - Drive C: (500 MB FAT)";
-      else if (theme === 'dos') titleEl.textContent = "NORTON SPEED DISK - DRIVE C: [500MB]";
-      else if (theme === 'olddos') titleEl.textContent = "IBM PC DOS 3.30 SPEEDISK - DRIVE C: [500MB]";
-
+      updateShellTitle();
       renderAllCells();
     }
 
@@ -779,14 +806,19 @@
       }
 
       renderAllCells();
-      document.getElementById("txtStatusMsg").textContent = "500 MB Volume Ready. Ready for heavy churn simulation.";
+
+      const totalClusters = selectedCapacityMB * 256;
+      const ratio = Math.round(totalClusters / TOTAL_CELLS);
+      const capLabel = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
+      document.getElementById("txtStatusMsg").textContent =
+        `${capLabel} Volume Ready. Total Clusters: ${totalClusters.toLocaleString()} (1 Block = ${ratio} Clusters).`;
     }
 
     function defragHeavyChurn() {
       defragPause();
       if (cells.length === 0) initMatrix();
 
-      // Generate heavy, realistic fragmentation pattern across the 500MB drive
+      // Generate heavy, realistic fragmentation pattern across the selected drive volume
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].isSystem) continue;
 
@@ -810,7 +842,9 @@
       });
 
       renderAllCells();
-      document.getElementById("txtStatusMsg").textContent = "Drive C: Heavily Fragmented (64% Fragmentation). High seek latency detected!";
+      const capLabel = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
+      document.getElementById("txtStatusMsg").textContent =
+        `Drive C: (${capLabel}) Heavily Fragmented (64% Fragmentation). High seek latency detected!`;
     }
 
     function updateStatus() {
@@ -833,7 +867,8 @@
         const btn = document.getElementById("btnStartDefrag");
         btn.textContent = "Pause";
         btn.style.background = "#b91c1c";
-        document.getElementById("txtStatusMsg").textContent = "Defragmenting 500 MB Volume... Gathering scattered cluster runs.";
+        const capLabel = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
+        document.getElementById("txtStatusMsg").textContent = `Defragmenting ${capLabel} Volume... Gathering scattered cluster runs.`;
         runDefragCycle();
       }
     }
@@ -929,12 +964,13 @@
       const btn = document.getElementById("btnStartDefrag");
       btn.textContent = "Start Defrag";
       btn.style.background = "#059669";
-      document.getElementById("txtStatusMsg").textContent = "100% Complete. 500 MB Volume Fully Optimized. Free space consolidated at tail.";
+      const capLabel = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
+      document.getElementById("txtStatusMsg").textContent = `100% Complete. ${capLabel} Volume Fully Optimized. Free space consolidated at tail.`;
     }
 
     // Initialize Simulator on Load
     initMatrix();
-    defragInitVolume();
+    selectDiskCapacity(500);
   </script>
 </body>
 </html>
