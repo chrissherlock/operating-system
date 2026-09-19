@@ -241,6 +241,7 @@
     button.btn-secondary:hover { background: #475569; }
     button.btn-danger { background: var(--danger-color); color: #ffffff; }
     button.btn-danger:hover { background: #b91c1c; }
+    button.btn-active-action { background-color: #34d399 !important; color: #0f172a !important; font-weight: 800; border: 1px solid #059669; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .kernel-console {
@@ -556,12 +557,12 @@
       <div class="sticky-control-bar">
         <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">System Call Action Controls:</div>
         <div class="sandbox-controls">
-          <button onclick="inspectExec('creat')" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
-          <button onclick="inspectExec('open')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
-          <button onclick="inspectExec('read')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
-          <button onclick="inspectExec('write')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
-          <button onclick="inspectExec('seek')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
-          <button onclick="inspectExec('close')" class="btn-secondary btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
+          <button onclick="inspectExec('creat')" id="btn-creat" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
+          <button onclick="inspectExec('open')" id="btn-open" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
+          <button onclick="inspectExec('read')" id="btn-read" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
+          <button onclick="inspectExec('write')" id="btn-write" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
+          <button onclick="inspectExec('seek')" id="btn-seek" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
+          <button onclick="inspectExec('close')" id="btn-close" class="btn-secondary btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
         </div>
       </div>
 
@@ -744,7 +745,9 @@
       stateIndex: 0
     };
 
-    function updateInspectorUI(consoleMsg) {
+    const actionButtons = ['creat', 'open', 'read', 'write', 'seek', 'close'];
+
+    function updateInspectorUI(consoleMsg, activeCmd = null) {
       const fdEl = document.getElementById("insp-fd3");
       fdEl.textContent = kernelState.fd;
       fdEl.className = kernelState.isOpen ? "highlight" : "alert";
@@ -771,6 +774,18 @@
           node.classList.remove('active-state');
         }
       }
+
+      // Update button highlight states
+      actionButtons.forEach(btnName => {
+        const btn = document.getElementById(`btn-${btnName}`);
+        if (btn) {
+          if (btnName === activeCmd) {
+            btn.classList.add('btn-active-action');
+          } else {
+            btn.classList.remove('btn-active-action');
+          }
+        }
+      });
     }
 
     function inspectExec(cmd) {
@@ -786,36 +801,36 @@
         kernelState.dirty = "CLEAN";
         kernelState.size = 256;
         kernelState.stateIndex = 1; // FD_ALLOCATED
-        updateInspectorUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Process FD Table. Created Open File Table entry & loaded i-node #512 into RAM.`);
+        updateInspectorUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Process FD Table. Created Open File Table entry & loaded i-node #512 into RAM.`, cmd);
       } else if (cmd === 'read') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ read(3, buf, 4096);\n[Fault] EBADF: Bad file descriptor! You must call open() or creat() before reading.`);
+          updateInspectorUI(`$ read(3, buf, 4096);\n[Fault] EBADF: Bad file descriptor! You must call open() or creat() before reading.`, cmd);
           return;
         }
         kernelState.offset += 4096;
         kernelState.stateIndex = 2; // OFT_BOUND
-        updateInspectorUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into user space. Offset advanced to ${kernelState.offset} Bytes.`);
+        updateInspectorUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into user space. Offset advanced to ${kernelState.offset} Bytes.`, cmd);
       } else if (cmd === 'write') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ write(3, data, 64);\n[Fault] EBADF: Bad file descriptor! File handle is not open.`);
+          updateInspectorUI(`$ write(3, data, 64);\n[Fault] EBADF: Bad file descriptor! File handle is not open.`, cmd);
           return;
         }
         kernelState.offset += 64;
         kernelState.size += 64;
         kernelState.dirty = "DIRTY";
         kernelState.stateIndex = 3; // RAM_CACHED
-        updateInspectorUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`);
+        updateInspectorUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`, cmd);
       } else if (cmd === 'seek') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Fault] EBADF: Bad file descriptor!`);
+          updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Fault] EBADF: Bad file descriptor!`, cmd);
           return;
         }
         kernelState.offset = 0;
         kernelState.stateIndex = 2; // OFT_BOUND
-        updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`);
+        updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`, cmd);
       } else if (cmd === 'close') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ close(3);\n[Fault] EBADF: File descriptor 3 is already closed or inactive.`);
+          updateInspectorUI(`$ close(3);\n[Fault] EBADF: File descriptor 3 is already closed or inactive.`, cmd);
           return;
         }
         const flushed = kernelState.dirty === "DIRTY";
@@ -829,14 +844,14 @@
         kernelState.block = "None";
         kernelState.dirty = "CLEAN";
         kernelState.stateIndex = 0; // UNALLOCATED
-        updateInspectorUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`);
+        updateInspectorUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`, cmd);
       }
     }
 
     function loadChallenge(id) {
       const desc = document.getElementById("challengeDesc");
       if (id === 1) {
-        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Observe how the kernel immediately catches the fault.";
+        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
         inspectExec('close');
       } else if (id === 2) {
         desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-process systems, shared open file tables cause coupled offsets!";
