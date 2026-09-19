@@ -16,6 +16,7 @@
       --text-muted: #475569;
       --inspect-color: #d97706;
       --success-color: #059669;
+      --danger-color: #dc2626;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -93,7 +94,7 @@
     .c-num { color: #fbbf24; }
     .c-comm { color: #64748b; font-style: italic; }
 
-    /* Immersive Tour Panel Styles */
+    /* Tour Panel Styles */
     .tour-panel {
       border: 1px solid #bae6fd;
       border-left: 5px solid var(--accent);
@@ -154,15 +155,52 @@
       align-items: center;
     }
 
-    .sandbox-panel {
+    /* Kernel Inspector Sandbox Styles */
+    .kernel-sandbox {
       background: #0f172a;
       color: #f8fafc;
       border-radius: 8px;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
+    .inspector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .inspector-panel {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+    .inspector-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+      color: #cbd5e1;
+      padding: 3px 0;
+      border-bottom: 1px dashed #1e293b;
+    }
+    .inspector-row span.highlight { color: #34d399; font-weight: 700; }
+    .inspector-row span.alert { color: #f87171; font-weight: 700; }
+
     .sandbox-controls {
       display: flex;
       gap: 8px;
@@ -186,19 +224,23 @@
       color: #f8fafc;
     }
     button.btn-secondary:hover { background: #475569; }
+    button.btn-danger { background: var(--danger-color); }
+    button.btn-danger:hover { background: #b91c1c; }
     button:disabled { opacity: 0.4; cursor: not-allowed; }
-    .terminal-screen {
+
+    .kernel-console {
       background-color: #020617;
       color: #38bdf8;
       font-family: var(--font-mono);
       font-size: 0.85rem;
       padding: 14px;
       border-radius: 6px;
-      min-height: 140px;
+      min-height: 90px;
       line-height: 1.5;
       white-space: pre-wrap;
       border: 1px solid #1e293b;
     }
+
     ul, ol {
       padding-left: 20px;
       display: flex;
@@ -242,8 +284,6 @@
     .active-sim-node .sim-box { fill: #f0f9ff; stroke: #0284c7; stroke-width: 2.5px; filter: drop-shadow(0 3px 6px rgba(2,132,199,0.25)); }
     .active-sim-node .sim-text { fill: #0284c7; font-weight: 700; }
     .packet { fill: #0284c7; transition: all 0.5s ease-in-out; }
-
-    /* State Machine Diagram Styles */
     .sm-state { cursor: pointer; transition: all 0.25s ease; }
     .sm-box { fill: #ffffff; stroke: #0284c7; stroke-width: 2px; rx: 6px; }
     .sm-text { font-size: 10px; font-weight: 700; fill: #0369a1; text-anchor: middle; font-family: var(--font-mono); }
@@ -493,64 +533,72 @@
         <li><strong>Get and Set Attributes:</strong> Processes frequently need to inspect or modify file metadata to perform their work. For instance, software development tools like the UNIX <code>make</code> utility examine modification timestamps across source and object files to determine the minimum compilations required. Systems provide dedicated calls to read or alter these attributes (such as changing permission masks or flags).</li>
         <li><strong>Rename:</strong> Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.</li>
       </ol>
-
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 10px;">
-        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-            <button onclick="loadScenario(0)" id="sc-btn-0" style="font-size: 0.72rem; padding: 4px 8px;">1. creat() Config</button>
-            <button onclick="loadScenario(1)" id="sc-btn-1" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">2. open() Logs</button>
-            <button onclick="loadScenario(2)" id="sc-btn-2" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">3. read() Stream</button>
-            <button onclick="loadScenario(3)" id="sc-btn-3" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">4. write() State</button>
-            <button onclick="loadScenario(4)" id="sc-btn-4" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">5. lseek() DB</button>
-            <button onclick="loadScenario(5)" id="sc-btn-5" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">6. close() Flush</button>
-          </div>
-          <div style="display: flex; gap: 6px;">
-            <button onclick="microStep(-1)" class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">&larr; Prev Microstep</button>
-            <button onclick="microStep(1)" style="font-size: 0.75rem; padding: 4px 10px;">Next Microstep &rarr;</button>
-          </div>
-        </div>
-
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <g id="micro-node-0" class="sim-node">
-            <rect x="20" y="50" width="110" height="70" class="sim-box"/>
-            <text x="75" y="80" class="sim-text">User Process</text>
-            <text x="75" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-proc">Idle</text>
-          </g>
-          <path d="M 130 85 L 170 85" stroke="#94a3b8" stroke-width="2"/>
-          <g id="micro-node-1" class="sim-node">
-            <rect x="170" y="50" width="110" height="70" class="sim-box"/>
-            <text x="225" y="80" class="sim-text">FD Table</text>
-            <text x="225" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-fd">fd = --</text>
-          </g>
-          <path d="M 280 85 L 320 85" stroke="#94a3b8" stroke-width="2"/>
-          <g id="micro-node-2" class="sim-node">
-            <rect x="320" y="50" width="130" height="70" class="sim-box"/>
-            <text x="385" y="75" class="sim-text">Open File Table</text>
-            <text x="385" y="92" font-size="9" fill="#64748b" text-anchor="middle">&amp; I-Node in RAM</text>
-            <text x="385" y="106" font-size="9" fill="#0284c7" font-weight="700" text-anchor="middle" id="m-lbl-offset">Offset: 0B</text>
-          </g>
-          <path d="M 450 85 L 490 85" stroke="#94a3b8" stroke-width="2"/>
-          <g id="micro-node-3" class="sim-node">
-            <rect x="490" y="50" width="110" height="70" class="sim-box"/>
-            <text x="545" y="80" class="sim-text">Buffer Cache</text>
-            <text x="545" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-cache">Cache: Clean</text>
-          </g>
-          <path d="M 600 85 L 640 85" stroke="#94a3b8" stroke-width="2"/>
-          <g id="micro-node-4" class="sim-node">
-            <rect x="640" y="50" width="100" height="70" class="sim-box"/>
-            <text x="690" y="80" class="sim-text">Storage Media</text>
-            <text x="690" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-disk">Disk: Ready</text>
-          </g>
-          <circle id="microPacket" cx="75" cy="85" r="8" class="packet" style="opacity: 0; filter: drop-shadow(0 0 4px #0284c7);"/>
-        </svg>
-
-        <div id="microDesc" style="font-size: 0.88rem; color: var(--text); text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 6px; width: 100%; line-height: 1.5;">
-          Select a scenario above and click <strong>"Next Microstep"</strong> to trace kernel execution.
-        </div>
-      </div>
     </div>
 
-    <!-- Section Interactive Tour: The Anatomy of a File Descriptor -->
+    <!-- Section 3: Interactive Kernel Table Inspector Sandbox -->
+    <div class="card kernel-sandbox">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <div style="font-weight: 700; font-size: 1.1rem; color: #f8fafc;">3. Interactive Kernel Table Inspector Sandbox</div>
+        <div class="sandbox-controls">
+          <button onclick="inspectExec('creat')" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
+          <button onclick="inspectExec('open')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
+          <button onclick="inspectExec('read')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
+          <button onclick="inspectExec('write')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
+          <button onclick="inspectExec('seek')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
+          <button onclick="inspectExec('close')" class="btn-secondary btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
+        </div>
+      </div>
+      <p style="font-size: 0.88rem; color: #94a3b8;">
+        Execute POSIX system calls below to observe how the kernel updates volatile memory tables and file descriptors in real time.
+      </p>
+
+      <!-- Side-by-Side Kernel Table Panels -->
+      <div class="inspector-grid">
+        <!-- Panel 1: Process FD Table -->
+        <div class="inspector-panel">
+          <div class="inspector-title"><span>Process FD Table</span><span>(Private)</span></div>
+          <div class="inspector-row"><span>fd [0]:</span><span>stdin (keyboard)</span></div>
+          <div class="inspector-row"><span>fd [1]:</span><span>stdout (terminal)</span></div>
+          <div class="inspector-row"><span>fd [2]:</span><span>stderr (terminal)</span></div>
+          <div class="inspector-row"><span>fd [3]:</span><span id="insp-fd3" class="alert">-- UNUSED --</span></div>
+        </div>
+
+        <!-- Panel 2: Open File Table -->
+        <div class="inspector-panel">
+          <div class="inspector-title"><span>Open File Table</span><span>(Shared Kernel)</span></div>
+          <div class="inspector-row"><span>Target File:</span><span id="insp-filename">None</span></div>
+          <div class="inspector-row"><span>Access Flags:</span><span id="insp-flags">--</span></div>
+          <div class="inspector-row"><span>Reference Count:</span><span id="insp-ref">0</span></div>
+          <div class="inspector-row"><span>Byte Offset Pointer:</span><span id="insp-offset" class="highlight">0 Bytes</span></div>
+        </div>
+
+        <!-- Panel 3: Buffer Cache & i-Node -->
+        <div class="inspector-panel">
+          <div class="inspector-title"><span>Buffer Cache &amp; i-Node</span><span>(RAM / Disk)</span></div>
+          <div class="inspector-row"><span>Active i-Node:</span><span id="insp-inode">None</span></div>
+          <div class="inspector-row"><span>Cache Block:</span><span id="insp-block">None</span></div>
+          <div class="inspector-row"><span>Buffer Status:</span><span id="insp-dirty" class="highlight">CLEAN</span></div>
+          <div class="inspector-row"><span>File Size:</span><span id="insp-size">0 Bytes</span></div>
+        </div>
+      </div>
+
+      <!-- Guided Debugging Challenge Panel -->
+      <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 0.78rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; font-family: var(--font-mono);">Guided Debugging Challenge</div>
+        <div style="font-size: 0.85rem; color: #cbd5e1;" id="challengeDesc">
+          <strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> before initializing a file descriptor. Observe how the kernel traps invalid file descriptor references.
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <button onclick="loadChallenge(1)" style="font-size: 0.72rem; padding: 4px 8px;">1. Missing Open Bug</button>
+          <button onclick="loadChallenge(2)" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">2. Shared Offset Trap</button>
+          <button onclick="loadChallenge(3)" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">3. Unflushed Cache Risk</button>
+        </div>
+      </div>
+
+      <div id="inspectorConsole" class="kernel-console">$ sandbox telemetry initialized. Ready for system calls...</div>
+    </div>
+
+    <!-- Section Interative Tour: The Anatomy of a File Descriptor -->
     <div class="card tour-panel" id="tourCard">
       <div class="tour-header">
         <span id="tourStepCounter">Stage 1 of 4: The Handshake</span>
@@ -565,47 +613,34 @@
       <div style="background: #ffffff; border: 1px solid #7dd3fc; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase;" id="tourDiagramCaption">Figure: File Descriptor Lifecycle State Machine</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- State 0: UNALLOCATED -->
           <g id="sm-state-0" class="sm-state active-state" onclick="jumpTourStage(0)">
             <rect x="20" y="35" width="110" height="60" class="sm-box"/>
             <text x="75" y="60" class="sm-text">UNALLOCATED</text>
             <text x="75" y="76" class="sm-subtext">Process Closed</text>
           </g>
-
           <path d="M 130 65 L 180 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
           <text x="155" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">open()</text>
-
-          <!-- State 1: FD_ALLOCATED -->
           <g id="sm-state-1" class="sm-state" onclick="jumpTourStage(1)">
             <rect x="180" y="35" width="120" height="60" class="sm-box"/>
             <text x="240" y="60" class="sm-text">FD_ALLOCATED</text>
             <text x="240" y="76" class="sm-subtext">fd slot bound</text>
           </g>
-
           <path d="M 300 65 L 350 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
           <text x="325" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">read()</text>
-
-          <!-- State 2: OFT_BOUND -->
           <g id="sm-state-2" class="sm-state" onclick="jumpTourStage(2)">
             <rect x="350" y="35" width="110" height="60" class="sm-box"/>
             <text x="405" y="60" class="sm-text">OFT_BOUND</text>
             <text x="405" y="76" class="sm-subtext">Offset advancing</text>
           </g>
-
           <path d="M 460 65 L 510 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
           <text x="485" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">lseek()</text>
-
-          <!-- State 3: RAM_CACHED -->
           <g id="sm-state-3" class="sm-state" onclick="jumpTourStage(3)">
             <rect x="510" y="35" width="110" height="60" class="sm-box"/>
             <text x="565" y="60" class="sm-text">RAM_CACHED</text>
             <text x="565" y="76" class="sm-subtext">Random Access</text>
           </g>
-
-          <!-- Return arrow down and back for close() -->
           <path d="M 565 95 L 565 115 L 75 115 L 75 95" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#smarrow-close)"/>
           <text x="320" y="128" font-size="8" fill="#d97706" font-weight="700" text-anchor="middle">close() [Flushes Cache &amp; Deallocates FD]</text>
-
           <defs>
             <marker id="smarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
@@ -679,28 +714,114 @@
 }</pre>
     </div>
 
-    <!-- Section 3: Interactive Sandbox Playground -->
-    <div class="card sandbox-panel">
-      <div style="font-weight: 700; font-size: 1.1rem; color: #f8fafc;">3. Interactive POSIX System Call Sandbox</div>
-      <p style="font-size: 0.9rem; color: #94a3b8;">
-        Execute simulated POSIX system calls and inspect kernel table state changes in real time.
-      </p>
-
-      <div class="sandbox-controls">
-        <button onclick="sandboxExec('creat')">creat()</button>
-        <button class="btn-secondary" onclick="sandboxExec('open')">open()</button>
-        <button class="btn-secondary" onclick="sandboxExec('read')">read()</button>
-        <button class="btn-secondary" onclick="sandboxExec('write')">write()</button>
-        <button class="btn-secondary" onclick="sandboxExec('seek')">lseek()</button>
-        <button class="btn-secondary" onclick="sandboxExec('close')">close()</button>
-      </div>
-
-      <div id="terminal" class="terminal-screen">$ sandbox initialized. Ready for commands...</div>
-    </div>
-
   </div>
 
   <script>
+    // Kernel Table Inspector State Machine
+    let kernelState = {
+      isOpen: false,
+      fd: "-- UNUSED --",
+      filename: "None",
+      flags: "--",
+      ref: 0,
+      offset: 0,
+      inode: "None",
+      block: "None",
+      dirty: "CLEAN",
+      size: 0
+    };
+
+    function updateInspectorUI(consoleMsg) {
+      const fdEl = document.getElementById("insp-fd3");
+      fdEl.textContent = kernelState.fd;
+      fdEl.className = kernelState.isOpen ? "highlight" : "alert";
+
+      document.getElementById("insp-filename").textContent = kernelState.filename;
+      document.getElementById("insp-flags").textContent = kernelState.flags;
+      document.getElementById("insp-ref").textContent = kernelState.ref;
+      document.getElementById("insp-offset").textContent = kernelState.offset + " Bytes";
+      document.getElementById("insp-inode").textContent = kernelState.inode;
+      document.getElementById("insp-block").textContent = kernelState.block;
+
+      const dirtyEl = document.getElementById("insp-dirty");
+      dirtyEl.textContent = kernelState.dirty;
+      dirtyEl.className = kernelState.dirty === "DIRTY" ? "alert" : "highlight";
+
+      document.getElementById("insp-size").textContent = kernelState.size + " Bytes";
+      document.getElementById("inspectorConsole").textContent = consoleMsg;
+    }
+
+    function inspectExec(cmd) {
+      if (cmd === 'creat' || cmd === 'open') {
+        kernelState.isOpen = true;
+        kernelState.fd = "fd [3] (Active)";
+        kernelState.filename = cmd === 'creat' ? "app.conf (New)" : "access.log";
+        kernelState.flags = cmd === 'creat' ? "O_CREAT | O_WRONLY" : "O_RDWR | O_APPEND";
+        kernelState.ref = 1;
+        kernelState.offset = cmd === 'creat' ? 0 : 4096;
+        kernelState.inode = "i-node #512";
+        kernelState.block = "Block #104";
+        kernelState.dirty = "CLEAN";
+        kernelState.size = 256;
+        updateInspectorUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Process FD Table. Created Open File Table entry & loaded i-node #512 into RAM.`);
+      } else if (cmd === 'read') {
+        if (!kernelState.isOpen) {
+          updateInspectorUI(`$ read(3, buf, 4096);\n[Fault] EBADF: Bad file descriptor! You must call open() or creat() before reading.`);
+          return;
+        }
+        kernelState.offset += 4096;
+        updateInspectorUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into user space. Offset advanced to ${kernelState.offset} Bytes.`);
+      } else if (cmd === 'write') {
+        if (!kernelState.isOpen) {
+          updateInspectorUI(`$ write(3, data, 64);\n[Fault] EBADF: Bad file descriptor! File handle is not open.`);
+          return;
+        }
+        kernelState.offset += 64;
+        kernelState.size += 64;
+        kernelState.dirty = "DIRTY";
+        updateInspectorUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`);
+      } else if (cmd === 'seek') {
+        if (!kernelState.isOpen) {
+          updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Fault] EBADF: Bad file descriptor!`);
+          return;
+        }
+        kernelState.offset = 0;
+        updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`);
+      } else if (cmd === 'close') {
+        if (!kernelState.isOpen) {
+          updateInspectorUI(`$ close(3);\n[Fault] EBADF: File descriptor 3 is already closed or inactive.`);
+          return;
+        }
+        const flushed = kernelState.dirty === "DIRTY";
+        kernelState.isOpen = false;
+        kernelState.fd = "-- UNUSED --";
+        kernelState.filename = "None";
+        kernelState.flags = "--";
+        kernelState.ref = 0;
+        kernelState.offset = 0;
+        kernelState.inode = "None";
+        kernelState.block = "None";
+        kernelState.dirty = "CLEAN";
+        updateInspectorUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`);
+      }
+    }
+
+    function loadChallenge(id) {
+      const desc = document.getElementById("challengeDesc");
+      if (id === 1) {
+        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
+        inspectExec('close'); // ensure closed
+      } else if (id === 2) {
+        desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-process systems, shared open file tables cause coupled offsets!";
+        inspectExec('open');
+      } else if (id === 3) {
+        desc.innerHTML = "<strong>Challenge 3 (The Unflushed Cache Risk):</strong> Click <code>write()</code> to make the buffer <strong>DIRTY</strong>. Then notice how calling <code>close()</code> automatically flushes the volatile RAM cache to disk.";
+        inspectExec('open');
+        setTimeout(() => inspectExec('write'), 200);
+      }
+    }
+
+    // Tour State Machine
     const tourStages = [
       {
         counter: "Stage 1 of 4: The Handshake",
@@ -772,7 +893,6 @@
 
       document.getElementById("tourDiagramCaption").textContent = stage.caption;
 
-      // Update State Machine node highlights
       for (let i = 0; i < 4; i++) {
         const node = document.getElementById(`sm-state-${i}`);
         if (i === stage.stateIndex) {
@@ -792,149 +912,6 @@
         updateTourDisplay();
       }
     };
-
-    function sandboxExec(cmd) {
-      const term = document.getElementById("terminal");
-      if (cmd === 'creat') {
-        term.textContent = "$ creat(\"config.cfg\", 0644);\n[Kernel] i-node #512 allocated. Directory entry added. Mode set to rw-r--r--.\nStatus: Success (Return code: 0)";
-      } else if (cmd === 'open') {
-        term.textContent = "$ fd = open(\"config.cfg\", O_RDWR);\n[Kernel] Open File Table entry created for UID 1000. Offset pointer set to byte 0.\nStatus: Success (File Descriptor fd = 3)";
-      } else if (cmd === 'read') {
-        term.textContent = "$ read(3, buffer, 4096);\n[Kernel] Copied 256 bytes from buffer cache block #104 into user buffer. Offset advanced to 256.\nStatus: Success (Bytes read: 256)";
-      } else if (cmd === 'write') {
-        term.textContent = "$ write(3, \"TIMEOUT=30\\n\", 11);\n[Kernel] Copied 11 bytes into buffer cache block #104 at offset 256. File size updated to 11 bytes.\nStatus: Success (Bytes written: 11)";
-      } else if (cmd === 'seek') {
-        term.textContent = "$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned file read/write offset pointer for descriptor fd=3 back to byte position 0.\nStatus: Success (Offset: 0)";
-      } else if (cmd === 'close') {
-        term.textContent = "$ close(3);\n[Kernel] Flushed cached blocks to disk. Released file descriptor fd=3.\nStatus: Success (Descriptor closed)";
-      }
-    }
-
-    const scenarios = [
-      {
-        name: "1. creat() Config",
-        steps: [
-          { node: 0, text: "Microstep 1/5: Daemon process invokes <code>creat(\"/etc/app.conf\", 0644)</code>.", proc: "Calling creat()", fd: "fd = --", offset: "Offset: --", cache: "Clean", disk: "Ready" },
-          { node: 0, text: "Microstep 2/5: Kernel traps system call and validates parent directory write permissions.", proc: "Validating Perms", fd: "fd = --", offset: "Offset: --", cache: "Clean", disk: "Ready" },
-          { node: 4, text: "Microstep 3/5: File system allocates new i-node on disk and adds directory entry mapping.", proc: "Allocating i-node", fd: "fd = --", offset: "Offset: --", cache: "Allocated", disk: "i-node #512 Created" },
-          { node: 2, text: "Microstep 4/5: Kernel establishes initial metadata (owner UID, permissions 0644, timestamps).", proc: "Writing Metadata", fd: "fd = --", offset: "Offset: 0B", cache: "Allocated", disk: "Attributes Set" },
-          { node: 1, text: "Microstep 5/5: Kernel assigns file descriptor <code>fd = 3</code> to process and returns success.", proc: "Complete", fd: "fd = 3 Active", offset: "Offset: 0B", cache: "Ready", disk: "Persisted" }
-        ]
-      },
-      {
-        name: "2. open() Logs",
-        steps: [
-          { node: 0, text: "Microstep 1/6: Worker process invokes <code>open(\"access.log\", O_APPEND)</code>.", proc: "Calling open()", fd: "fd = --", offset: "Offset: --", cache: "Clean", disk: "Ready" },
-          { node: 4, text: "Microstep 2/6: Kernel resolves directory path and locates existing i-node for log.", proc: "Path Lookup", fd: "fd = --", offset: "Offset: --", cache: "Checking", disk: "i-node Located" },
-          { node: 2, text: "Microstep 3/6: Kernel validates write permissions against process credentials.", proc: "Checking Perms", fd: "fd = --", offset: "Offset: --", cache: "RAM Cached", disk: "Verified" },
-          { node: 2, text: "Microstep 4/6: Open file table entry is created in kernel memory, loading i-node.", proc: "Table Entry", fd: "fd = --", offset: "Offset: EOF", cache: "Active", disk: "Bound" },
-          { node: 2, text: "Microstep 5/6: Kernel evaluates <code>O_APPEND</code> flag, setting offset pointer to absolute end.", proc: "Appending", fd: "fd = --", offset: "Offset: EOF", cache: "Active", disk: "Bound" },
-          { node: 1, text: "Microstep 6/6: Process-local file descriptor <code>fd = 4</code> allocated pointing to table.", proc: "Complete", fd: "fd = 4 Active", offset: "Offset: EOF", cache: "Ready", disk: "Ready" }
-        ]
-      },
-      {
-        name: "3. read() Stream",
-        steps: [
-          { node: 0, text: "Microstep 1/6: Compiler process invokes <code>read(fd, buffer, 4096)</code>.", proc: "Calling read()", fd: "fd = 3", offset: "Offset: Start", cache: "Clean", disk: "Ready" },
-          { node: 1, text: "Microstep 2/6: Kernel verifies that file descriptor <code>fd = 3</code> is open for reading.", proc: "Validating FD", fd: "fd = 3 Valid", offset: "Offset: Start", cache: "Clean", disk: "Ready" },
-          { node: 2, text: "Microstep 3/6: Kernel checks current offset pointer and resolves i-node block mapping.", proc: "Translating", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Checking", disk: "Mapping" },
-          { node: 3, text: "Microstep 4/6: Kernel checks Buffer Cache; cache hit bypasses physical disk access.", proc: "Cache Lookup", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Cache Hit!", disk: "Bypassed" },
-          { node: 0, text: "Microstep 5/6: Kernel copies 4096 bytes directly from kernel space into user buffer.", proc: "Copying Data", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Copied", disk: "Ready" },
-          { node: 2, text: "Microstep 6/6: Kernel automatically advances logical file offset pointer by bytes read.", proc: "Complete", fd: "fd = 3 Active", offset: "Offset: +4096B", cache: "Ready", disk: "Ready" }
-        ]
-      },
-      {
-        name: "4. write() State",
-        steps: [
-          { node: 0, text: "Microstep 1/6: Text editor process invokes <code>write(fd, buffer, 26)</code>.", proc: "Calling write()", fd: "fd = 3", offset: "Offset: Current", cache: "Clean", disk: "Ready" },
-          { node: 2, text: "Microstep 2/6: Kernel verifies write permissions and checks current file offset pointer.", proc: "Validating", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Clean", disk: "Ready" },
-          { node: 3, text: "Microstep 3/6: Kernel locates target buffer cache block corresponding to offset.", proc: "Locating Block", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Block Ready", disk: "Ready" },
-          { node: 3, text: "Microstep 4/6: Data payload bytes are copied from user space into buffer cache blocks.", proc: "Writing Cache", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Cache Updated", disk: "Ready" },
-          { node: 2, text: "Microstep 5/6: Buffer marked as <strong>dirty</strong>; in-memory i-node updates size and timestamp.", proc: "Marking Dirty", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Dirty Buffer", disk: "Pending" },
-          { node: 2, text: "Microstep 6/6: Logical offset pointer advances by number of bytes written.", proc: "Complete", fd: "fd = 3 Active", offset: "Offset: Advanced", cache: "Dirty Buffer", disk: "Pending" }
-        ]
-      },
-      {
-        name: "5. lseek() DB",
-        steps: [
-          { node: 0, text: "Microstep 1/5: DB engine needs record #504 at byte <code>245760</code>, calls <code>lseek()</code>.", proc: "Calling lseek()", fd: "fd = 5", offset: "Offset: 0B", cache: "Clean", disk: "Ready" },
-          { node: 2, text: "Microstep 2/5: Kernel validates target offset against maximum permissible file size limit.", proc: "Validating Limit", fd: "fd = 5 Active", offset: "Offset: Validated", cache: "Clean", disk: "Ready" },
-          { node: 2, text: "Microstep 3/5: Kernel updates logical byte offset pointer inside Open File Table to <code>245760</code>.", proc: "Updating Offset", fd: "fd = 5 Active", offset: "Offset: 245760B", cache: "Clean", disk: "Ready" },
-          { node: 4, text: "Microstep 4/5: <strong>Zero disk I/O occurs</strong>; no physical storage head movement triggered.", proc: "Zero Disk I/O", fd: "fd = 5 Active", offset: "Offset: 245760B", cache: "Bypassed", disk: "No Movement" },
-          { node: 0, text: "Microstep 5/5: Subsequent read or write operations execute immediately at new position.", proc: "Complete", fd: "fd = 5 Active", offset: "Offset: 245760B", cache: "Ready", disk: "Ready" }
-        ]
-      },
-      {
-        name: "6. close() Flush",
-        steps: [
-          { node: 0, text: "Microstep 1/5: Utility process invokes <code>close(fd)</code>.", proc: "Calling close()", fd: "fd = 3", offset: "Offset: Active", cache: "Dirty", disk: "Pending" },
-          { node: 2, text: "Microstep 2/5: Kernel checks open file table reference count associated with descriptor.", proc: "Checking Refs", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Dirty", disk: "Pending" },
-          { node: 4, text: "Microstep 3/5: Kernel flushes dirty cache blocks out to physical storage media (disks/SSDs).", proc: "Flushing Cache", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Flushing...", disk: "Writing..." },
-          { node: 1, text: "Microstep 4/5: Kernel deallocates process-local file descriptor slot in per-process FD table.", proc: "Deallocating FD", fd: "fd Released", offset: "Offset: Cleared", cache: "Clean", disk: "Synced" },
-          { node: 2, text: "Microstep 5/5: Open file table reference count decremented; i-node reference released.", proc: "Complete", fd: "Closed", offset: "Cleared", cache: "Clean", disk: "Persisted" }
-        ]
-      }
-    ];
-
-    let currentScenario = 0;
-    let currentMicrostep = 0;
-
-    function loadScenario(index) {
-      currentScenario = index;
-      currentMicrostep = 0;
-
-      for (let i = 0; i < 6; i++) {
-        const btn = document.getElementById(`sc-btn-${i}`);
-        if (i === index) {
-          btn.style.backgroundColor = 'var(--accent)';
-          btn.className = '';
-        } else {
-          btn.style.backgroundColor = '#334155';
-          btn.className = 'btn-secondary';
-        }
-      }
-      renderMicrostepState();
-    }
-
-    function microStep(dir) {
-      const maxSteps = scenarios[currentScenario].steps.length;
-      currentMicrostep += dir;
-      if (currentMicrostep < 0) currentMicrostep = 0;
-      if (currentMicrostep >= maxSteps) currentMicrostep = maxSteps - 1;
-      renderMicrostepState();
-    }
-
-    const microCoords = [75, 225, 385, 545, 690];
-
-    function renderMicrostepState() {
-      const scenario = scenarios[currentScenario];
-      const step = scenario.steps[currentMicrostep];
-
-      for (let i = 0; i < 5; i++) {
-        const el = document.getElementById(`micro-node-${i}`);
-        if (i === step.node) {
-          el.classList.add('active-sim-node');
-        } else {
-          el.classList.remove('active-sim-node');
-        }
-      }
-
-      const pkt = document.getElementById('microPacket');
-      pkt.style.opacity = '1';
-      pkt.setAttribute('cx', microCoords[step.node]);
-
-      document.getElementById('m-lbl-proc').textContent = step.proc;
-      document.getElementById('m-lbl-fd').textContent = step.fd;
-      document.getElementById('m-lbl-offset').textContent = step.offset;
-      document.getElementById('m-lbl-cache').textContent = step.cache;
-      document.getElementById('m-lbl-disk').textContent = step.disk;
-
-      document.getElementById('microDesc').innerHTML = `<strong>Scenario: ${scenario.name} (Step ${currentMicrostep + 1} of ${scenario.steps.length}):</strong> ${step.text}`;
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      loadScenario(0);
-    });
   </script>
 </body>
 </html>
