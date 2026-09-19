@@ -221,7 +221,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-modern .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 2px;
+      gap: 1px;
       width: 100%;
       max-width: 1000px;
     }
@@ -439,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (YELLOW BG WITH BLUE DOT)
+       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS STIPPLED UNUSED BLOCKS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -497,7 +497,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
+      gap: 1px; /* Exactly 1px grid gap */
       width: 100%;
       max-width: 950px;
     }
@@ -515,8 +515,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 0;
       margin: 0;
     }
-    /* MS-DOS 6.22 Defrag Palette: Yellow background with blue dot/glyph for used blocks */
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
+    /* MS-DOS 6.22 Defrag Palette: Unused blocks use pure CSS radial stipples filling 100% of cell */
+    .theme-olddos .c-free {
+      background-color: #0000aa;
+      background-image: radial-gradient(#55ffff 35%, transparent 35%);
+      background-size: 3px 3px;
+    }
     .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
@@ -562,20 +566,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
-
-    /* Matrix Dimensions */
-    .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(100, 1fr);
-      gap: 2px;
-      width: 100%;
-      max-width: 1000px;
-    }
-    .c-cell {
-      width: 100%;
-      height: 100%;
-      transition: background-color 0.04s ease;
-    }
   </style>
 </head>
 <body>
@@ -839,7 +829,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          el.textContent = "▒";
+          // c-free uses pure CSS background fill, no text character needed
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1106,11 +1096,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix MS-DOS 6.22 block colors to yellow background with blue dot
+COMMIT_MSG = """Use pure CSS background stipple for unused blocks without padding
 
-Update week10-file-management/03-filesystem-implementation.html so that used
-blocks in the MS-DOS 6.22 theme render with a yellow background and blue
-cluster glyphs (■), matching authentic Microsoft Defrag color mapping.
+Update week10-file-management/03-filesystem-implementation.html to render
+MS-DOS 6.22 unused blocks with a tight CSS gradient fill pattern rather than
+text characters, eliminating character padding and filling cells edge-to-edge.
 """
 
 def run_git_step(cmd, desc):
@@ -1133,10 +1123,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging MS-DOS 6.22 yellow bg blue dot color update")
+    run_git_step(["git", "add", target_file], "Staging pure CSS free blocks update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> MS-DOS 6.22 yellow background with blue dot successfully deployed!")
+    print("--> Pure CSS stippled free blocks successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
