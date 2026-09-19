@@ -329,12 +329,31 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.1.4: File Access -->
+    <!-- Section 4.1.4: File Access (Expanded) -->
     <div class="card">
       <h2>4.1.4 File Access</h2>
       <p>
-        Early operating systems provided only <strong>sequential access</strong>, where a process had to read all bytes or records in order from the beginning. With the advent of disk storage, <strong>random-access files</strong> emerged, enabling bytes or records to be accessed out of order or by key. Modern systems support explicit seeking via system calls like `lseek` to reposition the file offset pointer.
+        File access methods dictate how processes interact with stored data elements within a file. Operating systems have historically supported distinct access paradigms based on the underlying storage media and application demands:
       </p>
+      <ul>
+        <li><strong>Sequential Access:</strong>
+          Early operating systems provided exclusively sequential access. In this model, a process was required to read all bytes or records in strict sequential order, starting from the beginning of the file. While files could be rewound to the start to allow repeated reads, skipping ahead or reading out of order was impossible. This access model was well-suited for magnetic tape storage media where sequential head traversal was mandatory.
+        </li>
+        <li><strong>Random-Access Files:</strong>
+          With the transition from magnetic tape to magnetic disks and solid-state drives, random-access files became feasible and essential. Random-access files permit bytes or records to be read or written in any arbitrary order or accessed directly by key.
+          <br><br>
+          <em>Practical Application:</em> Random-access files are vital for modern database management systems. For instance, when an airline customer requests a seat reservation on a specific flight, the reservation program must instantly access that exact flight record without scanning thousands of preceding flight records.
+        </li>
+      </ul>
+
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Positioning Mechanisms</div>
+      <p>
+        To specify where read or write operations should occur within random-access files, operating systems utilize two primary design approaches:
+      </p>
+      <ol>
+        <li><strong>Explicit Position per Operation:</strong> Every individual read or write system call includes the exact logical file position or offset as an explicit argument.</li>
+        <li><strong>Separate Seek Operation:</strong> A dedicated system call (such as <code>lseek</code> in UNIX and Windows) is provided to reposition the file offset pointer. Once positioned via a seek operation, subsequent read or write calls proceed sequentially from that current offset. This latter mechanism is standard across modern UNIX and Windows operating systems.</li>
+      </ol>
     </div>
 
     <!-- Section 4.1.5: File Attributes -->
@@ -522,11 +541,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Update module 01 with expanded sections and remove all citations
+COMMIT_MSG = """Expand subsection 4.1.4 file access in week10 module 01
 
-Refine week10-file-management/01-files-abstraction.html to include
-comprehensive sections 4.1.1 through 4.1.3 with diagrams, tutorials,
-and sandbox, ensuring zero source citation tags."""
+Update week10-file-management/01-files-abstraction.html to include
+comprehensive coverage of sequential vs random access, database use
+cases, and explicit positioning mechanisms such as lseek."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -546,12 +565,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote clean module file to {target_file}")
+    print(f"Wrote expanded file access module file to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging clean 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging expanded file access 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Clean Module 01 created, committed, and pushed successfully!")
+    print("--> Expanded File Access Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
