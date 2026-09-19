@@ -83,14 +83,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     pre {
       background-color: #0f172a;
-      color: #38bdf8;
+      color: #f8fafc;
       font-family: var(--font-mono);
       font-size: 0.82rem;
-      padding: 14px;
+      padding: 16px;
       border-radius: 6px;
       overflow-x: auto;
-      line-height: 1.5;
+      line-height: 1.6;
     }
+    /* Syntax Highlighting Colors */
+    .c-kw { color: #f472b6; font-weight: 600; }     /* Keywords: int, return, if, while */
+    .c-type { color: #38bdf8; font-weight: 600; }   /* Types: char */
+    .c-fn { color: #6ee7b7; font-weight: 600; }     /* Functions: open, read, write, close */
+    .c-prep { color: #c084fc; font-weight: 600; }   /* Preprocessor: #include, #define */
+    .c-num { color: #fbbf24; }                      /* Numbers: 4096, 0700, 1, 2 */
+    .c-str { color: #86efac; }                      /* Strings / Comments */
+    .c-comm { color: #64748b; font-style: italic; } /* Comments */
+
     .tutorial-panel {
       border: 1px solid #fed7aa;
       border-left: 4px solid var(--inspect-color);
@@ -204,7 +213,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
-    /* Debugger Flow Styles */
     .sim-node { transition: all 0.3s ease; }
     .sim-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5px; rx: 6px; }
     .sim-text { font-size: 11px; font-weight: 600; fill: #334155; text-anchor: middle; }
@@ -435,7 +443,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </table>
     </div>
 
-    <!-- Section 4.1.6: File Operations & System Calls (Interactive Microstep Kernel Debugger) -->
+    <!-- Section 4.1.6: File Operations & System Calls -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
       <p>
@@ -454,7 +462,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <li><strong>Rename:</strong> Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.</li>
       </ol>
 
-      <!-- Interactive Microstep Kernel Debugger Widget -->
       <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 4px; flex-wrap: wrap;">
@@ -472,51 +479,36 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
 
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Node 1: User Process -->
           <g id="micro-node-0" class="sim-node">
             <rect x="20" y="50" width="110" height="70" class="sim-box"/>
             <text x="75" y="80" class="sim-text">User Process</text>
             <text x="75" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-proc">Idle</text>
           </g>
-
           <path d="M 130 85 L 170 85" stroke="#94a3b8" stroke-width="2"/>
-
-          <!-- Node 2: FD Table -->
           <g id="micro-node-1" class="sim-node">
             <rect x="170" y="50" width="110" height="70" class="sim-box"/>
             <text x="225" y="80" class="sim-text">FD Table</text>
             <text x="225" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-fd">fd = --</text>
           </g>
-
           <path d="M 280 85 L 320 85" stroke="#94a3b8" stroke-width="2"/>
-
-          <!-- Node 3: Open File Table -->
           <g id="micro-node-2" class="sim-node">
             <rect x="320" y="50" width="130" height="70" class="sim-box"/>
             <text x="385" y="75" class="sim-text">Open File Table</text>
             <text x="385" y="92" font-size="9" fill="#64748b" text-anchor="middle">&amp; I-Node in RAM</text>
             <text x="385" y="106" font-size="9" fill="#0284c7" font-weight="700" text-anchor="middle" id="m-lbl-offset">Offset: 0B</text>
           </g>
-
           <path d="M 450 85 L 490 85" stroke="#94a3b8" stroke-width="2"/>
-
-          <!-- Node 4: Buffer Cache -->
           <g id="micro-node-3" class="sim-node">
             <rect x="490" y="50" width="110" height="70" class="sim-box"/>
             <text x="545" y="80" class="sim-text">Buffer Cache</text>
             <text x="545" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-cache">Cache: Clean</text>
           </g>
-
           <path d="M 600 85 L 640 85" stroke="#94a3b8" stroke-width="2"/>
-
-          <!-- Node 5: Storage Media -->
           <g id="micro-node-4" class="sim-node">
             <rect x="640" y="50" width="100" height="70" class="sim-box"/>
             <text x="690" y="80" class="sim-text">Storage Media</text>
             <text x="690" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-disk">Disk: Ready</text>
           </g>
-
-          <!-- Animated Data Packet -->
           <circle id="microPacket" cx="75" cy="85" r="8" class="packet" style="opacity: 0; filter: drop-shadow(0 0 4px #0284c7);"/>
         </svg>
 
@@ -526,44 +518,44 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.1.7: Example Program -->
+    <!-- Section 4.1.7: Example Program (Syntax Highlighted) -->
     <div class="card">
       <h2>4.1.7 Example: POSIX File-Copy Program</h2>
       <p>
         Below is a standard POSIX C implementation illustrating file descriptor handling, error checking, and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
       </p>
-      <pre>#include &lt;sys/types.h&gt;
-#include &lt;fcntl.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;unistd.h&gt;
+      <pre><span class="c-prep">#include &lt;sys/types.h&gt;</span>
+<span class="c-prep">#include &lt;fcntl.h&gt;</span>
+<span class="c-prep">#include &lt;stdlib.h&gt;</span>
+<span class="c-prep">#include &lt;unistd.h&gt;</span>
 
-#define BUF_SIZE 4096
-#define OUTPUT_MODE 0700
+<span class="c-prep">#define BUF_SIZE 4096</span>
+<span class="c-prep">#define OUTPUT_MODE 0700</span>
 
-int main(int argc, char *argv[]) {
-    int in_fd, out_fd, rd_count, wt_count;
-    char buffer[BUF_SIZE];
+<span class="c-type">int</span> <span class="c-fn">main</span>(<span class="c-type">int</span> argc, <span class="c-type">char</span> *argv[]) {
+    <span class="c-type">int</span> in_fd, out_fd, rd_count, wt_count;
+    <span class="c-type">char</span> buffer[BUF_SIZE];
 
-    if (argc != 3) exit(1); // Syntax error
+    <span class="c-kw">if</span> (argc != <span class="c-num">3</span>) <span class="c-fn">exit</span>(<span class="c-num">1</span>); <span class="c-comm">// Syntax error</span>
 
-    in_fd = open(argv[1], O_RDONLY);
-    if (in_fd < 0) exit(2); // Source open failed
+    in_fd = <span class="c-fn">open</span>(argv[<span class="c-num">1</span>], O_RDONLY);
+    <span class="c-kw">if</span> (in_fd &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">2</span>); <span class="c-comm">// Source open failed</span>
 
-    out_fd = creat(argv[2], OUTPUT_MODE);
-    if (out_fd < 0) exit(3); // Destination creation failed
+    out_fd = <span class="c-fn">creat</span>(argv[<span class="c-num">2</span>], OUTPUT_MODE);
+    <span class="c-kw">if</span> (out_fd &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">3</span>); <span class="c-comm">// Destination creation failed</span>
 
-    while (1) {
-        rd_count = read(in_fd, buffer, BUF_SIZE);
-        if (rd_count < 0) exit(4); // Read error
-        if (rd_count == 0) break; // EOF reached
+    <span class="c-kw">while</span> (<span class="c-num">1</span>) {
+        rd_count = <span class="c-fn">read</span>(in_fd, buffer, BUF_SIZE);
+        <span class="c-kw">if</span> (rd_count &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">4</span>); <span class="c-comm">// Read error</span>
+        <span class="c-kw">if</span> (rd_count == <span class="c-num">0</span>) <span class="c-kw">break</span>; <span class="c-comm">// EOF reached</span>
 
-        wt_count = write(out_fd, buffer, rd_count);
-        if (wt_count <= 0) exit(5); // Write error
+        wt_count = <span class="c-fn">write</span>(out_fd, buffer, rd_count);
+        <span class="c-kw">if</span> (wt_count &lt;= <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">5</span>); <span class="c-comm">// Write error</span>
     }
 
-    close(in_fd);
-    close(out_fd);
-    exit(0);
+    <span class="c-fn">close</span>(in_fd);
+    <span class="c-fn">close</span>(out_fd);
+    <span class="c-fn">exit</span>(<span class="c-num">0</span>);
 }</pre>
     </div>
 
@@ -669,7 +661,6 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // Microstep Simulator State
     const scenarios = [
       {
         name: "1. creat() Config",
@@ -743,7 +734,6 @@ int main(int argc, char *argv[]) {
       currentScenario = index;
       currentMicrostep = 0;
 
-      // Update button styling
       for (let i = 0; i < 6; i++) {
         const btn = document.getElementById(`sc-btn-${i}`);
         if (i === index) {
@@ -771,7 +761,6 @@ int main(int argc, char *argv[]) {
       const scenario = scenarios[currentScenario];
       const step = scenario.steps[currentMicrostep];
 
-      // Highlight active node
       for (let i = 0; i < 5; i++) {
         const el = document.getElementById(`micro-node-${i}`);
         if (i === step.node) {
@@ -781,23 +770,19 @@ int main(int argc, char *argv[]) {
         }
       }
 
-      // Move packet
       const pkt = document.getElementById('microPacket');
       pkt.style.opacity = '1';
       pkt.setAttribute('cx', microCoords[step.node]);
 
-      // Update labels
       document.getElementById('m-lbl-proc').textContent = step.proc;
       document.getElementById('m-lbl-fd').textContent = step.fd;
       document.getElementById('m-lbl-offset').textContent = step.offset;
       document.getElementById('m-lbl-cache').textContent = step.cache;
       document.getElementById('m-lbl-disk').textContent = step.disk;
 
-      // Update description
       document.getElementById('microDesc').innerHTML = `<strong>Scenario: ${scenario.name} (Step ${currentMicrostep + 1} of ${scenario.steps.length}):</strong> ${step.text}`;
     }
 
-    // Initialize on page load
     window.addEventListener('DOMContentLoaded', () => {
       loadScenario(0);
     });
@@ -806,11 +791,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Add granular microsteps to interactive kernel debugger in module 01
+COMMIT_MSG = """Add syntax highlighting to POSIX file-copy example in module 01
 
-Update week10-file-management/01-files-abstraction.html to include detailed,
-step-by-step kernel microsteps for each of the six practical file operation
-scenarios within the interactive simulator widget."""
+Update week10-file-management/01-files-abstraction.html to feature
+syntax highlighting across C preprocessor directives, keywords, types,
+and system calls within subsection 4.1.7."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -830,12 +815,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with microsteps simulator to {target_file}")
+    print(f"Wrote syntax-highlighted module file to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging microsteps update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging syntax highlighting update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Microsteps Simulator Module 01 created, committed, and pushed successfully!")
+    print("--> Syntax-Highlighted Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
