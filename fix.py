@@ -354,7 +354,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #0369a1;
     }
 
-    /* Side-by-side hard link inspector */
+    /* Live Telemetry Panels */
     .inspector-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -980,16 +980,47 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- Architectural Overview of the Interactive Walkthrough -->
+    <div class="card">
+      <h2>Understanding the Interactive Walkthrough</h2>
+      <p>
+        The simulator below demonstrates the lower-level mechanics carried out by an operating system kernel during directory operations. Rather than treating directories as user-friendly visual folders, the simulator reveals how directories operate as <strong>lookup tables of <code>(Filename, i-node)</code> pairs</strong> and how a file's lifecycle is determined by its <strong>link reference count</strong>:
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 6px;">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 4px; padding: 12px;">
+          <strong style="color: var(--accent); display: block; margin-bottom: 4px;">1. Directory Table Panel</strong>
+          <span style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
+            Represents the on-disk data blocks of the directory file. Notice how newly allocated directories are never empty—they immediately bind entries <code>.</code> (pointing to the directory itself) and <code>..</code> (pointing to its parent). Additional files or hard links simply occupy successive slots.
+          </span>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--success-color); border-radius: 4px; padding: 12px;">
+          <strong style="color: var(--success-color); display: block; margin-bottom: 4px;">2. i-Node Telemetry Panel</strong>
+          <span style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
+            Monitors the target file's metadata node. Watch how the <strong>Hard Link Count</strong> transitions ($1 \rightarrow 2 \rightarrow 1 \rightarrow 0$). The physical data blocks are not copied when creating hard links, and storage is only reclaimed when the reference count drops to zero.
+          </span>
+        </div>
+      </div>
+
+      <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 14px; margin-top: 6px;">
+        <strong style="color: #b45309; display: block; margin-bottom: 4px; font-size: 0.92rem;">Walkthrough Milestones to Observe:</strong>
+        <ol style="margin-top: 4px;">
+          <li><strong>Step 1 (<code>mkdir</code>):</strong> The kernel creates initial entries <code>.</code> and <code>..</code> automatically to enable recursive navigation.</li>
+          <li><strong>Step 2 (<code>creat</code>):</strong> Creates <code>main.c</code>, allocating i-node <code>#120</code> with an initial link count of 1.</li>
+          <li><strong>Step 3 (<code>link</code>):</strong> Adds <code>backup.c</code> pointing to i-node <code>#120</code>. Disk block usage remains unchanged at 12 KB, but the link count increases to 2.</li>
+          <li><strong>Step 4 (<code>rmdir</code> failure):</strong> Demonstrates the <strong>emptiness invariant</strong>. The kernel denies deletion with <code>ENOTEMPTY</code> because active entries exist beyond <code>.</code> and <code>..</code>.</li>
+          <li><strong>Step 5 (<code>unlink</code>):</strong> Deleting <code>main.c</code> leaves data blocks intact because <code>backup.c</code> retains link count 1. Deleting <code>backup.c</code> reduces the link count to 0, finally triggering block deallocation.</li>
+        </ol>
+      </div>
+    </div>
+
     <!-- Interactive Step-by-Step Directory Operations Walkthrough -->
     <div class="card fs-sim-card">
       <div class="fs-sim-header">
         <span class="fs-sim-title">Interactive Walkthrough: Directory Lifecycle &amp; System Calls</span>
         <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">Step-by-Step POSIX Simulation</span>
       </div>
-
-      <p style="color:#cbd5e1; font-size:0.86rem; margin-top:2px;">
-        Follow the sequential steps below to observe how the kernel manipulates directory blocks, enforces deletion constraints, updates reference counts, and executes deferred unlinking.
-      </p>
 
       <!-- Step Cards -->
       <div class="tutorial-steps">
@@ -1272,7 +1303,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         bCount.textContent = "0";
         stEl.textContent = "FREE";
         stEl.className = "alert";
-        consoleEl.textContent = "$ mkdir(\"/home/project\", 0755);\n[Kernel] Allocated directory i-node #115.\n[Kernel] Initialized entry [0] '.' pointing to self (#115).\n[Kernel] Initialized entry [1] '..' pointing to parent /home (#4).";
+        consoleEl.textContent = "$ mkdir(\"/home/project\", 0755);\n[Kernel] Allocated directory i-node #115.\n[Kernel] Initialized entry [0] '.' pointing to self (#115).\n[Kernel] Initialized entry [1] '..' pointing to parent /home (#4).\n[Table] Formatted directory lookup table with initial structural self-references.";
       } else if (stepNum === 2) {
         e0.innerHTML = "<span class='highlight'>. &rarr; i-node #115</span>";
         e1.innerHTML = "<span class='highlight'>.. &rarr; i-node #4</span>";
@@ -1282,7 +1313,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         bCount.textContent = "3 (12 KB)";
         stEl.textContent = "ACTIVE";
         stEl.className = "highlight";
-        consoleEl.textContent = "$ creat(\"/home/project/main.c\", 0644);\n[Kernel] Allocated regular i-node #120 with 3 disk blocks.\n[Kernel] Bound entry 'main.c' -> i-node #120 in directory #115.\n[Kernel] Set i-node #120 link_count = 1.";
+        consoleEl.textContent = "$ creat(\"/home/project/main.c\", 0644);\n[Kernel] Allocated regular i-node #120 with 3 disk blocks (12 KB total).\n[Kernel] Bound entry [2] 'main.c' -> i-node #120 in directory #115.\n[Kernel] Initialized i-node #120 reference link_count = 1.";
       } else if (stepNum === 3) {
         e0.innerHTML = "<span class='highlight'>. &rarr; i-node #115</span>";
         e1.innerHTML = "<span class='highlight'>.. &rarr; i-node #4</span>";
@@ -1292,9 +1323,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         bCount.textContent = "3 (12 KB)";
         stEl.textContent = "ACTIVE";
         stEl.className = "highlight";
-        consoleEl.textContent = "$ link(\"main.c\", \"backup.c\");\n[Kernel] Bound entry 'backup.c' to existing i-node #120.\n[Kernel] Incremented i-node #120 link_count to 2.\n[Notice] Zero data blocks copied. Both names map to the identical storage extent.";
+        consoleEl.textContent = "$ link(\"main.c\", \"backup.c\");\n[Kernel] Wrote new entry [3] 'backup.c' mapped to existing i-node #120.\n[Kernel] Incremented i-node #120 link_count from 1 to 2.\n[Notice] Zero data blocks duplicated. Both directory entries reference the same disk extents.";
       } else if (stepNum === 4) {
-        consoleEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel Fault] ENOTEMPTY: Directory not empty!\n[Kernel] Emptiness invariant check failed: entries exist beyond '.' and '..'.\n[Protection] Deletion denied to protect child files from becoming orphaned.";
+        consoleEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel Fault] ENOTEMPTY: Directory not empty!\n[Kernel] Emptiness invariant check failed: active entries (main.c, backup.c) exist beyond '.' and '..'.\n[Protection] Deletion denied to protect child files from becoming orphaned in unreferenced blocks.";
       } else if (stepNum === 5) {
         e2.innerHTML = "<span class='alert'>-- UNUSED (Unlinked) --</span>";
         e3.innerHTML = "<span class='alert'>-- UNUSED (Unlinked) --</span>";
@@ -1302,7 +1333,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         bCount.textContent = "0 (Deallocated)";
         stEl.textContent = "DEALLOCATED";
         stEl.className = "alert";
-        consoleEl.textContent = "$ unlink(\"main.c\");\n[Kernel] Removed entry 'main.c'. i-node #120 link_count decreased to 1. Data remains alive.\n$ unlink(\"backup.c\");\n[Kernel] Removed entry 'backup.c'. i-node #120 link_count reached 0.\n[Kernel] No active file descriptors open; recycled 3 disk blocks and freed i-node #120.";
+        consoleEl.textContent = "$ unlink(\"main.c\");\n[Kernel] Removed directory entry [2] 'main.c'. i-node #120 link_count decreased from 2 to 1.\n[Kernel] File remains fully alive and readable via 'backup.c'.\n\n$ unlink(\"backup.c\");\n[Kernel] Removed directory entry [3] 'backup.c'. i-node #120 link_count reached 0.\n[Kernel] No active file descriptors open; returned 3 disk blocks (12 KB) to free pool and deallocated i-node #120.";
       }
     }
 
@@ -1320,11 +1351,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Expand section 4.2.4 directory operations with interactive walkthrough
+COMMIT_MSG = """Clarify directory lifecycle walkthrough mechanics in module 02
 
-Update week10-file-management/02-directories.html to expand section 4.2.4
-with comprehensive system call theory, hard vs soft link SVGs, and an
-interactive guided step-by-step directory operations walkthrough."""
+Update week10-file-management/02-directories.html with explicit theory on
+directory tables, i-node telemetry panels, and link count transitions."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1349,7 +1379,7 @@ def deploy_module():
     run_git_step(["git", "add", target_file], "Staging updated 02-directories.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 02 Directory Operations & Walkthrough updated, committed, and pushed successfully!")
+    print("--> Module 02 Directory Operations & Walkthrough successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
