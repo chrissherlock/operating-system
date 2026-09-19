@@ -219,45 +219,42 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card">
       <h2>4.1.1 File Naming</h2>
       <p>
-        File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name.
+        File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries[cite: 4]. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name[cite: 4].
       </p>
 
       <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Character Sets and Length Restrictions</div>
       <ul>
-        <li><strong>Character Flexibility:</strong> Modern operating systems permit file names to comprise strings of letters, digits, and various special characters (such as <code>2</code>, <code>urgent!</code>, or <code>Fig.2-14</code>).</li>
-        <li><strong>Historical Limits:</strong> Older operating systems, such as the legacy MS-DOS environment, severely restricted file naming conventions to an 8-character base name with a 3-character extension (the 8+3 format).</li>
-        <li><strong>Modern Capacity:</strong> Contemporary file systems support extended identifiers, allowing file names of up to 255 characters or more, accommodating descriptive and structured naming schemes.</li>
+        <li><strong>Character Flexibility:</strong> Modern operating systems permit file names to comprise strings of letters, digits, and various special characters (such as <code>2</code>, <code>urgent!</code>, or <code>Fig.2-14</code>)[cite: 4].</li>
+        <li><strong>Historical Limits:</strong> Older operating systems, such as the legacy MS-DOS environment, severely restricted file naming conventions to an 8-character base name with a 3-character extension (the 8+3 format)[cite: 4].</li>
+        <li><strong>Modern Capacity:</strong> Contemporary file systems support extended identifiers, allowing file names of up to 255 characters or more, accommodating descriptive and structured naming schemes[cite: 4].</li>
       </ul>
 
       <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Case Sensitivity Models</div>
       <ul>
-        <li><strong>Case-Sensitive Systems:</strong> UNIX-based environments (including Linux and macOS) distinguish strictly between uppercase and lowercase letters. Consequently, a single directory can simultaneously house three distinct files named <code>maria</code>, <code>Maria</code>, and <code>MARIA</code>.</li>
-        <li><strong>Case-Insensitive Systems:</strong> Traditional MS-DOS and legacy Windows architectures treat uppercase and lowercase characters as identical, meaning <code>maria</code> and <code>MARIA</code> reference the exact same file. While modern Windows versions support advanced file management features, they maintain backward compatibility with these legacy rules.</li>
+        <li><strong>Case-Sensitive Systems:</strong> UNIX-based environments (including Linux and macOS) distinguish strictly between uppercase and lowercase letters[cite: 4]. Consequently, a single directory can simultaneously house three distinct files named <code>maria</code>, <code>Maria</code>, and <code>MARIA</code>[cite: 4].</li>
+        <li><strong>Case-Insensitive Systems:</strong> Traditional MS-DOS and legacy Windows architectures treat uppercase and lowercase characters as identical, meaning <code>maria</code> and <code>MARIA</code> reference the exact same file[cite: 4]. While modern Windows versions support advanced file management features, they maintain backward compatibility with these legacy rules[cite: 4].</li>
       </ul>
     </div>
 
-    <!-- Section 4.1.2: File Structure (Expanded with Diagram) -->
+    <!-- Section 4.1.2: File Structure -->
     <div class="card">
       <h2>4.1.2 File Structure</h2>
       <p>
-        File organization models dictate how the operating system or applications perceive and structure the internal layout of data within a file. Historically and across modern architectures, three primary file structures have been utilized:
+        File organization models dictate how the operating system or applications perceive and structure the internal layout of data within a file[cite: 4]. Historically and across modern architectures, three primary file structures have been utilized[cite: 4]:
       </p>
       <ol>
-        <li><strong>Unstructured Sequence of Bytes:</strong> Implemented by modern operating systems including UNIX, Linux, macOS, and Windows. In this model, a file is treated simply as an arbitrary sequence of bytes. The operating system does not interpret, parse, or impose any internal structure on the contents; everything from executable binaries to plain text documents is viewed as raw bytes. Any structuring or parsing of the data (such as lines, records, or headers) is left entirely to the application software reading and writing the file.</li>
-        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each possessing its own internal structure. A read operation retrieves a complete record, while a write operation overwrites or appends an entire record. This model was heavily utilized in early mainframe and batch systems based on punch cards (structured around 80-character records) or line printers (structured around 132-character printer lines). While largely absent as a primary OS-level file model today, variations appear in specific legacy applications.</li>
-        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, where each record contains a specific key field. The file is maintained and sorted dynamically based on this key, allowing applications to query and retrieve records using a specific key rather than specifying a relative byte position. New records can be inserted arbitrarily, with the operating system or file management library determining their exact physical placement. This structure differs markedly from unstructured byte streams and is traditionally used in large mainframe environments for commercial data processing.</li>
+        <li><strong>Unstructured Sequence of Bytes:</strong> Implemented by modern operating systems including UNIX, Linux, macOS, and Windows[cite: 4]. In this model, a file is treated simply as an arbitrary sequence of bytes[cite: 4]. The operating system does not interpret, parse, or impose any internal structure on the contents; everything from executable binaries to plain text documents is viewed as raw bytes[cite: 4]. Any structuring or parsing of the data (such as lines, records, or headers) is left entirely to the application software reading and writing the file[cite: 4].</li>
+        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each possessing its own internal structure[cite: 4]. A read operation retrieves a complete record, while a write operation overwrites or appends an entire record[cite: 4]. This model was heavily utilized in early mainframe and batch systems based on punch cards (structured around 80-character records) or line printers (structured around 132-character printer lines)[cite: 4]. While largely absent as a primary OS-level file model today, variations appear in specific legacy applications[cite: 4].</li>
+        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, where each record contains a specific key field[cite: 4]. The file is maintained and sorted dynamically based on this key, allowing applications to query and retrieve records using a specific key rather than specifying a relative byte position[cite: 4]. New records can be inserted arbitrarily, with the operating system or file management library determining their exact physical placement[cite: 4]. This structure differs markedly from unstructured byte streams and is traditionally used in large mainframe environments for commercial data processing[cite: 4].</li>
       </ol>
 
-      <!-- SVG File Structure Diagram -->
       <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Comparison of File Structures (Byte Stream vs Record Sequence vs Key-Indexed)</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Model 1: Byte Stream -->
           <text x="20" y="25" font-size="11" font-weight="700" fill="#0284c7">1. Unstructured Byte Stream (UNIX / Windows)</text>
           <rect x="20" y="35" width="660" height="30" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
           <text x="350" y="54" font-size="11" font-family="monospace" fill="#0369a1" text-anchor="middle">B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 ... (Raw Byte Sequence)</text>
 
-          <!-- Model 2: Record Sequence -->
           <text x="20" y="85" font-size="11" font-weight="700" fill="#059669">2. Record Sequence (Fixed-Length Records)</text>
           <rect x="20" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
           <text x="120" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 1 (e.g., 80 Bytes)</text>
@@ -268,7 +265,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect x="440" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
           <text x="540" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 3 (e.g., 80 Bytes)</text>
 
-          <!-- Model 3: Key-Indexed Tree -->
           <text x="20" y="145" font-size="11" font-weight="700" fill="#d97706">3. Key-Indexed Tree (Variable-Length Sorted Records)</text>
           <rect x="20" y="155" width="140" height="20" fill="#fef3c7" stroke="#d97706" stroke-width="1" rx="3"/>
           <text x="90" y="169" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Key: "Alpha"</text>
@@ -282,23 +278,65 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.1.3: File Types -->
+    <!-- Section 4.1.3: File Types (Expanded with Diagram) -->
     <div class="card">
       <h2>4.1.3 File Types</h2>
-      <p>Operating systems recognize and support multiple file classifications:</p>
+      <p>
+        Operating systems recognize and support several distinct classifications of files[cite: 4]. While systems like UNIX, Linux, macOS, and Windows support standard regular files and directories, UNIX architectures also provide specialized device files[cite: 4].
+      </p>
       <ul>
-        <li><strong>Regular Files:</strong> User-information containers divided into <em>ASCII files</em> (lines terminated by line feed or carriage return, easily edited and piped) and <em>binary files</em> (executable programs with magic numbers and headers, libraries, or archives).</li>
-        <li><strong>Directories:</strong> System-managed files that maintain the hierarchical structure of the file system.</li>
-        <li><strong>Character Special Files:</strong> Used to model serial I/O devices (terminals, printers, networks).</li>
-        <li><strong>Block Special Files:</strong> Used to model disk storage drives.</li>
+        <li><strong>Regular Files:</strong> Containers that store user and system information[cite: 4]. Regular files are broadly categorized into:
+          <ul>
+            <li><em>ASCII Files:</em> Consist of lines of text, where lines are terminated by carriage returns or line feed characters[cite: 4]. Their primary advantage is that they can be displayed, printed, edited with any text editor, and easily piped together in shell pipelines[cite: 4].</li>
+            <li><em>Binary Files:</em> Files that are not ASCII text[cite: 4]. Displaying them directly yields unintelligible output[cite: 4]. They possess internal structures understood by specific programs that consume them, such as executable binaries (containing magic numbers, headers, text, data, and symbol tables) or compiled module archives[cite: 4].</li>
+          </ul>
+        </li>
+        <li><strong>Directories:</strong> System-managed files that maintain the hierarchical structure and organization of the file system namespace[cite: 4].</li>
+        <li><strong>Character Special Files:</strong> Used to model serial I/O devices, such as terminals, printers, and network connections[cite: 4].</li>
+        <li><strong>Block Special Files:</strong> Used to model disk storage drives and block-oriented peripheral devices[cite: 4].</li>
       </ul>
+
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Operating System File Type Classifications</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Root Category -->
+          <rect x="270" y="15" width="160" height="36" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
+          <text x="350" y="38" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Operating System Files</text>
+
+          <!-- Connector lines down -->
+          <path d="M 350 51 L 350 75" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 90 75 L 610 75" stroke="#94a3b8" stroke-width="1.5"/>
+
+          <path d="M 90 75 L 90 95" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 270 75 L 270 95" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 450 75 L 450 95" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 610 75 L 610 95" stroke="#94a3b8" stroke-width="1.5"/>
+
+          <!-- Boxes -->
+          <rect x="30" y="95" width="120" height="40" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="90" y="112" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Regular Files</text>
+          <text x="90" y="126" font-size="9" fill="#047857" text-anchor="middle">(ASCII / Binary)</text>
+
+          <rect x="210" y="95" width="120" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
+          <text x="270" y="112" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Directories</text>
+          <text x="270" y="126" font-size="9" fill="#475569" text-anchor="middle">(Namespace Tree)</text>
+
+          <rect x="390" y="95" width="120" height="40" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
+          <text x="450" y="112" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Character Special</text>
+          <text x="450" y="126" font-size="9" fill="#b45309" text-anchor="middle">(Terminals, Printers)</text>
+
+          <rect x="550" y="95" width="120" height="40" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" rx="4"/>
+          <text x="610" y="112" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">Block Special</text>
+          <text x="610" y="126" font-size="9" fill="#b91c1c" text-anchor="middle">(Disks &amp; SSDs)</text>
+        </svg>
+      </div>
     </div>
 
     <!-- Section 4.1.4: File Access -->
     <div class="card">
       <h2>4.1.4 File Access</h2>
       <p>
-        Early operating systems provided only <strong>sequential access</strong>, where a process had to read all bytes or records in order from the beginning. With the advent of disk storage, <strong>random-access files</strong> emerged, enabling bytes or records to be accessed out of order or by key. Modern systems support explicit seeking via system calls like `lseek` to reposition the file offset pointer.
+        Early operating systems provided only <strong>sequential access</strong>, where a process had to read all bytes or records in order from the beginning[cite: 4]. With the advent of disk storage, <strong>random-access files</strong> emerged, enabling bytes or records to be accessed out of order or by key[cite: 4]. Modern systems support explicit seeking via system calls like `lseek` to reposition the file offset pointer[cite: 4].
       </p>
     </div>
 
@@ -306,7 +344,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card">
       <h2>4.1.5 File Attributes (Metadata)</h2>
       <p>
-        Operating systems associate extra administrative metadata with every file. While attributes differ across platforms, standard metadata includes:
+        Operating systems associate extra administrative metadata with every file[cite: 4]. While attributes differ across platforms, standard metadata includes[cite: 4]:
       </p>
       <table>
         <thead>
@@ -316,11 +354,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </tr>
         </thead>
         <tbody>
-          <tr><td><strong>Protection</strong></td><td>Controls who may access the file and with what permissions (Read/Write/Execute).</td></tr>
-          <tr><td><strong>Owner / Creator</strong></td><td>Identifies the user who created or currently owns the file (UID/GID).</td></tr>
-          <tr><td><strong>Flags</strong></td><td>Hidden, system, read-only, archive (tracks whether file needs backup), temporary, and lock flags.</td></tr>
-          <tr><td><strong>Timestamps</strong></td><td>Exact creation time, time of last access, and time of last attribute/data modification.</td></tr>
-          <tr><td><strong>File Size</strong></td><td>Current byte count and maximum permissible growth limit.</td></tr>
+          <tr><td><strong>Protection</strong></td><td>Controls who may access the file and with what permissions (Read/Write/Execute)[cite: 4].</td></tr>
+          <tr><td><strong>Owner / Creator</strong></td><td>Identifies the user who created or currently owns the file (UID/GID)[cite: 4].</td></tr>
+          <tr><td><strong>Flags</strong></td><td>Hidden, system, read-only, archive (tracks whether file needs backup), temporary, and lock flags[cite: 4].</td></tr>
+          <tr><td><strong>Timestamps</strong></td><td>Exact creation time, time of last access, and time of last attribute/data modification[cite: 4].</td></tr>
+          <tr><td><strong>File Size</strong></td><td>Current byte count and maximum permissible growth limit[cite: 4].</td></tr>
         </tbody>
       </table>
     </div>
@@ -328,18 +366,18 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <!-- Section 4.1.6: File Operations -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
-      <p>Common system calls provided by operating systems for file management include:</p>
+      <p>Common system calls provided by operating systems for file management include[cite: 4]:</p>
       <ol>
-        <li><code>create</code>: Initializes a new empty file with specified attributes.</li>
-        <li><code>delete</code>: Removes a file and reclaims its disk space.</li>
-        <li><code>open</code>: Fetches attributes and disk addresses into main memory for rapid access.</li>
-        <li><code>close</code>: Flushes final cached blocks and frees internal table space.</li>
-        <li><code>read</code>: Retrieves data from a file into a user-provided buffer.</li>
-        <li><code>write</code>: Outputs data to a file at the current offset or end.</li>
-        <li><code>append</code>: Restricted write mode adding data exclusively to the end of a file.</li>
-        <li><code>lseek</code>: Repositions the file offset pointer for random access.</li>
-        <li><code>get/set attributes</code>: Reads or modifies file metadata (e.g., protection modes, timestamps).</li>
-        <li><code>rename</code>: Changes a file's name within the directory structure.</li>
+        <li><code>create</code>: Initializes a new empty file with specified attributes[cite: 4].</li>
+        <li><code>delete</code>: Removes a file and reclaims its disk space[cite: 4].</li>
+        <li><code>open</code>: Fetches attributes and disk addresses into main memory for rapid access[cite: 4].</li>
+        <li><code>close</code>: Flushes final cached blocks and frees internal table space[cite: 4].</li>
+        <li><code>read</code>: Retrieves data from a file into a user-provided buffer[cite: 4].</li>
+        <li><code>write</code>: Outputs data to a file at the current offset or end[cite: 4].</li>
+        <li><code>append</code>: Restricted write mode adding data exclusively to the end of a file[cite: 4].</li>
+        <li><code>lseek</code>: Repositions the file offset pointer for random access[cite: 4].</li>
+        <li><code>get/set attributes</code>: Reads or modifies file metadata (e.g., protection modes, timestamps)[cite: 4].</li>
+        <li><code>rename</code>: Changes a file's name within the directory structure[cite: 4].</li>
       </ol>
     </div>
 
@@ -347,7 +385,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card">
       <h2>4.1.7 Example: POSIX File-Copy Program</h2>
       <p>
-        Below is a standard POSIX C implementation illustrating file descriptor handling, error checking, and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
+        Below is a standard POSIX C implementation illustrating file descriptor handling, error checking, and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>[cite: 4]:
       </p>
       <pre>#include &lt;sys/types.h&gt;
 #include &lt;fcntl.h&gt;
@@ -392,7 +430,7 @@ int main(int argc, char *argv[]) {
       </div>
       <div id="tutorialTitle" class="tutorial-title">1. Opening a File &amp; Allocating Descriptors</div>
       <div id="tutorialText" class="tutorial-body">
-        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry.
+        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry[cite: 4].
       </div>
       <div class="tour-nav">
         <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Step</button>
@@ -424,19 +462,19 @@ int main(int argc, char *argv[]) {
     const tutorialSteps = [
       {
         title: "1. Opening a File & Allocating Descriptors",
-        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry."
+        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry[cite: 4]."
       },
       {
         title: "2. Sequential vs. Random Read Operations",
-        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read."
+        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read[cite: 4]."
       },
       {
         title: "3. Arbitrary Offsets via lseek()",
-        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>."
+        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>[cite: 4]."
       },
       {
         title: "4. Closing Files & Releasing Resources",
-        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count."
+        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count[cite: 4]."
       }
     ];
 
@@ -487,11 +525,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Expand subsection 4.1.2 file structure and add architectural diagram
+COMMIT_MSG = """Expand subsection 4.1.3 file types and add classification diagram
 
 Update week10-file-management/01-files-abstraction.html to incorporate
-comprehensive coverage of unstructured byte streams, record sequences,
-and key-indexed trees, accompanied by an architectural SVG diagram."""
+comprehensive coverage of regular, directory, character special, and
+block special file types, accompanied by an architectural SVG diagram."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -511,12 +549,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote expanded structure module file to {target_file}")
+    print(f"Wrote expanded file types module file to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging expanded structure 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging expanded file types 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Expanded Structure Module 01 created, committed, and pushed successfully!")
+    print("--> Expanded File Types Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
