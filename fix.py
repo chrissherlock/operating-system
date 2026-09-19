@@ -8,7 +8,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Files &amp; Naming Abstractions — COSC240 Week 10</title>
+  <title>1. Files &amp; Naming Abstractions — COSC240 Week 10</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -24,6 +32,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --danger-color: #dc2626;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
@@ -35,164 +44,144 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       align-items: center;
       gap: 18px;
     }
+
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+
     header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
     p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+
     .main-container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
       width: 100%;
       max-width: 1100px;
     }
+
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 20px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 14px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    .card h2 {
-      font-size: 1.25rem;
-      color: var(--accent);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-      margin-bottom: 6px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-      margin-top: 8px;
-      margin-bottom: 8px;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      text-align: left;
-    }
-    th {
-      background-color: #f1f5f9;
-      color: var(--text);
-      font-weight: 600;
-    }
-    td {
-      color: #334155;
-    }
-    pre {
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      line-height: 1.6;
-    }
-    .c-kw { color: #f472b6; font-weight: 600; }
-    .c-type { color: #38bdf8; font-weight: 600; }
-    .c-fn { color: #6ee7b7; font-weight: 600; }
-    .c-prep { color: #c084fc; font-weight: 600; }
-    .c-num { color: #fbbf24; }
-    .c-comm { color: #64748b; font-style: italic; }
 
-    /* Floating Wikipedia-style Infobox */
-    .pioneers-infobox {
+    .theory-section {
+      line-height: 1.7;
+      font-size: 0.95rem;
+      color: #334155;
+      display: block;
+    }
+    .theory-section h2 {
+      font-size: 1.25rem;
+      color: var(--text);
+      margin-top: 16px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 4px;
+    }
+    .theory-section p {
+      margin-bottom: 10px;
+    }
+    .theory-callout {
+      background-color: #f0f9ff;
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #0369a1;
+      font-family: var(--font-mono);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .bio-sidebar {
       float: right;
       width: 340px;
-      background: #ffffff;
+      background: #f8fafc;
       border: 1px solid var(--border);
       border-top: 4px solid var(--inspect-color);
       border-radius: 6px;
-      padding: 14px;
-      margin-left: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-      font-size: 0.85rem;
-    }
-    .pioneers-infobox h3 {
-      font-size: 0.95rem;
-      color: var(--inspect-color);
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-      margin-bottom: 8px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 4px;
-    }
-    .pioneers-infobox table {
-      margin: 0;
-      font-size: 0.82rem;
-    }
-    .pioneers-infobox th {
-      background-color: #f1f5f9;
-      color: #0f172a;
-    }
-
-    /* Tour Panel Styles */
-    .tour-panel {
-      border: 1px solid #bae6fd;
-      border-left: 5px solid var(--accent);
-      background: #f0f9ff;
-    }
-    .tour-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .tour-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #0369a1;
-    }
-    .tour-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #0c4a6e;
-    }
-    .telemetry-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .telemetry-box {
-      background: #ffffff;
-      border: 1px solid #7dd3fc;
-      border-radius: 6px;
-      padding: 10px;
+      padding: 16px;
+      margin-left: 24px;
+      margin-right: 0px;
+      margin-bottom: 16px;
+      margin-top: 4px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 12px;
+      font-size: 0.88rem;
+      shape-outside: margin-box;
     }
-    .telemetry-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #0284c7;
+    .bio-sidebar h3 {
+      font-size: 1rem;
+      color: var(--inspect-color);
+      margin-bottom: 2px;
       text-transform: uppercase;
       font-family: var(--font-mono);
     }
-    .telemetry-value {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #0f172a;
-      font-family: var(--font-mono);
+    .pioneer-bio {
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #cbd5e1;
     }
-    .tour-nav {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      align-items: center;
+    .pioneer-bio:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .pioneer-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .pioneer-bio p {
+      color: var(--text-muted);
+      line-height: 1.4;
+      font-size: 0.82rem;
+      margin-top: 2px;
     }
 
-    /* Kernel Inspector Sandbox Styles */
+    .figure-container {
+      width: 100%;
+      max-width: 860px;
+      margin: 10px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      clear: both;
+    }
+
     .kernel-sandbox {
       background: #0f172a;
       color: #ffffff;
@@ -260,26 +249,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     button {
       background-color: var(--accent);
-      color: #ffffff;
+      color: #fff;
       border: none;
-      padding: 8px 16px;
+      padding: 8px 14px;
       border-radius: 6px;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
-      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
     button:hover { background-color: var(--accent-hover); }
-    button.btn-secondary {
-      background: #334155;
-      border: 1px solid #475569;
-      color: #ffffff;
-    }
-    button.btn-secondary:hover { background: #475569; }
-    button.btn-danger { background: var(--danger-color); color: #ffffff; }
-    button.btn-danger:hover { background: #b91c1c; }
+    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+    button.btn-sec:hover { background-color: #e2e8f0; }
+    button.btn-danger { background-color: var(--danger-color); color: #ffffff; }
+    button.btn-danger:hover { background-color: #b91c1c; }
     button.btn-active-action { background-color: #34d399 !important; color: #0f172a !important; font-weight: 800; border: 1px solid #059669; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .kernel-console {
       background-color: #020617;
@@ -294,42 +280,46 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border: 1px solid #1e293b;
     }
 
-    ul, ol {
-      padding-left: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      color: #334155;
-      font-size: 0.93rem;
-      line-height: 1.5;
-    }
-    .nav-back {
+    table {
       width: 100%;
-      max-width: 1100px;
-      margin: 0 auto 16px auto;
-      padding: 0 4px;
-      display: flex;
-      flex-direction: column;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 8px;
+      margin-bottom: 8px;
     }
-    .nav-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: var(--text);
       font-weight: 600;
-      font-family: var(--font-mono);
-      text-decoration: none;
-      color: #0284c7;
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background-color 0.15s ease, color 0.15s ease;
-      width: fit-content;
     }
-    .nav-back a:hover {
-      background-color: #0284c7;
-      color: #ffffff;
+    td {
+      color: #334155;
+    }
+
+    pre {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+    .c-kw { color: #f472b6; font-weight: 600; }
+    .c-type { color: #38bdf8; font-weight: 600; }
+    .c-fn { color: #6ee7b7; font-weight: 600; }
+    .c-prep { color: #c084fc; font-weight: 600; }
+    .c-num { color: #fbbf24; }
+    .c-comm { color: #64748b; font-style: italic; }
+
+    @media (max-width: 860px) {
+      .bio-sidebar { float: none; width: 100%; margin-left: 0; }
     }
 
     /* State Machine Diagram Styles */
@@ -343,207 +333,71 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </style>
 </head>
 <body>
+
   <div class="nav-back">
-    <a href="index.html">&larr; Back to Week 10 Index</a>
+    <a href="index.html">&larr; Back to Week Overview</a>
   </div>
+
   <header>
-    <h1>01. Files &amp; Naming Abstractions</h1>
+    <h1>1. Files &amp; Naming Abstractions</h1>
     <p class="subtitle">Tanenbaum Chapter 4.1: Comprehensive Reference on File Naming, Structures, Types, Access, Attributes, and POSIX System Calls.</p>
   </header>
+
   <div class="main-container">
 
-    <!-- Section 4.1.1: File Naming -->
+    <!-- 1. THEORY SECTION WITH FLOATING SIDEBAR -->
     <div class="card">
-      <h2>4.1.1 File Naming</h2>
+      <div class="theory-section">
 
-      <!-- Floating Pioneers Infobox -->
-      <div class="pioneers-infobox">
-        <h3>File System Pioneers</h3>
-        <p style="font-size: 0.82rem; color: #475569; margin-bottom: 8px; line-height: 1.4;">
-          Architects of core Unix storage abstractions and file tables:
+        <!-- Floating Sidebar with Pioneers Infobox -->
+        <aside class="bio-sidebar">
+          <h3>File System Pioneers</h3>
+
+          <div class="pioneer-bio">
+            <div class="pioneer-name">Ken Thompson</div>
+            <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems.</p>
+          </div>
+
+          <div class="pioneer-bio">
+            <div class="pioneer-name">Dennis Ritchie</div>
+            <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions.</p>
+          </div>
+
+          <div class="pioneer-bio">
+            <div class="pioneer-name">Andrew S. Tanenbaum</div>
+            <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles.</p>
+          </div>
+
+          <div class="pioneer-bio">
+            <div class="pioneer-name">Marshall Kirk McKusick</div>
+            <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation.</p>
+          </div>
+        </aside>
+
+        <h2>4.1.1 File Naming &amp; Structural Abstractions</h2>
+        <p>
+          File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name. Modern operating systems support extended identifiers up to 255 characters, balancing case sensitivity models across UNIX and Windows environments.
         </p>
-        <table>
-          <tr>
-            <th>Figure</th>
-            <th>Contribution</th>
-          </tr>
-          <tr>
-            <td><strong>Ken Thompson</strong></td>
-            <td>Unix, i-Node Architecture, Hierarchical Tree</td>
-          </tr>
-          <tr>
-            <td><strong>Dennis Ritchie</strong></td>
-            <td>C Language, System Call Abstractions</td>
-          </tr>
-          <tr>
-            <td><strong>Andrew S. Tanenbaum</strong></td>
-            <td>MINIX, OS Architecture Literature</td>
-          </tr>
-          <tr>
-            <td><strong>Marshall Kirk McKusick</strong></td>
-            <td>Berkeley Fast File System (FFS)</td>
-          </tr>
-        </table>
+
+        <h2>4.1.2 File Structure &amp; Organization</h2>
+        <p>
+          File organization models dictate how the operating system or applications perceive and structure internal data layouts. Three primary file structures have historically been utilized: unstructured byte streams (standard across UNIX and Windows), fixed-length record sequences, and key-indexed trees.
+        </p>
+
+        <h2>4.1.3 File Types &amp; Classifications</h2>
+        <p>
+          Operating systems recognize regular files (ASCII and binary), system-managed hierarchical directories, character special files for serial I/O devices, and block special files for disk storage drives.
+        </p>
+
+        <h2>4.1.4 File Access &amp; Positioning Mechanisms</h2>
+        <p>
+          Access models evolved from early sequential magnetic tape traversal to random-access files supported by direct-access storage devices. To specify positions, operating systems utilize separate seek operations (such as <code>lseek</code>) to manipulate logical byte offset pointers before executing stream reads or writes.
+        </p>
       </div>
 
-      <p>
-        File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name.
-      </p>
-
-      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Character Sets and Length Restrictions</div>
-      <ul>
-        <li><strong>Character Flexibility:</strong> Modern operating systems permit file names to comprise strings of letters, digits, and various special characters (such as <code>2</code>, <code>urgent!</code>, or <code>Fig.2-14</code>).</li>
-        <li><strong>Historical Limits:</strong> Older operating systems, such as the legacy MS-DOS environment, severely restricted file naming conventions to an 8-character base name with a 3-character extension (the 8+3 format).</li>
-        <li><strong>Modern Capacity:</strong> Contemporary file systems support extended identifiers, allowing file names of up to 255 characters or more, accommodating descriptive and structured naming schemes.</li>
-      </ul>
-
-      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Case Sensitivity Models</div>
-      <ul>
-        <li><strong>Case-Sensitive Systems:</strong> UNIX-based environments (including Linux and macOS) distinguish strictly between uppercase and lowercase letters. Consequently, a single directory can simultaneously house three distinct files named <code>maria</code>, <code>Maria</code>, and <code>MARIA</code>.</li>
-        <li><strong>Case-Insensitive Systems:</strong> Traditional MS-DOS and legacy Windows architectures treat uppercase and lowercase characters as identical, meaning <code>maria</code> and <code>MARIA</code> reference the exact same file. While modern Windows versions support advanced file management features, they maintain backward compatibility with these legacy rules.</li>
-      </ul>
-    </div>
-
-    <!-- Section 4.1.2: File Structure -->
-    <div class="card">
-      <h2>4.1.2 File Structure</h2>
-      <p>
-        File organization models dictate how the operating system or applications perceive and structure the internal layout of data within a file. Historically and across modern architectures, three primary file structures have been utilized:
-      </p>
-      <ol>
-        <li><strong>Unstructured Sequence of Bytes:</strong> Implemented by modern operating systems including UNIX, Linux, macOS, and Windows. In this model, a file is treated simply as an arbitrary sequence of bytes. The operating system does not interpret, parse, or impose any internal structure on the contents; everything from executable binaries to plain text documents is viewed as raw bytes. Any structuring or parsing of the data (such as lines, records, or headers) is left entirely to the application software reading and writing the file.</li>
-        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each possessing its own internal structure. A read operation retrieves a complete record, while a write operation overwrites or appends an entire record. This model was heavily utilized in early mainframe and batch systems based on punch cards (structured around 80-character records) or line printers (structured around 132-character printer lines). While largely absent as a primary OS-level file model today, variations appear in specific legacy applications.</li>
-        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, where each record contains a specific key field. The file is maintained and sorted dynamically based on this key, allowing applications to query and retrieve records using a specific key rather than specifying a relative byte position. New records can be inserted arbitrarily, with the operating system or file management library determining their exact physical placement. This structure differs markedly from unstructured byte streams and is traditionally used in large mainframe environments for commercial data processing.</li>
-      </ol>
-
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Comparison of File Structures (Byte Stream vs Record Sequence vs Key-Indexed)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <text x="20" y="25" font-size="11" font-weight="700" fill="#0284c7">1. Unstructured Byte Stream (UNIX / Windows)</text>
-          <rect x="20" y="35" width="660" height="30" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-          <text x="350" y="54" font-size="11" font-family="monospace" fill="#0369a1" text-anchor="middle">B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 ... (Raw Byte Sequence)</text>
-
-          <text x="20" y="85" font-size="11" font-weight="700" fill="#059669">2. Record Sequence (Fixed-Length Records)</text>
-          <rect x="20" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="120" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 1 (e.g., 80 Bytes)</text>
-
-          <rect x="230" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="330" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 2 (e.g., 80 Bytes)</text>
-
-          <rect x="440" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="540" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 3 (e.g., 80 Bytes)</text>
-
-          <text x="20" y="145" font-size="11" font-weight="700" fill="#d97706">3. Key-Indexed Tree (Variable-Length Sorted Records)</text>
-          <rect x="20" y="155" width="140" height="20" fill="#fef3c7" stroke="#d97706" stroke-width="1" rx="3"/>
-          <text x="90" y="169" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Key: "Alpha"</text>
-
-          <rect x="170" y="155" width="160" height="20" fill="#fef3c7" stroke="#d97706" stroke-width="1" rx="3"/>
-          <text x="250" y="169" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Key: "Beta"</text>
-
-          <rect x="340" y="155" width="180" height="20" fill="#fef3c7" stroke="#d97706" stroke-width="1" rx="3"/>
-          <text x="430" y="169" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Key: "Gamma"</text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Section 4.1.3: File Types -->
-    <div class="card">
-      <h2>4.1.3 File Types</h2>
-      <p>
-        Operating systems recognize and support several distinct classifications of files. While systems like UNIX, Linux, macOS, and Windows support standard regular files and directories, UNIX architectures also provide specialized device files.
-      </p>
-      <ul>
-        <li><strong>Regular Files:</strong> Containers that store user and system information. Regular files are broadly categorized into:
-          <ul>
-            <li><em>ASCII Files:</em> Consist of lines of text, where lines are terminated by carriage returns or line feed characters. Their primary advantage is that they can be displayed, printed, edited with any text editor, and easily piped together in shell pipelines.</li>
-            <li><em>Binary Files:</em> Files that are not ASCII text. Displaying them directly yields unintelligible output. They possess internal structures understood by specific programs that consume them, such as executable binaries (containing magic numbers, headers, text, data, and symbol tables) or compiled module archives.</li>
-          </ul>
-        </li>
-        <li><strong>Directories:</strong> System-managed files that maintain the hierarchical structure and organization of the file system namespace.</li>
-        <li><strong>Character Special Files:</strong> Used to model serial I/O devices, such as terminals, printers, and network connections.</li>
-        <li><strong>Block Special Files:</strong> Used to model disk storage drives and block-oriented peripheral devices.</li>
-      </ul>
-
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Operating System File Type Classifications</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="270" y="15" width="160" height="36" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
-          <text x="350" y="38" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Operating System Files</text>
-
-          <path d="M 350 51 L 350 75" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 90 75 L 610 75" stroke="#94a3b8" stroke-width="1.5"/>
-
-          <path d="M 90 75 L 90 95" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 270 75 L 270 95" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 450 75 L 450 95" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 610 75 L 610 95" stroke="#94a3b8" stroke-width="1.5"/>
-
-          <rect x="30" y="95" width="120" height="40" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="90" y="112" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Regular Files</text>
-          <text x="90" y="126" font-size="9" fill="#047857" text-anchor="middle">(ASCII / Binary)</text>
-
-          <rect x="210" y="95" width="120" height="40" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
-          <text x="270" y="112" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Directories</text>
-          <text x="270" y="126" font-size="9" fill="#475569" text-anchor="middle">(Namespace Tree)</text>
-
-          <rect x="390" y="95" width="120" height="40" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
-          <text x="450" y="112" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Character Special</text>
-          <text x="450" y="126" font-size="9" fill="#b45309" text-anchor="middle">(Terminals, Printers)</text>
-
-          <rect x="550" y="95" width="120" height="40" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" rx="4"/>
-          <text x="610" y="112" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">Block Special</text>
-          <text x="610" y="126" font-size="9" fill="#b91c1c" text-anchor="middle">(Disks &amp; SSDs)</text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Section 4.1.4: File Access -->
-    <div class="card">
-      <h2>4.1.4 File Access</h2>
-      <p>
-        File access methods dictate how processes interact with stored data elements within a file. Operating systems have historically supported distinct access paradigms based on the underlying storage media and application demands:
-      </p>
-      <ul>
-        <li><strong>Sequential Access:</strong> Early operating systems provided exclusively sequential access. In this model, a process was required to read all bytes or records in strict sequential order, starting from the beginning of the file. While files could be rewound to the start to allow repeated reads, skipping ahead or reading out of order was impossible. This access model was well-suited for magnetic tape storage media where sequential head traversal was mandatory.</li>
-        <li><strong>Random-Access Files:</strong> With the transition from magnetic tape to magnetic disks and solid-state drives, random-access files became feasible and essential. Random-access files permit bytes or records to be read or written in any arbitrary order or accessed directly by key. Random-access files are vital for modern database management systems where specific records must be fetched instantly without scanning preceding records.</li>
-      </ul>
-
-      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Positioning Mechanisms</div>
-      <p>
-        To specify where read or write operations should occur within random-access files, operating systems utilize two primary design approaches:
-      </p>
-      <ol>
-        <li><strong>Explicit Position per Operation:</strong> Every individual read or write system call includes the exact logical file position or offset as an explicit argument.</li>
-        <li><strong>Separate Seek Operation:</strong> A dedicated system call (such as <code>lseek</code> in UNIX and Windows) is provided to reposition the file offset pointer. Once positioned via a seek operation, subsequent read or write calls proceed sequentially from that current offset. This latter mechanism is standard across modern UNIX and Windows operating systems.</li>
-      </ol>
-    </div>
-
-    <!-- Section 4.1.5: File Attributes -->
-    <div class="card">
-      <h2>4.1.5 File Attributes (Metadata)</h2>
-      <p>
-        Every operating system associates auxiliary administrative data with each file, commonly referred to as file attributes or metadata. While the exact list of attributes varies across different operating systems, comprehensive file management requires tracking a wide array of metadata elements:
-      </p>
-      <ul>
-        <li><strong>Protection and Ownership:</strong> Attributes controlling who may access the file and with what permissions (read, write, execute). Some systems also require a password to access specific files, while others track the creator and current owner (UID/GID).</li>
-        <li><strong>Operational Flags:</strong> Bit flags that control specific file behaviors:
-          <ul>
-            <li><em>Hidden Flag:</em> Prevents files from appearing in standard directory listings.</li>
-            <li><em>System Flag:</em> Identifies critical operating system files.</li>
-            <li><em>Read-Only Flag:</em> Restricts files to read-only access.</li>
-            <li><em>Archive Flag:</em> Tracks whether a file has been modified since the last backup. The backup program clears this flag, and the operating system sets it whenever the file is changed.</li>
-            <li><em>ASCII / Binary Flag:</em> Designates the internal encoding format.</li>
-            <li><em>Temporary Flag:</em> Marks a file for automatic deletion when the creating process terminates.</li>
-            <li><em>Lock Flag:</em> Prevents concurrent access issues (nonzero when locked, zero when unlocked).</li>
-          </ul>
-        </li>
-        <li><strong>Record and Key Metadata:</strong> For indexed or structured files, attributes include record length, key position within each record, and key length required for key-based lookups.</li>
-        <li><strong>Timestamps:</strong> Tracks the exact creation time, the time of the most recent access, and the time of the last modification. These are essential for utilities like the UNIX <code>make</code> program, which inspects modification timestamps to determine the minimum compilations needed to bring software up to date.</li>
-        <li><strong>Size Metrics:</strong> Tracks the current byte count of the file as well as the maximum permissible size limit.</li>
-      </ul>
-
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: File Control Block (FCB) / I-Node Metadata Layout</span>
+      <!-- Figure: File Control Block / I-Node Metadata Layout -->
+      <div class="figure-container" style="max-width: 860px; align-items: stretch;">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; margin-bottom: 4px;">Figure: File Control Block (FCB) / I-Node Metadata Layout</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <rect x="150" y="15" width="400" height="160" fill="#f8fafc" stroke="#0284c7" stroke-width="2" rx="6"/>
           <text x="350" y="38" font-size="12" font-weight="700" fill="#0284c7" text-anchor="middle">File Control Block / I-Node Metadata Structure</text>
@@ -561,62 +415,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="180" y="153" font-size="10" font-weight="600" fill="#b91c1c">File Size &amp; Disk Block Address Pointers</text>
         </svg>
       </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Attribute Category</th>
-            <th>Examples</th>
-            <th>Purpose / Function</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Protection &amp; Security</strong></td>
-            <td>Protection modes, Owner UID/GID, Password</td>
-            <td>Enforces access control lists and authorization rules.</td>
-          </tr>
-          <tr>
-            <td><strong>Operational Flags</strong></td>
-            <td>Hidden, System, Read-Only, Archive, Temporary</td>
-            <td>Modifies how system tools and backup routines treat the file.</td>
-          </tr>
-          <tr>
-            <td><strong>Temporal Metadata</strong></td>
-            <td>Creation Time, Last Access Time, Last Change Time</td>
-            <td>Enables dependency tracking (e.g., software build tools).</td>
-          </tr>
-          <tr>
-            <td><strong>Structural Size</strong></td>
-            <td>Current File Size, Maximum Size Limit</td>
-            <td>Defines allocated bounds and tracks growth limits.</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
 
-    <!-- Section 4.1.6: File Operations & System Calls -->
-    <div class="card">
-      <h2>4.1.6 File Operations &amp; System Calls</h2>
-      <p>
-        Files exist to store information persistently and allow its subsequent retrieval. Operating systems provide a robust suite of system calls to facilitate file creation, manipulation, and storage management. Below is an exhaustive breakdown of the ten most common system calls related to files:
-      </p>
-      <ol>
-        <li><strong>Create:</strong> Initializes a new, empty file with no data payload. The primary purpose of the create call is to announce to the operating system that a new file is coming into existence, allocate an initial i-node or directory entry, and establish initial attribute values (such as protection modes).</li>
-        <li><strong>Delete:</strong> When a file is no longer required, this system call is invoked to remove the file from its directory structure, deallocate its i-node, and return all associated disk blocks to the free storage pool.</li>
-        <li><strong>Open:</strong> Before a process can read or write a file, it must open it. The open call forces the operating system to search the directory path, locate the file's metadata and disk addresses, and load them into a fast main-memory table (such as the open file table or v-node table) for rapid access on subsequent calls. It returns a small integer called a <em>file descriptor</em>.</li>
-        <li><strong>Close:</strong> When all file accesses are complete, the file should be closed to free internal table space and release kernel resources. Many operating systems enforce process-level limits on the maximum number of simultaneously open files. Furthermore, closing a file forces the operating system to flush and write out any unwritten buffered blocks residing in memory to the physical disk—even if the final block is not entirely full yet.</li>
-        <li><strong>Read:</strong> Retrieves data from a file into a user-provided memory buffer. The caller must specify the file descriptor, a pointer to the destination buffer, and the exact number of bytes requested. Data is normally read starting from the current file offset pointer, which automatically advances by the number of bytes successfully read.</li>
-        <li><strong>Write:</strong> Outputs data from a user-provided buffer into the file. Like read, the caller provides the file descriptor, buffer pointer, and byte count. Writing normally occurs at the current offset. If the current offset points to the end of the file, the file's size increases accordingly. If the offset is in the middle of the file, existing data is overwritten and permanently lost.</li>
-        <li><strong>Append:</strong> A restricted form of write operations supported by certain operating systems. Append restricts data insertion exclusively to the end of the file, guaranteeing that existing contents cannot be accidentally overwritten regardless of the current offset pointer.</li>
-        <li><strong>Seek (lseek):</strong> Essential for random-access files. Because random-access files permit reading and writing out of order, a method is required to specify the exact data offset. The seek system call repositions the file pointer to an arbitrary byte offset within the file, allowing subsequent read and write calls to execute from that specific position.</li>
-        <li><strong>Get and Set Attributes:</strong> Processes frequently need to inspect or modify file metadata to perform their work. For instance, software development tools like the UNIX <code>make</code> utility examine modification timestamps across source and object files to determine the minimum compilations required. Systems provide dedicated calls to read or alter these attributes (such as changing permission masks or flags).</li>
-        <li><strong>Rename:</strong> Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.</li>
-      </ol>
-    </div>
-
-    <!-- Section 3: Interactive Kernel Table Inspector & Embedded State Machine Sandbox -->
-    <div class="card kernel-sandbox">
+    <!-- 2. INTERACTIVE KERNEL TABLE INSPECTOR & STATE MACHINE SANDBOX -->
+    <div class="card kernel-sandbox" id="sandboxSection">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;">3. Interactive Kernel Table Inspector &amp; State Machine</div>
       </div>
@@ -625,12 +427,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="sticky-control-bar">
         <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">System Call Action Controls:</div>
         <div class="sandbox-controls">
-          <button onclick="inspectExec('creat')" id="btn-creat" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
-          <button onclick="inspectExec('open')" id="btn-open" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
-          <button onclick="inspectExec('read')" id="btn-read" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
-          <button onclick="inspectExec('write')" id="btn-write" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
-          <button onclick="inspectExec('seek')" id="btn-seek" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
-          <button onclick="inspectExec('close')" id="btn-close" class="btn-secondary btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
+          <button onclick="runInspectionOp('creat')" id="btn-creat" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
+          <button onclick="runInspectionOp('open')" id="btn-open" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
+          <button onclick="runInspectionOp('read')" id="btn-read" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
+          <button onclick="runInspectionOp('write')" id="btn-write" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
+          <button onclick="runInspectionOp('seek')" id="btn-seek" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
+          <button onclick="runInspectionOp('close')" id="btn-close" class="btn-sec btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
         </div>
       </div>
 
@@ -638,13 +440,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #ffffff; line-height: 1.6;">
         <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.8rem; font-family: var(--font-mono);">How to Use This Kernel Inspector &amp; What You Are Seeing:</div>
         <p style="color: #cbd5e1;">
-          This interactive sandbox simulates how the operating system kernel maintains state across process boundaries during POSIX file operations. Use the sticky system call action buttons (locked above for convenience) to trigger state transitions and examine how the interface updates across three synchronized telemetry views:
+          This interactive sandbox simulates how the operating system kernel maintains state across execution contexts during POSIX file operations. Use the sticky system call action buttons (locked above for convenience) to trigger state transitions and examine how the interface updates across three synchronized telemetry views:
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px; color: #cbd5e1;">
           <li><strong style="color: #ffffff;">1. The State Machine Diagram (Below):</strong> Visually tracks the active lifecycle state of your file descriptor in real time.</li>
           <li><strong style="color: #ffffff;">2. The Three Kernel Tables (Below):</strong>
             <ul style="padding-left: 18px; margin-top: 2px; color: #94a3b8;">
-              <li><em style="color: #cbd5e1;">Process FD Table:</em> Shows private per-process file descriptor integer slots (e.g., slot <code>3</code>).</li>
+              <li><em style="color: #cbd5e1;">Process FD Table:</em> Shows private per-context file descriptor integer slots (e.g., slot <code>3</code>).</li>
               <li><em style="color: #cbd5e1;">Open File Table:</em> Tracks shared kernel telemetry including access mode flags, active reference counts, and the live byte offset pointer.</li>
               <li><em style="color: #cbd5e1;">Buffer Cache &amp; i-Node:</em> Monitors volatile RAM block residency, dirty cache status, and file size metrics before persistent disk synchronization.</li>
             </ul>
@@ -660,7 +462,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <g id="sm-state-0" class="sm-state active-state">
             <rect x="20" y="25" width="110" height="55" class="sm-box"/>
             <text x="75" y="48" class="sm-text">UNALLOCATED</text>
-            <text x="75" y="64" class="sm-subtext">Process Closed</text>
+            <text x="75" y="64" class="sm-subtext">Context Closed</text>
           </g>
           <path d="M 130 52 L 180 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
           <text x="155" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">creat/open()</text>
@@ -705,8 +507,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5;">
         <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.78rem; font-family: var(--font-mono);">Kernel State Machine Glossary &amp; Technical Breakdown:</div>
         <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #94a3b8;">
-          <li><strong style="color: #38bdf8;">UNALLOCATED (Initial State):</strong> No file descriptor exists for this file in the process table. Any attempt to read or write without opening returns an <code style="color: #f87171;">EBADF</code> error.</li>
-          <li><strong style="color: #38bdf8;">FD_ALLOCATED (Triggered by creat() / open()):</strong> The kernel has successfully validated permissions, loaded the i-node into RAM, and bound a small integer index (e.g., `fd = 3`) in the process descriptor table.</li>
+          <li><strong style="color: #38bdf8;">UNALLOCATED (Initial State):</strong> No file descriptor exists for this file in the table. Any attempt to read or write without opening returns an <code style="color: #f87171;">EBADF</code> error.</li>
+          <li><strong style="color: #38bdf8;">FD_ALLOCATED (Triggered by creat() / open()):</strong> The kernel has successfully validated permissions, loaded the i-node into RAM, and bound a small integer index (e.g., `fd = 3`) in the descriptor table.</li>
           <li><strong style="color: #38bdf8;">OFT_BOUND (Triggered by read() / write()):</strong> The shared Open File Table entry is actively tracking access mode flags, reference counts, and the live byte offset pointer as data flows between storage and buffers.</li>
           <li><strong style="color: #38bdf8;">RAM_CACHED (Triggered by write() / lseek()):</strong> Data resides in memory-resident buffer cache blocks (`DIRTY` until synced). Calling `close()` flushes blocks to disk and returns the state to `UNALLOCATED`.</li>
         </ul>
@@ -747,19 +549,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           <button onclick="loadChallenge(1)" style="font-size: 0.72rem; padding: 4px 8px;">1. Missing Open Bug</button>
-          <button onclick="loadChallenge(2)" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">2. Shared Offset Trap</button>
-          <button onclick="loadChallenge(3)" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">3. Unflushed Cache Risk</button>
+          <button onclick="loadChallenge(2)" class="btn-sec" style="font-size: 0.72rem; padding: 4px 8px;">2. Shared Offset Trap</button>
+          <button onclick="loadChallenge(3)" class="btn-sec" style="font-size: 0.72rem; padding: 4px 8px;">3. Unflushed Cache Risk</button>
         </div>
       </div>
 
       <div id="inspectorConsole" class="kernel-console">$ sandbox telemetry initialized. Ready for system calls...</div>
     </div>
 
-    <!-- Section 4.1.7: Example Program (Syntax Highlighted) -->
+    <!-- 3. EXAMPLE PROGRAM (SYNTAX HIGHLIGHTED) -->
     <div class="card">
       <h2>4.1.7 Example: POSIX File-Copy Program</h2>
       <p>
-        Below is a standard POSIX C implementation illustrating file descriptor handling, error checking, and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
+        Below is a standard POSIX C implementation illustrating file descriptor error checking and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
       </p>
       <pre><span class="c-prep">#include &lt;sys/types.h&gt;</span>
 <span class="c-prep">#include &lt;fcntl.h&gt;</span>
@@ -815,7 +617,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     const actionButtons = ['creat', 'open', 'read', 'write', 'seek', 'close'];
 
-    function updateInspectorUI(consoleMsg, activeCmd = null) {
+    function refreshInspectionUI(consoleMsg, activeCmd = null) {
       const fdEl = document.getElementById("insp-fd3");
       fdEl.textContent = kernelState.fd;
       fdEl.className = kernelState.isOpen ? "highlight" : "alert";
@@ -855,7 +657,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       });
     }
 
-    function inspectExec(cmd) {
+    function runInspectionOp(cmd) {
       if (cmd === 'creat' || cmd === 'open') {
         kernelState.isOpen = true;
         kernelState.fd = "fd [3] (Active)";
@@ -868,36 +670,36 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         kernelState.dirty = "CLEAN";
         kernelState.size = 256;
         kernelState.stateIndex = 1; // FD_ALLOCATED
-        updateInspectorUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Process FD Table. Created Open File Table entry & loaded i-node #512 into RAM.`, cmd);
+        refreshInspectionUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Table. Created Open File Table entry & loaded i-node #512 into RAM.`, cmd);
       } else if (cmd === 'read') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ read(3, buf, 4096);\n[Fault] EBADF: Bad file descriptor! You must call open() or creat() before reading.`, cmd);
+          refreshInspectionUI(`$ read(3, buf, 4096);\n[Fault] EBADF: Bad file descriptor! You must call open() or creat() before reading.`, cmd);
           return;
         }
         kernelState.offset += 4096;
         kernelState.stateIndex = 2; // OFT_BOUND
-        updateInspectorUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into user space. Offset advanced to ${kernelState.offset} Bytes.`, cmd);
+        refreshInspectionUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into space. Offset advanced to ${kernelState.offset} Bytes.`, cmd);
       } else if (cmd === 'write') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ write(3, data, 64);\n[Fault] EBADF: Bad file descriptor! File handle is not open.`, cmd);
+          refreshInspectionUI(`$ write(3, data, 64);\n[Fault] EBADF: Bad file descriptor! File descriptor is not open.`, cmd);
           return;
         }
         kernelState.offset += 64;
         kernelState.size += 64;
         kernelState.dirty = "DIRTY";
         kernelState.stateIndex = 3; // RAM_CACHED
-        updateInspectorUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`, cmd);
+        refreshInspectionUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`, cmd);
       } else if (cmd === 'seek') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Fault] EBADF: Bad file descriptor!`, cmd);
+          refreshInspectionUI(`$ lseek(3, 0, SEEK_SET);\n[Fault] EBADF: Bad file descriptor!`, cmd);
           return;
         }
         kernelState.offset = 0;
         kernelState.stateIndex = 2; // OFT_BOUND
-        updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`, cmd);
+        refreshInspectionUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`, cmd);
       } else if (cmd === 'close') {
         if (!kernelState.isOpen) {
-          updateInspectorUI(`$ close(3);\n[Fault] EBADF: File descriptor 3 is already closed or inactive.`, cmd);
+          refreshInspectionUI(`$ close(3);\n[Fault] EBADF: File descriptor 3 is already closed or inactive.`, cmd);
           return;
         }
         const flushed = kernelState.dirty === "DIRTY";
@@ -911,7 +713,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         kernelState.block = "None";
         kernelState.dirty = "CLEAN";
         kernelState.stateIndex = 0; // UNALLOCATED
-        updateInspectorUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`, cmd);
+        refreshInspectionUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`, cmd);
       }
     }
 
@@ -919,14 +721,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const desc = document.getElementById("challengeDesc");
       if (id === 1) {
         desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
-        inspectExec('close');
+        runInspectionOp('close');
       } else if (id === 2) {
-        desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-process systems, shared open file tables cause coupled offsets!";
-        inspectExec('open');
+        desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-context systems, shared open file tables cause coupled offsets!";
+        runInspectionOp('open');
       } else if (id === 3) {
         desc.innerHTML = "<strong>Challenge 3 (The Unflushed Cache Risk):</strong> Click <code>write()</code> to make the buffer <strong>DIRTY</strong>. Then notice how calling <code>close()</code> automatically flushes the volatile RAM cache to disk.";
-        inspectExec('open');
-        setTimeout(() => inspectExec('write'), 200);
+        runInspectionOp('open');
+        setTimeout(() => runInspectionOp('write'), 200);
       }
     }
   </script>
@@ -934,11 +736,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Format pioneers infobox as floating sidebar card in module 01
+COMMIT_MSG = """Align file abstraction module sidebar layout with memory management
 
-Update week10-file-management/01-files-abstraction.html to style the
-historical pioneers panel as a classic floating sidebar infobox matching
-the memory management module layout."""
+Update week10-file-management/01-files-abstraction.html to format the pioneers
+sidebar infobox exactly like the memory management module layout, featuring
+compact paragraph bios and matching CSS styling."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -958,12 +760,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with floating pioneers infobox to {target_file}")
+    print(f"Wrote module file with working-set style sidebar infobox to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging floating infobox update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging working-set style sidebar update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Floating Infobox Module 01 created, committed, and pushed successfully!")
+    print("--> Working-Set Style Sidebar Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
