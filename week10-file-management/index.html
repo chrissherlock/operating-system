@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 10: File Management — Curriculum Portal</title>
+  <title>Week 10: File Management — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -11,14 +11,9 @@
       --border: #cbd5e1;
       --border-dark: #94a3b8;
       --accent: #0284c7;
+      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --badge-active-bg: #ecfdf5;
-      --badge-active-color: #059669;
-      --badge-active-border: #a7f3d0;
-      --badge-plan-bg: #f1f5f9;
-      --badge-plan-color: #64748b;
-      --badge-plan-border: #cbd5e1;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,61 +27,119 @@
       align-items: center;
       gap: 18px;
     }
-    .container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
-    header { border-bottom: 2px solid var(--border); padding-bottom: 16px; }
-    .week-label { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
-    h1 { font-size: 1.8rem; font-weight: 700; color: var(--text); margin: 4px 0 8px 0; }
-    p.description { color: var(--text-muted); font-size: 1rem; line-height: 1.5; }
-    .lesson-grid { display: flex; flex-direction: column; gap: 12px; }
-    .lesson-card {
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px 20px;
+      padding: 20px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .card:hover {
+      border-color: var(--accent);
+    }
+    .card h2 {
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+    .card p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card a {
+      display: inline-flex;
       align-items: center;
-      gap: 16px;
-      text-decoration: none;
-      color: inherit;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    }
-    .lesson-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      border-color: var(--border-dark);
-    }
-    .lesson-info { display: flex; flex-direction: column; gap: 4px; }
-    .lesson-title { font-size: 1.05rem; font-weight: 600; color: var(--text); }
-    .lesson-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
-    .badge {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
+      gap: 6px;
+      font-size: 0.85rem;
       font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 9999px;
-      border: 1px solid transparent;
-      text-transform: uppercase;
-      flex-shrink: 0;
+      text-decoration: none;
+      color: var(--accent);
+      margin-top: 6px;
     }
-    .badge.active { background-color: var(--badge-active-bg); color: var(--badge-active-color); border-color: var(--badge-active-border); }
-    .badge.draft { background-color: var(--badge-plan-bg); color: var(--badge-plan-color); border-color: var(--badge-plan-border); }
+    .card a:hover {
+      text-decoration: underline;
+    }
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: #0284c7;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
   </style>
 </head>
 <body>
   <div class="nav-back">
-    <a href="../index.html">&larr; Back to Course Hub</a>
+    <a href="../index.html">&larr; Back to Course Overview</a>
   </div>
-  <div class="container">
-    <header>
-      <div class="week-label">Week 10</div>
-      <h1>File Management</h1>
-      <p class="description">File systems, inode pointer tables, allocation strategies, directory trees, and journaling recovery.</p>
-    </header>
-    <main class="lesson-grid">
-      <p style='text-align:center; color:var(--text-muted);'>Curriculum modules in development.</p>
-    </main>
+  <header>
+    <h1>Week 10: File Management</h1>
+    <p class="subtitle">Tanenbaum Chapter 4: Files, Directories, Implementation, and System Optimization.</p>
+  </header>
+
+  <div class="main-container">
+
+    <!-- Module 1 -->
+    <div class="card">
+      <h2>01. Files &amp; Naming Abstractions</h2>
+      <p>Explore fundamental file abstractions, naming rules, structure types, sequential/random access models, attributes, and common POSIX system calls[cite: 3].</p>
+      <a href="01-files-abstraction.html">Launch Module &rarr;</a>
+    </div>
+
+    <!-- Module 2 -->
+    <div class="card">
+      <h2>02. Directories &amp; Hierarchical Layouts</h2>
+      <p>Examine single-level vs. hierarchical directory structures, absolute and relative path resolution, and directory management system calls[cite: 3].</p>
+      <a href="02-directories.html">Launch Module &rarr;</a>
+    </div>
+
+    <!-- Module 3 -->
+    <div class="card">
+      <h2>03. File-System Implementation</h2>
+      <p>Analyze disk layouts, superblock structures, allocation strategies (contiguous, FAT, i-nodes), shared links, journaling, and virtual file systems (VFS)[cite: 3].</p>
+      <a href="03-filesystem-implementation.html">Launch Module &rarr;</a>
+    </div>
+
+    <!-- Module 4 -->
+    <div class="card">
+      <h2>04. Management &amp; Optimization</h2>
+      <p>Study disk-space management, free-space bitmaps, backup policies, consistency checking (`fsck`), caching performance, and disk defragmentation[cite: 3].</p>
+      <a href="04-management-optimization.html">Launch Module &rarr;</a>
+    </div>
+
   </div>
 </body>
 </html>

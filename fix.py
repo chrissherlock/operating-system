@@ -8,7 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Paging Hardware Dilemma: The Two-Access Penalty &amp; TLB Acceleration — COSC240</title>
+  <title>Week 10: File Management — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -19,10 +19,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --hit-color: #059669;
-      --hit-bg: #ecfdf5;
-      --miss-color: #e11d48;
-      --miss-bg: #ffe4e6;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -53,80 +49,35 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: transform 0.15s ease, border-color 0.15s ease;
     }
-    .concept-box {
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      line-height: 1.6;
-      color: #0369a1;
+    .card:hover {
+      border-color: var(--accent);
     }
-    .concept-box strong { color: #075985; }
-
-    /* Interactive Simulator Panel */
-    .sim-panel {
-      border: 1px solid #bae6fd;
-      background: #f8fafc;
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .card h2 {
+      font-size: 1.2rem;
+      color: var(--accent);
     }
-    .sim-controls {
-      display: flex;
-      gap: 12px;
+    .card p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card a {
+      display: inline-flex;
       align-items: center;
-      flex-wrap: wrap;
-    }
-    button {
-      background-color: var(--accent);
-      color: #ffffff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
+      gap: 6px;
+      font-size: 0.85rem;
       font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.15s ease;
+      text-decoration: none;
+      color: var(--accent);
+      margin-top: 6px;
     }
-    button:hover { background-color: var(--accent-hover); }
-    button.btn-secondary {
-      background: #f1f5f9;
-      border: 1px solid var(--border);
-      color: var(--text);
+    .card a:hover {
+      text-decoration: underline;
     }
-    button.btn-secondary:hover { background: #e2e8f0; }
-    button.active {
-      background-color: var(--text);
-      color: #fff;
-    }
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    @media(max-width: 768px) {
-      .stat-grid { grid-template-columns: 1fr; }
-    }
-    .stat-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-family: var(--font-mono);
-    }
-    .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    .stat-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
-
     .nav-back {
       width: 100%;
       max-width: 1100px;
@@ -140,7 +91,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 6px;
       font-size: 0.85rem;
       font-weight: 600;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--font-mono);
       text-decoration: none;
       color: #0284c7;
       background-color: #f0f9ff;
@@ -154,196 +105,56 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #ffffff;
     }
   </style>
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <div class="nav-back">
-    <a href="index.html">&larr; Back to Week Overview</a>
+    <a href="../index.html">&larr; Back to Course Overview</a>
   </div>
   <header>
-    <h1>The Paging Hardware Dilemma: The Two-Access Penalty &amp; TLB</h1>
-    <p class="subtitle">Tanenbaum Chapter 3: Overcoming the 2x Memory Performance Bottleneck via Associative Hardware Caching.</p>
+    <h1>Week 10: File Management</h1>
+    <p class="subtitle">Tanenbaum Chapter 4: Files, Directories, Implementation, and System Optimization.</p>
   </header>
+
   <div class="main-container">
 
-    <!-- Section 1: The Core Dilemma -->
+    <!-- Module 1 -->
     <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">1. The Fundamental Paging Dilemma (The Two-Memory-Access Overhead)</div>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: var(--text-muted);">
-        When paging is implemented purely in software/hardware tables stored in main DRAM, every single CPU instruction or data fetch encounters a severe performance penalty. To translate a virtual address into a physical address, the Memory Management Unit (MMU) must:
-      </p>
-      <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
-        <li><strong>Access #1:</strong> Read the Page Table Entry (PTE) from the page table residing in RAM.</li>
-        <li><strong>Access #2:</strong> Read or write the actual data/instruction payload at the translated physical address in RAM.</li>
-      </ol>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: var(--text-muted);">
-        This <strong>two-memory-access bottleneck</strong> effectively cuts CPU memory throughput in half (a 100% slowdown). Without hardware acceleration, paging would be prohibitively slow for modern high-performance architectures.
-      </p>
+      <h2>01. Files &amp; Naming Abstractions</h2>
+      <p>Explore fundamental file abstractions, naming rules, structure types, sequential/random access models, attributes, and common POSIX system calls[cite: 3].</p>
+      <a href="01-files-abstraction.html">Launch Module &rarr;</a>
     </div>
 
-    <!-- Section 2: Mathematical Modeling (EAT) -->
-    <div class="concept-box">
-      <strong>Quantifying Performance: Effective Access Time ($EAT$)</strong><br>
-      To solve this, hardware engineers introduced the <strong>Translation Lookaside Buffer (TLB)</strong>—a small, ultra-fast associative hardware cache holding recent virtual-to-physical mappings. The Effective Access Time is modeled as:
-      $$EAT = (h \times t_{tlb}) + (1 - h) \times (t_{tlb} + t_{ram\_table} + t_{ram\_data})$$
-      Where $h$ is the TLB hit rate, $t_{tlb}$ is the TLB lookup latency (e.g., 1 ns), $t_{ram\_table}$ is the time to fetch a PTE from RAM, and $t_{ram\_data}$ is the payload fetch time. When $h \ge 99\%$, $EAT$ remains remarkably close to unpaged memory speeds!
+    <!-- Module 2 -->
+    <div class="card">
+      <h2>02. Directories &amp; Hierarchical Layouts</h2>
+      <p>Examine single-level vs. hierarchical directory structures, absolute and relative path resolution, and directory management system calls[cite: 3].</p>
+      <a href="02-directories.html">Launch Module &rarr;</a>
     </div>
 
-    <!-- Section 3: Interactive TLB Lookup Simulator -->
-    <div class="card sim-panel">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">2. Interactive Hardware Translation Simulator (TLB Hit vs. Miss)</div>
-      <p style="font-size: 0.9rem; color: var(--text-muted);">
-        Simulate an MMU virtual address translation request and observe the hardware traversal path and latency breakdown.
-      </p>
-
-      <div class="sim-controls">
-        <button id="hitBtn" class="active" onclick="setScenario('hit')">Simulate TLB Hit ($h = 99\%$)</button>
-        <button id="missBtn" class="btn-secondary" onclick="setScenario('miss')">Simulate TLB Miss ($h = 0\%$)</button>
-      </div>
-
-      <!-- Visual Hardware Flow Diagram -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
-        <span id="flowTitle" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--hit-color);">PATHWAY: CPU &rarr; TLB (Match Found) &rarr; Physical Memory</span>
-
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 110" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- CPU Node -->
-          <rect x="20" y="25" width="100" height="60" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
-          <text x="70" y="52" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">CPU Virtual</text>
-          <text x="70" y="66" font-size="10" fill="#475569" text-anchor="middle">Address</text>
-
-          <path d="M 120 55 L 170 55" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
-
-          <!-- TLB Node -->
-          <rect x="170" y="25" width="110" height="60" id="tlbBox" fill="#ecfdf5" stroke="#059669" stroke-width="2" rx="6"/>
-          <text x="225" y="52" font-size="11" font-weight="700" id="tlbTextTitle" fill="#059669" text-anchor="middle">TLB Lookup</text>
-          <text x="225" y="66" font-size="10" id="tlbTextSub" fill="#059669" text-anchor="middle">1 ns (Fast)</text>
-
-          <path d="M 280 55 L 330 55" id="pathMiddle" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
-
-          <!-- RAM Table Node (Conditional) -->
-          <rect x="330" y="25" width="110" height="60" id="ramTableBox" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" opacity="0.4" rx="6"/>
-          <text x="385" y="52" font-size="11" font-weight="700" id="ramTableTitle" fill="#64748b" text-anchor="middle">RAM Table Walk</text>
-          <text x="385" y="66" font-size="10" id="ramTableSub" fill="#64748b" text-anchor="middle">Bypassed (Hit)</text>
-
-          <path d="M 440 55 L 490 55" id="pathRight" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
-
-          <!-- Physical RAM Data Node -->
-          <rect x="490" y="25" width="120" height="60" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
-          <text x="550" y="52" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Physical RAM</text>
-          <text x="550" y="66" font-size="10" fill="#475569" text-anchor="middle">Data Payload</text>
-
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-            </marker>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- Latency Stat Metrics -->
-      <div class="stat-grid">
-        <div class="stat-card">
-          <span class="stat-label">Translation Latency</span>
-          <span id="statLatency" class="stat-value" style="color: var(--hit-color);">1 ns (TLB Hit)</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">RAM Accesses Required</span>
-          <span id="statAccesses" class="stat-value">1 Access (Data Only)</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">Performance Penalty</span>
-          <span id="statPenalty" class="stat-value" style="color: var(--hit-color);">~1.02x (Near Zero)</span>
-        </div>
-      </div>
+    <!-- Module 3 -->
+    <div class="card">
+      <h2>03. File-System Implementation</h2>
+      <p>Analyze disk layouts, superblock structures, allocation strategies (contiguous, FAT, i-nodes), shared links, journaling, and virtual file systems (VFS)[cite: 3].</p>
+      <a href="03-filesystem-implementation.html">Launch Module &rarr;</a>
     </div>
+
+    <!-- Module 4 -->
+    <div class="card">
+      <h2>04. Management &amp; Optimization</h2>
+      <p>Study disk-space management, free-space bitmaps, backup policies, consistency checking (`fsck`), caching performance, and disk defragmentation[cite: 3].</p>
+      <a href="04-management-optimization.html">Launch Module &rarr;</a>
+    </div>
+
   </div>
-
-  <script>
-    function setScenario(type) {
-      const hitBtn = document.getElementById("hitBtn");
-      const missBtn = document.getElementById("missBtn");
-      const flowTitle = document.getElementById("flowTitle");
-      const tlbBox = document.getElementById("tlbBox");
-      const tlbTextTitle = document.getElementById("tlbTextTitle");
-      const tlbTextSub = document.getElementById("tlbTextSub");
-      const ramTableBox = document.getElementById("ramTableBox");
-      const ramTableTitle = document.getElementById("ramTableTitle");
-      const ramTableSub = document.getElementById("ramTableSub");
-      const statLatency = document.getElementById("statLatency");
-      const statAccesses = document.getElementById("statAccesses");
-      const statPenalty = document.getElementById("statPenalty");
-
-      if (type === 'hit') {
-        hitBtn.className = "active";
-        missBtn.className = "btn-secondary";
-        flowTitle.textContent = "PATHWAY: CPU -> TLB (Match Found) -> Physical Memory (1 RAM Fetch)";
-        flowTitle.style.color = "var(--hit-color)";
-
-        tlbBox.setAttribute("fill", "#ecfdf5");
-        tlbBox.setAttribute("stroke", "#059669");
-        tlbTextTitle.textContent = "TLB Lookup";
-        tlbTextTitle.setAttribute("fill", "#059669");
-        tlbTextSub.textContent = "1 ns (Hit!)";
-        tlbTextSub.setAttribute("fill", "#059669");
-
-        ramTableBox.setAttribute("fill", "#f1f5f9");
-        ramTableBox.setAttribute("stroke", "#94a3b8");
-        ramTableBox.style.opacity = "0.4";
-        ramTableTitle.textContent = "RAM Table Walk";
-        ramTableTitle.setAttribute("fill", "#64748b");
-        ramTableSub.textContent = "Bypassed (Hit)";
-        ramTableSub.setAttribute("fill", "#64748b");
-
-        statLatency.textContent = "1 ns (TLB Hit)";
-        statLatency.style.color = "var(--hit-color)";
-        statAccesses.textContent = "1 Access (Data Only)";
-        statPenalty.textContent = "~1.02x (Near Zero)";
-        statPenalty.style.color = "var(--hit-color)";
-      } else {
-        missBtn.className = "active";
-        hitBtn.className = "btn-secondary";
-        flowTitle.textContent = "PATHWAY: CPU -> TLB (Miss) -> RAM Page Table Walk -> Physical Memory (2 RAM Fetches)";
-        flowTitle.style.color = "var(--miss-color)";
-
-        tlbBox.setAttribute("fill", "#ffe4e6");
-        tlbBox.setAttribute("stroke", "#e11d48");
-        tlbTextTitle.textContent = "TLB Lookup";
-        tlbTextTitle.setAttribute("fill", "#e11d48");
-        tlbTextSub.textContent = "1 ns (Miss!)";
-        tlbTextSub.setAttribute("fill", "#e11d48");
-
-        ramTableBox.setAttribute("fill", "#fff1f2");
-        ramTableBox.setAttribute("stroke", "#e11d48");
-        ramTableBox.style.opacity = "1";
-        ramTableTitle.textContent = "RAM Table Walk";
-        ramTableTitle.setAttribute("fill", "#e11d48");
-        ramTableSub.textContent = "+ 100 ns (Required)";
-        ramTableSub.setAttribute("fill", "#e11d48");
-
-        statLatency.textContent = "101 ns (TLB Miss + RAM Walk)";
-        statLatency.style.color = "var(--miss-color)";
-        statAccesses.textContent = "2 Accesses (Table + Data)";
-        statPenalty.textContent = "2.00x (50% Slowdown)";
-        statPenalty.style.color = "var(--miss-color)";
-      }
-    }
-  </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Replace stepper with TLB simulation in paging dilemma module
+COMMIT_MSG = """Align week10 file management index with week09 modular course layout
 
-Drop the linear concept stepper in 02b-paging-hardware-dilemma.html in
-favor of an interactive TLB hit/miss lookup simulator. Highlights the
-two-memory-access penalty and hardware Effective Access Time modeling."""
+Update generate_week10_index.py to structure week10-file-management/
+index.html using the card-based submodule layout established in Week 09,
+categorizing Chapter 4 into discrete interactive learning modules."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -357,16 +168,18 @@ def run_git_step(cmd, desc):
         sys.exit(res.returncode)
 
 def execute_pipeline():
-    target_module = "week09-memory-management/02b-paging-hardware-dilemma.html"
-    os.makedirs(os.path.dirname(target_module), exist_ok=True)
-    with open(target_module, "w", encoding="utf-8") as f:
-        f.write(HTML_CONTENT)
-    print(f"Wrote updated module to {target_module}")
+    target_dir = "week10-file-management"
+    os.makedirs(target_dir, exist_ok=True)
+    target_file = os.path.join(target_dir, "index.html")
 
-    run_git_step(["git", "add", target_module], "Staging 02b-paging-hardware-dilemma.html")
+    with open(target_file, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+    print(f"Wrote generated modular index page to {target_file}")
+
+    run_git_step(["git", "add", target_file], "Staging week10 modular index file")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Paging hardware dilemma module updated, committed, and pushed successfully!")
+    print("--> Week 10 modular index page created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
