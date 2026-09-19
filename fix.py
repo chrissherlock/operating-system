@@ -112,7 +112,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       width: 100%;
       height: 220px;
       object-fit: cover;
-      object-position: top center;
+      object-position: center center;
       border-radius: 4px;
       border: 1px solid var(--border);
       background: #e2e8f0;
@@ -907,12 +907,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Use North-gravity smart cropping to preserve heads in portraits
+COMMIT_MSG = """Apply tailored individual crop parameters for pioneer portraits
 
 Update image processing pipeline in week09-memory-management/
-01-free-used-lists-buddy.html generation script to use -gravity North
-when square-cropping portraits. Prevents cutting off the top of pioneers'
-heads."""
+01-free-used-lists-buddy.html generation script to apply custom crop
+and gravity geometries per pioneer. Tighten Knowlton's frame to reduce
+whitespace and center Knuth to prevent chin cutoff."""
 
 def download_assets():
     images_dir = "week09-memory-management/images"
@@ -942,11 +942,14 @@ def crop_assets():
         print("    [Warning] ImageMagick not found on PATH. Skipping crop step.", file=sys.stderr)
         return
 
-    # Using -gravity North ensures the top of the image (heads/faces) is preserved during square cropping
+    # Tailored tasks per pioneer portrait to ensure precise face framing
     tasks = [
+        # Markowitz: North gravity square crop
         [magick_binary, os.path.join(images_dir, "markowitz.jpg"), "-gravity", "North", "-crop", "1:1", "+repage", os.path.join(images_dir, "markowitz.jpg")],
-        [magick_binary, os.path.join(images_dir, "knowlton.jpg"), "-gravity", "North", "-crop", "1:1", "+repage", os.path.join(images_dir, "knowlton.jpg")],
-        [magick_binary, os.path.join(images_dir, "knuth.jpg"), "-gravity", "North", "-crop", "1:1", "+repage", os.path.join(images_dir, "knuth.jpg")]
+        # Knowlton: Center gravity with slight zoom-in crop to remove excess background whitespace
+        [magick_binary, os.path.join(images_dir, "knowlton.jpg"), "-gravity", "center", "-crop", "80%x80%+0+0", "+repage", os.path.join(images_dir, "knowlton.jpg")],
+        # Knuth: Center gravity square crop with balanced vertical offset to keep both hair and chin visible
+        [magick_binary, os.path.join(images_dir, "knuth.jpg"), "-gravity", "center", "-crop", "1:1+0-15", "+repage", os.path.join(images_dir, "knuth.jpg")]
     ]
     for task in tasks:
         print(f"--> Running ImageMagick: {' '.join(task)}")
@@ -979,7 +982,7 @@ def execute_git_pipeline():
     run_git_step(["git", "add", target_module, images_dir], "Staging HTML and images directory")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Smart face cropping applied, committed, and pushed successfully!")
+    print("--> Tailored pioneer crops applied, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_git_pipeline()
