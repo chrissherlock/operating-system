@@ -702,17 +702,14 @@
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
           <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5B: Dynamic Inode Map (Imap) Resolution to the Sequential Log Tail</text>
 
-          <!-- Inode Identifier -->
           <rect x="30" y="90" width="110" height="65" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
           <text x="85" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">File Inode #</text>
           <text x="85" y="136" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">Inode 42</text>
 
-          <!-- Arrow to Imap -->
           <line x1="140" y1="122" x2="200" y2="122" stroke="#0284c7" stroke-width="2"/>
           <polygon points="200,122 192,117 192,127" fill="#0284c7"/>
           <text x="170" y="112" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Index</text>
 
-          <!-- Inode Map Table -->
           <rect x="200" y="60" width="170" height="135" fill="#f8fafc" stroke="#64748b" rx="4"/>
           <text x="285" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Inode Map (Imap Chunk)</text>
           <line x1="210" y1="92" x2="360" y2="92" stroke="#cbd5e1" stroke-width="1"/>
@@ -722,16 +719,13 @@
           <text x="285" y="162" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 43 &rarr; Sector 3120</text>
           <text x="285" y="182" font-family="sans-serif" font-size="9" font-style="italic" fill="#94a3b8" text-anchor="middle">(Decouples static ID from offset)</text>
 
-          <!-- Arrow to Log Tail -->
           <line x1="370" y1="133" x2="430" y2="133" stroke="#0284c7" stroke-width="2"/>
           <polygon points="430,133 422,128 422,138" fill="#0284c7"/>
           <text x="400" y="123" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Locates</text>
 
-          <!-- Log Tail Active Frontier -->
           <rect x="430" y="60" width="340" height="135" fill="#0f172a" stroke="#334155" rx="4"/>
           <text x="600" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">Active Log Tail (Append Frontier)</text>
 
-          <!-- Sub-blocks in the log stream -->
           <rect x="445" y="102" width="85" height="50" fill="#0284c7" rx="3"/>
           <text x="487.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8420</text>
           <text x="487.5" y="140" font-family="sans-serif" font-size="9" fill="#e0f2fe" text-anchor="middle">Inode 42</text>
@@ -744,7 +738,6 @@
           <text x="672.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8422</text>
           <text x="672.5" y="140" font-family="sans-serif" font-size="9" fill="#d1fae5" text-anchor="middle">Updated Imap</text>
 
-          <!-- Frontier Advance Indicator -->
           <line x1="725" y1="127" x2="755" y2="127" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3,3"/>
           <polygon points="758,127 750,122 750,132" fill="#38bdf8"/>
           <text x="600" y="178" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">&rarr; Writes stream contiguously; Frontier advances forward &rarr;</text>
@@ -752,10 +745,120 @@
         <figcaption>Figure 4.3.5B: The Inode Map decoupling persistent file numbers from dynamic log tail write offsets.</figcaption>
       </figure>
 
+      <!-- MASSIVELY EXPANDED SECTION 3: CHECKPOINTS & CRASH RECOVERY -->
       <h3>3. Checkpoint Regions &amp; Rapid Crash Recovery</h3>
       <p>
-        To locate the inode map during system startup without scanning the entire log, LFS maintains a fixed <strong>Checkpoint Region (CR)</strong> on disk, enabling fast roll-forward recovery upon reboot.
+        The introduction of the Inode Map introduces an architectural dilemma: <em>if inodes move because files are appended to the log, and chunks of the imap move because inodes are appended to the log, how does the operating system locate the imap itself when mounting the disk?</em>
       </p>
+      <p>
+        Without a fixed anchoring point, the file system would suffer infinite recursive indirection. LFS breaks this cycle by reserving fixed physical disk locations known as <strong>Checkpoint Regions (CR)</strong>.
+      </p>
+
+      <h4>The Anatomy of a Checkpoint Region</h4>
+      <p>
+        A Checkpoint Region is written periodically (typically every 30 seconds, or during a clean system unmount). It contains:
+      </p>
+      <ul>
+        <li><strong>Array of Imap Block Addresses:</strong> Pointers to all current, valid chunks of the inode map scattered across the log.</li>
+        <li><strong>Segment Usage Table Pointers:</strong> The locations of blocks tracking the number of live bytes and modification timestamps of every segment on disk (used by the segment cleaner).</li>
+        <li><strong>Active Log Tail Pointer:</strong> The exact segment and block offset where new appends were occurring when the checkpoint was taken.</li>
+        <li><strong>Monotonic Timestamp &amp; Checksum:</strong> Verification records ensuring that the checkpoint region was completely and safely flushed to physical disk.</li>
+      </ul>
+
+      <h4>Dual Alternating Checkpoint Regions (Crash Consistency)</h4>
+      <p>
+        Writing to a fixed location creates an immediate crash vulnerability: if power fails midway through updating the Checkpoint Region, the partially written CR will be corrupt, rendering the entire file system unreadable.
+      </p>
+      <p>
+        To guarantee atomicity, LFS allocates <strong>two identical Checkpoint Regions (CR A and CR B)</strong> at known, fixed disk offsets (typically at the absolute start and end of the partition). LFS alternates writes between them:
+      </p>
+      <ol>
+        <li>At interval $T_1$, LFS flushes dirty buffers to the log tail, writes the latest imap chunks, and writes CR A with timestamp $T_1$.</li>
+        <li>At interval $T_2$, LFS repeats this sequence but writes exclusively to CR B with timestamp $T_2$.</li>
+        <li>During boot recovery, LFS inspects both CR A and CR B, computes their checksums, and mounts whichever region is intact and possesses the most recent valid timestamp. If a crash interrupted writing to CR B, LFS safely discards it and falls back to CR A.</li>
+      </ol>
+
+      <!-- Diagram: Dual Alternating Checkpoints -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 230" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="230" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5C: Dual Alternating Checkpoints for Atomic Consistency</text>
+
+          <!-- CR A Box -->
+          <rect x="50" y="60" width="220" height="130" fill="#ecfdf5" stroke="#10b981" rx="4"/>
+          <text x="160" y="82" font-family="sans-serif" font-size="12" font-weight="bold" fill="#047857" text-anchor="middle">Checkpoint Region A (Block 0)</text>
+          <line x1="60" y1="92" x2="260" y2="92" stroke="#a7f3d0" stroke-width="1"/>
+          <text x="160" y="112" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">Timestamp: 10:45:00 (Valid)</text>
+          <text x="160" y="132" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">Imap Chunk Pointers: [P1, P2, ...]</text>
+          <text x="160" y="152" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">CRC Checksum: OK &check;</text>
+          <text x="160" y="174" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">&larr; Selected on Boot &larr;</text>
+
+          <!-- Middle Disk Separator -->
+          <rect x="310" y="95" width="180" height="60" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="3,3" rx="4"/>
+          <text x="400" y="122" font-family="sans-serif" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">Segments &amp; Log Stream</text>
+          <text x="400" y="140" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">(Continuous Sequential Appends)</text>
+
+          <!-- CR B Box (Corrupt/Incomplete) -->
+          <rect x="530" y="60" width="220" height="130" fill="#fef2f2" stroke="#ef4444" rx="4"/>
+          <text x="640" y="82" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Checkpoint Region B (Block 1)</text>
+          <line x1="540" y1="92" x2="740" y2="92" stroke="#fecaca" stroke-width="1"/>
+          <text x="640" y="112" font-family="sans-serif" font-size="10" fill="#991b1b" text-anchor="middle">Timestamp: 10:45:30 (Interrupted)</text>
+          <text x="640" y="132" font-family="sans-serif" font-size="10" fill="#991b1b" text-anchor="middle">Imap Chunk Pointers: [Truncated]</text>
+          <text x="640" y="152" font-family="sans-serif" font-size="10" fill="#dc2626" font-weight="bold" text-anchor="middle">CRC Checksum: MISMATCH &cross;</text>
+          <text x="640" y="174" font-family="sans-serif" font-size="11" font-weight="bold" fill="#dc2626" text-anchor="middle">&cross; Safely Discarded &cross;</text>
+        </svg>
+        <figcaption>Figure 4.3.5C: Alternating checkpoints guarantee crash resilience even if power fails mid-write.</figcaption>
+      </figure>
+
+      <h4>Roll-Forward Recovery via Segment Summary Blocks</h4>
+      <p>
+        If LFS only recovered data referenced by the most recent checkpoint, all operations committed in the 30-second window between the last checkpoint and the sudden power cut would be lost. LFS overcomes this limitation with <strong>roll-forward recovery</strong>:
+      </p>
+      <ul>
+        <li><strong>Segment Summary Blocks:</strong> Every segment written at the log tail includes a compact summary block at its end. This summary explicitly lists the inode number and logical file offset for every single data block residing in that segment.</li>
+        <li><strong>Scanning from Checkpoint to Tail:</strong> During boot, after mounting the latest valid Checkpoint Region, LFS identifies the segment where the checkpoint concluded and scans forward through subsequent segments until it encounters unwritten media.</li>
+        <li><strong>Rebuilding Recent Inodes:</strong> By reading the Segment Summary Blocks of these recent segments, LFS detects files written after the checkpoint, reconstructs their inodes in memory, updates the imap entries, and establishes a newly verified log tail frontier.</li>
+      </ul>
+      <p>
+        Because LFS only scans the small tail of the log written since the last checkpoint (usually just a few megabytes), recovery completes in milliseconds, avoiding the hours-long volume scans typical of traditional <code>fsck</code> utilities.
+      </p>
+
+      <!-- Diagram: Roll-Forward Mechanism -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 210" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="210" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5D: Roll-Forward Recovery from Checkpoint to Crash Frontier</text>
+
+          <!-- Checkpoint Anchor -->
+          <rect x="40" y="70" width="130" height="90" fill="#ecfdf5" stroke="#10b981" rx="4"/>
+          <text x="105" y="98" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">Last Valid CR</text>
+          <text x="105" y="118" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">Timestamp: $T_{CR}$</text>
+          <text x="105" y="138" font-family="sans-serif" font-size="9" fill="#047857" text-anchor="middle">&check; Consistent State</text>
+
+          <!-- Roll Forward Arrow -->
+          <path d="M 170 115 L 260 115" stroke="#0284c7" stroke-width="3" stroke-dasharray="4,4"/>
+          <polygon points="260,115 250,109 250,121" fill="#0284c7"/>
+          <text x="215" y="105" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0284c7" text-anchor="middle">Roll Forward</text>
+
+          <!-- Segment N+1 (Recovered) -->
+          <rect x="260" y="65" width="220" height="100" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
+          <text x="370" y="86" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Segment Written After Checkpoint</text>
+          <rect x="275" y="98" width="50" height="35" fill="#0284c7" rx="2"/><text x="300" y="120" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Data F7</text>
+          <rect x="335" y="98" width="50" height="35" fill="#0284c7" rx="2"/><text x="360" y="120" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Inode 7</text>
+          <rect x="395" y="98" width="70" height="35" fill="#f59e0b" rx="2"/><text x="430" y="120" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Summary Blk</text>
+          <text x="370" y="152" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">Summary identifies new inode &amp; updates Imap</text>
+
+          <!-- Crash Boundary -->
+          <line x1="510" y1="50" x2="510" y2="180" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,5"/>
+          <text x="510" y="198" font-family="sans-serif" font-size="10" font-weight="bold" fill="#dc2626" text-anchor="middle">&cross; Sudden Power Cut &cross;</text>
+
+          <!-- Unwritten Log Space -->
+          <rect x="540" y="65" width="220" height="100" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="3,3" rx="4"/>
+          <text x="650" y="110" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">Unwritten / Clean Segments</text>
+          <text x="650" y="128" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">(Becomes new active log tail frontier)</text>
+        </svg>
+        <figcaption>Figure 4.3.5D: Fast roll-forward scan parsing segment summaries to recover blocks committed after checkpoint.</figcaption>
+      </figure>
 
       <h3>4. Background Garbage Collection &amp; Segment Cleaning</h3>
       <p>
@@ -766,7 +869,7 @@
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
           <rect width="800" height="220" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5C: Background Segment Cleaner &amp; Compaction Process</text>
+          <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5E: Background Segment Cleaner &amp; Compaction Process</text>
 
           <rect x="50" y="60" width="200" height="110" fill="#fef2f2" stroke="#f87171" rx="4"/>
           <text x="150" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b91c1c" text-anchor="middle">Old Segment (Fragmented)</text>
@@ -793,7 +896,7 @@
           <rect x="575" y="100" width="70" height="40" fill="#0284c7" rx="2"/><text x="610" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live Block 1</text>
           <rect x="655" y="100" width="70" height="40" fill="#0284c7" rx="2"/><text x="690" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live Block 2</text>
         </svg>
-        <figcaption>Figure 4.3.5C: Segment cleaning mechanism combining live blocks and freeing dead space.</figcaption>
+        <figcaption>Figure 4.3.5E: Segment cleaning mechanism combining live blocks and freeing dead space.</figcaption>
       </figure>
     </div>
 
