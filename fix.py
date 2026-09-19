@@ -224,6 +224,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 2px;
       width: 100%;
       max-width: 1000px;
+      height: 140px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
@@ -328,6 +329,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 2px;
       width: 100%;
       max-width: 1000px;
+      height: 140px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
@@ -407,14 +409,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 950px;
+      height: 140px;
     }
     .theme-dos .c-cell {
-      aspect-ratio: 1 / 1.65;
+      aspect-ratio: 1 / 1.45;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: bold;
       line-height: 1;
       user-select: none;
@@ -439,7 +442,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (AUTHENTIC MICROSOFT DEFRAG)
+       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCKS & PATTERNS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -500,26 +503,53 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 950px;
+      height: 140px; /* 20 rows compact height for 800x600 fit */
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.6;
+      aspect-ratio: 1 / 1.4;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
       user-select: none;
     }
-    /* MS-DOS 6.22 Defrag Palette */
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; } /* Shaded / Dotted */
-    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }   /* Solid Yellow */
-    .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; } /* Shaded cyan */
-    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; } /* Yellow with X */
-    .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
-    .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
+    /* MS-DOS 6.22 Defrag Pure CSS Block Rendering */
+    .theme-olddos .c-free {
+      background-color: #0000aa;
+      background-image: radial-gradient(#55ffff 30%, transparent 30%);
+      background-size: 4px 4px; /* Authentic dotted/shaded background pattern */
+      color: transparent;
+    }
+    .theme-olddos .c-opt {
+      background-color: #ffff55; /* Solid Yellow Block */
+      color: transparent;
+    }
+    .theme-olddos .c-unopt {
+      background-color: #0000aa;
+      background-image: radial-gradient(#ffff55 30%, transparent 30%);
+      background-size: 4px 4px;
+      color: transparent;
+    }
+    .theme-olddos .c-system {
+      background-color: #ffff55;
+      color: #aa0000;
+      font-size: 7.5px;
+      font-weight: 900; /* Crisp red X on yellow block */
+    }
+    .theme-olddos .c-read {
+      background-color: #ffffff !important;
+      color: #0000aa !important;
+      font-size: 7.5px;
+    }
+    .theme-olddos .c-write {
+      background-color: #55ff55 !important;
+      color: #0000aa !important;
+      font-size: 7.5px;
+    }
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
@@ -558,7 +588,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding-left: 4px;
       font-weight: bold;
     }
-    .theme-olddos .ui-status-panel { display: none; } /* Replaced by authentic box */
+    .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
 
     /* Matrix Dimensions */
@@ -669,7 +699,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Single-Screen Matrix Well -->
+        <!-- Single-Screen Matrix Well (Reduced to 20 Rows = 1,000 Blocks) -->
         <div class="grid-wrapper">
           <div class="screen-grid" id="clusterGrid"></div>
         </div>
@@ -699,7 +729,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div>B - Bad</div>
               <div>X - Unmovable</div>
             </div>
-            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C: 1 block = 54 clusters</div>
+            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
           </div>
         </div>
 
@@ -716,7 +746,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <!-- Real-Time Status Panel -->
         <div class="ui-status-panel">
-          <span id="txtStatusMsg">500 MB Volume Initialized. 1,500 Blocks on Screen (1:85 Cluster Ratio).</span>
+          <span id="txtStatusMsg">500 MB Volume Initialized. 1,000 Blocks on Screen.</span>
           <span id="txtProgressMetric">Optimization: 0% | Fragmentation: High</span>
         </div>
       </div>
@@ -740,8 +770,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
-    const TOTAL_CELLS = 1500; // 50 cols x 30 rows fits completely on one screen
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (20 Rows = 1,000 Blocks) ---
+    const TOTAL_CELLS = 1000; // 50 cols x 20 rows fits effortlessly on 800x600 screens
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
@@ -819,7 +849,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs (Matching screenshot exactly)
+        // Authentic MS-DOS 6.22 CSS Blocks & Gradients
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";
@@ -831,13 +861,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
-          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
-          el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          el.textContent = "▒";
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -889,9 +916,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       initMatrix();
 
       // System Unmovable files at designated positions (Marked as X in DOS 6.22)
-      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
+      const unmovable = [12, 35, 75, 110, 160, 260, 350, 480, 600, 760, 920];
       unmovable.forEach(idx => {
-        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+        if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
       // Front 18% optimized
@@ -929,7 +956,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         if (cells[i].isSystem) continue;
 
         let row = Math.floor(i / 50);
-        if (row < 4) {
+        if (row < 3) {
           cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
         } else {
           let seed = (i * 31 + row * 43) % 100;
@@ -941,9 +968,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       }
 
-      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
+      const unmovable = [12, 35, 75, 110, 160, 260, 350, 480, 600, 760, 920];
       unmovable.forEach(idx => {
-        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+        if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
       renderAllCells();
@@ -958,7 +985,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const totalData = opt + unopt;
       const pct = totalData > 0 ? Math.round((opt / totalData) * 100) : 0;
 
-      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/1,500`;
+      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/1,000`;
 
       // Update DOS 6.22 status widget
       const dosPct = document.getElementById("dosPctText");
@@ -1104,11 +1131,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add MS-DOS 6.22 defrag theme matching authentic Microsoft Defrag UI
+COMMIT_MSG = """Apply CSS retro blocks and patterns for MS-DOS 6.22 defrag grid
 
-Update week10-file-management/03-filesystem-implementation.html with an
-authentic MS-DOS 6.22 theme featuring blue background, yellow used blocks,
-shaded free space, X unmovable markers, and the exact Defrag status/legend box."""
+Update week10-file-management/03-filesystem-implementation.html with CSS
+background patterns and solid color blocks for MS-DOS 6.22 mode, replacing
+overflowing text glyphs with clean retro block rendering."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1130,10 +1157,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging MS-DOS 6.22 defrag update")
+    run_git_step(["git", "add", target_file], "Staging CSS block update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> MS-DOS 6.22 Defragmenter theme successfully deployed!")
+    print("--> CSS retro blocks and 20-row screen fit successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
