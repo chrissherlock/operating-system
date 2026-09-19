@@ -437,7 +437,7 @@
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCKS & PATTERNS)
+       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCK RENDERING)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -498,7 +498,7 @@
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 140px; /* 20 rows compact height for 800x600 fit */
+      height: 140px;
     }
     .theme-olddos .c-cell {
       aspect-ratio: 1 / 1.4;
@@ -506,44 +506,37 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 7px;
       font-weight: bold;
       line-height: 1;
-      image-rendering: pixelated;
       user-select: none;
     }
-    /* MS-DOS 6.22 Defrag Pure CSS Block Rendering */
+    /* MS-DOS 6.22 Defrag Pure CSS Block Backgrounds */
     .theme-olddos .c-free {
       background-color: #0000aa;
-      background-image: radial-gradient(#55ffff 30%, transparent 30%);
-      background-size: 4px 4px; /* Authentic dotted/shaded background pattern */
-      color: transparent;
+      background-image: repeating-linear-gradient(45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 50%);
+      background-size: 4px 4px;
     }
     .theme-olddos .c-opt {
       background-color: #ffff55; /* Solid Yellow Block */
-      color: transparent;
     }
     .theme-olddos .c-unopt {
       background-color: #0000aa;
-      background-image: radial-gradient(#ffff55 30%, transparent 30%);
+      background-image: repeating-linear-gradient(-45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 50%);
       background-size: 4px 4px;
-      color: transparent;
     }
     .theme-olddos .c-system {
       background-color: #ffff55;
       color: #aa0000;
-      font-size: 7.5px;
-      font-weight: 900; /* Crisp red X on yellow block */
+      font-weight: 900;
     }
     .theme-olddos .c-read {
       background-color: #ffffff !important;
       color: #0000aa !important;
-      font-size: 7.5px;
     }
     .theme-olddos .c-write {
       background-color: #55ff55 !important;
       color: #0000aa !important;
-      font-size: 7.5px;
     }
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
@@ -844,7 +837,7 @@
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Authentic MS-DOS 6.22 CSS Blocks & Gradients
+        // Pure CSS Block Rendering (No text overflow)
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";

@@ -442,7 +442,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCKS & PATTERNS)
+       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCK RENDERING)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -503,7 +503,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 140px; /* 20 rows compact height for 800x600 fit */
+      height: 140px;
     }
     .theme-olddos .c-cell {
       aspect-ratio: 1 / 1.4;
@@ -511,44 +511,37 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 7px;
       font-weight: bold;
       line-height: 1;
-      image-rendering: pixelated;
       user-select: none;
     }
-    /* MS-DOS 6.22 Defrag Pure CSS Block Rendering */
+    /* MS-DOS 6.22 Defrag Pure CSS Block Backgrounds */
     .theme-olddos .c-free {
       background-color: #0000aa;
-      background-image: radial-gradient(#55ffff 30%, transparent 30%);
-      background-size: 4px 4px; /* Authentic dotted/shaded background pattern */
-      color: transparent;
+      background-image: repeating-linear-gradient(45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 50%);
+      background-size: 4px 4px;
     }
     .theme-olddos .c-opt {
       background-color: #ffff55; /* Solid Yellow Block */
-      color: transparent;
     }
     .theme-olddos .c-unopt {
       background-color: #0000aa;
-      background-image: radial-gradient(#ffff55 30%, transparent 30%);
+      background-image: repeating-linear-gradient(-45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 50%);
       background-size: 4px 4px;
-      color: transparent;
     }
     .theme-olddos .c-system {
       background-color: #ffff55;
       color: #aa0000;
-      font-size: 7.5px;
-      font-weight: 900; /* Crisp red X on yellow block */
+      font-weight: 900;
     }
     .theme-olddos .c-read {
       background-color: #ffffff !important;
       color: #0000aa !important;
-      font-size: 7.5px;
     }
     .theme-olddos .c-write {
       background-color: #55ff55 !important;
       color: #0000aa !important;
-      font-size: 7.5px;
     }
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
@@ -849,7 +842,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Authentic MS-DOS 6.22 CSS Blocks & Gradients
+        // Pure CSS Block Rendering (No text overflow)
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";
@@ -1131,11 +1124,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Apply CSS retro blocks and patterns for MS-DOS 6.22 defrag grid
+COMMIT_MSG = """Fix grid cell overflow with pure CSS block background fills
 
-Update week10-file-management/03-filesystem-implementation.html with CSS
-background patterns and solid color blocks for MS-DOS 6.22 mode, replacing
-overflowing text glyphs with clean retro block rendering."""
+Update week10-file-management/03-filesystem-implementation.html to render
+MS-DOS 6.22 grid cells using pure CSS background gradients and solid fills,
+preventing any text character sizing or cell overflow issues."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1157,10 +1150,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging CSS block update")
+    run_git_step(["git", "add", target_file], "Staging pure CSS grid update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> CSS retro blocks and 20-row screen fit successfully deployed!")
+    print("--> Pure CSS grid block rendering successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
