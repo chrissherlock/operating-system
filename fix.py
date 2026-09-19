@@ -217,7 +217,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-top: 2px;
     }
 
-    /* LFS SIMULATOR */
+    /* STREAMLINED LFS WALKTHROUGH WIDGET */
     .lfs-sim-container {
       background: #0f172a;
       border: 1px solid #334155;
@@ -245,6 +245,26 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+    .lfs-step-indicator {
+      font-size: 0.78rem;
+      background: #1e293b;
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #334155;
+    }
+    .lfs-explanation-box {
+      background: #020617;
+      border: 1px solid #38bdf8;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+    .lfs-explanation-box strong {
+      color: #38bdf8;
+    }
     .lfs-controls {
       display: flex;
       gap: 8px;
@@ -259,9 +279,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 4px;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
@@ -270,7 +290,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .lfs-btn:hover { background-color: #334155; color: #ffffff; }
     .lfs-btn.primary { background-color: #0284c7; color: #fff; border-color: #38bdf8; }
     .lfs-btn.primary:hover { background-color: #0369a1; }
-    .lfs-btn.danger { background-color: #b91c1c; color: #fff; border-color: #f87171; }
 
     .lfs-segments-grid {
       display: grid;
@@ -315,18 +334,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .blk-free { background: #1e293b; color: #475569; }
     .blk-live { background: #0284c7; color: #fff; }
     .blk-dead { background: #475569; color: #94a3b8; text-decoration: line-through; }
-    .lfs-status-panel {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 0.8rem;
-      color: #38bdf8;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
 
     /* DEFRAGMENTER SHELL & THEMES */
     .defrag-outer-frame {
@@ -647,24 +654,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <figcaption>Figure 4.3.5A: Comparison of random in-place updates versus LFS continuous append logging.</figcaption>
       </figure>
 
-      <!-- INTERACTIVE LFS SIMULATOR WIDGET -->
+      <!-- STREAMLINED LFS INTERACTIVE WALKTHROUGH -->
       <div class="lfs-sim-container" id="lfsSimulator">
         <div class="lfs-topbar">
-          <span class="lfs-title">Interactive LFS Segment Append &amp; Garbage Collector Simulator</span>
-          <span style="font-size: 0.75rem; color: #38bdf8;" id="lfsActiveSegLabel">Active Segment: Segment 0</span>
+          <span class="lfs-title">Interactive LFS Walkthrough &amp; Segment Simulator</span>
+          <span class="lfs-step-indicator" id="lfsStepTag">Step 1 of 4: Ready</span>
+        </div>
+
+        <div class="lfs-explanation-box" id="lfsExplanationBox">
+          <strong>Welcome to the LFS Walkthrough!</strong> Click <strong>"1. Append New File"</strong> to experience how LFS streams data continuously into the log tail without seeking.
         </div>
 
         <div class="lfs-controls">
-          <button class="lfs-btn primary" onclick="lfsWriteNewFile()">Append New File (Write)</button>
-          <button class="lfs-btn" onclick="lfsUpdateExistingFile()">Overwrite Existing File</button>
-          <button class="lfs-btn danger" onclick="lfsTriggerCleaner()">Run Segment Cleaner (GC)</button>
-          <button class="lfs-btn" onclick="lfsResetSim()" style="margin-left: auto;">Reset Simulator</button>
+          <button class="lfs-btn primary" onclick="lfsStepAppend()">1. Append New File</button>
+          <button class="lfs-btn" onclick="lfsStepOverwrite()">2. Overwrite / Create Dead Space</button>
+          <button class="lfs-btn primary" onclick="lfsStepClean()">3. Run Segment Cleaner (GC)</button>
+          <button class="lfs-btn" onclick="lfsResetSim()" style="margin-left: auto;">Reset Walkthrough</button>
         </div>
 
         <div class="lfs-segments-grid" id="lfsSegmentsGrid"></div>
 
         <div class="lfs-status-panel">
-          <span id="lfsStatusMsg">Simulator Ready. Click 'Append New File' to write sequentially to the log tail.</span>
+          <span id="lfsStatusMsg">Ready to begin LFS demonstration.</span>
           <span id="lfsMetricMsg">Live Blocks: 0 | Dead Blocks: 0 | Free Blocks: 32</span>
         </div>
       </div>
@@ -775,7 +786,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // --- Interactive LFS Simulator Engine ---
+    // --- Streamlined LFS Walkthrough Engine ---
     const NUM_SEGMENTS = 4;
     const BLOCKS_PER_SEGMENT = 8;
     let lfsSegments = [];
@@ -792,12 +803,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
       currentWriteIndex = 0;
       lfsRenderSim();
-      document.getElementById("lfsStatusMsg").textContent = "Simulator Reset. 4 Segments (32 total blocks) ready for sequential logging.";
+      document.getElementById("lfsStepTag").textContent = "Step 1 of 3: Ready";
+      document.getElementById("lfsExplanationBox").innerHTML =
+        "<strong>Welcome to the LFS Walkthrough!</strong> LFS converts all file system writes into a fast, contiguous sequential stream. Click <strong>'1. Append New File'</strong> to stream files into the log tail.";
+      document.getElementById("lfsStatusMsg").textContent = "Walkthrough reset. Ready to append files.";
     }
 
-    function lfsWriteNewFile() {
+    function lfsStepAppend() {
       if (currentWriteIndex >= NUM_SEGMENTS * BLOCKS_PER_SEGMENT) {
-        document.getElementById("lfsStatusMsg").textContent = "Log is full! Run the Segment Cleaner (GC) to reclaim dead space.";
+        document.getElementById("lfsExplanationBox").innerHTML =
+          "<strong>Log Full!</strong> The disk log has filled up with mixed live and dead blocks. Click <strong>'3. Run Segment Cleaner'</strong> to perform garbage collection.";
         return;
       }
       let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
@@ -805,11 +820,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       let fileId = `F${Math.floor(Math.random() * 90) + 10}`;
       lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: fileId };
       currentWriteIndex++;
+
       lfsRenderSim();
-      document.getElementById("lfsStatusMsg").textContent = `Appended new file (${fileId}) sequentially to Segment ${segIdx}, Block ${blkIdx}.`;
+      document.getElementById("lfsStepTag").textContent = "Step 1: Appending Data";
+      document.getElementById("lfsExplanationBox").innerHTML =
+        `<strong>Sequential Append in Action:</strong> File <code>${fileId}</code> was written instantly to Segment ${segIdx}, Block ${blkIdx} without any mechanical disk head seeks. Keep appending or proceed to step 2 to overwrite files.`;
+      document.getElementById("lfsStatusMsg").textContent = `Successfully appended ${fileId} at sequential log tail.`;
     }
 
-    function lfsUpdateExistingFile() {
+    function lfsStepOverwrite() {
       let liveBlocks = [];
       lfsSegments.forEach((seg, sIdx) => {
         seg.blocks.forEach((blk, bIdx) => {
@@ -817,7 +836,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         });
       });
       if (liveBlocks.length === 0) {
-        document.getElementById("lfsStatusMsg").textContent = "No live files to overwrite. Click 'Append New File' first.";
+        document.getElementById("lfsExplanationBox").innerHTML =
+          "<strong>No files to overwrite!</strong> Please click <strong>'1. Append New File'</strong> a few times first so there is data in the log.";
         return;
       }
       let target = liveBlocks[Math.floor(Math.random() * liveBlocks.length)];
@@ -828,20 +848,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
         lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: target.fileId };
         currentWriteIndex++;
-        document.getElementById("lfsStatusMsg").textContent = `Overwrote file ${target.fileId}: old block marked 'dead', new version appended at log tail.`;
-      } else {
-        document.getElementById("lfsStatusMsg").textContent = `Overwrote file ${target.fileId} (old block dead), but log tail is full! Run Garbage Collection.`;
       }
+
       lfsRenderSim();
+      document.getElementById("lfsStepTag").textContent = "Step 2: Overwriting (Dead Space)";
+      document.getElementById("lfsExplanationBox").innerHTML =
+        `<strong>LFS No-Overwrite Policy:</strong> File <code>${target.fileId}</code> was updated. Its old block in Segment ${target.sIdx} is now marked <s>strikethrough</s> (Dead Space), and the new version is appended at the log tail. This creates fragmentation over time!`;
+      document.getElementById("lfsStatusMsg").textContent = `Overwrote ${target.fileId}; old version marked dead.`;
     }
 
-    function lfsTriggerCleaner() {
+    function lfsStepClean() {
       let liveBlocks = [];
       lfsSegments.forEach(seg => {
         seg.blocks.forEach(blk => {
           if (blk.type === 'live') liveBlocks.push(blk);
         });
       });
+
       lfsResetSim();
       liveBlocks.forEach(blk => {
         let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
@@ -851,8 +874,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           currentWriteIndex++;
         }
       });
+
       lfsRenderSim();
-      document.getElementById("lfsStatusMsg").textContent = `Segment Cleaner (GC) executed! Compacted ${liveBlocks.length} live blocks and discarded all dead holes.`;
+      document.getElementById("lfsStepTag").textContent = "Step 3: Garbage Collection";
+      document.getElementById("lfsExplanationBox").innerHTML =
+        "<strong>Segment Cleaner (GC) Complete:</strong> The background cleaner gathered all active live blocks, discarded the dead holes, and compacted everything neatly back to the front of the log. Free space is successfully reclaimed!";
+      document.getElementById("lfsStatusMsg").textContent = "Segment compaction finished successfully.";
     }
 
     function lfsRenderSim() {
@@ -894,8 +921,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       });
 
       document.getElementById("lfsMetricMsg").textContent = `Live Blocks: ${liveCount} | Dead Blocks: ${deadCount} | Free Blocks: ${freeCount}`;
-      let activeSeg = Math.min(Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT), NUM_SEGMENTS - 1);
-      document.getElementById("lfsActiveSegLabel").textContent = `Active Log Tail: Segment ${activeSeg}`;
     }
 
     lfsResetSim();
@@ -1176,7 +1201,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Updating photo credits to Stanford in {html_file}...")
+    print(f"--> Writing streamlined LFS walkthrough to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -1184,10 +1209,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Simplify pioneer photo credits to Stanford in LFS infobox\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html so that the "
-        "photo credit labels for both John K. Ousterhout and Mendel Rosenblum read "
-        "simply as Stanford."
+        "Streamline LFS interactive simulator into a guided educational walkthrough\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html to transform "
+        "the LFS simulator widget into an intuitive step-by-step walkthrough banner with "
+        "clear explanations for appending, overwriting, and garbage collection."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
