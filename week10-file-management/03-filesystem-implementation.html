@@ -607,6 +607,10 @@
       height: 100%;
       transition: background-color 0.04s ease;
     }
+  
+    /* Hide audio button by default, show exclusively in DOS modes */
+    #btnAudioToggle { display: none; }
+    .theme-dos #btnAudioToggle, .theme-olddos #btnAudioToggle { display: inline-block; }
   </style>
 </head>
 <body>
