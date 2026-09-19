@@ -42,19 +42,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 16px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 4px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.9rem; }
+    h1 { font-size: 1.5rem; color: var(--accent); margin-bottom: 2px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.85rem; }
     .main-container {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       width: 100%;
       max-width: 1050px;
     }
@@ -62,35 +62,35 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
     .card h2 {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       color: var(--accent);
       border-bottom: 1px solid var(--border);
       padding-bottom: 4px;
       margin-bottom: 4px;
     }
     .card h3 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: var(--text);
-      margin-top: 8px;
+      margin-top: 6px;
       margin-bottom: 2px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.85rem;
-      margin-top: 6px;
-      margin-bottom: 6px;
+      font-size: 0.82rem;
+      margin-top: 4px;
+      margin-bottom: 4px;
     }
     th, td {
       border: 1px solid var(--border);
-      padding: 6px 10px;
+      padding: 4px 8px;
       text-align: left;
     }
     th {
@@ -102,23 +102,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #334155;
     }
     ul, ol {
-      padding-left: 18px;
+      padding-left: 16px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
       color: #334155;
-      font-size: 0.9rem;
-      line-height: 1.4;
+      font-size: 0.85rem;
+      line-height: 1.35;
     }
     p {
-      line-height: 1.5;
+      line-height: 1.45;
       color: #334155;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
     .nav-back {
       width: 100%;
       max-width: 1050px;
-      margin: 0 auto 8px auto;
+      margin: 0 auto 4px auto;
       padding: 0 4px;
       display: flex;
     }
@@ -126,14 +126,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       font-family: var(--font-mono);
       text-decoration: none;
       color: #0284c7;
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 6px;
       transition: background-color 0.15s ease, color 0.15s ease;
       width: fit-content;
@@ -144,15 +144,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     /* =========================================================
-       DEFRAGMENTER SHELL & STRICT 800x600 VIEWPORT FIT
+       DEFRAGMENTER SHELL & STRICT VERTICAL HEIGHT CONSTRAINTS
        ========================================================= */
     .defrag-outer-frame {
       width: 100%;
       border-radius: 6px;
-      padding: 8px;
+      padding: 6px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     /* MODERN THEME LEGEND */
@@ -162,9 +162,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 10px;
       background: #020617;
       border: 1px solid #1e293b;
-      padding: 6px 10px;
+      padding: 4px 8px;
       border-radius: 6px;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       color: #cbd5e1;
       align-items: center;
     }
@@ -186,17 +186,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #f8fafc;
       border: 1px solid #334155;
       font-family: var(--font-mono);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
     }
     .theme-modern .ui-topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #334155;
-      padding-bottom: 4px;
+      padding-bottom: 3px;
     }
     .theme-modern .ui-title {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
       color: #38bdf8;
       text-transform: uppercase;
@@ -204,11 +204,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-modern .ui-controls {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       flex-wrap: wrap;
       background: #020617;
       border: 1px solid #1e293b;
-      padding: 5px 8px;
+      padding: 4px 6px;
       border-radius: 6px;
       align-items: center;
       color: #f8fafc;
@@ -217,7 +217,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
-      padding: 3px 8px;
+      padding: 3px 7px;
       border-radius: 4px;
       font-size: 0.7rem;
       font-weight: 600;
@@ -231,7 +231,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 3px;
+      padding: 2px;
       display: flex;
       justify-content: center;
     }
@@ -241,7 +241,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 900px;
-      height: 140px; /* Enforces strict single-screen fit */
+      height: 105px; /* Strict vertical containment for 800x600 */
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
@@ -257,8 +257,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 5px 8px;
-      font-size: 0.72rem;
+      padding: 4px 8px;
+      font-size: 0.7rem;
       color: #38bdf8;
       display: flex;
       justify-content: space-between;
@@ -299,7 +299,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 3px;
       flex-wrap: wrap;
       background: transparent;
-      padding: 3px 0;
+      padding: 2px 0;
       align-items: center;
       color: #000000;
     }
@@ -346,7 +346,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 900px;
-      height: 140px;
+      height: 105px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
@@ -426,15 +426,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 900px;
-      height: 140px;
+      height: 105px;
     }
     .theme-dos .c-cell {
-      aspect-ratio: 1 / 1.4;
+      aspect-ratio: 1 / 1.35;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 7.5px;
+      font-size: 7px;
       font-weight: bold;
       line-height: 1;
       user-select: none;
@@ -459,7 +459,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (STRICT 800x600 VIEWPORT FIT)
+       THEME 4: MS-DOS 6.22 DEFRAG (STRICT VERTICAL FIT)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -471,7 +471,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       -webkit-font-smoothing: none;
       font-smooth: never;
       text-rendering: geometricPrecision;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
     }
     .theme-olddos .ui-window-box { border: none; padding: 0; background: #0000aa; }
     .theme-olddos .ui-topbar {
@@ -491,16 +491,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .ui-controls {
       background: #0000aa;
       border-bottom: 1px solid #55ffff;
-      padding: 3px 6px;
-      gap: 4px;
+      padding: 2px 5px;
+      gap: 3px;
       image-rendering: pixelated;
     }
     .theme-olddos .ctrl-btn {
       background-color: #0000aa;
       color: #ffff55;
       border: 1px solid #ffff55;
-      padding: 2px 4px;
-      font-size: 8.5px;
+      padding: 1px 4px;
+      font-size: 8px;
       font-family: 'PerfectDOS', monospace;
       image-rendering: pixelated;
       -webkit-font-smoothing: none;
@@ -514,7 +514,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #0000aa;
       border: 1px solid #55ffff;
       margin: 2px;
-      padding: 2px;
+      padding: 1px;
       display: flex;
       justify-content: center;
     }
@@ -524,15 +524,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 900px;
-      height: 120px; /* Perfectly compact for 800x600 viewport */
+      height: 95px; /* Extremely compact height guarantees zero vertical scroll on 800x600 */
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.4;
+      aspect-ratio: 1 / 1.35;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 7.5px; /* Tiny font ensures text stays inside cells */
+      font-size: 6.5px; /* Extremely tiny font prevents character overflow */
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
@@ -553,35 +553,35 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin: 2px;
       background: #0000aa;
       color: #ffffff;
-      font-size: 8.5px;
+      font-size: 8px;
       font-family: 'PerfectDOS', monospace;
       image-rendering: pixelated;
       -webkit-font-smoothing: none;
     }
     .theme-olddos .dos-status-col {
-      padding: 4px;
+      padding: 3px 4px;
       border-right: 1px solid #55ffff;
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
     .theme-olddos .dos-legend-col {
-      padding: 4px;
+      padding: 3px 4px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 1px;
     }
     .theme-olddos .dos-prog-bar {
       background: #ffffff;
       color: #0000aa;
-      height: 9px;
+      height: 8px;
       width: 100%;
       position: relative;
       overflow: hidden;
-      font-size: 7.5px;
+      font-size: 7px;
       display: flex;
       align-items: center;
-      padding-left: 3px;
+      padding-left: 2px;
       font-weight: bold;
     }
     .theme-olddos .ui-status-panel { display: none; }
@@ -662,7 +662,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div class="ui-topbar">
           <span class="ui-title" id="shellTitle">FAT32 Volume Optimizer (500 MB Drive)</span>
           <div style="display:flex; gap:6px; align-items:center;">
-            <span style="font-size:11px;" class="theme-label" id="themeLabel">Theme:</span>
+            <span style="font-size:10.5px;" class="theme-label" id="themeLabel">Theme:</span>
             <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
             <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
             <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
@@ -673,8 +673,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Controls Bar with Disk Space & Action Controls -->
         <div class="ui-controls">
           <!-- Disk Size Selectors -->
-          <div style="display:flex; align-items:center; gap:4px; margin-right:4px;">
-            <span style="font-size:11px; font-weight:700;">Disk Size:</span>
+          <div style="display:flex; align-items:center; gap:3px; margin-right:2px;">
+            <span style="font-size:10px; font-weight:700;">Disk Size:</span>
             <button class="ctrl-btn" onclick="selectDiskCapacity(10)" id="size-10">10MB</button>
             <button class="ctrl-btn" onclick="selectDiskCapacity(100)" id="size-100">100MB</button>
             <button class="ctrl-btn active" onclick="selectDiskCapacity(500)" id="size-500">500MB</button>
@@ -687,7 +687,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
 
           <!-- Speed Controls -->
-          <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
+          <div style="margin-left:auto; display:flex; align-items:center; gap:4px; font-size:10px;">
             <span>Speed:</span>
             <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow</button>
             <button class="ctrl-btn active" onclick="setDefragSpeed(45, 'spd-norm')" id="spd-norm">Medium</button>
@@ -704,7 +704,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div class="dos-legend-box" id="dosLegendBox">
           <div class="dos-status-col">
             <div style="border-bottom:1px solid #55ffff; padding-bottom:1px; font-weight:bold; color:#ffff55;">Status</div>
-            <div style="display:flex; justify-content:space-between; font-size:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:7.5px;">
               <span id="dosClusterText">Cluster 16,936</span>
               <span id="dosPctText">29%</span>
             </div>
@@ -712,12 +712,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div id="dosProgressBarFill" style="background:#55ffff; width:29%; height:100%; position:absolute; left:0; top:0; z-index:1;"></div>
               <span id="dosProgressText" style="position:relative; z-index:2; color:#0000aa; margin:auto;"></span>
             </div>
-            <div style="text-align:center; font-size:8px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
-            <div style="text-align:center; font-size:8px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
+            <div style="text-align:center; font-size:7.5px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
+            <div style="text-align:center; font-size:7.5px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
           </div>
           <div class="dos-legend-col">
             <div style="border-bottom:1px solid #55ffff; padding-bottom:1px; font-weight:bold; color:#ffff55;">Legend</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1px; font-size:7.5px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1px; font-size:7px;">
               <div>■ - Used</div>
               <div>▒ - Unused</div>
               <div>r - Reading</div>
@@ -725,7 +725,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div>B - Bad</div>
               <div>X - Unmovable</div>
             </div>
-            <div style="margin-top:auto; font-size:7.5px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
+            <div style="margin-top:auto; font-size:7px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
           </div>
         </div>
 
@@ -1130,11 +1130,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix grid height and cell font size to prevent 800x600 overflow
+COMMIT_MSG = """Reduce cluster matrix height to prevent 800x600 screen overflow
 
 Update week10-file-management/03-filesystem-implementation.html with strict
-grid height limits and small cell font sizes so the defrag widget stays
-fully contained within 800x600 displays without overflowing course text."""
+grid height limits and compact cell padding so the defrag widget stays
+fully contained within 800x600 displays without vertical overflow."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1156,10 +1156,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging strict viewport fix")
+    run_git_step(["git", "add", target_file], "Staging vertical fit update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Strict viewport containment fix successfully deployed!")
+    print("--> Strict 800x600 vertical fit successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
