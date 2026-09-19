@@ -242,6 +242,15 @@
     .active-sim-node .sim-box { fill: #f0f9ff; stroke: #0284c7; stroke-width: 2.5px; filter: drop-shadow(0 3px 6px rgba(2,132,199,0.25)); }
     .active-sim-node .sim-text { fill: #0284c7; font-weight: 700; }
     .packet { fill: #0284c7; transition: all 0.5s ease-in-out; }
+
+    /* State Machine Diagram Styles */
+    .sm-state { cursor: pointer; transition: all 0.25s ease; }
+    .sm-box { fill: #ffffff; stroke: #0284c7; stroke-width: 2px; rx: 6px; }
+    .sm-text { font-size: 10px; font-weight: 700; fill: #0369a1; text-anchor: middle; font-family: var(--font-mono); }
+    .sm-subtext { font-size: 8px; fill: #64748b; text-anchor: middle; }
+    .active-state .sm-box { fill: #0284c7; stroke: #0369a1; stroke-width: 3px; filter: drop-shadow(0 4px 8px rgba(2,132,199,0.3)); }
+    .active-state .sm-text { fill: #ffffff; }
+    .active-state .sm-subtext { fill: #e0f2fe; }
   </style>
 </head>
 <body>
@@ -545,40 +554,66 @@
     <div class="card tour-panel" id="tourCard">
       <div class="tour-header">
         <span id="tourStepCounter">Stage 1 of 4: The Handshake</span>
-        <span>Interactive Kernel Telemetry Tour</span>
+        <span>Interactive Kernel State Machine Tour</span>
       </div>
       <div id="tourTitle" class="tour-title">1. Opening the Gateway: The File Descriptor Allocation</div>
       <div id="tourText" class="tour-body">
         When a user-space process calls <code>open("data.txt", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.
       </div>
 
-      <!-- Live SVG Kernel Telemetry Table -->
+      <!-- Interactive SVG State Machine Diagram -->
       <div style="background: #ffffff; border: 1px solid #7dd3fc; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase;" id="tourDiagramCaption">Figure: Live Kernel Telemetry Table State (FD → OFT → Cache)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 150" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Table Header Background -->
-          <rect x="20" y="15" width="640" height="26" fill="#0284c7" rx="4"/>
-          <text x="100" y="32" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">SUB-SYSTEM</text>
-          <text x="260" y="32" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">ACTIVE TELEMETRY OBJECT</text>
-          <text x="520" y="32" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">LIVE KERNEL VALUE / STATUS</text>
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase;" id="tourDiagramCaption">Figure: File Descriptor Lifecycle State Machine</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- State 0: UNALLOCATED -->
+          <g id="sm-state-0" class="sm-state active-state" onclick="jumpTourStage(0)">
+            <rect x="20" y="35" width="110" height="60" class="sm-box"/>
+            <text x="75" y="60" class="sm-text">UNALLOCATED</text>
+            <text x="75" y="76" class="sm-subtext">Process Closed</text>
+          </g>
 
-          <!-- Row 1: FD Table -->
-          <rect x="20" y="45" width="640" height="30" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1"/>
-          <text x="100" y="64" font-size="10" font-weight="600" fill="#0369a1" text-anchor="middle">Process FD Table</text>
-          <text x="260" y="64" font-size="10" fill="#334155" text-anchor="middle">Descriptor Slot Index</text>
-          <text x="520" y="64" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle" id="svg-tbl-fd">fd [3] → Bound</text>
+          <path d="M 130 65 L 180 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
+          <text x="155" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">open()</text>
 
-          <!-- Row 2: Open File Table -->
-          <rect x="20" y="77" width="640" height="30" fill="#ffffff" stroke="#bae6fd" stroke-width="1"/>
-          <text x="100" y="96" font-size="10" font-weight="600" fill="#0369a1" text-anchor="middle">Open File Table</text>
-          <text x="260" y="96" font-size="10" fill="#334155" text-anchor="middle">Logical Byte Offset Pointer</text>
-          <text x="520" y="96" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle" id="svg-tbl-offset">Offset: 0B</text>
+          <!-- State 1: FD_ALLOCATED -->
+          <g id="sm-state-1" class="sm-state" onclick="jumpTourStage(1)">
+            <rect x="180" y="35" width="120" height="60" class="sm-box"/>
+            <text x="240" y="60" class="sm-text">FD_ALLOCATED</text>
+            <text x="240" y="76" class="sm-subtext">fd slot bound</text>
+          </g>
 
-          <!-- Row 3: Buffer Cache / I-Node -->
-          <rect x="20" y="109" width="640" height="30" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1"/>
-          <text x="100" y="128" font-size="10" font-weight="600" fill="#0369a1" text-anchor="middle">Buffer Cache / i-Node</text>
-          <text x="260" y="128" font-size="10" fill="#334155" text-anchor="middle">RAM Block &amp; Metadata Status</text>
-          <text x="520" y="128" font-size="10" font-weight="700" fill="#059669" text-anchor="middle" id="svg-tbl-cache">i-node #512 (RAM Resident)</text>
+          <path d="M 300 65 L 350 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
+          <text x="325" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">read()</text>
+
+          <!-- State 2: OFT_BOUND -->
+          <g id="sm-state-2" class="sm-state" onclick="jumpTourStage(2)">
+            <rect x="350" y="35" width="110" height="60" class="sm-box"/>
+            <text x="405" y="60" class="sm-text">OFT_BOUND</text>
+            <text x="405" y="76" class="sm-subtext">Offset advancing</text>
+          </g>
+
+          <path d="M 460 65 L 510 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
+          <text x="485" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">lseek()</text>
+
+          <!-- State 3: RAM_CACHED -->
+          <g id="sm-state-3" class="sm-state" onclick="jumpTourStage(3)">
+            <rect x="510" y="35" width="110" height="60" class="sm-box"/>
+            <text x="565" y="60" class="sm-text">RAM_CACHED</text>
+            <text x="565" y="76" class="sm-subtext">Random Access</text>
+          </g>
+
+          <!-- Return arrow down and back for close() -->
+          <path d="M 565 95 L 565 115 L 75 115 L 75 95" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#smarrow-close)"/>
+          <text x="320" y="128" font-size="8" fill="#d97706" font-weight="700" text-anchor="middle">close() [Flushes Cache &amp; Deallocates FD]</text>
+
+          <defs>
+            <marker id="smarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+            <marker id="smarrow-close" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
+            </marker>
+          </defs>
         </svg>
       </div>
 
@@ -674,10 +709,8 @@
         fd: "fd [3] → Bound",
         oft: "Ref Count: 1 | Offset: 0B",
         inode: "i-node #512 (Cached in RAM)",
-        svgFd: "fd [3] → Bound",
-        svgOffset: "Offset: 0B",
-        svgCache: "i-node #512 (RAM Resident)",
-        caption: "Figure: Live Kernel Telemetry Table State (FD → OFT → Cache)"
+        stateIndex: 0,
+        caption: "Figure: State Machine in [UNALLOCATED] → Transitioning via open()"
       },
       {
         counter: "Stage 2 of 4: The Data Stream",
@@ -686,10 +719,8 @@
         fd: "fd [3] → Active",
         oft: "Ref Count: 1 | Offset: 4096B",
         inode: "i-node #512 (Read Lock)",
-        svgFd: "fd [3] → Active",
-        svgOffset: "Offset: 4096B (Advanced)",
-        svgCache: "Block #104 (Cache Hit)",
-        caption: "Figure: Live Telemetry Table State during read() Stream"
+        stateIndex: 1,
+        caption: "Figure: State Machine in [FD_ALLOCATED] → Transitioning via read()"
       },
       {
         counter: "Stage 3 of 4: Arbitrary Jumps",
@@ -698,10 +729,8 @@
         fd: "fd [3] → Active",
         oft: "Ref Count: 1 | Offset: 1024B (Seeked)",
         inode: "i-node #512 (Random Access)",
-        svgFd: "fd [3] → Active",
-        svgOffset: "Offset: 1024B (Seeked)",
-        svgCache: "Zero Disk I/O (RAM Only)",
-        caption: "Figure: Live Telemetry Table State during lseek() Repositioning"
+        stateIndex: 2,
+        caption: "Figure: State Machine in [OFT_BOUND] → Transitioning via lseek()"
       },
       {
         counter: "Stage 4 of 4: The Cleanup",
@@ -710,10 +739,8 @@
         fd: "fd [3] → Released",
         oft: "Table Entry Destroyed",
         inode: "Ref Count Decremented",
-        svgFd: "fd [3] → Released",
-        svgOffset: "Offset: Cleared",
-        svgCache: "Flushed & Synced to Disk",
-        caption: "Figure: Live Telemetry Table State after close() and Sync"
+        stateIndex: 3,
+        caption: "Figure: State Machine returning to [UNALLOCATED] via close()"
       }
     ];
 
@@ -729,6 +756,11 @@
       }
     }
 
+    function jumpTourStage(index) {
+      currentTourStage = index;
+      updateTourDisplay();
+    }
+
     function updateTourDisplay() {
       const stage = tourStages[currentTourStage];
       document.getElementById("tourStepCounter").textContent = stage.counter;
@@ -738,10 +770,17 @@
       document.getElementById("tel-oft").textContent = stage.oft;
       document.getElementById("tel-inode").textContent = stage.inode;
 
-      document.getElementById("svg-tbl-fd").textContent = stage.svgFd;
-      document.getElementById("svg-tbl-offset").textContent = stage.svgOffset;
-      document.getElementById("svg-tbl-cache").textContent = stage.svgCache;
       document.getElementById("tourDiagramCaption").textContent = stage.caption;
+
+      // Update State Machine node highlights
+      for (let i = 0; i < 4; i++) {
+        const node = document.getElementById(`sm-state-${i}`);
+        if (i === stage.stateIndex) {
+          node.classList.add('active-state');
+        } else {
+          node.classList.remove('active-state');
+        }
+      }
 
       document.getElementById("tourPrevBtn").disabled = (currentTourStage === 0);
       document.getElementById("tourNextBtn").textContent = (currentTourStage === tourStages.length - 1) ? "Restart Tour" : "Next Stage →";
