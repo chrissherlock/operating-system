@@ -171,7 +171,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     .figure-container {
       width: 100%;
-      max-width: 820px;
+      max-width: 860px;
       margin: 10px auto;
       display: flex;
       flex-direction: column;
@@ -381,10 +381,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
 
       <!-- Embedded SVG Diagram for Working Set Size vs. k -->
-      <div class="figure-container" style="max-width: 820px; align-items: stretch;">
+      <div class="figure-container" style="max-width: 860px; align-items: stretch;">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; margin-bottom: 4px;">Figure 3-19: The Working Set Size as a Function of k (Tanenbaum)</span>
 
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 380" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
@@ -395,56 +395,53 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </defs>
 
           <!-- Title & Subtitle -->
-          <text x="380" y="30" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Working Set Size w(k, t) as a Function of Window Size k</text>
-          <text x="380" y="48" font-size="11" fill="#64748b" text-anchor="middle">Illustrating Denning's Locality Principle and Operating System Frame Budgeting</text>
+          <text x="420" y="30" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Working Set Size w(k, t) as a Function of Window Size k</text>
+          <text x="420" y="48" font-size="11" fill="#64748b" text-anchor="middle">Illustrating Denning's Locality Principle and Operating System Frame Budgeting</text>
 
-          <!-- Graph Plot Area Box -->
-          <rect x="80" y="70" width="620" height="230" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" rx="6"/>
+          <!-- Expanded Graph Plot Area Box -->
+          <rect x="70" y="65" width="700" height="235" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" rx="6"/>
 
           <!-- Axis Lines -->
-          <line x1="120" y1="260" x2="660" y2="260" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
-          <line x1="120" y1="260" x2="120" y2="90" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="110" y1="260" x2="740" y2="260" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="110" y1="260" x2="110" y2="80" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
 
           <!-- Axis Labels -->
-          <text x="390" y="292" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">k (Window size in memory references)</text>
-          <text x="85" y="175" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle" transform="rotate(-90 85 175)">w(k, t)</text>
+          <text x="425" y="292" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">k (Window size in memory references)</text>
+          <text x="80" y="175" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle" transform="rotate(-90 80 175)">w(k, t)</text>
 
           <!-- Grid / Reference Dashed Lines -->
-          <line x1="120" y1="230" x2="660" y2="230" stroke="#e2e8f0" stroke-dasharray="4"/>
-          <line x1="120" y1="160" x2="660" y2="160" stroke="#e2e8f0" stroke-dasharray="4"/>
-          <line x1="120" y1="110" x2="660" y2="110" stroke="#e2e8f0" stroke-dasharray="4"/>
+          <line x1="110" y1="230" x2="740" y2="230" stroke="#e2e8f0" stroke-dasharray="4"/>
+          <line x1="110" y1="160" x2="740" y2="160" stroke="#e2e8f0" stroke-dasharray="4"/>
+          <line x1="110" y1="110" x2="740" y2="110" stroke="#e2e8f0" stroke-dasharray="4"/>
 
           <!-- Working Set Curve: w(k, t) -->
-          <path d="M 120 255 Q 220 250 360 135 T 560 120 L 640 120" stroke="#0284c7" stroke-width="3.5" fill="none"/>
+          <path d="M 110 255 Q 210 250 350 135 T 510 120 L 720 120" stroke="#0284c7" stroke-width="3.5" fill="none"/>
 
           <!-- Annotations / Key Points -->
 
           <!-- 1. Small k Zone -->
-          <line x1="180" y1="260" x2="180" y2="242" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="180" cy="245" r="4" fill="#d97706"/>
-          <text x="180" y="218" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
-          <text x="180" y="230" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
+          <line x1="170" y1="260" x2="170" y2="242" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2"/>
+          <circle cx="170" cy="245" r="4" fill="#d97706"/>
+          <text x="170" y="218" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
+          <text x="170" y="230" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
 
           <!-- 2. Optimal Window (tau) & Target RAM Allocation -->
-          <line x1="360" y1="135" x2="360" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
-          <circle cx="360" cy="135" r="6" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
-          <text x="360" y="278" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Optimal Window (τ)</text>
-          <text x="335" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
-          <line x1="340" y1="114" x2="356" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+          <line x1="350" y1="135" x2="350" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
+          <circle cx="350" cy="135" r="6" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+          <text x="350" y="278" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Optimal Window (τ)</text>
+          <text x="325" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
+          <line x1="330" y1="114" x2="346" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
-          <!-- 3. Large k Zone (Contained in a solid white-backed badge above the plateau curve) -->
-          <line x1="590" y1="260" x2="590" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="590" cy="120" r="4" fill="#7c3aed"/>
-          <g>
-            <rect x="505" y="74" width="170" height="32" fill="#ffffff" stroke="#7c3aed" stroke-width="1" rx="4"/>
-            <text x="590" y="87" font-size="10" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
-            <text x="590" y="99" font-size="8.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
-          </g>
+          <!-- 3. Large k Zone (Shifted left along plateau, plain text without any container box) -->
+          <line x1="520" y1="260" x2="520" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
+          <circle cx="520" cy="120" r="4" fill="#7c3aed"/>
+          <text x="520" y="96" font-size="11" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
+          <text x="520" y="110" font-size="9.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
 
           <!-- Bottom Legend / Summary Box -->
-          <rect x="80" y="315" width="620" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
-          <text x="390" y="336" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">OS Memory Budgeting Rule:</text>
-          <text x="390" y="352" font-size="10" fill="#334155" text-anchor="middle">Load exactly w(k, t) pages into physical RAM prior to execution to entirely prevent thrashing.</text>
+          <rect x="70" y="315" width="700" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
+          <text x="420" y="336" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">OS Memory Budgeting Rule:</text>
+          <text x="420" y="352" font-size="10" fill="#334155" text-anchor="middle">Load exactly w(k, t) pages into physical RAM prior to execution to entirely prevent thrashing.</text>
         </svg>
 
         <!-- Detailed Mathematical Explanation Beneath SVG -->
@@ -672,13 +669,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Move Large k label above plateau with white backing in Fig 3-19
+COMMIT_MSG = """Expand Fig 3-19 graph and move Large k left without container box
 
-Relocate the 'Large k' annotation box above the curve plateau in
-Figure 3-19 and back it with a solid fill container. This ensures the
-text sits cleanly in the upper area of the graph without intersecting
-the curve, horizontal grid lines, or vertical reference indicators in
-09-working-set.html."""
+Widen the Figure 3-19 SVG canvas and plot box to provide more room
+along the horizontal reference axis. Remove the container rectangle
+around the 'Large k' annotation, shifting the plain text and marker
+leftward along the plateau so it sits above the curve without
+intersecting any plot or reference lines in 09-working-set.html."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -699,14 +696,11 @@ def sync_module_file():
         f.write(HTML_CONTENT)
     print(f"Wrote updated HTML content to {target_path}")
 
-    # Explicit stage followed by commit with -a -m and remote push
+    # Explicit stage, commit tracked changes with -a -m, and push to origin main
     run_git_step(["git", "add", target_path], "Explicitly staging 09-working-set.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing tracked changes with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
     print("--> Successfully committed and pushed to origin/main.")
 
-def main():
-    sync_module_file()
-
 if __name__ == "__main__":
-    main()
+    sync_module_file()
