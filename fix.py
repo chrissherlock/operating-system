@@ -672,7 +672,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 1 Yes: Action 1 (Up) -->
             <path id="walk-edge-r-yes" class="walk-edge" d="M 135 60 L 135 24 L 174 24" stroke="#cbd5e1" stroke-width="1.2" fill="none" marker-end="url(#w-arr)"/>
-            <text x="142" y="42" font-size="8" font-weight="700" fill="#64748b">Yes</text>
+            <text x="142" y="42" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-r1" class="walk-node">
               <rect x="178" y="10" width="112" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="234" y="22" font-size="8" font-weight="700" fill="#b45309" text-anchor="middle">R &larr; 0, Time &larr; T_curr</text>
@@ -681,12 +681,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 1 No -> Gate 2 (Right) -->
             <line id="walk-edge-r-no" class="walk-edge" x1="164" y1="80" x2="204" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="182" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
+            <text x="182" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 2: Age <= tau? -->
             <g id="walk-gate-age" class="walk-node">
               <polygon points="238,60 272,80 238,100 204,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="238" y="78" font-size="8" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
+              <text x="238" y="78" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
               <text x="238" y="89" font-size="6.5" fill="#64748b" text-anchor="middle">(In WS?)</text>
             </g>
 
@@ -701,7 +701,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 2 No -> Gate 3 (Right) -->
             <line id="walk-edge-age-no" class="walk-edge" x1="272" y1="80" x2="312" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="290" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
+            <text x="290" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 3: M == 0? -->
             <g id="walk-gate-m" class="walk-node">
@@ -712,7 +712,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 3 Yes: Evict Action (Right) -->
             <line id="walk-edge-m-yes" class="walk-edge" x1="374" y1="80" x2="416" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="394" y="75" font-size="8" font-weight="700" fill="#64748b">Yes</text>
+            <text x="394" y="75" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-evict" class="walk-node">
               <rect x="420" y="65" width="102" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="471" y="79" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
@@ -721,7 +721,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 3 No: Dirty Action (Down) -->
             <line id="walk-edge-m-no" class="walk-edge" x1="342" y1="100" x2="342" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="348" y="120" font-size="8" font-weight="700" fill="#64748b">No</text>
+            <text x="348" y="120" font-size="8.5" font-weight="700" fill="#64748b">No</text>
             <g id="walk-action-dirty" class="walk-node">
               <rect x="296" y="138" width="112" height="30" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="352" y="150" font-size="8" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
@@ -885,7 +885,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GRANULAR MICRO-STEP SCENARIOS
+       PART 2: GRANULAR MICRO-STEP SCENARIOS (NATIVE UNICODE FOR JS TEXT)
        ========================================================================= */
     const scenarios = [
       // Scenario 0: Frame 0 (R=1)
@@ -895,7 +895,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           {
             title: "1. Hand at Frame 0: Evaluating Gate 1 (R == 1?)",
             text: "A page fault occurs at Virtual Time 2200. The clock hand inspects Frame 0 (Page A). The hardware MMU set R = 1 during recent program execution. Gate 1 evaluates: Is R == 1?",
-            math: "Inspecting Frame 0 &rarr; Test Gate 1: R == 1.",
+            math: "Inspecting Frame 0 → Test Gate 1: R == 1.",
             frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-r",
             activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
@@ -905,8 +905,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "2. Gate 1 Evaluates Yes: Clear R-bit & Timestamp",
-            text: "Because R = 1, this page was referenced recently. Evicting it now would risk immediate thrashing. The algorithm follows the Yes branch: it clears R &larr; 0 and updates its timestamp of last use to current virtual time (2200).",
-            math: "Gate 1 (Yes) &rarr; Clear R = 0, update Last_Use = 2200.",
+            text: "Because R = 1, this page was referenced recently. Evicting it now would risk immediate thrashing. The algorithm follows the Yes branch: it clears R ← 0 and updates its timestamp of last use to current virtual time (2200).",
+            math: "Gate 1 (Yes) → Clear R = 0, update Last_Use = 2200.",
             frame: { name: "Page A (Frame 0)", r: 0, m: 0, time: 2200, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-r",
             highlightAction: "walk-action-r1",
@@ -917,12 +917,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-warn",
             handTarget: { x: 270, y: 54 },
-            status: "Action: R &larr; 0, Time &larr; 2200"
+            status: "Action: R ← 0, Time ← 2200"
           },
           {
             title: "3. Advance Hand to Next Frame",
             text: "Having given Page A a second chance and refreshed its age, the clock hand advances clockwise to Frame 1 without claiming an eviction victim.",
-            math: "Advance hand: Frame 0 &rarr; Frame 1.",
+            math: "Advance hand: Frame 0 → Frame 1.",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-r",
             ringClass: "active-focus",
@@ -934,12 +934,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       // Scenario 1: Frame 1 (Age <= tau)
       {
-        name: "2. Frame 1 (Age <= tau)",
+        name: "2. Frame 1 (Age ≤ τ)",
         steps: [
           {
             title: "1. Hand at Frame 1: Evaluating Gate 1 (R == 1?)",
-            text: "The clock hand now points to Frame 1 (Page B). Its Referenced bit is R = 0 (it was not accessed during the latest slice). Gate 1 tests R == 1? &rarr; No.",
-            math: "Frame 1 &rarr; Gate 1: R == 0 (Follow No branch).",
+            text: "The clock hand now points to Frame 1 (Page B). Its Referenced bit is R = 0 (it was not accessed during the latest slice). Gate 1 tests R == 1? → No.",
+            math: "Frame 1 → Gate 1: R == 0 (Follow No branch).",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-r",
             activeEdges: [
@@ -948,12 +948,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-focus",
             handTarget: { x: 332, y: 110 },
-            status: "Gate 1: R == 0 &rarr; Branch to Gate 2"
+            status: "Gate 1: R == 0 → Branch to Gate 2"
           },
           {
-            title: "2. Evaluating Gate 2: Age vs. Threshold (&tau;)",
-            text: "Because R = 0, the kernel calculates the page age: Current Virtual Time (2200) - Time of Last Use (1950) = 250 ticks. Gate 2 checks: Is Age &le; &tau; (400)?",
-            math: "Age = 2200 - 1950 = 250 ticks. Compare with &tau; = 400.",
+            title: "2. Evaluating Gate 2: Age vs. Threshold (τ)",
+            text: "Because R = 0, the kernel calculates the page age: Current Virtual Time (2200) - Time of Last Use (1950) = 250 ticks. Gate 2 checks: Is Age ≤ τ (400)?",
+            math: "Age = 2200 - 1950 = 250 ticks. Compare with τ = 400.",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-age",
             activeEdges: [
@@ -962,24 +962,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-focus",
             handTarget: { x: 332, y: 110 },
-            status: "Gate 2: Testing Age (250) &le; &tau; (400)?"
+            status: "Gate 2: Testing Age (250) ≤ τ (400)?"
           },
           {
             title: "3. Gate 2 Evaluates Yes: Resident in Working Set",
-            text: "Because 250 &le; 400, Page B is still within the active working set window. Evicting it would violate Denning's working set model. The algorithm keeps the page in RAM and advances the hand to Frame 2.",
-            math: "Gate 2 (Yes) &rarr; Page in active working set. Advance hand to Frame 2.",
+            text: "Because 250 ≤ 400, Page B is still within the active working set window. Evicting it would violate Denning's working set model. The algorithm keeps the page in RAM and advances the hand to Frame 2.",
+            math: "Gate 2 (Yes) → Page in active working set. Advance hand to Frame 2.",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-age",
             highlightAction: "walk-action-inws",
             actionClass: "active-action-blue",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-age-yes", marker: "w-blue", edgeClass: "edge-active" }
-            ],
             ringClass: "active-focus",
             handTarget: { x: 332, y: 110 },
-            status: "Action: Keep in Working Set &rarr; Advance Hand"
+            status: "Action: Keep in Working Set → Advance Hand"
           }
         ]
       },
@@ -989,9 +984,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         name: "3. Frame 2 (Clean Evict)",
         steps: [
           {
-            title: "1. Hand at Frame 2: Gates 1 &amp; 2 Evaluation",
-            text: "The hand advances to Frame 2 (Page C). Gate 1 checks R == 1? &rarr; No (R = 0). Gate 2 calculates age: 2200 - 1600 = 600 ticks. Because 600 &gt; &tau; (400), the page is older than the working set threshold! Follow the No branch to Gate 3.",
-            math: "Frame 2 &rarr; R = 0, Age = 600 &gt; &tau; (400) &rarr; Page outside working set.",
+            title: "1. Hand at Frame 2: Gates 1 & 2 Evaluation",
+            text: "The hand advances to Frame 2 (Page C). Gate 1 checks R == 1? → No (R = 0). Gate 2 calculates age: 2200 - 1600 = 600 ticks. Because 600 > τ (400), the page is older than the working set threshold! Follow the No branch to Gate 3.",
+            math: "Frame 2 → R = 0, Age = 600 > τ (400) → Page outside working set.",
             frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
             highlightGate: "walk-gate-age",
             activeEdges: [
@@ -1001,12 +996,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-victim",
             handTarget: { x: 270, y: 166 },
-            status: "Gate 2: Age &gt; &tau; &rarr; Branch to Gate 3 (Check M)"
+            status: "Gate 2: Age > τ → Branch to Gate 3 (Check M)"
           },
           {
             title: "2. Evaluating Gate 3: Modified (Dirty) Status",
             text: "Gate 3 inspects the Modified bit M. Has Page C been written to since it was brought into memory? In this case, M = 0 (clean). The disk already contains a 100% identical copy of this page.",
-            math: "Gate 3: M == 0? &rarr; Yes (Clean).",
+            math: "Gate 3: M == 0? → Yes (Clean).",
             frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
             highlightGate: "walk-gate-m",
             activeEdges: [
@@ -1035,7 +1030,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-victim",
             handTarget: { x: 270, y: 166 },
-            status: "VICTIM CLAIMED &rarr; Search Complete"
+            status: "VICTIM CLAIMED → Search Complete"
           }
         ]
       },
@@ -1045,9 +1040,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         name: "4. Frame 3 (Dirty Flush)",
         steps: [
           {
-            title: "1. Hand at Frame 3: Age > &tau;, but M == 1 (Dirty)",
-            text: "Consider if the hand arrived at Frame 3 (Page D). R = 0, and Age = 2200 - 1500 = 700 ticks (&gt; &tau;). However, Gate 3 detects M = 1 (dirty). The page has modified data that does not exist on disk.",
-            math: "Frame 3 &rarr; Age = 700 &gt; &tau;, but M == 1 (Dirty).",
+            title: "1. Hand at Frame 3: Age > τ, but M == 1 (Dirty)",
+            text: "Consider if the hand arrived at Frame 3 (Page D). R = 0, and Age = 2200 - 1500 = 700 ticks (> τ). However, Gate 3 detects M = 1 (dirty). The page has modified data that does not exist on disk.",
+            math: "Frame 3 → Age = 700 > τ, but M == 1 (Dirty).",
             frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
             highlightGate: "walk-gate-m",
             activeEdges: [
@@ -1058,12 +1053,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-warn",
             handTarget: { x: 208, y: 110 },
-            status: "Gate 3: M == 1 &rarr; Dirty Candidate"
+            status: "Gate 3: M == 1 → Dirty Candidate"
           },
           {
             title: "2. Schedule Asynchronous Disk Write",
             text: "To avoid stalling the CPU on slow disk I/O, WSClock issues an asynchronous write request to flush Page D to swap storage. It marks the write in flight and immediately advances the hand, hoping to find an already-clean page further down the ring.",
-            math: "Schedule Async Write &rarr; I/O in flight. Advance hand (non-blocking).",
+            math: "Schedule Async Write → I/O in flight. Advance hand (non-blocking).",
             frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
             highlightGate: "walk-gate-m",
             highlightAction: "walk-action-dirty",
@@ -1076,7 +1071,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-warn",
             handTarget: { x: 208, y: 110 },
-            status: "Action: Schedule Async Write &rarr; Advance Hand"
+            status: "Action: Schedule Async Write → Advance Hand"
           }
         ]
       },
@@ -1086,9 +1081,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         name: "5. Full Sweep (Writes)",
         steps: [
           {
-            title: "1. Clock Hand Completes 360&deg; Rotation",
+            title: "1. Clock Hand Completes 360° Rotation",
             text: "Suppose the hand sweeps all frames without finding a clean, cold page. The kernel checks its internal telemetry: Were any asynchronous disk writes scheduled during the sweep?",
-            math: "Full 360&deg; sweep &rarr; Active disk writes in flight &gt; 0.",
+            math: "Full 360° sweep → Active disk writes in flight > 0.",
             frame: { name: "All Frames (Ring Sweep)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-m",
             activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
@@ -1099,14 +1094,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           {
             title: "2. Await First Asynchronous Completion",
             text: "Because at least one write was dispatched (such as Frame 3), the kernel simply keeps advancing the hand until that write completes. As soon as the storage controller signals completion, the page is marked clean (M = 0) and reclaimed.",
-            math: "I/O completion arrives &rarr; Frame becomes clean &rarr; Reclaim frame.",
+            math: "I/O completion arrives → Frame becomes clean → Reclaim frame.",
             frame: { name: "Frame 3 (I/O Complete)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
             highlightGate: "walk-gate-m",
             highlightAction: "walk-action-evict",
             actionClass: "active-action-evict",
             ringClass: "active-victim",
             handTarget: { x: 208, y: 110 },
-            status: "Write completed &rarr; Reclaimed as Clean Victim"
+            status: "Write completed → Reclaimed as Clean Victim"
           }
         ]
       },
@@ -1116,9 +1111,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         name: "6. Full Sweep (Thrash)",
         steps: [
           {
-            title: "1. 360&deg; Sweep with Zero Writes Scheduled",
-            text: "What if the hand completes a full rotation and NO writes were scheduled? This implies that every single frame in memory was referenced recently or is currently within the active working set (Age &le; &tau;).",
-            math: "Full rotation &rarr; Zero writes scheduled &rarr; All pages inside working set.",
+            title: "1. 360° Sweep with Zero Writes Scheduled",
+            text: "What if the hand completes a full rotation and NO writes were scheduled? This implies that every single frame in memory was referenced recently or is currently within the active working set (Age ≤ τ).",
+            math: "Full rotation → Zero writes scheduled → All pages inside working set.",
             frame: { name: "All Frames (Thrashing)", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-age",
             activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
@@ -1127,7 +1122,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             status: "Thrashing Detected: Working Set > Physical RAM"
           },
           {
-            title: "2. Kernel Fallback &amp; Admission Control",
+            title: "2. Kernel Fallback & Admission Control",
             text: "The process is experiencing acute thrashing because its true working set exceeds physical memory capacity. WSClock falls back to evicting the first clean page it encounters regardless of age, or triggers OS admission control to suspend a lower-priority process.",
             math: "Fallback: Evict first clean page OR suspend thread via admission control.",
             frame: { name: "Admission Control Handler", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
@@ -1172,7 +1167,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       document.getElementById("wtFrameBox").innerHTML = `
         <strong>Inspecting ${f.name}:</strong>
         R = <strong>${f.r}</strong> | M = <strong>${f.m}</strong> |
-        Last Used = <strong>${f.time}</strong> | Age = <strong>${age}</strong> (&tau; = ${f.tau})
+        Last Used = <strong>${f.time}</strong> | Age = <strong>${age}</strong> (τ = ${f.tau})
       `;
       document.getElementById("wtMathSummary").innerHTML = s.math;
       document.getElementById("walkActiveStatus").textContent = s.status;
@@ -1209,7 +1204,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         handLine.setAttribute("y2", s.handTarget.y);
       }
 
-      // Update button labels and disabled states
+      // Update button labels and disabled states cleanly with Unicode
       document.getElementById("wtPrevBtn").disabled = (currentScenarioIdx === 0 && currentStepIdx === 0);
 
       const isLastStep = (currentStepIdx === scen.steps.length - 1);
@@ -1220,7 +1215,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         document.getElementById("wtNextBtn").textContent = "All Scenarios Explored";
       } else {
         document.getElementById("wtNextBtn").disabled = false;
-        document.getElementById("wtNextBtn").textContent = isLastStep ? "Next Scenario &rarr;" : "Next Decision Gate &rarr;";
+        document.getElementById("wtNextBtn").textContent = isLastStep ? "Next Scenario →" : "Next Decision Gate →";
       }
     }
 
@@ -1432,12 +1427,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add granular micro-step walkthrough to WSClock decision tree
+COMMIT_MSG = """Replace double-encoded HTML entities with native Unicode characters
 
-Refactor the walkthrough in 10-wsclock.html into an interactive, multi-
-step simulator where each scenario provides micro-steps through every
-decision gate (R==1, Age<=tau, M==0). Synchronize the decision tree
-and circular ring animations, and fix HTML entity encodings."""
+Convert literal entity strings (&rarr;, &larr;, &le;, &tau;) in
+10-wsclock.html JavaScript data tables to direct Unicode characters.
+This prevents textContent assignments from displaying raw ampersand
+entity text in button labels and telemetry badges."""
 
 def execute_git_command(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1455,12 +1450,12 @@ def sync_repository():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module with micro-step scenarios to {target_module}")
+    print(f"Wrote entity-cleaned module to {target_module}")
 
     execute_git_command(["git", "add", target_module], "Staging 10-wsclock.html")
     execute_git_command(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     execute_git_command(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Completed successfully!")
+    print("--> Entity encoding fix committed and pushed to origin/main successfully!")
 
 if __name__ == "__main__":
     sync_repository()
