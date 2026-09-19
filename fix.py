@@ -193,7 +193,7 @@ PAGE_CONTENT = r"""<!DOCTYPE html>
       display: grid;
       grid-template-columns: 400px 1fr;
       gap: 20px;
-      align-items: center;
+      align-items: start; /* Prevents vertical column overlap */
       margin-top: 10px;
     }
     @media (max-width: 860px) {
@@ -277,7 +277,7 @@ PAGE_CONTENT = r"""<!DOCTYPE html>
       padding: 12px;
       font-family: var(--font-mono);
       font-size: 0.82rem;
-      height: 200px;
+      height: 220px;
       overflow-y: auto;
       display: flex;
       flex-direction: column-reverse;
@@ -753,12 +753,14 @@ PAGE_CONTENT = r"""<!DOCTYPE html>
 
 def main():
     base_dir = "."
-    w09_dir = os.path.join(base_dir, "week09-memory-management")
-    target_file = os.path.join(w09_dir, "08-aging-algorithm.html")
-
-    with open(target_file, "w", encoding="utf-8") as f:
-        f.write(PAGE_CONTENT)
-    print(f"Successfully updated {target_file} with R-bit integration and visual bit cells.")
+    # Write to both base and week09 directories to be fully robust
+    for target_dir in [base_dir, os.path.join(base_dir, "week09-memory-management"), "operating-system-f5d367c3c617f2658075615a344630406d3fc04e/week09-memory-management"]:
+        if os.path.exists(target_dir) or target_dir == base_dir:
+            os.makedirs(target_dir, exist_ok=True)
+            target_file = os.path.join(target_dir, "08-aging-algorithm.html")
+            with open(target_file, "w", encoding="utf-8") as f:
+                f.write(PAGE_CONTENT)
+            print(f"Successfully generated/updated {target_file}")
 
 if __name__ == "__main__":
     main()

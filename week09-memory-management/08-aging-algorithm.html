@@ -190,7 +190,7 @@
       display: grid;
       grid-template-columns: 400px 1fr;
       gap: 20px;
-      align-items: center;
+      align-items: start; /* Prevents vertical column overlap */
       margin-top: 10px;
     }
     @media (max-width: 860px) {
@@ -274,7 +274,7 @@
       padding: 12px;
       font-family: var(--font-mono);
       font-size: 0.82rem;
-      height: 200px;
+      height: 220px;
       overflow-y: auto;
       display: flex;
       flex-direction: column-reverse;
