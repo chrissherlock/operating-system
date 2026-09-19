@@ -19,7 +19,6 @@ def execute_git_command(cmd, desc):
         print(res.stdout.strip())
     if res.stderr.strip():
         print(f"[{desc} stderr]\n{res.stderr.strip()}")
-    # Return code 1 with nothing to commit is acceptable, but other errors abort
     if res.returncode != 0 and "nothing to commit" not in res.stdout and "nothing to commit" not in res.stderr:
         print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
@@ -49,14 +48,19 @@ def execute_deployment():
     else:
         content = content.replace("</body>", f"  {new_audio_tag}\n</body>")
 
+    # Fix image source paths to use relative ../images/ instead of absolute /images/
+    content = content.replace('src="/images/ousterhout.png"', 'src="../images/ousterhout.png"')
+    content = content.replace('src="/images/rosenblum.jpg"', 'src="../images/rosenblum.jpg"')
+
     with open(html_file, "w", encoding="utf-8") as f:
         f.write(content)
-    print("--> HTML file updated successfully!")
+    print("--> HTML file updated with correct relative image paths!")
 
     commit_msg = (
-        "Fix git commit automation and ensure file staging\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html with "
-        "base64 audio payload and robust git staging commands."
+        "Fix relative image paths for pioneers portraits in LFS section\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html to use "
+        "relative paths (../images/...) for John Ousterhout and Mendel Rosenblum's "
+        "headshots so they load properly on GitHub Pages."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
