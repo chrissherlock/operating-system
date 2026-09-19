@@ -171,7 +171,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 4px;
     }
 
-    /* Interactive Simulator Styles */
+    /* Simulator & Tutorial Styles */
     .fs-sim-card {
       background: #0f172a;
       color: #f8fafc;
@@ -197,6 +197,49 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       letter-spacing: 0.05em;
       font-family: var(--font-mono);
     }
+    .tutorial-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .tutorial-step-card {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .tutorial-step-card:hover {
+      border-color: #38bdf8;
+      background: #0b1329;
+    }
+    .tutorial-step-card.active-step {
+      border-color: #38bdf8;
+      background: #082f49;
+    }
+    .step-badge {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: #fbbf24;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .step-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .step-desc {
+      font-size: 0.76rem;
+      color: #94a3b8;
+      line-height: 1.35;
+    }
+
     .fs-sim-grid {
       display: grid;
       grid-template-columns: 360px 1fr;
@@ -267,7 +310,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .fs-term-log {
       color: #38bdf8;
-      min-height: 48px;
+      min-height: 54px;
       white-space: pre-wrap;
       line-height: 1.45;
       font-size: 0.82rem;
@@ -301,32 +344,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-family: var(--font-mono);
     }
     .fs-quick-btn:hover { background: #334155; }
-
-    /* Sandbox Styles */
-    .kernel-sandbox {
-      background: #0f172a;
+    .btn-step-action {
+      background: #0284c7;
+      border-color: #38bdf8;
       color: #ffffff;
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      font-weight: 700;
     }
-    .sticky-control-bar {
-      position: sticky;
-      top: 10px;
-      z-index: 100;
-      background: #020617;
-      border: 1px solid #38bdf8;
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    .btn-step-action:hover {
+      background: #0369a1;
     }
+
+    /* Side-by-side hard link inspector */
     .inspector-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -362,39 +390,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .inspector-row span.highlight { color: #34d399; font-weight: 700; }
     .inspector-row span.alert { color: #f87171; font-weight: 700; }
-    .sandbox-controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    button {
-      background-color: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: background-color 0.15s ease;
-    }
-    button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #334155; border: 1px solid #475569; color: #fff; }
-    button.btn-sec:hover { background-color: #475569; }
-    button.btn-danger { background-color: var(--danger-color); color: #fff; }
-    button.btn-danger:hover { background-color: #b91c1c; }
-    .kernel-console {
-      background-color: #020617;
-      color: #38bdf8;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      padding: 14px;
-      border-radius: 6px;
-      min-height: 90px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      border: 1px solid #1e293b;
-    }
   </style>
 </head>
 <body>
@@ -503,17 +498,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2A: Two-Level Directory Structural Topology (MFD to UFD)</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- MFD -->
           <rect x="230" y="15" width="300" height="42" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="4"/>
           <text x="380" y="32" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Master File Directory (MFD)</text>
           <text x="380" y="47" font-size="9" fill="#64748b" text-anchor="middle">[ALICE] | [BOB] | [SYSTEM]</text>
 
-          <!-- Links to UFDs -->
           <path d="M 300 57 L 140 85" stroke="#94a3b8" stroke-width="1.5"/>
           <path d="M 380 57 L 380 85" stroke="#94a3b8" stroke-width="1.5"/>
           <path d="M 460 57 L 620 85" stroke="#94a3b8" stroke-width="1.5"/>
 
-          <!-- UFD ALICE -->
           <rect x="50" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
           <text x="140" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: ALICE</text>
           <rect x="65" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
@@ -523,7 +515,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect x="65" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
           <text x="140" y="169" font-size="8" fill="#065f46" text-anchor="middle">output.log</text>
 
-          <!-- UFD BOB -->
           <rect x="290" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
           <text x="380" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: BOB</text>
           <rect x="305" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
@@ -533,7 +524,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect x="305" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
           <text x="380" y="169" font-size="8" fill="#065f46" text-anchor="middle">notes.txt</text>
 
-          <!-- UFD SYSTEM -->
           <rect x="530" y="85" width="180" height="92" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
           <text x="620" y="102" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">UFD: SYSTEM (SYS:)</text>
           <rect x="545" y="110" width="150" height="20" fill="#ffffff" stroke="#fde68a" rx="3"/>
@@ -574,7 +564,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2B: Utility Duplication Waste vs. Two-Stage Fallback Search</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Option 1 -->
           <rect x="30" y="15" width="320" height="130" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" rx="4"/>
           <text x="190" y="34" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">Option 1: Redundant Executable Duplication</text>
 
@@ -590,7 +579,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
           <text x="190" y="128" font-size="8.5" fill="#b91c1c" text-anchor="middle">Severe secondary storage exhaustion across accounts</text>
 
-          <!-- Option 2 -->
           <rect x="390" y="15" width="340" height="130" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
           <text x="560" y="34" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">Option 2: Two-Stage Fallback Search Rule</text>
 
@@ -732,7 +720,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </ol>
     </div>
 
-    <!-- Section 4.2.3: Hierarchical Directory Systems (Expanded) -->
+    <!-- Section 4.2.3: Hierarchical Directory Systems -->
     <div class="card">
       <h2>4.2.3 Hierarchical (Tree-Structured) Directory Systems</h2>
 
@@ -802,7 +790,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect x="520" y="135" width="120" height="65" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
           <text x="580" y="152" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">student/ (i: 104)</text>
 
-          <!-- Internal directory entries -->
           <rect x="526" y="160" width="50" height="18" fill="#ffffff" stroke="#cbd5e1" rx="2"/>
           <text x="551" y="173" font-size="8" font-family="monospace" fill="#0f172a" text-anchor="middle">. (104)</text>
 
@@ -812,7 +799,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <rect x="526" y="180" width="108" height="16" fill="#ecfdf5" stroke="#10b981" rx="2"/>
           <text x="580" y="192" font-size="8" font-family="monospace" fill="#065f46" text-anchor="middle">lab10.c (112)</text>
 
-          <!-- Annotations for dot and dot-dot -->
           <path d="M 526 169 C 480 169, 480 145, 515 145" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="2,2"/>
           <text x="470" y="158" font-size="8" font-weight="600" fill="#0284c7" text-anchor="end">. points to self</text>
 
@@ -862,10 +848,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
 
       <div class="fs-sim-grid">
-        <!-- Visual Tree View -->
         <div class="fs-tree-view" id="treeDisplay"></div>
 
-        <!-- Active Directory Table Contents -->
         <div class="fs-table-view">
           <div class="fs-table-title" id="activeTableTitle">On-Disk Table for: /</div>
           <table class="fs-table">
@@ -885,7 +869,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Terminal Controls -->
       <div class="fs-terminal">
         <div class="fs-term-log" id="termLog">$ session started. Active working directory set to /</div>
         <div class="fs-term-input-row">
@@ -904,56 +887,167 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.2.4: Directory Operations & System Calls -->
+    <!-- Section 4.2.4: Directory Operations & System Calls (Expanded) -->
     <div class="card">
       <h2>4.2.4 Directory Operations &amp; System Calls</h2>
       <p>
-        Operating systems provide a specialized suite of system calls to manage directories and link namespaces together:
+        Because operating system kernels protect filesystem invariants by forbidding raw byte modifications to directory files, user programs must interact with directories through specialized system calls.
       </p>
-      <ol>
-        <li><strong>Create:</strong> Creates a new, empty directory (such as <code>mkdir</code>). Initially, it contains only two structural entries: <code>.</code> (referencing itself) and <code>..</code> (referencing its parent directory).</li>
-        <li><strong>Delete:</strong> Removes a directory (such as <code>rmdir</code>). Most operating systems require the directory to be completely empty (containing only <code>.</code> and <code>..</code>) before deletion is permitted to prevent accidental orphan trees.</li>
-        <li><strong>Opendir:</strong> Opens a directory for inspection, returning a directory stream pointer or descriptor.</li>
-        <li><strong>Readdir:</strong> Reads the next entry from an open directory stream, returning file names and i-node numbers. Historically, applications read raw directory bytes directly, but modern systems enforce <code>readdir</code> to abstract internal directory block layouts and prevent direct corruption of symbol tables.</li>
-        <li><strong>Closedir:</strong> Releases directory stream resources when directory traversal concludes.</li>
-        <li><strong>Rename:</strong> Changes a file or directory name within the namespace tree without duplicating underlying data blocks.</li>
-        <li><strong>Link:</strong> Creates a new hard link—an additional directory entry pointing to an existing file's i-node. This allows a single file to exist under multiple names or in different directories simultaneously.</li>
-        <li><strong>Unlink:</strong> Removes a directory entry. If the entry being unlinked is the final hard link pointing to an i-node (and no execution contexts have it open), the i-node and its associated data blocks are deallocated.</li>
-      </ol>
+
+      <h3>1. Creating &amp; Deleting Directories (`mkdir` / `rmdir`)</h3>
+      <ul>
+        <li>
+          <strong>Directory Creation (<code>mkdir</code>):</strong> When an execution context requests a new directory, the kernel allocates an unused i-node or directory record, sets its directory attribute flag, and assigns an initial data block. The kernel then formats this block with exactly two initial entries: <code>.</code> (pointing to the newly allocated i-node) and <code>..</code> (pointing to the calling parent directory's i-node).
+        </li>
+        <li>
+          <strong>Directory Deletion (<code>rmdir</code>):</strong> Removes a named directory entry from its parent. To prevent the creation of orphaned subtrees that consume space without being reachable, modern kernels enforce an <strong>emptiness invariant</strong>: the target directory must contain no entries other than <code>.</code> and <code>..</code> before deletion succeeds.
+        </li>
+      </ul>
+
+      <h3>2. Inspecting Directory Entries (`opendir`, `readdir`, `closedir`)</h3>
+      <p>
+        In early Unix implementations, directories were structured as plain arrays of 16-byte records (2 bytes for i-node, 14 bytes for filename), and user programs used standard <code>read()</code> system calls directly.
+      </p>
+      <div class="callout">
+        <strong>The Abstraction Rationale:</strong> As filesystems grew, fixed 14-byte names were replaced by variable-length filenames, B-trees, extensible hashing, and extent maps. Exposing raw directory blocks to user space broke binary portability whenever filesystem layouts changed. Modern POSIX systems mandate <code>opendir()</code>, <code>readdir()</code>, and <code>closedir()</code> to encapsulate internal filesystem formats and present a uniform stream of directory records.
+      </div>
+
+      <h3>3. Atomic Namespace Rebinding (`rename`)</h3>
+      <p>
+        The <code>rename()</code> system call updates a file or directory identifier without moving its data blocks on disk. If the destination path already exists, the kernel replaces it atomically: an executing reader either sees the old destination file or the new renamed file, with no window where the destination is missing.
+      </p>
+
+      <h3>4. Hard Links vs. Symbolic Links (`link` and `unlink`)</h3>
+      <p>
+        File namespaces support two distinct pointer models:
+      </p>
+      <ul>
+        <li>
+          <strong>Hard Links (<code>link</code>):</strong> Creates an additional directory entry in the namespace pointing directly to an existing file's i-node. The file's internal <strong>reference count</strong> increases by 1. All hard links have equal status; there is no "original" file once linked.
+        </li>
+        <li>
+          <strong>Symbolic / Soft Links:</strong> Creates a new file containing the text string of a target path. If the target is deleted, the symbolic link becomes dangling.
+        </li>
+        <li>
+          <strong>Unlink Mechanics (<code>unlink</code>):</strong> Removes a directory entry and decrements the target i-node's reference count. The disk blocks and i-node are only freed when the reference count drops to zero <em>and</em> no active process holds an open file descriptor to that i-node.
+        </li>
+      </ul>
+
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-4: Structural Comparison (Hard Links vs. Symbolic Links)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Hard Link Section -->
+          <rect x="20" y="15" width="340" height="150" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
+          <text x="190" y="34" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Hard Link Architecture (Shared i-Node)</text>
+
+          <rect x="35" y="48" width="125" height="40" fill="#ffffff" stroke="#bae6fd" rx="3"/>
+          <text x="97" y="66" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">Entry: notes.txt</text>
+          <text x="97" y="80" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #50</text>
+
+          <rect x="35" y="105" width="125" height="40" fill="#ffffff" stroke="#bae6fd" rx="3"/>
+          <text x="97" y="123" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">Entry: backup.txt</text>
+          <text x="97" y="137" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #50</text>
+
+          <path d="M 160 68 L 220 95" stroke="#0284c7" stroke-width="1.5"/>
+          <path d="M 160 125 L 220 95" stroke="#0284c7" stroke-width="1.5"/>
+
+          <rect x="220" y="70" width="120" height="50" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="280" y="90" font-size="9.5" font-weight="700" fill="#047857" text-anchor="middle">i-Node #50</text>
+          <text x="280" y="106" font-size="8.5" fill="#065f46" text-anchor="middle">link_count: 2</text>
+
+          <!-- Soft Link Section -->
+          <rect x="400" y="15" width="340" height="150" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
+          <text x="570" y="34" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Symbolic Link Architecture (Path String Pointer)</text>
+
+          <rect x="415" y="48" width="125" height="40" fill="#ffffff" stroke="#fde68a" rx="3"/>
+          <text x="477" y="66" font-size="9" font-weight="600" fill="#92400e" text-anchor="middle">Entry: file.txt</text>
+          <text x="477" y="80" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #80</text>
+
+          <rect x="415" y="105" width="125" height="40" fill="#ffffff" stroke="#fde68a" rx="3"/>
+          <text x="477" y="123" font-size="9" font-weight="600" fill="#92400e" text-anchor="middle">Entry: link_to_file</text>
+          <text x="477" y="137" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #81</text>
+
+          <path d="M 540 68 L 600 68" stroke="#d97706" stroke-width="1.5"/>
+          <rect x="600" y="48" width="120" height="40" fill="#ecfdf5" stroke="#059669" rx="3"/>
+          <text x="660" y="66" font-size="9" font-weight="700" fill="#047857" text-anchor="middle">i-Node #80 (File)</text>
+          <text x="660" y="80" font-size="8" fill="#065f46" text-anchor="middle">Data: "Hello World"</text>
+
+          <path d="M 540 125 L 600 125" stroke="#d97706" stroke-width="1.5"/>
+          <rect x="600" y="105" width="120" height="40" fill="#fef2f2" stroke="#dc2626" rx="3"/>
+          <text x="660" y="123" font-size="9" font-weight="700" fill="#b91c1c" text-anchor="middle">i-Node #81 (Symlink)</text>
+          <text x="660" y="137" font-size="8" fill="#7f1d1d" text-anchor="middle">Path: "file.txt"</text>
+        </svg>
+      </div>
     </div>
 
-    <!-- Interactive Hard Link & Unlink Simulator Sandbox -->
-    <div class="card kernel-sandbox">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;">Interactive Hard Link &amp; Unlink Simulator</div>
+    <!-- Interactive Step-by-Step Directory Operations Walkthrough -->
+    <div class="card fs-sim-card">
+      <div class="fs-sim-header">
+        <span class="fs-sim-title">Interactive Walkthrough: Directory Lifecycle &amp; System Calls</span>
+        <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">Step-by-Step POSIX Simulation</span>
       </div>
 
-      <div class="sticky-control-bar">
-        <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">Directory System Call Controls:</div>
-        <div class="sandbox-controls">
-          <button onclick="simOp('create')" style="font-size: 0.8rem; padding: 6px 12px;">creat("notes.txt")</button>
-          <button onclick="simOp('link')" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">link("notes.txt", "backup.txt")</button>
-          <button onclick="simOp('unlink1')" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">unlink("notes.txt")</button>
-          <button onclick="simOp('unlink2')" class="btn-sec btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">unlink("backup.txt")</button>
+      <p style="color:#cbd5e1; font-size:0.86rem; margin-top:2px;">
+        Follow the sequential steps below to observe how the kernel manipulates directory blocks, enforces deletion constraints, updates reference counts, and executes deferred unlinking.
+      </p>
+
+      <!-- Step Cards -->
+      <div class="tutorial-steps">
+        <div class="tutorial-step-card active-step" id="cardStep1" onclick="runWalkthroughStep(1)">
+          <span class="step-badge">Step 1: mkdir()</span>
+          <span class="step-name">Allocate Directory</span>
+          <span class="step-desc">Create /home/project and inspect automatic . and .. entries.</span>
+        </div>
+        <div class="tutorial-step-card" id="cardStep2" onclick="runWalkthroughStep(2)">
+          <span class="step-badge">Step 2: creat()</span>
+          <span class="step-name">Create Regular File</span>
+          <span class="step-desc">Create main.c inside project directory with initial link count 1.</span>
+        </div>
+        <div class="tutorial-step-card" id="cardStep3" onclick="runWalkthroughStep(3)">
+          <span class="step-badge">Step 3: link()</span>
+          <span class="step-name">Hard Link File</span>
+          <span class="step-desc">Link main.c to backup.c and watch i-node reference count rise to 2.</span>
+        </div>
+        <div class="tutorial-step-card" id="cardStep4" onclick="runWalkthroughStep(4)">
+          <span class="step-badge">Step 4: rmdir() Fail</span>
+          <span class="step-name">Enforce Emptiness</span>
+          <span class="step-desc">Attempt deleting /home/project while populated to trap ENOTEMPTY.</span>
+        </div>
+        <div class="tutorial-step-card" id="cardStep5" onclick="runWalkthroughStep(5)">
+          <span class="step-badge">Step 5: unlink()</span>
+          <span class="step-name">Unlink &amp; Deallocate</span>
+          <span class="step-desc">Unlink references sequentially until count reaches 0, releasing blocks.</span>
         </div>
       </div>
 
-      <div class="inspector-grid">
+      <!-- Live Inspector Grid -->
+      <div class="inspector-grid" style="margin-top:6px;">
         <div class="inspector-panel">
-          <div class="inspector-title"><span>Directory Namespace</span><span>(/home/student)</span></div>
-          <div class="inspector-row"><span>notes.txt:</span><span id="dir-notes" class="alert">-- UNUSED --</span></div>
-          <div class="inspector-row"><span>backup.txt:</span><span id="dir-backup" class="alert">-- UNUSED --</span></div>
+          <div class="inspector-title"><span>Directory Table</span><span id="walkthroughDirName">/home/project</span></div>
+          <div class="inspector-row"><span>Entry [0]:</span><span id="wtEntry0" class="alert">-- UNALLOCATED --</span></div>
+          <div class="inspector-row"><span>Entry [1]:</span><span id="wtEntry1" class="alert">-- UNALLOCATED --</span></div>
+          <div class="inspector-row"><span>Entry [2]:</span><span id="wtEntry2" class="alert">-- UNALLOCATED --</span></div>
+          <div class="inspector-row"><span>Entry [3]:</span><span id="wtEntry3" class="alert">-- UNALLOCATED --</span></div>
         </div>
 
         <div class="inspector-panel">
-          <div class="inspector-title"><span>i-Node Table</span><span>(#42 Metadata)</span></div>
-          <div class="inspector-row"><span>Link Count:</span><span id="inode-links" class="highlight">0</span></div>
-          <div class="inspector-row"><span>Storage Blocks:</span><span id="inode-blocks">0 Blocks</span></div>
-          <div class="inspector-row"><span>Status:</span><span id="inode-status" class="alert">DEALLOCATED</span></div>
+          <div class="inspector-title"><span>i-Node #120 Telemetry</span><span id="wtInodeType">Target File</span></div>
+          <div class="inspector-row"><span>i-Node Index:</span><span id="wtInodeNum">#120</span></div>
+          <div class="inspector-row"><span>Hard Link Count:</span><span id="wtLinkCount" class="highlight">0</span></div>
+          <div class="inspector-row"><span>Data Blocks:</span><span id="wtBlocks">0</span></div>
+          <div class="inspector-row"><span>Allocation Status:</span><span id="wtStatus" class="alert">FREE</span></div>
         </div>
       </div>
 
-      <div id="dirConsole" class="kernel-console">$ directory simulation initialized. Ready for link/unlink operations...</div>
+      <!-- Walkthrough Terminal -->
+      <div class="fs-terminal">
+        <div class="fs-term-log" id="walkthroughConsole">$ Select a step above or click 'Execute Next Step' to begin the walkthrough...</div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <button class="fs-quick-btn btn-step-action" onclick="advanceWalkthrough()">Execute Current Step &rarr;</button>
+        <span style="font-size:0.75rem; color:#94a3b8; font-family:var(--font-mono);" id="stepProgressIndicator">Step 1 of 5 Ready</span>
+      </div>
     </div>
 
   </div>
@@ -1145,82 +1239,92 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
     });
 
-    // --- Hard Link Simulator Logic ---
-    let state = {
-      notesExists: false,
-      backupExists: false,
-      linkCount: 0,
-      blocks: 0,
-      status: "DEALLOCATED"
-    };
+    // --- Interactive Directory Operations Walkthrough Logic ---
+    let activeWalkthroughStep = 1;
 
-    function updateDirUI(msg) {
-      const nEl = document.getElementById("dir-notes");
-      nEl.textContent = state.notesExists ? "i-Node #42" : "-- UNUSED --";
-      nEl.className = state.notesExists ? "highlight" : "alert";
-
-      const bEl = document.getElementById("dir-backup");
-      bEl.textContent = state.backupExists ? "i-Node #42" : "-- UNUSED --";
-      bEl.className = state.backupExists ? "highlight" : "alert";
-
-      document.getElementById("inode-links").textContent = state.linkCount;
-      document.getElementById("inode-blocks").textContent = state.blocks + " Blocks";
-
-      const stEl = document.getElementById("inode-status");
-      stEl.textContent = state.status;
-      stEl.className = state.status === "ACTIVE" ? "highlight" : "alert";
-
-      document.getElementById("dirConsole").textContent = msg;
-    }
-
-    function simOp(op) {
-      if (op === 'create') {
-        state.notesExists = true;
-        state.linkCount = 1;
-        state.blocks = 4;
-        state.status = "ACTIVE";
-        updateDirUI("$ creat(\"notes.txt\");\n[Kernel] Created directory entry 'notes.txt' pointing to i-Node #42. Link count = 1.");
-      } else if (op === 'link') {
-        if (!state.notesExists) {
-          updateDirUI("$ link(\"notes.txt\", \"backup.txt\");\n[Error] No such file or directory: 'notes.txt'");
-          return;
+    function runWalkthroughStep(stepNum) {
+      activeWalkthroughStep = stepNum;
+      for (let i = 1; i <= 5; i++) {
+        const card = document.getElementById(`cardStep${i}`);
+        if (i === stepNum) {
+          card.classList.add('active-step');
+        } else {
+          card.classList.remove('active-step');
         }
-        state.backupExists = true;
-        state.linkCount = 2;
-        updateDirUI("$ link(\"notes.txt\", \"backup.txt\");\n[Kernel] Created hard link 'backup.txt' pointing to i-Node #42. Link count incremented to 2.");
-      } else if (op === 'unlink1') {
-        if (!state.notesExists) {
-          updateDirUI("$ unlink(\"notes.txt\");\n[Error] File not found.");
-          return;
-        }
-        state.notesExists = false;
-        state.linkCount = 1;
-        updateDirUI("$ unlink(\"notes.txt\");\n[Kernel] Removed directory entry 'notes.txt'. i-Node #42 link count decreased to 1. File data remains accessible via 'backup.txt'.");
-      } else if (op === 'unlink2') {
-        if (!state.backupExists) {
-          updateDirUI("$ unlink(\"backup.txt\");\n[Error] File not found.");
-          return;
-        }
-        state.backupExists = false;
-        state.linkCount = 0;
-        state.blocks = 0;
-        state.status = "DEALLOCATED";
-        updateDirUI("$ unlink(\"backup.txt\");\n[Kernel] Removed final directory entry. i-Node #42 link count reached 0. Deallocated disk blocks and purged i-Node.");
+      }
+      document.getElementById("stepProgressIndicator").textContent = `Step ${stepNum} of 5 Active`;
+
+      const consoleEl = document.getElementById("walkthroughConsole");
+      const e0 = document.getElementById("wtEntry0");
+      const e1 = document.getElementById("wtEntry1");
+      const e2 = document.getElementById("wtEntry2");
+      const e3 = document.getElementById("wtEntry3");
+      const lCount = document.getElementById("wtLinkCount");
+      const bCount = document.getElementById("wtBlocks");
+      const stEl = document.getElementById("wtStatus");
+
+      if (stepNum === 1) {
+        e0.innerHTML = "<span class='highlight'>. &rarr; i-node #115 (Self)</span>";
+        e1.innerHTML = "<span class='highlight'>.. &rarr; i-node #4 (Parent /home)</span>";
+        e2.innerHTML = "<span class='alert'>-- UNUSED --</span>";
+        e3.innerHTML = "<span class='alert'>-- UNUSED --</span>";
+        lCount.textContent = "0";
+        bCount.textContent = "0";
+        stEl.textContent = "FREE";
+        stEl.className = "alert";
+        consoleEl.textContent = "$ mkdir(\"/home/project\", 0755);\n[Kernel] Allocated directory i-node #115.\n[Kernel] Initialized entry [0] '.' pointing to self (#115).\n[Kernel] Initialized entry [1] '..' pointing to parent /home (#4).";
+      } else if (stepNum === 2) {
+        e0.innerHTML = "<span class='highlight'>. &rarr; i-node #115</span>";
+        e1.innerHTML = "<span class='highlight'>.. &rarr; i-node #4</span>";
+        e2.innerHTML = "<span class='highlight'>main.c &rarr; i-node #120</span>";
+        e3.innerHTML = "<span class='alert'>-- UNUSED --</span>";
+        lCount.textContent = "1";
+        bCount.textContent = "3 (12 KB)";
+        stEl.textContent = "ACTIVE";
+        stEl.className = "highlight";
+        consoleEl.textContent = "$ creat(\"/home/project/main.c\", 0644);\n[Kernel] Allocated regular i-node #120 with 3 disk blocks.\n[Kernel] Bound entry 'main.c' -> i-node #120 in directory #115.\n[Kernel] Set i-node #120 link_count = 1.";
+      } else if (stepNum === 3) {
+        e0.innerHTML = "<span class='highlight'>. &rarr; i-node #115</span>";
+        e1.innerHTML = "<span class='highlight'>.. &rarr; i-node #4</span>";
+        e2.innerHTML = "<span class='highlight'>main.c &rarr; i-node #120</span>";
+        e3.innerHTML = "<span class='highlight'>backup.c &rarr; i-node #120</span>";
+        lCount.textContent = "2";
+        bCount.textContent = "3 (12 KB)";
+        stEl.textContent = "ACTIVE";
+        stEl.className = "highlight";
+        consoleEl.textContent = "$ link(\"main.c\", \"backup.c\");\n[Kernel] Bound entry 'backup.c' to existing i-node #120.\n[Kernel] Incremented i-node #120 link_count to 2.\n[Notice] Zero data blocks copied. Both names map to the identical storage extent.";
+      } else if (stepNum === 4) {
+        consoleEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel Fault] ENOTEMPTY: Directory not empty!\n[Kernel] Emptiness invariant check failed: entries exist beyond '.' and '..'.\n[Protection] Deletion denied to protect child files from becoming orphaned.";
+      } else if (stepNum === 5) {
+        e2.innerHTML = "<span class='alert'>-- UNUSED (Unlinked) --</span>";
+        e3.innerHTML = "<span class='alert'>-- UNUSED (Unlinked) --</span>";
+        lCount.textContent = "0";
+        bCount.textContent = "0 (Deallocated)";
+        stEl.textContent = "DEALLOCATED";
+        stEl.className = "alert";
+        consoleEl.textContent = "$ unlink(\"main.c\");\n[Kernel] Removed entry 'main.c'. i-node #120 link_count decreased to 1. Data remains alive.\n$ unlink(\"backup.c\");\n[Kernel] Removed entry 'backup.c'. i-node #120 link_count reached 0.\n[Kernel] No active file descriptors open; recycled 3 disk blocks and freed i-node #120.";
       }
     }
 
-    // Initialize Simulator
+    function advanceWalkthrough() {
+      let nextStep = activeWalkthroughStep + 1;
+      if (nextStep > 5) nextStep = 1;
+      runWalkthroughStep(nextStep);
+    }
+
+    // Initialize Simulator & Walkthrough
     updateSimUI();
+    runWalkthroughStep(1);
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Expand section 4.2.3 with deep hierarchical directory theory and simulator
+COMMIT_MSG = """Expand section 4.2.4 directory operations with interactive walkthrough
 
-Update week10-file-management/02-directories.html to expand section 4.2.3
-with comprehensive theory on tree structures, dot/dot-dot invariants,
-and an embedded interactive directory traversal and table simulator."""
+Update week10-file-management/02-directories.html to expand section 4.2.4
+with comprehensive system call theory, hard vs soft link SVGs, and an
+interactive guided step-by-step directory operations walkthrough."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1245,7 +1349,7 @@ def deploy_module():
     run_git_step(["git", "add", target_file], "Staging updated 02-directories.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 02 Hierarchical Directories updated, committed, and pushed successfully!")
+    print("--> Module 02 Directory Operations & Walkthrough updated, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     deploy_module()
