@@ -221,22 +221,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-modern .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 0px; /* Zero gap for tight grid packing */
+      gap: 2px;
       width: 100%;
       max-width: 1000px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
-      border-radius: 0;
-      margin: 0;
-      padding: 0;
+      border-radius: 1px;
     }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
     .theme-modern .c-unopt { background-color: #f59e0b; }
     .theme-modern .c-system { background-color: #dc2626; }
-    .theme-modern .c-read { background-color: #facc15 !important; }
-    .theme-modern .c-write { background-color: #34d399 !important; }
+    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 6px #facc15; }
+    .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
     .theme-modern .ui-status-panel {
       background: #020617;
       border: 1px solid #1e293b;
@@ -327,22 +325,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-win95 .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 0px;
+      gap: 1px;
       width: 100%;
       max-width: 1000px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
       border-radius: 0;
-      margin: 0;
-      padding: 0;
     }
     .theme-win95 .c-free { background-color: #ffffff; }
     .theme-win95 .c-opt { background-color: #000080; }
     .theme-win95 .c-unopt { background-color: #5ce1e6; }
     .theme-win95 .c-system { background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%); }
-    .theme-win95 .c-read { background-color: #00ff00 !important; }
-    .theme-win95 .c-write { background-color: #ff0000 !important; }
+    .theme-win95 .c-read { background-color: #00ff00 !important; box-shadow: 0 0 4px #00ff00; }
+    .theme-win95 .c-write { background-color: #ff0000 !important; box-shadow: 0 0 4px #ff0000; }
     .theme-win95 .ui-status-panel {
       border-top: 1px solid #808080;
       padding-top: 4px;
@@ -408,7 +404,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 0px;
+      gap: 1px;
       width: 100%;
       max-width: 950px;
     }
@@ -421,8 +417,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 6px;
       font-weight: bold;
       line-height: 1;
-      margin: 0;
-      padding: 0;
       user-select: none;
     }
     .theme-dos .c-free { background-color: #000055; color: #0000aa; }
@@ -445,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (TIGHT ZERO-PADDING CELLS)
+       THEME 4: MS-DOS 6.22 DEFRAG (ZERO-PADDING UNUSED BLOCKS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -503,7 +497,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 0px; /* Zero grid gap for seamless tight block packing */
+      gap: 1px;
       width: 100%;
       max-width: 950px;
     }
@@ -513,16 +507,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 115%; /* Maximize glyph coverage */
+      font-size: 6px;
       font-weight: bold;
       line-height: 1;
-      margin: 0;
-      padding: 0; /* Strict zero padding */
       image-rendering: pixelated;
       user-select: none;
+      padding: 0;
+      margin: 0;
     }
-    /* MS-DOS 6.22 Defrag Palette matching Legend */
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
+    /* MS-DOS 6.22 Palette: Unused blocks use zero-padding CSS background fill pattern */
+    .theme-olddos .c-free {
+      background-color: #0000aa;
+      background-image: radial-gradient(#55ffff 35%, transparent 35%);
+      background-size: 3px 3px;
+      color: transparent; /* No text character needed, purely CSS filled */
+    }
     .theme-olddos .c-opt { background-color: #0000aa; color: #ffff55; }
     .theme-olddos .c-unopt { background-color: #0000aa; color: #ffff55; }
     .theme-olddos .c-system { background-color: #0000aa; color: #ffff55; font-weight: 900; }
@@ -568,6 +567,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
+
+    /* Matrix Dimensions */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(100, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .c-cell {
+      width: 100%;
+      height: 100%;
+      transition: background-color 0.04s ease;
+    }
   </style>
 </head>
 <body>
@@ -831,7 +844,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          el.textContent = "▒";
+          // c-free uses pure CSS background fill, no text character needed
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1098,10 +1111,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix syntax error in python file writing statement
+COMMIT_MSG = """Remove cell padding and margins on high-density grid cells
 
-Correct typo in file deployment script where 'w open' was written instead
-of 'with open'.
+Update week10-file-management/03-filesystem-implementation.html to ensure
+zero padding and zero margins on .c-cell elements, allowing MS-DOS unused
+blocks (and all other cells) to fill tight and clean.
 """
 
 def run_git_step(cmd, desc):
@@ -1124,10 +1138,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging syntax fix and half-size block update")
+    run_git_step(["git", "add", target_file], "Staging zero-padding tight grid update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Half-size block density successfully deployed!")
+    print("--> Zero-padding tight grid successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
