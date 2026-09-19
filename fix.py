@@ -329,21 +329,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.1.4: File Access (Expanded) -->
+    <!-- Section 4.1.4: File Access -->
     <div class="card">
       <h2>4.1.4 File Access</h2>
       <p>
         File access methods dictate how processes interact with stored data elements within a file. Operating systems have historically supported distinct access paradigms based on the underlying storage media and application demands:
       </p>
       <ul>
-        <li><strong>Sequential Access:</strong>
-          Early operating systems provided exclusively sequential access. In this model, a process was required to read all bytes or records in strict sequential order, starting from the beginning of the file. While files could be rewound to the start to allow repeated reads, skipping ahead or reading out of order was impossible. This access model was well-suited for magnetic tape storage media where sequential head traversal was mandatory.
-        </li>
-        <li><strong>Random-Access Files:</strong>
-          With the transition from magnetic tape to magnetic disks and solid-state drives, random-access files became feasible and essential. Random-access files permit bytes or records to be read or written in any arbitrary order or accessed directly by key.
-          <br><br>
-          <em>Practical Application:</em> Random-access files are vital for modern database management systems. For instance, when an airline customer requests a seat reservation on a specific flight, the reservation program must instantly access that exact flight record without scanning thousands of preceding flight records.
-        </li>
+        <li><strong>Sequential Access:</strong> Early operating systems provided exclusively sequential access. In this model, a process was required to read all bytes or records in strict sequential order, starting from the beginning of the file. While files could be rewound to the start to allow repeated reads, skipping ahead or reading out of order was impossible. This access model was well-suited for magnetic tape storage media where sequential head traversal was mandatory.</li>
+        <li><strong>Random-Access Files:</strong> With the transition from magnetic tape to magnetic disks and solid-state drives, random-access files became feasible and essential. Random-access files permit bytes or records to be read or written in any arbitrary order or accessed directly by key. Random-access files are vital for modern database management systems where specific records must be fetched instantly without scanning preceding records.</li>
       </ul>
 
       <div style="font-weight: 600; color: var(--text); margin-top: 4px;">Positioning Mechanisms</div>
@@ -356,25 +350,59 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </ol>
     </div>
 
-    <!-- Section 4.1.5: File Attributes -->
+    <!-- Section 4.1.5: File Attributes (Expanded) -->
     <div class="card">
       <h2>4.1.5 File Attributes (Metadata)</h2>
       <p>
-        Operating systems associate extra administrative metadata with every file. While attributes differ across platforms, standard metadata includes:
+        Every operating system associates auxiliary administrative data with each file, commonly referred to as file attributes or metadata. While the exact list of attributes varies across different operating systems, comprehensive file management requires tracking a wide array of metadata elements:
       </p>
+      <ul>
+        <li><strong>Protection and Ownership:</strong> Attributes controlling who may access the file and with what permissions (read, write, execute). Some systems also require a password to access specific files, while others track the creator and current owner (UID/GID).</li>
+        <li><strong>Operational Flags:</strong> Bit flags that control specific file behaviors:
+          <ul>
+            <li><em>Hidden Flag:</em> Prevents files from appearing in standard directory listings.</li>
+            <li><em>System Flag:</em> Identifies critical operating system files.</li>
+            <li><em>Read-Only Flag:</em> Restricts files to read-only access.</li>
+            <li><em>Archive Flag:</em> Tracks whether a file has been modified since the last backup. The backup program clears this flag, and the operating system sets it whenever the file is changed.</li>
+            <li><em>ASCII / Binary Flag:</em> Designates the internal encoding format.</li>
+            <li><em>Temporary Flag:</em> Marks a file for automatic deletion when the creating process terminates.</li>
+            <li><em>Lock Flag:</em> Prevents concurrent access issues (nonzero when locked, zero when unlocked).</li>
+          </ul>
+        </li>
+        <li><strong>Record and Key Metadata:</strong> For indexed or structured files, attributes include record length, key position within each record, and key length required for key-based lookups.</li>
+        <li><strong>Timestamps:</strong> Tracks the exact creation time, the time of the most recent access, and the time of the last modification. These are essential for utilities like the UNIX <code>make</code> program, which inspects modification timestamps to determine the minimum compilations needed to bring software up to date.</li>
+        <li><strong>Size Metrics:</strong> Tracks the current byte count of the file as well as the maximum permissible size limit.</li>
+      </ul>
+
       <table>
         <thead>
           <tr>
-            <th>Attribute</th>
-            <th>Meaning / Description</th>
+            <th>Attribute Category</th>
+            <th>Examples</th>
+            <th>Purpose / Function</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td><strong>Protection</strong></td><td>Controls who may access the file and with what permissions (Read/Write/Execute).</td></tr>
-          <tr><td><strong>Owner / Creator</strong></td><td>Identifies the user who created or currently owns the file (UID/GID).</td></tr>
-          <tr><td><strong>Flags</strong></td><td>Hidden, system, read-only, archive (tracks whether file needs backup), temporary, and lock flags.</td></tr>
-          <tr><td><strong>Timestamps</strong></td><td>Exact creation time, time of last access, and time of last attribute/data modification.</td></tr>
-          <tr><td><strong>File Size</strong></td><td>Current byte count and maximum permissible growth limit.</td></tr>
+          <tr>
+            <td><strong>Protection &amp; Security</strong></td>
+            <td>Protection modes, Owner UID/GID, Password</td>
+            <td>Enforces access control lists and authorization rules.</td>
+          </tr>
+          <tr>
+            <td><strong>Operational Flags</strong></td>
+            <td>Hidden, System, Read-Only, Archive, Temporary</td>
+            <td>Modifies how system tools and backup routines treat the file.</td>
+          </tr>
+          <tr>
+            <td><strong>Temporal Metadata</strong></td>
+            <td>Creation Time, Last Access Time, Last Change Time</td>
+            <td>Enables dependency tracking (e.g., software build tools).</td>
+          </tr>
+          <tr>
+            <td><strong>Structural Size</strong></td>
+            <td>Current File Size, Maximum Size Limit</td>
+            <td>Defines allocated bounds and tracks growth limits.</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -541,11 +569,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Expand subsection 4.1.4 file access in week10 module 01
+COMMIT_MSG = """Expand subsection 4.1.5 file attributes in week10 module 01
 
 Update week10-file-management/01-files-abstraction.html to include
-comprehensive coverage of sequential vs random access, database use
-cases, and explicit positioning mechanisms such as lseek."""
+comprehensive coverage of file metadata attributes including protection
+modes, hidden/archive flags, timestamps, and record indexing keys."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -565,12 +593,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote expanded file access module file to {target_file}")
+    print(f"Wrote expanded file attributes module file to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging expanded file access 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging expanded file attributes 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Expanded File Access Module 01 created, committed, and pushed successfully!")
+    print("--> Expanded File Attributes Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
