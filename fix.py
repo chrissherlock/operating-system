@@ -162,6 +162,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-left: 4px solid var(--inspect-color);
       background: #fffbeb;
       transition: all 0.3s ease;
+      clear: both;
     }
     .tutorial-header {
       display: flex;
@@ -283,11 +284,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       0% { box-shadow: inset 0 0 6px rgba(202, 138, 4, 0.3); }
       100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
     }
-    /* Vertical stack for lists container */
+    /* Vertical stack for lists container with float clearance */
     .lists-container {
       display: flex;
       flex-direction: column;
       gap: 16px;
+      clear: both;
     }
     .free-area-list {
       display: flex;
@@ -512,7 +514,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Tanenbaum Section 2: Linked Lists (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0; clear: both;">
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">3. Tanenbaum's Method 2: Bookkeeping with Linked Lists of Segments</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         The operating system maintains a linked list where each node indicates whether a region is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
@@ -561,7 +563,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Section 3: Classical Placement Strategies (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0; clear: both;">
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">4. Classical Placement Strategies (First Fit, Best Fit, Worst Fit, Next Fit)</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         When allocating memory from a linked list of holes, the kernel uses placement algorithms to decide which hole to assign:
@@ -575,7 +577,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- PFN Explanation Banner -->
-    <div class="concept-box">
+    <div class="concept-box" style="clear: both;">
       <strong>What is a PFN (Page Frame Number)?</strong><br>
       Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
       <div class="math-formula">
@@ -592,7 +594,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Tutorial Control Box -->
-    <div class="card tutorial-panel" id="tutorialCard">
+    <div class="card tutorial-panel" id="tutorialCard" style="clear: both;">
       <div class="tutorial-header">
         <span id="stepCounter">Step 1 of 8</span>
         <span id="stepPhase">State: Idle</span>
@@ -608,7 +610,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Physical Memory Bar -->
-    <div class="card">
+    <div class="card" style="clear: both;">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <span style="font-weight:600;">Physical Memory Range (PFN 0 to 15)</span>
         <span style="font-size:0.8rem; color:var(--text-muted);">16 Pages &times; 4 KB = 64 KB Total Pool</span>
@@ -624,7 +626,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Kernel Free Area & Used Tracking Grid -->
-    <div class="lists-container">
+    <div class="lists-container" style="clear: both;">
       <div class="card">
         <span style="font-weight:600;">Kernel Free List Array (<code>free_area[0..4]</code>)</span>
         <div id="freeAreaLists" class="free-area-list"></div>
@@ -638,7 +640,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Execution Terminal -->
-    <div class="card">
+    <div class="card" style="clear: both;">
       <span style="font-weight:600;">Kernel Memory Allocator Trace</span>
       <div id="actionLog" class="log-terminal"></div>
     </div>
@@ -896,11 +898,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Remove borders from Tanenbaum bitmap, linked list, and placement sections
+COMMIT_MSG = """Clear float for memory and list cards below pioneer bio sidebar
 
-Update week09-memory-management/01-free-used-lists-buddy.html to remove
-card containers and borders from sections 2, 3, and 4, ensuring a clean,
-borderless presentation consistent with section 1."""
+Update week09-memory-management/01-free-used-lists-buddy.html by adding
+clear: both to the memory bar, free list, and used tracker cards so they
+render cleanly below the floating pioneer bio infobox."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -923,7 +925,7 @@ def execute_pipeline():
     run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Section borders removed, committed, and pushed successfully!")
+    print("--> Float clearance applied, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
