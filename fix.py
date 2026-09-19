@@ -189,7 +189,7 @@ AGING_HTML = r"""<!DOCTYPE html>
 
     .split-grid {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 400px 1fr;
       gap: 20px;
       align-items: start; /* Prevents vertical collision/overlap */
       margin-top: 10px;
@@ -612,6 +612,7 @@ AGING_HTML = r"""<!DOCTYPE html>
 
       let minVal = 999999;
       let victimIdx = -1;
+      agingFrames.executeAgingAccess = function() {} // placeholder
       agingFrames.forEach((f, idx) => {
         if (f.reg < minVal) {
           minVal = f.reg;
@@ -652,12 +653,11 @@ AGING_HTML = r"""<!DOCTYPE html>
 """
 
 def main():
-    repo_w09 = "operating-system-f5d367c3c617f2658075615a344630406d3fc04e/week09-memory-management"
-    os.makedirs(repo_w09, exist_ok=True)
-    target_file = os.path.join(repo_w09, "08-aging-algorithm.html")
+    target_file = "week09-memory-management/08-aging-algorithm.html"
+    os.makedirs(os.path.dirname(target_file), exist_ok=True)
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(AGING_HTML)
-    print(f"Successfully generated and fixed layout in {target_file}")
+    print(f"Successfully generated and updated active path: {target_file}")
 
 if __name__ == "__main__":
     main()

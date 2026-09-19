@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>8. Simulating LRU: The Aging Algorithm — COSC240</title>
-  <!-- Configure MathJax for LaTeX transformation -->
   <script>
     window.MathJax = {
       tex: {
@@ -28,7 +27,6 @@
       --fault-color: #dc2626;
       --fault-bg: #fee2e2;
       --warn-color: #d97706;
-      --warn-bg: #fef3c7;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
@@ -190,7 +188,7 @@
       display: grid;
       grid-template-columns: 400px 1fr;
       gap: 20px;
-      align-items: start; /* Prevents vertical column overlap */
+      align-items: start; /* Prevents vertical collision/overlap */
       margin-top: 10px;
     }
     @media (max-width: 860px) {
@@ -200,7 +198,7 @@
     .register-visual-box {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -307,15 +305,6 @@
       color: var(--accent);
       font-size: 0.88rem;
     }
-    .experiment-card {
-      background: #ffffff;
-      border: 1px solid #bae6fd;
-      border-left: 4px solid var(--accent);
-      border-radius: 0 6px 6px 0;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      line-height: 1.5;
-    }
   </style>
 </head>
 <body>
@@ -331,7 +320,7 @@
 
   <div class="main-container">
 
-    <!-- 1. DETAILED THEORETICAL EXPLANATION -->
+    <!-- 1. THEORETICAL EXPLANATION -->
     <div class="card">
       <div class="theory-section">
         <h2>1. The Limitation of Simple Second-Chance</h2>
@@ -356,66 +345,9 @@
           An 8-bit history register records access over the last 8 clock ticks. For example, a register value of `10001000` (136 decimal) means the page was referenced 8 ticks ago and 4 ticks ago. A value of `00000001` (1 decimal) means it was only referenced 1 tick ago. Aging provides an exceptional approximation of true LRU.
         </div>
       </div>
-
-      <!-- Embedded SVG Diagram for Figure 3-17 -->
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-17: The Aging Algorithm (8-bit History Registers across 4 Clock Ticks)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Header Row -->
-          <text x="380" y="25" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">Four pages with 8-bit reference counters at consecutive clock ticks</text>
-
-          <!-- Page 0 -->
-          <text x="30" y="60" font-size="11" font-weight="700" fill="#0369a1">Page 0:</text>
-          <rect x="100" y="45" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
-          <text x="133" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="166" y1="45" x2="166" y2="71" stroke="#cbd5e1"/>
-          <text x="200" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="233" y1="45" x2="233" y2="71" stroke="#cbd5e1"/>
-          <text x="266" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="300" y1="45" x2="300" y2="71" stroke="#cbd5e1"/>
-          <text x="333" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="366" y1="45" x2="366" y2="71" stroke="#cbd5e1"/>
-          <text x="400" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="433" y1="45" x2="433" y2="71" stroke="#cbd5e1"/>
-          <text x="466" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="500" y1="45" x2="500" y2="71" stroke="#cbd5e1"/>
-          <text x="533" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="45" x2="566" y2="71" stroke="#cbd5e1"/>
-          <text x="600" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
-
-          <!-- Page 1 -->
-          <text x="30" y="100" font-size="11" font-weight="700" fill="#0369a1">Page 1:</text>
-          <rect x="100" y="85" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
-          <text x="133" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="166" y1="85" x2="166" y2="111" stroke="#cbd5e1"/>
-          <text x="200" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="233" y1="85" x2="233" y2="111" stroke="#cbd5e1"/>
-          <text x="266" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="300" y1="85" x2="300" y2="111" stroke="#cbd5e1"/>
-          <text x="333" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="366" y1="85" x2="366" y2="111" stroke="#cbd5e1"/>
-          <text x="400" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="433" y1="85" x2="433" y2="111" stroke="#cbd5e1"/>
-          <text x="466" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="500" y1="85" x2="500" y2="111" stroke="#cbd5e1"/>
-          <text x="533" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="85" x2="566" y2="111" stroke="#cbd5e1"/>
-          <text x="600" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
-
-          <!-- Page 2 -->
-          <text x="30" y="140" font-size="11" font-weight="700" fill="#0369a1">Page 2:</text>
-          <rect x="100" y="125" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
-          <text x="133" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="166" y1="125" x2="166" y2="151" stroke="#cbd5e1"/>
-          <text x="200" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="233" y1="125" x2="233" y2="151" stroke="#cbd5e1"/>
-          <text x="266" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="300" y1="125" x2="300" y2="151" stroke="#cbd5e1"/>
-          <text x="333" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="366" y1="125" x2="366" y2="151" stroke="#cbd5e1"/>
-          <text x="400" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="433" y1="125" x2="433" y2="151" stroke="#cbd5e1"/>
-          <text x="466" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="500" y1="125" x2="500" y2="151" stroke="#cbd5e1"/>
-          <text x="533" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="125" x2="566" y2="151" stroke="#cbd5e1"/>
-          <text x="600" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
-
-          <!-- Page 3 -->
-          <text x="30" y="180" font-size="11" font-weight="700" fill="#0369a1">Page 3:</text>
-          <rect x="100" y="165" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
-          <text x="133" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="166" y1="165" x2="166" y2="191" stroke="#cbd5e1"/>
-          <text x="200" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="233" y1="165" x2="233" y2="191" stroke="#cbd5e1"/>
-          <text x="266" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="300" y1="165" x2="300" y2="191" stroke="#cbd5e1"/>
-          <text x="333" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="366" y1="165" x2="366" y2="191" stroke="#cbd5e1"/>
-          <text x="400" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="433" y1="165" x2="433" y2="191" stroke="#cbd5e1"/>
-          <text x="466" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="500" y1="165" x2="500" y2="191" stroke="#cbd5e1"/>
-          <text x="533" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="165" x2="566" y2="191" stroke="#cbd5e1"/>
-          <text x="600" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
-        </svg>
-      </div>
     </div>
 
-    <!-- 2. GUIDED WALKTHROUGH WIDGET WITH R-BIT & REGISTER SHIFT VISUALIZATION -->
+    <!-- 2. GUIDED WALKTHROUGH -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
         <span id="wtCounter">Step 1 of 4</span>
@@ -424,9 +356,7 @@
       <div id="wtTitle" class="tutorial-title">1. Initial State across 4 Frames</div>
 
       <div class="split-grid">
-        <!-- Dedicated Walkthrough Register Graphic -->
         <div class="register-visual-box" id="wtRegisterBox"></div>
-
         <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
           <div id="wtText" class="tutorial-body"></div>
           <div class="tour-nav">
@@ -438,7 +368,7 @@
       </div>
     </div>
 
-    <!-- 3. INTERACTIVE AGING ALGORITHM SANDBOX -->
+    <!-- 3. SANDBOX -->
     <div class="card" id="sandboxSection">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div>
@@ -449,28 +379,6 @@
         </div>
         <div style="display:flex; gap:8px;">
           <button class="btn-sec" onclick="resetAgingState()">Reset Frames</button>
-        </div>
-      </div>
-
-      <!-- Embedded How-To Guide & Rules -->
-      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
-        <strong style="color: var(--accent); font-size: 0.92rem;">How to Use the Sandbox &amp; Observable Rules</strong>
-        <div class="guide-grid">
-          <div class="guide-box">
-            <strong>1. Access a Page</strong>
-            <span>Type any page letter (e.g. <code>W</code>) and click <em>Access Page</em>. If resident, its hardware $R$-bit becomes 1. If absent, a page fault triggers, evicting the page with the lowest counter value.</span>
-          </div>
-          <div class="guide-box">
-            <strong>2. Trigger Clock Tick</strong>
-            <span>Click <em>Clock Tick (Shift >> 1)</em> to simulate the OS timer interrupt: all 8-bit registers shift right, and $R$ bits are inserted into the MSB (bit 7).</span>
-          </div>
-          <div class="guide-box">
-            <strong>3. Examine Counter Values</strong>
-            <span>Watch decimal values update. Lower numbers mean the page hasn't been referenced for many ticks, making it the primary target for eviction.</span>
-          </div>
-        </div>
-        <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; border-top: 1px dashed var(--border); padding-top: 8px;">
-          <strong>Suggested Experiment:</strong> Click <em>Clock Tick</em> 3 times without accessing any pages. Notice how all counters decay toward 0 as older references shift out of the 8-bit window!
         </div>
       </div>
 
@@ -491,7 +399,6 @@
       </div>
 
       <div class="split-grid">
-        <!-- Frame Table -->
         <div>
           <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Physical Frame Registers (8-bit)</span>
           <table class="table-spec" style="margin-top:6px;">
@@ -502,7 +409,6 @@
           </table>
         </div>
 
-        <!-- Terminal Log -->
         <div style="display:flex; flex-direction:column; gap:6px;">
           <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Kernel Aging Log</span>
           <div id="agingLog" class="terminal-box"></div>
@@ -513,9 +419,6 @@
   </div>
 
   <script>
-    /* =========================================================================
-       PART 2: WALKTHROUGH LOGIC WITH R-BIT & BIT CELLS
-       ========================================================================= */
     let wtStep = 0;
     const wtSteps = [
       {
@@ -535,10 +438,10 @@
         showR: true,
         highlightMsb: true,
         frames: [
-          { page: "A", r: 0, reg: 0b11000100, dec: 196 }, // R=1 injected into MSB
-          { page: "B", r: 0, reg: 0b00111000, dec: 56 },  // R=0 injected into MSB
-          { page: "C", r: 0, reg: 0b01000000, dec: 64 },  // R=0 injected into MSB
-          { page: "D", r: 0, reg: 0b10011001, dec: 153 }  // R=1 injected into MSB
+          { page: "A", r: 0, reg: 0b11000100, dec: 196 },
+          { page: "B", r: 0, reg: 0b00111000, dec: 56 },
+          { page: "C", r: 0, reg: 0b01000000, dec: 64 },
+          { page: "D", r: 0, reg: 0b10011001, dec: 153 }
         ]
       },
       {
@@ -622,9 +525,6 @@
     }
     renderWt();
 
-    /* =========================================================================
-       PART 3: INTERACTIVE SANDBOX LOGIC WITH R-BIT & BIT CELLS
-       ========================================================================= */
     let agingFrames = [
       { id: 0, page: "A", r: 1, reg: 0b10001000 },
       { id: 1, page: "B", r: 0, reg: 0b01110000 },
@@ -680,7 +580,7 @@
       statTicks++;
       agingFrames.forEach(f => {
         f.reg = (f.reg >>> 1) | (f.r << 7);
-        f.r = 0; // Reset hardware R-bit after injection
+        f.r = 0;
       });
       logAging(`Clock Tick #${statTicks}: Injected hardware R-bits into MSB, shifted registers right by 1, and cleared R &rarr; 0.`, "log-clear");
       renderAgingSandbox();
@@ -709,6 +609,7 @@
 
       let minVal = 999999;
       let victimIdx = -1;
+      agingFrames.executeAgingAccess = function() {} // placeholder
       agingFrames.forEach((f, idx) => {
         if (f.reg < minVal) {
           minVal = f.reg;
