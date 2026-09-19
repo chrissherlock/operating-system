@@ -166,7 +166,7 @@
       margin-bottom: 4px;
     }
 
-    /* Unified Simulator & Embedded Walkthrough Styles */
+    /* Unified Simulator & Phase-Driven Walkthrough */
     .fs-sim-card {
       background: #0f172a;
       color: #f8fafc;
@@ -192,7 +192,63 @@
       letter-spacing: 0.05em;
       font-family: var(--font-mono);
     }
-    .sticky-control-bar {
+
+    /* Phase Badges Navigation */
+    .phases-track {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px;
+    }
+    .phase-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      color: #94a3b8;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .phase-badge .phase-num {
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: #1e293b;
+      color: #cbd5e1;
+      font-size: 0.7rem;
+    }
+    .phase-badge.active-phase {
+      border-color: #38bdf8;
+      background: #082f49;
+      color: #ffffff;
+    }
+    .phase-badge.active-phase .phase-num {
+      background: #0284c7;
+      color: #ffffff;
+    }
+    .phase-badge.completed-phase {
+      border-color: #059669;
+      color: #34d399;
+    }
+    .phase-badge.completed-phase .phase-num {
+      background: #059669;
+      color: #ffffff;
+    }
+
+    /* Phase Action Control Bar */
+    .phase-control-bar {
       position: sticky;
       top: 10px;
       z-index: 100;
@@ -204,47 +260,51 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
-    .sandbox-controls {
+    .phase-indicator-label {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #fbbf24;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .phase-button-group {
       display: flex;
+      align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
     }
     button {
       background-color: var(--accent);
       color: #fff;
       border: none;
-      padding: 7px 12px;
+      padding: 8px 16px;
       border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.82rem;
+      font-weight: 700;
+      font-size: 0.85rem;
       cursor: pointer;
       font-family: var(--font-mono);
       transition: background-color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
     button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #334155; border: 1px solid #475569; color: #fff; }
-    button.btn-sec:hover { background-color: #475569; }
-    button.btn-danger { background-color: var(--danger-color); color: #fff; }
-    button.btn-danger:hover { background-color: #b91c1c; }
-    button.btn-active-highlight {
-      outline: 2px solid #38bdf8;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
-    }
+    button.btn-sec { background-color: #1e293b; border: 1px solid #475569; color: #cbd5e1; }
+    button.btn-sec:hover { background-color: #334155; color: #fff; }
 
     .walkthrough-banner {
       background: #020617;
       border: 1px solid #1e293b;
-      border-left: 4px solid #fbbf24;
+      border-left: 4px solid #38bdf8;
       border-radius: 4px;
-      padding: 10px 14px;
+      padding: 12px 14px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.82rem;
-      line-height: 1.4;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.84rem;
+      line-height: 1.45;
     }
 
     .fs-sim-grid {
@@ -340,6 +400,17 @@
       font-size: inherit;
       flex-grow: 1;
     }
+    .fs-quick-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: var(--font-mono);
+    }
+    .fs-quick-btn:hover { background: #334155; }
 
     /* Live Telemetry Panels */
     .inspector-grid {
@@ -755,7 +826,6 @@
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-3: Hierarchical Tree &amp; Structural Self/Parent Links</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Tree Nodes -->
           <rect x="330" y="15" width="100" height="35" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="4"/>
           <text x="380" y="36" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">/ (Root)</text>
 
@@ -965,36 +1035,87 @@
       </div>
     </div>
 
-    <!-- Unified Interactive Directory Simulator & Walkthrough Interface -->
+    <!-- Architectural Overview of the Walkthrough -->
+    <div class="card">
+      <h2>Understanding the Directory Lifecycle Walkthrough</h2>
+      <p>
+        The simulator below demonstrates the lower-level mechanics carried out by an operating system kernel during directory operations. Rather than treating directories as visual folders, the simulator reveals how directories operate as <strong>lookup tables of <code>(Filename, i-node)</code> pairs</strong> and how a file's lifetime is governed by its <strong>link reference count</strong>:
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 6px;">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 4px; padding: 12px;">
+          <strong style="color: var(--accent); display: block; margin-bottom: 4px;">1. Directory Table Panel</strong>
+          <span style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
+            Represents the on-disk data blocks of the directory file. Newly allocated directories are never empty—they immediately bind entries <code>.</code> (pointing to self) and <code>..</code> (pointing to parent). Additional files or hard links occupy subsequent slots.
+          </span>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--success-color); border-radius: 4px; padding: 12px;">
+          <strong style="color: var(--success-color); display: block; margin-bottom: 4px;">2. i-Node Telemetry Panel</strong>
+          <span style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
+            Monitors target metadata. Watch how the <strong>Reference Count (nlink)</strong> transitions ($1 \rightarrow 2 \rightarrow 1 \rightarrow 0$). Physical data blocks are not copied when hard linking, and storage is only reclaimed when the reference count drops to zero.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase-Driven Directory Simulator & Walkthrough -->
     <div class="card fs-sim-card">
       <div class="fs-sim-header">
-        <span class="fs-sim-title">Unified Directory Operations Simulator &amp; Lifecycle Console</span>
-        <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">POSIX System Call Controller</span>
+        <span class="fs-sim-title">Directory Operations Lifecycle Walkthrough</span>
+        <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">POSIX Sequential Simulation</span>
       </div>
 
-      <!-- Sticky Operation Control Bar -->
-      <div class="sticky-control-bar">
-        <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">Action Controls:</div>
-        <div class="sandbox-controls">
-          <button onclick="execOp('mkdir')" id="btn-mkdir">1. mkdir("project")</button>
-          <button onclick="execOp('creat')" id="btn-creat" class="btn-sec">2. creat("main.c")</button>
-          <button onclick="execOp('link')" id="btn-link" class="btn-sec">3. link("main.c", "backup.c")</button>
-          <button onclick="execOp('rmdir')" id="btn-rmdir" class="btn-sec btn-danger">4. rmdir("project")</button>
-          <button onclick="execOp('unlink1')" id="btn-unlink1" class="btn-sec">5a. unlink("main.c")</button>
-          <button onclick="execOp('unlink2')" id="btn-unlink2" class="btn-sec btn-danger">5b. unlink("backup.c")</button>
+      <!-- Phase Track -->
+      <div class="phases-track">
+        <div class="phase-badge active-phase" id="badge-p1">
+          <span class="phase-num">1</span>
+          <span>mkdir("project")</span>
+        </div>
+        <div class="phase-badge" id="badge-p2">
+          <span class="phase-num">2</span>
+          <span>creat("main.c")</span>
+        </div>
+        <div class="phase-badge" id="badge-p3">
+          <span class="phase-num">3</span>
+          <span>link("backup.c")</span>
+        </div>
+        <div class="phase-badge" id="badge-p4">
+          <span class="phase-num">4</span>
+          <span>rmdir Check</span>
+        </div>
+        <div class="phase-badge" id="badge-p5">
+          <span class="phase-num">5</span>
+          <span>unlink &amp; Reclaim</span>
         </div>
       </div>
 
-      <!-- Integrated State Assistant Banner -->
+      <!-- Sticky Controller Bar -->
+      <div class="phase-control-bar">
+        <div>
+          <span class="phase-indicator-label" id="phaseStatusLabel">Phase 1 of 5 Ready</span>
+          <div style="font-size:0.78rem; color:#cbd5e1; font-family:var(--font-mono); margin-top:2px;" id="phaseSubLabel">
+            Next Action: Execute mkdir("/home/project")
+          </div>
+        </div>
+        <div class="phase-button-group">
+          <button class="btn-sec" onclick="resetWalkthrough()">Reset</button>
+          <button onclick="advanceNextPhase()" id="btnNextAction">Execute Next Step &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Walkthrough Assistant Banner -->
       <div class="walkthrough-banner">
         <div>
-          <span style="color:#fbbf24; font-weight:700; font-family:var(--font-mono); text-transform:uppercase;">Walkthrough Assistant: </span>
-          <span id="guideText">Click <strong>1. mkdir("project")</strong> to allocate a directory and inspect its automatic structural entries.</span>
+          <strong style="color:#38bdf8; font-family:var(--font-mono); text-transform:uppercase;">Phase Objective: </strong>
+          <span id="guideObjective">Initialize directory /home/project and inspect automatic structural self/parent entries (. and ..).</span>
         </div>
-        <div style="font-family:var(--font-mono); font-size:0.75rem; color:#94a3b8;" id="guideProgress">Phase: 0 of 5 Complete</div>
+        <div style="color:#94a3b8; font-size:0.78rem;" id="guideInsight">
+          Expected Invariant: The newly created directory file contains exactly two formatted lookup entries.
+        </div>
       </div>
 
-      <!-- Telemetry Grid -->
+      <!-- Live Inspector Grid -->
       <div class="inspector-grid">
         <div class="inspector-panel">
           <div class="inspector-title"><span>Directory Table On Disk</span><span id="wtDirLabel">/home/project</span></div>
@@ -1013,16 +1134,16 @@
         </div>
       </div>
 
-      <!-- Live Terminal Console -->
+      <!-- Terminal Console -->
       <div class="fs-terminal">
-        <div class="fs-term-log" id="simLog">$ Kernel directory subsystem online. Execute operations via the controls above...</div>
+        <div class="fs-term-log" id="simLog">$ Walkthrough initialized. Click 'Execute Next Step' to begin Phase 1...</div>
       </div>
     </div>
 
   </div>
 
   <script>
-    // --- Hierarchical Tree Path Resolution Logic ---
+    // --- Hierarchical Tree Simulator Logic ---
     const fsNodes = {
       1: { name: "/", type: "DIR", inode: 1, parent: 1, children: [2, 3, 4] },
       2: { name: "bin", type: "DIR", inode: 2, parent: 1, children: [5, 6] },
@@ -1208,30 +1329,79 @@
       }
     });
 
-    // --- Unified Operations Walkthrough State & Logic ---
-    let simState = {
-      dirCreated: false,
-      mainCreated: false,
-      backupLinked: false,
-      stepNum: 0
-    };
+    // --- Sequential Phase Walkthrough Controller ---
+    let currentPhase = 0;
 
-    const actionButtons = ['btn-mkdir', 'btn-creat', 'btn-link', 'btn-rmdir', 'btn-unlink1', 'btn-unlink2'];
+    const phaseConfig = [
+      {
+        badgeId: "badge-p1",
+        statusLabel: "Phase 1 of 5 Ready",
+        subLabel: "Next Action: Execute mkdir(\"/home/project\")",
+        objective: "Initialize directory /home/project and inspect automatic structural self/parent entries (. and ..).",
+        insight: "Notice that a newly created directory is never truly empty—the kernel formats initial self-referential bindings immediately.",
+        btnLabel: "Execute mkdir(\"project\") &rarr;"
+      },
+      {
+        badgeId: "badge-p2",
+        statusLabel: "Phase 2 of 5 Ready",
+        subLabel: "Next Action: Execute creat(\"main.c\")",
+        objective: "Allocate regular file main.c inside project directory with an initial link count of 1.",
+        insight: "Notice that the directory table binds the human name 'main.c' to i-node #120, allocating 3 physical storage blocks.",
+        btnLabel: "Execute creat(\"main.c\") &rarr;"
+      },
+      {
+        badgeId: "badge-p3",
+        statusLabel: "Phase 3 of 5 Ready",
+        subLabel: "Next Action: Execute link(\"main.c\", \"backup.c\")",
+        objective: "Establish a hard link 'backup.c' referencing existing i-node #120.",
+        insight: "Notice that zero data blocks are duplicated. The kernel increments reference count nlink from 1 to 2.",
+        btnLabel: "Execute link(\"backup.c\") &rarr;"
+      },
+      {
+        badgeId: "badge-p4",
+        statusLabel: "Phase 4 of 5 Ready",
+        subLabel: "Next Action: Execute rmdir(\"project\") [Emptiness Check]",
+        objective: "Attempt removing /home/project while child files remain to observe the emptiness invariant guard.",
+        insight: "Notice the kernel traps ENOTEMPTY. Deletion is denied to prevent child files from becoming orphaned on disk.",
+        btnLabel: "Test rmdir(\"project\") &rarr;"
+      },
+      {
+        badgeId: "badge-p5",
+        statusLabel: "Phase 5 of 5 Ready",
+        subLabel: "Next Action: Execute unlink(\"main.c\") and unlink(\"backup.c\")",
+        objective: "Sequentially remove directory entries until nlink reaches 0, triggering physical storage reclamation.",
+        insight: "Notice that unlinking 'main.c' retains the file blocks because 'backup.c' holds count 1. Only when count hits 0 are blocks freed.",
+        btnLabel: "Execute Unlinks & Reclaim &rarr;"
+      },
+      {
+        badgeId: "badge-p5",
+        statusLabel: "Walkthrough Cycle Complete",
+        subLabel: "All phases executed successfully",
+        objective: "Clean directory deletion verified. Storage returned to pool and directory inode recycled.",
+        insight: "You have verified directory entry binding, hard link reference tracking, emptiness protection, and deferred unlinking.",
+        btnLabel: "Restart Walkthrough &#8634;"
+      }
+    ];
 
-    function highlightButton(activeId) {
-      actionButtons.forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-          if (id === activeId) {
-            btn.classList.add('btn-active-highlight');
-          } else {
-            btn.classList.remove('btn-active-highlight');
-          }
+    function updatePhaseBadges(activeIdx) {
+      for (let i = 1; i <= 5; i++) {
+        const badge = document.getElementById(`badge-p${i}`);
+        badge.classList.remove('active-phase', 'completed-phase');
+        if (i < activeIdx) {
+          badge.classList.add('completed-phase');
+        } else if (i === activeIdx) {
+          badge.classList.add('active-phase');
         }
-      });
+      }
     }
 
-    function execOp(op) {
+    function advanceNextPhase() {
+      currentPhase++;
+      if (currentPhase > 5) {
+        resetWalkthrough();
+        return;
+      }
+
       const e0 = document.getElementById("wtEntry0");
       const e1 = document.getElementById("wtEntry1");
       const e2 = document.getElementById("wtEntry2");
@@ -1241,15 +1411,9 @@
       const bCount = document.getElementById("wtBlocks");
       const stEl = document.getElementById("wtStatus");
       const logEl = document.getElementById("simLog");
-      const guideText = document.getElementById("guideText");
-      const guideProgress = document.getElementById("guideProgress");
 
-      if (op === 'mkdir') {
-        simState.dirCreated = true;
-        simState.mainCreated = false;
-        simState.backupLinked = false;
-        simState.stepNum = 1;
-
+      if (currentPhase === 1) {
+        // Phase 1: mkdir
         e0.innerHTML = "<span class='highlight'>. &rarr; i-node #115 (Self)</span>";
         e1.innerHTML = "<span class='highlight'>.. &rarr; i-node #4 (Parent /home)</span>";
         e2.innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
@@ -1260,20 +1424,9 @@
         stEl.textContent = "FREE";
         stEl.className = "alert";
 
-        logEl.textContent = "$ mkdir(\"/home/project\", 0755);\n[Kernel] Allocated directory i-node #115.\n[Kernel] Initialized slot [0] '.' -> #115 (Self).\n[Kernel] Initialized slot [1] '..' -> #4 (Parent /home).\n[Directory Table] Formatted with structural self-references.";
-        guideText.innerHTML = "Directory allocated! Next step: click <strong>2. creat(\"main.c\")</strong> to populate slot [2] and allocate a file.";
-        guideProgress.textContent = "Phase: 1 of 5 Complete";
-        highlightButton('btn-creat');
-
-      } else if (op === 'creat') {
-        if (!simState.dirCreated) {
-          logEl.textContent = "$ creat(\"/home/project/main.c\", 0644);\n[Kernel Fault] ENOENT: Parent directory '/home/project' does not exist! Run mkdir first.";
-          return;
-        }
-        simState.mainCreated = true;
-        simState.backupLinked = false;
-        simState.stepNum = 2;
-
+        logEl.textContent = "$ mkdir(\"/home/project\", 0755);\n[Kernel] Allocated directory i-node #115.\n[Kernel] Formatted initial table with slot [0] '.' -> #115 and slot [1] '..' -> #4.\n[Invariant] Directory is initialized with mandatory recursive structural references.";
+      } else if (currentPhase === 2) {
+        // Phase 2: creat
         e2.innerHTML = "<span class='highlight'>main.c &rarr; i-node #120</span>";
         e3.innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
         inum.textContent = "#120";
@@ -1282,96 +1435,66 @@
         stEl.textContent = "ALLOCATED";
         stEl.className = "highlight";
 
-        logEl.textContent = "$ creat(\"/home/project/main.c\", 0644);\n[Kernel] Allocated regular i-node #120 with 3 disk blocks.\n[Kernel] Wrote directory entry 'main.c' pointing to #120.\n[Kernel] Set reference count nlink = 1.";
-        guideText.innerHTML = "File created. Next step: click <strong>3. link(\"main.c\", \"backup.c\")</strong> to create a hard link and observe reference count growth.";
-        guideProgress.textContent = "Phase: 2 of 5 Complete";
-        highlightButton('btn-link');
-
-      } else if (op === 'link') {
-        if (!simState.mainCreated) {
-          logEl.textContent = "$ link(\"main.c\", \"backup.c\");\n[Kernel Fault] ENOENT: Source file 'main.c' not found. Run creat first.";
-          return;
-        }
-        simState.backupLinked = true;
-        simState.stepNum = 3;
-
+        logEl.textContent = "$ creat(\"/home/project/main.c\", 0644);\n[Kernel] Allocated regular file i-node #120 with 3 disk blocks (12 KB).\n[Kernel] Bound entry 'main.c' to i-node #120 in directory table #115.\n[Kernel] Initialized reference count nlink = 1.";
+      } else if (currentPhase === 3) {
+        // Phase 3: link
         e3.innerHTML = "<span class='highlight'>backup.c &rarr; i-node #120</span>";
         lCount.textContent = "2";
         bCount.textContent = "3 (12 KB)";
 
-        logEl.textContent = "$ link(\"main.c\", \"backup.c\");\n[Kernel] Bound new entry 'backup.c' to existing i-node #120.\n[Kernel] Incremented i-node #120 nlink from 1 to 2.\n[Notice] Zero data blocks copied. Both directory slots reference identical disk extents.";
-        guideText.innerHTML = "Hard link active (nlink = 2). Next: test the emptiness rule by clicking <strong>4. rmdir(\"project\")</strong>.";
-        guideProgress.textContent = "Phase: 3 of 5 Complete";
-        highlightButton('btn-rmdir');
-
-      } else if (op === 'rmdir') {
-        if (!simState.dirCreated) {
-          logEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel Fault] ENOENT: Directory does not exist.";
-          return;
-        }
-        if (simState.mainCreated || simState.backupLinked) {
-          logEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel Fault] ENOTEMPTY: Directory not empty!\n[Protection] Emptiness invariant check failed: active entries exist beyond '.' and '..'.\n[Kernel] Deletion denied to protect child files from becoming orphaned on disk.";
-          guideText.innerHTML = "Emptiness check enforced! Now remove the files: click <strong>5a. unlink(\"main.c\")</strong>.";
-          highlightButton('btn-unlink1');
-        } else {
-          simState.dirCreated = false;
-          e0.innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-          e1.innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-          logEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel] Emptiness invariant confirmed (only '.' and '..' present).\n[Kernel] Successfully deleted directory entry from parent /home and recycled i-node #115.";
-          guideText.innerHTML = "Directory deleted successfully! Walkthrough cycle complete. Click <strong>1. mkdir(\"project\")</strong> to restart.";
-          guideProgress.textContent = "Phase: 5 of 5 Complete";
-          highlightButton('btn-mkdir');
-        }
-
-      } else if (op === 'unlink1') {
-        if (!simState.mainCreated) {
-          logEl.textContent = "$ unlink(\"main.c\");\n[Kernel Fault] ENOENT: File entry 'main.c' does not exist.";
-          return;
-        }
-        simState.mainCreated = false;
+        logEl.textContent = "$ link(\"main.c\", \"backup.c\");\n[Kernel] Created new directory entry [3] 'backup.c' mapped to existing i-node #120.\n[Kernel] Incremented i-node #120 reference count nlink from 1 to 2.\n[Notice] Zero data blocks duplicated. Both directory slots reference identical storage extents.";
+      } else if (currentPhase === 4) {
+        // Phase 4: rmdir fail test
+        logEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel Fault] ENOTEMPTY: Directory not empty!\n[Kernel] Emptiness invariant check failed: entries exist beyond '.' and '..'.\n[Protection] Deletion denied to protect active files from becoming orphaned.";
+      } else if (currentPhase === 5) {
+        // Phase 5: unlink both and reclaim
         e2.innerHTML = "<span class='alert'>-- UNLINKED --</span>";
-        lCount.textContent = simState.backupLinked ? "1" : "0";
-
-        if (simState.backupLinked) {
-          logEl.textContent = "$ unlink(\"main.c\");\n[Kernel] Removed directory slot [2] 'main.c'.\n[Kernel] Decremented i-node #120 nlink from 2 to 1.\n[Retention] Blocks remain active and intact on disk because 'backup.c' still references i-node #120.";
-          guideText.innerHTML = "Reference count dropped to 1, data preserved. Now click <strong>5b. unlink(\"backup.c\")</strong> to release physical storage.";
-          highlightButton('btn-unlink2');
-        } else {
-          bCount.textContent = "0 Blocks";
-          stEl.textContent = "DEALLOCATED";
-          stEl.className = "alert";
-          logEl.textContent = "$ unlink(\"main.c\");\n[Kernel] Removed directory slot [2] 'main.c'. Reference count nlink reached 0.\n[Deallocation] Recycled 3 data blocks (12 KB) to free pool and purged i-node #120.";
-          guideText.innerHTML = "Blocks freed! Now the directory is empty. Click <strong>4. rmdir(\"project\")</strong> to delete it.";
-          highlightButton('btn-rmdir');
-        }
-
-      } else if (op === 'unlink2') {
-        if (!simState.backupLinked) {
-          logEl.textContent = "$ unlink(\"backup.c\");\n[Kernel Fault] ENOENT: File entry 'backup.c' does not exist.";
-          return;
-        }
-        simState.backupLinked = false;
         e3.innerHTML = "<span class='alert'>-- UNLINKED --</span>";
+        lCount.textContent = "0";
+        bCount.textContent = "0 Blocks (Reclaimed)";
+        stEl.textContent = "DEALLOCATED";
+        stEl.className = "alert";
 
-        if (simState.mainCreated) {
-          lCount.textContent = "1";
-          logEl.textContent = "$ unlink(\"backup.c\");\n[Kernel] Removed directory slot [3] 'backup.c'. Decremented nlink to 1. File remains alive via 'main.c'.";
-        } else {
-          lCount.textContent = "0";
-          bCount.textContent = "0 Blocks";
-          stEl.textContent = "DEALLOCATED";
-          stEl.className = "alert";
-          logEl.textContent = "$ unlink(\"backup.c\");\n[Kernel] Removed final directory slot. Reference count nlink reached 0.\n[Deallocation] No execution contexts hold open descriptors; reclaimed 3 data blocks and freed i-node #120.";
-          guideText.innerHTML = "All file references removed! Directory contains only '.' and '..'. Click <strong>4. rmdir(\"project\")</strong> to test clean deletion.";
-          guideProgress.textContent = "Phase: 4 of 5 Complete";
-          highlightButton('btn-rmdir');
-        }
+        logEl.textContent = "$ unlink(\"main.c\");\n[Kernel] Removed slot [2] 'main.c'. i-node #120 nlink decreased from 2 to 1.\n[Retention] File data remains alive and reachable via 'backup.c'.\n\n$ unlink(\"backup.c\");\n[Kernel] Removed slot [3] 'backup.c'. i-node #120 nlink reached 0.\n[Deallocation] No active file descriptors open; returned 3 blocks to free pool and purged i-node #120.\n\n$ rmdir(\"/home/project\");\n[Kernel] Emptiness check confirmed (only '.' and '..' present). Recycled directory i-node #115.";
       }
+
+      // Update Phase UI Elements
+      const cfg = phaseConfig[currentPhase];
+      updatePhaseBadges(currentPhase === 5 ? 5 : currentPhase + 1);
+      document.getElementById("phaseStatusLabel").textContent = cfg.statusLabel;
+      document.getElementById("phaseSubLabel").textContent = cfg.subLabel;
+      document.getElementById("guideObjective").textContent = cfg.objective;
+      document.getElementById("guideInsight").textContent = cfg.insight;
+      document.getElementById("btnNextAction").innerHTML = cfg.btnLabel;
     }
 
-    // Initialize Simulator
+    function resetWalkthrough() {
+      currentPhase = 0;
+      updatePhaseBadges(1);
+      const cfg = phaseConfig[0];
+      document.getElementById("phaseStatusLabel").textContent = cfg.statusLabel;
+      document.getElementById("phaseSubLabel").textContent = cfg.subLabel;
+      document.getElementById("guideObjective").textContent = cfg.objective;
+      document.getElementById("guideInsight").textContent = cfg.insight;
+      document.getElementById("btnNextAction").innerHTML = cfg.btnLabel;
+
+      document.getElementById("wtEntry0").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
+      document.getElementById("wtEntry1").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
+      document.getElementById("wtEntry2").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
+      document.getElementById("wtEntry3").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
+      document.getElementById("wtInodeNum").textContent = "None";
+      document.getElementById("wtLinkCount").textContent = "0";
+      document.getElementById("wtBlocks").textContent = "0 Blocks";
+      const stEl = document.getElementById("wtStatus");
+      stEl.textContent = "FREE";
+      stEl.className = "alert";
+
+      document.getElementById("simLog").textContent = "$ Walkthrough reset. Click 'Execute Next Step' to start Phase 1...";
+    }
+
+    // Initialize Components
     updateSimUI();
-    highlightButton('btn-mkdir');
+    resetWalkthrough();
   </script>
 </body>
 </html>
