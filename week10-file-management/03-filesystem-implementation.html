@@ -160,168 +160,249 @@
       margin-bottom: 4px;
     }
 
-    /* Windows 95 Desktop Theme */
-    .win95-desktop {
-      background-color: #008080;
-      padding: 16px;
-      border-radius: 6px;
-      box-shadow: inset 1px 1px 0 #004040, inset -1px -1px 0 #00c0c0;
+    /* =========================================================
+       DEFRAGMENTER SHELL & TRIPLE-THEME CONTAINER STYLING
+       ========================================================= */
+    .defrag-outer-frame {
+      width: 100%;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      padding: 18px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif;
+      gap: 14px;
     }
 
-    .win95-window {
-      background-color: #c0c0c0;
+    /* THEME 1: MODERN (DEFAULT) */
+    .theme-modern {
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      font-family: var(--font-mono);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+    .theme-modern .ui-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+    .theme-modern .ui-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .theme-modern .ui-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 10px 14px;
+      border-radius: 6px;
+      align-items: center;
+    }
+    .theme-modern .ctrl-btn {
+      background-color: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .theme-modern .ctrl-btn:hover { background-color: #334155; color: #ffffff; }
+    .theme-modern .ctrl-btn.active { background-color: var(--accent); color: #fff; border-color: #38bdf8; }
+    .theme-modern .grid-wrapper {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px;
+    }
+    .theme-modern .c-cell { border-radius: 1px; }
+    .theme-modern .c-free { background-color: #1e293b; }
+    .theme-modern .c-opt { background-color: #0284c7; }
+    .theme-modern .c-unopt { background-color: #f59e0b; }
+    .theme-modern .c-system { background-color: #dc2626; }
+    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 6px #facc15; }
+    .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
+    .theme-modern .ui-status-panel {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* THEME 2: WINDOWS 95 / 98 */
+    .theme-win95 {
+      background-color: #008080;
+      color: #000000;
+      font-family: "MS Sans Serif", Tahoma, sans-serif;
+      padding: 12px;
+      border-radius: 4px;
+    }
+    .theme-win95 .ui-window-box {
+      background: #c0c0c0;
       border-top: 2px solid #ffffff;
       border-left: 2px solid #ffffff;
       border-right: 2px solid #000000;
       border-bottom: 2px solid #000000;
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
       padding: 3px;
-      position: relative;
     }
-
-    .win95-titlebar {
+    .theme-win95 .ui-topbar {
       background: linear-gradient(90deg, #000080, #1084d0);
       color: #ffffff;
       padding: 3px 6px;
+      font-weight: bold;
+      font-size: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-weight: bold;
-      font-size: 12px;
-      letter-spacing: 0.5px;
     }
-
-    .win95-titlebar-btn {
-      width: 16px;
-      height: 14px;
-      background: #c0c0c0;
-      border-top: 1px solid #ffffff;
-      border-left: 1px solid #ffffff;
-      border-right: 1px solid #000000;
-      border-bottom: 1px solid #000000;
-      color: #000000;
-      font-size: 9px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      line-height: 1;
-      font-weight: bold;
-    }
-
-    .win95-content {
-      padding: 8px;
+    .theme-win95 .ui-title { color: #ffffff; font-size: 12px; font-weight: bold; }
+    .theme-win95 .ui-controls {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
+      gap: 6px;
+      flex-wrap: wrap;
+      background: transparent;
+      padding: 6px 0;
+      align-items: center;
     }
-
-    .win95-btn {
+    .theme-win95 .ctrl-btn {
       background-color: #c0c0c0;
       border-top: 2px solid #ffffff;
       border-left: 2px solid #ffffff;
       border-right: 2px solid #000000;
       border-bottom: 2px solid #000000;
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
-      padding: 4px 14px;
-      font-family: inherit;
+      padding: 3px 10px;
       font-size: 11px;
       color: #000000;
       cursor: pointer;
-      min-width: 75px;
     }
-    .win95-btn:active {
+    .theme-win95 .ctrl-btn:active {
       border-top: 2px solid #000000;
       border-left: 2px solid #000000;
       border-right: 2px solid #ffffff;
       border-bottom: 2px solid #ffffff;
       box-shadow: none;
-      padding: 5px 13px 3px 15px;
     }
-
-    .win95-well {
+    .theme-win95 .ctrl-btn.active {
+      background-color: #d4d4d4;
+      font-weight: bold;
+    }
+    .theme-win95 .grid-wrapper {
       border-top: 2px solid #808080;
       border-left: 2px solid #808080;
       border-right: 2px solid #ffffff;
       border-bottom: 2px solid #ffffff;
-      background-color: #ffffff;
-      padding: 4px;
-      position: relative;
-    }
-
-    .win95-cluster-grid {
-      display: grid;
-      grid-template-columns: repeat(48, 1fr);
-      gap: 2px;
       background: #000000;
-      padding: 2px;
-      max-height: 380px;
-      overflow-y: auto;
+      padding: 3px;
     }
-
-    .w-cluster {
-      aspect-ratio: 1 / 1;
-      background-color: #ffffff;
-      box-shadow: inset 1px 1px 0 rgba(0,0,0,0.25);
-    }
-    .wc-free { background-color: #ffffff; }
-    .wc-unopt { background-color: #5ce1e6; }
-    .wc-opt { background-color: #000080; }
-    .wc-read { background-color: #00ff00 !important; box-shadow: 0 0 5px #00ff00; }
-    .wc-write { background-color: #ff0000 !important; box-shadow: 0 0 5px #ff0000; }
-    .wc-unmovable {
-      background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%);
-    }
-
-    .win95-legend-dialog {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 320px;
-      background: #c0c0c0;
-      border-top: 2px solid #ffffff;
-      border-left: 2px solid #ffffff;
-      border-right: 2px solid #000000;
-      border-bottom: 2px solid #000000;
-      box-shadow: 3px 3px 10px rgba(0,0,0,0.6);
-      z-index: 100;
-      font-size: 11px;
-    }
-
-    .legend-body {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #000000;
-    }
-
-    .legend-swatch {
-      width: 14px;
-      height: 14px;
-      border: 1px solid #000000;
-      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.6);
-      flex-shrink: 0;
-    }
-
-    .win95-status-bar {
+    .theme-win95 .c-cell { border-radius: 0; }
+    .theme-win95 .c-free { background-color: #ffffff; }
+    .theme-win95 .c-opt { background-color: #000080; }
+    .theme-win95 .c-unopt { background-color: #5ce1e6; }
+    .theme-win95 .c-system { background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%); }
+    .theme-win95 .c-read { background-color: #00ff00 !important; box-shadow: 0 0 4px #00ff00; }
+    .theme-win95 .c-write { background-color: #ff0000 !important; box-shadow: 0 0 4px #ff0000; }
+    .theme-win95 .ui-status-panel {
       border-top: 1px solid #808080;
       padding-top: 4px;
+      margin-top: 4px;
+      font-size: 11px;
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
       color: #000000;
+    }
+
+    /* THEME 3: MS-DOS / NORTON SPEED DISK */
+    .theme-dos {
+      background-color: #0000aa;
+      color: #ffffff;
+      font-family: "Courier New", Courier, monospace;
+      padding: 10px;
+      border: 3px double #ffffff;
+      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8);
+    }
+    .theme-dos .ui-topbar {
+      background: #00aaaa;
+      color: #000000;
+      padding: 2px 8px;
+      font-weight: bold;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .theme-dos .ui-title { color: #000000; font-size: 13px; font-weight: bold; }
+    .theme-dos .ui-controls {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      background: transparent;
+      padding: 6px 0;
+      align-items: center;
+    }
+    .theme-dos .ctrl-btn {
+      background-color: #0000aa;
+      color: #ffff55;
+      border: 1px solid #ffffff;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .theme-dos .ctrl-btn:hover { background-color: #00aaaa; color: #000000; }
+    .theme-dos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; }
+    .theme-dos .grid-wrapper {
+      background: #000055;
+      border: 2px solid #55ffff;
+      padding: 4px;
+    }
+    .theme-dos .c-cell { border-radius: 0; }
+    .theme-dos .c-free { background-color: #000055; outline: 1px dotted #0000aa; }
+    .theme-dos .c-opt { background-color: #ffffff; }
+    .theme-dos .c-unopt { background-color: #ff5555; }
+    .theme-dos .c-system { background-color: #aa0000; }
+    .theme-dos .c-read { background-color: #55ff55 !important; }
+    .theme-dos .c-write { background-color: #ffff55 !important; }
+    .theme-dos .ui-status-panel {
+      background: #0000aa;
+      border-top: 1px dashed #ffffff;
+      padding-top: 6px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #ffff55;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Single-Screen Matrix Grid (50 Columns x 30 Rows = 1,500 Blocks) */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      width: 100%;
+      height: 270px;
+    }
+    .c-cell {
+      width: 100%;
+      height: 100%;
+      transition: background-color 0.04s ease;
     }
   </style>
 </head>
@@ -377,86 +458,46 @@
       </ul>
     </div>
 
-    <!-- WINDOWS 95/98 DISK DEFRAGMENTER SIMULATION WIDGET -->
-    <div class="win95-desktop">
-      <div class="win95-window">
-        <div class="win95-titlebar">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span>Disk Defragmenter (Drive C:)</span>
-          </div>
-          <div style="display:flex; gap:2px;">
-            <div class="win95-titlebar-btn">?</div>
-            <div class="win95-titlebar-btn">&#x2715;</div>
+    <!-- TRIPLE-THEME 500MB FAT DEFRAGMENTER SIMULATOR -->
+    <div class="defrag-outer-frame theme-modern" id="defragShell">
+
+      <div class="ui-window-box">
+        <!-- Window Topbar -->
+        <div class="ui-topbar">
+          <span class="ui-title" id="shellTitle">FAT32 Volume Optimizer (500 MB Drive)</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span style="font-size:11px; color:#94a3b8;" id="themeLabel">Theme:</span>
+            <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
+            <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
+            <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
           </div>
         </div>
 
-        <div class="win95-content">
-          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-            <button class="win95-btn" onclick="win95Populate()">1. Reset Drive</button>
-            <button class="win95-btn" onclick="win95Fragment()">2. Heavy Churn</button>
-            <button class="win95-btn" onclick="win95StartDefrag()" id="wBtnStart">Start Defrag</button>
-            <button class="win95-btn" onclick="win95Pause()">Pause</button>
-            <button class="win95-btn" onclick="toggleLegend()">Legend</button>
-            <div style="margin-left:auto; display:flex; align-items:center; gap:4px; font-size:11px;">
-              <span>Speed:</span>
-              <button class="win95-btn" onclick="setSpeed(35)" style="min-width:32px; padding:2px 4px;">1x</button>
-              <button class="win95-btn" onclick="setSpeed(12)" style="min-width:32px; padding:2px 4px;">3x</button>
-              <button class="win95-btn" onclick="setSpeed(2)" style="min-width:32px; padding:2px 4px;">Max</button>
-            </div>
+        <!-- Controls Bar -->
+        <div class="ui-controls">
+          <button class="ctrl-btn" onclick="defragInitVolume()">1. Format 500MB</button>
+          <button class="ctrl-btn" onclick="defragHeavyChurn()" style="color:#fbbf24;">2. Heavy Churn (Fragment!)</button>
+          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="background:#059669; color:#fff; font-weight:700;">Start Defrag</button>
+          <div style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px;">
+            <span>Speed:</span>
+            <button class="ctrl-btn" onclick="setDefragSpeed(90)">Slow (Observable)</button>
+            <button class="ctrl-btn active" onclick="setDefragSpeed(35)" id="spd-norm">Medium</button>
+            <button class="ctrl-btn" onclick="setDefragSpeed(8)">Fast</button>
           </div>
+        </div>
 
-          <div class="win95-well">
-            <div class="win95-cluster-grid" id="win95Grid"></div>
+        <!-- Single-Screen Matrix Well -->
+        <div class="grid-wrapper">
+          <div class="screen-grid" id="clusterGrid"></div>
+        </div>
 
-            <!-- Floating Legend Modal -->
-            <div class="win95-legend-dialog" id="win95LegendModal">
-              <div class="win95-titlebar">
-                <span>Defrag Legend</span>
-                <div class="win95-titlebar-btn" onclick="toggleLegend()">&#x2715;</div>
-              </div>
-              <div class="legend-body">
-                <div class="legend-row">
-                  <div class="legend-swatch" style="background:#5ce1e6;"></div>
-                  <span>Unoptimized data</span>
-                </div>
-                <div class="legend-row">
-                  <div class="legend-swatch" style="background:#000080;"></div>
-                  <span>Optimized (defragmented) data</span>
-                </div>
-                <div class="legend-row">
-                  <div class="legend-swatch" style="background:#ffffff;"></div>
-                  <span>Free space</span>
-                </div>
-                <div class="legend-row">
-                  <div class="legend-swatch" style="background:linear-gradient(135deg, #ffffff 50%, #ff0000 50%);"></div>
-                  <span>Data that will not be moved</span>
-                </div>
-                <div class="legend-row">
-                  <div class="legend-swatch" style="background:#00ff00;"></div>
-                  <span>Data that's currently being read</span>
-                </div>
-                <div class="legend-row">
-                  <div class="legend-swatch" style="background:#ff0000;"></div>
-                  <span>Data that's currently being written</span>
-                </div>
-
-                <div style="margin-top:6px; font-size:10px; color:#444;">
-                  Each box represents one disk cluster.
-                </div>
-
-                <div style="display:flex; justify-content:flex-end; margin-top:6px;">
-                  <button class="win95-btn" onclick="toggleLegend()">Close</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="win95-status-bar">
-            <span id="wStatusText">Drive C: Analyzed - Ready to optimize.</span>
-            <span id="wClustersText">Clusters: 0 / 1440 Allocated</span>
-          </div>
+        <!-- Real-Time Telemetry / Status Bar -->
+        <div class="ui-status-panel">
+          <span id="txtStatusMsg">500 MB Volume Initialized. 1,500 Matrix Blocks (1 Block = 85 Clusters / 340 KB).</span>
+          <span id="txtProgressMetric">Optimization: 0% | Fragmentation: High</span>
         </div>
       </div>
+
     </div>
 
     <!-- Section 4.3.5: Advanced Implementations -->
@@ -476,231 +517,258 @@
   </div>
 
   <script>
-    // --- Windows 95 Authentic Multi-Pass Defragmentation Engine ---
-    const TOTAL_CLUSTERS = 1440; // 48 cols x 30 rows
-    let clusters = [];
-    let isDefragging = false;
-    let defragTimer = null;
-    let defragDelay = 12; // ms
-    let defragPhase = 1; // Phase 1: Consolidate scattered files; Phase 2: Compact free space to tail
+    // --- 500 MB FAT Triple-Theme Defragmenter Engine ---
+    const TOTAL_CELLS = 1500; // 50 cols x 30 rows fits completely on one screen
+    let cells = [];
+    let isRunning = false;
+    let stepTimer = null;
+    let stepDelay = 35; // Deliberately observable pacing
+    let currentTheme = 'modern';
 
-    function setSpeed(ms) {
-      defragDelay = ms;
+    function switchTheme(theme) {
+      currentTheme = theme;
+      const shell = document.getElementById("defragShell");
+      shell.className = `defrag-outer-frame theme-${theme}`;
+
+      ['modern', 'win95', 'dos'].forEach(t => {
+        const b = document.getElementById(`btn-theme-${t}`);
+        if (b) b.classList.toggle('active', t === theme);
+      });
+
+      const titleEl = document.getElementById("shellTitle");
+      if (theme === 'modern') titleEl.textContent = "FAT32 Volume Optimizer (500 MB Drive)";
+      else if (theme === 'win95') titleEl.textContent = "Disk Defragmenter - Drive C: (500 MB FAT)";
+      else if (theme === 'dos') titleEl.textContent = "NORTON SPEED DISK - DRIVE C: [500MB]";
+
+      renderAllCells();
     }
 
-    function toggleLegend() {
-      const modal = document.getElementById("win95LegendModal");
-      modal.style.display = (modal.style.display === "none") ? "block" : "none";
+    function setDefragSpeed(ms) {
+      stepDelay = ms;
     }
 
-    function initGrid() {
-      const grid = document.getElementById("win95Grid");
+    function initMatrix() {
+      const grid = document.getElementById("clusterGrid");
       grid.innerHTML = "";
-      clusters = [];
-      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
-        const div = document.createElement("div");
-        div.className = "w-cluster wc-free";
-        div.id = `wc-${i}`;
-        grid.appendChild(div);
-        clusters.push({ state: "free", isSystem: false, fileId: null });
+      cells = [];
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        const d = document.createElement("div");
+        d.className = "c-cell c-free";
+        d.id = `blk-${i}`;
+        grid.appendChild(d);
+        cells.push({ state: "free", isSystem: false, fileId: null });
       }
     }
 
-    function renderCluster(idx) {
-      const el = document.getElementById(`wc-${idx}`);
-      const c = clusters[idx];
-      el.className = "w-cluster";
+    function renderCell(idx) {
+      const el = document.getElementById(`blk-${idx}`);
+      const c = cells[idx];
+      el.className = "c-cell";
 
       if (c.state === "read") {
-        el.classList.add("wc-read");
+        el.classList.add("c-read");
       } else if (c.state === "write") {
-        el.classList.add("wc-write");
+        el.classList.add("c-write");
       } else if (c.isSystem) {
-        el.classList.add("wc-unmovable");
+        el.classList.add("c-system");
       } else if (c.state === "optimized") {
-        el.classList.add("wc-opt");
+        el.classList.add("c-opt");
       } else if (c.state === "unoptimized") {
-        el.classList.add("wc-unopt");
+        el.classList.add("c-unopt");
       } else {
-        el.classList.add("wc-free");
+        el.classList.add("c-free");
       }
     }
 
-    function renderAll() {
-      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
-        renderCluster(i);
+    function renderAllCells() {
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        renderCell(i);
       }
       updateStatus();
     }
 
-    function win95Populate() {
-      win95Pause();
-      initGrid();
-      defragPhase = 1;
+    function defragInitVolume() {
+      defragPause();
+      initMatrix();
 
-      // Unmovable clusters matching the reference video layout
-      const unmovable = [14, 62, 110, 158, 204, 390, 520, 710, 940, 1120];
+      // System Unmovable files at designated cylinder positions
+      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
       unmovable.forEach(idx => {
-        clusters[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
-      // Top area already optimized (dark blue)
-      const optCutoff = Math.floor(TOTAL_CLUSTERS * 0.22);
+      // Front 20% optimized (dark blue in win95 / solid in modern/dos)
+      const optCutoff = Math.floor(TOTAL_CELLS * 0.20);
       for (let i = 0; i < optCutoff; i++) {
-        if (!clusters[i].isSystem) {
-          clusters[i] = { state: "optimized", isSystem: false, fileId: "opt" };
+        if (!cells[i].isSystem) {
+          cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
         }
       }
 
-      // Middle and bottom: scattered bands of unoptimized cyan files and white free clusters
-      for (let i = optCutoff; i < TOTAL_CLUSTERS; i++) {
-        if (!clusters[i].isSystem) {
-          let row = Math.floor(i / 48);
-          let band = (i * 17 + row * 29) % 100;
-          if (band > 38) {
-            clusters[i] = { state: "unoptimized", isSystem: false, fileId: `f_${band % 12}` };
+      // Middle & tail: populated contiguously initially
+      for (let i = optCutoff; i < Math.floor(TOTAL_CELLS * 0.70); i++) {
+        if (!cells[i].isSystem) {
+          cells[i] = { state: "unoptimized", isSystem: false, fileId: `f_${i % 25}` };
+        }
+      }
+
+      renderAllCells();
+      document.getElementById("txtStatusMsg").textContent = "500 MB Volume Ready. Ready for heavy churn simulation.";
+    }
+
+    function defragHeavyChurn() {
+      defragPause();
+      if (cells.length === 0) initMatrix();
+
+      // Punch hundreds of random holes and inject scattered fragmented files
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        if (cells[i].isSystem) continue;
+
+        let row = Math.floor(i / 50);
+        if (row < 4) {
+          // Keep a small initial slice
+          cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
+        } else {
+          // Generate heavy, realistic fragmentation pattern
+          let seed = (i * 31 + row * 43) % 100;
+          if (seed > 48) {
+            cells[i] = { state: "unoptimized", isSystem: false, fileId: `f_${seed % 15}` };
           } else {
-            clusters[i] = { state: "free", isSystem: false, fileId: null };
+            cells[i] = { state: "free", isSystem: false, fileId: null };
           }
         }
       }
 
-      renderAll();
-      document.getElementById("wStatusText").textContent = "Drive C: Analyzed - Ready to Defragment.";
-    }
+      // Preserve unmovable clusters
+      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
+      unmovable.forEach(idx => {
+        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+      });
 
-    function win95Fragment() {
-      win95Populate();
-      // Punch additional scattered holes across the dark blue region to simulate file churn
-      for (let i = 10; i < 250; i += 7) {
-        if (!clusters[i].isSystem) {
-          clusters[i] = { state: "free", isSystem: false, fileId: null };
-        }
-      }
-      // Add scattered unoptimized blocks in upper rows
-      for (let i = 250; i < 350; i += 5) {
-        if (!clusters[i].isSystem) {
-          clusters[i] = { state: "unoptimized", isSystem: false, fileId: "frag" };
-        }
-      }
-      renderAll();
-      document.getElementById("wStatusText").textContent = "Drive C: Heavily Fragmented (38% Fragmentation).";
+      renderAllCells();
+      document.getElementById("txtStatusMsg").textContent = "Drive C: Heavily Fragmented (62% Fragmentation). High seek latency detected!";
     }
 
     function updateStatus() {
-      const optCount = clusters.filter(c => c.state === "optimized").length;
-      const unoptCount = clusters.filter(c => c.state === "unoptimized").length;
-      const totalData = optCount + unoptCount;
-      const pct = totalData > 0 ? Math.round((optCount / totalData) * 100) : 0;
+      const opt = cells.filter(c => c.state === "optimized").length;
+      const unopt = cells.filter(c => c.state === "unoptimized").length;
+      const totalData = opt + unopt;
+      const pct = totalData > 0 ? Math.round((opt / totalData) * 100) : 0;
 
-      let phaseDesc = defragPhase === 1 ? "Defragmenting File System (Pass 1)..." : "Consolidating Free Space (Pass 2)...";
-      document.getElementById("wStatusText").textContent = isDefragging
-        ? `${pct}% Complete - ${phaseDesc}`
-        : `Drive C: ${pct}% Optimized.`;
-      document.getElementById("wClustersText").textContent = `Clusters: ${totalData} / ${TOTAL_CLUSTERS} Allocated`;
+      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/1,500`;
     }
 
-    function win95StartDefrag() {
-      if (isDefragging) return;
-      isDefragging = true;
-      document.getElementById("wStatusText").textContent = "Defragmenting Drive C:...";
-      executeDefragCycle();
+    function defragToggleRun() {
+      if (isRunning) {
+        defragPause();
+      } else {
+        isRunning = true;
+        document.getElementById("btnStartDefrag").textContent = "Pause";
+        document.getElementById("btnStartDefrag").style.background = "#b91c1c";
+        document.getElementById("txtStatusMsg").textContent = "Defragmenting 500 MB Volume... Gathering scattered cluster runs.";
+        runDefragCycle();
+      }
     }
 
-    // Authentic Multi-Pass Loop
-    function executeDefragCycle() {
-      if (!isDefragging) return;
+    function defragPause() {
+      isRunning = false;
+      if (stepTimer) clearTimeout(stepTimer);
+      const btn = document.getElementById("btnStartDefrag");
+      if (btn) {
+        btn.textContent = "Resume";
+        btn.style.background = "#059669";
+      }
+      // Clean read/write highlighting
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        if (cells[i].state === "read") cells[i].state = "unoptimized";
+        if (cells[i].state === "write") cells[i].state = "free";
+      }
+      renderAllCells();
+    }
 
-      // Locate first free cluster (white) from the top down
-      let targetFree = -1;
-      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
-        if (clusters[i].state === "free") {
-          targetFree = i;
+    // Authentic observable cluster migration loop
+    function runDefragCycle() {
+      if (!isRunning) return;
+
+      // Locate first free cluster from the top down
+      let firstFree = -1;
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        if (cells[i].state === "free") {
+          firstFree = i;
           break;
         }
       }
 
-      // Locate unoptimized clusters (cyan)
-      // In Pass 1, find clusters belonging to scattered files and move them in bursts
-      let sourceClusters = [];
-      for (let i = TOTAL_CLUSTERS - 1; i > targetFree; i--) {
-        if (clusters[i].state === "unoptimized" && !clusters[i].isSystem) {
-          sourceClusters.push(i);
-          if (sourceClusters.length >= 4) break; // Gather a burst of clusters
+      // Locate a scattered run of unoptimized clusters past this free space
+      let sourceBlocks = [];
+      for (let i = TOTAL_CLUSTERS = TOTAL_CELLS - 1; i > firstFree; i--) {
+        if (cells[i].state === "unoptimized" && !cells[i].isSystem) {
+          sourceBlocks.push(i);
+          if (sourceBlocks.length >= 3) break; // Observable burst size
         }
       }
 
-      // If no unoptimized clusters exist past the free gap, switch to Phase 2 or finish
-      if (targetFree === -1 || sourceClusters.length === 0) {
-        win95Finish();
+      // If no scattered unoptimized blocks remain past the free space, compaction is complete
+      if (firstFree === -1 || sourceBlocks.length === 0) {
+        finishDefrag();
         return;
       }
 
-      // Step A: Flash all read clusters in Green (burst reading)
-      sourceClusters.forEach(idx => {
-        clusters[idx].state = "read";
-        renderCluster(idx);
+      // 1. Reading Phase: Highlight reading clusters
+      sourceBlocks.forEach(idx => {
+        cells[idx].state = "read";
+        renderCell(idx);
       });
 
-      defragTimer = setTimeout(() => {
-        if (!isDefragging) return;
+      stepTimer = setTimeout(() => {
+        if (!isRunning) return;
 
-        // Step B: Flash destination clusters in Red (burst writing)
-        let freeSlots = [];
-        for (let i = targetFree; i < TOTAL_CLUSTERS && freeSlots.length < sourceClusters.length; i++) {
-          if (clusters[i].state === "free") {
-            freeSlots.push(i);
-            clusters[i].state = "write";
-            renderCluster(i);
+        // 2. Writing Phase: Highlight target free clusters
+        let targetSlots = [];
+        for (let i = firstFree; i < TOTAL_CELLS && targetSlots.length < sourceBlocks.length; i++) {
+          if (cells[i].state === "free") {
+            targetSlots.push(i);
+            cells[i].state = "write";
+            renderCell(i);
           }
         }
 
-        defragTimer = setTimeout(() => {
-          if (!isDefragging) return;
+        stepTimer = setTimeout(() => {
+          if (!isRunning) return;
 
-          // Step C: Commit move - sources turn free (white), targets turn optimized (navy blue)
-          sourceClusters.forEach(idx => {
-            clusters[idx] = { state: "free", isSystem: false, fileId: null };
-            renderCluster(idx);
+          // 3. Commit Move: Sources become free, Targets become optimized
+          sourceBlocks.forEach(idx => {
+            cells[idx] = { state: "free", isSystem: false, fileId: null };
+            renderCell(idx);
           });
 
-          freeSlots.forEach(idx => {
-            clusters[idx] = { state: "optimized", isSystem: false, fileId: "opt" };
-            renderCluster(idx);
+          targetSlots.forEach(idx => {
+            cells[idx] = { state: "optimized", isSystem: false, fileId: "opt" };
+            renderCell(idx);
           });
 
           updateStatus();
-          defragTimer = setTimeout(executeDefragCycle, defragDelay);
-        }, defragDelay);
-      }, defragDelay);
+          stepTimer = setTimeout(runDefragCycle, stepDelay);
+        }, stepDelay);
+      }, stepDelay);
     }
 
-    function win95Finish() {
-      isDefragging = false;
-      // Mark all remaining unoptimized clusters as optimized
-      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
-        if (clusters[i].state === "unoptimized") {
-          clusters[i].state = "optimized";
+    function finishDefrag() {
+      isRunning = false;
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        if (cells[i].state === "unoptimized") {
+          cells[i].state = "optimized";
         }
       }
-      renderAll();
-      document.getElementById("wStatusText").textContent = "100% Complete - Drive C: Fully Optimized.";
+      renderAllCells();
+      document.getElementById("btnStartDefrag").textContent = "Start Defrag";
+      document.getElementById("btnStartDefrag").style.background = "#059669";
+      document.getElementById("txtStatusMsg").textContent = "100% Complete. 500 MB Volume Fully Optimized. Free space consolidated at tail.";
     }
 
-    function win95Pause() {
-      isDefragging = false;
-      if (defragTimer) clearTimeout(defragTimer);
-      // Clear active green/red flashing
-      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
-        if (clusters[i].state === "read") clusters[i].state = "unoptimized";
-        if (clusters[i].state === "write") clusters[i].state = "free";
-      }
-      renderAll();
-    }
-
-    // Initialize on Load
-    initGrid();
-    win95Populate();
+    // Initialize Simulator on Load
+    initMatrix();
+    defragInitVolume();
   </script>
 </body>
 </html>
