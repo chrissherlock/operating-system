@@ -439,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (SOLID RETRO TONE, ZERO MOIRÉ)
+       THEME 4: MS-DOS 6.22 DEFRAG (STRICT NON-ANTIALIASED PIXELATED)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -448,10 +448,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 0;
       border: 2px solid #55ffff;
       image-rendering: pixelated;
+      image-rendering: crisp-edges;
       -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: grayscale;
       font-smooth: never;
       text-rendering: geometricPrecision;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+    .theme-olddos * {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: grayscale;
+      font-smooth: never;
+      text-rendering: geometricPrecision;
     }
     .theme-olddos .ui-window-box { border: none; padding: 0; background: #0000aa; }
     .theme-olddos .ui-topbar {
@@ -479,7 +489,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 2px 6px;
       font-size: 10px;
       font-family: inherit;
-      image-rendering: pixelated;
       cursor: pointer;
     }
     .theme-olddos .ctrl-btn:hover { background-color: #55ffff; color: #0000aa; }
@@ -510,13 +519,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 6px;
       font-weight: bold;
       line-height: 1;
-      image-rendering: pixelated;
       user-select: none;
       padding: 0;
       margin: 0;
     }
-    /* MS-DOS 6.22 Defrag Palette: Solid retro teal/cyan tone for unused blocks (Zero moiré fringe) */
-    .theme-olddos .c-free { background-color: #005577; color: #005577; }
+    /* MS-DOS 6.22 Defrag Palette */
+    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
     .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
@@ -833,11 +841,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
+          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
+          el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          // Solid background fill, no text character needed
+          el.textContent = "▒";
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1104,11 +1114,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Replace stipple pattern with solid retro tone to remove moiré effect
+COMMIT_MSG = """Force pixelated rendering and crisp edges for authentic MS-DOS fonts
 
-Update week10-file-management/03-filesystem-implementation.html to replace
-dot-gradient stippling with a clean, solid retro teal/cyan tone for unused
-blocks, eliminating digital optical interference (moiré).
+Update week10-file-management/03-filesystem-implementation.html with strict
+image-rendering: pixelated and disabled font smoothing rules so MS-DOS
+glyphs and UI elements render with authentic sharp, non-antialiased pixels.
 """
 
 def run_git_step(cmd, desc):
@@ -1131,10 +1141,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging solid tone update")
+    run_git_step(["git", "add", target_file], "Staging pixelated non-antialiased font update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Solid retro tone successfully deployed!")
+    print("--> Pixelated non-antialiased rendering successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
