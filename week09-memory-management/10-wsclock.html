@@ -190,12 +190,13 @@
       height: 32px;
       display: flex;
       align-items: center;
+      outline: none; /* Prevent focus ring on title anchor */
     }
     .tutorial-body {
       font-size: 0.93rem;
       line-height: 1.65;
       color: #0c4a6e;
-      min-height: 120px; /* Locked minimum height to prevent jumping */
+      min-height: 120px;
     }
 
     .scenario-picker {
@@ -267,7 +268,7 @@
     }
 
     .table-container {
-      min-height: 275px; /* Locked minimum height to prevent table jump */
+      min-height: 275px;
     }
 
     .table-spec {
@@ -622,7 +623,7 @@
         <button type="button" class="btn-scenario" id="tabScen5" onclick="selectScenario(5)">6. Full Sweep (Thrash)</button>
       </div>
 
-      <div id="wtTitle" class="tutorial-title">1. Hand at Frame 0: Evaluating Gate 1</div>
+      <div id="wtTitle" class="tutorial-title" tabindex="-1">1. Hand at Frame 0: Evaluating Gate 1</div>
 
       <div class="split-grid">
         <!-- Dual Interactive Visual Console -->
@@ -882,7 +883,7 @@
 
   <script>
     /* =========================================================================
-       PART 2: GRANULAR MICRO-STEP SCENARIOS (DEEP ARCHITECTURAL EXPLANATIONS)
+       PART 2: GRANULAR MICRO-STEP SCENARIOS (LOCALIZED FOCUS ANCHORING)
        ========================================================================= */
     const scenarios = [
       // Scenario 0: Frame 0 (R=1)
@@ -1219,6 +1220,9 @@
         document.getElementById("wtNextBtn").disabled = false;
         document.getElementById("wtNextBtn").textContent = isLastStep ? "Next Scenario →" : "Next Decision Gate →";
       }
+
+      // Anchor focus locally to prevent window jump to top of page when buttons disable
+      document.getElementById("wtTitle").focus();
     }
 
     function selectScenario(idx) {

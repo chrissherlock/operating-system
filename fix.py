@@ -195,12 +195,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       height: 32px;
       display: flex;
       align-items: center;
+      outline: none; /* Prevent focus ring on title anchor */
     }
     .tutorial-body {
       font-size: 0.93rem;
       line-height: 1.65;
       color: #0c4a6e;
-      min-height: 120px; /* Locked minimum height to prevent jumping */
+      min-height: 120px;
     }
 
     .scenario-picker {
@@ -272,7 +273,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     .table-container {
-      min-height: 275px; /* Locked minimum height to prevent table jump */
+      min-height: 275px;
     }
 
     .table-spec {
@@ -627,7 +628,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <button type="button" class="btn-scenario" id="tabScen5" onclick="selectScenario(5)">6. Full Sweep (Thrash)</button>
       </div>
 
-      <div id="wtTitle" class="tutorial-title">1. Hand at Frame 0: Evaluating Gate 1</div>
+      <div id="wtTitle" class="tutorial-title" tabindex="-1">1. Hand at Frame 0: Evaluating Gate 1</div>
 
       <div class="split-grid">
         <!-- Dual Interactive Visual Console -->
@@ -887,7 +888,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GRANULAR MICRO-STEP SCENARIOS (DEEP ARCHITECTURAL EXPLANATIONS)
+       PART 2: GRANULAR MICRO-STEP SCENARIOS (LOCALIZED FOCUS ANCHORING)
        ========================================================================= */
     const scenarios = [
       // Scenario 0: Frame 0 (R=1)
@@ -1224,6 +1225,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         document.getElementById("wtNextBtn").disabled = false;
         document.getElementById("wtNextBtn").textContent = isLastStep ? "Next Scenario →" : "Next Decision Gate →";
       }
+
+      // Anchor focus locally to prevent window jump to top of page when buttons disable
+      document.getElementById("wtTitle").focus();
     }
 
     function selectScenario(idx) {
@@ -1434,12 +1438,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Expand microstep theoretical explanations in 10-wsclock.html
+COMMIT_MSG = """Stabilize container heights to eliminate layout jumps in 10-wsclock.html
 
-Enrich each microstep in the WSClock walkthrough stepper with deeper
-architectural analysis. Cover MMU hardware bit assertions, working set
-age delta calculations, asynchronous DMA dirty writes, and kernel
-admission control fallback mechanics during full-sweep thrashing."""
+Lock down minimum heights for walkthrough text bodies (.tutorial-body)
+and table containers (.table-container) in 10-wsclock.html. Fixing these
+layout boundaries prevents vertical reflow and page jumping when clicking
+stepper buttons or updating simulator states."""
 
 def execute_git_command(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1457,7 +1461,7 @@ def sync_repository():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module to {target_module}")
+    print(f"Wrote stabilized module to {target_module}")
 
     execute_git_command(["git", "add", target_module], "Staging 10-wsclock.html")
     execute_git_command(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
