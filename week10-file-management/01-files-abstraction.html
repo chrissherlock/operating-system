@@ -155,6 +155,27 @@
       align-items: center;
     }
 
+    /* Historical Infobox Styling */
+    .historical-infobox {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--inspect-color);
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .infobox-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--inspect-color);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
+    }
+
     /* Kernel Inspector Sandbox Styles */
     .kernel-sandbox {
       background: #0f172a;
@@ -314,6 +335,35 @@
     <p class="subtitle">Tanenbaum Chapter 4.1: Comprehensive Reference on File Naming, Structures, Types, Access, Attributes, and POSIX System Calls.</p>
   </header>
   <div class="main-container">
+
+    <!-- Historical Pioneers Infobox Card -->
+    <div class="card historical-infobox">
+      <div class="infobox-title">Historical Context: The Architects of Unix File Systems</div>
+      <p style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
+        The file descriptor model, byte-stream abstractions, and i-node metadata structures explored in this module were originally pioneered by <strong>Ken Thompson</strong> and <strong>Dennis Ritchie</strong> at Bell Labs during the creation of Unix in the late 1960s and early 1970s. Their design established the foundational separation between user space and kernel space that governs modern operating systems today.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Pioneer</th>
+            <th>Key Contributions</th>
+            <th>Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ken Thompson</strong></td>
+            <td>Unix, B Language, UTF-8, Early File System Tree</td>
+            <td>Designed the core i-node architecture and hierarchical namespaces.</td>
+          </tr>
+          <tr>
+            <td><strong>Dennis Ritchie</strong></td>
+            <td>C Programming Language, Unix Co-Creator</td>
+            <td>Engineered portable systems programming standards built on system calls.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- Section 4.1.1: File Naming -->
     <div class="card">
@@ -775,7 +825,6 @@
         }
       }
 
-      // Update button highlight states
       actionButtons.forEach(btnName => {
         const btn = document.getElementById(`btn-${btnName}`);
         if (btn) {
