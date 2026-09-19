@@ -331,7 +331,9 @@
     .blk-free { background: #1e293b; color: #475569; }
     .blk-live { background: #0284c7; color: #fff; }
     .blk-dead { background: #475569; color: #94a3b8; text-decoration: line-through; }
-    .blk-highlight { outline: 2px solid #facc15; box-shadow: 0 0 6px #facc15; }
+    .blk-candidate { outline: 2px solid #ef4444; }
+    .blk-identified-live { background: #059669 !important; color: #fff; outline: 2px solid #34d399; }
+    .blk-discarded { opacity: 0.25; text-decoration: line-through; }
 
     /* DEFRAGMENTER SHELL & THEMES */
     .defrag-outer-frame {
@@ -947,32 +949,6 @@
         <li>$(1 + u)$ reflects the physical I/O cost: reading the full segment (cost of $1$) plus rewriting the surviving live fraction (cost of $u$).</li>
       </ul>
 
-      <!-- NEW INTERACTIVE SEGMENT CLEANER WALKTHROUGH -->
-      <div class="lfs-sim-container" id="lfsCleanerSim">
-        <div class="lfs-topbar">
-          <span class="lfs-title">Walkthrough Part 2: Cost-Benefit Segment Cleaner &amp; Garbage Collector</span>
-          <span class="lfs-step-indicator" id="cleanerStepTag">Interactive Simulation</span>
-        </div>
-
-        <div class="lfs-explanation-box" id="cleanerExplanationBox">
-          <strong>Compare Cleaning Strategies:</strong> Segment 1 contains <em>Hot Data</em> (frequently rewritten), while Segment 2 contains <em>Cold Data</em> (stable). Click <strong>"1. Evaluate Cost-Benefit Scores"</strong> to observe which segment the cleaner chooses!
-        </div>
-
-        <div class="lfs-controls">
-          <button class="lfs-btn primary" onclick="cleanerEvaluateScores()">1. Evaluate Cost-Benefit Scores</button>
-          <button class="lfs-btn accent" onclick="cleanerExecuteCompaction()">2. Compact Winner &amp; Free Segment</button>
-          <button class="lfs-btn" onclick="cleanerSimulateHotChurn()">3. Simulate Churn on Hot Data</button>
-          <button class="lfs-btn" onclick="cleanerResetWalkthrough()" style="margin-left: auto;">Reset Cleaner</button>
-        </div>
-
-        <div class="lfs-segments-grid" id="cleanerSegmentsGrid"></div>
-
-        <div class="lfs-status-panel">
-          <span id="cleanerStatusMsg">Ready to evaluate segment cleaner economics.</span>
-          <span id="cleanerMetricMsg">Clean Free Segments: 1 | Write Amplification: 1.00x</span>
-        </div>
-      </div>
-
       <!-- Diagram: Cost-Benefit Hot vs Cold Cleaning -->
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
@@ -1002,7 +978,7 @@
 
       <h4>The Complete Four-Phase Compaction Cycle</h4>
       <p>
-        The complete cleaning sequence executes in four discrete phases:
+        The complete cleaning sequence executes in four discrete, coordinated phases:
       </p>
       <ol>
         <li><strong>Selection:</strong> The cleaner evaluates on-disk segment usage tables, computes cost-benefit metrics across candidates, and selects a batch of segments $S_1, S_2, \ldots, S_k$.</li>
@@ -1010,6 +986,33 @@
         <li><strong>Compaction &amp; Append:</strong> All identified live blocks are bundled into a contiguous in-memory buffer and appended to the <strong>log tail</strong> as part of a new clean segment. Because the live blocks now reside at new physical addresses, their corresponding inodes and imap entries are updated and committed to the log tail as well.</li>
         <li><strong>Reclamation:</strong> The original segments $S_1, S_2, \ldots, S_k$ are marked as free in the Segment Usage Table and added to the pool of available clean segments for future log tail streaming.</li>
       </ol>
+
+      <!-- WALKTHROUGH PART 2: THE 4-PHASE COMPACTION CYCLE -->
+      <div class="lfs-sim-container" id="fourPhaseCompactionSim">
+        <div class="lfs-topbar">
+          <span class="lfs-title">Walkthrough Part 2: The 4-Phase Compaction Cycle</span>
+          <span class="lfs-step-indicator" id="fourPhaseStepTag">Phase 0: Ready</span>
+        </div>
+
+        <div class="lfs-explanation-box" id="fourPhaseExplanationBox">
+          <strong>Interactive 4-Phase Compaction:</strong> Observe how LFS reclaims fragmented space without taking the file system offline. Click <strong>"1. Phase 1: Selection"</strong> to begin!
+        </div>
+
+        <div class="lfs-controls">
+          <button class="lfs-btn primary" id="btnPhase1" onclick="compactionPhase1Selection()">1. Phase 1: Selection</button>
+          <button class="lfs-btn" id="btnPhase2" onclick="compactionPhase2Identification()">2. Phase 2: Identification</button>
+          <button class="lfs-btn" id="btnPhase3" onclick="compactionPhase3Compaction()">3. Phase 3: Compaction &amp; Append</button>
+          <button class="lfs-btn accent" id="btnPhase4" onclick="compactionPhase4Reclamation()">4. Phase 4: Reclamation</button>
+          <button class="lfs-btn" onclick="compactionResetWalkthrough()" style="margin-left: auto;">Reset Cycle</button>
+        </div>
+
+        <div class="lfs-segments-grid" id="fourPhaseSegmentsGrid"></div>
+
+        <div class="lfs-status-panel">
+          <span id="fourPhaseStatusMsg">Walkthrough ready. Segments 0 &amp; 1 are fragmented candidate segments.</span>
+          <span id="fourPhaseMetricMsg">Selected: None | Live Migrated: 0 | Reclaimed Segments: 0</span>
+        </div>
+      </div>
     </div>
 
     <!-- Section 4.3.6: Journaling File Systems -->
@@ -1181,151 +1184,199 @@
     lfsResetSim();
 
     // =========================================================
-    // 2. WALKTHROUGH PART 2: COST-BENEFIT SEGMENT CLEANER
+    // 2. WALKTHROUGH PART 2: FOUR-PHASE COMPACTION CYCLE
     // =========================================================
-    let cleanerSegments = [];
-    let cleanerEvaluated = false;
-    let chosenSegmentIndex = -1;
+    let fourPhaseSegments = [];
+    let currentCompactionPhase = 0;
+    let identifiedLiveBlocks = [];
 
-    function cleanerResetWalkthrough() {
-      cleanerEvaluated = false;
-      chosenSegmentIndex = -1;
-      cleanerSegments = [
+    function compactionResetWalkthrough() {
+      currentCompactionPhase = 0;
+      identifiedLiveBlocks = [];
+
+      fourPhaseSegments = [
         {
           id: 0,
-          label: "Seg 0 (Cold Media)",
-          type: "cold",
-          age: 400, // old
+          label: "Segment 0 (Candidate)",
+          status: "normal",
           blocks: [
-            { type: "live", id: "C1" }, { type: "live", id: "C2" },
-            { type: "dead", id: "C3" }, { type: "dead", id: "C4" },
-            { type: "dead", id: "C5" }, { type: "dead", id: "C6" },
-            { type: "dead", id: "C7" }, { type: "dead", id: "C8" }
+            { id: "A1", state: "live", highlight: false },
+            { id: "A2", state: "dead", highlight: false },
+            { id: "A3", state: "dead", highlight: false },
+            { id: "A4", state: "live", highlight: false },
+            { id: "A5", state: "dead", highlight: false },
+            { id: "A6", state: "dead", highlight: false },
+            { id: "A7", state: "dead", highlight: false },
+            { id: "A8", state: "dead", highlight: false }
           ]
         },
         {
           id: 1,
-          label: "Seg 1 (Hot Logs)",
-          type: "hot",
-          age: 5, // very young
+          label: "Segment 1 (Candidate)",
+          status: "normal",
           blocks: [
-            { type: "live", id: "H1" }, { type: "live", id: "H2" },
-            { type: "live", id: "H3" }, { type: "dead", id: "H4" },
-            { type: "dead", id: "H5" }, { type: "dead", id: "H6" },
-            { type: "dead", id: "H7" }, { type: "dead", id: "H8" }
+            { id: "B1", state: "dead", highlight: false },
+            { id: "B2", state: "live", highlight: false },
+            { id: "B3", state: "dead", highlight: false },
+            { id: "B4", state: "dead", highlight: false },
+            { id: "B5", state: "dead", highlight: false },
+            { id: "B6", state: "live", highlight: false },
+            { id: "B7", state: "dead", highlight: false },
+            { id: "B8", state: "dead", highlight: false }
           ]
         },
         {
           id: 2,
-          label: "Seg 2 (Active Tail)",
-          type: "tail",
-          age: 1,
+          label: "Segment 2 (Log Tail)",
+          status: "tail",
           blocks: [
-            { type: "live", id: "T1" }, { type: "live", id: "T2" },
-            { type: "free", id: "·" }, { type: "free", id: "·" },
-            { type: "free", id: "·" }, { type: "free", id: "·" },
-            { type: "free", id: "·" }, { type: "free", id: "·" }
+            { id: "T1", state: "live", highlight: false },
+            { id: "T2", state: "live", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false }
           ]
         },
         {
           id: 3,
-          label: "Seg 3 (Free Pool)",
-          type: "free_pool",
-          age: 0,
+          label: "Segment 3 (Clean Free Pool)",
+          status: "free_pool",
           blocks: [
-            { type: "free", id: "·" }, { type: "free", id: "·" },
-            { type: "free", id: "·" }, { type: "free", id: "·" },
-            { type: "free", id: "·" }, { type: "free", id: "·" },
-            { type: "free", id: "·" }, { type: "free", id: "·" }
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false },
+            { id: "·", state: "free", highlight: false }
           ]
         }
       ];
 
-      cleanerRender();
-      document.getElementById("cleanerStepTag").textContent = "Step 1: Ready to Compare";
-      document.getElementById("cleanerExplanationBox").innerHTML =
-        "<strong>Compare Segment Economics:</strong> Notice <strong>Seg 0 (Cold)</strong> is old with 2 live blocks ($u=0.25$). <strong>Seg 1 (Hot)</strong> is young with 3 live blocks ($u=0.375$). Click <strong>'1. Evaluate Cost-Benefit Scores'</strong> to see why the cleaner chooses Cold data first!";
-      document.getElementById("cleanerStatusMsg").textContent = "Evaluation reset. Cleaner ready.";
+      fourPhaseRender();
+      document.getElementById("fourPhaseStepTag").textContent = "Phase 0: Ready";
+      document.getElementById("fourPhaseExplanationBox").innerHTML =
+        "<strong>Ready to Begin 4-Phase Compaction:</strong> Segments 0 and 1 are fragmented with dead space holes. Click <strong>'1. Phase 1: Selection'</strong> to have the cleaner select candidates based on the cost-benefit formula.";
+      document.getElementById("fourPhaseStatusMsg").textContent = "Walkthrough reset. Segments 0 and 1 are ready for cleaning evaluation.";
+      document.getElementById("fourPhaseMetricMsg").textContent = "Selected: None | Live Migrated: 0 | Reclaimed Segments: 0";
     }
 
-    function cleanerEvaluateScores() {
-      cleanerEvaluated = true;
-      // Formula: ((1 - u) * age) / (1 + u)
-      // Seg 0: u = 2/8 = 0.25. (0.75 * 400) / 1.25 = 300 / 1.25 = 240.0
-      // Seg 1: u = 3/8 = 0.375. (0.625 * 5) / 1.375 = 3.125 / 1.375 = 2.27
-      chosenSegmentIndex = 0; // Seg 0 wins overwhelmingly due to age
+    function compactionPhase1Selection() {
+      currentCompactionPhase = 1;
+      fourPhaseSegments[0].status = "candidate";
+      fourPhaseSegments[1].status = "candidate";
+      fourPhaseSegments[0].label = "Seg 0 [SELECTED CANDIDATE]";
+      fourPhaseSegments[1].label = "Seg 1 [SELECTED CANDIDATE]";
 
-      cleanerRender();
-      document.getElementById("cleanerStepTag").textContent = "Step 2: Candidate Selected";
-      document.getElementById("cleanerExplanationBox").innerHTML =
-        "<strong>Cost-Benefit Winner: Seg 0 (Score: 240.0 vs Seg 1: 2.27)!</strong> Even though both have plenty of dead blocks, <strong>Seg 0 is cold</strong>. Its 2 surviving live blocks will remain permanently stable once moved. Cleaning Hot Seg 1 now would waste write cycles because its blocks are about to be rewritten anyway! Click <strong>'2. Compact Winner & Free Segment'</strong> to complete compaction.";
-      document.getElementById("cleanerStatusMsg").textContent = "Seg 0 selected based on ((1-u)*Age)/(1+u) optimization.";
+      fourPhaseRender();
+      document.getElementById("fourPhaseStepTag").textContent = "Phase 1: Candidate Selection";
+      document.getElementById("fourPhaseExplanationBox").innerHTML =
+        "<strong>Phase 1 (Selection) Complete:</strong> The cleaner queried the on-disk segment usage table and computed $\\frac{(1-u) \\times \\text{Age}}{1+u}$. Segments 0 and 1 were selected because their low utilization ($u=0.25$) yields maximum contiguous free space. Click <strong>'2. Phase 2: Identification'</strong> to check block liveness!";
+      document.getElementById("fourPhaseStatusMsg").textContent = "Phase 1: Segments 0 & 1 selected for compaction.";
+      document.getElementById("fourPhaseMetricMsg").textContent = "Selected: Segments 0 & 1 | Live Migrated: 0 | Reclaimed Segments: 0";
     }
 
-    function cleanerExecuteCompaction() {
-      if (!cleanerEvaluated) {
-        document.getElementById("cleanerExplanationBox").innerHTML =
-          "Please click <strong>'1. Evaluate Cost-Benefit Scores'</strong> first so the cleaner can choose a target segment!";
+    function compactionPhase2Identification() {
+      if (currentCompactionPhase < 1) {
+        document.getElementById("fourPhaseExplanationBox").innerHTML = "Please click <strong>'1. Phase 1: Selection'</strong> first!";
         return;
       }
+      currentCompactionPhase = 2;
+      identifiedLiveBlocks = [];
 
-      // Compact Seg 0's live blocks (C1, C2) into Seg 2's active tail
-      let liveToMove = cleanerSegments[0].blocks.filter(b => b.type === "live");
+      // Inspect summary tuples and verify against imap
+      [0, 1].forEach(sIdx => {
+        fourPhaseSegments[sIdx].blocks.forEach(blk => {
+          if (blk.state === "live") {
+            blk.highlight = "live";
+            identifiedLiveBlocks.push(blk.id);
+          } else {
+            blk.highlight = "dead";
+          }
+        });
+      });
 
-      // Find free slots in Seg 2 (Active Tail)
-      let freeSlots = cleanerSegments[2].blocks.filter(b => b.type === "free");
-      for (let i = 0; i < liveToMove.length && i < freeSlots.length; i++) {
-        freeSlots[i].type = "live";
-        freeSlots[i].id = liveToMove[i].id;
-      }
-
-      // Reclaim Seg 0: turn into clean free pool
-      cleanerSegments[0].blocks = [
-        { type: "free", id: "·" }, { type: "free", id: "·" },
-        { type: "free", id: "·" }, { type: "free", id: "·" },
-        { type: "free", id: "·" }, { type: "free", id: "·" },
-        { type: "free", id: "·" }, { type: "free", id: "·" }
-      ];
-      cleanerSegments[0].label = "Seg 0 (Recycled Clean)";
-      cleanerSegments[0].type = "free_pool";
-
-      chosenSegmentIndex = -1;
-      cleanerEvaluated = false;
-      cleanerRender();
-
-      document.getElementById("cleanerStepTag").textContent = "Compaction Complete!";
-      document.getElementById("cleanerExplanationBox").innerHTML =
-        "<strong>Reclamation Finished!</strong> Live blocks <code>C1</code> and <code>C2</code> were appended contiguously into the Active Tail (Seg 2). <strong>Seg 0 is now completely free and ready to be written again!</strong> Click <strong>'3. Simulate Churn on Hot Data'</strong> to observe how hot blocks naturally die without cleaning overhead.";
-      document.getElementById("cleanerStatusMsg").textContent = "Cleaned Seg 0; 8 blocks reclaimed into free pool.";
-      document.getElementById("cleanerMetricMsg").textContent = "Clean Free Segments: 2 | Write Amplification: 1.25x (Optimal)";
+      fourPhaseRender();
+      document.getElementById("fourPhaseStepTag").textContent = "Phase 2: Liveness Verification";
+      document.getElementById("fourPhaseExplanationBox").innerHTML =
+        `<strong>Phase 2 (Identification) Complete:</strong> The cleaner read the Segment Summary blocks and performed $O(1)$ Inode Map lookups. It confirmed <strong>4 surviving live blocks</strong> (<code>A1, A4, B2, B6</code> in green), while obsolete dead holes (dimmed) will be discarded. Click <strong>'3. Phase 3: Compaction & Append'</strong> to stream them to the log tail!`;
+      document.getElementById("fourPhaseStatusMsg").textContent = `Phase 2: 4 live blocks verified against Imap (${identifiedLiveBlocks.join(', ')}).`;
+      document.getElementById("fourPhaseMetricMsg").textContent = `Selected: Segments 0 & 1 | Verified Live: ${identifiedLiveBlocks.length} | Reclaimed Segments: 0`;
     }
 
-    function cleanerSimulateHotChurn() {
-      // Show that remaining blocks in Seg 1 die naturally
-      let liveInHot = cleanerSegments[1].blocks.filter(b => b.type === "live");
-      if (liveInHot.length > 0) {
-        liveInHot[0].type = "dead";
+    function compactionPhase3Compaction() {
+      if (currentCompactionPhase < 2) {
+        document.getElementById("fourPhaseExplanationBox").innerHTML = "Please complete <strong>Phase 2: Identification</strong> first!";
+        return;
+      }
+      currentCompactionPhase = 3;
+
+      // Append surviving live blocks contiguously into Seg 2 (Active Tail)
+      let tailFreeSlots = fourPhaseSegments[2].blocks.filter(b => b.state === "free");
+      for (let i = 0; i < identifiedLiveBlocks.length && i < tailFreeSlots.length; i++) {
+        tailFreeSlots[i].id = identifiedLiveBlocks[i];
+        tailFreeSlots[i].state = "live";
+        tailFreeSlots[i].highlight = "migrated";
       }
 
-      cleanerRender();
-      document.getElementById("cleanerStepTag").textContent = "Natural Churn Verified";
-      document.getElementById("cleanerExplanationBox").innerHTML =
-        "<strong>Natural Attrition Proved Right!</strong> Because we <em>avoided</em> cleaning Seg 1 earlier, a live block in Seg 1 just got overwritten and became dead space on its own. <strong>We saved write amplification</strong> by letting time clean the hot data for us!";
-      document.getElementById("cleanerStatusMsg").textContent = "Hot block died naturally. Write amplification avoided!";
+      fourPhaseSegments[2].label = "Segment 2 [COMPACTED APPEND]";
+
+      fourPhaseRender();
+      document.getElementById("fourPhaseStepTag").textContent = "Phase 3: Compaction & Append";
+      document.getElementById("fourPhaseExplanationBox").innerHTML =
+        `<strong>Phase 3 (Compaction & Append) Complete:</strong> The 4 surviving live blocks were bundled into an in-memory segment buffer and written sequentially to the <strong>active log tail</strong> (Segment 2) without seeks! Their Inode Map entries were updated with their new addresses. Click <strong>'4. Phase 4: Reclamation'</strong> to free the old segments!`;
+      document.getElementById("fourPhaseStatusMsg").textContent = "Phase 3: Live blocks written contiguously to log tail; Inode Map updated.";
+      document.getElementById("fourPhaseMetricMsg").textContent = `Selected: Segments 0 & 1 | Live Migrated: ${identifiedLiveBlocks.length} | Reclaimed Segments: 0`;
     }
 
-    function cleanerRender() {
-      const grid = document.getElementById("cleanerSegmentsGrid");
+    function compactionPhase4Reclamation() {
+      if (currentCompactionPhase < 3) {
+        document.getElementById("fourPhaseExplanationBox").innerHTML = "Please complete <strong>Phase 3: Compaction & Append</strong> first!";
+        return;
+      }
+      currentCompactionPhase = 4;
+
+      // Recycle candidate segments 0 and 1 into free pool
+      [0, 1].forEach(sIdx => {
+        fourPhaseSegments[sIdx].blocks = [
+          { id: "·", state: "free", highlight: false },
+          { id: "·", state: "free", highlight: false },
+          { id: "·", state: "free", highlight: false },
+          { id: "·", state: "free", highlight: false },
+          { id: "·", state: "free", highlight: false },
+          { id: "·", state: "free", highlight: false },
+          { id: "·", state: "free", highlight: false },
+          { id: "·", state: "free", highlight: false }
+        ];
+        fourPhaseSegments[sIdx].status = "free_pool";
+        fourPhaseSegments[sIdx].label = `Segment ${sIdx} (Clean Free Pool)`;
+      });
+
+      // Clear highlights from tail
+      fourPhaseSegments[2].blocks.forEach(b => b.highlight = false);
+
+      fourPhaseRender();
+      document.getElementById("fourPhaseStepTag").textContent = "Phase 4: Reclamation Finished!";
+      document.getElementById("fourPhaseExplanationBox").innerHTML =
+        "<strong>Phase 4 (Reclamation) Complete:</strong> Segments 0 and 1 were cleared and added to the Clean Free Pool. <strong>16 contiguous blocks (2 full segments) are now 100% free</strong> for future log streaming! Compaction finished with zero downtime.";
+      document.getElementById("fourPhaseStatusMsg").textContent = "Phase 4: Segments 0 & 1 recycled. Clean free pool expanded!";
+      document.getElementById("fourPhaseMetricMsg").textContent = "Selected: None | Live Migrated: 4 | Reclaimed Segments: 2 (16 Blocks)";
+    }
+
+    function fourPhaseRender() {
+      const grid = document.getElementById("fourPhaseSegmentsGrid");
       grid.innerHTML = "";
 
-      cleanerSegments.forEach((seg, sIdx) => {
+      fourPhaseSegments.forEach(seg => {
         let segDiv = document.createElement("div");
         segDiv.className = "lfs-segment-box";
-        if (sIdx === chosenSegmentIndex) {
-          segDiv.classList.add("blk-highlight");
-        }
+        if (seg.status === "candidate") segDiv.classList.add("blk-candidate");
 
-        segDiv.innerHTML = `<div class="lfs-seg-header"><span>${seg.label}</span><span>Age: ${seg.age}</span></div>`;
+        segDiv.innerHTML = `<div class="lfs-seg-header"><span>${seg.label}</span></div>`;
 
         let blocksDiv = document.createElement("div");
         blocksDiv.className = "lfs-seg-blocks";
@@ -1333,16 +1384,24 @@
         seg.blocks.forEach(blk => {
           let bEl = document.createElement("div");
           bEl.className = "lfs-block";
-          if (blk.type === 'free') {
+          bEl.textContent = blk.id;
+
+          if (blk.state === "free") {
             bEl.classList.add("blk-free");
-            bEl.textContent = "·";
-          } else if (blk.type === 'live') {
+          } else if (blk.state === "live") {
             bEl.classList.add("blk-live");
-            bEl.textContent = blk.id;
-          } else if (blk.type === 'dead') {
+          } else if (blk.state === "dead") {
             bEl.classList.add("blk-dead");
-            bEl.textContent = blk.id;
           }
+
+          if (blk.highlight === "live") {
+            bEl.classList.add("blk-identified-live");
+          } else if (blk.highlight === "dead") {
+            bEl.classList.add("blk-discarded");
+          } else if (blk.highlight === "migrated") {
+            bEl.classList.add("blk-identified-live");
+          }
+
           blocksDiv.appendChild(bEl);
         });
 
@@ -1351,7 +1410,7 @@
       });
     }
 
-    cleanerResetWalkthrough();
+    compactionResetWalkthrough();
 
     // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 3000;
