@@ -1036,8 +1036,9 @@
         if (elapsedTimer) clearInterval(elapsedTimer);
         elapsedTimer = setInterval(updateElapsedClock, 1000);
 
-        if (audioEnabled && audioEl) {
+        if (audioEnabled && audioEl && currentTheme === 'olddos') {
           audioEl.currentTime = 0;
+          audioEl.volume = 0.25;
           audioEl.play().catch(e => console.log("Audio playback blocked:", e));
         }
 
