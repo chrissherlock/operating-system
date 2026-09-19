@@ -243,34 +243,34 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card">
       <h2>4.1.1 File Naming</h2>
       <p>
-        The most important characteristic of any abstraction mechanism is the way objects are named[cite: 4]. When a process creates a file, it assigns a name[cite: 4]. Upon process termination, the file persists and can be accessed by other processes using that name[cite: 4].
+        The most important characteristic of any abstraction mechanism is the way objects are named. When a process creates a file, it assigns a name. Upon process termination, the file persists and can be accessed by other processes using that name.
       </p>
       <ul>
-        <li><strong>Character Sets &amp; Length:</strong> Current operating systems allow strings of letters, digits, and special characters (e.g., `2`, `urgent!`, `Fig.2-14`)[cite: 4]. While older systems like MS-DOS restricted names to 8+3 characters, modern systems support file names up to 255 characters or more[cite: 4].</li>
-        <li><strong>Case Sensitivity:</strong> UNIX systems distinguish between upper- and lowercase letters (treating `maria`, `Maria`, and `MARIA` as three distinct files), whereas MS-DOS and older Windows architectures treat them as identical[cite: 4]. Modern Windows versions inherit backward compatibility with FAT-16/FAT-32 file systems while providing advanced file management.</li>
+        <li><strong>Character Sets &amp; Length:</strong> Current operating systems allow strings of letters, digits, and special characters (e.g., `2`, `urgent!`, `Fig.2-14`). While older systems like MS-DOS restricted names to 8+3 characters, modern systems support file names up to 255 characters or more.</li>
+        <li><strong>Case Sensitivity:</strong> UNIX systems distinguish between upper- and lowercase letters (treating `maria`, `Maria`, and `MARIA` as three distinct files), whereas MS-DOS and older Windows architectures treat them as identical. Modern Windows versions inherit backward compatibility with FAT-16/FAT-32 file systems while providing advanced file management.</li>
       </ul>
     </div>
 
     <!-- Section 4.1.2: File Structure -->
     <div class="card">
       <h2>4.1.2 File Structure</h2>
-      <p>File organization models vary across operating systems and application requirements[cite: 4]:</p>
+      <p>File organization models vary across operating systems and application requirements:</p>
       <ol>
-        <li><strong>Unsequence of Bytes:</strong> Used by UNIX and Windows. The file is simply a stream of bytes; the operating system does not interpret or structure the contents[cite: 4]. Any internal formatting is up to applications.</li>
-        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each with internal structure (historically derived from 80-column punched cards or 132-character printer lines)[cite: 4].</li>
-        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, each containing a key field. The file is sorted on the key, allowing applications to retrieve records by key rather than relative position (common in large mainframe commercial data processing)[cite: 4].</li>
+        <li><strong>Unsequence of Bytes:</strong> Used by UNIX and Windows. The file is simply a stream of bytes; the operating system does not interpret or structure the contents. Any internal formatting is up to applications.</li>
+        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each with internal structure (historically derived from 80-column punched cards or 132-character printer lines).</li>
+        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, each containing a key field. The file is sorted on the key, allowing applications to retrieve records by key rather than relative position (common in large mainframe commercial data processing).</li>
       </ol>
     </div>
 
     <!-- Section 4.1.3: File Types -->
     <div class="card">
       <h2>4.1.3 File Types</h2>
-      <p>Operating systems recognize and support multiple file classifications[cite: 4]:</p>
+      <p>Operating systems recognize and support multiple file classifications:</p>
       <ul>
-        <li><strong>Regular Files:</strong> User-information containers divided into <em>ASCII files</em> (lines terminated by line feed or carriage return, easily edited and piped) and <em>binary files</em> (executable programs with magic numbers and headers, libraries, or archives)[cite: 4].</li>
-        <li><strong>Directories:</strong> System-managed files that maintain the hierarchical structure of the file system[cite: 4].</li>
-        <li><strong>Character Special Files:</strong> Used to model serial I/O devices (terminals, printers, networks)[cite: 4].</li>
-        <li><strong>Block Special Files:</strong> Used to model disk storage drives[cite: 4].</li>
+        <li><strong>Regular Files:</strong> User-information containers divided into <em>ASCII files</em> (lines terminated by line feed or carriage return, easily edited and piped) and <em>binary files</em> (executable programs with magic numbers and headers, libraries, or archives).</li>
+        <li><strong>Directories:</strong> System-managed files that maintain the hierarchical structure of the file system.</li>
+        <li><strong>Character Special Files:</strong> Used to model serial I/O devices (terminals, printers, networks).</li>
+        <li><strong>Block Special Files:</strong> Used to model disk storage drives.</li>
       </ul>
     </div>
 
@@ -278,7 +278,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card">
       <h2>4.1.4 File Access</h2>
       <p>
-        Early operating systems provided only <strong>sequential access</strong>, where a process had to read all bytes or records in order from the beginning[cite: 4]. With the advent of disk storage, <strong>random-access files</strong> emerged, enabling bytes or records to be accessed out of order or by key[cite: 4]. Modern systems support explicit seeking via system calls like `lseek` to reposition the file offset pointer[cite: 4].
+        Early operating systems provided only <strong>sequential access</strong>, where a process had to read all bytes or records in order from the beginning. With the advent of disk storage, <strong>random-access files</strong> emerged, enabling bytes or records to be accessed out of order or by key. Modern systems support explicit seeking via system calls like `lseek` to reposition the file offset pointer.
       </p>
     </div>
 
@@ -286,7 +286,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card">
       <h2>4.1.5 File Attributes (Metadata)</h2>
       <p>
-        Operating systems associate extra administrative metadata with every file[cite: 4]. While attributes differ across platforms, standard metadata includes[cite: 4]:
+        Operating systems associate extra administrative metadata with every file. While attributes differ across platforms, standard metadata includes:
       </p>
       <table>
         <thead>
@@ -296,11 +296,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </tr>
         </thead>
         <tbody>
-          <tr><td><strong>Protection</strong></td><td>Controls who may access the file and with what permissions (Read/Write/Execute)[cite: 4].</td></tr>
-          <tr><td><strong>Owner / Creator</strong></td><td>Identifies the user who created or currently owns the file (UID/GID)[cite: 4].</td></tr>
-          <tr><td><strong>Flags</strong></td><td>Hidden, system, read-only, archive (tracks whether file needs backup), temporary, and lock flags[cite: 4].</td></tr>
-          <tr><td><strong>Timestamps</strong></td><td>Exact creation time, time of last access, and time of last attribute/data modification[cite: 4].</td></tr>
-          <tr><td><strong>File Size</strong></td><td>Current byte count and maximum permissible growth limit[cite: 4].</td></tr>
+          <tr><td><strong>Protection</strong></td><td>Controls who may access the file and with what permissions (Read/Write/Execute).</td></tr>
+          <tr><td><strong>Owner / Creator</strong></td><td>Identifies the user who created or currently owns the file (UID/GID).</td></tr>
+          <tr><td><strong>Flags</strong></td><td>Hidden, system, read-only, archive (tracks whether file needs backup), temporary, and lock flags.</td></tr>
+          <tr><td><strong>Timestamps</strong></td><td>Exact creation time, time of last access, and time of last attribute/data modification.</td></tr>
+          <tr><td><strong>File Size</strong></td><td>Current byte count and maximum permissible growth limit.</td></tr>
         </tbody>
       </table>
     </div>
@@ -308,18 +308,18 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <!-- Section 4.1.6: File Operations -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
-      <p>Common system calls provided by operating systems for file management include[cite: 4]:</p>
+      <p>Common system calls provided by operating systems for file management include:</p>
       <ol>
-        <li><code>create</code>: Initializes a new empty file with specified attributes[cite: 4].</li>
-        <li><code>delete</code>: Removes a file and reclaims its disk space[cite: 4].</li>
-        <li><code>open</code>: Fetches attributes and disk addresses into main memory for rapid access[cite: 4].</li>
-        <li><code>close</code>: Flushes final cached blocks and frees internal table space[cite: 4].</li>
-        <li><code>read</code>: Retrieves data from a file into a user-provided buffer[cite: 4].</li>
-        <li><code>write</code>: Outputs data to a file at the current offset or end[cite: 4].</li>
-        <li><code>append</code>: Restricted write mode adding data exclusively to the end of a file[cite: 4].</li>
-        <li><code>lseek</code>: Repositions the file offset pointer for random access[cite: 4].</li>
-        <li><code>get/set attributes</code>: Reads or modifies file metadata (e.g., protection modes, timestamps)[cite: 4].</li>
-        <li><code>rename</code>: Changes a file's name within the directory structure[cite: 4].</li>
+        <li><code>create</code>: Initializes a new empty file with specified attributes.</li>
+        <li><code>delete</code>: Removes a file and reclaims its disk space.</li>
+        <li><code>open</code>: Fetches attributes and disk addresses into main memory for rapid access.</li>
+        <li><code>close</code>: Flushes final cached blocks and frees internal table space.</li>
+        <li><code>read</code>: Retrieves data from a file into a user-provided buffer.</li>
+        <li><code>write</code>: Outputs data to a file at the current offset or end.</li>
+        <li><code>append</code>: Restricted write mode adding data exclusively to the end of a file.</li>
+        <li><code>lseek</code>: Repositions the file offset pointer for random access.</li>
+        <li><code>get/set attributes</code>: Reads or modifies file metadata (e.g., protection modes, timestamps).</li>
+        <li><code>rename</code>: Changes a file's name within the directory structure.</li>
       </ol>
     </div>
 
@@ -327,7 +327,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card">
       <h2>4.1.7 Example: POSIX File-Copy Program</h2>
       <p>
-        Below is a standard POSIX C implementation illustrating file descriptor handling, error checking, and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>[cite: 4]:
+        Below is a standard POSIX C implementation illustrating file descriptor handling, error checking, and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
       </p>
       <pre>#include &lt;sys/types.h&gt;
 #include &lt;fcntl.h&gt;
@@ -372,7 +372,7 @@ int main(int argc, char *argv[]) {
       </div>
       <div id="tutorialTitle" class="tutorial-title">1. Opening a File &amp; Allocating Descriptors</div>
       <div id="tutorialText" class="tutorial-body">
-        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry[cite: 4].
+        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry.
       </div>
       <div class="tour-nav">
         <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Step</button>
@@ -404,19 +404,19 @@ int main(int argc, char *argv[]) {
     const tutorialSteps = [
       {
         title: "1. Opening a File & Allocating Descriptors",
-        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry[cite: 4]."
+        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry."
       },
       {
         title: "2. Sequential vs. Random Read Operations",
-        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read[cite: 4]."
+        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read."
       },
       {
         title: "3. Arbitrary Offsets via lseek()",
-        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>[cite: 4]."
+        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>."
       },
       {
         title: "4. Closing Files & Releasing Resources",
-        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count[cite: 4]."
+        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count."
       }
     ];
 
@@ -467,11 +467,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Expand Chapter 4.1 module with exhaustive Tanenbaum reference material
+COMMIT_MSG = """Remove all source citations from week10 module 01 detailed HTML file
 
-Update week10-file-management/01-files-abstraction.html to provide full,
-uncompromised coverage of subsections 4.1.1 through 4.1.7, including naming
-rules, file structures, attribute metadata tables, and the C copyfile example."""
+Update generate_week10_module01_detailed.py to strip out all inline
+source citation markers from week10-file-management/01-files-abstraction.html
+for a completely clean reading experience."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -491,12 +491,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote detailed module file to {target_file}")
+    print(f"Wrote citation-free detailed module file to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging detailed 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging citation-free detailed 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Detailed Module 01 created, committed, and pushed successfully!")
+    print("--> Citation-free Detailed Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
