@@ -203,6 +203,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
+    /* Flowchart highlight states */
+    .flow-node { transition: all 0.25s ease; }
+    .flow-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5px; rx: 6px; }
+    .flow-text { font-size: 11px; font-weight: 600; fill: #334155; text-anchor: middle; }
+    .active-node .flow-box { fill: #f0f9ff; stroke: #0284c7; stroke-width: 2.5px; filter: drop-shadow(0 2px 4px rgba(2,132,199,0.2)); }
+    .active-node .flow-text { fill: #0284c7; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -427,44 +433,93 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </table>
     </div>
 
-    <!-- Section 4.1.6: File Operations & System Calls (Expanded) -->
+    <!-- Section 4.1.6: File Operations & System Calls -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
       <p>
         Files exist to store information persistently and allow its subsequent retrieval. Operating systems provide a robust suite of system calls to facilitate file creation, manipulation, and storage management. Below is an exhaustive breakdown of the ten most common system calls related to files:
       </p>
       <ol>
-        <li><strong>Create:</strong>
-          Initializes a new, empty file with no data payload. The primary purpose of the create call is to announce to the operating system that a new file is coming into existence, allocate an initial i-node or directory entry, and establish initial attribute values (such as protection modes).
-        </li>
-        <li><strong>Delete:</strong>
-          When a file is no longer required, this system call is invoked to remove the file from its directory structure, deallocate its i-node, and return all associated disk blocks to the free storage pool.
-        </li>
-        <li><strong>Open:</strong>
-          Before a process can read or write a file, it must open it. The open call forces the operating system to search the directory path, locate the file's metadata and disk addresses, and load them into a fast main-memory table (such as the open file table or v-node table) for rapid access on subsequent calls. It returns a small integer called a <em>file descriptor</em>.
-        </li>
-        <li><strong>Close:</strong>
-          When all file accesses are complete, the file should be closed to free internal table space and release kernel resources. Many operating systems enforce process-level limits on the maximum number of simultaneously open files. Furthermore, closing a file forces the operating system to flush and write out any unwritten buffered blocks residing in memory to the physical disk—even if the final block is not entirely full yet.
-        </li>
-        <li><strong>Read:</strong>
-          Retrieves data from a file into a user-provided memory buffer. The caller must specify the file descriptor, a pointer to the destination buffer, and the exact number of bytes requested. Data is normally read starting from the current file offset pointer, which automatically advances by the number of bytes successfully read.
-        </li>
-        <li><strong>Write:</strong>
-          Outputs data from a user-provided buffer into the file. Like read, the caller provides the file descriptor, buffer pointer, and byte count. Writing normally occurs at the current offset. If the current offset points to the end of the file, the file's size increases accordingly. If the offset is in the middle of the file, existing data is overwritten and permanently lost.
-        </li>
-        <li><strong>Append:</strong>
-          A restricted form of write operations supported by certain operating systems. Append restricts data insertion exclusively to the end of the file, guaranteeing that existing contents cannot be accidentally overwritten regardless of the current offset pointer.
-        </li>
-        <li><strong>Seek (lseek):</strong>
-          Essential for random-access files. Because random-access files permit reading and writing out of order, a method is required to specify the exact data offset. The seek system call repositions the file pointer to an arbitrary byte offset within the file, allowing subsequent read and write calls to execute from that specific position.
-        </li>
-        <li><strong>Get and Set Attributes:</strong>
-          Processes frequently need to inspect or modify file metadata to perform their work. For instance, software development tools like the UNIX <code>make</code> utility examine modification timestamps across source and object files to determine the minimum compilations required. Systems provide dedicated calls to read or alter these attributes (such as changing permission masks or flags).
-        </li>
-        <li><strong>Rename:</strong>
-          Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.
-        </li>
+        <li><strong>Create:</strong> Initializes a new, empty file with no data payload. The primary purpose of the create call is to announce to the operating system that a new file is coming into existence, allocate an initial i-node or directory entry, and establish initial attribute values (such as protection modes).</li>
+        <li><strong>Delete:</strong> When a file is no longer required, this system call is invoked to remove the file from its directory structure, deallocate its i-node, and return all associated disk blocks to the free storage pool.</li>
+        <li><strong>Open:</strong> Before a process can read or write a file, it must open it. The open call forces the operating system to search the directory path, locate the file's metadata and disk addresses, and load them into a fast main-memory table (such as the open file table or v-node table) for rapid access on subsequent calls. It returns a small integer called a <em>file descriptor</em>.</li>
+        <li><strong>Close:</strong> When all file accesses are complete, the file should be closed to free internal table space and release kernel resources. Many operating systems enforce process-level limits on the maximum number of simultaneously open files. Furthermore, closing a file forces the operating system to flush and write out any unwritten buffered blocks residing in memory to the physical disk—even if the final block is not entirely full yet.</li>
+        <li><strong>Read:</strong> Retrieves data from a file into a user-provided memory buffer. The caller must specify the file descriptor, a pointer to the destination buffer, and the exact number of bytes requested. Data is normally read starting from the current file offset pointer, which automatically advances by the number of bytes successfully read.</li>
+        <li><strong>Write:</strong> Outputs data from a user-provided buffer into the file. Like read, the caller provides the file descriptor, buffer pointer, and byte count. Writing normally occurs at the current offset. If the current offset points to the end of the file, the file's size increases accordingly. If the offset is in the middle of the file, existing data is overwritten and permanently lost.</li>
+        <li><strong>Append:</strong> A restricted form of write operations supported by certain operating systems. Append restricts data insertion exclusively to the end of the file, guaranteeing that existing contents cannot be accidentally overwritten regardless of the current offset pointer.</li>
+        <li><strong>Seek (lseek):</strong> Essential for random-access files. Because random-access files permit reading and writing out of order, a method is required to specify the exact data offset. The seek system call repositions the file pointer to an arbitrary byte offset within the file, allowing subsequent read and write calls to execute from that specific position.</li>
+        <li><strong>Get and Set Attributes:</strong> Processes frequently need to inspect or modify file metadata to perform their work. For instance, software development tools like the UNIX <code>make</code> utility examine modification timestamps across source and object files to determine the minimum compilations required. Systems provide dedicated calls to read or alter these attributes (such as changing permission masks or flags).</li>
+        <li><strong>Rename:</strong> Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.</li>
       </ol>
+
+      <!-- Interactive Flowchart SVG -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Interactive Flowchart: POSIX System Call Interaction Pipeline</span>
+          <div style="display: flex; gap: 6px;">
+            <button onclick="highlightFlow('open')" style="font-size: 0.75rem; padding: 4px 8px;">1. open()</button>
+            <button onclick="highlightFlow('read')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">2. read()</button>
+            <button onclick="highlightFlow('write')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">3. write()</button>
+            <button onclick="highlightFlow('seek')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">4. lseek()</button>
+            <button onclick="highlightFlow('close')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">5. close()</button>
+          </div>
+        </div>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Node 1: User Process -->
+          <g id="node-process" class="flow-node">
+            <rect x="20" y="45" width="110" height="70" class="flow-box"/>
+            <text x="75" y="75" class="flow-text">User Process</text>
+            <text x="75" y="92" font-size="9" fill="#64748b" text-anchor="middle">System Calls</text>
+          </g>
+
+          <path d="M 130 80 L 170 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+
+          <!-- Node 2: FD Table -->
+          <g id="node-fd" class="flow-node">
+            <rect x="170" y="45" width="110" height="70" class="flow-box"/>
+            <text x="225" y="75" class="flow-text">FD Table</text>
+            <text x="225" y="92" font-size="9" fill="#64748b" text-anchor="middle">File Descriptor (fd)</text>
+          </g>
+
+          <path d="M 280 80 L 320 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+
+          <!-- Node 3: Open File Table / I-Node -->
+          <g id="node-inode" class="flow-node">
+            <rect x="320" y="45" width="130" height="70" class="flow-box"/>
+            <text x="385" y="72" class="flow-text">Open File Table</text>
+            <text x="385" y="88" font-size="9" fill="#64748b" text-anchor="middle">&amp; I-Node in RAM</text>
+            <text x="385" y="102" font-size="9" fill="#64748b" text-anchor="middle">Offset &amp; Pointers</text>
+          </g>
+
+          <path d="M 450 80 L 490 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+
+          <!-- Node 4: Buffer Cache -->
+          <g id="node-cache" class="flow-node">
+            <rect x="490" y="45" width="110" height="70" class="flow-box"/>
+            <text x="545" y="75" class="flow-text">Buffer Cache</text>
+            <text x="545" y="92" font-size="9" fill="#64748b" text-anchor="middle">In-Memory Blocks</text>
+          </g>
+
+          <path d="M 600 80 L 640 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+
+          <!-- Node 5: Disk / SSD Storage -->
+          <g id="node-disk" class="flow-node">
+            <rect x="640" y="45" width="100" height="70" class="flow-box"/>
+            <text x="690" y="75" class="flow-text">Storage Media</text>
+            <text x="690" y="92" font-size="9" fill="#64748b" text-anchor="middle">Disks / SSDs</text>
+          </g>
+
+          <defs>
+            <marker id="flowarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+            </marker>
+          </defs>
+        </svg>
+        <div id="flowDesc" style="font-size: 0.85rem; color: var(--text-muted); text-align: center; font-style: italic;">
+          Click the operation buttons above to trace the execution pathway across kernel subsystems.
+        </div>
+      </div>
     </div>
 
     <!-- Section 4.1.7: Example Program -->
@@ -609,16 +664,52 @@ int main(int argc, char *argv[]) {
         term.textContent = "$ close(3);\n[Kernel] Flushed cached blocks to disk. Released file descriptor fd=3.\nStatus: Success (Descriptor closed)";
       }
     }
+
+    function highlightFlow(op) {
+      // Clear active classes
+      document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active-node'));
+      const desc = document.getElementById('flowDesc');
+
+      if (op === 'open') {
+        document.getElementById('node-process').classList.add('active-node');
+        document.getElementById('node-fd').classList.add('active-node');
+        document.getElementById('node-inode').classList.add('active-node');
+        desc.textContent = "open(): Process issues path lookup, allocates FD table entry, and binds to Open File Table & in-memory I-Node.";
+      } else if (op === 'read') {
+        document.getElementById('node-process').classList.add('active-node');
+        document.getElementById('node-fd').classList.add('active-node');
+        document.getElementById('node-inode').classList.add('active-node');
+        document.getElementById('node-cache').classList.add('active-node');
+        document.getElementById('node-disk').classList.add('active-node');
+        desc.textContent = "read(): Translates offset via I-node, checks Buffer Cache, fetches from Disk if miss, and copies bytes to user buffer.";
+      } else if (op === 'write') {
+        document.getElementById('node-process').classList.add('active-node');
+        document.getElementById('node-inode').classList.add('active-node');
+        document.getElementById('node-cache').classList.add('active-node');
+        desc.textContent = "write(): Copies user data into Buffer Cache blocks, updates I-node file size attributes, and advances offset.";
+      } else if (op === 'seek') {
+        document.getElementById('node-process').classList.add('active-node');
+        document.getElementById('node-inode').classList.add('active-node');
+        desc.textContent = "lseek(): Directly updates the file offset pointer within the Open File Table entry without touching storage media.";
+      } else if (op === 'close') {
+        document.getElementById('node-process').classList.add('active-node');
+        document.getElementById('node-fd').classList.add('active-node');
+        document.getElementById('node-inode').classList.add('active-node');
+        document.getElementById('node-cache').classList.add('active-node');
+        document.getElementById('node-disk').classList.add('active-node');
+        desc.textContent = "close(): Flushes dirty cache blocks to Disk, deallocates FD table entry, and decrements I-node reference count.";
+      }
+    }
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Expand subsection 4.1.6 file operations and system calls in module 01
+COMMIT_MSG = """Add interactive POSIX file operations flowchart to module 01
 
-Update week10-file-management/01-files-abstraction.html to include
-comprehensive breakdowns of all ten core POSIX system calls, file descriptor
-tables, caching mechanics, and interactive kernel operations."""
+Update week10-file-management/01-files-abstraction.html to include an
+interactive step-by-step SVG flowchart visualizing the lifecycle and
+interaction of POSIX file operations across kernel subsystems."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -638,12 +729,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote expanded file operations module file to {target_file}")
+    print(f"Wrote module file with interactive flowchart to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging expanded file operations 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging flowchart update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Expanded File Operations Module 01 created, committed, and pushed successfully!")
+    print("--> Flowchart Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
