@@ -1,42 +1,55 @@
 #!/usr/bin/env python3
 import os
 
-MATHJAX_SNIPPET = """  <!-- Configure MathJax to recognize single dollar signs for inline math -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\\\(', '\\\\)']]
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-"""
+def fix_aging_algorithm_mathjax():
+    base_dir = "."
+    w09_dir = os.path.join(base_dir, "week09-memory-management")
+    target_file = os.path.join(w09_dir, "08-aging-algorithm.html")
 
-def fix_latex_in_html():
-    modified_count = 0
-    for root, dirs, files in os.walk("."):
-        # Skip hidden directories like .git
-        if ".git" in root:
-            continue
-        for file in files:
-            if file.endswith(".html"):
-                fpath = os.path.join(root, file)
-                with open(fpath, "r", encoding="utf-8") as f:
-                    content = f.read()
+    if not os.path.exists(target_file):
+        print(f"Error: Could not find {target_file}")
+        return
 
-                # Check if the file contains inline math ($...$) but lacks MathJax
-                if "$" in content and "mathjax" not in content.lower():
-                    head_idx = content.find("</head>")
-                    if head_idx != -1:
-                        new_content = content[:head_idx] + MATHJAX_SNIPPET + content[head_idx:]
-                        with open(fpath, "w", encoding="utf-8") as f:
-                            f.write(new_content)
-                        print(f"[FIXED] Added MathJax to: {fpath}")
-                        modified_count += 1
-                    else:
-                        print(f"[SKIPPED] No </head> tag found in: {fpath}")
+    with open(target_file, "r", encoding="utf-8") as f:
+        content = f.read()
 
-    print(f"\nDone! Successfully updated {modified_count} HTML file(s) with MathJax support.")
+    # Find renderWt function and add MathJax typesetting call
+    old_render_wt = """    function renderWt() {
+      const s = wtSteps[wtStep];
+      document.getElementById("wtCounter").textContent = `Step ${wtStep + 1} of ${wtSteps.length}`;
+      document.getElementById("wtTitle").textContent = s.title;
+      document.getElementById("wtText").innerHTML = s.text;"""
+
+    new_render_wt = """    function renderWt() {
+      const s = wtSteps[wtStep];
+      document.getElementById("wtCounter").textContent = `Step ${wtStep + 1} of ${wtSteps.length}`;
+      document.getElementById("wtTitle").textContent = s.title;
+      document.getElementById("wtText").innerHTML = s.text;
+
+      // Re-run MathJax typesetting for dynamic content
+      if (window.MathJax && window.MathJax.typeset) {
+        MathJax.typeset();
+      }"""
+
+    if old_render_wt in content:
+        updated_content = content.replace(old_render_wt, new_render_wt)
+        with open(target_file, "w", encoding="utf-8") as f:
+            f.write(updated_content)
+        print(f"[SUCCESS] Added dynamic MathJax typesetting to renderWt() in {target_file}")
+    else:
+        print(f"[WARNING] Could not find exact renderWt signature in {target_file}. Trying alternative patch...")
+
+        # Fallback regex patch if needed
+        import re
+        pattern = r'(function renderWt\s*\(\)\s*\{[^}]*document\.getElementById\("wtText"\)\.innerHTML\s*=\s*s\.text;)'
+        replacement = r'\1\n      if (window.MathJax && window.MathJax.typeset) { MathJax.typeset(); }'
+        updated_content, count = re.subn(pattern, replacement, content)
+        if count > 0:
+            with open(target_file, "w", encoding="utf-8") as f:
+                f.write(updated_content)
+            print(f"[SUCCESS] Patched {target_file} using regex.")
+        else:
+            print("[ERROR] Failed to apply MathJax patch.")
 
 if __name__ == "__main__":
-    fix_latex_in_html()
+    fix_aging_algorithm_mathjax()
