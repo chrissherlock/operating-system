@@ -409,21 +409,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="425" y="292" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">k (Window size in memory references)</text>
           <text x="80" y="175" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle" transform="rotate(-90 80 175)">w(k, t)</text>
 
-          <!-- Grid / Reference Dashed Lines -->
-          <line x1="110" y1="230" x2="740" y2="230" stroke="#e2e8f0" stroke-dasharray="4"/>
-          <line x1="110" y1="160" x2="740" y2="160" stroke="#e2e8f0" stroke-dasharray="4"/>
-          <line x1="110" y1="110" x2="740" y2="110" stroke="#e2e8f0" stroke-dasharray="4"/>
-
-          <!-- Working Set Curve: w(k, t) -->
-          <path d="M 110 255 Q 210 250 350 135 T 510 120 L 720 120" stroke="#0284c7" stroke-width="3.5" fill="none"/>
+          <!-- Working Set Curve: w(k, t) reaches horizontal plateau at y=120 from x=500 to x=720 -->
+          <path d="M 110 255 C 220 255, 300 200, 350 135 C 390 85, 430 120, 500 120 L 720 120" stroke="#0284c7" stroke-width="3.5" fill="none"/>
 
           <!-- Annotations / Key Points -->
 
           <!-- 1. Small k Zone -->
-          <line x1="170" y1="260" x2="170" y2="242" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="170" cy="245" r="4" fill="#d97706"/>
-          <text x="170" y="218" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
-          <text x="170" y="230" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
+          <line x1="170" y1="260" x2="170" y2="250" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2"/>
+          <circle cx="170" cy="250" r="4" fill="#d97706"/>
+          <text x="170" y="222" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
+          <text x="170" y="235" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
 
           <!-- 2. Optimal Window (tau) & Target RAM Allocation -->
           <line x1="350" y1="135" x2="350" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
@@ -432,11 +427,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="325" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
           <line x1="330" y1="114" x2="346" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
-          <!-- 3. Large k Zone (Shifted leftward to x=460 to stay clear of curve) -->
-          <line x1="480" y1="260" x2="480" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="480" cy="120" r="4" fill="#7c3aed"/>
-          <text x="460" y="96" font-size="11" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
-          <text x="460" y="110" font-size="9.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
+          <!-- 3. Large k Zone (Positioned to the right on plateau at x=620, point exactly on graph line) -->
+          <line x1="620" y1="260" x2="620" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
+          <circle cx="620" cy="120" r="5" fill="#7c3aed" stroke="#ffffff" stroke-width="1.5"/>
+          <text x="620" y="88" font-size="11" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
+          <text x="620" y="102" font-size="9.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
 
           <!-- Bottom Legend / Summary Box -->
           <rect x="70" y="315" width="700" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
@@ -669,12 +664,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Shift Large k label leftward to eliminate curve overlap in Fig 3-19
+COMMIT_MSG = """Move Large k annotation rightward onto plateau in Figure 3-19
 
-Adjust the horizontal positioning of the 'Large k' annotation in Figure
-3-19 of 09-working-set.html. Shifting the text anchor to x=460 places
-the text entirely within the open white space above the inflection
-point, preventing any collision with the curve or grid lines."""
+Shift the 'Large k' point and text annotation over to the right onto
+the curve plateau at x=620, ensuring the indicator point sits directly
+on the graph line. Remove the container box and strip out decorative
+grid lines so the text rests cleanly in the upper margin without
+overlapping the curve or axis reference markers in 09-working-set.html."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -688,7 +684,7 @@ def run_git_step(cmd, step_desc):
         sys.exit(res.returncode)
     return res.stdout.strip()
 
-def sync_module_file():
+def write_html_and_sync():
     target_path = "week09-memory-management/09-working-set.html"
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     with open(target_path, "w", encoding="utf-8") as f:
@@ -701,4 +697,4 @@ def sync_module_file():
     print("--> Successfully committed and pushed to origin/main.")
 
 if __name__ == "__main__":
-    sync_module_file()
+    write_html_and_sync()
