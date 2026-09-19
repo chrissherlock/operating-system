@@ -103,37 +103,25 @@
       margin-bottom: 12px;
     }
 
-    .bio-sidebar {
-      float: right;
-      width: 360px;
+    /* Horizontal Pioneers Grid Layout */
+    .pioneers-grid-card {
+      border-top: 4px solid var(--inspect-color);
+    }
+    .pioneers-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .pioneer-col {
       background: #f8fafc;
       border: 1px solid var(--border);
-      border-top: 4px solid var(--inspect-color);
       border-radius: 6px;
-      padding: 16px;
-      margin-left: 24px;
-      margin-bottom: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      font-size: 0.88rem;
-    }
-    .bio-sidebar h3 {
-      font-size: 1rem;
-      color: var(--inspect-color);
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-    }
-    .pioneer-bio {
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px dashed #cbd5e1;
-    }
-    .pioneer-bio:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
+      gap: 10px;
+      font-size: 0.85rem;
     }
     .pioneer-header-row {
       display: flex;
@@ -143,7 +131,7 @@
     .pioneer-name {
       font-weight: 700;
       color: var(--text);
-      font-size: 0.9rem;
+      font-size: 0.92rem;
     }
     .pioneer-wiki {
       font-size: 0.75rem;
@@ -155,29 +143,25 @@
       font-weight: 600;
     }
     .pioneer-meta {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       color: var(--text-muted);
       margin-top: 2px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
-    .pioneer-bio img {
+    .pioneer-col img {
       width: 100%;
-      height: auto;
-      max-height: 200px;
+      height: 150px;
       object-fit: contain;
       background-color: #f1f5f9;
       border-radius: 4px;
-      margin-top: 6px;
-      margin-bottom: 6px;
       border: 1px solid var(--border);
     }
-    .pioneer-bio p {
+    .pioneer-col p {
       color: var(--text-muted);
-      line-height: 1.45;
-      font-size: 0.82rem;
-      margin-top: 4px;
+      line-height: 1.4;
+      font-size: 0.8rem;
     }
-    .pioneer-bio a {
+    .pioneer-col a {
       color: var(--accent);
       text-decoration: underline;
       font-weight: 600;
@@ -196,7 +180,6 @@
       border-radius: 8px;
       padding: 16px;
       overflow-x: auto;
-      clear: both;
     }
 
     .kernel-sandbox {
@@ -335,10 +318,6 @@
     .c-num { color: #fbbf24; }
     .c-comm { color: #64748b; font-style: italic; }
 
-    @media (max-width: 860px) {
-      .bio-sidebar { float: none; width: 100%; margin-left: 0; }
-    }
-
     /* State Machine Diagram Styles */
     .sm-state { transition: all 0.25s ease; }
     .sm-box { fill: #0f172a; stroke: #38bdf8; stroke-width: 2px; rx: 6px; }
@@ -362,55 +341,9 @@
 
   <div class="main-container">
 
-    <!-- 1. THEORY SECTION WITH FLOATING SIDEBAR -->
+    <!-- 1. THEORY SECTION -->
     <div class="card">
       <div class="theory-section">
-
-        <!-- Floating Sidebar with Pioneers Infobox -->
-        <aside class="bio-sidebar">
-          <h3>File System Pioneers</h3>
-
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Ken Thompson</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Feb 4, 1943 | UC Berkeley | Bell Labs</div>
-            <img src="images/thompson.jpg" alt="Ken Thompson">
-            <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems. You can find out more on <a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">Wikipedia</a>.</p>
-          </div>
-
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Dennis Ritchie</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Sep 9, 1941 — <strong>Died:</strong> Oct 12, 2011 | Harvard | Bell Labs</div>
-            <img src="images/ritchie.jpg" alt="Dennis Ritchie">
-            <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions. You can find out more on <a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">Wikipedia</a>.</p>
-          </div>
-
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Andrew S. Tanenbaum</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Mar 16, 1944 | MIT / Vrije Universiteit</div>
-            <img src="images/tanenbaum.jpg" alt="Andrew S. Tanenbaum">
-            <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles. You can find out more on <a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">Wikipedia</a>.</p>
-          </div>
-
-          <div class="pioneer-bio">
-            <div class="pioneer-header-row">
-              <div class="pioneer-name">Marshall Kirk McKusick</div>
-              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">[Wiki]</a></div>
-            </div>
-            <div class="pioneer-meta"><strong>Born:</strong> Jan 19, 1954 | Cornell / UC Berkeley</div>
-            <img src="images/mckusick.jpg" alt="Marshall Kirk McKusick">
-            <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation. You can find out more on <a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">Wikipedia</a>.</p>
-          </div>
-        </aside>
-
         <h2>4.1.1 File Naming &amp; Structural Abstractions</h2>
         <p>
           File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across execution contexts. When a context creates a file, it assigns a unique name; when that context terminates, the file persists and remains accessible to other contexts using that same name. Modern operating systems support extended identifiers up to 255 characters, balancing case sensitivity models across UNIX and Windows environments.
@@ -451,6 +384,58 @@
           <rect x="170" y="137" width="360" height="24" fill="#fef2f2" stroke="#fecaca" stroke-width="1" rx="3"/>
           <text x="180" y="153" font-size="10" font-weight="600" fill="#b91c1c">File Size &amp; Disk Block Address Pointers</text>
         </svg>
+      </div>
+    </div>
+
+    <!-- HORIZONTAL PIONEERS INFOBOX (Placed under Section 4.1.4) -->
+    <div class="card pioneers-grid-card">
+      <h3 style="font-size: 1rem; color: var(--inspect-color); text-transform: uppercase; font-family: var(--font-mono); border-bottom: 1px solid var(--border); padding-bottom: 6px;">File System Pioneers</h3>
+      <div class="pioneers-container">
+
+        <!-- Ken Thompson -->
+        <div class="pioneer-col">
+          <div class="pioneer-header-row">
+            <div class="pioneer-name">Ken Thompson</div>
+            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">[Wiki]</a></div>
+          </div>
+          <div class="pioneer-meta"><strong>Born:</strong> Feb 4, 1943<br>UC Berkeley | Bell Labs</div>
+          <img src="images/thompson.jpg" alt="Ken Thompson">
+          <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems. You can find out more on <a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">Wikipedia</a>.</p>
+        </div>
+
+        <!-- Dennis Ritchie -->
+        <div class="pioneer-col">
+          <div class="pioneer-header-row">
+            <div class="pioneer-name">Dennis Ritchie</div>
+            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">[Wiki]</a></div>
+          </div>
+          <div class="pioneer-meta"><strong>Born:</strong> Sep 9, 1941 — <strong>Died:</strong> Oct 12, 2011<br>Harvard | Bell Labs</div>
+          <img src="images/ritchie.jpg" alt="Dennis Ritchie">
+          <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions. You can find out more on <a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">Wikipedia</a>.</p>
+        </div>
+
+        <!-- Andrew S. Tanenbaum -->
+        <div class="pioneer-col">
+          <div class="pioneer-header-row">
+            <div class="pioneer-name">Andrew S. Tanenbaum</div>
+            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">[Wiki]</a></div>
+          </div>
+          <div class="pioneer-meta"><strong>Born:</strong> Mar 16, 1944<br>MIT / Vrije Universiteit</div>
+          <img src="images/tanenbaum.jpg" alt="Andrew S. Tanenbaum">
+          <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles. You can find out more on <a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">Wikipedia</a>.</p>
+        </div>
+
+        <!-- Marshall Kirk McKusick -->
+        <div class="pioneer-col">
+          <div class="pioneer-header-row">
+            <div class="pioneer-name">Marshall Kirk McKusick</div>
+            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">[Wiki]</a></div>
+          </div>
+          <div class="pioneer-meta"><strong>Born:</strong> Jan 19, 1954<br>Cornell / UC Berkeley</div>
+          <img src="images/mckusick.jpg" alt="Marshall Kirk McKusick">
+          <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation. You can find out more on <a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">Wikipedia</a>.</p>
+        </div>
+
       </div>
     </div>
 
