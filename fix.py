@@ -219,6 +219,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       .bio-sidebar { float: none; width: 100%; margin-left: 0; }
     }
 
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+    .guide-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.84rem;
+    }
+    .guide-box strong {
+      color: var(--accent);
+      font-size: 0.88rem;
+    }
+
     .table-container {
       min-height: 250px;
     }
@@ -564,7 +586,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <span id="wtCounter">Scenario 1 of 6</span>
         <span>Guided Walkthrough: Micro-Step Decision Scenarios</span>
       </div>
-      <div id="wtTitle" class="tutorial-title">1. Hand at Frame 0: The R = 1 Case</div>
+      <div id="wtTitle" class="tutorial-title">1. Scenario 1: Hand at Frame 0 (The R = 1 Case)</div>
 
       <div class="split-grid">
         <!-- Dual Interactive Visual Console -->
@@ -611,7 +633,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 1 Yes: Action 1 (Up) -->
             <path id="walk-edge-r-yes" class="walk-edge" d="M 135 60 L 135 24 L 174 24" stroke="#cbd5e1" stroke-width="1.2" fill="none" marker-end="url(#w-arr)"/>
-            <text x="142" y="42" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <text x="142" y="42" font-size="8" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-r1" class="walk-node">
               <rect x="178" y="10" width="112" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="234" y="22" font-size="8" font-weight="700" fill="#b45309" text-anchor="middle">R &larr; 0, Time &larr; T_curr</text>
@@ -625,13 +647,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <!-- Gate 2: Age <= tau? -->
             <g id="walk-gate-age" class="walk-node">
               <polygon points="238,60 272,80 238,100 204,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="238" y="78" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
+              <text x="238" y="78" font-size="8" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
               <text x="238" y="89" font-size="6.5" fill="#64748b" text-anchor="middle">(In WS?)</text>
             </g>
 
             <!-- Gate 2 Yes: Action 2 (Down) -->
             <line id="walk-edge-age-yes" class="walk-edge" x1="238" y1="100" x2="238" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="244" y="120" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <text x="244" y="120" font-size="8" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-inws" class="walk-node">
               <rect x="188" y="138" width="100" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="238" y="150" font-size="8" font-weight="700" fill="#0369a1" text-anchor="middle">In Working Set</text>
@@ -651,7 +673,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 3 Yes: Evict Action (Right) -->
             <line id="walk-edge-m-yes" class="walk-edge" x1="374" y1="80" x2="416" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="394" y="75" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <text x="394" y="75" font-size="8" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-evict" class="walk-node">
               <rect x="420" y="65" width="102" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="471" y="79" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
@@ -660,7 +682,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 3 No: Dirty Action (Down) -->
             <line id="walk-edge-m-no" class="walk-edge" x1="342" y1="100" x2="342" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="348" y="120" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <text x="348" y="120" font-size="8" font-weight="700" fill="#64748b">No</text>
             <g id="walk-action-dirty" class="walk-node">
               <rect x="296" y="138" width="112" height="30" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="352" y="150" font-size="8" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
@@ -729,8 +751,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div id="wtText" class="tutorial-body"></div>
           <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
           <div class="tour-nav">
-            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous Case</button>
-            <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Case &rarr;</button>
+            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous Scenario</button>
+            <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Scenario &rarr;</button>
             <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Simulator &darr;</button>
           </div>
         </div>
@@ -743,7 +765,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div>
           <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive WSClock Ring Simulator</h2>
           <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Advance the clock hand, trigger page faults, and observe age thresholds and dirty write flushes.
+            Simulate reference streams, dirty write flushes, and observe real-time clock hand sweeps.
           </p>
         </div>
         <div style="display:flex; gap:8px;">
@@ -751,13 +773,45 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
       </div>
 
+      <!-- Instruction Guide Card -->
+      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+        <strong style="color: var(--accent); font-size: 0.9rem;">How the Simulator Works &amp; What to Observe:</strong>
+        <div class="guide-grid">
+          <div class="guide-box">
+            <strong>1. Read or Write Pages</strong>
+            <span>Type a page letter (A-F) and choose <em>Read (R=1)</em> or <em>Write (M=1)</em>. Notice how the page's last used timestamp refreshes to current virtual time.</span>
+          </div>
+          <div class="guide-box">
+            <strong>2. Set Age Threshold (&tau;)</strong>
+            <span>Adjust the slider to control the working set window size. Pages older than &tau; become candidates for eviction or asynchronous flushing.</span>
+          </div>
+          <div class="guide-box">
+            <strong>3. Trigger Page Faults</strong>
+            <span>Click <em>Trigger Page Fault</em> to advance the clock hand. Watch the terminal trace calculate the exact age delta ($(T_{\text{curr}} - T_{\text{last}})$) for each frame.</span>
+          </div>
+        </div>
+        <div style="font-size: 0.84rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 6px;">
+          <strong>Suggested Experiment:</strong> Mark a page Dirty using <em>Write Page</em>, slide &tau; down to 100 ticks, and trigger a fault. Watch the algorithm schedule an asynchronous flush rather than evicting it immediately!
+        </div>
+      </div>
+
       <!-- Controls -->
-      <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:12px 14px; border:1px solid var(--border); border-radius:6px;">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:12px 14px; border:1px solid var(--border); border-radius:6px;">
         <button type="button" onclick="triggerFault()">Trigger Page Fault (Advance Hand)</button>
-        <label style="font-size:0.85rem; font-weight:600;">Working Set Threshold (&tau;):</label>
-        <input type="range" id="tauSlider" min="100" max="800" value="400" oninput="updateTau(this.value)">
-        <span id="tauVal" style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">400 ticks</span>
-        <span style="margin-left:auto; font-size:0.85rem; font-family:var(--font-mono); font-weight:700;">Virtual Time: <span id="virtTimeDisplay" style="color:#0284c7;">2200</span></span>
+
+        <div style="display:flex; align-items:center; gap:6px; margin-left:8px;">
+          <label style="font-size:0.85rem; font-weight:600;">Page:</label>
+          <input type="text" id="simPageInput" value="C" maxlength="1" style="width:38px; text-align:center; padding:4px; font-family:var(--font-mono); text-transform:uppercase;">
+          <button type="button" class="btn-sec" onclick="accessSimPage(false)">Read Page (R=1)</button>
+          <button type="button" class="btn-sec" onclick="accessSimPage(true)">Write Page (M=1)</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+          <label style="font-size:0.85rem; font-weight:600;">Threshold (&tau;):</label>
+          <input type="range" id="tauSlider" min="100" max="800" value="400" oninput="updateTau(this.value)">
+          <span id="tauVal" style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">400 ticks</span>
+          <span style="font-size:0.85rem; font-family:var(--font-mono); font-weight:700; margin-left:10px;">Time: <span id="virtTimeDisplay" style="color:#0284c7;">2200</span></span>
+        </div>
       </div>
 
       <!-- Telemetry Banner -->
@@ -898,7 +952,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     ];
 
     function resetWalkVisuals() {
-      // 1. Reset Flowchart Tree
       document.querySelectorAll(".walk-node").forEach(n => {
         n.className.baseVal = "walk-node";
       });
@@ -907,8 +960,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         e.setAttribute("stroke", "#cbd5e1");
         e.setAttribute("marker-end", "url(#w-arr)");
       });
-
-      // 2. Reset Circular Ring
       document.querySelectorAll(".walk-ring-frame").forEach(rf => {
         rf.className.baseVal = "walk-ring-frame";
       });
@@ -933,7 +984,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       resetWalkVisuals();
 
-      // Highlight decision gate & terminal action in tree
       const gateEl = document.getElementById(c.highlightGate);
       if (gateEl) gateEl.classList.add("active-gate");
 
@@ -948,20 +998,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       });
 
-      // Highlight frame node in circular ring
       const ringFrameEl = document.getElementById(`ring-node-${f.frameId}`);
       if (ringFrameEl) {
         ringFrameEl.className.baseVal = `walk-ring-frame ${c.ringClass}`;
       }
 
-      // Rotate/position hand line towards the active frame
       const handLine = document.getElementById("walkRingHandLine");
       if (handLine && c.handTarget) {
         handLine.setAttribute("x2", c.handTarget.x);
         handLine.setAttribute("y2", c.handTarget.y);
       }
 
-      // Maintain disabled states at boundaries
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtCases.length - 1);
     }
@@ -1047,11 +1094,30 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       renderRingTable();
     }
 
+    function accessSimPage(isWrite) {
+      const input = document.getElementById("simPageInput");
+      const pageName = input.value.trim().toUpperCase();
+      if (!pageName) return;
+
+      virtualTime += 10;
+      const f = frames.find(frame => frame.page === pageName);
+
+      if (f) {
+        f.r = 1;
+        if (isWrite) f.m = 1;
+        f.lastUse = virtualTime;
+        logSim(`Instruction ${isWrite ? 'WRITES to' : 'READS'} Page '${pageName}' in Frame ${f.id}. Refreshed LastUse=${virtualTime}, set R=1${isWrite ? ', M=1' : ''}.`);
+      } else {
+        logSim(`Instruction references Page '${pageName}' (Absent from memory! Click 'Trigger Page Fault' to resolve).`);
+      }
+      renderRingTable();
+    }
+
     function triggerFault() {
       statFaults++;
       virtualTime += 50;
       logSim(`--------------------------------------------------`);
-      logSim(`Page fault at Virtual Time = ${virtualTime}. Scanning from Frame ${handIdx}...`);
+      logSim(`Page fault at Virtual Time = ${virtualTime}. Evaluating circular ring from Frame ${handIdx}...`);
 
       let evicted = false;
 
@@ -1059,7 +1125,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         let f = frames[handIdx];
         let age = virtualTime - f.lastUse;
 
-        // Case 1: R = 1
+        // Gate 1: R = 1
         if (f.r === 1) {
           f.r = 0;
           f.lastUse = virtualTime;
@@ -1068,14 +1134,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           continue;
         }
 
-        // Case 2: R = 0, Age <= tau
+        // Gate 2: R = 0, Age <= tau
         if (age <= tau) {
-          logSim(`Frame ${f.id} (${f.page}): R=0, but Age=${age} <= tau(${tau}). In Working Set. Hand advances.`);
+          logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} <= tau(${tau}). Inside Working Set. Hand advances.`);
           handIdx = (handIdx + 1) % frames.length;
           continue;
         }
 
-        // Case 3: R = 0, Age > tau, M = 0 (Clean eviction)
+        // Gate 3: R = 0, Age > tau, M = 0 (Clean eviction)
         if (f.m === 0) {
           logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} > tau(${tau}), Clean (M=0). EVICTED!`);
           statEvictions++;
@@ -1087,15 +1153,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           renderRingTable(f.id);
           handIdx = (handIdx + 1) % frames.length;
           evicted = true;
-          logSim(`Loaded new Page '${f.page}' into Frame ${f.id}. Next Hand -> Frame ${handIdx}.`);
+          logSim(`Claimed Frame ${f.id}. Loaded new Page '${f.page}' (R=1). Hand advances to Frame ${handIdx}.`);
           break;
         }
 
-        // Case 4: R = 0, Age > tau, M = 1 (Dirty write scheduled)
+        // Gate 4: R = 0, Age > tau, M = 1 (Dirty write scheduled)
         if (f.m === 1) {
           statWrites++;
-          f.m = 0;
-          logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} > tau(${tau}), Dirty (M=1). Scheduled Async Disk Write. Cleared M.`);
+          f.m = 0; // Async write scheduled, cleans buffer
+          logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} > tau(${tau}), Dirty (M=1). Scheduled Async Write. Cleared M.`);
           handIdx = (handIdx + 1) % frames.length;
         }
       }
@@ -1135,13 +1201,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix HTML entity encodings and expand WSClock walkthrough cases
+COMMIT_MSG = """Add simulator instructions and page access controls to 10-wsclock.html
 
-Clean up unencoded HTML/XML entities (&lt;, &gt;, &amp;, &tau;) across
-all SVG and DOM text nodes in 10-wsclock.html. Refactor the walkthrough
-stepper into 6 distinct micro-scenarios covering R=1 resets, resident
-working set checks, clean evictions, dirty async writes, and both full-
-sweep rotation fallbacks."""
+Introduce a detailed pre-flight instructional guide above Part 3 in
+10-wsclock.html explaining circular ring telemetry, age evaluation, and
+clock hand progression. Add interactive read/write page reference
+stimulus buttons so users can set R and M bits before triggering faults."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1164,7 +1229,7 @@ def sync_module():
     run_git_step(["git", "add", target_module], "Staging 10-wsclock.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Completed successfully!")
+    print("--> Instructions added, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     sync_module()
