@@ -99,68 +99,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .c-num { color: #fbbf24; }
     .c-comm { color: #64748b; font-style: italic; }
 
-    /* Tour Panel Styles */
-    .tour-panel {
-      border: 1px solid #bae6fd;
-      border-left: 5px solid var(--accent);
-      background: #f0f9ff;
-    }
-    .tour-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .tour-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #0369a1;
-    }
-    .tour-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #0c4a6e;
-    }
-    .telemetry-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .telemetry-box {
-      background: #ffffff;
-      border: 1px solid #7dd3fc;
-      border-radius: 6px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .telemetry-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #0284c7;
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-    }
-    .telemetry-value {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #0f172a;
-      font-family: var(--font-mono);
-    }
-    .tour-nav {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      align-items: center;
-    }
-
-    /* Kernel Inspector Sandbox Styles (High Contrast White on Dark) */
+    /* Kernel Inspector Sandbox Styles */
     .kernel-sandbox {
       background: #0f172a;
       color: #ffffff;
@@ -557,7 +496,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           This interactive sandbox simulates how the operating system kernel maintains state across process boundaries during POSIX file operations. As you click system call buttons above, examine how the interface updates across three synchronized telemetry views:
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px; color: #cbd5e1;">
-          <li><strong style="color: #ffffff;">1. The State Machine Diagram (Above):</strong> Visually tracks the active lifecycle state of your file descriptor (moving from <code>UNALLOCATED</code> to <code>FD_ALLOCATED</code>, <code>OFT_BOUND</code>, and <code>RAM_CACHED</code>) in real time.</li>
+          <li><strong style="color: #ffffff;">1. The State Machine Diagram (Above):</strong> Visually tracks the active lifecycle state of your file descriptor in real time.</li>
           <li><strong style="color: #ffffff;">2. The Three Kernel Tables (Below):</strong>
             <ul style="padding-left: 18px; margin-top: 2px; color: #94a3b8;">
               <li><em style="color: #cbd5e1;">Process FD Table:</em> Shows private per-process file descriptor integer slots (e.g., slot <code>3</code>).</li>
@@ -615,6 +554,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             </marker>
           </defs>
         </svg>
+      </div>
+
+      <!-- Detailed State Glossary & Explanatory Card -->
+      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5;">
+        <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.78rem; font-family: var(--font-mono);">Kernel State Machine Glossary &amp; Technical Breakdown:</div>
+        <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #94a3b8;">
+          <li><strong style="color: #38bdf8;">UNALLOCATED (Initial State):</strong> No file descriptor exists for this file in the process table. Any attempt to read or write without opening returns an <code style="color: #f87171;">EBADF</code> error.</li>
+          <li><strong style="color: #38bdf8;">FD_ALLOCATED (Triggered by creat() / open()):</strong> The kernel has successfully validated permissions, loaded the i-node into RAM, and bound a small integer index (e.g., `fd = 3`) in the process descriptor table.</li>
+          <li><strong style="color: #38bdf8;">OFT_BOUND (Triggered by read() / write()):</strong> The shared Open File Table entry is actively tracking access mode flags, reference counts, and the live byte offset pointer as data flows between storage and buffers.</li>
+          <li><strong style="color: #38bdf8;">RAM_CACHED (Triggered by write() / lseek()):</strong> Data resides in memory-resident buffer cache blocks (`DIRTY` until synced). Calling `close()` flushes blocks to disk and returns the state to `UNALLOCATED`.</li>
+        </ul>
       </div>
 
       <!-- Side-by-Side Kernel Table Panels -->
@@ -826,11 +776,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix contrast and add clear instructional guide to inspector sandbox
+COMMIT_MSG = """Add detailed kernel state glossary explaining FD lifecycle states
 
-Update week10-file-management/01-files-abstraction.html to fix color contrast
-issues on dark panels and add comprehensive, step-by-step instructions
-explaining the kernel inspector and state machine widgets."""
+Update week10-file-management/01-files-abstraction.html to include a clear
+technical glossary card breaking down UNALLOCATED, FD_ALLOCATED, OFT_BOUND,
+and RAM_CACHED states within the interactive inspector sandbox."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -850,12 +800,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with high-contrast guide to {target_file}")
+    print(f"Wrote module file with state glossary to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging high-contrast guide update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging state glossary update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> High-Contrast Guide Module 01 created, committed, and pushed successfully!")
+    print("--> State Glossary Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
