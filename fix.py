@@ -162,6 +162,31 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 8px;
     }
 
+    /* MODERN THEME LEGEND */
+    .modern-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      align-items: center;
+    }
+    .modern-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .modern-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
     /* THEME 1: MODERN (DEFAULT) */
     .theme-modern {
       background: #0f172a;
@@ -224,7 +249,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 210px; /* Perfectly fits 800x600 viewport */
+      height: 210px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
@@ -507,7 +532,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 200px; /* Perfectly fits 800x600 layout */
+      height: 200px;
     }
     .theme-olddos .c-cell {
       aspect-ratio: 1 / 1.6;
@@ -522,7 +547,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       -webkit-font-smoothing: none;
       user-select: none;
     }
-    /* MS-DOS 6.22 Defrag Palette */
     .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
     .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; }
@@ -530,7 +554,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
     .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
 
-    /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -717,12 +740,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Explicit Visual Color Legend / Key for Modern Theme -->
         <div class="modern-legend" id="modernLegend">
           <span style="font-weight:700; color:#38bdf8;">Legend:</span>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized (Contiguous)</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized (Fragmented)</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System (Unmovable)</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#facc15;"></div><span>Reading (r)</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#34d399;"></div><span>Writing (w)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space: Unallocated blocks available for new file data</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized: Contiguous files packed sequentially for high read throughput</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized: Fragmented file clusters scattered across the volume</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System: Unmovable kernel/system files parked securely</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#facc15;"></div><span>Reading (r): Active drive head reading scattered clusters</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#34d399;"></div><span>Writing (w): Active drive head writing consolidated blocks</span></div>
         </div>
 
         <!-- Real-Time Status Panel -->
@@ -1115,11 +1138,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix font rendering and optimize 800x600 screen fit for MS-DOS 6.22 defrag
+COMMIT_MSG = """Update modern theme legend text to explain cluster states
 
-Update week10-file-management/03-filesystem-implementation.html to restore
-sharp non-antialiased retro bitmap fonts and tighten layout spacing so the
-entire defrag interface fits on 800x600 resolution displays."""
+Update week10-file-management/03-filesystem-implementation.html to expand
+the modern theme legend labels with clear functional descriptions of each
+cluster state."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1141,10 +1164,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging 800x600 defrag fix update")
+    run_git_step(["git", "add", target_file], "Staging modern legend text update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> MS-DOS 6.22 Defragmenter 800x600 layout and font fix successfully deployed!")
+    print("--> Modern theme legend explanations successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
