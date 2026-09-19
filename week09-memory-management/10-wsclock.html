@@ -187,12 +187,15 @@
       font-size: 1.25rem;
       font-weight: 700;
       color: #075985;
+      height: 32px;
+      display: flex;
+      align-items: center;
     }
     .tutorial-body {
       font-size: 0.93rem;
       line-height: 1.65;
       color: #0c4a6e;
-      min-height: 85px;
+      min-height: 120px; /* Locked minimum height to prevent jumping */
     }
 
     .scenario-picker {
@@ -264,7 +267,7 @@
     }
 
     .table-container {
-      min-height: 250px;
+      min-height: 275px; /* Locked minimum height to prevent table jump */
     }
 
     .table-spec {
@@ -879,7 +882,7 @@
 
   <script>
     /* =========================================================================
-       PART 2: GRANULAR MICRO-STEP SCENARIOS (NATIVE UNICODE STRINGS)
+       PART 2: GRANULAR MICRO-STEP SCENARIOS (DEEP ARCHITECTURAL EXPLANATIONS)
        ========================================================================= */
     const scenarios = [
       // Scenario 0: Frame 0 (R=1)

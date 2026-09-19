@@ -192,12 +192,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 1.25rem;
       font-weight: 700;
       color: #075985;
+      height: 32px;
+      display: flex;
+      align-items: center;
     }
     .tutorial-body {
       font-size: 0.93rem;
       line-height: 1.65;
       color: #0c4a6e;
-      min-height: 85px;
+      min-height: 120px; /* Locked minimum height to prevent jumping */
     }
 
     .scenario-picker {
@@ -269,7 +272,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     .table-container {
-      min-height: 250px;
+      min-height: 275px; /* Locked minimum height to prevent table jump */
     }
 
     .table-spec {
@@ -884,7 +887,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GRANULAR MICRO-STEP SCENARIOS (NATIVE UNICODE STRINGS)
+       PART 2: GRANULAR MICRO-STEP SCENARIOS (DEEP ARCHITECTURAL EXPLANATIONS)
        ========================================================================= */
     const scenarios = [
       // Scenario 0: Frame 0 (R=1)
@@ -1454,12 +1457,12 @@ def sync_repository():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module with deep microstep explanations to {target_module}")
+    print(f"Wrote updated module to {target_module}")
 
     execute_git_command(["git", "add", target_module], "Staging 10-wsclock.html")
     execute_git_command(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     execute_git_command(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Updated explanations committed and pushed to origin/main successfully!")
+    print("--> Completed successfully!")
 
 if __name__ == "__main__":
     sync_repository()
