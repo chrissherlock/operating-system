@@ -18,7 +18,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
-    /* Embed authentic IBM PC CP437 bitmap font with forced non-antialiased rendering */
+    /* Embed authentic IBM PC CP437 bitmap font */
     @font-face {
       font-family: 'PerfectDOS';
       src: url('https://cdn.jsdelivr.net/gh/IdreesInc/Monocraft@main/web/Monocraft.woff2') format('woff2');
@@ -150,41 +150,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     /* =========================================================
-       DEFRAGMENTER SHELL & 800x600 FIT CONTAINER STYLING
+       DEFRAGMENTER SHELL & THEME CONTAINER STYLING
        ========================================================= */
     .defrag-outer-frame {
       width: 100%;
       border-radius: 8px;
       transition: all 0.25s ease;
-      padding: 12px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-    }
-
-    /* MODERN THEME LEGEND */
-    .modern-legend {
-      display: flex;
-      flex-wrap: wrap;
       gap: 12px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      color: #cbd5e1;
-      align-items: center;
-    }
-    .modern-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .modern-swatch {
-      width: 12px;
-      height: 12px;
-      border-radius: 2px;
-      flex-shrink: 0;
     }
 
     /* THEME 1: MODERN (DEFAULT) */
@@ -200,10 +175,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #334155;
-      padding-bottom: 6px;
+      padding-bottom: 8px;
     }
     .theme-modern .ui-title {
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: #38bdf8;
       text-transform: uppercase;
@@ -211,11 +186,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-modern .ui-controls {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       flex-wrap: wrap;
       background: #020617;
       border: 1px solid #1e293b;
-      padding: 6px 10px;
+      padding: 8px 12px;
       border-radius: 6px;
       align-items: center;
       color: #f8fafc;
@@ -224,9 +199,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
-      padding: 4px 10px;
+      padding: 5px 11px;
       border-radius: 4px;
-      font-size: 0.74rem;
+      font-size: 0.76rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
@@ -239,17 +214,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 4px;
+      padding: 6px;
       display: flex;
       justify-content: center;
     }
     .theme-modern .screen-grid {
       display: grid;
       grid-template-columns: repeat(50, 1fr);
-      gap: 1px;
+      gap: 2px;
       width: 100%;
-      max-width: 950px;
-      height: 210px;
+      max-width: 1000px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
@@ -265,8 +239,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 0.76rem;
+      padding: 8px 12px;
+      font-size: 0.8rem;
       color: #38bdf8;
       display: flex;
       justify-content: space-between;
@@ -279,7 +253,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #008080;
       color: #000000;
       font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif;
-      padding: 8px;
+      padding: 12px;
       border-radius: 4px;
     }
     .theme-win95 .ui-window-box {
@@ -289,25 +263,25 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-right: 2px solid #000000;
       border-bottom: 2px solid #000000;
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
-      padding: 2px;
+      padding: 3px;
     }
     .theme-win95 .ui-topbar {
       background: linear-gradient(90deg, #000080, #1084d0);
       color: #ffffff;
-      padding: 2px 6px;
+      padding: 3px 6px;
       font-weight: bold;
-      font-size: 11px;
+      font-size: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .theme-win95 .ui-title { color: #ffffff; font-size: 11px; font-weight: bold; }
+    .theme-win95 .ui-title { color: #ffffff; font-size: 12px; font-weight: bold; }
     .theme-win95 .ui-controls {
       display: flex;
-      gap: 4px;
+      gap: 5px;
       flex-wrap: wrap;
       background: transparent;
-      padding: 4px 0;
+      padding: 6px 0;
       align-items: center;
       color: #000000;
     }
@@ -318,8 +292,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-right: 2px solid #000000;
       border-bottom: 2px solid #000000;
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
-      padding: 2px 6px;
-      font-size: 10px;
+      padding: 3px 8px;
+      font-size: 11px;
       color: #000000 !important;
       cursor: pointer;
     }
@@ -344,17 +318,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-right: 2px solid #ffffff;
       border-bottom: 2px solid #ffffff;
       background: #000000;
-      padding: 2px;
+      padding: 3px;
       display: flex;
       justify-content: center;
     }
     .theme-win95 .screen-grid {
       display: grid;
       grid-template-columns: repeat(50, 1fr);
-      gap: 1px;
+      gap: 2px;
       width: 100%;
-      max-width: 950px;
-      height: 210px;
+      max-width: 1000px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
@@ -368,9 +341,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-win95 .c-write { background-color: #ff0000 !important; box-shadow: 0 0 4px #ff0000; }
     .theme-win95 .ui-status-panel {
       border-top: 1px solid #808080;
-      padding-top: 3px;
-      margin-top: 3px;
-      font-size: 10px;
+      padding-top: 4px;
+      margin-top: 4px;
+      font-size: 11px;
       display: flex;
       justify-content: space-between;
       color: #000000 !important;
@@ -383,28 +356,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0000aa;
       color: #ffffff;
       font-family: "Courier New", Courier, monospace;
-      padding: 8px;
+      padding: 10px;
       border: 3px double #ffffff;
-      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.8);
+      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8);
     }
     .theme-dos .ui-topbar {
       background: #00aaaa;
       color: #000000;
-      padding: 2px 6px;
+      padding: 2px 8px;
       font-weight: bold;
-      font-size: 12px;
+      font-size: 13px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
-    .theme-dos .ui-title { color: #000000; font-size: 12px; font-weight: bold; }
+    .theme-dos .ui-title { color: #000000; font-size: 13px; font-weight: bold; }
     .theme-dos .ui-controls {
       display: flex;
-      gap: 5px;
+      gap: 6px;
       flex-wrap: wrap;
       background: transparent;
-      padding: 4px 0;
+      padding: 6px 0;
       align-items: center;
       color: #ffffff;
     }
@@ -412,8 +385,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0000aa;
       color: #ffff55;
       border: 1px solid #ffffff;
-      padding: 2px 6px;
-      font-size: 10px;
+      padding: 2px 7px;
+      font-size: 11px;
       font-family: inherit;
       font-weight: bold;
       cursor: pointer;
@@ -424,7 +397,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .grid-wrapper {
       background: #000055;
       border: 2px solid #55ffff;
-      padding: 3px;
+      padding: 4px;
       display: flex;
       justify-content: center;
     }
@@ -434,15 +407,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 210px;
     }
     .theme-dos .c-cell {
-      aspect-ratio: 1 / 1.5;
+      aspect-ratio: 1 / 1.65;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8.5px;
+      font-size: 9px;
       font-weight: bold;
       line-height: 1;
       user-select: none;
@@ -456,9 +428,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .ui-status-panel {
       background: #0000aa;
       border-top: 1px dashed #ffffff;
-      padding-top: 4px;
-      margin-top: 4px;
-      font-size: 10px;
+      padding-top: 6px;
+      margin-top: 6px;
+      font-size: 11px;
       color: #ffff55;
       display: flex;
       justify-content: space-between;
@@ -467,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (NON-ANTIALIASED BITMAP CP437)
+       THEME 4: MS-DOS 6.22 DEFRAG (AUTHENTIC MICROSOFT DEFRAG)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -485,33 +457,29 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .ui-topbar {
       background: #ffffff;
       color: #0000aa;
-      padding: 3px 6px;
-      font-size: 10.5px;
+      padding: 4px 8px;
+      font-size: 11px;
       font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 0;
-      image-rendering: pixelated;
-      -webkit-font-smoothing: none;
     }
-    .theme-olddos .ui-title { color: #0000aa; font-size: 10.5px; font-weight: bold; }
+    .theme-olddos .ui-title { color: #0000aa; font-size: 11px; font-weight: bold; }
     .theme-olddos .ui-controls {
       background: #0000aa;
       border-bottom: 1px solid #55ffff;
-      padding: 4px 8px;
-      gap: 5px;
-      image-rendering: pixelated;
+      padding: 6px 10px;
+      gap: 6px;
     }
     .theme-olddos .ctrl-btn {
       background-color: #0000aa;
       color: #ffff55;
       border: 1px solid #ffff55;
-      padding: 2px 5px;
-      font-size: 9.5px;
-      font-family: 'PerfectDOS', monospace;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-family: inherit;
       image-rendering: pixelated;
-      -webkit-font-smoothing: none;
       cursor: pointer;
     }
     .theme-olddos .ctrl-btn:hover { background-color: #55ffff; color: #0000aa; }
@@ -521,8 +489,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .grid-wrapper {
       background: #0000aa;
       border: 1px solid #55ffff;
-      margin: 4px;
-      padding: 2px;
+      margin: 6px;
+      padding: 4px;
       display: flex;
       justify-content: center;
     }
@@ -532,7 +500,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 200px;
     }
     .theme-olddos .c-cell {
       aspect-ratio: 1 / 1.6;
@@ -544,55 +511,54 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
-      -webkit-font-smoothing: none;
       user-select: none;
     }
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
-    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
-    .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; }
-    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
+    /* MS-DOS 6.22 Defrag Palette */
+    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; } /* Shaded / Dotted */
+    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }   /* Solid Yellow */
+    .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; } /* Shaded cyan */
+    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; } /* Yellow with X */
     .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
     .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
 
+    /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
       display: grid;
       grid-template-columns: 1fr 1fr;
       border: 1px solid #55ffff;
-      margin: 4px;
+      margin: 6px;
       background: #0000aa;
       color: #ffffff;
-      font-size: 9.5px;
+      font-size: 10px;
       font-family: 'PerfectDOS', monospace;
-      image-rendering: pixelated;
-      -webkit-font-smoothing: none;
     }
     .theme-olddos .dos-status-col {
-      padding: 6px;
+      padding: 8px;
       border-right: 1px solid #55ffff;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .theme-olddos .dos-legend-col {
+      padding: 8px;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
-    .theme-olddos .dos-legend-col {
-      padding: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
     .theme-olddos .dos-prog-bar {
       background: #ffffff;
       color: #0000aa;
-      height: 12px;
+      height: 14px;
       width: 100%;
       position: relative;
       overflow: hidden;
-      font-size: 8.5px;
+      font-size: 9px;
       display: flex;
       align-items: center;
       padding-left: 4px;
       font-weight: bold;
     }
-    .theme-olddos .ui-status-panel { display: none; }
+    .theme-olddos .ui-status-panel { display: none; } /* Replaced by authentic box */
     .theme-olddos .theme-label { color: #0000aa; }
 
     /* Matrix Dimensions */
@@ -712,7 +678,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div class="dos-legend-box" id="dosLegendBox">
           <div class="dos-status-col">
             <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Status</div>
-            <div style="display:flex; justify-content:space-between; font-size:9px;">
+            <div style="display:flex; justify-content:space-between; font-size:9.5px;">
               <span id="dosClusterText">Cluster 16,936</span>
               <span id="dosPctText">29%</span>
             </div>
@@ -720,12 +686,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div id="dosProgressBarFill" style="background:#55ffff; width:29%; height:100%; position:absolute; left:0; top:0; z-index:1;"></div>
               <span id="dosProgressText" style="position:relative; z-index:2; color:#0000aa; margin:auto;"></span>
             </div>
-            <div style="text-align:center; font-size:9px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
-            <div style="text-align:center; font-size:9px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
+            <div style="text-align:center; font-size:9.5px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
+            <div style="text-align:center; font-size:9.5px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
           </div>
           <div class="dos-legend-col">
             <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Legend</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2px; font-size:8.5px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2px; font-size:9px;">
               <div>■ - Used</div>
               <div>▒ - Unused</div>
               <div>r - Reading</div>
@@ -733,19 +699,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div>B - Bad</div>
               <div>X - Unmovable</div>
             </div>
-            <div style="margin-top:auto; font-size:8.5px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
+            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C: 1 block = 54 clusters</div>
           </div>
         </div>
 
         <!-- Explicit Visual Color Legend / Key for Modern Theme -->
         <div class="modern-legend" id="modernLegend">
           <span style="font-weight:700; color:#38bdf8;">Legend:</span>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space: Unallocated blocks available for new file data</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized: Contiguous files packed sequentially for high read throughput</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized: Fragmented file clusters scattered across the volume</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System: Unmovable kernel/system files parked securely</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#facc15;"></div><span>Reading (r): Active drive head reading scattered clusters</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#34d399;"></div><span>Writing (w): Active drive head writing consolidated blocks</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized (Contiguous)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized (Fragmented)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System (Unmovable)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#facc15;"></div><span>Reading (r)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#34d399;"></div><span>Writing (w)</span></div>
         </div>
 
         <!-- Real-Time Status Panel -->
@@ -1132,17 +1098,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     // Initialize Simulator on Load
     initMatrix();
     selectDiskCapacity(500);
-    switchTheme('olddos');
+    switchTheme('olddos'); // Default to MS-DOS 6.22 mode for immediate visual satisfaction
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Update modern theme legend text to explain cluster states
+COMMIT_MSG = """Add MS-DOS 6.22 defrag theme matching authentic Microsoft Defrag UI
 
-Update week10-file-management/03-filesystem-implementation.html to expand
-the modern theme legend labels with clear functional descriptions of each
-cluster state."""
+Update week10-file-management/03-filesystem-implementation.html with an
+authentic MS-DOS 6.22 theme featuring blue background, yellow used blocks,
+shaded free space, X unmovable markers, and the exact Defrag status/legend box."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1164,10 +1130,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging modern legend text update")
+    run_git_step(["git", "add", target_file], "Staging MS-DOS 6.22 defrag update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Modern theme legend explanations successfully deployed!")
+    print("--> MS-DOS 6.22 Defragmenter theme successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
