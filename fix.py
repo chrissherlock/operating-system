@@ -129,7 +129,31 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #ffffff;
     }
 
-    /* Pioneers Infobox with Enlarged Headshots & Integrated Biographies */
+    /* Diagram Figure Container */
+    .diagram-figure {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 14px;
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .diagram-figure figcaption {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: center;
+    }
+    .diagram-svg {
+      width: 100%;
+      max-width: 850px;
+      height: auto;
+    }
+
+    /* Pioneers Infobox */
     .pioneers-infobox {
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
@@ -184,14 +208,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 0.88rem;
       gap: 3px;
     }
-    .pioneer-info strong {
-      color: var(--text);
-      font-size: 0.95rem;
-    }
-    .pioneer-info span {
-      color: var(--text-muted);
-      font-size: 0.82rem;
-    }
+    .pioneer-info strong { color: var(--text); font-size: 0.95rem; }
+    .pioneer-info span { color: var(--text-muted); font-size: 0.82rem; }
     .pioneer-bio {
       font-size: 0.88rem;
       color: #334155;
@@ -201,9 +219,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-top: 2px;
     }
 
-    /* =========================================================
-       DEFRAGMENTER SHELL & THEME CONTAINER STYLING
-       ========================================================= */
+    /* DEFRAGMENTER SHELL & THEMES */
     .defrag-outer-frame {
       width: 100%;
       border-radius: 8px;
@@ -213,7 +229,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       flex-direction: column;
       gap: 12px;
     }
-
     .modern-legend {
       display: flex;
       flex-wrap: wrap;
@@ -226,20 +241,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #cbd5e1;
       align-items: center;
     }
-    .modern-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .modern-swatch {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      flex-shrink: 0;
-      display: inline-block;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
+    .modern-legend-item { display: flex; align-items: center; gap: 6px; }
+    .modern-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.15); }
     .theme-modern {
       background: #0f172a;
       color: #f8fafc;
@@ -247,61 +250,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-family: var(--font-mono);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
-    .theme-modern .ui-topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 8px;
-    }
-    .theme-modern .ui-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #38bdf8;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .theme-modern .ui-controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      background: #020617;
-      border: 1px solid #1e293b;
-      padding: 8px 12px;
-      border-radius: 6px;
-      align-items: center;
-      color: #f8fafc;
-    }
-    .theme-modern .ctrl-btn {
-      background-color: #1e293b;
-      color: #cbd5e1;
-      border: 1px solid #334155;
-      padding: 5px 11px;
-      border-radius: 4px;
-      font-size: 0.76rem;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
+    .theme-modern .ui-topbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+    .theme-modern .ui-title { font-size: 1.1rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .theme-modern .ui-controls { display: flex; gap: 8px; flex-wrap: wrap; background: #020617; border: 1px solid #1e293b; padding: 8px 12px; border-radius: 6px; align-items: center; color: #f8fafc; }
+    .theme-modern .ctrl-btn { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 5px 11px; border-radius: 4px; font-size: 0.76rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s ease; }
     .theme-modern .ctrl-btn:hover { background-color: #334155; color: #ffffff; }
     .theme-modern .ctrl-btn.active { background-color: var(--accent); color: #fff; border-color: #38bdf8; }
     .theme-modern .ctrl-btn.churn-btn { color: #fbbf24; }
-    .theme-modern .grid-wrapper {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 6px;
-      display: flex;
-      justify-content: center;
-    }
-    .theme-modern .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
-      width: 100%;
-      max-width: 1000px;
-    }
+    .theme-modern .grid-wrapper { background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 6px; display: flex; justify-content: center; }
+    .theme-modern .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 1000px; }
     .theme-modern .c-cell { aspect-ratio: 1 / 1; border-radius: 0.5px; }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
@@ -309,86 +266,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-modern .c-system { background-color: #dc2626; }
     .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 4px #facc15; }
     .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
-    .theme-modern .ui-status-panel {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      color: #38bdf8;
-      display: flex;
-      justify-content: space-between;
-    }
+    .theme-modern .ui-status-panel { background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 8px 12px; font-size: 0.8rem; color: #38bdf8; display: flex; justify-content: space-between; }
     .theme-modern .theme-label { color: #94a3b8; }
     .theme-modern .dos-legend-box { display: none; }
 
     /* THEME 2: WINDOWS 95 / 98 */
-    .theme-win95 {
-      background-color: #008080;
-      color: #000000;
-      font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif;
-      padding: 12px;
-      border-radius: 4px;
-    }
-    .theme-win95 .ui-window-box {
-      background: #c0c0c0;
-      border-top: 2px solid #ffffff;
-      border-left: 2px solid #ffffff;
-      border-right: 2px solid #000000;
-      border-bottom: 2px solid #000000;
-      box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
-      padding: 3px;
-    }
-    .theme-win95 .ui-topbar {
-      background: linear-gradient(90deg, #000080, #1084d0);
-      color: #ffffff;
-      padding: 3px 6px;
-      font-weight: bold;
-      font-size: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .theme-win95 { background-color: #008080; color: #000000; font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif; padding: 12px; border-radius: 4px; }
+    .theme-win95 .ui-window-box { background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 3px; }
+    .theme-win95 .ui-topbar { background: linear-gradient(90deg, #000080, #1084d0); color: #ffffff; padding: 3px 6px; font-weight: bold; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
     .theme-win95 .ui-title { color: #ffffff; font-size: 12px; font-weight: bold; }
-    .theme-win95 .ui-controls {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      background: transparent;
-      padding: 6px 0;
-      align-items: center;
-      color: #000000;
-    }
-    .theme-win95 .ctrl-btn {
-      background-color: #c0c0c0;
-      border-top: 2px solid #ffffff;
-      border-left: 2px solid #ffffff;
-      border-right: 2px solid #000000;
-      border-bottom: 2px solid #000000;
-      box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
-      padding: 3px 8px;
-      font-size: 11px;
-      color: #000000 !important;
-      cursor: pointer;
-    }
+    .theme-win95 .ui-controls { display: flex; gap: 5px; flex-wrap: wrap; background: transparent; padding: 6px 0; align-items: center; color: #000000; }
+    .theme-win95 .ctrl-btn { background-color: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 3px 8px; font-size: 11px; color: #000000 !important; cursor: pointer; }
     .theme-win95 .ctrl-btn.active { background-color: #d4d4d4; font-weight: bold; }
-    .theme-win95 .grid-wrapper {
-      border-top: 2px solid #808080;
-      border-left: 2px solid #808080;
-      border-right: 2px solid #ffffff;
-      border-bottom: 2px solid #ffffff;
-      background: #000000;
-      padding: 3px;
-      display: flex;
-      justify-content: center;
-    }
-    .theme-win95 .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
-      width: 100%;
-      max-width: 1000px;
-    }
+    .theme-win95 .grid-wrapper { border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; background: #000000; padding: 3px; display: flex; justify-content: center; }
+    .theme-win95 .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 1000px; }
     .theme-win95 .c-cell { aspect-ratio: 1 / 1; border-radius: 0; }
     .theme-win95 .c-free { background-color: #ffffff; }
     .theme-win95 .c-opt { background-color: #000080; }
@@ -396,73 +287,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-win95 .c-system { background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%); }
     .theme-win95 .c-read { background-color: #00ff00 !important; }
     .theme-win95 .c-write { background-color: #ff0000 !important; }
-    .theme-win95 .ui-status-panel {
-      border-top: 1px solid #808080;
-      padding-top: 4px;
-      margin-top: 4px;
-      font-size: 11px;
-      display: flex;
-      justify-content: space-between;
-      color: #000000 !important;
-    }
+    .theme-win95 .ui-status-panel { border-top: 1px solid #808080; padding-top: 4px; margin-top: 4px; font-size: 11px; display: flex; justify-content: space-between; color: #000000 !important; }
     .theme-win95 .theme-label { color: #ffffff !important; }
     .theme-win95 .dos-legend-box { display: none; }
 
     /* THEME 3: MS-DOS / NORTON SPEED DISK */
-    .theme-dos {
-      background-color: #0000aa;
-      color: #ffffff;
-      font-family: "Courier New", Courier, monospace;
-      padding: 10px;
-      border: 3px double #ffffff;
-      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8);
-    }
-    .theme-dos .ui-topbar {
-      background: #00aaaa;
-      color: #000000;
-      padding: 2px 8px;
-      font-weight: bold;
-      font-size: 13px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
+    .theme-dos { background-color: #0000aa; color: #ffffff; font-family: "Courier New", Courier, monospace; padding: 10px; border: 3px double #ffffff; box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8); }
+    .theme-dos .ui-topbar { background: #00aaaa; color: #000000; padding: 2px 8px; font-weight: bold; font-size: 13px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .theme-dos .ui-title { color: #000000; font-size: 13px; font-weight: bold; }
-    .theme-dos .ui-controls {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      background: transparent;
-      padding: 6px 0;
-      align-items: center;
-      color: #ffffff;
-    }
-    .theme-dos .ctrl-btn {
-      background-color: #0000aa;
-      color: #ffff55;
-      border: 1px solid #ffffff;
-      padding: 2px 7px;
-      font-size: 11px;
-      font-family: inherit;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    .theme-dos .ui-controls { display: flex; gap: 6px; flex-wrap: wrap; background: transparent; padding: 6px 0; align-items: center; color: #ffffff; }
+    .theme-dos .ctrl-btn { background-color: #0000aa; color: #ffff55; border: 1px solid #ffffff; padding: 2px 7px; font-size: 11px; font-family: inherit; font-weight: bold; cursor: pointer; }
     .theme-dos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; }
-    .theme-dos .grid-wrapper {
-      background: #000055;
-      border: 2px solid #55ffff;
-      padding: 4px;
-      display: flex;
-      justify-content: center;
-    }
-    .theme-dos .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
-      width: 100%;
-      max-width: 950px;
-    }
+    .theme-dos .grid-wrapper { background: #000055; border: 2px solid #55ffff; padding: 4px; display: flex; justify-content: center; }
+    .theme-dos .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 950px; }
     .theme-dos .c-cell { aspect-ratio: 1 / 1.4; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: bold; }
     .theme-dos .c-free { background-color: #000055; color: #0000aa; }
     .theme-dos .c-opt { background-color: #0000aa; color: #ffffff; }
@@ -470,69 +307,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
     .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
     .theme-dos .c-write { background-color: #ffff55 !important; color: #0000aa !important; }
-    .theme-dos .ui-status-panel {
-      background: #0000aa;
-      border-top: 1px dashed #ffffff;
-      padding-top: 6px;
-      margin-top: 6px;
-      font-size: 11px;
-      color: #ffff55;
-      display: flex;
-      justify-content: space-between;
-    }
+    .theme-dos .ui-status-panel { background: #0000aa; border-top: 1px dashed #ffffff; padding-top: 6px; margin-top: 6px; font-size: 11px; color: #ffff55; display: flex; justify-content: space-between; }
     .theme-dos .theme-label { color: #000000; }
     .theme-dos .dos-legend-box { display: none; }
 
     /* THEME 4: MS-DOS 6.22 DEFRAG */
-    .theme-olddos {
-      background-color: #0000aa;
-      color: #ffffff;
-      font-family: 'PerfectDOS', monospace;
-      padding: 0;
-      border: 2px solid #55ffff;
-    }
-    .theme-olddos .ui-topbar {
-      background: #ffffff;
-      color: #0000aa;
-      padding: 4px 8px;
-      font-size: 11px;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .theme-olddos { background-color: #0000aa; color: #ffffff; font-family: 'PerfectDOS', monospace; padding: 0; border: 2px solid #55ffff; }
+    .theme-olddos .ui-topbar { background: #ffffff; color: #0000aa; padding: 4px 8px; font-size: 11px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     .theme-olddos .ui-title { color: #0000aa; font-size: 11px; font-weight: bold; }
-    .theme-olddos .ui-controls {
-      background: #0000aa;
-      border-bottom: 1px solid #55ffff;
-      padding: 6px 10px;
-      gap: 6px;
-    }
-    .theme-olddos .ctrl-btn {
-      background-color: #0000aa;
-      color: #ffff55;
-      border: 1px solid #ffff55;
-      padding: 2px 6px;
-      font-size: 10px;
-      font-family: inherit;
-      cursor: pointer;
-    }
+    .theme-olddos .ui-controls { background: #0000aa; border-bottom: 1px solid #55ffff; padding: 6px 10px; gap: 6px; }
+    .theme-olddos .ctrl-btn { background-color: #0000aa; color: #ffff55; border: 1px solid #ffff55; padding: 2px 6px; font-size: 10px; font-family: inherit; cursor: pointer; }
     .theme-olddos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; font-weight: bold; }
-    .theme-olddos .grid-wrapper {
-      background: #0000aa;
-      border: 1px solid #55ffff;
-      margin: 6px;
-      padding: 4px;
-      display: flex;
-      justify-content: center;
-    }
-    .theme-olddos .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
-      width: 100%;
-      max-width: 950px;
-    }
+    .theme-olddos .grid-wrapper { background: #0000aa; border: 1px solid #55ffff; margin: 6px; padding: 4px; display: flex; justify-content: center; }
+    .theme-olddos .screen-grid { display: grid; grid-template-columns: repeat(100, 1fr); gap: 1px; width: 100%; max-width: 950px; }
     .theme-olddos .c-cell { aspect-ratio: 1 / 1.4; display: flex; align-items: center; justify-content: center; font-size: 6px; font-weight: bold; }
     .theme-olddos .c-free { background-color: #005577; color: #005577; }
     .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
@@ -541,31 +328,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
     .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
 
-    .theme-olddos .dos-legend-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border: 1px solid #55ffff;
-      margin: 6px;
-      background: #0000aa;
-      color: #ffffff;
-      font-size: 10px;
-      font-family: 'PerfectDOS', monospace;
-    }
+    .theme-olddos .dos-legend-box { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #55ffff; margin: 6px; background: #0000aa; color: #ffffff; font-size: 10px; font-family: 'PerfectDOS', monospace; }
     .theme-olddos .dos-status-col { padding: 8px; border-right: 1px solid #55ffff; display: flex; flex-direction: column; gap: 6px; }
     .theme-olddos .dos-legend-col { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-    .theme-olddos .dos-prog-bar {
-      background: #ffffff;
-      color: #0000aa;
-      height: 14px;
-      width: 100%;
-      position: relative;
-      overflow: hidden;
-      font-size: 9px;
-      display: flex;
-      align-items: center;
-      padding-left: 4px;
-      font-weight: bold;
-    }
+    .theme-olddos .dos-prog-bar { background: #ffffff; color: #0000aa; height: 14px; width: 100%; position: relative; overflow: hidden; font-size: 9px; display: flex; align-items: center; padding-left: 4px; font-weight: bold; }
     .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
 
@@ -695,7 +461,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         Traditional Unix and FAT filesystems distribute file data, inodes, directory entries, and indirect blocks across random locations on disk. As processor and memory speeds outpaced mechanical disk seek times in the early 1990s, random disk head seeks emerged as the primary performance bottleneck. To solve this, <strong>Mendel Rosenblum and John K. Ousterhout</strong> pioneered <strong>Log-Structured File Systems (LFS)</strong> at UC Berkeley, fundamentally redesigning storage architectures by transforming the disk into a continuous sequential log.
       </p>
 
-      <!-- Pioneers Infobox with Enlarged Headshots, Wikipedia links, & Biographies -->
+      <!-- Pioneers Infobox -->
       <div class="pioneers-infobox">
         <h4>Pioneers Profile: Mendel Rosenblum &amp; John K. Ousterhout</h4>
         <div class="pioneers-portraits">
@@ -733,37 +499,148 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </ul>
       </div>
 
-      <h3>1. The Log-Structured Paradigm &amp; Sequential Writes</h3>
+      <h3>1. The Log-Structured Paradigm &amp; The Write Bottleneck</h3>
       <p>
-        Traditional file systems update metadata and file data in-place across scattered disk sectors. In contrast, LFS buffers all modifications in main memory and appends them sequentially in large, contiguous units called <strong>segments</strong> (typically 512 KB to 1 MB). By eliminating random writes and mechanical head repositioning, LFS achieves write performance that approaches the raw bandwidth limits of the storage media.
+        In traditional file systems (such as FFS or FAT), modifying a file requires multiple random disk I/O operations: updating the inode, modifying indirect blocks, rewriting data blocks, and updating directory structures scattered across different cylinders. As CPU processing speeds and main memory sizes grew exponentially in the 1980s and 1990s, large main memory caches absorbed most read requests via buffer cache hits. Consequently, <strong>file reads became fast</strong>, but <strong>writes remained bottlenecked by mechanical disk seek times</strong> and rotational latency.
+      </p>
+      <p>
+        Rosenblum and Ousterhout observed that disk technology trends favored sequential throughput over random access. LFS capitalizes on this by buffering all file system updates in memory and writing them out in large, contiguous blocks (called segments) to a single continuous log.
       </p>
 
-      <h3>2. The Inode Map (Imap) &amp; Dynamic Location Tracking</h3>
-      <p>
-        In traditional file systems, every inode has a fixed, static disk address derived from its inode number and the fixed offset of the inode table. In an LFS, because files and their inodes are continually rewritten to the tail of the log, an inode's physical location changes with every update.
-      </p>
-      <ul>
-        <li><strong>Decoupling Inode Numbers:</strong> LFS introduces an <strong>inode map (imap)</strong> that acts as a dynamic translation layer, mapping every file's unique inode number to its current physical disk address within the log.</li>
-        <li><strong>Logging the Imap:</strong> Pieces of the inode map are written directly into the log alongside file data. When an inode moves, its new address is recorded in the imap, and updated imap blocks are committed to the log tail.</li>
-      </ul>
+      <!-- Diagram 1: Traditional vs LFS Write Layout -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <!-- Title -->
+          <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5A: Traditional In-Place Updates vs. LFS Sequential Append Log</text>
 
-      <h3>3. Checkpoint Regions &amp; Fast Crash Recovery</h3>
+          <!-- Traditional Side -->
+          <text x="200" y="55" font-family="sans-serif" font-size="12" font-weight="bold" fill="#dc2626" text-anchor="middle">Traditional File System (Random In-Place Writes)</text>
+          <rect x="50" y="70" width="300" height="130" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <rect x="70" y="90" width="60" height="30" fill="#f59e0b" rx="3"/><text x="100" y="110" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Inode</text>
+          <rect x="170" y="130" width="60" height="30" fill="#38bdf8" rx="3"/><text x="200" y="150" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Data</text>
+          <rect x="250" y="90" width="60" height="30" fill="#dc2626" rx="3"/><text x="280" y="110" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Dir</text>
+          <!-- Seek arrows -->
+          <path d="M 130 105 Q 150 70 170 140" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4"/>
+          <path d="M 230 145 Q 240 70 250 105" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,4"/>
+          <text x="200" y="215" font-family="sans-serif" font-size="11" fill="#475569" text-anchor="middle">Multiple random head seeks per write</text>
+
+          <!-- LFS Side -->
+          <text x="600" y="55" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0284c7" text-anchor="middle">Log-Structured File System (Sequential Log)</text>
+          <rect x="450" y="70" width="310" height="130" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <!-- Log stream bar -->
+          <rect x="470" y="110" width="270" height="50" fill="#0284c7" rx="4"/>
+          <text x="500" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Inode</text>
+          <line x1="535" y1="110" x2="535" y2="160" stroke="#fff" stroke-width="2"/>
+          <text x="570" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Data</text>
+          <line x1="605" y1="110" x2="605" y2="160" stroke="#fff" stroke-width="2"/>
+          <text x="640" y="140" font-family="sans-serif" font-size="11" fill="#fff" font-weight="bold">Inode</text>
+          <line x1="675" y1="110" x2="675" y2="160" stroke="#fff" stroke-width="2"/>
+          <text x="705" y="140" font-family="sans-serif" font-size="10" fill="#fff" font-weight="bold">Dir</text>
+          <!-- Arrow head -->
+          <polygon points="745,135 735,125 735,145" fill="#0284c7"/>
+          <text x="605" y="215" font-family="sans-serif" font-size="11" fill="#475569" text-anchor="middle">Single contiguous sequential stream (No seeks)</text>
+        </svg>
+        <figcaption>Figure 4.3.5A: Comparison of random in-place updates versus LFS continuous append logging.</figcaption>
+      </figure>
+
+      <h3>2. The Inode Map (Imap) Architecture &amp; Indirection</h3>
       <p>
-        To locate the inode map during system startup without scanning the entire multi-gigabyte log, LFS maintains a fixed <strong>Checkpoint Region (CR)</strong> on disk.
+        In a traditional Unix file system, every file has a fixed inode number, and its metadata is stored at a static, predetermined disk address within the inode table. If LFS wrote files sequentially without modification, finding an inode would require scanning the entire log from start to finish.
+      </p>
+      <p>
+        To solve this, LFS introduces an <strong>inode map (imap)</strong>. The imap maintains an array of pointers mapping every file's inode number to its current physical disk address within the log. Because files and inodes are continuously rewritten to the tail of the log, their physical locations change constantly; thus, the imap itself is also logged and updated dynamically.
+      </p>
+
+      <!-- Diagram 2: Imap Architecture -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="200" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5B: The Inode Map (Imap) Dynamic Indirection Layer</text>
+
+          <!-- Inode Number Box -->
+          <rect x="50" y="80" width="100" height="60" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
+          <text x="100" y="105" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">File Inode #</text>
+          <text x="100" y="125" font-family="sans-serif" font-size="12" fill="#0f172a" text-anchor="middle">Inode 42</text>
+
+          <!-- Arrow 1 -->
+          <line x1="150" y1="110" x2="220" y2="110" stroke="#0284c7" stroke-width="2"/>
+          <polygon points="220,110 212,105 212,115" fill="#0284c7"/>
+
+          <!-- Imap Box -->
+          <rect x="220" y="60" width="160" height="100" fill="#f1f5f9" stroke="#64748b" rx="4"/>
+          <text x="300" y="85" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Inode Map (Imap)</text>
+          <text x="300" y="110" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">[0] &rarr; Block 102</text>
+          <text x="300" y="130" font-family="sans-serif" font-size="10" fill="#0284c7" font-weight="bold" text-anchor="middle">[42] &rarr; Block 580</text>
+          <text x="300" y="150" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">[43] &rarr; Block 312</text>
+
+          <!-- Arrow 2 -->
+          <line x1="380" y1="110" x2="450" y2="110" stroke="#0284c7" stroke-width="2"/>
+          <polygon points="450,110 442,105 442,115" fill="#0284c7"/>
+
+          <!-- Log Tail Block -->
+          <rect x="450" y="80" width="300" height="60" fill="#0284c7" rx="4"/>
+          <text x="600" y="105" font-family="sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Sequential Log Tail</text>
+          <text x="600" y="125" font-family="sans-serif" font-size="10" fill="#e0f2fe" text-anchor="middle">Inode 42 (Block 580) + File Data</text>
+        </svg>
+        <figcaption>Figure 4.3.5B: How the Inode Map translates static file numbers to dynamic log addresses.</figcaption>
+      </figure>
+
+      <h3>3. Checkpoint Regions &amp; Rapid Crash Recovery</h3>
+      <p>
+        Because an LFS log is continuously expanding, locating the root of the inode map upon system startup without scanning gigabytes of disk history would be prohibitive. LFS solves this by maintaining a fixed <strong>Checkpoint Region (CR)</strong> on disk.
       </p>
       <ul>
-        <li><strong>Checkpoint Contents:</strong> The checkpoint region stores pointers to the current blocks of the inode map, the last segment usage summary, and a timestamp.</li>
-        <li><strong>Roll-Forward Recovery:</strong> In the event of a system crash, LFS reads the latest consistent checkpoint region and then <em>rolls forward</em> through subsequent segments written after the checkpoint, rebuilding any lost metadata without requiring a lengthy volume scan like <code>fsck</code>.</li>
+        <li><strong>Checkpoint Contents:</strong> The checkpoint region stores pointers to the current blocks of the inode map, the last segment usage summary, and a precise timestamp of the last stable state.</li>
+        <li><strong>Roll-Forward Recovery:</strong> When booting after an abrupt power failure, the operating system reads the last valid checkpoint region and then <em>rolls forward</em> through subsequent segments written after the checkpoint timestamp. This reconstructs any recent updates without requiring a slow multi-pass utility like <code>fsck</code>.</li>
       </ul>
 
       <h3>4. Background Garbage Collection &amp; Segment Cleaning</h3>
       <p>
-        Appending data sequentially means that updating a file creates obsolete versions of data blocks and old inodes elsewhere in the log, creating "holes" or dead space. Over time, free space becomes fragmented across old segments.
+        Appending data sequentially means that when a file is modified or deleted, its previous blocks and old inodes become obsolete ("dead space") within earlier log segments. Over time, free space becomes scattered across partially empty segments.
       </p>
-      <ul>
-        <li><strong>Segment Cleaner Daemon:</strong> LFS runs a continuous background cleaning process that reads existing segments, identifies live blocks (blocks still referenced by current inodes), and compacts them into new, tightly packed clean segments.</li>
-        <li><strong>Cost-Benefit Cleaning Policies:</strong> Because cleaning requires reading, moving, and rewriting data (incurring write amplification overhead), advanced LFS implementations prioritize cleaning segments based on a cost-benefit formula that balances segment age (how long dead space has sat idle) against the degree of fragmentation.</li>
-      </ul>
+      <p>
+        To reclaim this space, LFS runs a background daemon called the <strong>Segment Cleaner</strong>. The cleaner reads existing segments, distinguishes between live blocks (still referenced by the current imap) and dead blocks, compacts the live blocks, and writes them out into new, tightly packed clean segments.
+      </p>
+
+      <!-- Diagram 3: Segment Cleaner Compaction -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="220" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5C: Background Segment Cleaner &amp; Compaction Process</text>
+
+          <!-- Old Segment 1 -->
+          <rect x="50" y="60" width="200" height="110" fill="#fef2f2" stroke="#f87171" rx="4"/>
+          <text x="150" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b91c1c" text-anchor="middle">Old Segment (Fragmented)</text>
+          <rect x="70" y="100" width="35" height="40" fill="#0284c7" rx="2"/><text x="87.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live</text>
+          <rect x="115" y="100" width="35" height="40" fill="#cbd5e1" rx="2"/><text x="132.5" y="125" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">Dead</text>
+          <rect x="160" y="100" width="35" height="40" fill="#0284c7" rx="2"/><text x="177.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live</text>
+          <rect x="205" y="100" width="35" height="40" fill="#cbd5e1" rx="2"/><text x="222.5" y="125" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">Dead</text>
+
+          <!-- Arrow reading -->
+          <line x1="250" y1="115" x2="310" y2="115" stroke="#0284c7" stroke-width="2"/>
+          <polygon points="310,115 302,110 302,120" fill="#0284c7"/>
+          <text x="280" y="105" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Cleaner Reads</text>
+
+          <!-- Cleaner Logic / Cost-Benefit -->
+          <rect x="310" y="75" width="180" height="80" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
+          <text x="400" y="98" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Segment Cleaner</text>
+          <text x="400" y="120" font-family="sans-serif" font-size="10" fill="#334155" text-anchor="middle">Extracts Live Blocks</text>
+          <text x="400" y="138" font-family="sans-serif" font-size="10" fill="#334155" text-anchor="middle">Discards Dead Holes</text>
+
+          <!-- Arrow writing -->
+          <line x1="490" y1="115" x2="550" y2="115" stroke="#34d399" stroke-width="2"/>
+          <polygon points="550,115 542,110 542,120" fill="#34d399"/>
+          <text x="520" y="105" font-family="sans-serif" font-size="9" fill="#059669" text-anchor="middle">Compacts &amp; Writes</text>
+
+          <!-- New Clean Segment -->
+          <rect x="550" y="60" width="200" height="110" fill="#ecfdf5" stroke="#34d399" rx="4"/>
+          <text x="650" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#059669" text-anchor="middle">New Clean Segment</text>
+          <rect x="575" y="100" width="70" height="40" fill="#0284c7" rx="2"/><text x="610" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live Block 1</text>
+          <rect x="655" y="100" width="70" height="40" fill="#0284c7" rx="2"/><text x="690" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">Live Block 2</text>
+        </svg>
+        <figcaption>Figure 4.3.5C: Segment cleaning mechanism combining live blocks and freeing dead space.</figcaption>
+      </figure>
     </div>
 
     <!-- Section 4.3.6: Journaling File Systems -->
@@ -1068,7 +945,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing complete file structure to {html_file}...")
+    print(f"--> Writing fleshed-out LFS section and file structure to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -1076,10 +953,11 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Add explicit Wikipedia entry links to pioneer cards in LFS infobox\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html to include "
-        "direct Wikipedia biography hyperlinks in John Ousterhout and Mendel Rosenblum's "
-        "pioneer metadata cards."
+        "Massively flesh out LFS section 4.3.5 with diagrams and advanced theory\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html to deeply "
+        "expand section 4.3.5 with comprehensive academic theory, architectural "
+        "breakdowns, and three detailed SVG diagrams illustrating sequential logging, "
+        "imap indirection, and background segment cleaning."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
