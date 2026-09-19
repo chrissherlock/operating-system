@@ -18,6 +18,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
+    /* Embed authentic IBM PC CP437 bitmap font */
+    @font-face {
+      font-family: 'PerfectDOS';
+      src: url('https://cdn.jsdelivr.net/gh/IdreesInc/Monocraft@main/web/Monocraft.woff2') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
@@ -142,7 +150,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     /* =========================================================
-       DEFRAGMENTER SHELL & TRIPLE-THEME CONTAINER STYLING
+       DEFRAGMENTER SHELL & THEME CONTAINER STYLING
        ========================================================= */
     .defrag-outer-frame {
       width: 100%;
@@ -427,6 +435,102 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-dos .theme-label { color: #000000; }
 
+    /* THEME 4: REALLY OLD DOS (NON-ANTIALIASED BITMAP CP437 VGA) */
+    .theme-olddos {
+      background-color: #000000;
+      color: #00aa00;
+      font-family: 'PerfectDOS', monospace;
+      padding: 12px;
+      border: 4px solid #00aa00;
+      image-rendering: pixelated;
+      -webkit-font-smoothing: none;
+      font-smooth: never;
+      text-rendering: geometricPrecision;
+      box-shadow: inset 0 0 20px rgba(0, 170, 0, 0.2), 0 0 15px rgba(0, 0, 0, 0.8);
+    }
+    .theme-olddos .ui-window-box {
+      border: 1px solid #00aa00;
+      padding: 6px;
+      background: #001100;
+    }
+    .theme-olddos .ui-topbar {
+      background: #00aa00;
+      color: #000000;
+      padding: 3px 6px;
+      font-size: 12px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .theme-olddos .ui-title { color: #000000; font-size: 12px; font-weight: bold; }
+    .theme-olddos .ui-controls {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      background: transparent;
+      padding: 4px 0;
+      align-items: center;
+      color: #00ff00;
+    }
+    .theme-olddos .ctrl-btn {
+      background-color: #000000;
+      color: #00ff00;
+      border: 1px solid #00aa00;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-family: inherit;
+      image-rendering: pixelated;
+      cursor: pointer;
+    }
+    .theme-olddos .ctrl-btn:hover { background-color: #00aa00; color: #000000; }
+    .theme-olddos .ctrl-btn.active { background-color: #00ff00; color: #000000; font-weight: bold; }
+    .theme-olddos .ctrl-btn.churn-btn { color: #ffff00; }
+    .theme-olddos .grid-wrapper {
+      background: #000000;
+      border: 2px solid #00aa00;
+      padding: 4px;
+      display: flex;
+      justify-content: center;
+    }
+    .theme-olddos .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 1px;
+      width: 100%;
+      max-width: 950px;
+    }
+    .theme-olddos .c-cell {
+      aspect-ratio: 1 / 1.8; /* Authentic tall IBM PC 9x16 text mode glyph */
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      line-height: 1;
+      image-rendering: pixelated;
+      user-select: none;
+    }
+    .theme-olddos .c-free { background-color: #000000; color: #004400; }
+    .theme-olddos .c-opt { background-color: #000000; color: #00ff00; }
+    .theme-olddos .c-unopt { background-color: #000000; color: #ff5555; }
+    .theme-olddos .c-system { background-color: #aa0000; color: #ffffff; }
+    .theme-olddos .c-read { background-color: #ffff55 !important; color: #000000 !important; }
+    .theme-olddos .c-write { background-color: #ffffff !important; color: #000000 !important; }
+    .theme-olddos .ui-status-panel {
+      background: #000000;
+      border-top: 1px dashed #00aa00;
+      padding-top: 6px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #00ff00;
+      display: flex;
+      justify-content: space-between;
+    }
+    .theme-olddos .theme-label { color: #000000; }
+
     /* Matrix Dimensions */
     .screen-grid {
       display: grid;
@@ -494,7 +598,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </ul>
     </div>
 
-    <!-- TRIPLE-THEME 500MB FAT DEFRAGMENTER SIMULATOR -->
+    <!-- QUAD-THEME 500MB FAT DEFRAGMENTER SIMULATOR -->
     <div class="defrag-outer-frame theme-modern" id="defragShell">
 
       <div class="ui-window-box">
@@ -506,6 +610,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
             <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
             <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
+            <button class="ctrl-btn" onclick="switchTheme('olddos')" id="btn-theme-olddos">Really Old DOS</button>
           </div>
         </div>
 
@@ -516,7 +621,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="background:#059669; color:#fff; font-weight:700;">Start Defrag</button>
           <div style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px;">
             <span>Speed:</span>
-            <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow (Observable)</button>
+            <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow</button>
             <button class="ctrl-btn active" onclick="setDefragSpeed(45, 'spd-norm')" id="spd-norm">Medium</button>
             <button class="ctrl-btn" onclick="setDefragSpeed(10, 'spd-fast')" id="spd-fast">Fast</button>
           </div>
@@ -553,12 +658,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // --- 500 MB FAT Triple-Theme Defragmenter Engine ---
+    // --- 500 MB FAT Quad-Theme Defragmenter Engine ---
     const TOTAL_CELLS = 1500; // 50 cols x 30 rows fits completely on one screen
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
-    let stepDelay = 45; // Deliberate, observable pacing
+    let stepDelay = 45;
     let currentTheme = 'modern';
 
     function switchTheme(theme) {
@@ -566,7 +671,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const shell = document.getElementById("defragShell");
       shell.className = `defrag-outer-frame theme-${theme}`;
 
-      ['modern', 'win95', 'dos'].forEach(t => {
+      ['modern', 'win95', 'dos', 'olddos'].forEach(t => {
         const b = document.getElementById(`btn-theme-${t}`);
         if (b) b.classList.toggle('active', t === theme);
       });
@@ -575,6 +680,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       if (theme === 'modern') titleEl.textContent = "FAT32 Volume Optimizer (500 MB Drive)";
       else if (theme === 'win95') titleEl.textContent = "Disk Defragmenter - Drive C: (500 MB FAT)";
       else if (theme === 'dos') titleEl.textContent = "NORTON SPEED DISK - DRIVE C: [500MB]";
+      else if (theme === 'olddos') titleEl.textContent = "IBM PC DOS 3.30 SPEEDISK - DRIVE C: [500MB]";
 
       renderAllCells();
     }
@@ -606,7 +712,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.className = "c-cell";
       el.textContent = "";
 
-      if (currentTheme === 'dos') {
+      if (currentTheme === 'dos' || currentTheme === 'olddos') {
         // Authentic DOS tall character glyphs (CP437)
         if (c.state === "read") {
           el.classList.add("c-read");
@@ -725,7 +831,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       if (isRunning) {
         defragPause();
       } else {
-        // If uninitialized, initialize with heavy fragmentation first
         if (cells.length === 0 || cells.filter(c => c.state === "unoptimized").length === 0) {
           defragHeavyChurn();
         }
@@ -753,7 +858,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       renderAllCells();
     }
 
-    // Authentic observable cluster migration loop
     function runDefragCycle() {
       if (!isRunning) return;
 
@@ -771,11 +875,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       for (let i = TOTAL_CELLS - 1; i > firstFree; i--) {
         if (cells[i].state === "unoptimized" && !cells[i].isSystem) {
           sourceBlocks.push(i);
-          if (sourceBlocks.length >= 3) break; // Observable burst size
+          if (sourceBlocks.length >= 3) break;
         }
       }
 
-      // If no scattered unoptimized blocks remain past free space, compaction is complete
       if (firstFree === -1 || sourceBlocks.length === 0) {
         finishDefrag();
         return;
@@ -842,10 +945,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix loop bounds bug and speed button listeners in defrag simulator
+COMMIT_MSG = """Add really old DOS mode with non-antialiased IBM CP437 bitmap font
 
-Resolve uncaught variable assignment in runDefragCycle() preventing
-defrag execution, and fix button listeners for slow/medium/fast controls."""
+Update week10-file-management/03-filesystem-implementation.html with a
+fourth defrag theme featuring authentic un-antialiased pixelated CP437
+bitmap fonts and CRT hardware text mode styling."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -867,10 +971,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging defrag bug fixes")
+    run_git_step(["git", "add", target_file], "Staging Really Old DOS defrag update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 03 Defrag simulator bugs resolved and successfully pushed!")
+    print("--> Really Old DOS theme with non-antialiased CP437 successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
