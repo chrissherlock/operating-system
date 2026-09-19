@@ -211,7 +211,7 @@
       margin-top: 2px;
     }
 
-    /* STREAMLINED LFS WALKTHROUGH WIDGETS */
+    /* STREAMLINED LFS & JOURNALING WALKTHROUGH WIDGETS */
     .lfs-sim-container {
       background: #0f172a;
       border: 1px solid #334155;
@@ -334,6 +334,13 @@
     .blk-candidate { outline: 2px solid #ef4444; }
     .blk-identified-live { background: #059669 !important; color: #fff; outline: 2px solid #34d399; }
     .blk-discarded { opacity: 0.25; text-decoration: line-through; }
+
+    /* Journaling Interactive Block States */
+    .blk-journal-head { background: #9333ea; color: #fff; }
+    .blk-journal-tx { background: #3b82f6; color: #fff; }
+    .blk-journal-commit { background: #059669; color: #fff; font-weight: 900; }
+    .blk-journal-corrupt { background: #dc2626; color: #fff; text-decoration: line-through; }
+    .blk-fs-checkpointed { background: #10b981; color: #fff; }
 
     /* DEFRAGMENTER SHELL & THEMES */
     .defrag-outer-frame {
@@ -1021,6 +1028,200 @@
       <p>
         System crashes mid-write often leave traditional filesystems in an inconsistent state, requiring lengthy full-volume integrity scans (such as <code>fsck</code>). <strong>Journaling File Systems</strong> introduce Write-Ahead Logging (WAL) to guarantee crash consistency.
       </p>
+
+      <h3>1. The Crash Consistency Problem</h3>
+      <p>
+        Modifying a file in a standard filesystem requires multiple non-atomic disk operations. Consider appending data to an existing file:
+      </p>
+      <ol>
+        <li><strong>Data Block Write:</strong> New file payload bytes must be written to a free data block on storage media.</li>
+        <li><strong>Inode Metadata Update:</strong> The file's inode must be updated with the new file length, modification timestamp, and a direct/indirect pointer addressing the new block.</li>
+        <li><strong>Block Bitmap Modification:</strong> The free block allocation bitmap must clear the bit for the allocated block to mark it as occupied.</li>
+      </ol>
+      <p>
+        Because physical storage devices only guarantee atomic writes for single sectors (typically 512 or 4096 bytes), a sudden power failure or operating system panic occurring midway through these writes produces catastrophic corruption:
+      </p>
+      <ul>
+        <li><strong>If only the data block is written:</strong> The data exists on disk, but neither the inode nor the bitmap references it. The block becomes an undetectable space leak until a complete filesystem scan runs.</li>
+        <li><strong>If only the inode is updated:</strong> The inode points to a block that the bitmap still marks as free. A subsequent file creation may allocate that same block, leading to mutual block theft and corrupted data.</li>
+        <li><strong>If only the bitmap is updated:</strong> A block is marked occupied, but no inode points to it, permanently wasting storage space.</li>
+      </ul>
+      <p>
+        Historically, traditional Unix filesystems relied on the <code>fsck</code> (File System Consistency Check) utility upon reboot. <code>fsck</code> performs a multi-pass sweep across the entire storage partition: scanning every inode, rebuilding allocation bitmaps from scratch, cross-referencing link counts, and resolving orphaned blocks into <code>lost+found</code>. On multi-terabyte drives containing millions of files, an <code>fsck</code> scan can consume many hours, causing unacceptable downtime.
+      </p>
+
+      <!-- Diagram 4.3.6A: The Crash Consistency Window & WAL -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6A: Crash Window Vulnerability vs. Write-Ahead Logging (WAL)</text>
+
+          <!-- Vulnerable In-Place Writes -->
+          <rect x="30" y="55" width="340" height="155" fill="#fef2f2" stroke="#f87171" rx="4"/>
+          <text x="200" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Traditional Non-Atomic Writes</text>
+          <line x1="40" y1="88" x2="360" y2="88" stroke="#fecaca" stroke-width="1"/>
+
+          <rect x="50" y="100" width="80" height="35" fill="#0284c7" rx="2"/><text x="90" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">1. Data</text>
+          <line x1="135" y1="117" x2="160" y2="117" stroke="#dc2626" stroke-width="2"/>
+          <rect x="165" y="100" width="80" height="35" fill="#f59e0b" rx="2"/><text x="205" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">2. Inode</text>
+
+          <!-- Crash Bolt -->
+          <line x1="260" y1="92" x2="260" y2="145" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,3"/>
+          <text x="260" y="88" font-family="sans-serif" font-size="14" fill="#dc2626" text-anchor="middle">&#9889;</text>
+          <text x="260" y="160" font-family="sans-serif" font-size="9" font-weight="bold" fill="#dc2626" text-anchor="middle">Crash Window</text>
+
+          <rect x="275" y="100" width="80" height="35" fill="#94a3b8" rx="2" stroke="#dc2626" stroke-dasharray="2,2"/><text x="315" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">3. Bitmap</text>
+          <text x="200" y="192" font-family="sans-serif" font-size="9" fill="#7f1d1d" text-anchor="middle">Partial write leaves bitmap desynchronized from inode!</text>
+
+          <!-- WAL Journaling -->
+          <rect x="410" y="55" width="360" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
+          <text x="590" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Write-Ahead Logging (WAL) Protocol</text>
+          <line x1="420" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
+
+          <rect x="430" y="100" width="70" height="35" fill="#3b82f6" rx="2"/><text x="465" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Tx Header</text>
+          <rect x="505" y="100" width="70" height="35" fill="#3b82f6" rx="2"/><text x="540" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Metadata</text>
+          <rect x="580" y="100" width="70" height="35" fill="#059669" rx="2"/><text x="615" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Commit Blk</text>
+
+          <line x1="655" y1="117" x2="680" y2="117" stroke="#16a34a" stroke-width="2"/>
+          <polygon points="685,117 678,112 678,122" fill="#16a34a"/>
+
+          <rect x="685" y="100" width="75" height="35" fill="#10b981" rx="2"/><text x="722" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Checkpoint</text>
+          <text x="590" y="160" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Atomic commit record precedes permanent in-place update</text>
+          <text x="590" y="180" font-family="sans-serif" font-size="9" font-style="italic" fill="#166534" text-anchor="middle">Boot recovery replays commit or discards uncommitted partial write</text>
+        </svg>
+        <figcaption>Figure 4.3.6A: Write-Ahead Logging isolates multi-block updates behind an atomic commit boundary.</figcaption>
+      </figure>
+
+      <h3>2. Write-Ahead Logging &amp; The Transaction Lifecycle</h3>
+      <p>
+        Journaling file systems borrow the technique of <strong>Write-Ahead Logging (WAL)</strong> from relational database engines. The fundamental invariant of WAL states: <em>No modified metadata or data may overwrite its permanent disk location until the corresponding change description has been committed to a non-volatile log.</em>
+      </p>
+      <p>
+        The dedicated log space is arranged as a circular ring buffer (either inside a reserved inode or on a separate partition). Changes execute across four strict stages:
+      </p>
+      <ol>
+        <li><strong>Journal Write:</strong> The operating system bundles related updates into a transaction. A transaction descriptor header is emitted, followed by modified filesystem blocks (such as inodes, allocation bitmaps, or directory entries).</li>
+        <li><strong>Journal Commit:</strong> Once all transaction records reach disk, an explicit <strong>commit block</strong> containing a sequence number and transaction checksum is written. The arrival of the commit block marks the <em>commit boundary</em>: the transaction is now formally committed and durable.</li>
+        <li><strong>Checkpointing:</strong> With the transaction safely committed to the journal, the operating system writes the pending changes to their permanent in-place filesystem blocks across disk cylinders.</li>
+        <li><strong>Journal Free:</strong> Once in-place checkpointing finishes, the circular journal marks that transaction's ring buffer space as free for reuse.</li>
+      </ol>
+
+      <!-- Diagram 4.3.6B: Circular Journal Ring Buffer & Lifecycle -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6B: Circular Journal Ring Buffer &amp; In-Place Checkpoint Pipeline</text>
+
+          <!-- Circular Ring Buffer Representation -->
+          <rect x="40" y="60" width="440" height="150" fill="#0f172a" stroke="#334155" rx="6"/>
+          <text x="260" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">Circular Journal Ring Buffer</text>
+
+          <!-- Ring slots -->
+          <rect x="55" y="102" width="70" height="50" fill="#1e293b" stroke="#334155" rx="3"/>
+          <text x="90" y="125" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Tx 101</text>
+          <text x="90" y="140" font-family="sans-serif" font-size="8" fill="#4ade80" text-anchor="middle">(Freed)</text>
+
+          <rect x="135" y="102" width="85" height="50" fill="#3b82f6" rx="3"/>
+          <text x="177" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 102 Data</text>
+          <text x="177" y="140" font-family="sans-serif" font-size="8" fill="#dbeafe" text-anchor="middle">Descriptor</text>
+
+          <rect x="230" y="102" width="85" height="50" fill="#059669" rx="3"/>
+          <text x="272" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 102 Commit</text>
+          <text x="272" y="140" font-family="sans-serif" font-size="8" fill="#d1fae5" text-anchor="middle">CRC Checksum</text>
+
+          <rect x="325" y="102" width="80" height="50" fill="#3b82f6" rx="3"/>
+          <text x="365" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 103 Writing</text>
+          <text x="365" y="140" font-family="sans-serif" font-size="8" fill="#dbeafe" text-anchor="middle">Pending</text>
+
+          <rect x="415" y="102" width="55" height="50" fill="#1e293b" stroke="#334155" rx="3"/>
+          <text x="442" y="132" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Unused</text>
+
+          <text x="260" y="190" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">&larr; Checkpoint Head advances &bull; Journal Tail writes forward &rarr;</text>
+
+          <!-- Checkpointing Arrow -->
+          <path d="M 480 127 L 530 127" stroke="#10b981" stroke-width="3"/>
+          <polygon points="535,127 525,121 525,133" fill="#10b981"/>
+          <text x="507" y="115" font-family="sans-serif" font-size="9" font-weight="bold" fill="#10b981" text-anchor="middle">Flush</text>
+
+          <!-- Permanent In-Place File System Structures -->
+          <rect x="535" y="60" width="225" height="150" fill="#f8fafc" stroke="#cbd5e1" rx="6"/>
+          <text x="647" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Permanent In-Place Blocks</text>
+
+          <rect x="550" y="102" width="60" height="40" fill="#0284c7" rx="3"/><text x="580" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Inode Table</text>
+          <rect x="620" y="102" width="60" height="40" fill="#f59e0b" rx="3"/><text x="650" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Bitmap</text>
+          <rect x="690" y="102" width="60" height="40" fill="#10b981" rx="3"/><text x="720" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Data Block</text>
+
+          <text x="647" y="180" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Checkpointing writes in-place;</text>
+          <text x="647" y="196" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Transaction 102 can then be freed</text>
+        </svg>
+        <figcaption>Figure 4.3.6B: Transactions advance through the circular ring buffer before updating permanent in-place structures.</figcaption>
+      </figure>
+
+      <h3>3. Journaling Modes &amp; Performance Trade-offs</h3>
+      <p>
+        Writing every piece of data twice (once to the journal, and once to its permanent location) imposes significant I/O overhead. To balance write performance against data safety, modern journaling filesystems (such as Linux <strong>ext3</strong> and <strong>ext4</strong>) provide three distinct journaling operational modes:
+      </p>
+      <ul>
+        <li><strong>Journal Mode (Full Data Journaling):</strong> Both file payload data and filesystem metadata are written to the journal before being committed and checkpointed to permanent blocks.
+          <ul>
+            <li><em>Safety:</em> Highest possible consistency guarantee. Neither metadata nor file data can be lost or corrupted on crash.</li>
+            <li><em>Trade-off:</em> Lowest throughput. Every byte is written twice, imposing an unavoidable 2&times; write amplification penalty.</li>
+          </ul>
+        </li>
+        <li><strong>Ordered Mode (Metadata-Only with Ordered Data Writes):</strong> Only filesystem metadata is recorded in the journal. However, the operating system enforces a strict ordering rule: <em>all user data blocks must be flushed to their permanent in-place disk blocks before the associated metadata transaction commits to the journal.</em>
+          <ul>
+            <li><em>Safety:</em> Guaranteed metadata consistency with strong data protection. A crash cannot leave an inode pointing to unwritten garbage or stale remnants of deleted files.</li>
+            <li><em>Trade-off:</em> Highly optimized. Data is written to disk exactly once, eliminating write amplification while maintaining crash consistency. (Default mode in ext3/ext4).</li>
+          </ul>
+        </li>
+        <li><strong>Writeback Mode (Metadata-Only with Relaxed Ordering):</strong> Only metadata is journaled, and no ordering constraints are imposed between user data writes and journal commits. Metadata can commit before user data blocks reach persistent media.
+          <ul>
+            <li><em>Safety:</em> Metadata integrity is preserved, but files modified just before a crash may contain stale remnants of previous deleted files from those blocks.</li>
+            <li><em>Trade-off:</em> Maximum write performance and lowest I/O latency.</li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>4. Fast Crash Recovery: Redo Logging</h3>
+      <p>
+        When an operating system boots after a crash, the recovery sequence replaces exhaustive disk scans with an immediate inspection of the journal:
+      </p>
+      <ol>
+        <li><strong>Locate Journal Boundaries:</strong> Read the journal superblock to determine the active head and tail offsets of the circular ring buffer.</li>
+        <li><strong>Scan for Committed Transactions:</strong> Scan sequentially from the head. If a transaction possesses a valid header, intact payload blocks, and a matching checksum commit block, it is recognized as durable.</li>
+        <li><strong>Redo Logging (Replay):</strong> For every valid committed transaction, the recovery engine reads the logged metadata blocks and writes them directly into their corresponding in-place filesystem disk blocks. This guarantees that all committed updates survive.</li>
+        <li><strong>Discard Uncommitted Writes:</strong> If a transaction was interrupted mid-write (evidenced by a missing commit block or a checksum mismatch), the recovery engine discards it entirely. The filesystem cleanly reverts to the exact state it held prior to the uncommitted transaction.</li>
+      </ol>
+      <p>
+        Because recovery only scans the compact journal ring buffer, the entire process completes in seconds regardless of partition capacity.
+      </p>
+
+      <!-- WALKTHROUGH PART 3: JOURNALING TRANSACTION & RECOVERY SIMULATOR -->
+      <div class="lfs-sim-container" id="journalingSim">
+        <div class="lfs-topbar">
+          <span class="lfs-title">Walkthrough Part 3: Journaling Transaction &amp; Crash Recovery Simulator</span>
+          <span class="lfs-step-indicator" id="journalStepTag">State: Normal Operation</span>
+        </div>
+
+        <div class="lfs-explanation-box" id="journalExplanationBox">
+          <strong>Interactive Crash Recovery:</strong> Step through a journaling transaction. You can commit normally or inject a sudden power cut midway through to see how <strong>Redo Logging</strong> or <strong>Torn Transaction Discard</strong> protects filesystem integrity.
+        </div>
+
+        <div class="lfs-controls">
+          <button class="lfs-btn primary" onclick="journalStepWriteTx()">1. Write Journal Transaction</button>
+          <button class="lfs-btn accent" onclick="journalStepCommitTx()">2. Commit Transaction (Commit Blk)</button>
+          <button class="lfs-btn" onclick="journalStepCheckpoint()">3. Checkpoint In-Place &amp; Free Log</button>
+          <button class="lfs-btn danger" onclick="journalInjectCrash()">Inject Sudden Power Cut!</button>
+          <button class="lfs-btn" onclick="journalResetWalkthrough()" style="margin-left: auto;">Reset Simulator</button>
+        </div>
+
+        <div class="lfs-segments-grid" id="journalSegmentsGrid"></div>
+
+        <div class="lfs-status-panel">
+          <span id="journalStatusMsg">Filesystem running in Ordered Journaling Mode. Ring buffer empty.</span>
+          <span id="journalMetricMsg">Journal Ring: 0/8 Used | Checkpoint Status: Synchronized</span>
+        </div>
+      </div>
     </div>
 
     <!-- Section 4.3.7: Flash Storage & Wear-Leveling -->
@@ -1407,6 +1608,199 @@
     }
 
     compactionResetWalkthrough();
+
+    // =========================================================
+    // 3. WALKTHROUGH PART 3: JOURNALING & CRASH RECOVERY SIM
+    // =========================================================
+    let journalState = "idle"; // idle, written, committed, checkpointed, crashed
+    let journalBlocks = [];
+    let permanentFsBlocks = [];
+
+    function journalResetWalkthrough() {
+      journalState = "idle";
+      journalBlocks = [
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" }
+      ];
+
+      permanentFsBlocks = [
+        { id: "Ino: 2", state: "fs", label: "Inode Table" },
+        { id: "Map: OK", state: "fs", label: "Bitmap" },
+        { id: "Blk: 10", state: "fs", label: "Data Block" },
+        { id: "Blk: 11", state: "fs", label: "Data Block" }
+      ];
+
+      journalRender();
+      document.getElementById("journalStepTag").textContent = "State: Normal Operation (Idle)";
+      document.getElementById("journalExplanationBox").innerHTML =
+        "<strong>Ready to Trace WAL Transaction:</strong> In Ordered Mode, user data writes directly to disk before metadata commits. Click <strong>'1. Write Journal Transaction'</strong> to start appending to the circular ring buffer.";
+      document.getElementById("journalStatusMsg").textContent = "Filesystem running in Ordered Journaling Mode. Ring buffer empty.";
+      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 0/8 Used | Checkpoint Status: Synchronized";
+    }
+
+    function journalStepWriteTx() {
+      if (journalState !== "idle") {
+        document.getElementById("journalExplanationBox").innerHTML =
+          "A transaction is already in flight! Commit it or reset the simulator.";
+        return;
+      }
+      journalState = "written";
+
+      journalBlocks[0] = { id: "TxHead", state: "head", label: "Header" };
+      journalBlocks[1] = { id: "Ino: 2*", state: "tx", label: "Inode Update" };
+      journalBlocks[2] = { id: "Map: *", state: "tx", label: "Bitmap Update" };
+
+      journalRender();
+      document.getElementById("journalStepTag").textContent = "State: Journal Written (Uncommitted)";
+      document.getElementById("journalExplanationBox").innerHTML =
+        "<strong>Transaction In Flight:</strong> Changes are written to the journal ring buffer, but <strong>NO Commit Block exists yet</strong>. If power cuts right now, this partial transaction will be cleanly ignored. Click <strong>'2. Commit Transaction'</strong> or test <strong>'Inject Sudden Power Cut!'</strong>.";
+      document.getElementById("journalStatusMsg").textContent = "Transaction written to journal. Awaiting atomic commit record.";
+      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 3/8 Used | Checkpoint Status: Pending Commit";
+    }
+
+    function journalStepCommitTx() {
+      if (journalState !== "written") {
+        document.getElementById("journalExplanationBox").innerHTML =
+          "Please write a transaction first by clicking <strong>'1. Write Journal Transaction'</strong>!";
+        return;
+      }
+      journalState = "committed";
+
+      journalBlocks[3] = { id: "COMMIT", state: "commit", label: "Commit Block (CRC)" };
+
+      journalRender();
+      document.getElementById("journalStepTag").textContent = "State: Transaction COMMITTED";
+      document.getElementById("journalExplanationBox").innerHTML =
+        "<strong>Commit Boundary Established!</strong> The Commit Block with CRC checksum reached non-volatile media. The transaction is now formally durable. Even if a crash strikes this instant, <strong>Redo Logging</strong> will guarantee recovery. Click <strong>'3. Checkpoint In-Place'</strong> to flush to permanent blocks.";
+      document.getElementById("journalStatusMsg").textContent = "Transaction committed! Safe from data loss.";
+      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 4/8 Used | Checkpoint Status: Ready to Checkpoint";
+    }
+
+    function journalStepCheckpoint() {
+      if (journalState !== "committed") {
+        document.getElementById("journalExplanationBox").innerHTML =
+          "Transaction must be committed before checkpointing! Click <strong>'2. Commit Transaction'</strong>.";
+        return;
+      }
+      journalState = "checkpointed";
+
+      // Flush changes to permanent in-place filesystem blocks
+      permanentFsBlocks[0] = { id: "Ino: 2*", state: "checkpointed", label: "Inode Table (Updated)" };
+      permanentFsBlocks[1] = { id: "Map: *", state: "checkpointed", label: "Bitmap (Updated)" };
+
+      // Free journal ring
+      journalBlocks = [
+        { id: "·", state: "free", label: "Freed" },
+        { id: "·", state: "free", label: "Freed" },
+        { id: "·", state: "free", label: "Freed" },
+        { id: "·", state: "free", label: "Freed" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" },
+        { id: "·", state: "free", label: "Empty" }
+      ];
+
+      journalRender();
+      document.getElementById("journalStepTag").textContent = "State: Checkpointed & Log Freed";
+      document.getElementById("journalExplanationBox").innerHTML =
+        "<strong>Checkpoint Complete!</strong> Changes were written in-place to the permanent filesystem structures. The journal ring buffer slots are now freed for upcoming transactions. Full cycle executed with zero integrity risk!";
+      document.getElementById("journalStatusMsg").textContent = "In-place blocks synchronized. Circular journal freed.";
+      document.getElementById("journalMetricMsg").textContent = "Journal Ring: 0/8 Used | Checkpoint Status: Fully Checkpointed";
+    }
+
+    function journalInjectCrash() {
+      if (journalState === "written") {
+        // Crash before commit block: torn transaction
+        journalState = "crashed_uncommitted";
+        journalBlocks[0].state = "corrupt";
+        journalBlocks[1].state = "corrupt";
+        journalBlocks[2].state = "corrupt";
+
+        journalRender();
+        document.getElementById("journalStepTag").textContent = "Crash Recovery: Torn Write Discarded";
+        document.getElementById("journalExplanationBox").innerHTML =
+          "<strong>Power Cut Occurred Before Commit:</strong> On boot, the recovery engine scanned the journal ring and discovered an incomplete transaction without a valid Commit Block. <strong>The uncommitted write was discarded in 2 milliseconds</strong>. Permanent in-place structures remain 100% consistent!";
+        document.getElementById("journalStatusMsg").textContent = "Recovery completed: partial transaction discarded. Filesystem consistent.";
+        document.getElementById("journalMetricMsg").textContent = "Journal Ring: Cleaned | Recovery Time: 2 ms";
+      } else if (journalState === "committed") {
+        // Crash after commit block: redo recovery
+        journalState = "crashed_committed";
+        permanentFsBlocks[0] = { id: "Ino: 2*", state: "checkpointed", label: "Inode Table (Replayed)" };
+        permanentFsBlocks[1] = { id: "Map: *", state: "checkpointed", label: "Bitmap (Replayed)" };
+
+        journalRender();
+        document.getElementById("journalStepTag").textContent = "Crash Recovery: Redo Logging Replay";
+        document.getElementById("journalExplanationBox").innerHTML =
+          "<strong>Power Cut Occurred After Commit:</strong> Permanent in-place blocks had not been updated yet. On boot, the recovery engine verified the Commit Block CRC and <strong>replayed the transaction into permanent blocks</strong>. Zero committed data was lost!";
+        document.getElementById("journalStatusMsg").textContent = "Recovery completed: Redo logging replayed transaction into in-place blocks.";
+        document.getElementById("journalMetricMsg").textContent = "Journal Ring: Replayed | Recovery Time: 5 ms";
+      } else {
+        document.getElementById("journalExplanationBox").innerHTML =
+          "Please write a transaction (Phase 1) or commit it (Phase 2) before testing a crash!";
+      }
+    }
+
+    function journalRender() {
+      const grid = document.getElementById("journalSegmentsGrid");
+      grid.innerHTML = "";
+
+      // Render Journal Ring Container
+      let jDiv = document.createElement("div");
+      jDiv.className = "lfs-segment-box";
+      jDiv.style.gridColumn = "span 2";
+      jDiv.innerHTML = `<div class="lfs-seg-header"><span>Circular Journal Ring Buffer</span><span>Head &rarr; Tail</span></div>`;
+
+      let jBlocksDiv = document.createElement("div");
+      jBlocksDiv.className = "lfs-seg-blocks";
+      jBlocksDiv.style.gridTemplateColumns = "repeat(8, 1fr)";
+
+      journalBlocks.forEach(blk => {
+        let bEl = document.createElement("div");
+        bEl.className = "lfs-block";
+        bEl.textContent = blk.id;
+
+        if (blk.state === "free") bEl.classList.add("blk-free");
+        else if (blk.state === "head") bEl.classList.add("blk-journal-head");
+        else if (blk.state === "tx") bEl.classList.add("blk-journal-tx");
+        else if (blk.state === "commit") bEl.classList.add("blk-journal-commit");
+        else if (blk.state === "corrupt") bEl.classList.add("blk-journal-corrupt");
+
+        jBlocksDiv.appendChild(bEl);
+      });
+      jDiv.appendChild(jBlocksDiv);
+      grid.appendChild(jDiv);
+
+      // Render Permanent Filesystem Container
+      let fsDiv = document.createElement("div");
+      fsDiv.className = "lfs-segment-box";
+      fsDiv.style.gridColumn = "span 2";
+      fsDiv.innerHTML = `<div class="lfs-seg-header"><span>Permanent In-Place Storage</span><span>Checkpoint Destination</span></div>`;
+
+      let fsBlocksDiv = document.createElement("div");
+      fsBlocksDiv.className = "lfs-seg-blocks";
+      fsBlocksDiv.style.gridTemplateColumns = "repeat(4, 1fr)";
+
+      permanentFsBlocks.forEach(blk => {
+        let bEl = document.createElement("div");
+        bEl.className = "lfs-block";
+        bEl.textContent = blk.id;
+
+        if (blk.state === "fs") bEl.classList.add("blk-live");
+        else if (blk.state === "checkpointed") bEl.classList.add("blk-fs-checkpointed");
+
+        fsBlocksDiv.appendChild(bEl);
+      });
+      fsDiv.appendChild(fsBlocksDiv);
+      grid.appendChild(fsDiv);
+    }
+
+    journalResetWalkthrough();
 
     // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 3000;
