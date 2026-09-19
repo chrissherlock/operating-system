@@ -30,7 +30,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
+      --border-dark: #94a3b8;
       --accent: #0284c7;
+      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -40,195 +42,432 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 8px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 18px;
     }
     header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: 2px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.82rem; }
+    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
     .main-container {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 18px;
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
     }
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
+      border-radius: 8px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
     .card h2 {
-      font-size: 1.05rem;
+      font-size: 1.25rem;
       color: var(--accent);
       border-bottom: 1px solid var(--border);
-      padding-bottom: 3px;
-      margin-bottom: 3px;
+      padding-bottom: 6px;
+      margin-bottom: 6px;
     }
     .card h3 {
-      font-size: 0.9rem;
+      font-size: 1.05rem;
       color: var(--text);
-      margin-top: 4px;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    .card h4 {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-top: 6px;
       margin-bottom: 2px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.8rem;
-      margin-top: 4px;
-      margin-bottom: 4px;
+      font-size: 0.88rem;
+      margin-top: 8px;
+      margin-bottom: 8px;
     }
     th, td {
       border: 1px solid var(--border);
-      padding: 3px 6px;
+      padding: 8px 12px;
       text-align: left;
     }
-    th { background-color: #f1f5f9; color: var(--text); font-weight: 600; }
-    td { color: #334155; }
+    th {
+      background-color: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+    td {
+      color: #334155;
+    }
     ul, ol {
-      padding-left: 16px;
+      padding-left: 20px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 6px;
       color: #334155;
-      font-size: 0.82rem;
-      line-height: 1.3;
+      font-size: 0.93rem;
+      line-height: 1.5;
     }
-    p { line-height: 1.35; color: #334155; font-size: 0.82rem; }
+    p {
+      line-height: 1.65;
+      color: #334155;
+      font-size: 0.94rem;
+    }
     .nav-back {
       width: 100%;
-      max-width: 1000px;
-      margin: 0 auto 2px auto;
-      padding: 0 2px;
+      max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
       display: flex;
     }
     .nav-back a {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 0.75rem;
+      gap: 6px;
+      font-size: 0.85rem;
       font-weight: 600;
       font-family: var(--font-mono);
       text-decoration: none;
       color: #0284c7;
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
-      padding: 3px 8px;
-      border-radius: 4px;
+      padding: 6px 12px;
+      border-radius: 6px;
       transition: background-color 0.15s ease, color 0.15s ease;
       width: fit-content;
     }
-    .nav-back a:hover { background-color: #0284c7; color: #ffffff; }
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
 
     /* =========================================================
-       STRICT 800x600 BOUNDARY LOCK FOR DEFRAG TOOL
+       DEFRAGMENTER SHELL & NATURAL CONTAINER STYLING
        ========================================================= */
     .defrag-outer-frame {
       width: 100%;
-      max-height: 520px; /* Forces entire widget to sit safely below 600px height */
-      border-radius: 6px;
-      padding: 4px;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      gap: 12px;
     }
 
     /* MODERN THEME LEGEND */
     .modern-legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 14px;
       background: #020617;
       border: 1px solid #1e293b;
-      padding: 4px 6px;
-      border-radius: 4px;
-      font-size: 0.65rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
       color: #cbd5e1;
       align-items: center;
     }
-    .modern-legend-item { display: flex; align-items: center; gap: 3px; }
-    .modern-swatch { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+    .modern-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .modern-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
 
-    /* THEME 1: MODERN */
+    /* THEME 1: MODERN (DEFAULT) */
     .theme-modern {
       background: #0f172a;
       color: #f8fafc;
       border: 1px solid #334155;
       font-family: var(--font-mono);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     }
-    .theme-modern .ui-topbar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 2px; }
-    .theme-modern .ui-title { font-size: 0.85rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; }
-    .theme-modern .ui-controls { display: flex; gap: 4px; flex-wrap: wrap; background: #020617; border: 1px solid #1e293b; padding: 3px 6px; border-radius: 4px; align-items: center; color: #f8fafc; }
-    .theme-modern .ctrl-btn { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 2px 6px; border-radius: 3px; font-size: 0.68rem; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .theme-modern .ui-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+    }
+    .theme-modern .ui-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .theme-modern .ui-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 8px 12px;
+      border-radius: 6px;
+      align-items: center;
+      color: #f8fafc;
+    }
+    .theme-modern .ctrl-btn {
+      background-color: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 5px 11px;
+      border-radius: 4px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
     .theme-modern .ctrl-btn:hover { background-color: #334155; color: #ffffff; }
     .theme-modern .ctrl-btn.active { background-color: var(--accent); color: #fff; border-color: #38bdf8; }
     .theme-modern .ctrl-btn.churn-btn { color: #fbbf24; }
-    .theme-modern .grid-wrapper { background: #020617; border: 1px solid #1e293b; border-radius: 4px; padding: 2px; display: flex; justify-content: center; }
-    .theme-modern .screen-grid { display: grid; grid-template-columns: repeat(50, 1fr); gap: 1px; width: 100%; max-width: 900px; height: 110px; }
-    .theme-modern .c-cell { aspect-ratio: 1 / 1; border-radius: 1px; }
+    .theme-modern .grid-wrapper {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 6px;
+      display: flex;
+      justify-content: center;
+    }
+    .theme-modern .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+      height: 210px;
+    }
+    .theme-modern .c-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: 1px;
+    }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
     .theme-modern .c-unopt { background-color: #f59e0b; }
     .theme-modern .c-system { background-color: #dc2626; }
-    .theme-modern .c-read { background-color: #facc15 !important; }
-    .theme-modern .c-write { background-color: #34d399 !important; }
-    .theme-modern .ui-status-panel { background: #020617; border: 1px solid #1e293b; border-radius: 4px; padding: 3px 6px; font-size: 0.68rem; color: #38bdf8; display: flex; justify-content: space-between; }
+    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 6px #facc15; }
+    .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
+    .theme-modern .ui-status-panel {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+    }
     .theme-modern .theme-label { color: #94a3b8; }
     .theme-modern .dos-legend-box { display: none; }
 
-    /* THEME 2: WINDOWS 95 */
-    .theme-win95 { background-color: #008080; color: #000000; font-family: "MS Sans Serif", Tahoma, sans-serif; padding: 4px; border-radius: 4px; }
-    .theme-win95 .ui-window-box { background: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 2px; }
-    .theme-win95 .ui-topbar { background: linear-gradient(90deg, #000080, #1084d0); color: #ffffff; padding: 2px 4px; font-weight: bold; font-size: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .theme-win95 .ui-title { color: #ffffff; font-size: 10px; font-weight: bold; }
-    .theme-win95 .ui-controls { display: flex; gap: 3px; flex-wrap: wrap; background: transparent; padding: 2px 0; align-items: center; color: #000000; }
-    .theme-win95 .ctrl-btn { background-color: #c0c0c0; border-top: 2px solid #ffffff; border-left: 2px solid #ffffff; border-right: 2px solid #000000; border-bottom: 2px solid #000000; padding: 2px 5px; font-size: 9px; color: #000000 !important; cursor: pointer; }
-    .theme-win95 .ctrl-btn.active { background-color: #d4d4d4; font-weight: bold; }
-    .theme-win95 .grid-wrapper { border-top: 2px solid #808080; border-left: 2px solid #808080; border-right: 2px solid #ffffff; border-bottom: 2px solid #ffffff; background: #000000; padding: 2px; display: flex; justify-content: center; }
-    .theme-win95 .screen-grid { display: grid; grid-template-columns: repeat(50, 1fr); gap: 1px; width: 100%; max-width: 900px; height: 110px; }
-    .theme-win95 .c-cell { aspect-ratio: 1 / 1; border-radius: 0; }
+    /* THEME 2: WINDOWS 95 / 98 */
+    .theme-win95 {
+      background-color: #008080;
+      color: #000000;
+      font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif;
+      padding: 12px;
+      border-radius: 4px;
+    }
+    .theme-win95 .ui-window-box {
+      background: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+      padding: 3px;
+    }
+    .theme-win95 .ui-topbar {
+      background: linear-gradient(90deg, #000080, #1084d0);
+      color: #ffffff;
+      padding: 3px 6px;
+      font-weight: bold;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .theme-win95 .ui-title { color: #ffffff; font-size: 12px; font-weight: bold; }
+    .theme-win95 .ui-controls {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      background: transparent;
+      padding: 6px 0;
+      align-items: center;
+      color: #000000;
+    }
+    .theme-win95 .ctrl-btn {
+      background-color: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+      padding: 3px 8px;
+      font-size: 11px;
+      color: #000000 !important;
+      cursor: pointer;
+    }
+    .theme-win95 .ctrl-btn:active {
+      border-top: 2px solid #000000;
+      border-left: 2px solid #000000;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: none;
+    }
+    .theme-win95 .ctrl-btn.active {
+      background-color: #d4d4d4;
+      font-weight: bold;
+      color: #000000 !important;
+    }
+    .theme-win95 .ctrl-btn.churn-btn {
+      color: #000000 !important;
+    }
+    .theme-win95 .grid-wrapper {
+      border-top: 2px solid #808080;
+      border-left: 2px solid #808080;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      background: #000000;
+      padding: 3px;
+      display: flex;
+      justify-content: center;
+    }
+    .theme-win95 .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+      height: 210px;
+    }
+    .theme-win95 .c-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: 0;
+    }
     .theme-win95 .c-free { background-color: #ffffff; }
     .theme-win95 .c-opt { background-color: #000080; }
     .theme-win95 .c-unopt { background-color: #5ce1e6; }
     .theme-win95 .c-system { background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%); }
-    .theme-win95 .c-read { background-color: #00ff00 !important; }
-    .theme-win95 .c-write { background-color: #ff0000 !important; }
-    .theme-win95 .ui-status-panel { border-top: 1px solid #808080; padding-top: 2px; margin-top: 2px; font-size: 9px; display: flex; justify-content: space-between; color: #000000 !important; }
+    .theme-win95 .c-read { background-color: #00ff00 !important; box-shadow: 0 0 4px #00ff00; }
+    .theme-win95 .c-write { background-color: #ff0000 !important; box-shadow: 0 0 4px #ff0000; }
+    .theme-win95 .ui-status-panel {
+      border-top: 1px solid #808080;
+      padding-top: 4px;
+      margin-top: 4px;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      color: #000000 !important;
+    }
     .theme-win95 .theme-label { color: #ffffff !important; }
     .theme-win95 .dos-legend-box { display: none; }
 
-    /* THEME 3: MS-DOS SPEED DISK */
-    .theme-dos { background-color: #0000aa; color: #ffffff; font-family: "Courier New", Courier, monospace; padding: 4px; border: 2px double #ffffff; box-shadow: 3px 3px 0 rgba(0,0,0,0.8); }
-    .theme-dos .ui-topbar { background: #00aaaa; color: #000000; padding: 2px 4px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-    .theme-dos .ui-title { color: #000000; font-size: 11px; font-weight: bold; }
-    .theme-dos .ui-controls { display: flex; gap: 4px; flex-wrap: wrap; background: transparent; padding: 2px 0; align-items: center; color: #ffffff; }
-    .theme-dos .ctrl-btn { background-color: #0000aa; color: #ffff55; border: 1px solid #ffffff; padding: 2px 5px; font-size: 9px; font-weight: bold; cursor: pointer; }
+    /* THEME 3: MS-DOS / NORTON SPEED DISK */
+    .theme-dos {
+      background-color: #0000aa;
+      color: #ffffff;
+      font-family: "Courier New", Courier, monospace;
+      padding: 10px;
+      border: 3px double #ffffff;
+      box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8);
+    }
+    .theme-dos .ui-topbar {
+      background: #00aaaa;
+      color: #000000;
+      padding: 2px 8px;
+      font-weight: bold;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .theme-dos .ui-title { color: #000000; font-size: 13px; font-weight: bold; }
+    .theme-dos .ui-controls {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      background: transparent;
+      padding: 6px 0;
+      align-items: center;
+      color: #ffffff;
+    }
+    .theme-dos .ctrl-btn {
+      background-color: #0000aa;
+      color: #ffff55;
+      border: 1px solid #ffffff;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+    }
     .theme-dos .ctrl-btn:hover { background-color: #00aaaa; color: #000000; }
     .theme-dos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; }
-    .theme-dos .grid-wrapper { background: #000055; border: 1px solid #55ffff; padding: 2px; display: flex; justify-content: center; }
-    .theme-dos .screen-grid { display: grid; grid-template-columns: repeat(50, 1fr); gap: 1px; width: 100%; max-width: 900px; height: 110px; }
-    .theme-dos .c-cell { aspect-ratio: 1 / 1.35; border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: bold; line-height: 1; user-select: none; }
+    .theme-dos .ctrl-btn.churn-btn { color: #ffff55; }
+    .theme-dos .grid-wrapper {
+      background: #000055;
+      border: 2px solid #55ffff;
+      padding: 4px;
+      display: flex;
+      justify-content: center;
+    }
+    .theme-dos .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 1px;
+      width: 100%;
+      max-width: 1000px;
+      height: 210px;
+    }
+    .theme-dos .c-cell {
+      aspect-ratio: 1 / 1.65;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: bold;
+      line-height: 1;
+      user-select: none;
+    }
     .theme-dos .c-free { background-color: #000055; color: #0000aa; }
     .theme-dos .c-opt { background-color: #0000aa; color: #ffffff; }
     .theme-dos .c-unopt { background-color: #0000aa; color: #ff5555; }
     .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
     .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
     .theme-dos .c-write { background-color: #ffff55 !important; color: #000000 !important; }
-    .theme-dos .ui-status-panel { background: #0000aa; border-top: 1px dashed #ffffff; padding-top: 2px; margin-top: 2px; font-size: 9px; color: #ffff55; display: flex; justify-content: space-between; }
+    .theme-dos .ui-status-panel {
+      background: #0000aa;
+      border-top: 1px dashed #ffffff;
+      padding-top: 6px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #ffff55;
+      display: flex;
+      justify-content: space-between;
+    }
     .theme-dos .theme-label { color: #000000; }
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (STRICT 800x600 FIT)
+       THEME 4: MS-DOS 6.22 DEFRAG (AUTHENTIC NON-ANTIALIASED BITMAP)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -240,37 +479,39 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       -webkit-font-smoothing: none;
       font-smooth: never;
       text-rendering: geometricPrecision;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
     }
     .theme-olddos .ui-window-box { border: none; padding: 0; background: #0000aa; }
     .theme-olddos .ui-topbar {
       background: #ffffff;
       color: #0000aa;
-      padding: 2px 4px;
-      font-size: 9px;
+      padding: 3px 6px;
+      font-size: 10.5px;
       font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 0;
       image-rendering: pixelated;
+      -webkit-font-smoothing: none;
     }
-    .theme-olddos .ui-title { color: #0000aa; font-size: 9px; font-weight: bold; }
+    .theme-olddos .ui-title { color: #0000aa; font-size: 10.5px; font-weight: bold; }
     .theme-olddos .ui-controls {
       background: #0000aa;
       border-bottom: 1px solid #55ffff;
-      padding: 2px 4px;
-      gap: 3px;
+      padding: 4px 8px;
+      gap: 5px;
       image-rendering: pixelated;
     }
     .theme-olddos .ctrl-btn {
       background-color: #0000aa;
       color: #ffff55;
       border: 1px solid #ffff55;
-      padding: 1px 3px;
-      font-size: 7.5px;
+      padding: 2px 5px;
+      font-size: 9.5px;
       font-family: 'PerfectDOS', monospace;
       image-rendering: pixelated;
+      -webkit-font-smoothing: none;
       cursor: pointer;
     }
     .theme-olddos .ctrl-btn:hover { background-color: #55ffff; color: #0000aa; }
@@ -280,8 +521,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .grid-wrapper {
       background: #0000aa;
       border: 1px solid #55ffff;
-      margin: 2px;
-      padding: 1px;
+      margin: 4px;
+      padding: 2px;
       display: flex;
       justify-content: center;
     }
@@ -290,19 +531,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       grid-template-columns: repeat(50, 1fr);
       gap: 1px;
       width: 100%;
-      max-width: 900px;
-      height: 95px; /* Extremely compact height guarantees zero vertical scroll */
+      max-width: 1000px;
+      height: 210px;
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.35;
+      aspect-ratio: 1 / 1.8;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 6px;
+      font-size: 10px;
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
+      -webkit-font-smoothing: none;
       user-select: none;
     }
     .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
@@ -316,22 +558,56 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: grid;
       grid-template-columns: 1fr 1fr;
       border: 1px solid #55ffff;
-      margin: 2px;
+      margin: 4px;
       background: #0000aa;
       color: #ffffff;
-      font-size: 8px;
+      font-size: 9.5px;
       font-family: 'PerfectDOS', monospace;
       image-rendering: pixelated;
+      -webkit-font-smoothing: none;
     }
-    .theme-olddos .dos-status-col { padding: 3px 4px; border-right: 1px solid #55ffff; display: flex; flex-direction: column; gap: 2px; }
-    .theme-olddos .dos-legend-col { padding: 3px 4px; display: flex; flex-direction: column; gap: 1px; }
-    .theme-olddos .dos-prog-bar { background: #ffffff; color: #0000aa; height: 8px; width: 100%; position: relative; overflow: hidden; font-size: 6.5px; display: flex; align-items: center; padding-left: 2px; font-weight: bold; }
+    .theme-olddos .dos-status-col {
+      padding: 6px;
+      border-right: 1px solid #55ffff;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .theme-olddos .dos-legend-col {
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .theme-olddos .dos-prog-bar {
+      background: #ffffff;
+      color: #0000aa;
+      height: 12px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      font-size: 8.5px;
+      display: flex;
+      align-items: center;
+      padding-left: 4px;
+      font-weight: bold;
+    }
     .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
 
     /* Matrix Dimensions */
-    .screen-grid { display: grid; grid-template-columns: repeat(50, 1fr); gap: 2px; width: 100%; max-width: 1000px; }
-    .c-cell { width: 100%; height: 100%; transition: background-color 0.04s ease; }
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .c-cell {
+      width: 100%;
+      height: 100%;
+      transition: background-color 0.04s ease;
+    }
   </style>
 </head>
 <body>
@@ -393,8 +669,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Window Topbar -->
         <div class="ui-topbar">
           <span class="ui-title" id="shellTitle">FAT32 Volume Optimizer (500 MB Drive)</span>
-          <div style="display:flex; gap:4px; align-items:center;">
-            <span style="font-size:10px;" class="theme-label" id="themeLabel">Theme:</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span style="font-size:11px;" class="theme-label" id="themeLabel">Theme:</span>
             <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
             <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
             <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
@@ -405,8 +681,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Controls Bar with Disk Space & Action Controls -->
         <div class="ui-controls">
           <!-- Disk Size Selectors -->
-          <div style="display:flex; align-items:center; gap:3px; margin-right:2px;">
-            <span style="font-size:9.5px; font-weight:700;">Disk Size:</span>
+          <div style="display:flex; align-items:center; gap:4px; margin-right:4px;">
+            <span style="font-size:11px; font-weight:700;">Disk Size:</span>
             <button class="ctrl-btn" onclick="selectDiskCapacity(10)" id="size-10">10MB</button>
             <button class="ctrl-btn" onclick="selectDiskCapacity(100)" id="size-100">100MB</button>
             <button class="ctrl-btn active" onclick="selectDiskCapacity(500)" id="size-500">500MB</button>
@@ -419,7 +695,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
 
           <!-- Speed Controls -->
-          <div style="margin-left:auto; display:flex; align-items:center; gap:4px; font-size:9.5px;">
+          <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
             <span>Speed:</span>
             <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow</button>
             <button class="ctrl-btn active" onclick="setDefragSpeed(45, 'spd-norm')" id="spd-norm">Medium</button>
@@ -436,7 +712,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div class="dos-legend-box" id="dosLegendBox">
           <div class="dos-status-col">
             <div style="border-bottom:1px solid #55ffff; padding-bottom:1px; font-weight:bold; color:#ffff55;">Status</div>
-            <div style="display:flex; justify-content:space-between; font-size:7.5px;">
+            <div style="display:flex; justify-content:space-between; font-size:9px;">
               <span id="dosClusterText">Cluster 16,936</span>
               <span id="dosPctText">29%</span>
             </div>
@@ -444,12 +720,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div id="dosProgressBarFill" style="background:#55ffff; width:29%; height:100%; position:absolute; left:0; top:0; z-index:1;"></div>
               <span id="dosProgressText" style="position:relative; z-index:2; color:#0000aa; margin:auto;"></span>
             </div>
-            <div style="text-align:center; font-size:7.5px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
-            <div style="text-align:center; font-size:7.5px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
+            <div style="text-align:center; font-size:9px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
+            <div style="text-align:center; font-size:9px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
           </div>
           <div class="dos-legend-col">
             <div style="border-bottom:1px solid #55ffff; padding-bottom:1px; font-weight:bold; color:#ffff55;">Legend</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1px; font-size:7px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1px; font-size:8.5px;">
               <div>■ - Used</div>
               <div>▒ - Unused</div>
               <div>r - Reading</div>
@@ -457,19 +733,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div>B - Bad</div>
               <div>X - Unmovable</div>
             </div>
-            <div style="margin-top:auto; font-size:7px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
+            <div style="margin-top:auto; font-size:8.5px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
           </div>
         </div>
 
         <!-- Explicit Visual Color Legend / Key for Modern Theme -->
         <div class="modern-legend" id="modernLegend">
           <span style="font-weight:700; color:#38bdf8;">Legend:</span>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space: Unallocated blocks available</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized: Contiguous files packed sequentially</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized: Fragmented clusters scattered</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System: Unmovable kernel/system files</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#facc15;"></div><span>Reading (r): Active drive head reading</span></div>
-          <div class="modern-legend-item"><div class="modern-swatch" style="background:#34d399;"></div><span>Writing (w): Active drive head writing</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space: Unallocated blocks available for new file data</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized: Contiguous files packed sequentially for high read throughput</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized: Fragmented file clusters scattered across the volume</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System: Unmovable kernel/system files parked securely</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#facc15;"></div><span>Reading (r): Active drive head reading scattered clusters</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#34d399;"></div><span>Writing (w): Active drive head writing consolidated blocks</span></div>
         </div>
 
         <!-- Real-Time Status Panel -->
@@ -862,11 +1138,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Reduce cluster matrix height and container padding to fix overflow
+COMMIT_MSG = """Remove defrag container height constraint for natural layout spacing
 
-Update week10-file-management/03-filesystem-implementation.html with a strict
-maximum height limit (520px) and compact matrix rows so the defrag widget
-fits comfortably on 800x600 displays without vertical overflow."""
+Update week10-file-management/03-filesystem-implementation.html to remove
+the max-height constraint, restoring natural vertical spacing across themes."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -888,10 +1163,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging vertical fit update")
+    run_git_step(["git", "add", target_file], "Staging natural layout update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Strict vertical containment successfully deployed!")
+    print("--> Natural container height spacing successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
