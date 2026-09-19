@@ -20,6 +20,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --text: #0f172a;
       --text-muted: #475569;
       --inspect-color: #d97706;
+      --success-color: #059669;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -203,11 +204,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
-    .flow-node { transition: all 0.25s ease; }
-    .flow-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5px; rx: 6px; }
-    .flow-text { font-size: 11px; font-weight: 600; fill: #334155; text-anchor: middle; }
-    .active-node .flow-box { fill: #f0f9ff; stroke: #0284c7; stroke-width: 2.5px; filter: drop-shadow(0 2px 4px rgba(2,132,199,0.2)); }
-    .active-node .flow-text { fill: #0284c7; font-weight: 700; }
+    /* Debugger Flow Styles */
+    .sim-node { transition: all 0.3s ease; }
+    .sim-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5px; rx: 6px; }
+    .sim-text { font-size: 11px; font-weight: 600; fill: #334155; text-anchor: middle; }
+    .active-sim-node .sim-box { fill: #f0f9ff; stroke: #0284c7; stroke-width: 2.5px; filter: drop-shadow(0 3px 6px rgba(2,132,199,0.25)); }
+    .active-sim-node .sim-text { fill: #0284c7; font-weight: 700; }
+    .packet { fill: #0284c7; transition: all 0.5s ease-in-out; }
   </style>
 </head>
 <body>
@@ -432,7 +435,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </table>
     </div>
 
-    <!-- Section 4.1.6: File Operations & System Calls -->
+    <!-- Section 4.1.6: File Operations & System Calls (Interactive Kernel Debugger Simulator) -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
       <p>
@@ -451,75 +454,68 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <li><strong>Rename:</strong> Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.</li>
       </ol>
 
-      <!-- Interactive Flowchart SVG -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 10px;">
+      <!-- Interactive Kernel Debugger Simulator Widget -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Interactive Flowchart: POSIX System Call Interaction Pipeline</span>
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Interactive Kernel Debugger Simulator: POSIX Data-Flow</span>
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button onclick="highlightFlow('open')" style="font-size: 0.75rem; padding: 4px 8px;">1. open()</button>
-            <button onclick="highlightFlow('read')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">2. read()</button>
-            <button onclick="highlightFlow('write')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">3. write()</button>
-            <button onclick="highlightFlow('seek')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">4. lseek()</button>
-            <button onclick="highlightFlow('close')" style="font-size: 0.75rem; padding: 4px 8px;" class="btn-secondary">5. close()</button>
+            <button onclick="debuggerStep(-1)" class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">&larr; Step Back</button>
+            <button onclick="debuggerStep(1)" style="font-size: 0.75rem; padding: 4px 10px;">Step Forward &rarr;</button>
+            <button onclick="resetDebugger()" class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">Reset</button>
           </div>
         </div>
 
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <g id="node-process" class="flow-node">
-            <rect x="20" y="45" width="110" height="70" class="flow-box"/>
-            <text x="75" y="75" class="flow-text">User Process</text>
-            <text x="75" y="92" font-size="9" fill="#64748b" text-anchor="middle">System Calls</text>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Node 1: User Process -->
+          <g id="sim-node-process" class="sim-node">
+            <rect x="20" y="50" width="110" height="70" class="sim-box"/>
+            <text x="75" y="80" class="sim-text">User Process</text>
+            <text x="75" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-proc">Idle</text>
           </g>
 
-          <path d="M 130 80 L 170 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+          <path d="M 130 85 L 170 85" stroke="#94a3b8" stroke-width="2"/>
 
-          <g id="node-fd" class="flow-node">
-            <rect x="170" y="45" width="110" height="70" class="flow-box"/>
-            <text x="225" y="75" class="flow-text">FD Table</text>
-            <text x="225" y="92" font-size="9" fill="#64748b" text-anchor="middle">File Descriptor (fd)</text>
+          <!-- Node 2: FD Table -->
+          <g id="sim-node-fd" class="sim-node">
+            <rect x="170" y="50" width="110" height="70" class="sim-box"/>
+            <text x="225" y="80" class="sim-text">FD Table</text>
+            <text x="225" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-fd">fd = --</text>
           </g>
 
-          <path d="M 280 80 L 320 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+          <path d="M 280 85 L 320 85" stroke="#94a3b8" stroke-width="2"/>
 
-          <g id="node-inode" class="flow-node">
-            <rect x="320" y="45" width="130" height="70" class="flow-box"/>
-            <text x="385" y="72" class="flow-text">Open File Table</text>
-            <text x="385" y="88" font-size="9" fill="#64748b" text-anchor="middle">&amp; I-Node in RAM</text>
-            <text x="385" y="102" font-size="9" fill="#64748b" text-anchor="middle">Offset &amp; Pointers</text>
+          <!-- Node 3: Open File Table -->
+          <g id="sim-node-inode" class="sim-node">
+            <rect x="320" y="50" width="130" height="70" class="sim-box"/>
+            <text x="385" y="75" class="sim-text">Open File Table</text>
+            <text x="385" y="92" font-size="9" fill="#64748b" text-anchor="middle">&amp; I-Node in RAM</text>
+            <text x="385" y="106" font-size="9" fill="#0284c7" font-weight="700" text-anchor="middle" id="lbl-offset">Offset: 0B</text>
           </g>
 
-          <path d="M 450 80 L 490 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+          <path d="M 450 85 L 490 85" stroke="#94a3b8" stroke-width="2"/>
 
-          <g id="node-cache" class="flow-node">
-            <rect x="490" y="45" width="110" height="70" class="flow-box"/>
-            <text x="545" y="75" class="flow-text">Buffer Cache</text>
-            <text x="545" y="92" font-size="9" fill="#64748b" text-anchor="middle">In-Memory Blocks</text>
+          <!-- Node 4: Buffer Cache -->
+          <g id="sim-node-cache" class="sim-node">
+            <rect x="490" y="50" width="110" height="70" class="sim-box"/>
+            <text x="545" y="80" class="sim-text">Buffer Cache</text>
+            <text x="545" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-cache">Cache: Clean</text>
           </g>
 
-          <path d="M 600 80 L 640 80" stroke="#94a3b8" stroke-width="2" marker-end="url(#flowarrow)"/>
+          <path d="M 600 85 L 640 85" stroke="#94a3b8" stroke-width="2"/>
 
-          <g id="node-disk" class="flow-node">
-            <rect x="640" y="45" width="100" height="70" class="flow-box"/>
-            <text x="690" y="75" class="flow-text">Storage Media</text>
-            <text x="690" y="92" font-size="9" fill="#64748b" text-anchor="middle">Disks / SSDs</text>
+          <!-- Node 5: Storage Media -->
+          <g id="sim-node-disk" class="sim-node">
+            <rect x="640" y="50" width="100" height="70" class="sim-box"/>
+            <text x="690" y="80" class="sim-text">Storage Media</text>
+            <text x="690" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-disk">Disk: Ready</text>
           </g>
 
-          <defs>
-            <marker id="flowarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
-            </marker>
-          </defs>
+          <!-- Animated Data Packet -->
+          <circle id="simPacket" cx="75" cy="85" r="8" class="packet" style="opacity: 0; filter: drop-shadow(0 0 4px #0284c7);"/>
         </svg>
 
-        <div id="flowDesc" style="font-size: 0.88rem; color: var(--text); text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; width: 100%; line-height: 1.5;">
-          <strong>Interactive Flowchart Explanation:</strong> This diagram illustrates how user-space POSIX file operations traverse the kernel architecture.
-          <ul style="text-align: left; margin-top: 6px; padding-left: 20px; font-size: 0.85rem; color: var(--text-muted);">
-            <li><strong>User Process:</strong> Initiates file actions via standard POSIX system call wrappers.</li>
-            <li><strong>FD Table:</strong> Resolves the process-local file descriptor integer (fd) to identify the open file context.</li>
-            <li><strong>Open File Table &amp; I-Node:</strong> Accesses kernel-level shared state, tracking current byte offset pointers and loading metadata into RAM.</li>
-            <li><strong>Buffer Cache:</strong> Intercepts reads and writes in high-speed memory to minimize expensive physical storage accesses.</li>
-            <li><strong>Storage Media:</strong> Persists modified blocks to physical magnetic disks or solid-state drives during sync or close operations.</li>
-          </ul>
+        <div id="simDesc" style="font-size: 0.88rem; color: var(--text); text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 6px; width: 100%; line-height: 1.5;">
+          <strong>Debugger Stage 0 of 5:</strong> Click <strong>"Step Forward"</strong> to begin tracing the POSIX lifecycle (`open() &rarr; read() &rarr; write() &rarr; lseek() &rarr; close()`).
         </div>
       </div>
     </div>
@@ -667,38 +663,71 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    function highlightFlow(op) {
-      document.querySelectorAll('.flow-node').forEach(n => n.classList.remove('active-node'));
-      const desc = document.getElementById('flowDesc');
+    // Kernel Debugger Simulator State Machine
+    let simStage = 0;
+    const simCoordinates = [75, 225, 385, 545, 690];
 
-      if (op === 'open') {
-        document.getElementById('node-process').classList.add('active-node');
-        document.getElementById('node-fd').classList.add('active-node');
-        document.getElementById('node-inode').classList.add('active-node');
-        desc.innerHTML = "<strong>1. open() Interaction:</strong> The User Process invokes <code>open()</code>. The kernel resolves the path through directory entries, allocates an entry in the per-process <strong>FD Table</strong>, and binds it to an <strong>Open File Table</strong> entry and in-memory <strong>I-Node</strong>.";
-      } else if (op === 'read') {
-        document.getElementById('node-process').classList.add('active-node');
-        document.getElementById('node-fd').classList.add('active-node');
-        document.getElementById('node-inode').classList.add('active-node');
-        document.getElementById('node-cache').classList.add('active-node');
-        document.getElementById('node-disk').classList.add('active-node');
-        desc.innerHTML = "<strong>2. read() Interaction:</strong> The User Process requests data via file descriptor. The kernel inspects the current offset in the Open File Table, checks the <strong>Buffer Cache</strong>, fetches missing blocks from <strong>Storage Media</strong> if necessary, and copies bytes into the user buffer.";
-      } else if (op === 'write') {
-        document.getElementById('node-process').classList.add('active-node');
-        document.getElementById('node-inode').classList.add('active-node');
-        document.getElementById('node-cache').classList.add('active-node');
-        desc.innerHTML = "<strong>3. write() Interaction:</strong> The User Process supplies data buffers. The kernel copies data into the <strong>Buffer Cache</strong>, updates file size and modification timestamps in the <strong>I-Node</strong>, and advances the file offset pointer.";
-      } else if (op === 'seek') {
-        document.getElementById('node-process').classList.add('active-node');
-        document.getElementById('node-inode').classList.add('active-node');
-        desc.innerHTML = "<strong>4. lseek() Interaction:</strong> The User Process specifies a new byte offset. The kernel updates the logical offset pointer inside the <strong>Open File Table</strong> directly without performing any disk I/O operations.";
-      } else if (op === 'close') {
-        document.getElementById('node-process').classList.add('active-node');
-        document.getElementById('node-fd').classList.add('active-node');
-        document.getElementById('node-inode').classList.add('active-node');
-        document.getElementById('node-cache').classList.add('active-node');
-        document.getElementById('node-disk').classList.add('active-node');
-        desc.innerHTML = "<strong>5. close() Interaction:</strong> The User Process releases the file descriptor. The kernel flushes any unwritten cached blocks to <strong>Storage Media</strong>, deallocates the <strong>FD Table</strong> entry, and decrements the <strong>I-Node</strong> reference count.";
+    function debuggerStep(dir) {
+      simStage += dir;
+      if (simStage < 0) simStage = 0;
+      if (simStage > 5) simStage = 5;
+      renderDebuggerState();
+    }
+
+    function resetDebugger() {
+      simStage = 0;
+      renderDebuggerState();
+    }
+
+    function renderDebuggerState() {
+      // Clear node highlights
+      document.querySelectorAll('.sim-node').forEach(n => n.classList.remove('active-sim-node'));
+      const pkt = document.getElementById('simPacket');
+      const desc = document.getElementById('simDesc');
+
+      if (simStage === 0) {
+        pkt.style.opacity = '0';
+        document.getElementById('lbl-proc').textContent = "Idle";
+        document.getElementById('lbl-fd').textContent = "fd = --";
+        document.getElementById('lbl-offset').textContent = "Offset: 0B";
+        document.getElementById('lbl-cache').textContent = "Cache: Clean";
+        document.getElementById('lbl-disk').textContent = "Disk: Ready";
+        desc.innerHTML = "<strong>Debugger Stage 0 of 5:</strong> System initialized. Click <strong>\"Step Forward\"</strong> to initiate <code>open()</code>.";
+      } else if (simStage === 1) {
+        pkt.style.opacity = '1';
+        pkt.setAttribute('cx', simCoordinates[1]); // FD Table
+        document.getElementById('sim-node-process').classList.add('active-sim-node');
+        document.getElementById('sim-node-fd').classList.add('active-sim-node');
+        document.getElementById('lbl-proc').textContent = "Calling open()";
+        document.getElementById('lbl-fd').textContent = "fd = 3 allocated";
+        desc.innerHTML = "<strong>Debugger Stage 1 of 5 (`open()`):</strong> The User Process invokes <code>open(\"data.txt\")</code>. The kernel resolves path name lookup, allocates i-node metadata into RAM, and returns file descriptor <strong>fd = 3</strong>.";
+      } else if (simStage === 2) {
+        pkt.setAttribute('cx', simCoordinates[3]); // Buffer Cache
+        document.getElementById('sim-node-fd').classList.add('active-sim-node');
+        document.getElementById('sim-node-inode').classList.add('active-sim-node');
+        document.getElementById('sim-node-cache').classList.add('active-sim-node');
+        document.getElementById('lbl-fd').textContent = "fd = 3 active";
+        document.getElementById('lbl-offset').textContent = "Offset: 4096B";
+        document.getElementById('lbl-cache').textContent = "Cache Hit";
+        desc.innerHTML = "<strong>Debugger Stage 2 of 5 (`read()`):</strong> Process issues <code>read(3, buf, 4096)</code>. The kernel checks the Open File Table offset, resolves disk block pointers via the i-node, fetches data from the <strong>Buffer Cache</strong>, and advances the offset.";
+      } else if (simStage === 3) {
+        pkt.setAttribute('cx', simCoordinates[3]); // Buffer Cache
+        document.getElementById('sim-node-inode').classList.add('active-sim-node');
+        document.getElementById('sim-node-cache').classList.add('active-sim-node');
+        document.getElementById('lbl-offset').textContent = "Offset: 4122B";
+        document.getElementById('lbl-cache').textContent = "Cache Dirty";
+        desc.innerHTML = "<strong>Debugger Stage 3 of 5 (`write()`):</strong> Process issues <code>write(3, data, 26)</code>. Data is copied into the memory-resident <strong>Buffer Cache</strong>, marking the buffer block as dirty and updating the file size attribute.";
+      } else if (simStage === 4) {
+        pkt.setAttribute('cx', simCoordinates[2]); // Open File Table
+        document.getElementById('sim-node-inode').classList.add('active-sim-node');
+        document.getElementById('lbl-offset').textContent = "Offset: 0B (Seek)";
+        desc.innerHTML = "<strong>Debugger Stage 4 of 5 (`lseek()`):</strong> Process invokes <code>lseek(3, 0, SEEK_SET)</code>. The kernel directly updates the logical byte offset pointer inside the Open File Table to 0 without touching disk hardware.";
+      } else if (simStage === 5) {
+        pkt.setAttribute('cx', simCoordinates[4]); // Storage Media
+        document.querySelectorAll('.sim-node').forEach(n => n.classList.add('active-sim-node'));
+        document.getElementById('lbl-fd').textContent = "fd = 3 closed";
+        document.getElementById('lbl-disk').textContent = "Disk Synced";
+        desc.innerHTML = "<strong>Debugger Stage 5 of 5 (`close()`):</strong> Process invokes <code>close(3)</code>. The kernel flushes dirty cache blocks to <strong>Storage Media</strong>, deallocates the FD table entry, and releases the i-node reference.";
       }
     }
   </script>
@@ -706,22 +735,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Add detailed descriptive text for flowchart in module 01
+COMMIT_MSG = """Add interactive kernel data-flow debugger simulator to module 01
 
-Update week10-file-management/01-files-abstraction.html to include
-comprehensive explanations detailing how each POSIX system call interacts
-with kernel subsystems."""
-
-def run_git_step(cmd, desc):
-    print(f"--> {desc}...")
-    res = subprocess.run(cmd, capture_output=True, text=True)
-    if res.stdout.strip():
-        print(res.stdout.strip())
-    if res.stderr.strip():
-        print(f"[{desc} stderr]\n{res.stderr.strip()}")
-    if res.returncode != 0:
-        print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
-        sys.exit(res.returncode)
+Update week10-file-management/01-files-abstraction.html to feature an
+animated, step-by-step interactive debugger widget visualizing POSIX
+file operation data packets moving across kernel table subsystems."""
 
 def execute_pipeline():
     target_dir = "week10-file-management"
@@ -730,12 +748,20 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with flowchart description to {target_file}")
+    print(f"Wrote module file with animated debugger to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging flowchart description update 01-files-abstraction.html")
-    run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
-    run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Flowchart Description Module 01 created, committed, and pushed successfully!")
+    res = subprocess.run(["git", "add", target_file], capture_output=True, text=True)
+    if res.returncode != 0:
+        sys.exit(res.returncode)
+
+    res = subprocess.run(["git", "commit", "-a", "-m", COMMIT_MSG], capture_output=True, text=True)
+    if res.returncode != 0:
+        sys.exit(res.returncode)
+
+    res = subprocess.run(["git", "push", "origin", "main"], capture_output=True, text=True)
+    if res.returncode != 0:
+        sys.exit(res.returncode)
+    print("--> Animated Debugger Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
