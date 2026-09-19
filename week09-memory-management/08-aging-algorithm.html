@@ -188,7 +188,7 @@
 
     .split-grid {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 400px 1fr;
       gap: 20px;
       align-items: center;
       margin-top: 10px;
@@ -207,7 +207,6 @@
       padding: 14px;
     }
 
-    /* Individual Bit Cell Styling */
     .bit-cell-row {
       display: flex;
       justify-content: space-between;
@@ -224,15 +223,15 @@
       gap: 2px;
     }
     .bit-box {
-      width: 22px;
-      height: 24px;
+      width: 20px;
+      height: 22px;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #ffffff;
       border: 1px solid #cbd5e1;
       font-weight: 700;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: #0f172a;
     }
     .bit-box.msb-highlight {
@@ -340,13 +339,16 @@
           While the Clock algorithm (second-chance) avoids the heavy overhead of strict LRU, it is relatively coarse-grained. It only remembers whether a page was referenced during the <em>current</em> sweep cycle ($R = 1$ or $R = 0$). It cannot distinguish between a page referenced 10 instructions ago versus one referenced 10,000 instructions ago.
         </p>
 
-        <h2>2. The Aging Algorithm Solution</h2>
+        <h2>2. The Aging Algorithm Solution &amp; The Referenced ($R$) Bit</h2>
         <p>
           To capture more precise access history without full LRU matrix overhead, operating systems use the <strong>Aging Algorithm</strong>. Each physical page frame is assigned a fixed-width binary history register (typically 8 bits wide, corresponding to 8 consecutive clock ticks).
         </p>
+        <p>
+          The foundation of aging relies on the hardware <strong>Referenced ($R$) bit</strong>. Whenever the CPU accesses a virtual address, the memory management unit (MMU) automatically sets the page's $R$ bit to $1$. Because the MMU never clears this bit on its own, the OS uses periodic clock ticks to read, shift, and reset it.
+        </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
-          <li><strong>Clock Tick Interception:</strong> At regular hardware clock intervals (e.g., every 20ms), the OS interrupts execution and performs a right-shift operation on every page's counter: $R_i \to R_i \gg 1$.</li>
-          <li><strong>MSB Injection:</strong> During the shift, the current hardware Referenced ($R$) bit is inserted into the most significant bit (MSB, position 7) of the register: $R_7 = R$.</li>
+          <li><strong>Clock Tick Interception:</strong> At regular hardware clock intervals, the OS interrupts execution and performs a right-shift operation on every page's counter: $R_i \to R_i \gg 1$.</li>
+          <li><strong>MSB Injection ($R \to \text{MSB}$):</strong> During the shift, the current hardware Referenced ($R$) bit is inserted into the most significant bit (MSB, position 7) of the register: $R_7 = R$.</li>
           <li><strong>Eviction Policy:</strong> When a page fault occurs, the kernel scans all frame registers as unsigned integers. The page with the <strong>lowest numerical value</strong> is chosen as the victim (indicating it has not been referenced for the longest sequence of ticks).</li>
         </ul>
         <div class="theory-callout">
@@ -413,7 +415,7 @@
       </div>
     </div>
 
-    <!-- 2. GUIDED WALKTHROUGH WIDGET WITH REGISTER SHIFT VISUALIZATION -->
+    <!-- 2. GUIDED WALKTHROUGH WIDGET WITH R-BIT & REGISTER SHIFT VISUALIZATION -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
         <span id="wtCounter">Step 1 of 4</span>
@@ -494,7 +496,7 @@
           <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Physical Frame Registers (8-bit)</span>
           <table class="table-spec" style="margin-top:6px;">
             <thead>
-              <tr><th>Frame</th><th>Page</th><th>R</th><th>8-Bit Register (Binary Cells)</th><th>Decimal</th></tr>
+              <tr><th>Frame</th><th>Page</th><th>Hardware R</th><th>8-Bit Register (Binary Cells)</th><th>Decimal</th></tr>
             </thead>
             <tbody id="agingTableBody"></tbody>
           </table>
@@ -512,13 +514,14 @@
 
   <script>
     /* =========================================================================
-       PART 2: WALKTHROUGH LOGIC WITH VISUAL BIT CELLS
+       PART 2: WALKTHROUGH LOGIC WITH R-BIT & BIT CELLS
        ========================================================================= */
     let wtStep = 0;
     const wtSteps = [
       {
-        title: "1. Initial 8-Bit History Registers",
-        text: "Consider 4 physical frames holding pages A, B, C, and D. Each frame maintains an 8-bit history register tracking references over the last 8 clock ticks.",
+        title: "1. Initial State: Current Hardware R-Bits",
+        text: "Consider 4 physical frames holding pages A, B, C, and D. Each frame has a live hardware <strong>Referenced ($R$) bit</strong> set by the MMU during recent CPU execution, alongside its 8-bit history register.",
+        showR: true,
         frames: [
           { page: "A", r: 1, reg: 0b10001000, dec: 136 },
           { page: "B", r: 0, reg: 0b01110000, dec: 112 },
@@ -527,34 +530,37 @@
         ]
       },
       {
-        title: "2. Clock Tick: Right Shift & MSB Insertion",
-        text: "When a clock tick occurs, each 8-bit register shifts right by 1 ($\gg 1$), and the current hardware $R$ bit is injected into Bit 7 (MSB, highlighted in green).",
+        title: "2. Clock Tick: R-Bit Injection & Right Shift",
+        text: "During a clock tick, the OS reads each page's current hardware $R$ bit, shifts the 8-bit register right by 1 ($\gg 1$), and injects $R$ directly into Bit 7 (MSB, highlighted in green). Then $R$ resets to 0.",
+        showR: true,
         highlightMsb: true,
         frames: [
-          { page: "A", r: 1, reg: 0b11000100, dec: 196 },
-          { page: "B", r: 0, reg: 0b00111000, dec: 56 },
-          { page: "C", r: 0, reg: 0b01000000, dec: 64 },
-          { page: "D", r: 1, reg: 0b10011001, dec: 153 }
+          { page: "A", r: 0, reg: 0b11000100, dec: 196 }, // R=1 injected into MSB
+          { page: "B", r: 0, reg: 0b00111000, dec: 56 },  // R=0 injected into MSB
+          { page: "C", r: 0, reg: 0b01000000, dec: 64 },  // R=0 injected into MSB
+          { page: "D", r: 0, reg: 0b10011001, dec: 153 }  // R=1 injected into MSB
         ]
       },
       {
         title: "3. Evaluating Eviction Candidates",
-        text: "When a page fault occurs, the kernel evaluates unsigned decimal values: Page B (56), Page C (64), Page D (153), Page A (196).",
+        text: "When a page fault occurs, the kernel evaluates unsigned decimal counter values: Page B (56), Page C (64), Page D (153), Page A (196).",
+        showR: false,
         frames: [
-          { page: "A", r: 1, reg: 0b11000100, dec: 196 },
+          { page: "A", r: 0, reg: 0b11000100, dec: 196 },
           { page: "B", r: 0, reg: 0b00111000, dec: 56, victim: true },
           { page: "C", r: 0, reg: 0b01000000, dec: 64 },
-          { page: "D", r: 1, reg: 0b10011001, dec: 153 }
+          { page: "D", r: 0, reg: 0b10011001, dec: 153 }
         ]
       },
       {
         title: "4. Victim Selected: Page B Evicted",
         text: "Page B has the lowest numerical counter value (56), proving it has gone the longest without being referenced. Page B is evicted.",
+        showR: false,
         frames: [
-          { page: "A", r: 1, reg: 0b11000100, dec: 196 },
+          { page: "A", r: 0, reg: 0b11000100, dec: 196 },
           { page: "X", r: 1, reg: 0b10000000, dec: 128, new: true },
           { page: "C", r: 0, reg: 0b01000000, dec: 64 },
-          { page: "D", r: 1, reg: 0b10011001, dec: 153 }
+          { page: "D", r: 0, reg: 0b10011001, dec: 153 }
         ]
       }
     ];
@@ -585,8 +591,13 @@
         if (f.victim) row.style.background = "#fee2e2";
         if (f.new) row.style.background = "#dcfce7";
 
+        const rBadge = s.showR ? `<span style="background:${f.r ? '#dcfce7' : '#fee2e2'}; color:${f.r ? '#15803d' : '#b91c1c'}; padding:2px 6px; border-radius:3px; font-weight:700; font-size:0.72rem;">R=${f.r}</span>` : '';
+
         row.innerHTML = `
-          <span><strong>Page ${f.page}</strong></span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span><strong>Page ${f.page}</strong></span>
+            ${rBadge}
+          </div>
           ${renderBitBoxes(f.reg, s.highlightMsb)}
           <span style="font-size:0.75rem; color:var(--text-muted);">${f.dec}</span>
         `;
@@ -612,7 +623,7 @@
     renderWt();
 
     /* =========================================================================
-       PART 3: INTERACTIVE SANDBOX LOGIC WITH BIT CELLS
+       PART 3: INTERACTIVE SANDBOX LOGIC WITH R-BIT & BIT CELLS
        ========================================================================= */
     let agingFrames = [
       { id: 0, page: "A", r: 1, reg: 0b10001000 },
@@ -644,7 +655,7 @@
         tr.innerHTML = `
           <td>Frame ${f.id}</td>
           <td><strong>${f.page}</strong></td>
-          <td><span style="color:${f.r ? 'var(--hit-color)' : 'var(--fault-color)'}; font-weight:700;">${f.r}</span></td>
+          <td><span style="background:${f.r ? '#dcfce7' : '#fee2e2'}; color:${f.r ? '#15803d' : '#b91c1c'}; padding:2px 6px; border-radius:3px; font-weight:700;">R=${f.r}</span></td>
           <td><div style="display:flex; justify-content:center;">${renderBitBoxes(f.reg, false)}</div></td>
           <td>${f.reg} ${idx === victimIdx ? ' &larr; [Victim]' : ''}</td>
         `;
@@ -669,9 +680,9 @@
       statTicks++;
       agingFrames.forEach(f => {
         f.reg = (f.reg >>> 1) | (f.r << 7);
-        f.r = 0;
+        f.r = 0; // Reset hardware R-bit after injection
       });
-      logAging(`Clock Tick #${statTicks}: Shifted registers right by 1 and inserted R bits into MSB.`, "log-clear");
+      logAging(`Clock Tick #${statTicks}: Injected hardware R-bits into MSB, shifted registers right by 1, and cleared R &rarr; 0.`, "log-clear");
       renderAgingSandbox();
     }
 
@@ -710,7 +721,7 @@
       agingFrames[victimIdx].r = 1;
       agingFrames[victimIdx].reg = 0b10000000;
 
-      logAging(`EVICTION: Frame ${victimIdx} had lowest counter (${minVal}). Evicted '${evicted}' &rarr; Loaded '${p}'.`, "log-fault");
+      logAging(`EVICTION: Frame ${victimIdx} had lowest counter (${minVal}). Evicted '${evicted}' &rarr; Loaded '${p}' (R=1).`, "log-fault");
       renderAgingSandbox();
     }
 
