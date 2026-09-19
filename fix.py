@@ -424,7 +424,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .c-unopt { background-color: #0000aa; color: #ff5555; }
     .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
     .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
-    .theme-dos .c-write { background-color: #ffff55 !important; color: #000000 !important; }
+    .theme-dos .c-write { background-color: #ffff55 !important; color: #0000aa !important; }
     .theme-dos .ui-status-panel {
       background: #0000aa;
       border-top: 1px dashed #ffffff;
@@ -439,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (LEGEND-MATCHED CP437 GLYPHS)
+       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCK FILLS, ZERO PADDING)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -502,7 +502,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       max-width: 950px;
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.4; /* Correct proportional height matching DOS text mode */
+      aspect-ratio: 1 / 1.4;
       border-radius: 0;
       display: flex;
       align-items: center;
@@ -512,14 +512,39 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       line-height: 1;
       image-rendering: pixelated;
       user-select: none;
+      padding: 0; /* Zero padding inside cells */
     }
-    /* MS-DOS 6.22 Defrag Palette matching Legend exactly */
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; } /* ▒ - Unused */
-    .theme-olddos .c-opt { background-color: #0000aa; color: #ffff55; }  /* ■ - Used (Yellow) */
-    .theme-olddos .c-unopt { background-color: #0000aa; color: #ffff55; }/* ■ - Used (Yellow) */
-    .theme-olddos .c-system { background-color: #0000aa; color: #ffff55; font-weight: 900; } /* X - Unmovable */
-    .theme-olddos .c-read { background-color: #0000aa !important; color: #ffffff !important; } /* r - Reading */
-    .theme-olddos .c-write { background-color: #0000aa !important; color: #ffff55 !important; } /* W - Writing */
+    /* MS-DOS 6.22 Defrag Pure CSS Block Fills (100% cell coverage) */
+    .theme-olddos .c-free {
+      background-color: #0000aa;
+      background-image: radial-gradient(#55ffff 35%, transparent 35%);
+      background-size: 3px 3px; /* Fills entire cell with stippled dots matching legend */
+    }
+    .theme-olddos .c-opt {
+      background-color: #ffff55; /* Solid Yellow Block filling 100% */
+      background-image: none;
+    }
+    .theme-olddos .c-unopt {
+      background-color: #ffff55; /* Solid Yellow Block */
+      background-image: none;
+    }
+    .theme-olddos .c-system {
+      background-color: #ffff55;
+      color: #aa0000;
+      font-size: 8px;
+      font-weight: 900;
+      background-image: none;
+    }
+    .theme-olddos .c-read {
+      background-color: #ffffff !important;
+      color: #0000aa !important;
+      background-image: none;
+    }
+    .theme-olddos .c-write {
+      background-color: #55ff55 !important;
+      color: #0000aa !important;
+      background-image: none;
+    }
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
@@ -819,7 +844,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs (Matching screenshot legend)
+        // Pure CSS Background Fill Rendering (Zero padding/whitespace bugs)
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";
@@ -831,13 +856,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
-          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
-          el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          el.textContent = "▒";
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1104,11 +1126,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix cell aspect ratios and legend character glyph matching
+COMMIT_MSG = """Eliminate cell padding with 100% CSS background block fills
 
-Update week10-file-management/03-filesystem-implementation.html with proper
-tall DOS aspect ratios (1 / 1.4) and matching CP437 legend glyphs (■ for used,
-▒ for unused, X for unmovable) to prevent block distortion."""
+Update week10-file-management/03-filesystem-implementation.html to render
+MS-DOS 6.22 cells using full-area CSS background fills and radial stipples,
+removing internal padding and text spacing bugs."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1130,10 +1152,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging aspect ratio and legend glyph fix")
+    run_git_step(["git", "add", target_file], "Staging zero-padding CSS fill update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Cell aspect ratios and legend glyph matching successfully deployed!")
+    print("--> Zero-padding full-cell CSS background fills successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
