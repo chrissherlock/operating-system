@@ -203,6 +203,10 @@ PAGE_CONTENT = """<!DOCTYPE html>
       padding: 10px;
     }
 
+    #svgHandLine, #wtSvgHandLine {
+      transition: x2 0.25s ease, y2 0.25s ease;
+    }
+
     .table-spec {
       width: 100%;
       border-collapse: collapse;
@@ -377,7 +381,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
           <svg id="wtClockSvg" viewBox="0 0 320 320" width="290" height="290" style="font-family: var(--font-mono);">
             <circle cx="160" cy="160" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
             <g id="wtSvgFramesGroup"></g>
-            <line id="wtSvgHandLine" x1="160" y1="160" x2="160" y2="65" stroke="#0284c7" stroke-width="3.5" marker-end="url(#arrow)"/>
+            <line id="wtSvgHandLine" x1="160" y1="160" x2="160" y2="80" stroke="#0284c7" stroke-width="3.5" marker-end="url(#arrow)"/>
             <circle cx="160" cy="160" r="5" fill="#0284c7"/>
           </svg>
         </div>
@@ -407,11 +411,21 @@ PAGE_CONTENT = """<!DOCTYPE html>
         </div>
       </div>
 
+      <!-- How-To Guide Callout -->
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 0.88rem; color: #166534; line-height: 1.5;">
+        <strong>How to Use This Sandbox:</strong>
+        <ul style="margin-top: 4px; padding-left: 18px; display: flex; flex-direction: column; gap: 4px;">
+          <li><strong>Access a Page:</strong> Type any page letter (e.g. <code>H</code>) into the input box and click <em>Access Page</em>. If the page is already in RAM, it results in a <strong>Hit</strong> (setting $R=1$, with the clock hand remaining completely stationary). If absent, it triggers a <strong>Page Fault</strong>, causing the clock hand to sweep across frames until an $R=0$ victim is evicted.</li>
+          <li><strong>Toggle Individual R-Bits:</strong> Click directly on any frame rectangle in the circular SVG canvas or click the <em>Toggle R</em> button in the table to manually flip a page's referenced bit.</li>
+          <li><strong>Simulate Timer Interrupts:</strong> Click <em>Periodic Timer Tick</em> to clear all $R$ bits across every frame to <code>0</code> simultaneously, simulating an OS timer aging sweep.</li>
+        </ul>
+      </div>
+
       <!-- Controls -->
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <label style="font-size:0.85rem; font-weight:600;">Reference Page:</label>
         <input type="text" id="refPageInput" value="I" maxlength="2" style="width:45px; text-align:center; padding:4px; font-family:var(--font-mono); text-transform:uppercase;">
-        <button onclick="executePageAccess()">Access Page</button>
+        <button id="accessPageBtn" onclick="executePageAccess()">Access Page</button>
         <button class="btn-sec" onclick="clearAllRefBits()">Periodic Timer Tick (Clear All R)</button>
       </div>
 
@@ -429,7 +443,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
           <svg id="clockSvg" viewBox="0 0 320 320" width="300" height="300" style="font-family: var(--font-mono);">
             <circle cx="160" cy="160" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
             <g id="svgFramesGroup"></g>
-            <line id="svgHandLine" x1="160" y1="160" x2="160" y2="65" stroke="#0284c7" stroke-width="3" marker-end="url(#arrow)"/>
+            <line id="svgHandLine" x1="160" y1="160" x2="160" y2="80" stroke="#0284c7" stroke-width="3.5" marker-end="url(#arrow)"/>
             <circle cx="160" cy="160" r="5" fill="#0284c7"/>
           </svg>
         </div>
@@ -534,7 +548,6 @@ PAGE_CONTENT = """<!DOCTYPE html>
       document.getElementById("wtTitle").textContent = s.title;
       document.getElementById("wtText").innerHTML = s.text;
 
-      // Render Walkthrough Clock graphic
       const group = document.getElementById("wtSvgFramesGroup");
       group.innerHTML = "";
       const total = s.frames.length;
@@ -577,7 +590,6 @@ PAGE_CONTENT = """<!DOCTYPE html>
         group.appendChild(subText);
       });
 
-      // Move Walkthrough hand pointer
       const handCoords = calcAngleCoordinates(s.hand, total, 80, 160, 160);
       const handLine = document.getElementById("wtSvgHandLine");
       handLine.setAttribute("x2", handCoords.x);
@@ -596,7 +608,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
     renderWt();
 
     /* =========================================================================
-       PART 3: INTERACTIVE CLOCK SANDBOX LOGIC
+       PART 3: INTERACTIVE CLOCK SANDBOX WITH ANIMATED SWEEP
        ========================================================================= */
     let clockFrames = [
       { id: 0, page: "A", r: 1 },
@@ -611,6 +623,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
     let statTotal = 0;
     let statHits = 0;
     let statFaults = 0;
+    let isEvicting = false;
 
     function renderClock() {
       const group = document.getElementById("svgFramesGroup");
@@ -629,10 +642,10 @@ PAGE_CONTENT = """<!DOCTYPE html>
         rect.setAttribute("height", 36);
         rect.setAttribute("fill", rectColor);
         rect.setAttribute("stroke", strokeColor);
-        rect.setAttribute("stroke-width", "1.5");
+        rect.setAttribute("stroke-width", idx === clockHand ? "2.5" : "1.5");
         rect.setAttribute("rx", "4");
-        rect.style.cursor = "pointer";
-        rect.onclick = () => toggleRefBit(idx);
+        rect.style.cursor = isEvicting ? "default" : "pointer";
+        rect.onclick = () => { if (!isEvicting) toggleRefBit(idx); };
 
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("x", coords.x);
@@ -672,7 +685,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
           <td><strong>${f.page}</strong></td>
           <td><span style="color:${f.r ? 'var(--hit-color)' : 'var(--fault-color)'}; font-weight:700;">${f.r}</span></td>
           <td>${idx === clockHand ? '&rarr; [Hand]' : ''}</td>
-          <td><button class="btn-sec" style="padding:2px 8px; font-size:0.75rem;" onclick="toggleRefBit(${idx})">Toggle R</button></td>
+          <td><button class="btn-sec" style="padding:2px 8px; font-size:0.75rem;" onclick="toggleRefBit(${idx})" ${isEvicting ? 'disabled' : ''}>Toggle R</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -699,12 +712,14 @@ PAGE_CONTENT = """<!DOCTYPE html>
     }
 
     function clearAllRefBits() {
+      if (isEvicting) return;
       clockFrames.forEach(f => f.r = 0);
       logEvent("OS Timer Tick: Cleared R-bit to 0 across all physical frames.", "log-clear");
       renderClock();
     }
 
     function executePageAccess() {
+      if (isEvicting) return;
       const input = document.getElementById("refPageInput");
       const p = input.value.trim().toUpperCase();
       if (!p) return;
@@ -717,35 +732,43 @@ PAGE_CONTENT = """<!DOCTYPE html>
       if (hitIdx !== -1) {
         statHits++;
         clockFrames[hitIdx].r = 1;
-        logEvent(`PAGE HIT: Page '${p}' is resident in Frame ${hitIdx}. Set R=1.`, "log-hit");
+        logEvent(`PAGE HIT: Page '${p}' is resident in Frame ${hitIdx}. Set R=1. (Hand remains at Frame ${clockHand}).`, "log-hit");
         renderClock();
         return;
       }
 
       statFaults++;
-      logEvent(`PAGE FAULT: Page '${p}' is absent from RAM! Running Clock eviction...`, "log-fault");
-      let searched = 0;
-      while (searched < clockFrames.length * 2) {
+      logEvent(`PAGE FAULT: Page '${p}' is absent from RAM! Stepping Clock hand...`, "log-fault");
+      isEvicting = true;
+      document.getElementById("accessPageBtn").disabled = true;
+
+      function stepClockSearch() {
         let cur = clockFrames[clockHand];
         if (cur.r === 0) {
           let evicted = cur.page;
           cur.page = p;
           cur.r = 1;
-          logEvent(`EVICTION: Hand at Frame ${clockHand} found R=0. Evicted '${evicted}' &rarr; loaded '${p}'.`, "log-fault");
+          logEvent(`EVICTION: Frame ${clockHand} had R=0. Evicted '${evicted}' &rarr; Loaded '${p}'.`, "log-fault");
           clockHand = (clockHand + 1) % clockFrames.length;
-          logEvent(`Clock hand advanced to Frame ${clockHand}.`, "log-info");
-          break;
+          logEvent(`Hand advanced clockwise to Frame ${clockHand}.`, "log-info");
+          isEvicting = false;
+          document.getElementById("accessPageBtn").disabled = false;
+          renderClock();
         } else {
           cur.r = 0;
           logEvent(`SECOND CHANCE: Frame ${clockHand} ('${cur.page}') had R=1. Cleared to R=0.`, "log-clear");
           clockHand = (clockHand + 1) % clockFrames.length;
+          renderClock();
+          setTimeout(stepClockSearch, 400);
         }
-        searched++;
       }
+
       renderClock();
+      setTimeout(stepClockSearch, 300);
     }
 
     function resetClockState() {
+      if (isEvicting) return;
       clockFrames = [
         { id: 0, page: "A", r: 1 },
         { id: 1, page: "B", r: 0 },
@@ -777,33 +800,31 @@ def clean_file_references(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = f.read()
 
-    # Normalize any chained variations of 07-07-clock, clock.html, etc. to 07-clock.html
-    cleaned = re.sub(r'(?:07-)+clock\.html', '07-clock.html', data)
-    cleaned = re.sub(r'(?<!07-)clock\.html', '07-clock.html', cleaned)
+    cleaned_data = re.sub(r'(?:07-)+clock\.html', '07-clock.html', data)
+    cleaned_data = re.sub(r'(?<!07-)clock\.html', '07-clock.html', cleaned_data)
 
-    if cleaned != data:
+    if cleaned_data != data:
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(cleaned)
-        print(f"Sanitized references in {file_path}")
+            f.write(cleaned_data)
+        print(f"Sanitized link references in {file_path}")
+
+def purge_obsolete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"Removed legacy/duplicate file: {file_path}")
 
 def main():
     base_dir = "."
     w09_dir = os.path.join(base_dir, "week09-memory-management")
-    dest_file = os.path.join(w09_dir, "07-clock.html")
+    target_clock = os.path.join(w09_dir, "07-clock.html")
 
-    # 1. Write the unified 07-clock.html file with the interactive walkthrough clock
-    with open(dest_file, "w", encoding="utf-8") as f:
+    with open(target_clock, "w", encoding="utf-8") as f:
         f.write(PAGE_CONTENT)
-    print(f"Generated complete module: {dest_file}")
+    print(f"Successfully generated {target_clock} with detailed instructions and animated sandbox.")
 
-    # 2. Delete unwanted legacy artifacts
-    for unwanted in ["clock.html", "07-07-clock.html"]:
-        target = os.path.join(w09_dir, unwanted)
-        if os.path.exists(target):
-            os.remove(target)
-            print(f"Removed legacy artifact: {target}")
+    purge_obsolete_file(os.path.join(w09_dir, "clock.html"))
+    purge_obsolete_file(os.path.join(w09_dir, "07-07-clock.html"))
 
-    # 3. Clean up index references
     clean_file_references(os.path.join(w09_dir, "index.html"))
     clean_file_references(os.path.join(base_dir, "index.html"))
 
