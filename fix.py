@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import shutil
 import ssl
 import subprocess
 import sys
@@ -7,8 +8,8 @@ import urllib.request
 
 ASSET_URLS = {
     "markowitz.jpg": "https://zicklin.baruch.cuny.edu/wp-content/uploads/sites/10/2023/07/Harry-Markowitz-1_WP_350x467.jpg",
-    "knowlton.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Ken_Knowlton_in_2007.jpg/330px-Ken_Knowlton_in_2007.jpg",
-    "knuth.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Donald_Ervin_Knuth_%28cropped%29.jpg/330px-Donald_Ervin_Knuth_%28cropped%29.jpg"
+    "knowlton.jpg": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ken_Knowlton_in_2007.jpg",
+    "knuth.jpg": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Donald_Ervin_Knuth_%28cropped%29.jpg"
 }
 
 HTML_CONTENT = r"""<!DOCTYPE html>
@@ -437,7 +438,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
   <div class="main-container">
-    <!-- INTRODUCTORY CARD WITH LOCAL ASSETS -->
     <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
       <aside class="bio-sidebar">
         <!-- Markowitz Infobox -->
@@ -907,11 +907,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix SSL verification and direct Wikimedia CDN image paths
+COMMIT_MSG = """Update pioneer image URLs, download, and crop via ImageMagick
 
-Update asset downloader script in 01-free-used-lists-buddy.html generation
-to bypass local SSL certificate verification for Baruch CUNY and switch
-to direct Wikimedia CDN URLs for Knowlton and Knuth portraits."""
+Update week09-memory-management/01-free-used-lists-buddy.html generation
+script with direct Wikimedia CDN URLs for Knuth and Knowlton. Download
+portraits locally and square-crop via ImageMagick."""
 
 def download_assets():
     images_dir = "week09-memory-management/images"
@@ -937,6 +937,25 @@ def download_assets():
         except Exception as e:
             print(f"    [Error] Failed to download {filename}: {e}", file=sys.stderr)
 
+def crop_assets():
+    images_dir = "week09-memory-management/images"
+    magick_binary = shutil.which("magick") or shutil.which("convert")
+
+    if not magick_binary:
+        print("    [Warning] ImageMagick not found on PATH. Skipping crop step.", file=sys.stderr)
+        return
+
+    tasks = [
+        [magick_binary, os.path.join(images_dir, "markowitz.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "markowitz.jpg")],
+        [magick_binary, os.path.join(images_dir, "knowlton.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "knowlton.jpg")],
+        [magick_binary, os.path.join(images_dir, "knuth.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "knuth.jpg")]
+    ]
+    for task in tasks:
+        print(f"--> Running ImageMagick: {' '.join(task)}")
+        res = subprocess.run(task, capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"    [Warning] ImageMagick command failed: {res.stderr.strip()}", file=sys.stderr)
+
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
     res = subprocess.run(cmd, capture_output=True, text=True)
@@ -950,6 +969,7 @@ def run_git_step(cmd, desc):
 
 def execute_git_pipeline():
     download_assets()
+    crop_assets()
 
     target_module = "week09-memory-management/01-free-used-lists-buddy.html"
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
@@ -961,7 +981,7 @@ def execute_git_pipeline():
     run_git_step(["git", "add", target_module, images_dir], "Staging HTML and images directory")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Pioneer assets downloaded, committed, and pushed successfully!")
+    print("--> Assets updated, cropped, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_git_pipeline()
