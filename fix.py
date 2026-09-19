@@ -140,30 +140,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
-    .figure-container {
-      width: 100%;
-      margin: 10px auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
-    }
-    .callout {
-      background-color: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 12px 16px;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #0369a1;
-      line-height: 1.5;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
 
     /* =========================================================
        DEFRAGMENTER SHELL & TRIPLE-THEME CONTAINER STYLING
@@ -263,7 +239,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-modern .theme-label { color: #94a3b8; }
 
-    /* THEME 2: WINDOWS 95 / 98 (CRISP SYSTEM BLACK & WHITE ON GREY) */
+    /* THEME 2: WINDOWS 95 / 98 */
     .theme-win95 {
       background-color: #008080;
       color: #000000;
@@ -298,7 +274,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: transparent;
       padding: 6px 0;
       align-items: center;
-      color: #000000; /* Strict black on grey */
+      color: #000000;
     }
     .theme-win95 .ctrl-btn {
       background-color: #c0c0c0;
@@ -309,7 +285,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
       padding: 3px 10px;
       font-size: 11px;
-      color: #000000 !important; /* Strict high-contrast black text */
+      color: #000000 !important;
       cursor: pointer;
     }
     .theme-win95 .ctrl-btn:active {
@@ -325,7 +301,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #000000 !important;
     }
     .theme-win95 .ctrl-btn.churn-btn {
-      color: #000000 !important; /* No yellow text on grey */
+      color: #000000 !important;
     }
     .theme-win95 .grid-wrapper {
       border-top: 2px solid #808080;
@@ -365,7 +341,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-win95 .theme-label { color: #ffffff !important; }
 
-    /* THEME 3: MS-DOS / NORTON SPEED DISK (AUTHENTIC CP437 ASCII) */
+    /* THEME 3: MS-DOS / NORTON SPEED DISK */
     .theme-dos {
       background-color: #0000aa;
       color: #ffffff;
@@ -537,12 +513,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div class="ui-controls">
           <button class="ctrl-btn" onclick="defragInitVolume()">1. Format 500MB</button>
           <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">2. Heavy Churn (Fragment!)</button>
-          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
+          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="background:#059669; color:#fff; font-weight:700;">Start Defrag</button>
           <div style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px;">
             <span>Speed:</span>
-            <button class="ctrl-btn" onclick="setDefragSpeed(120)">Slow (Observable)</button>
-            <button class="ctrl-btn active" onclick="setDefragSpeed(45)" id="spd-norm">Medium</button>
-            <button class="ctrl-btn" onclick="setDefragSpeed(8)">Fast</button>
+            <button class="ctrl-btn" onclick="setDefragSpeed(150, 'spd-slow')" id="spd-slow">Slow (Observable)</button>
+            <button class="ctrl-btn active" onclick="setDefragSpeed(45, 'spd-norm')" id="spd-norm">Medium</button>
+            <button class="ctrl-btn" onclick="setDefragSpeed(10, 'spd-fast')" id="spd-fast">Fast</button>
           </div>
         </div>
 
@@ -603,8 +579,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       renderAllCells();
     }
 
-    function setDefragSpeed(ms) {
+    function setDefragSpeed(ms, activeId) {
       stepDelay = ms;
+      ['spd-slow', 'spd-norm', 'spd-fast'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle('active', id === activeId);
+      });
     }
 
     function initMatrix() {
@@ -745,10 +725,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       if (isRunning) {
         defragPause();
       } else {
+        // If uninitialized, initialize with heavy fragmentation first
+        if (cells.length === 0 || cells.filter(c => c.state === "unoptimized").length === 0) {
+          defragHeavyChurn();
+        }
         isRunning = true;
         const btn = document.getElementById("btnStartDefrag");
         btn.textContent = "Pause";
-        if (currentTheme === 'modern') btn.style.background = "#b91c1c";
+        btn.style.background = "#b91c1c";
         document.getElementById("txtStatusMsg").textContent = "Defragmenting 500 MB Volume... Gathering scattered cluster runs.";
         runDefragCycle();
       }
@@ -759,8 +743,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       if (stepTimer) clearTimeout(stepTimer);
       const btn = document.getElementById("btnStartDefrag");
       if (btn) {
-        btn.textContent = "Resume";
-        if (currentTheme === 'modern') btn.style.background = "#059669";
+        btn.textContent = "Start Defrag";
+        btn.style.background = "#059669";
       }
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].state === "read") cells[i].state = "unoptimized";
@@ -846,7 +830,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       renderAllCells();
       const btn = document.getElementById("btnStartDefrag");
       btn.textContent = "Start Defrag";
-      if (currentTheme === 'modern') btn.style.background = "#059669";
+      btn.style.background = "#059669";
       document.getElementById("txtStatusMsg").textContent = "100% Complete. 500 MB Volume Fully Optimized. Free space consolidated at tail.";
     }
 
@@ -858,11 +842,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix text contrast and system colors in Windows 95 defrag theme
+COMMIT_MSG = """Fix loop bounds bug and speed button listeners in defrag simulator
 
-Update week10-file-management/03-filesystem-implementation.html to enforce
-black text on grey window surfaces in the Windows 95 theme, restricting
-yellow text strictly to the MS-DOS theme."""
+Resolve uncaught variable assignment in runDefragCycle() preventing
+defrag execution, and fix button listeners for slow/medium/fast controls."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -884,10 +867,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging contrast fix update")
+    run_git_step(["git", "add", target_file], "Staging defrag bug fixes")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 03 Contrast Fix successfully deployed!")
+    print("--> Module 03 Defrag simulator bugs resolved and successfully pushed!")
 
 if __name__ == "__main__":
     deploy_module()
