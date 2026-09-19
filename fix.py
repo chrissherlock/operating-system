@@ -483,10 +483,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Tanenbaum Section 1: Bitmaps -->
-    <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">2. Tanenbaum's Method 1: Bookkeeping with Bitmaps</div>
-      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+    <!-- Tanenbaum Section 1: Bitmaps (Borderless) -->
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0; clear: both;">
+      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">2. Tanenbaum's Method 1: Bookkeeping with Bitmaps</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         Memory is partitioned into fixed allocation units (e.g., 4 KB blocks). Each unit corresponds to a single bit in a bitmap: <code>0</code> if free, and <code>1</code> if allocated to a process.
       </p>
       <div class="figure-container">
@@ -511,10 +511,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Tanenbaum Section 2: Linked Lists -->
-    <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">3. Tanenbaum's Method 2: Bookkeeping with Linked Lists of Segments</div>
-      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+    <!-- Tanenbaum Section 2: Linked Lists (Borderless) -->
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
+      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">3. Tanenbaum's Method 2: Bookkeeping with Linked Lists of Segments</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         The operating system maintains a linked list where each node indicates whether a region is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
       </p>
       <div class="figure-container">
@@ -560,13 +560,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4: Classical Placement Strategies -->
-    <div class="card">
-      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">4. Classical Placement Strategies (First Fit, Best Fit, Worst Fit, Next Fit)</div>
-      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+    <!-- Section 3: Classical Placement Strategies (Borderless) -->
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
+      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">4. Classical Placement Strategies (First Fit, Best Fit, Worst Fit, Next Fit)</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         When allocating memory from a linked list of holes, the kernel uses placement algorithms to decide which hole to assign:
       </p>
-      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
+      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.93rem; color: #334155; line-height: 1.5;">
         <li><strong>First Fit:</strong> Scan from the start and pick the <em>first</em> hole that is big enough. Fast, but clutters the front of memory with small splinters.</li>
         <li><strong>Best Fit:</strong> Search the <em>entire</em> list and pick the hole closest in size to the request. Minimizes leftover waste per allocation, but is slow and leaves tiny, unusable slivers.</li>
         <li><strong>Worst Fit:</strong> Allocate from the <em>largest</em> hole so leftovers remain useful. In practice, it rapidly exhausts large blocks.</li>
@@ -896,11 +896,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Stack free lists and used trackers vertically in memory layout
+COMMIT_MSG = """Remove borders from Tanenbaum bitmap, linked list, and placement sections
 
-Update week09-memory-management/01-free-used-lists-buddy.html CSS for
-.lists-container to use a single-column vertical stack instead of a
-two-column horizontal layout."""
+Update week09-memory-management/01-free-used-lists-buddy.html to remove
+card containers and borders from sections 2, 3, and 4, ensuring a clean,
+borderless presentation consistent with section 1."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -923,7 +923,7 @@ def execute_pipeline():
     run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Layout updated to vertical stacking, committed, and pushed successfully!")
+    print("--> Section borders removed, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
