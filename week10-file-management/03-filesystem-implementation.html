@@ -652,11 +652,11 @@
       <div class="lfs-sim-container" id="lfsSimulator">
         <div class="lfs-topbar">
           <span class="lfs-title">Interactive LFS Walkthrough &amp; Segment Simulator</span>
-          <span class="lfs-step-indicator" id="lfsStepTag">Step 1 of 4: Ready</span>
+          <span class="lfs-step-indicator" id="lfsStepTag">Step 1 of 3: Ready</span>
         </div>
 
         <div class="lfs-explanation-box" id="lfsExplanationBox">
-          <strong>Welcome to the LFS Walkthrough!</strong> Click <strong>"1. Append New File"</strong> to experience how LFS streams data continuously into the log tail without seeking.
+          <strong>Welcome to the LFS Walkthrough!</strong> LFS converts all file system writes into a fast, contiguous sequential stream. Click <strong>'1. Append New File'</strong> to stream files into the log tail.
         </div>
 
         <div class="lfs-controls">
@@ -674,38 +674,82 @@
         </div>
       </div>
 
+      <!-- Deepened Inode Map & Log Tail Section -->
       <h3>2. The Inode Map (Imap) Architecture &amp; Indirection</h3>
       <p>
-        In a traditional Unix file system, every file has a fixed static disk address. In an LFS, because files and inodes are continually rewritten to the log tail, the inode's physical location changes with every update, requiring the <strong>inode map (imap)</strong> translation layer.
+        In traditional file systems, every file possesses an unchanging identity tied to a static location: <strong>inode number $N$ resides at a mathematically fixed disk offset</strong> within the partition's inode table. An application reading a file simply computes this static address directly.
+      </p>
+      <p>
+        In an append-only architecture like LFS, however, <strong>a static inode table is impossible</strong>. Whenever an existing file is updated, writing modified data blocks also requires updating its metadata (such as timestamps, file length, and block pointers). Because LFS forbids in-place updates, the updated inode cannot overwrite its original location; instead, it is appended to the current tail of the log. As files are repeatedly modified, their inodes continually relocate across different segments on disk. Without an indirection mechanism, locating a file's latest inode would demand an exhaustive, sequential scan of the entire disk volume.
+      </p>
+      <p>
+        To solve this, Rosenblum and Ousterhout created the <strong>Inode Map (Imap)</strong>. The imap is a table that decouples a file's persistent identifier (its inode number) from its physical location, maintaining the current on-disk block address for every active inode in the file system.
       </p>
 
-      <!-- Diagram 2: Imap Architecture -->
+      <h4>The Sequential Log Tail (Active Write Frontier)</h4>
+      <p>
+        The <strong>log tail</strong> is the dynamic write-pointer frontier of the storage volume where all newly generated data enters the media:
+      </p>
+      <ul>
+        <li><strong>Continuous Memory Buffering:</strong> File system operations do not immediately trigger physical writes. Instead, file data blocks, updated directory entries, newly positioned inodes, and even updated chunks of the imap are collected in large main-memory segment buffers (typically 512 KB to 1 MB).</li>
+        <li><strong>High-Speed Streaming:</strong> When the in-memory segment buffer fills, it is flushed to disk in one large, continuous write operation at the <strong>log tail</strong>. By advancing the write frontier sequentially across the disk platter, head seeks and rotational delays are completely eliminated during write operations.</li>
+        <li><strong>Logging the Imap Itself:</strong> Because the imap updates every time an inode moves, the imap itself is divided into small chunks and written to the log tail alongside the file data and inodes it describes. The fixed <strong>Checkpoint Region</strong> at the beginning of the volume periodically stores pointers to the latest imap chunks, completing the lookup chain.</li>
+      </ul>
+
+      <!-- Enhanced Diagram 2: Imap Architecture & Log Tail Frontier -->
       <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="200" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="28" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5B: The Inode Map (Imap) Dynamic Indirection Layer</text>
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5B: Dynamic Inode Map (Imap) Resolution to the Sequential Log Tail</text>
 
-          <rect x="50" y="80" width="100" height="60" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
-          <text x="100" y="105" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">File Inode #</text>
-          <text x="100" y="125" font-family="sans-serif" font-size="12" fill="#0f172a" text-anchor="middle">Inode 42</text>
+          <!-- Inode Identifier -->
+          <rect x="30" y="90" width="110" height="65" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
+          <text x="85" y="115" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">File Inode #</text>
+          <text x="85" y="136" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">Inode 42</text>
 
-          <line x1="150" y1="110" x2="220" y2="110" stroke="#0284c7" stroke-width="2"/>
-          <polygon points="220,110 212,105 212,115" fill="#0284c7"/>
+          <!-- Arrow to Imap -->
+          <line x1="140" y1="122" x2="200" y2="122" stroke="#0284c7" stroke-width="2"/>
+          <polygon points="200,122 192,117 192,127" fill="#0284c7"/>
+          <text x="170" y="112" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Index</text>
 
-          <rect x="220" y="60" width="160" height="100" fill="#f1f5f9" stroke="#64748b" rx="4"/>
-          <text x="300" y="85" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Inode Map (Imap)</text>
-          <text x="300" y="110" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">[0] &rarr; Block 102</text>
-          <text x="300" y="130" font-family="sans-serif" font-size="10" fill="#0284c7" font-weight="bold" text-anchor="middle">[42] &rarr; Block 580</text>
-          <text x="300" y="150" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">[43] &rarr; Block 312</text>
+          <!-- Inode Map Table -->
+          <rect x="200" y="60" width="170" height="135" fill="#f8fafc" stroke="#64748b" rx="4"/>
+          <text x="285" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Inode Map (Imap Chunk)</text>
+          <line x1="210" y1="92" x2="360" y2="92" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="285" y="110" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 0 &rarr; Sector 1024</text>
+          <rect x="210" y="122" width="150" height="22" fill="#e0f2fe" rx="2"/>
+          <text x="285" y="137" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0284c7" text-anchor="middle">Inode 42 &rarr; Block 8420</text>
+          <text x="285" y="162" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Inode 43 &rarr; Sector 3120</text>
+          <text x="285" y="182" font-family="sans-serif" font-size="9" font-style="italic" fill="#94a3b8" text-anchor="middle">(Decouples static ID from offset)</text>
 
-          <line x1="380" y1="110" x2="450" y2="110" stroke="#0284c7" stroke-width="2"/>
-          <polygon points="450,110 442,105 442,115" fill="#0284c7"/>
+          <!-- Arrow to Log Tail -->
+          <line x1="370" y1="133" x2="430" y2="133" stroke="#0284c7" stroke-width="2"/>
+          <polygon points="430,133 422,128 422,138" fill="#0284c7"/>
+          <text x="400" y="123" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">Locates</text>
 
-          <rect x="450" y="80" width="300" height="60" fill="#0284c7" rx="4"/>
-          <text x="600" y="105" font-family="sans-serif" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">Sequential Log Tail</text>
-          <text x="600" y="125" font-family="sans-serif" font-size="10" fill="#e0f2fe" text-anchor="middle">Inode 42 (Block 580) + File Data</text>
+          <!-- Log Tail Active Frontier -->
+          <rect x="430" y="60" width="340" height="135" fill="#0f172a" stroke="#334155" rx="4"/>
+          <text x="600" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">Active Log Tail (Append Frontier)</text>
+
+          <!-- Sub-blocks in the log stream -->
+          <rect x="445" y="102" width="85" height="50" fill="#0284c7" rx="3"/>
+          <text x="487.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8420</text>
+          <text x="487.5" y="140" font-family="sans-serif" font-size="9" fill="#e0f2fe" text-anchor="middle">Inode 42</text>
+
+          <rect x="535" y="102" width="85" height="50" fill="#0284c7" rx="3"/>
+          <text x="577.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8421</text>
+          <text x="577.5" y="140" font-family="sans-serif" font-size="9" fill="#e0f2fe" text-anchor="middle">File Data Bytes</text>
+
+          <rect x="625" y="102" width="95" height="50" fill="#059669" rx="3"/>
+          <text x="672.5" y="124" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Block 8422</text>
+          <text x="672.5" y="140" font-family="sans-serif" font-size="9" fill="#d1fae5" text-anchor="middle">Updated Imap</text>
+
+          <!-- Frontier Advance Indicator -->
+          <line x1="725" y1="127" x2="755" y2="127" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3,3"/>
+          <polygon points="758,127 750,122 750,132" fill="#38bdf8"/>
+          <text x="600" y="178" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">&rarr; Writes stream contiguously; Frontier advances forward &rarr;</text>
         </svg>
-        <figcaption>Figure 4.3.5B: How the Inode Map translates static file numbers to dynamic log addresses.</figcaption>
+        <figcaption>Figure 4.3.5B: The Inode Map decoupling persistent file numbers from dynamic log tail write offsets.</figcaption>
       </figure>
 
       <h3>3. Checkpoint Regions &amp; Rapid Crash Recovery</h3>
@@ -1043,7 +1087,7 @@
         else if (c.isSystem) { el.classList.add("c-system"); el.textContent = "X"; }
         else if (c.state === "optimized") { el.classList.add("c-opt"); el.textContent = "■"; }
         else if (c.state === "unoptimized") { el.classList.add("c-unopt"); el.textContent = "▓"; }
-        else { el.classList.add("c-free"); el.textContent = "·"; }
+        else { el.classList.add("c-free"); }
       } else {
         if (c.state === "read") el.classList.add("c-read");
         else if (c.state === "write") el.classList.add("c-write");
