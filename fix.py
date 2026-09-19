@@ -389,6 +389,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
             </marker>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#15803d" />
+            </marker>
           </defs>
 
           <!-- Title & Subtitle -->
@@ -422,18 +425,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="180" y="228" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
           <text x="180" y="216" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
 
-          <!-- 2. Optimal Window (tau) & Target RAM Allocation directly touching the curve at the knee -->
+          <!-- 2. Optimal Window (tau) & Repositioned Target RAM Allocation -->
           <line x1="360" y1="135" x2="360" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
           <circle cx="360" cy="135" r="6" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
           <text x="360" y="278" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Optimal Window (τ)</text>
-          <text x="490" y="115" font-size="10" font-weight="700" fill="#15803d">Target RAM Allocation w(k, t)</text>
-          <line x1="366" y1="135" x2="475" y2="112" stroke="#16a34a" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+          <!-- Shifted label and angled pointer vector clear of plateau line -->
+          <text x="505" y="95" font-size="10.5" font-weight="700" fill="#15803d">Target RAM Allocation w(k, t)</text>
+          <line x1="500" y1="98" x2="372" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
           <!-- 3. Large k Zone -->
-          <line x1="580" y1="260" x2="580" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="580" cy="120" r="4" fill="#7c3aed"/>
-          <text x="580" y="95" font-size="10" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
-          <text x="580" y="83" font-size="9" fill="#475569" text-anchor="middle">Encompasses entire program</text>
+          <line x1="590" y1="260" x2="590" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
+          <circle cx="590" cy="120" r="4" fill="#7c3aed"/>
+          <text x="590" y="145" font-size="10" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
+          <text x="590" y="157" font-size="9" fill="#475569" text-anchor="middle">Encompasses entire program</text>
 
           <!-- Bottom Legend / Summary Box -->
           <rect x="80" y="315" width="620" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
@@ -666,19 +671,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Clarify Working Set definition, update Fig 3-19 SVG, and fix float
+COMMIT_MSG = """Reposition target RAM allocation label in Fig 3-19 SVG
 
-Refactor the theoretical text in 09-working-set.html to define the
-working set as the process's ideal memory footprint representing the
-kernel's target allocation goal. Clarify the distinction between
-program memory requirements and physical residency, including the role
-of admission control under memory pressure.
-
-Update Figure 3-19 SVG so the target allocation marker touches the
-knee of the w(k, t) curve, replace LaTeX syntax inside SVG text nodes
-with Unicode equivalents, and add an anatomical breakdown below the
-graphic. Fix layout styles to allow prose to wrap around the Pioneer
-Profile sidebar."""
+Shift the target RAM allocation text and pointer line in Figure 3-19
+upward and rightward to eliminate visual overlap with the plateau curve
+in 09-working-set.html."""
 
 def run_git(cmd, desc):
     print(f"--> {desc}...")
