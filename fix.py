@@ -341,11 +341,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .blk-identified-live { background: #059669 !important; color: #fff; outline: 2px solid #34d399; }
     .blk-discarded { opacity: 0.25; text-decoration: line-through; }
 
-    /* Flash / FTL / Wear-Leveling Block Classes */
+    /* Flash / FTL Block Classes */
     .blk-flash-erased { background: #0f172a; border: 1px dashed #38bdf8; color: #38bdf8; }
     .blk-flash-valid { background: #0284c7; color: #ffffff; }
     .blk-flash-invalid { background: #64748b; color: #cbd5e1; text-decoration: line-through; }
     .blk-flash-static { background: #4338ca; color: #ffffff; }
+
+    /* VFS Object Classes */
+    .blk-vfs-fd { background: #6366f1; color: #ffffff; }
+    .blk-vfs-file { background: #0284c7; color: #ffffff; }
+    .blk-vfs-dentry { background: #0d9488; color: #ffffff; }
+    .blk-vfs-inode { background: #d97706; color: #ffffff; }
 
     /* DEFRAGMENTER SHELL & THEMES */
     .defrag-outer-frame {
@@ -521,7 +527,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button class="ctrl-btn" onclick="defragInitVolume()" id="btnFormatDisk">Format Disk</button>
           <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">Heavy Churn (Fragment!)</button>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
-          <button class="ctrl-btn onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #059669; color: #fff;">🔊 Audio: On</button>
+          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #059669; color: #fff;">🔊 Audio: On</button>
 
           <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
             <span>Speed:</span>
@@ -882,172 +888,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- MASSIVELY EXPANDED SECTION 4.3.7: FLASH STORAGE & WEAR-LEVELING -->
+    <!-- Section 4.3.7: Flash Storage & Wear-Leveling -->
     <div class="section-block">
       <h2>4.3.7 Flash Storage &amp; Wear-Leveling Systems</h2>
       <p>
-        Solid-state drives (SSDs) and embedded raw flash media depart completely from the mechanical geometry of rotating magnetic disks. Flash devices contain no moving read/write heads, platters, or stepper motors. However, the quantum electronics governing solid-state storage introduce a radical architectural asymmetry: <strong>flash media cannot perform random in-place updates</strong>.
+        Flash memory cannot overwrite in place due to the erase-before-write constraint. The Flash Translation Layer (FTL) handles out-of-place writes, garbage collection, and dynamic/static wear leveling.
       </p>
 
-      <h3>1. NAND Flash Physics &amp; Structural Asymmetry</h3>
-      <p>
-        NAND flash stores data bits within floating-gate or charge-trap field-effect transistor cells. Electrons are tunneled through an insulating dielectric oxide layer into an isolated gate trap; the trapped electrical charge shifts the transistor's threshold voltage, encoding logical bits (SLC stores 1 bit per cell, MLC stores 2, TLC stores 3, and QLC stores 4).
-      </p>
-      <p>
-        The underlying physical geometry creates a sharp operational divergence between reading, writing, and deleting:
-      </p>
-      <ul>
-        <li><strong>Pages (The Read/Program Unit):</strong> Cells are grouped into physical <strong>pages</strong> (typically 4 KB, 8 KB, or 16 KB in modern NAND dies). The storage controller reads and writes (programs) data strictly in integer page multiples. Writing changes cell charge from logical <code>1</code> to logical <code>0</code>.</li>
-        <li><strong>Erase Blocks (The Erase Unit):</strong> Hundreds of pages are grouped into an <strong>erase block</strong> (typically 2 MB to 8 MB, containing 128 to 512 pages).</li>
-        <li><strong>The Erase-Before-Write Constraint:</strong> While an individual page can be programmed from <code>1</code> to <code>0</code>, tunneling electrons back out to restore a cell to <code>1</code> requires applying a high-voltage electrical field (approx. 20 volts) across the entire substrate. This high-voltage charge cannot be isolated to a single page; it wipes the entire multi-megabyte <strong>erase block</strong>.</li>
-      </ul>
-      <p>
-        Consequently, an SSD cannot overwrite a single 4 KB sector in place. To update page 5 within a block, the controller cannot simply erase page 5; erasing would destroy the neighboring 255 pages sharing that physical block.
-      </p>
-
-      <!-- Diagram 4.3.7A: Physical Asymmetry & Overwrite Failure -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.7A: NAND Flash Physical Asymmetry (Page Program vs. Block Erase)</text>
-
-          <!-- Read/Write Page Unit -->
-          <rect x="40" y="55" width="340" height="155" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
-          <text x="210" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0369a1" text-anchor="middle">Read / Program Unit: Physical Page</text>
-          <line x1="50" y1="88" x2="370" y2="88" stroke="#bae6fd" stroke-width="1"/>
-          <text x="210" y="108" font-family="sans-serif" font-size="10" fill="#0f172a" text-anchor="middle">Granularity: 4 KB &ndash; 16 KB</text>
-
-          <rect x="60" y="120" width="65" height="40" fill="#0284c7" rx="2"/><text x="92.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 0 (4K)</text>
-          <rect x="135" y="120" width="65" height="40" fill="#0284c7" rx="2"/><text x="167.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 1 (4K)</text>
-          <rect x="210" y="120" width="65" height="40" fill="#0284c7" rx="2"/><text x="242.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 2 (4K)</text>
-          <rect x="285" y="120" width="65" height="40" fill="#38bdf8" rx="2"/><text x="317.5" y="145" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Page 3 (4K)</text>
-
-          <text x="210" y="190" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">&check; Controller can read and program single pages independently</text>
-
-          <!-- Erase Unit -->
-          <rect x="420" y="55" width="340" height="155" fill="#fef2f2" stroke="#f87171" rx="4"/>
-          <text x="590" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Erase Unit: Physical Block</text>
-          <line x1="430" y1="88" x2="750" y2="88" stroke="#fecaca" stroke-width="1"/>
-          <text x="590" y="108" font-family="sans-serif" font-size="10" fill="#7f1d1d" text-anchor="middle">Granularity: 2 MB &ndash; 8 MB (128 &ndash; 512 Pages)</text>
-
-          <rect x="440" y="120" width="300" height="40" fill="#ef4444" rx="3"/>
-          <text x="590" y="145" font-family="sans-serif" font-size="10" font-weight="bold" fill="#ffffff" text-anchor="middle">Single High-Voltage Bulk Erase Pulse (20V)</text>
-
-          <text x="590" y="180" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">&cross; In-place overwrites are physically impossible without</text>
-          <text x="590" y="194" font-family="sans-serif" font-size="9" fill="#991b1b" text-anchor="middle">erasing all neighboring pages sharing the physical block</text>
-        </svg>
-        <figcaption>Figure 4.3.7A: Physical pages can be read and written, but resets require bulk erase blocks.</figcaption>
-      </figure>
-
-      <h3>2. The Flash Translation Layer (FTL) &amp; Out-of-Place Writes</h3>
-      <p>
-        Operating systems and legacy applications expect storage to behave as a conventional block device supporting arbitrary, in-place sector overwrites. To bridge this gap, all solid-state drives embed an onboard microcontroller running firmware known as the <strong>Flash Translation Layer (FTL)</strong>.
-      </p>
-      <p>
-        The FTL acts as a transparent, high-speed translation runtime that exposes a virtual disk of sequential <strong>Logical Block Addresses (LBAs)</strong> to the operating system host, while dynamically mapping them to arbitrary <strong>Physical Block Addresses (PBAs)</strong> across raw NAND flash dies.
-      </p>
-
-      <h4>Out-of-Place Writes &amp; Invalidation</h4>
-      <p>
-        When the host operating system updates an existing block (e.g., rewriting LBA 50):
-      </p>
-      <ol>
-        <li>The FTL does not overwrite LBA 50's current physical page.</li>
-        <li>Instead, the FTL writes the updated data into an unwritten, pre-erased physical page in an active write block.</li>
-        <li>The FTL updates its internal RAM <strong>Mapping Table</strong> so that LBA 50 now points to the new physical page address.</li>
-        <li>The previous physical page holding the old data is marked as <strong>invalid (dead space)</strong>.</li>
-      </ol>
-
-      <!-- Diagram 4.3.7B: FTL Architecture & Wear-Leveling -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.7B: Flash Translation Layer (FTL) Dynamic Mapping &amp; Invalidation</text>
-
-          <!-- Host Logical Space -->
-          <rect x="30" y="60" width="160" height="150" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="110" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">Host Logical Space (LBA)</text>
-          <line x1="40" y1="92" x2="180" y2="92" stroke="#cbd5e1" stroke-width="1"/>
-          <rect x="45" y="105" width="130" height="26" fill="#e0f2fe" rx="3"/><text x="110" y="122" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">LBA 10: File A</text>
-          <rect x="45" y="140" width="130" height="26" fill="#fef3c7" rx="3"/><text x="110" y="157" font-family="sans-serif" font-size="10" font-weight="bold" fill="#b45309" text-anchor="middle">LBA 25: (Updated!)</text>
-
-          <!-- FTL Mapping Table -->
-          <rect x="230" y="60" width="220" height="150" fill="#0f172a" stroke="#334155" rx="6"/>
-          <text x="340" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">FTL RAM Mapping Table</text>
-          <line x1="240" y1="92" x2="440" y2="92" stroke="#334155" stroke-width="1"/>
-          <text x="340" y="112" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">LBA 10 &rarr; Die 0, Blk 2, Page 0</text>
-
-          <rect x="245" y="125" width="190" height="28" fill="#1e293b" stroke="#38bdf8" rx="3"/>
-          <text x="340" y="143" font-family="sans-serif" font-size="10" font-weight="bold" fill="#38bdf8" text-anchor="middle">LBA 25 &rarr; Remapped to Page 9</text>
-          <text x="340" y="185" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">(Translates logical addresses to physical flash)</text>
-
-          <!-- Physical Flash Media -->
-          <rect x="490" y="60" width="280" height="150" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="630" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Physical Flash Blocks (PBA)</text>
-          <line x1="500" y1="92" x2="760" y2="92" stroke="#cbd5e1" stroke-width="1"/>
-
-          <!-- Block 1 (Contains old invalid page) -->
-          <rect x="505" y="105" width="120" height="90" fill="#fef2f2" stroke="#fca5a5" rx="3"/>
-          <text x="565" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Physical Block 1</text>
-          <rect x="515" y="132" width="100" height="20" fill="#0284c7" rx="2"/><text x="565" y="146" font-family="sans-serif" font-size="8" fill="#fff" text-anchor="middle">P0: LBA 10 (Live)</text>
-          <rect x="515" y="158" width="100" height="20" fill="#94a3b8" rx="2" stroke="#ef4444"/><text x="565" y="172" font-family="sans-serif" font-size="8" fill="#fff" text-decoration="line-through" text-anchor="middle">P1: LBA 25 (DEAD)</text>
-
-          <!-- Block 2 (Contains fresh out-of-place page) -->
-          <rect x="640" y="105" width="120" height="90" fill="#ecfdf5" stroke="#86efac" rx="3"/>
-          <text x="700" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#15803d" text-anchor="middle">Physical Block 2</text>
-          <rect x="650" y="132" width="100" height="20" fill="#059669" rx="2"/><text x="700" y="146" font-family="sans-serif" font-size="8" font-weight="bold" fill="#fff" text-anchor="middle">P9: LBA 25 (NEW)</text>
-          <rect x="650" y="158" width="100" height="20" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="2,2"/><text x="700" y="172" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">P10: Unwritten</text>
-        </svg>
-        <figcaption>Figure 4.3.7B: Updating LBA 25 allocates a fresh physical page while invalidating the old page.</figcaption>
-      </figure>
-
-      <h3>3. Garbage Collection &amp; The Write Amplification Factor</h3>
-      <p>
-        As out-of-place writes continue, flash blocks accumulate invalid dead pages. When the pool of pre-erased clean blocks runs low, the FTL initiates background <strong>Garbage Collection</strong>:
-      </p>
-      <ol>
-        <li><strong>Victim Block Selection:</strong> The controller selects an erase block containing a high percentage of invalid pages.</li>
-        <li><strong>Live Page Relocation:</strong> The surviving valid pages in that block are read into controller cache and copied out to fresh pages in an active write block.</li>
-        <li><strong>Block Erasure:</strong> The victim block, now containing exclusively invalid data, is completely erased with a high-voltage pulse and recycled into the free block pool.</li>
-      </ol>
-      <p>
-        Moving surviving valid data generates <strong>Write Amplification</strong>. The Write Amplification Factor (WAF) represents the ratio of total physical data programmed to flash media relative to the data dispatched by the host OS:
-      </p>
-      $$\text{WAF} = \frac{\text{Bytes Programmed to Flash Memory}}{\text{Bytes Dispatched by Host OS}}$$
-      <p>
-        Under pure sequential writes, WAF approaches $1.0$. Under scattered random writes on a full drive, garbage collection copying causes WAF to escalate to $3.0$ or higher, cutting sustainable drive write throughput and accelerating hardware wear.
-      </p>
-
-      <h3>4. Wear-Leveling Algorithms &amp; Endurance Limits</h3>
-      <p>
-        Every high-voltage erase cycle physically degrades the cell dielectric oxide insulator by trapping stray electrons. Eventually, the oxide breaks down, causing cells to leak charge and corrupt stored data.
-      </p>
-      <p>
-        Flash cells are rated for a finite number of <strong>Program/Erase (P/E) cycles</strong>:
-      </p>
-      <ul>
-        <li><strong>SLC (Single-Level Cell):</strong> 50,000 to 100,000 P/E cycles.</li>
-        <li><strong>MLC (Multi-Level Cell):</strong> 3,000 to 10,000 P/E cycles.</li>
-        <li><strong>TLC (Triple-Level Cell):</strong> 1,000 to 3,000 P/E cycles.</li>
-        <li><strong>QLC (Quad-Level Cell):</strong> 100 to 1,000 P/E cycles.</li>
-      </ul>
-      <p>
-        If an operating system frequently modifies a single cluster (such as a FAT partition table or journal superblock), writing to that same physical block repeatedly would burn out the cells within weeks, causing device failure while the rest of the drive remains unused. To prevent uneven destruction, the FTL implements <strong>Wear-Leveling</strong>:
-      </p>
-      <ul>
-        <li><strong>Dynamic Wear-Leveling:</strong> When active, incoming writes occur, the FTL always chooses the free physical block that has the lowest historical erase count. This spreads active writes evenly across available free space.</li>
-        <li><strong>Static Wear-Leveling:</strong> Dynamic leveling alone fails when a drive holds &ldquo;cold&rdquo; read-only data (such as OS system files or game assets). These static files sit in physical blocks whose erase counters stay low while the remaining &ldquo;hot&rdquo; blocks wear out rapidly. The FTL actively detects this disparity, reads the cold data out of its low-wear block, relocates it into a heavily worn block, and frees the low-wear block so it can absorb harsh write churn.</li>
-      </ul>
-
-      <h3>5. The Operating System Interface: The TRIM Command</h3>
-      <p>
-        In traditional hard disks, deleting a file does not touch the data blocks; the filesystem merely clears directory entries and bitmap records. Because standard storage interfaces (SATA and SAS) only supported <code>READ</code> and <code>WRITE</code>, the underlying SSD controller had no knowledge that those blocks were deleted. The FTL continued dutifully preserving and copying discarded file blocks during garbage collection, unnecessarily inflating write amplification.
-      </p>
-      <p>
-        To eliminate this blind spot, modern interfaces provide explicit deallocation commands: <strong>TRIM</strong> in SATA and <strong>Dataset Management (Deallocate)</strong> in NVMe. When an application deletes a file, the OS sends a TRIM notification containing the affected LBAs to the SSD. The FTL marks those physical pages as invalid immediately, allowing garbage collection to discard them without moving them, dropping WAF and restoring drive longevity.
-      </p>
-
-      <!-- WALKTHROUGH PART 4: FTL WEAR-LEVELING & TRIM SIMULATOR -->
+      <!-- Section 4.3.7 Walkthrough -->
       <div class="lfs-sim-container" id="ftlSim">
         <div class="lfs-topbar">
           <span class="lfs-title">Walkthrough Part 4: FTL Page Remapping, Wear-Leveling &amp; TRIM Simulator</span>
@@ -1075,12 +923,202 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.3.8: Virtual File Systems (VFS) -->
+    <!-- MASSIVELY EXPANDED SECTION 4.3.8: VIRTUAL FILE SYSTEMS (VFS) -->
     <div class="section-block">
       <h2>4.3.8 Virtual File Systems (VFS)</h2>
       <p>
-        Modern operating systems implement the Virtual File System (VFS) abstraction layer to support multiple disparate storage formats seamlessly through standard objects.
+        A contemporary Unix or Linux installation concurrently manages dozens of radically different storage targets: local journaling filesystems (<code>ext4</code>, <code>XFS</code>), legacy FAT volumes on USB drives (<code>vfat</code>), remote network shares (<code>NFS</code>, <code>SMB</code>), optical disc structures (<code>ISO 9660</code>), and volatile kernel introspection pseudo-filesystems (<code>procfs</code>, <code>sysfs</code>).
       </p>
+      <p>
+        If user applications were required to invoke unique, driver-specific system calls for every storage target (e.g., <code>ext4_read()</code>, <code>nfs_read()</code>, <code>fat_read()</code>), application portability would collapse. To deliver a seamless, uniform programming model, modern operating systems implement the <strong>Virtual File System (VFS)</strong> abstraction layer. Originally pioneered by Sun Microsystems in 1985 to integrate NFS into SunOS, VFS provides an object-oriented polymorphic interface in C that decouples standard POSIX system calls from concrete storage implementations.
+      </p>
+
+      <h3>1. The Polymorphic VFS Architecture</h3>
+      <p>
+        The core design principle of VFS is polymorphism: user processes execute generic POSIX system calls (<code>open()</code>, <code>read()</code>, <code>write()</code>, <code>close()</code>, <code>stat()</code>), which route directly into the VFS layer. The VFS layer contains generic algorithms for path navigation, security validation, and buffer caching.
+      </p>
+      <p>
+        When an action requires interacting with concrete storage, VFS dispatches the call through function pointer tables registered by the specific filesystem driver mounting that path.
+      </p>
+
+      <!-- Diagram 4.3.8A: VFS Polymorphic Dispatch Hierarchy -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="260" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.8A: VFS Polymorphic Dispatch Hierarchy Across Disparate Storage Media</text>
+
+          <!-- User Application Space -->
+          <rect x="50" y="45" width="700" height="35" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <text x="400" y="67" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155" text-anchor="middle">User Space Applications (POSIX System Calls: open, read, write, close, stat)</text>
+
+          <!-- Syscall Boundary -->
+          <line x1="50" y1="95" x2="750" y2="95" stroke="#0284c7" stroke-width="2" stroke-dasharray="4,4"/>
+          <text x="400" y="90" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">System Call Interface Boundary (Trap to Kernel Mode)</text>
+
+          <!-- VFS Layer -->
+          <rect x="50" y="105" width="700" height="45" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
+          <text x="400" y="125" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0369a1" text-anchor="middle">Virtual File System (VFS) Abstraction Layer</text>
+          <text x="400" y="141" font-family="sans-serif" font-size="10" fill="#0284c7" text-anchor="middle">Manages Dentry Cache (Dcache), Inode Table, Mount Hierarchy &amp; Function Pointer Tables</text>
+
+          <!-- Dispatch Arrows -->
+          <line x1="140" y1="150" x2="140" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="140,178 135,170 145,170" fill="#0284c7"/>
+          <line x1="310" y1="150" x2="310" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="310,178 305,170 315,170" fill="#0284c7"/>
+          <line x1="490" y1="150" x2="490" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="490,178 485,170 495,170" fill="#0284c7"/>
+          <line x1="660" y1="150" x2="660" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="660,178 655,170 665,170" fill="#0284c7"/>
+
+          <!-- Concrete Filesystems -->
+          <rect x="60" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+          <text x="140" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">ext4 Driver</text>
+          <text x="140" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Local NVMe / SSD Block</text>
+
+          <rect x="230" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+          <text x="310" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">VFAT Driver</text>
+          <text x="310" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">USB Removable Drive</text>
+
+          <rect x="410" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+          <text x="490" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">NFS Client</text>
+          <text x="490" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Remote RPC Socket</text>
+
+          <rect x="580" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+          <text x="660" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">procfs Driver</text>
+          <text x="660" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Volatile Kernel Memory</text>
+        </svg>
+        <figcaption>Figure 4.3.8A: VFS presents a single POSIX interface while routing operations through driver-specific function pointers.</figcaption>
+      </figure>
+
+      <h3>2. The Four Primary VFS Data Objects</h3>
+      <p>
+        The Linux VFS architecture defines four core data structures that model every filesystem concept in memory:
+      </p>
+
+      <h4>1. The Superblock Object (<code>struct super_block</code>)</h4>
+      <p>
+        Represents an entire mounted filesystem instance. It holds filesystem-wide parameters, such as block size, device identifiers, mount flags, and a pointer to the root dentry. Crucially, it stores the <code>s_op</code> pointer pointing to <strong>Superblock Operations</strong>:
+      </p>
+      <ul>
+        <li><code>alloc_inode()</code>: Allocates memory for a new in-core inode structure.</li>
+        <li><code>write_inode()</code>: Flushes modified inode metadata from memory to storage.</li>
+        <li><code>sync_fs()</code>: Flushes dirty filesystem superblocks and metadata to disk.</li>
+        <li><code>statfs()</code>: Queries filesystem storage statistics (free blocks, total capacity).</li>
+      </ul>
+
+      <h4>2. The Inode Object (<code>struct inode</code>)</h4>
+      <p>
+        Represents a specific file, directory, socket, or device node uniquely within a filesystem. Unlike disk inodes, a VFS inode exists entirely in memory and contains file size, owner UID/GID, permission bits, access/modification timestamps, and locks. It holds two sets of operation tables:
+      </p>
+      <ul>
+        <li><code>i_op</code> (<strong>Inode Operations</strong>): Structural operations that manipulate file namespace and links, such as <code>lookup()</code>, <code>create()</code>, <code>link()</code>, <code>unlink()</code>, <code>mkdir()</code>, and <code>rename()</code>.</li>
+        <li><code>i_fop</code> (<strong>Default File Operations</strong>): Fallback file manipulation methods assigned when a file is opened.</li>
+      </ul>
+
+      <h4>3. The Dentry Object (<code>struct dentry</code>)</h4>
+      <p>
+        In Unix, inodes contain metadata and block pointers, but <em>no file names</em>. File names exist solely as entries within directory payloads. To enable high-speed string path resolution, the VFS introduces <strong>Directory Entries (dentries)</strong>.
+      </p>
+      <p>
+        A dentry represents a single path component (e.g., in <code>/usr/bin/python3</code>, there are dentries for <code>/</code>, <code>usr</code>, <code>bin</code>, and <code>python3</code>). Each dentry links a string name to its corresponding <code>struct inode</code>. Dentries are cached in the high-speed kernel <strong>Dentry Cache (Dcache)</strong>.
+      </p>
+
+      <h4>4. The File Object (<code>struct file</code>)</h4>
+      <p>
+        Represents a dynamic, open file descriptor instantiated when a user space thread invokes <code>open()</code>. While an inode represents the static file on disk, a <code>struct file</code> represents an active interaction context. It stores:
+      </p>
+      <ul>
+        <li><code>f_pos</code>: The current byte seek offset of the process within the file.</li>
+        <li><code>f_flags</code>: Open status flags (e.g., <code>O_RDONLY</code>, <code>O_APPEND</code>, <code>O_NONBLOCK</code>).</li>
+        <li><code>f_count</code>: Atomic reference counter tracking how many processes share this descriptor (e.g., post-<code>fork()</code>).</li>
+        <li><code>f_op</code>: Pointer to the <strong>File Operations</strong> table containing the implementation functions: <code>read()</code>, <code>write()</code>, <code>mmap()</code>, <code>llseek()</code>, and <code>fsync()</code>.</li>
+      </ul>
+
+      <!-- Diagram 4.3.8B: VFS Data Object Relationships -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 250" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="250" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.8B: Interconnection Network of VFS Core Kernel Objects</text>
+
+          <!-- Process File Descriptor -->
+          <rect x="30" y="60" width="140" height="150" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+          <text x="100" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">User Process</text>
+          <line x1="40" y1="92" x2="160" y2="92" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="100" y="110" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">task_struct</text>
+          <rect x="40" y="125" width="120" height="30" fill="#e0e7ff" rx="3"/>
+          <text x="100" y="144" font-family="sans-serif" font-size="10" font-weight="bold" fill="#4338ca" text-anchor="middle">fd table [fd 3]</text>
+
+          <!-- File Object -->
+          <line x1="170" y1="140" x2="220" y2="140" stroke="#4338ca" stroke-width="2"/><polygon points="225,140 217,135 217,145" fill="#4338ca"/>
+          <rect x="225" y="60" width="150" height="150" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
+          <text x="300" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">struct file</text>
+          <line x1="235" y1="92" x2="365" y2="92" stroke="#bae6fd" stroke-width="1"/>
+          <text x="300" y="112" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_pos = 4096</text>
+          <text x="300" y="132" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_flags = O_RDONLY</text>
+          <text x="300" y="152" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_count = 1</text>
+          <rect x="235" y="165" width="130" height="26" fill="#0284c7" rx="2"/>
+          <text x="300" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; f_op: read, write</text>
+
+          <!-- Dentry Object -->
+          <line x1="375" y1="140" x2="425" y2="140" stroke="#0284c7" stroke-width="2"/><polygon points="430,140 422,135 422,145" fill="#0284c7"/>
+          <rect x="430" y="60" width="150" height="150" fill="#f0fdf4" stroke="#16a34a" rx="4"/>
+          <text x="505" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">struct dentry</text>
+          <line x1="440" y1="92" x2="570" y2="92" stroke="#bbf7d0" stroke-width="1"/>
+          <text x="505" y="112" font-family="sans-serif" font-size="10" fill="#166534" text-anchor="middle">d_name = "syslog"</text>
+          <text x="505" y="132" font-family="sans-serif" font-size="10" fill="#166534" text-anchor="middle">d_parent = "log"</text>
+          <text x="505" y="152" font-family="sans-serif" font-size="9" fill="#166534" text-anchor="middle">(Cached in Dcache)</text>
+          <rect x="440" y="165" width="130" height="26" fill="#16a34a" rx="2"/>
+          <text x="505" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; d_inode Pointer</text>
+
+          <!-- Inode & Superblock -->
+          <line x1="580" y1="140" x2="630" y2="140" stroke="#16a34a" stroke-width="2"/><polygon points="635,140 627,135 627,145" fill="#16a34a"/>
+          <rect x="635" y="60" width="140" height="150" fill="#fffbeb" stroke="#d97706" rx="4"/>
+          <text x="705" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b45309" text-anchor="middle">struct inode</text>
+          <line x1="645" y1="92" x2="765" y2="92" stroke="#fde68a" stroke-width="1"/>
+          <text x="705" y="112" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_ino = 1048576</text>
+          <text x="705" y="132" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_size = 2.4 MB</text>
+          <rect x="645" y="145" width="120" height="24" fill="#d97706" rx="2"/>
+          <text x="705" y="161" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; i_op: lookup, link</text>
+          <text x="705" y="195" font-family="sans-serif" font-size="9" fill="#92400e" text-anchor="middle">&bull; Linked to Superblock</text>
+        </svg>
+        <figcaption>Figure 4.3.8B: Relationship from process file descriptor down to physical inode and superblock.</figcaption>
+      </figure>
+
+      <h3>3. Path Resolution &amp; The Dentry Cache (Dcache)</h3>
+      <p>
+        In POSIX systems, looking up an absolute path such as <code>/usr/bin/gcc</code> requires stepping down the directory hierarchy. A naive implementation would read the root directory disk block, locate <code>usr</code>, fetch its inode, read <code>usr</code>'s disk block, locate <code>bin</code>, and repeat. This would impose severe mechanical seek penalties for simple commands.
+      </p>
+      <p>
+        The VFS solves this by evaluating paths through the in-memory <strong>Dentry Cache (Dcache)</strong>:
+      </p>
+      <ol>
+        <li><strong>Hash Table Lookup:</strong> The kernel hashes the tuple <code>(parent_dentry, "child_name")</code> and queries a global hash table.</li>
+        <li><strong>Dcache Hit:</strong> If the dentry is cached, VFS retrieves the associated <code>struct inode</code> instantly without any disk access. Modern Linux kernels execute this lookup locklessly using Read-Copy-Update (RCU).</li>
+        <li><strong>Dcache Miss:</strong> If the dentry is not present, VFS invokes the underlying filesystem driver's <code>inode->i_op->lookup()</code> method. The driver reads the directory block from disk, constructs a new dentry, attaches it to the inode, and inserts it into the Dcache.</li>
+        <li><strong>Mount Point Traversal:</strong> If a traversed dentry is flagged as a mount point (<code>DCACHE_MOUNTED</code>), VFS automatically redirects the lookup path to the root dentry of the mounted filesystem's superblock.</li>
+      </ol>
+
+      <!-- WALKTHROUGH PART 5: VFS DISPATCH & PATH RESOLUTION -->
+      <div class="lfs-sim-container" id="vfsSim">
+        <div class="lfs-topbar">
+          <span class="lfs-title">Walkthrough Part 5: VFS Dispatch, Path Walk &amp; Mount Resolution</span>
+          <span class="lfs-step-indicator" id="vfsStepTag">Dcache Initialized</span>
+        </div>
+
+        <div class="lfs-explanation-box" id="vfsExplanationBox">
+          <strong>Interactive VFS Engine:</strong> Walk a file path, resolve mount boundaries (e.g. crossing into a USB FAT32 filesystem), and execute polymorphic function pointers to see how VFS dynamically routes calls.
+        </div>
+
+        <div class="lfs-controls">
+          <button class="lfs-btn primary" onclick="vfsResolveRoot()">1. Walk Path: /home/user/doc.txt (ext4)</button>
+          <button class="lfs-btn" onclick="vfsCrossMountPoint()">2. Cross Mount Boundary: /mnt/usb/data (FAT32)</button>
+          <button class="lfs-btn accent" onclick="vfsPolymorphicRead()">3. Invoke read(fd) &rarr; Polymorphic Dispatch</button>
+          <button class="lfs-btn" onclick="vfsResetWalkthrough()" style="margin-left: auto;">Reset Simulator</button>
+        </div>
+
+        <div class="lfs-segments-grid" id="vfsSegmentsGrid"></div>
+
+        <div class="lfs-status-panel">
+          <span id="vfsStatusMsg">VFS Layer active. Ready for path traversal.</span>
+          <span id="vfsMetricMsg">Active Driver: None | Dcache State: Cold</span>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -1667,7 +1705,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         {
           id: 1,
           label: "Block 1 (Cold Data)",
-          eraseCount: 3, // Very low wear (static data)
+          eraseCount: 3,
           pages: [
             { id: "OS:1", state: "static" },
             { id: "OS:2", state: "static" },
@@ -1711,13 +1749,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       ftlHostWrites++;
       ftlFlashWrites++;
 
-      // Invalidate old LBA 1 in Block 0
       let oldPage = ftlBlocks[0].pages.find(p => p.id === "LBA1" && p.state === "valid");
       if (oldPage) {
         oldPage.state = "invalid";
       }
 
-      // Find first erased page in Block 0
       let freePage = ftlBlocks[0].pages.find(p => p.state === "erased");
       if (freePage) {
         freePage.id = "LBA1*";
@@ -1749,17 +1785,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     function ftlRunGarbageCollection() {
-      // Victim selection: Block 0
       let livePages = ftlBlocks[0].pages.filter(p => p.state === "valid");
 
-      // Copy live pages into Block 2 (free pool)
       livePages.forEach((p, idx) => {
         ftlBlocks[2].pages[idx].id = p.id;
         ftlBlocks[2].pages[idx].state = "valid";
-        ftlFlashWrites++; // GC copy overhead
+        ftlFlashWrites++;
       });
 
-      // Erase Block 0
       ftlBlocks[0].eraseCount++;
       ftlBlocks[0].pages = [
         { id: "·", state: "erased" },
@@ -1768,7 +1801,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         { id: "·", state: "erased" }
       ];
       ftlBlocks[0].label = "Block 0 (Clean Free Pool)";
-
       ftlBlocks[2].label = "Block 2 (Active Compacted)";
 
       ftlRender();
@@ -1781,10 +1813,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     function ftlStaticWearLevel() {
-      // Swap Block 1's cold data (Erase: 3) with Block 0's free block (Erase: 43)
       let coldPages = [...ftlBlocks[1].pages];
 
-      // Copy cold pages into high-erase Block 0
       coldPages.forEach((p, idx) => {
         ftlBlocks[0].pages[idx].id = p.id;
         ftlBlocks[0].pages[idx].state = "static";
@@ -1792,7 +1822,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       });
       ftlBlocks[0].label = "Block 0 (Static Data Relocated)";
 
-      // Erase Block 1 so its low-wear cells can absorb hot writes
       ftlBlocks[1].eraseCount++;
       ftlBlocks[1].pages = [
         { id: "·", state: "erased" },
@@ -1843,6 +1872,147 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     ftlResetWalkthrough();
+
+    // =========================================================
+    // 5. WALKTHROUGH PART 5: VFS DISPATCH & PATH WALK
+    // =========================================================
+    let vfsState = {
+      path: "/",
+      dentries: ["/"],
+      driver: "ext4",
+      activeInode: "ino: 2 (root)",
+      activeFop: "ext4_file_operations"
+    };
+
+    function vfsResetWalkthrough() {
+      vfsState = {
+        path: "/",
+        dentries: ["/"],
+        driver: "ext4",
+        activeInode: "ino: 2 (root)",
+        activeFop: "ext4_file_operations"
+      };
+      vfsRender();
+      document.getElementById("vfsStepTag").textContent = "Dcache Initialized (Root)";
+      document.getElementById("vfsExplanationBox").innerHTML =
+        "<strong>Virtual File System Initialized:</strong> The root dentry <code>/</code> maps to ext4 root inode 2. Click <strong>'1. Walk Path: /home/user/doc.txt'</strong> to trace path resolution through the Dcache.";
+      document.getElementById("vfsStatusMsg").textContent = "VFS root established. Ready for path traversal.";
+      document.getElementById("vfsMetricMsg").textContent = "Active Driver: ext4 | Dcache State: Cold (Root only)";
+    }
+
+    function vfsResolveRoot() {
+      vfsState = {
+        path: "/home/user/doc.txt",
+        dentries: ["/", "home", "user", "doc.txt"],
+        driver: "ext4",
+        activeInode: "ino: 84201 (regular file)",
+        activeFop: "ext4_file_operations"
+      };
+      vfsRender();
+      document.getElementById("vfsStepTag").textContent = "Path Walk Complete: ext4";
+      document.getElementById("vfsExplanationBox").innerHTML =
+        "<strong>Path Walk Resolved via Dcache:</strong> The VFS hashed path components and traversed dentries: <code>/ &rarr; home &rarr; user &rarr; doc.txt</code>. It matched inode 84201 on ext4. An open file descriptor table slot was created. Next, test <strong>'2. Cross Mount Boundary'</strong> or <strong>'3. Invoke read(fd)'</strong>!";
+      document.getElementById("vfsStatusMsg").textContent = "Path /home/user/doc.txt resolved. ext4 f_op registered.";
+      document.getElementById("vfsMetricMsg").textContent = "Active Driver: ext4 | Dcache State: 4 Dentries Cached";
+    }
+
+    function vfsCrossMountPoint() {
+      vfsState = {
+        path: "/mnt/usb/data.bin",
+        dentries: ["/", "mnt", "usb (MOUNT)", "data.bin"],
+        driver: "vfat (FAT32)",
+        activeInode: "ino: 14002 (FAT cluster 12)",
+        activeFop: "fat_file_operations"
+      };
+      vfsRender();
+      document.getElementById("vfsStepTag").textContent = "Mount Boundary Crossed!";
+      document.getElementById("vfsExplanationBox").innerHTML =
+        "<strong>Mount Point Traversal Detected:</strong> When the VFS path walk hit <code>/mnt/usb</code>, it saw the <code>DCACHE_MOUNTED</code> flag. The VFS seamlessly redirected lookup from the root ext4 filesystem to the <strong>FAT32 Superblock</strong>! Inode and file operations dynamically switched to <code>fat_file_operations</code> without changing the user API.";
+      document.getElementById("vfsStatusMsg").textContent = "Mount boundary crossed: ext4 &rarr; FAT32. Polymorphic f_op switched.";
+      document.getElementById("vfsMetricMsg").textContent = "Active Driver: vfat | Dcache State: Cross-Mount Validated";
+    }
+
+    function vfsPolymorphicRead() {
+      let driverName = vfsState.driver;
+      let funcName = driverName.includes("vfat") ? "fat_file_read_iter()" : "ext4_file_read_iter()";
+
+      document.getElementById("vfsStepTag").textContent = "Polymorphic Call Dispatched!";
+      document.getElementById("vfsExplanationBox").innerHTML =
+        `<strong>Polymorphic Dispatch Executed:</strong> Process called <code>read(fd=3, buf, 4096)</code>. The VFS extracted <code>file = current->files->fd[3]</code> and executed <code>file->f_op->read()</code>, which dispatched directly into <strong>${funcName}</strong>! The user application code remains identical regardless of underlying media.`;
+      document.getElementById("vfsStatusMsg").textContent = `read() dispatched to ${funcName}. Buffer returned.`;
+      document.getElementById("vfsMetricMsg").textContent = `Active Driver: ${driverName} | Function: ${funcName}`;
+    }
+
+    function vfsRender() {
+      const grid = document.getElementById("vfsSegmentsGrid");
+      grid.innerHTML = "";
+
+      // Box 1: Process File Table
+      let b1 = document.createElement("div");
+      b1.className = "lfs-segment-box";
+      b1.innerHTML = `<div class="lfs-seg-header"><span>Process File Table</span><span>fd=3</span></div>`;
+      let b1Content = document.createElement("div");
+      b1Content.className = "lfs-seg-blocks";
+      b1Content.style.gridTemplateColumns = "1fr";
+      let b1El = document.createElement("div");
+      b1El.className = "lfs-block blk-vfs-fd";
+      b1El.style.aspectRatio = "auto";
+      b1El.style.padding = "6px";
+      b1El.textContent = `fd[3] -> ${vfsState.path}`;
+      b1Content.appendChild(b1El);
+      b1.appendChild(b1Content);
+      grid.appendChild(b1);
+
+      // Box 2: Dentry Path Components
+      let b2 = document.createElement("div");
+      b2.className = "lfs-segment-box";
+      b2.innerHTML = `<div class="lfs-seg-header"><span>Dcache Path Chain</span><span>Dentries</span></div>`;
+      let b2Content = document.createElement("div");
+      b2Content.className = "lfs-seg-blocks";
+      b2Content.style.gridTemplateColumns = "repeat(4, 1fr)";
+      vfsState.dentries.forEach(d => {
+        let dEl = document.createElement("div");
+        dEl.className = "lfs-block blk-vfs-dentry";
+        dEl.textContent = d;
+        b2Content.appendChild(dEl);
+      });
+      b2.appendChild(b2Content);
+      grid.appendChild(b2);
+
+      // Box 3: Active Inode & Superblock
+      let b3 = document.createElement("div");
+      b3.className = "lfs-segment-box";
+      b3.innerHTML = `<div class="lfs-seg-header"><span>Active Inode</span><span>${vfsState.driver}</span></div>`;
+      let b3Content = document.createElement("div");
+      b3Content.className = "lfs-seg-blocks";
+      b3Content.style.gridTemplateColumns = "1fr";
+      let b3El = document.createElement("div");
+      b3El.className = "lfs-block blk-vfs-inode";
+      b3El.style.aspectRatio = "auto";
+      b3El.style.padding = "6px";
+      b3El.textContent = vfsState.activeInode;
+      b3Content.appendChild(b3El);
+      b3.appendChild(b3Content);
+      grid.appendChild(b3);
+
+      // Box 4: Polymorphic Function Table
+      let b4 = document.createElement("div");
+      b4.className = "lfs-segment-box";
+      b4.innerHTML = `<div class="lfs-seg-header"><span>File Operations (f_op)</span><span>Function Table</span></div>`;
+      let b4Content = document.createElement("div");
+      b4Content.className = "lfs-seg-blocks";
+      b4Content.style.gridTemplateColumns = "1fr";
+      let b4El = document.createElement("div");
+      b4El.className = "lfs-block blk-vfs-file";
+      b4El.style.aspectRatio = "auto";
+      b4El.style.padding = "6px";
+      b4El.textContent = vfsState.activeFop;
+      b4Content.appendChild(b4El);
+      b4.appendChild(b4Content);
+      grid.appendChild(b4);
+    }
+
+    vfsResetWalkthrough();
 
     // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 3000;
@@ -2120,7 +2290,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing expanded Flash & Wear-Leveling section to {html_file}...")
+    print(f"--> Writing expanded VFS section to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -2128,11 +2298,11 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Expand section 4.3.7 on flash storage and wear-leveling with SVGs and sim\n\n"
+        "Expand section 4.3.8 on Virtual File Systems with theory, SVGs and sim\n\n"
         "Update week10-file-management/03-filesystem-implementation.html to "
-        "comprehensively expand section 4.3.7 with NAND physical asymmetry theory, "
-        "FTL address translation, dynamic vs static wear-leveling, TRIM mechanics, "
-        "two SVG diagrams, and an interactive FTL simulator."
+        "comprehensively expand section 4.3.8 with polymorphic dispatch mechanics, "
+        "the four core VFS data structures, dcache path resolution, two SVG "
+        "diagrams, and an interactive VFS dispatch simulator."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
