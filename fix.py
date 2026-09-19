@@ -162,7 +162,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 12px;
     }
 
-    /* MODERN THEME LEGEND STYLING (FIXED) */
+    /* MODERN THEME LEGEND STYLING */
     .modern-legend {
       display: flex;
       flex-wrap: wrap;
@@ -868,11 +868,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
+          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
+          el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          // Solid retro background fill
+          // c-free uses solid retro background color
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1130,20 +1132,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       document.getElementById("txtStatusMsg").textContent = `100% Complete. ${capLabel} Volume Fully Optimized. Free space consolidated at tail.`;
     }
 
-    // Initialize Simulator on Load
+    // Initialize Simulator on Load (Default to Modern Theme as requested)
     initMatrix();
     selectDiskCapacity(500);
-    switchTheme('olddos'); // Default to MS-DOS 6.22 mode for immediate visual satisfaction
+    switchTheme('modern');
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Restore strict zero-padding, pixelated rendering, and DOS colors
+COMMIT_MSG = """Default FAT defragmenter simulator theme to modern and fix legend
 
-Update week10-file-management/03-filesystem-implementation.html to lock in
-tight 1px grid gap, zero cell padding, pixelated non-antialiased fonts,
-and authentic yellow/blue MS-DOS 6.22 block styling.
+Update week10-file-management/03-filesystem-implementation.html to default
+the simulator to the modern theme on load and restore visible color swatches
+in the modern theme legend.
 """
 
 def run_git_step(cmd, desc):
@@ -1166,10 +1168,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging definitive DOS fix update")
+    run_git_step(["git", "add", target_file], "Staging default modern theme & legend fix update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Definitive MS-DOS layout successfully deployed!")
+    print("--> Default modern theme and legend successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
