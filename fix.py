@@ -71,7 +71,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .concept-box strong { color: #075985; }
 
-    /* Floating Bio Sidebar on Right with text wrapping */
+    /* Floating Bio Infobox Sidebar on Right with text wrapping */
     .bio-sidebar {
       float: right;
       width: 320px;
@@ -84,20 +84,51 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      font-size: 0.86rem;
+      gap: 14px;
+      font-size: 0.84rem;
       shape-outside: margin-box;
     }
-    .bio-sidebar h3 {
-      font-size: 0.98rem;
-      color: var(--accent);
-      margin-bottom: 2px;
+    .pioneer-profile {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e2e8f0;
     }
-    .bio-sidebar p {
+    .pioneer-profile:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .pioneer-profile img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      object-position: top;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    .pioneer-profile h3 {
+      font-size: 0.95rem;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+    .pioneer-profile p {
       color: var(--text-muted);
-      line-height: 1.5;
-      font-size: 0.83rem;
-      margin-bottom: 4px;
+      line-height: 1.45;
+      font-size: 0.8rem;
+    }
+    .pioneer-profile .attr {
+      font-size: 0.72rem;
+      color: #64748b;
+      font-style: italic;
+    }
+    .pioneer-profile a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .pioneer-profile a:hover {
+      text-decoration: underline;
     }
 
     .figure-container {
@@ -397,19 +428,35 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
   <div class="main-container">
-    <!-- INTRODUCTORY CARD WITH NO BORDERS AND TEXT WRAPPING AROUND RIGHT SIDEBAR -->
+    <!-- INTRODUCTORY CARD WITH NO BORDERS AND TEXT WRAPPING AROUND RIGHT SIDEBAR INFOGRAPHIC -->
     <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
       <aside class="bio-sidebar">
-        <h3>Pioneer Profiles</h3>
-        <p>
-          <strong>Harry M. Markowitz</strong> formulated the binary buddy memory allocation algorithm in 1963 (later awarded the 1990 Nobel Memorial Prize in Economic Sciences for Modern Portfolio Theory).
-        </p>
-        <p>
-          <strong>Kenneth C. Knowlton</strong> independently adapted and refined buddy allocation structures at Bell Labs in 1965 for symbol-table and list-processing architectures in Lisp.
-        </p>
-        <p>
-          <strong>Donald E. Knuth</strong> rigorously analyzed and popularized the binary buddy algorithm in Volume 1 of <em>The Art of Computer Programming</em> (1968).
-        </p>
+        <!-- Markowitz Infobox -->
+        <div class="pioneer-profile">
+          <img src="https://zicklin.baruch.cuny.edu/wp-content/uploads/sites/10/2023/07/Harry-Markowitz-1_WP_350x467.jpg" alt="Harry Markowitz">
+          <h3>Harry M. Markowitz</h3>
+          <p>Formulated the binary buddy allocation algorithm (1963). Nobel laureate.</p>
+          <div class="attr">Image source: <a href="https://zicklin.baruch.cuny.edu/zicklin_news/nobel-winner-harry-markowitz-former-zicklin-professor-dies/" target="_blank">Zicklin News, Baruch College</a> (Copyrighted).</div>
+          <div><a href="https://en.wikipedia.org/wiki/Harry_Markowitz" target="_blank">View Wikipedia &rarr;</a></div>
+        </div>
+
+        <!-- Knowlton Infobox -->
+        <div class="pioneer-profile">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Ken_Knowlton_in_2007.jpg" alt="Ken Knowlton">
+          <h3>Kenneth C. Knowlton</h3>
+          <p>Refined buddy allocation structures at Bell Labs (1965) for Lisp architectures.</p>
+          <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
+          <div><a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">View Wikipedia &rarr;</a></div>
+        </div>
+
+        <!-- Knuth Infobox -->
+        <div class="pioneer-profile">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Donald_Ervin_Knuth_%28cropped%29.jpg" alt="Donald Knuth">
+          <h3>Donald E. Knuth</h3>
+          <p>Rigorously analyzed and popularized buddy systems in <em>The Art of Computer Programming</em>.</p>
+          <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
+          <div><a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">View Wikipedia &rarr;</a></div>
+        </div>
       </aside>
 
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
