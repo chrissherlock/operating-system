@@ -848,13 +848,15 @@
         if (b) b.classList.toggle('active', t === theme);
       });
 
-      // Force Slow speed, fragment disk, and auto-start defrag for DOS themes
+      // Force Slow speed, fragment disk, and auto-start defrag for DOS themes, else pause audio immediately
       if (theme === 'dos' || theme === 'olddos') {
         setDefragSpeed(150, 'spd-slow');
         defragHeavyChurn();
         if (!isRunning) {
           defragToggleRun();
         }
+      } else {
+        defragPause();
       }
 
       const leg = document.getElementById("modernLegend");
