@@ -1,676 +1,14 @@
 #!/usr/bin/env python3
 import os
+import re
 import subprocess
 import sys
 
-HTML_CONTENT = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>9. The Working Set Model — COSC240</title>
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --border-dark: #94a3b8;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --hit-color: #16a34a;
-      --hit-bg: #dcfce7;
-      --fault-color: #dc2626;
-      --fault-bg: #fee2e2;
-      --warn-color: #d97706;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-    }
-
-    .nav-back {
-      width: 100%;
-      max-width: 1100px;
-      display: flex;
-    }
-    .nav-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      text-decoration: none;
-      color: var(--accent);
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .nav-back a:hover { background-color: var(--accent); color: #fff; }
-
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 100%;
-      max-width: 1100px;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .theory-section {
-      line-height: 1.7;
-      font-size: 0.95rem;
-      color: #334155;
-      display: block;
-    }
-    .theory-section h2 {
-      font-size: 1.25rem;
-      color: var(--text);
-      margin-top: 16px;
-      margin-bottom: 4px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 4px;
-    }
-    .theory-section p {
-      margin-bottom: 10px;
-    }
-    .theory-callout {
-      background-color: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 12px 16px;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #0369a1;
-      font-family: var(--font-mono);
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .bio-sidebar {
-      float: right;
-      width: 300px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-top: 4px solid var(--accent);
-      border-radius: 6px;
-      padding: 16px;
-      margin-left: 24px;
-      margin-right: 0px;
-      margin-bottom: 16px;
-      margin-top: 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      font-size: 0.88rem;
-      shape-outside: margin-box;
-    }
-    .bio-sidebar h3 {
-      font-size: 1rem;
-      color: var(--accent);
-      margin-bottom: 2px;
-    }
-    .bio-sidebar p {
-      color: var(--text-muted);
-      line-height: 1.5;
-      font-size: 0.85rem;
-      margin-bottom: 6px;
-    }
-    .bio-sidebar a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-weight: 600;
-    }
-    .bio-sidebar img {
-      width: 100%;
-      height: auto;
-      border-radius: 4px;
-      margin-bottom: 6px;
-      border: 1px solid var(--border);
-    }
-    .photo-credit {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      font-style: italic;
-      margin-bottom: 8px;
-    }
-
-    .figure-container {
-      width: 100%;
-      max-width: 860px;
-      margin: 10px auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
-      clear: both;
-    }
-
-    .tutorial-panel {
-      border-left: 4px solid var(--accent);
-      background: #f0f9ff;
-    }
-    .tutorial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .tutorial-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #075985;
-    }
-    .tutorial-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #0c4a6e;
-      min-height: 75px;
-    }
-
-    .tour-nav {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .split-grid {
-      display: grid;
-      grid-template-columns: 440px 1fr;
-      gap: 32px;
-      align-items: start;
-      margin-top: 10px;
-    }
-    @media (max-width: 860px) {
-      .split-grid { grid-template-columns: 1fr; }
-      .bio-sidebar { float: none; width: 100%; margin-left: 0; }
-    }
-
-    .table-spec {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-      font-family: var(--font-mono);
-    }
-    .table-spec th, .table-spec td {
-      border: 1px solid var(--border);
-      padding: 6px 8px;
-      text-align: center;
-    }
-    .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
-
-    .telemetry-box {
-      background: #0f172a;
-      color: #f8fafc;
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-    }
-
-    .terminal-box {
-      background: #0f172a;
-      color: #f8fafc;
-      border-radius: 6px;
-      padding: 12px 16px;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      height: 220px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 4px;
-    }
-
-    button {
-      background-color: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    button.btn-sec:hover { background-color: #e2e8f0; }
-
-    .stream-box-row {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      font-family: var(--font-mono);
-      flex-wrap: wrap;
-    }
-    .stream-cell {
-      width: 34px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: #0f172a;
-      border-radius: 4px;
-    }
-    .stream-cell.active-window {
-      background: #dcfce7;
-      border-color: #16a34a;
-      color: #15803d;
-      transform: scale(1.05);
-    }
-  </style>
-</head>
-<body>
-
-  <div class="nav-back">
-    <a href="index.html">&larr; Back to Week Overview</a>
-  </div>
-
-  <header>
-    <h1>9. The Working Set Model</h1>
-    <p class="subtitle">Tanenbaum Section 3.4.2 (Fig. 3-19): Locality of reference, working set size $w(k, t)$, and thrashing prevention.</p>
-  </header>
-
-  <div class="main-container">
-
-    <!-- 1. THEORY SECTION WITH FLOATING SIDEBAR -->
-    <div class="card">
-      <div class="theory-section">
-        <!-- Floating Sidebar on Right with text wrapping around left -->
-        <aside class="bio-sidebar">
-          <h3>Pioneer Profile</h3>
-          <img src="assets/peter-denning.jpg" alt="Dr. Peter J. Denning">
-          <div class="photo-credit">Photo by Louis Fabian Bachrach</div>
-          <p><strong>Dr. Peter J. Denning</strong> (often referenced as Peter Jenning in informal notes) is an American computer scientist renowned for his foundational work on virtual memory.</p>
-          <p>In 1968, while at MIT, he formulated the <strong>Working Set Model</strong> and program locality principles. Read more on his <a href="https://en.wikipedia.org/wiki/Peter_J._Denning" target="_blank">Wikipedia page</a>.</p>
-        </aside>
-
-        <h2>1. The Problem of Thrashing</h2>
-        <p>
-          In previous modules, demand paging allowed processes to run even if only a few of their pages were resident in physical RAM. However, if a process is allocated too few frames relative to its active needs, it will suffer continuous page faults. The CPU spends more time swapping pages between disk and RAM than executing actual instructions—a catastrophic state known as <strong>thrashing</strong>.
-        </p>
-
-        <h2>2. The Working Set Model &amp; The Ideal Memory Footprint</h2>
-        <p>
-          To prevent thrashing, <a href="https://en.wikipedia.org/wiki/Peter_J._Denning" target="_blank" style="color: var(--accent); text-decoration: underline;">Peter Denning</a> introduced the <strong>Working Set Model</strong>. The working set is the set of unique pages actively needed by a process right now due to its locality of reference (referenced during the last $k$ virtual memory references or time window $\tau$).
-        </p>
-        <div class="theory-callout">
-          <strong>The Kernel's Target Goal:</strong><br>
-          The working set is not just whatever happens to sit in RAM; it is the <strong>ideal memory footprint</strong> that the operating system <em>should</em> keep resident in physical memory. It defines what the process needs to run smoothly without constantly faulting.<br><br>
-          <strong>Mathematical Formulation ($w(k, t)$):</strong><br>
-          - As $k$ grows very small, $w(k, t)$ captures only the immediate instruction.<br>
-          - As $k$ grows large enough to cover the active execution phase, it hits the optimal window ($\tau$).<br>
-          - The OS strives to reach this target footprint for every active process before letting them execute.
-        </div>
-
-        <h2>3. Conceptually: A Resource-Allocation Optimization Problem</h2>
-        <p>
-          At its core, the goal of the Working Set model is to solve a classic economic trade-off between memory allocation and performance:
-        </p>
-        <ul style="padding-left: 20px; display: block; gap: 6px; margin-bottom: 10px;">
-          <li><strong>The Cost of Too Little Memory:</strong> Allocating too few frames leads directly to a spike in page faults and catastrophic thrashing.</li>
-          <li><strong>The Cost of Too Much Memory:</strong> Allocating an oversized window wastes physical RAM that other processes could use to execute concurrently, lowering the overall multiprogramming level.</li>
-          <li><strong>The Knee of the Curve:</strong> The optimal window size (\(\tau\) or $k$) shown in Figure 3-19 represents the "knee of the curve"—the sweet spot where adding more memory yields diminishing returns in page fault reduction.</li>
-        </ul>
-        <p>
-          <strong>Why Calculus Isn't Used in the Kernel:</strong> While this is conceptually an optimization problem, operating systems do not use formal calculus (like derivatives) to solve it in real time. Program execution is discrete and non-differentiable, and computing derivatives on the fly for dozens of threads introduces unacceptable CPU overhead. Instead, kernels rely on lightweight empirical heuristics (like the WSClock algorithm) to approximate working sets dynamically.
-        </p>
-
-        <h2>4. Why You Should Care: System Pressure &amp; Admission Control</h2>
-        <p>
-          Understanding the Working Set model is critical because real-world systems face memory pressure where ideal goals collide with hardware limits:
-        </p>
-        <ul style="padding-left: 20px; display: block; gap: 6px; margin-bottom: 10px;">
-          <li><strong>The Ideal vs. Reality:</strong> The working set is the kernel's ultimate target goal. However, when total physical RAM is smaller than the sum of all active working sets (\(\sum w > \text{Total RAM}\)), the OS cannot give every process everything it ideally needs.</li>
-          <li><strong>The Cure for Thrashing:</strong> Without honoring working sets, allocating too few frames causes continuous page faults, plunging the CPU into <strong>thrashing</strong> (spending 100% of its time swapping pages to disk).</li>
-          <li><strong>Admission &amp; Load Control:</strong> When system memory pressure makes it impossible to satisfy active working sets, the kernel uses admission control to completely suspend or swap out low-priority processes, preserving enough RAM for the remaining processes to run at full speed.</li>
-        </ul>
-      </div>
-
-      <!-- Embedded SVG Diagram for Working Set Size vs. k -->
-      <div class="figure-container" style="max-width: 860px; align-items: stretch;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; margin-bottom: 4px;">Figure 3-19: The Working Set Size as a Function of k (Tanenbaum)</span>
-
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 380" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
-            </marker>
-            <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#15803d" />
-            </marker>
-          </defs>
-
-          <!-- Title & Subtitle -->
-          <text x="420" y="30" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Working Set Size w(k, t) as a Function of Window Size k</text>
-          <text x="420" y="48" font-size="11" fill="#64748b" text-anchor="middle">Illustrating Denning's Locality Principle and Operating System Frame Budgeting</text>
-
-          <!-- Expanded Graph Plot Area Box -->
-          <rect x="70" y="65" width="700" height="235" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1" rx="6"/>
-
-          <!-- Axis Lines -->
-          <line x1="110" y1="260" x2="740" y2="260" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
-          <line x1="110" y1="260" x2="110" y2="80" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
-
-          <!-- Axis Labels -->
-          <text x="425" y="292" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">k (Window size in memory references)</text>
-          <text x="80" y="175" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle" transform="rotate(-90 80 175)">w(k, t)</text>
-
-          <!-- Working Set Curve: w(k, t) reaches horizontal plateau at y=120 from x=500 to x=720 -->
-          <path d="M 110 255 C 220 255, 300 200, 350 135 C 390 85, 430 120, 500 120 L 720 120" stroke="#0284c7" stroke-width="3.5" fill="none"/>
-
-          <!-- Annotations / Key Points -->
-
-          <!-- 1. Small k Zone -->
-          <line x1="170" y1="260" x2="170" y2="250" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="170" cy="250" r="4" fill="#d97706"/>
-          <text x="170" y="222" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
-          <text x="170" y="235" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
-
-          <!-- 2. Optimal Window (tau) & Target RAM Allocation -->
-          <line x1="350" y1="135" x2="350" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
-          <circle cx="350" cy="135" r="6" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
-          <text x="350" y="278" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Optimal Window (τ)</text>
-          <text x="325" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
-          <line x1="330" y1="114" x2="346" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
-
-          <!-- 3. Large k Zone (Positioned to the right on plateau at x=620, point exactly on graph line) -->
-          <line x1="620" y1="260" x2="620" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="620" cy="120" r="5" fill="#7c3aed" stroke="#ffffff" stroke-width="1.5"/>
-          <text x="620" y="88" font-size="11" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
-          <text x="620" y="102" font-size="9.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
-
-          <!-- Bottom Legend / Summary Box -->
-          <rect x="70" y="315" width="700" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
-          <text x="420" y="336" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">OS Memory Budgeting Rule:</text>
-          <text x="420" y="352" font-size="10" fill="#334155" text-anchor="middle">Load exactly w(k, t) pages into physical RAM prior to execution to entirely prevent thrashing.</text>
-        </svg>
-
-        <!-- Detailed Mathematical Explanation Beneath SVG -->
-        <div style="margin-top: 12px; padding: 12px 16px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; line-height: 1.6; color: #334155;">
-          <strong style="color: var(--accent); font-family: var(--font-mono); font-size: 0.9rem; display: block; margin-bottom: 4px;">Anatomical Breakdown of Figure 3-19:</strong>
-          <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px;">
-            <li><strong>Small $k$ (Immediate Scope):</strong> When the window size $k$ is extremely small, $w(k, t)$ captures only the single instruction or immediate micro-loop currently executing, severely underestimating the process's actual memory footprint.</li>
-            <li><strong>The Knee of the Curve &amp; Optimal Window ($\tau$):</strong> As $k$ grows, the curve rises steeply until it reaches the inflection point ("knee") exactly where the target allocation touches it. This optimal window size ($\tau$) represents the exact threshold where all active working set pages are encompassed. Allocating exactly $w(k, t)$ frames here achieves maximum performance without wasting RAM.</li>
-            <li><strong>Large $k$ (Plateau):</strong> Once $k$ covers the entire active execution phase, adding more references yields zero new unique pages, causing the curve to flatten into a horizontal plateau covering the program's full active footprint.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH -->
-    <div class="card tutorial-panel">
-      <div class="tutorial-header">
-        <span id="wtCounter">Step 1 of 4</span>
-        <span>Interactive Working Set Stepper</span>
-      </div>
-      <div id="wtTitle" class="tutorial-title">1. Reference Stream Sliding Window</div>
-
-      <div class="split-grid">
-        <div style="display:flex; flex-direction:column; gap:10px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:14px;">
-          <span style="font-family:var(--font-mono); font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Stream &amp; Active Window ($k=4$)</span>
-          <div id="wtStreamBox" class="stream-box-row"></div>
-          <div id="wtSetSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700; margin-top:6px;"></div>
-        </div>
-
-        <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
-          <div id="wtText" class="tutorial-body"></div>
-          <div class="tour-nav">
-            <button id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
-            <button id="wtNextBtn" onclick="stepWtForward()">Next Step &rarr;</button>
-            <button class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Sandbox &darr;</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. INTERACTIVE WORKING SET SANDBOX -->
-    <div class="card" id="sandboxSection">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <div>
-          <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive Working Set Simulator</h2>
-          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Simulate reference streams, adjust window size $k$, and calculate active unique pages dynamically.
-          </p>
-        </div>
-        <div>
-          <button class="btn-sec" onclick="resetWorkingSet()">Reset Stream</button>
-        </div>
-      </div>
-
-      <!-- Controls -->
-      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-        <label style="font-size:0.85rem; font-weight:600;">Reference Page (A-Z):</label>
-        <input type="text" id="wsPageInput" value="P" maxlength="1" style="width:45px; text-align:center; padding:4px; font-family:var(--font-mono); text-transform:uppercase;">
-        <button onclick="pushReference()">Reference Page</button>
-        <label style="font-size:0.85rem; font-weight:600; margin-left:15px;">Window Size (k):</label>
-        <input type="range" id="windowSlider" min="2" max="10" value="4" oninput="updateWindowSize(this.value)">
-        <span id="windowValue" style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">4</span>
-      </div>
-
-      <!-- Telemetry Banner -->
-      <div class="telemetry-box">
-        <span>Reference Stream History: <strong id="streamDisplay" style="color:#38bdf8;">[A, B, C, P]</strong></span>
-        <span>Working Set Size $w(k, t)$: <strong id="wsSizeDisplay" style="color:#4ade80;">4</strong></span>
-      </div>
-
-      <div class="split-grid">
-        <div>
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Current Working Set Pages</span>
-          <table class="table-spec" style="margin-top:6px;">
-            <thead>
-              <tr><th>Unique Page</th><th>Status in Window</th></tr>
-            </thead>
-            <tbody id="wsTableBody"></tbody>
-          </table>
-        </div>
-
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Simulator Event Log</span>
-          <div id="wsLog" class="terminal-box"></div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    let wtStep = 0;
-    const wtSteps = [
-      {
-        title: "1. The Initial Reference Stream",
-        text: "Consider a process executing a sequence of page references over time: <code>[A, B, C, D, A, C]</code>. We evaluate the working set using a window of size $k = 4$.",
-        stream: ['A', 'B', 'C', 'D', 'A', 'C'],
-        windowSize: 4,
-        windowStart: 2
-      },
-      {
-        title: "2. Evaluating the Active Window ($k=4$)",
-        text: "The sliding window looks at the last 4 references ending at the current virtual time: <code>[C, D, A, C]</code>. Even though Page <code>C</code> was referenced twice, it counts only once toward the working set.",
-        stream: ['A', 'B', 'C', 'D', 'A', 'C'],
-        windowSize: 4,
-        windowStart: 2
-      },
-      {
-        title: "3. Calculating Working Set Size $w(k, t)$",
-        text: "The unique set of pages in this window is <code>{A, C, D}</code>. Therefore, the working set size $w(4, t) = 3$. The operating system must guarantee at least 3 physical frames are allocated to prevent page faults.",
-        stream: ['A', 'B', 'C', 'D', 'A', 'C'],
-        windowSize: 4,
-        windowStart: 2
-      },
-      {
-        title: "4. Shifting Forward in Time",
-        text: "As execution continues and new references arrive, old references slide out of the $k$-window. This smooths out transient memory spikes and tracks true locality.",
-        stream: ['A', 'B', 'C', 'D', 'A', 'C', 'E'],
-        windowSize: 4,
-        windowStart: 3
-      }
-    ];
-
-    function renderWt() {
-      const s = wtSteps[wtStep];
-      document.getElementById("wtCounter").textContent = `Step ${wtStep + 1} of ${wtSteps.length}`;
-      document.getElementById("wtTitle").textContent = s.title;
-      document.getElementById("wtText").innerHTML = s.text;
-
-      const streamBox = document.getElementById("wtStreamBox");
-      streamBox.innerHTML = "";
-
-      s.stream.forEach((page, idx) => {
-        const cell = document.createElement("div");
-        cell.className = "stream-cell";
-        if (idx >= s.windowStart && idx < s.windowStart + s.windowSize) {
-          cell.classList.add("active-window");
-        }
-        cell.textContent = page;
-        streamBox.appendChild(cell);
-      });
-
-      const activeWin = s.stream.slice(s.windowStart, s.windowStart + s.windowSize);
-      const unique = [...new Set(activeWin)];
-      document.getElementById("wtSetSummary").innerHTML = `Active Window: [${activeWin.join(", ")}] &rarr; Unique Pages: {${unique.join(", ")}} &rarr; w(k, t) = ${unique.length}`;
-
-      if (window.MathJax && window.MathJax.typeset) {
-        MathJax.typeset();
-      }
-
-      document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
-      document.getElementById("wtNextBtn").disabled = (wtStep === wtSteps.length - 1);
-    }
-
-    function stepWtForward() {
-      if (wtStep < wtSteps.length - 1) { wtStep++; renderWt(); }
-      document.activeElement.blur();
-    }
-    function stepWtBackward() {
-      if (wtStep > 0) { wtStep--; renderWt(); }
-      document.activeElement.blur();
-    }
-    renderWt();
-
-    let referenceStream = ['A', 'B', 'C', 'P'];
-    let windowK = 4;
-
-    function renderWorkingSet() {
-      const activeWindow = referenceStream.slice(-windowK);
-      const uniquePages = [...new Set(activeWindow)];
-
-      document.getElementById("streamDisplay").textContent = `[${referenceStream.join(", ")}]`;
-      document.getElementById("wsSizeDisplay").textContent = uniquePages.length;
-      document.getElementById("windowValue").textContent = windowK;
-
-      const targetTbody = document.getElementById("wsTableBody");
-      targetTbody.innerHTML = "";
-
-      uniquePages.forEach(p => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td><strong>Page ${p}</strong></td><td style="color:var(--hit-color); font-weight:700;">Resident in Working Set</td>`;
-        targetTbody.appendChild(tr);
-      });
-    }
-
-    function logWs(msg) {
-      const term = document.getElementById("wsLog");
-      const row = document.createElement("div");
-      row.className = "log-row";
-      row.textContent = `> ${msg}`;
-      term.prepend(row);
-    }
-
-    function pushReference() {
-      const input = document.getElementById("wsPageInput");
-      const p = input.value.trim().toUpperCase();
-      if (!p) return;
-
-      referenceStream.push(p);
-      logWs(`Referenced page '${p}'. Window k=${windowK} now evaluates stream: [${referenceStream.slice(-windowK).join(", ")}].`);
-      renderWorkingSet();
-      input.value = "";
-      input.focus();
-    }
-
-    function updateWindowSize(val) {
-      windowK = parseInt(val, 10);
-      renderWorkingSet();
-      logWs(`Window size k adjusted to ${windowK}.`);
-    }
-
-    function resetWorkingSet() {
-      referenceStream = ['A', 'B', 'C', 'P'];
-      windowK = 4;
-      document.getElementById("windowSlider").value = 4;
-      document.getElementById("wsLog").innerHTML = "";
-      logWs("Working set simulation reset.");
-      renderWorkingSet();
-    }
-
-    renderWorkingSet();
-    logWs("Working set simulation initialized.");
-  </script>
-</body>
-</html>
-"""
-
-COMMIT_MSG = """Move Large k annotation rightward onto plateau in Figure 3-19
-
-Shift the 'Large k' point and text annotation over to the right onto
-the curve plateau at x=620, ensuring the indicator point sits directly
-on the graph line. Remove the container box and strip out decorative
-grid lines so the text rests cleanly in the upper margin without
-overlapping the curve or axis reference markers in 09-working-set.html."""
+COMMIT_MSG = """Mark Module 9 (Working Set Model) as published in week09 index
+
+Update week09-memory-management/index.html to transition Module 9 from
+draft or in-progress status to published. Ensure the link to
+09-working-set.html is enabled and active in the curriculum overview."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -684,17 +22,67 @@ def run_git_step(cmd, step_desc):
         sys.exit(res.returncode)
     return res.stdout.strip()
 
-def write_html_and_sync():
-    target_path = "week09-memory-management/09-working-set.html"
-    os.makedirs(os.path.dirname(target_path), exist_ok=True)
-    with open(target_path, "w", encoding="utf-8") as f:
-        f.write(HTML_CONTENT)
-    print(f"Wrote updated HTML content to {target_path}")
+def mark_module_published(content):
+    # Pattern 1: Target status badges or text associated with 09-working-set.html
+    # Matches common badge variants: draft, pending, planned, in-progress, coming soon
+    pattern_badge = r'(<a[^>]*href=["\']09-working-set\.html["\'][^>]*>[\s\S]*?)(<(?:span|div)[^>]*class=["\'][^"\']*(?:badge|tag|status)[^"\']*["\'][^>]*>)(.*?)(</(?:span|div)>)'
 
-    run_git_step(["git", "add", target_path], "Staging updated 09-working-set.html")
+    def badge_repl(m):
+        prefix = m.group(1)
+        tag_open = m.group(2)
+        tag_close = m.group(4)
+        # Update badge class to completed/published style if needed
+        updated_open = re.sub(r'\b(draft|pending|in-progress|todo|wip)\b', 'completed published', tag_open)
+        return f"{prefix}{updated_open}Published{tag_close}"
+
+    new_content, count = re.subn(pattern_badge, badge_repl, content, flags=re.IGNORECASE)
+
+    # Pattern 2: Badge placed immediately before or around 09-working-set.html
+    if count == 0:
+        pattern_fallback = r'(09-working-set\.html[\s\S]{0,120}?<span[^>]*class=["\'][^"\']*badge[^"\']*["\'][^>]*>)(.*?)(</span>)'
+        new_content, count = re.subn(pattern_fallback, r'\1Published\3', content, flags=re.IGNORECASE)
+
+    # Pattern 3: Direct text status replacement near Module 9
+    if count == 0:
+        pattern_text = r'(9\.\s*The Working Set Model[\s\S]{0,160}?)(Draft|Planned|In Progress|Coming Soon|WIP)'
+        new_content, count = re.subn(pattern_text, r'\1Published', content, flags=re.IGNORECASE)
+
+    # If any disabled or inactive link class wraps the module, remove it
+    new_content = re.sub(
+        r'(class=["\'][^"\']*)\b(disabled|inactive|opacity-50)\b([^"\']*["\'][^>]*href=["\']09-working-set\.html["\'])',
+        r'\1\3',
+        new_content
+    )
+
+    return new_content, count
+
+def update_index_file():
+    index_path = "week09-memory-management/index.html"
+    if not os.path.exists(index_path):
+        print(f"Error: {index_path} not found.", file=sys.stderr)
+        sys.exit(1)
+
+    with open(index_path, "r", encoding="utf-8") as f:
+        original_content = f.read()
+
+    updated_content, replacements = mark_module_published(original_content)
+
+    if replacements == 0 and updated_content == original_content:
+        print("Note: Could not find an unreleased badge pattern. Verifying file state...")
+    else:
+        print(f"Updated Module 9 publication status in {index_path}")
+
+    with open(index_path, "w", encoding="utf-8") as f:
+        f.write(updated_content)
+
+    # Stage, commit using -a -m, and push
+    run_git_step(["git", "add", index_path], f"Staging {index_path}")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing tracked changes with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Successfully committed and pushed to origin/main.")
+    print("--> Successfully updated index, committed, and pushed to origin/main.")
+
+def main():
+    update_index_file()
 
 if __name__ == "__main__":
-    write_html_and_sync()
+    main()
