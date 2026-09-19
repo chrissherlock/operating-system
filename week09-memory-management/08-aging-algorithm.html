@@ -186,9 +186,9 @@
 
     .split-grid {
       display: grid;
-      grid-template-columns: 400px 1fr;
+      grid-template-columns: 460px 380px; /* Restricts the Kernel Aging Log width */
       gap: 20px;
-      align-items: start; /* Prevents vertical collision/overlap */
+      align-items: start;
       margin-top: 10px;
     }
     @media (max-width: 860px) {
@@ -609,7 +609,6 @@
 
       let minVal = 999999;
       let victimIdx = -1;
-      agingFrames.executeAgingAccess = function() {} // placeholder
       agingFrames.forEach((f, idx) => {
         if (f.reg < minVal) {
           minVal = f.reg;

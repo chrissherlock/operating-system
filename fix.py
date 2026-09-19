@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-AGING_HTML = r"""<!DOCTYPE html>
+AGING_FULL_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -189,9 +189,9 @@ AGING_HTML = r"""<!DOCTYPE html>
 
     .split-grid {
       display: grid;
-      grid-template-columns: 400px 1fr;
+      grid-template-columns: 460px 380px; /* Restricts the Kernel Aging Log width */
       gap: 20px;
-      align-items: start; /* Prevents vertical collision/overlap */
+      align-items: start;
       margin-top: 10px;
     }
     @media (max-width: 860px) {
@@ -612,7 +612,6 @@ AGING_HTML = r"""<!DOCTYPE html>
 
       let minVal = 999999;
       let victimIdx = -1;
-      agingFrames.executeAgingAccess = function() {} // placeholder
       agingFrames.forEach((f, idx) => {
         if (f.reg < minVal) {
           minVal = f.reg;
@@ -653,11 +652,11 @@ AGING_HTML = r"""<!DOCTYPE html>
 """
 
 def main():
-    target_file = "week09-memory-management/08-aging-algorithm.html"
-    os.makedirs(os.path.dirname(target_file), exist_ok=True)
-    with open(target_file, "w", encoding="utf-8") as f:
-        f.write(AGING_HTML)
-    print(f"Successfully generated and updated active path: {target_file}")
+    target_path = "week09-memory-management/08-aging-algorithm.html"
+    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+    with open(target_path, "w", encoding="utf-8") as f:
+        f.write(AGING_FULL_HTML)
+    print(f"Successfully wrote updated 08-aging-algorithm.html to {target_path}")
 
 if __name__ == "__main__":
     main()
