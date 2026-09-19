@@ -19,7 +19,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
-    /* Embed authentic IBM PC CP437 bitmap font */
     @font-face {
       font-family: 'PerfectDOS';
       src: url('https://cdn.jsdelivr.net/gh/IdreesInc/Monocraft@main/web/Monocraft.woff2') format('woff2');
@@ -130,7 +129,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #ffffff;
     }
 
-    /* Pioneers Infobox Styling with Headshots & Biographies */
+    /* Pioneers Infobox with Enlarged Headshots & Integrated Biographies */
     .pioneers-infobox {
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
@@ -157,35 +156,49 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .pioneer-card {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 12px;
       background: #ffffff;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
-      padding: 8px 12px;
+      padding: 14px;
       flex: 1;
-      min-width: 260px;
+      min-width: 300px;
+    }
+    .pioneer-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
     }
     .pioneer-card img {
-      width: 55px;
-      height: 65px;
+      width: 90px;
+      height: 110px;
       object-fit: cover;
       border-radius: 4px;
       border: 1px solid #94a3b8;
+      flex-shrink: 0;
     }
     .pioneer-info {
       display: flex;
       flex-direction: column;
-      font-size: 0.85rem;
-      gap: 2px;
+      font-size: 0.88rem;
+      gap: 3px;
     }
     .pioneer-info strong {
       color: var(--text);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
     .pioneer-info span {
       color: var(--text-muted);
-      font-size: 0.78rem;
+      font-size: 0.82rem;
+    }
+    .pioneer-bio {
+      font-size: 0.88rem;
+      color: #334155;
+      line-height: 1.55;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      margin-top: 2px;
     }
 
     /* =========================================================
@@ -682,24 +695,34 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         Traditional Unix and FAT filesystems distribute file data, inodes, directory entries, and indirect blocks across random locations on disk. As processor and memory speeds outpaced mechanical disk seek times in the early 1990s, random disk head seeks emerged as the primary performance bottleneck. To solve this, <strong>Mendel Rosenblum and John K. Ousterhout</strong> pioneered <strong>Log-Structured File Systems (LFS)</strong> at UC Berkeley, fundamentally redesigning storage architectures by transforming the disk into a continuous sequential log.
       </p>
 
-      <!-- Pioneers Infobox with Headshots, Wikipedia links, & Biographies -->
+      <!-- Pioneers Infobox with Enlarged Headshots & Integrated Biographies -->
       <div class="pioneers-infobox">
         <h4>Pioneers Profile: Mendel Rosenblum &amp; John K. Ousterhout</h4>
         <div class="pioneers-portraits">
           <div class="pioneer-card">
-            <img src="../images/ousterhout.png" alt="John K. Ousterhout">
-            <div class="pioneer-info">
-              <strong><a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: none;">John K. Ousterhout</a></strong>
-              <span>Stanford University</span>
-              <span><a href="https://web.stanford.edu/~ouster/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit</a></span>
+            <div class="pioneer-top">
+              <img src="../images/ousterhout.png" alt="John K. Ousterhout">
+              <div class="pioneer-info">
+                <strong><a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: none;">John K. Ousterhout</a></strong>
+                <span>Stanford University</span>
+                <span><a href="https://web.stanford.edu/~ouster/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit: Photo2012Small.png</a></span>
+              </div>
+            </div>
+            <div class="pioneer-bio">
+              Professor of computer science at Stanford University. Received his B.S. from Yale and Ph.D. from Carnegie Mellon. Alongside foundational work on LFS, he is renowned for creating the <strong>Tcl/Tk scripting language</strong> and leading the Sprite distributed operating system project at UC Berkeley.
             </div>
           </div>
           <div class="pioneer-card">
-            <img src="../images/rosenblum.jpg" alt="Mendel Rosenblum">
-            <div class="pioneer-info">
-              <strong><a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: none;">Mendel Rosenblum</a></strong>
-              <span>Stanford University</span>
-              <span><a href="http://www.stanford.edu/~mendel/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit</a></span>
+            <div class="pioneer-top">
+              <img src="../images/rosenblum.jpg" alt="Mendel Rosenblum">
+              <div class="pioneer-info">
+                <strong><a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: none;">Mendel Rosenblum</a></strong>
+                <span>Stanford University</span>
+                <span><a href="http://www.stanford.edu/~mendel/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit: RosenblumLowRes.jpg</a></span>
+              </div>
+            </div>
+            <div class="pioneer-bio">
+              Professor of computer science at Stanford University and co-founder of <strong>VMware</strong>. Received his B.A., M.S., and Ph.D. from UC Berkeley. His pioneering research spans operating systems, virtual machine monitors, distributed storage, and large-scale systems architecture.
             </div>
           </div>
         </div>
@@ -708,10 +731,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <li><strong>Key Publication:</strong> &ldquo;The Design and Implementation of a Log-Structured File System&rdquo; (ACM TOCS, 1992)</li>
           <li><strong>Core Innovation:</strong> Replaced random in-place metadata and data updates with continuous sequential log writes, accompanied by inode maps and background segment cleaning.</li>
         </ul>
-        <div style="font-size: 0.9rem; color: #334155; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; border-top: 1px solid #bae6fd; padding-top: 10px;">
-          <p><strong>John K. Ousterhout</strong> is a professor of computer science at Stanford University. He received his B.S. from Yale University and his Ph.D. from Carnegie Mellon University. Alongside his foundational work on LFS, he is widely renowned for creating the <strong>Tcl/Tk scripting language</strong> and leading the Sprite distributed operating system project at UC Berkeley.</p>
-          <p><strong>Mendel Rosenblum</strong> is a professor of computer science at Stanford University and co-founder of <strong>VMware</strong>. He received his B.A., M.S., and Ph.D. degrees from the University of California, Berkeley. His pioneering research spans operating systems, virtual machine monitors, distributed storage, and large-scale systems architecture.</p>
-        </div>
       </div>
 
       <h3>1. The Log-Structured Paradigm &amp; Sequential Writes</h3>
@@ -1057,10 +1076,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Add professional academic biographies and headshots to LFS pioneers infobox\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html with "
-        "detailed professional biographies, Wikipedia links, and headshots for "
-        "John K. Ousterhout and Mendel Rosenblum in section 4.3.5."
+        "Enlarge pioneer portraits and place bios under metadata in LFS infobox\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html to increase "
+        "headshot sizes and embed professional biographies directly beneath each pioneer's "
+        "metadata card."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
