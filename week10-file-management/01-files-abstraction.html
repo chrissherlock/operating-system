@@ -345,7 +345,7 @@
       </ol>
     </div>
 
-    <!-- Section 4.1.5: File Attributes (Expanded with Diagram) -->
+    <!-- Section 4.1.5: File Attributes -->
     <div class="card">
       <h2>4.1.5 File Attributes (Metadata)</h2>
       <p>
@@ -369,27 +369,21 @@
         <li><strong>Size Metrics:</strong> Tracks the current byte count of the file as well as the maximum permissible size limit.</li>
       </ul>
 
-      <!-- SVG File Control Block / Metadata Layout Diagram -->
       <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: File Control Block (FCB) / I-Node Metadata Layout</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <!-- Main Container Box -->
           <rect x="150" y="15" width="400" height="160" fill="#f8fafc" stroke="#0284c7" stroke-width="2" rx="6"/>
           <text x="350" y="38" font-size="12" font-weight="700" fill="#0284c7" text-anchor="middle">File Control Block / I-Node Metadata Structure</text>
 
-          <!-- Field 1: Protection & Ownership -->
           <rect x="170" y="50" width="360" height="24" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1" rx="3"/>
           <text x="180" y="66" font-size="10" font-weight="600" fill="#0369a1">Protection Modes &amp; Owner UID/GID</text>
 
-          <!-- Field 2: Operational Flags -->
           <rect x="170" y="79" width="360" height="24" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1" rx="3"/>
           <text x="180" y="95" font-size="10" font-weight="600" fill="#047857">Flags (Hidden, Read-Only, Archive, Lock)</text>
 
-          <!-- Field 3: Timestamps -->
           <rect x="170" y="108" width="360" height="24" fill="#fffbeb" stroke="#fde68a" stroke-width="1" rx="3"/>
           <text x="180" y="124" font-size="10" font-weight="600" fill="#b45309">Timestamps (Creation, Access, Modification)</text>
 
-          <!-- Field 4: Size & Pointers -->
           <rect x="170" y="137" width="360" height="24" fill="#fef2f2" stroke="#fecaca" stroke-width="1" rx="3"/>
           <text x="180" y="153" font-size="10" font-weight="600" fill="#b91c1c">File Size &amp; Disk Block Address Pointers</text>
         </svg>
@@ -428,21 +422,43 @@
       </table>
     </div>
 
-    <!-- Section 4.1.6: File Operations -->
+    <!-- Section 4.1.6: File Operations & System Calls (Expanded) -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
-      <p>Common system calls provided by operating systems for file management include:</p>
+      <p>
+        Files exist to store information persistently and allow its subsequent retrieval. Operating systems provide a robust suite of system calls to facilitate file creation, manipulation, and storage management. Below is an exhaustive breakdown of the ten most common system calls related to files:
+      </p>
       <ol>
-        <li><code>create</code>: Initializes a new empty file with specified attributes.</li>
-        <li><code>delete</code>: Removes a file and reclaims its disk space.</li>
-        <li><code>open</code>: Fetches attributes and disk addresses into main memory for rapid access.</li>
-        <li><code>close</code>: Flushes final cached blocks and frees internal table space.</li>
-        <li><code>read</code>: Retrieves data from a file into a user-provided buffer.</li>
-        <li><code>write</code>: Outputs data to a file at the current offset or end.</li>
-        <li><code>append</code>: Restricted write mode adding data exclusively to the end of a file.</li>
-        <li><code>lseek</code>: Repositions the file offset pointer for random access.</li>
-        <li><code>get/set attributes</code>: Reads or modifies file metadata (e.g., protection modes, timestamps).</li>
-        <li><code>rename</code>: Changes a file's name within the directory structure.</li>
+        <li><strong>Create:</strong>
+          Initializes a new, empty file with no data payload. The primary purpose of the create call is to announce to the operating system that a new file is coming into existence, allocate an initial i-node or directory entry, and establish initial attribute values (such as protection modes).
+        </li>
+        <li><strong>Delete:</strong>
+          When a file is no longer required, this system call is invoked to remove the file from its directory structure, deallocate its i-node, and return all associated disk blocks to the free storage pool.
+        </li>
+        <li><strong>Open:</strong>
+          Before a process can read or write a file, it must open it. The open call forces the operating system to search the directory path, locate the file's metadata and disk addresses, and load them into a fast main-memory table (such as the open file table or v-node table) for rapid access on subsequent calls. It returns a small integer called a <em>file descriptor</em>.
+        </li>
+        <li><strong>Close:</strong>
+          When all file accesses are complete, the file should be closed to free internal table space and release kernel resources. Many operating systems enforce process-level limits on the maximum number of simultaneously open files. Furthermore, closing a file forces the operating system to flush and write out any unwritten buffered blocks residing in memory to the physical disk—even if the final block is not entirely full yet.
+        </li>
+        <li><strong>Read:</strong>
+          Retrieves data from a file into a user-provided memory buffer. The caller must specify the file descriptor, a pointer to the destination buffer, and the exact number of bytes requested. Data is normally read starting from the current file offset pointer, which automatically advances by the number of bytes successfully read.
+        </li>
+        <li><strong>Write:</strong>
+          Outputs data from a user-provided buffer into the file. Like read, the caller provides the file descriptor, buffer pointer, and byte count. Writing normally occurs at the current offset. If the current offset points to the end of the file, the file's size increases accordingly. If the offset is in the middle of the file, existing data is overwritten and permanently lost.
+        </li>
+        <li><strong>Append:</strong>
+          A restricted form of write operations supported by certain operating systems. Append restricts data insertion exclusively to the end of the file, guaranteeing that existing contents cannot be accidentally overwritten regardless of the current offset pointer.
+        </li>
+        <li><strong>Seek (lseek):</strong>
+          Essential for random-access files. Because random-access files permit reading and writing out of order, a method is required to specify the exact data offset. The seek system call repositions the file pointer to an arbitrary byte offset within the file, allowing subsequent read and write calls to execute from that specific position.
+        </li>
+        <li><strong>Get and Set Attributes:</strong>
+          Processes frequently need to inspect or modify file metadata to perform their work. For instance, software development tools like the UNIX <code>make</code> utility examine modification timestamps across source and object files to determine the minimum compilations required. Systems provide dedicated calls to read or alter these attributes (such as changing permission masks or flags).
+        </li>
+        <li><strong>Rename:</strong>
+          Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.
+        </li>
       </ol>
     </div>
 
@@ -513,6 +529,7 @@ int main(int argc, char *argv[]) {
       <div class="sandbox-controls">
         <button onclick="sandboxExec('creat')">creat()</button>
         <button class="btn-secondary" onclick="sandboxExec('open')">open()</button>
+        <button class="btn-secondary" onclick="sandboxExec('read')">read()</button>
         <button class="btn-secondary" onclick="sandboxExec('write')">write()</button>
         <button class="btn-secondary" onclick="sandboxExec('seek')">lseek()</button>
         <button class="btn-secondary" onclick="sandboxExec('close')">close()</button>
@@ -577,8 +594,10 @@ int main(int argc, char *argv[]) {
         term.textContent = "$ creat(\"config.cfg\", 0644);\n[Kernel] i-node #512 allocated. Directory entry added. Mode set to rw-r--r--.\nStatus: Success (Return code: 0)";
       } else if (cmd === 'open') {
         term.textContent = "$ fd = open(\"config.cfg\", O_RDWR);\n[Kernel] Open File Table entry created for UID 1000. Offset pointer set to byte 0.\nStatus: Success (File Descriptor fd = 3)";
+      } else if (cmd === 'read') {
+        term.textContent = "$ read(3, buffer, 4096);\n[Kernel] Copied 256 bytes from buffer cache block #104 into user buffer. Offset advanced to 256.\nStatus: Success (Bytes read: 256)";
       } else if (cmd === 'write') {
-        term.textContent = "$ write(3, \"TIMEOUT=30\\n\", 11);\n[Kernel] Copied 11 bytes into buffer cache block #104. File size updated to 11 bytes.\nStatus: Success (Bytes written: 11)";
+        term.textContent = "$ write(3, \"TIMEOUT=30\\n\", 11);\n[Kernel] Copied 11 bytes into buffer cache block #104 at offset 256. File size updated to 267 bytes.\nStatus: Success (Bytes written: 11)";
       } else if (cmd === 'seek') {
         term.textContent = "$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned file read/write offset pointer for descriptor fd=3 back to byte position 0.\nStatus: Success (Offset: 0)";
       } else if (cmd === 'close') {
