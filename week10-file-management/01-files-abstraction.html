@@ -430,7 +430,7 @@
       </table>
     </div>
 
-    <!-- Section 4.1.6: File Operations & System Calls (Interactive Kernel Debugger Simulator with Scenarios) -->
+    <!-- Section 4.1.6: File Operations & System Calls (Interactive Microstep Kernel Debugger) -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
       <p>
@@ -449,71 +449,74 @@
         <li><strong>Rename:</strong> Allows a process to change a file's name within the directory hierarchy. While a file can technically be renamed by copying its contents to a new file name and deleting the original, doing so for large files (such as 50 GB archives) is prohibitively slow. A dedicated rename system call updates the directory entry instantly without moving physical data blocks.</li>
       </ol>
 
-      <!-- Interactive Kernel Debugger Simulator Widget -->
+      <!-- Interactive Microstep Kernel Debugger Widget -->
       <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Interactive Kernel Debugger Simulator: Real-World Workflows</span>
-          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button onclick="setScenario(0)" id="btn-s0" style="font-size: 0.73rem; padding: 4px 8px;">1. creat() Config</button>
-            <button onclick="setScenario(1)" id="btn-s1" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">2. open() Logs</button>
-            <button onclick="setScenario(2)" id="btn-s2" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">3. read() Stream</button>
-            <button onclick="setScenario(3)" id="btn-s3" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">4. write() State</button>
-            <button onclick="setScenario(4)" id="btn-s4" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">5. lseek() DB</button>
-            <button onclick="setScenario(5)" id="btn-s5" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">6. close() Flush</button>
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <button onclick="loadScenario(0)" id="sc-btn-0" style="font-size: 0.72rem; padding: 4px 8px;">1. creat() Config</button>
+            <button onclick="loadScenario(1)" id="sc-btn-1" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">2. open() Logs</button>
+            <button onclick="loadScenario(2)" id="sc-btn-2" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">3. read() Stream</button>
+            <button onclick="loadScenario(3)" id="sc-btn-3" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">4. write() State</button>
+            <button onclick="loadScenario(4)" id="sc-btn-4" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">5. lseek() DB</button>
+            <button onclick="loadScenario(5)" id="sc-btn-5" class="btn-secondary" style="font-size: 0.72rem; padding: 4px 8px;">6. close() Flush</button>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button onclick="microStep(-1)" class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">&larr; Prev Microstep</button>
+            <button onclick="microStep(1)" style="font-size: 0.75rem; padding: 4px 10px;">Next Microstep &rarr;</button>
           </div>
         </div>
 
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <!-- Node 1: User Process -->
-          <g id="sim-node-process" class="sim-node">
+          <g id="micro-node-0" class="sim-node">
             <rect x="20" y="50" width="110" height="70" class="sim-box"/>
             <text x="75" y="80" class="sim-text">User Process</text>
-            <text x="75" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-proc">Idle</text>
+            <text x="75" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-proc">Idle</text>
           </g>
 
           <path d="M 130 85 L 170 85" stroke="#94a3b8" stroke-width="2"/>
 
           <!-- Node 2: FD Table -->
-          <g id="sim-node-fd" class="sim-node">
+          <g id="micro-node-1" class="sim-node">
             <rect x="170" y="50" width="110" height="70" class="sim-box"/>
             <text x="225" y="80" class="sim-text">FD Table</text>
-            <text x="225" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-fd">fd = --</text>
+            <text x="225" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-fd">fd = --</text>
           </g>
 
           <path d="M 280 85 L 320 85" stroke="#94a3b8" stroke-width="2"/>
 
           <!-- Node 3: Open File Table -->
-          <g id="sim-node-inode" class="sim-node">
+          <g id="micro-node-2" class="sim-node">
             <rect x="320" y="50" width="130" height="70" class="sim-box"/>
             <text x="385" y="75" class="sim-text">Open File Table</text>
             <text x="385" y="92" font-size="9" fill="#64748b" text-anchor="middle">&amp; I-Node in RAM</text>
-            <text x="385" y="106" font-size="9" fill="#0284c7" font-weight="700" text-anchor="middle" id="lbl-offset">Offset: 0B</text>
+            <text x="385" y="106" font-size="9" fill="#0284c7" font-weight="700" text-anchor="middle" id="m-lbl-offset">Offset: 0B</text>
           </g>
 
           <path d="M 450 85 L 490 85" stroke="#94a3b8" stroke-width="2"/>
 
           <!-- Node 4: Buffer Cache -->
-          <g id="sim-node-cache" class="sim-node">
+          <g id="micro-node-3" class="sim-node">
             <rect x="490" y="50" width="110" height="70" class="sim-box"/>
             <text x="545" y="80" class="sim-text">Buffer Cache</text>
-            <text x="545" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-cache">Cache: Clean</text>
+            <text x="545" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-cache">Cache: Clean</text>
           </g>
 
           <path d="M 600 85 L 640 85" stroke="#94a3b8" stroke-width="2"/>
 
           <!-- Node 5: Storage Media -->
-          <g id="sim-node-disk" class="sim-node">
+          <g id="micro-node-4" class="sim-node">
             <rect x="640" y="50" width="100" height="70" class="sim-box"/>
             <text x="690" y="80" class="sim-text">Storage Media</text>
-            <text x="690" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="lbl-disk">Disk: Ready</text>
+            <text x="690" y="98" font-size="9" fill="#64748b" text-anchor="middle" id="m-lbl-disk">Disk: Ready</text>
           </g>
 
           <!-- Animated Data Packet -->
-          <circle id="simPacket" cx="75" cy="85" r="8" class="packet" style="opacity: 0; filter: drop-shadow(0 0 4px #0284c7);"/>
+          <circle id="microPacket" cx="75" cy="85" r="8" class="packet" style="opacity: 0; filter: drop-shadow(0 0 4px #0284c7);"/>
         </svg>
 
-        <div id="simDesc" style="font-size: 0.88rem; color: var(--text); text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 6px; width: 100%; line-height: 1.5;">
-          Select a real-world scenario above to simulate kernel subsystem interactions and data flow.
+        <div id="microDesc" style="font-size: 0.88rem; color: var(--text); text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 6px; width: 100%; line-height: 1.5;">
+          Select a scenario above and click <strong>"Next Microstep"</strong> to trace kernel execution.
         </div>
       </div>
     </div>
@@ -661,13 +664,83 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // Scenario Simulator State Machine
-    const simCoordinates = [75, 225, 385, 545, 690];
+    // Microstep Simulator State
+    const scenarios = [
+      {
+        name: "1. creat() Config",
+        steps: [
+          { node: 0, text: "Microstep 1/5: Daemon process invokes <code>creat(\"/etc/app.conf\", 0644)</code>.", proc: "Calling creat()", fd: "fd = --", offset: "Offset: --", cache: "Clean", disk: "Ready" },
+          { node: 0, text: "Microstep 2/5: Kernel traps system call and validates parent directory write permissions.", proc: "Validating Perms", fd: "fd = --", offset: "Offset: --", cache: "Clean", disk: "Ready" },
+          { node: 4, text: "Microstep 3/5: File system allocates new i-node on disk and adds directory entry mapping.", proc: "Allocating i-node", fd: "fd = --", offset: "Offset: --", cache: "Allocated", disk: "i-node #512 Created" },
+          { node: 2, text: "Microstep 4/5: Kernel establishes initial metadata (owner UID, permissions 0644, timestamps).", proc: "Writing Metadata", fd: "fd = --", offset: "Offset: 0B", cache: "Allocated", disk: "Attributes Set" },
+          { node: 1, text: "Microstep 5/5: Kernel assigns file descriptor <code>fd = 3</code> to process and returns success.", proc: "Complete", fd: "fd = 3 Active", offset: "Offset: 0B", cache: "Ready", disk: "Persisted" }
+        ]
+      },
+      {
+        name: "2. open() Logs",
+        steps: [
+          { node: 0, text: "Microstep 1/6: Worker process invokes <code>open(\"access.log\", O_APPEND)</code>.", proc: "Calling open()", fd: "fd = --", offset: "Offset: --", cache: "Clean", disk: "Ready" },
+          { node: 4, text: "Microstep 2/6: Kernel resolves directory path and locates existing i-node for log.", proc: "Path Lookup", fd: "fd = --", offset: "Offset: --", cache: "Checking", disk: "i-node Located" },
+          { node: 2, text: "Microstep 3/6: Kernel validates write permissions against process credentials.", proc: "Checking Perms", fd: "fd = --", offset: "Offset: --", cache: "RAM Cached", disk: "Verified" },
+          { node: 2, text: "Microstep 4/6: Open file table entry is created in kernel memory, loading i-node.", proc: "Table Entry", fd: "fd = --", offset: "Offset: EOF", cache: "Active", disk: "Bound" },
+          { node: 2, text: "Microstep 5/6: Kernel evaluates <code>O_APPEND</code> flag, setting offset pointer to absolute end.", proc: "Appending", fd: "fd = --", offset: "Offset: EOF", cache: "Active", disk: "Bound" },
+          { node: 1, text: "Microstep 6/6: Process-local file descriptor <code>fd = 4</code> allocated pointing to table.", proc: "Complete", fd: "fd = 4 Active", offset: "Offset: EOF", cache: "Ready", disk: "Ready" }
+        ]
+      },
+      {
+        name: "3. read() Stream",
+        steps: [
+          { node: 0, text: "Microstep 1/6: Compiler process invokes <code>read(fd, buffer, 4096)</code>.", proc: "Calling read()", fd: "fd = 3", offset: "Offset: Start", cache: "Clean", disk: "Ready" },
+          { node: 1, text: "Microstep 2/6: Kernel verifies that file descriptor <code>fd = 3</code> is open for reading.", proc: "Validating FD", fd: "fd = 3 Valid", offset: "Offset: Start", cache: "Clean", disk: "Ready" },
+          { node: 2, text: "Microstep 3/6: Kernel checks current offset pointer and resolves i-node block mapping.", proc: "Translating", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Checking", disk: "Mapping" },
+          { node: 3, text: "Microstep 4/6: Kernel checks Buffer Cache; cache hit bypasses physical disk access.", proc: "Cache Lookup", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Cache Hit!", disk: "Bypassed" },
+          { node: 0, text: "Microstep 5/6: Kernel copies 4096 bytes directly from kernel space into user buffer.", proc: "Copying Data", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Copied", disk: "Ready" },
+          { node: 2, text: "Microstep 6/6: Kernel automatically advances logical file offset pointer by bytes read.", proc: "Complete", fd: "fd = 3 Active", offset: "Offset: +4096B", cache: "Ready", disk: "Ready" }
+        ]
+      },
+      {
+        name: "4. write() State",
+        steps: [
+          { node: 0, text: "Microstep 1/6: Text editor process invokes <code>write(fd, buffer, 26)</code>.", proc: "Calling write()", fd: "fd = 3", offset: "Offset: Current", cache: "Clean", disk: "Ready" },
+          { node: 2, text: "Microstep 2/6: Kernel verifies write permissions and checks current file offset pointer.", proc: "Validating", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Clean", disk: "Ready" },
+          { node: 3, text: "Microstep 3/6: Kernel locates target buffer cache block corresponding to offset.", proc: "Locating Block", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Block Ready", disk: "Ready" },
+          { node: 3, text: "Microstep 4/6: Data payload bytes are copied from user space into buffer cache blocks.", proc: "Writing Cache", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Cache Updated", disk: "Ready" },
+          { node: 2, text: "Microstep 5/6: Buffer marked as <strong>dirty</strong>; in-memory i-node updates size and timestamp.", proc: "Marking Dirty", fd: "fd = 3 Active", offset: "Offset: Current", cache: "Dirty Buffer", disk: "Pending" },
+          { node: 2, text: "Microstep 6/6: Logical offset pointer advances by number of bytes written.", proc: "Complete", fd: "fd = 3 Active", offset: "Offset: Advanced", cache: "Dirty Buffer", disk: "Pending" }
+        ]
+      },
+      {
+        name: "5. lseek() DB",
+        steps: [
+          { node: 0, text: "Microstep 1/5: DB engine needs record #504 at byte <code>245760</code>, calls <code>lseek()</code>.", proc: "Calling lseek()", fd: "fd = 5", offset: "Offset: 0B", cache: "Clean", disk: "Ready" },
+          { node: 2, text: "Microstep 2/5: Kernel validates target offset against maximum permissible file size limit.", proc: "Validating Limit", fd: "fd = 5 Active", offset: "Offset: Validated", cache: "Clean", disk: "Ready" },
+          { node: 2, text: "Microstep 3/5: Kernel updates logical byte offset pointer inside Open File Table to <code>245760</code>.", proc: "Updating Offset", fd: "fd = 5 Active", offset: "Offset: 245760B", cache: "Clean", disk: "Ready" },
+          { node: 4, text: "Microstep 4/5: <strong>Zero disk I/O occurs</strong>; no physical storage head movement triggered.", proc: "Zero Disk I/O", fd: "fd = 5 Active", offset: "Offset: 245760B", cache: "Bypassed", disk: "No Movement" },
+          { node: 0, text: "Microstep 5/5: Subsequent read or write operations execute immediately at new position.", proc: "Complete", fd: "fd = 5 Active", offset: "Offset: 245760B", cache: "Ready", disk: "Ready" }
+        ]
+      },
+      {
+        name: "6. close() Flush",
+        steps: [
+          { node: 0, text: "Microstep 1/5: Utility process invokes <code>close(fd)</code>.", proc: "Calling close()", fd: "fd = 3", offset: "Offset: Active", cache: "Dirty", disk: "Pending" },
+          { node: 2, text: "Microstep 2/5: Kernel checks open file table reference count associated with descriptor.", proc: "Checking Refs", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Dirty", disk: "Pending" },
+          { node: 4, text: "Microstep 3/5: Kernel flushes dirty cache blocks out to physical storage media (disks/SSDs).", proc: "Flushing Cache", fd: "fd = 3 Active", offset: "Offset: Active", cache: "Flushing...", disk: "Writing..." },
+          { node: 1, text: "Microstep 4/5: Kernel deallocates process-local file descriptor slot in per-process FD table.", proc: "Deallocating FD", fd: "fd Released", offset: "Offset: Cleared", cache: "Clean", disk: "Synced" },
+          { node: 2, text: "Microstep 5/5: Open file table reference count decremented; i-node reference released.", proc: "Complete", fd: "Closed", offset: "Cleared", cache: "Clean", disk: "Persisted" }
+        ]
+      }
+    ];
 
-    function setScenario(index) {
-      // Reset button styles
+    let currentScenario = 0;
+    let currentMicrostep = 0;
+
+    function loadScenario(index) {
+      currentScenario = index;
+      currentMicrostep = 0;
+
+      // Update button styling
       for (let i = 0; i < 6; i++) {
-        const btn = document.getElementById(`btn-s${i}`);
+        const btn = document.getElementById(`sc-btn-${i}`);
         if (i === index) {
           btn.style.backgroundColor = 'var(--accent)';
           btn.className = '';
@@ -676,87 +749,53 @@ int main(int argc, char *argv[]) {
           btn.className = 'btn-secondary';
         }
       }
-
-      document.querySelectorAll('.sim-node').forEach(n => n.classList.remove('active-sim-node'));
-      const pkt = document.getElementById('simPacket');
-      const desc = document.getElementById('simDesc');
-
-      if (index === 0) {
-        // creat() Config File
-        pkt.style.opacity = '1';
-        pkt.setAttribute('cx', simCoordinates[2]);
-        document.getElementById('sim-node-process').classList.add('active-sim-node');
-        document.getElementById('sim-node-inode').classList.add('active-sim-node');
-        document.getElementById('sim-node-disk').classList.add('active-sim-node');
-        document.getElementById('lbl-proc').textContent = "creat() Daemon";
-        document.getElementById('lbl-fd').textContent = "fd = 3";
-        document.getElementById('lbl-offset').textContent = "Offset: 0B";
-        document.getElementById('lbl-cache').textContent = "Cache Allocated";
-        document.getElementById('lbl-disk').textContent = "i-node #512 Created";
-        desc.innerHTML = "<strong>Scenario 1 (`creat()`):</strong> System daemon provisions <code>/etc/app.conf</code>. The kernel allocates a fresh i-node on disk and returns file descriptor 3 with initial permissions <code>0644</code>.";
-      } else if (index === 1) {
-        // open() Log Ingestion
-        pkt.style.opacity = '1';
-        pkt.setAttribute('cx', simCoordinates[1]);
-        document.getElementById('sim-node-process').classList.add('active-sim-node');
-        document.getElementById('sim-node-fd').classList.add('active-sim-node');
-        document.getElementById('sim-node-inode').classList.add('active-sim-node');
-        document.getElementById('lbl-proc').textContent = "Worker Process";
-        document.getElementById('lbl-fd').textContent = "fd = 4 (Append)";
-        document.getElementById('lbl-offset').textContent = "Offset: EOF";
-        document.getElementById('lbl-cache').textContent = "Shared RAM Table";
-        document.getElementById('lbl-disk').textContent = "Log Path Bound";
-        desc.innerHTML = "<strong>Scenario 2 (`open()`):</strong> NGINX worker opens <code>access.log</code> with <code>O_APPEND</code>. The kernel establishes an open file table entry pointing write pointers directly to the end of the file.";
-      } else if (index === 2) {
-        // read() Streaming
-        pkt.style.opacity = '1';
-        pkt.setAttribute('cx', simCoordinates[3]);
-        document.getElementById('sim-node-fd').classList.add('active-sim-node');
-        document.getElementById('sim-node-inode').classList.add('active-sim-node');
-        document.getElementById('sim-node-cache').classList.add('active-sim-node');
-        document.getElementById('lbl-proc').textContent = "Compiler Loop";
-        document.getElementById('lbl-fd').textContent = "fd = 3 active";
-        document.getElementById('lbl-offset').textContent = "Offset: +4096B";
-        document.getElementById('lbl-cache').textContent = "Cache Hit (RAM)";
-        document.getElementById('lbl-disk').textContent = "Blocks Streamed";
-        desc.innerHTML = "<strong>Scenario 3 (`read()`):</strong> Compiler streams source files in 4 KB chunks. Data is copied directly from the memory-resident <strong>Buffer Cache</strong>, automatically advancing the file offset.";
-      } else if (index === 3) {
-        // write() State Persistence
-        pkt.style.opacity = '1';
-        pkt.setAttribute('cx', simCoordinates[3]);
-        document.getElementById('sim-node-inode').classList.add('active-sim-node');
-        document.getElementById('sim-node-cache').classList.add('active-sim-node');
-        document.getElementById('lbl-proc').textContent = "Editor Auto-Save";
-        document.getElementById('lbl-fd').textContent = "fd = 3 active";
-        document.getElementById('lbl-offset').textContent = "Offset Updated";
-        document.getElementById('lbl-cache').textContent = "Dirty Cache Block";
-        document.getElementById('lbl-disk').textContent = "Pending Flush";
-        desc.innerHTML = "<strong>Scenario 4 (`write()`):</strong> Text editor saves user document changes. Data payloads are written into volatile buffer cache blocks, marking them dirty and updating i-node size metrics.";
-      } else if (index === 4) {
-        // lseek() Database Lookup
-        pkt.style.opacity = '1';
-        pkt.setAttribute('cx', simCoordinates[2]);
-        document.getElementById('sim-node-process').classList.add('active-sim-node');
-        document.getElementById('sim-node-inode').classList.add('active-sim-node');
-        document.getElementById('lbl-proc').textContent = "DB Query Engine";
-        document.getElementById('lbl-fd').textContent = "fd = 5 (Record #504)";
-        document.getElementById('lbl-offset').textContent = "Offset: 245760B";
-        document.getElementById('lbl-cache').textContent = "Cache Active";
-        document.getElementById('lbl-disk').textContent = "Zero Disk I/O";
-        desc.innerHTML = "<strong>Scenario 5 (`lseek()`):</strong> Database engine queries product record #504. <code>lseek()</code> instantly repositions the logical byte offset pointer in RAM without performing any physical disk head movement.";
-      } else if (index === 5) {
-        // close() Resource Cleanup
-        pkt.style.opacity = '1';
-        pkt.setAttribute('cx', simCoordinates[4]);
-        document.querySelectorAll('.sim-node').forEach(n => n.classList.add('active-sim-node'));
-        document.getElementById('lbl-proc').textContent = "Task Complete";
-        document.getElementById('lbl-fd').textContent = "fd Released";
-        document.getElementById('lbl-offset').textContent = "Offset Cleared";
-        document.getElementById('lbl-cache').textContent = "Cache Flushed";
-        document.getElementById('lbl-disk').textContent = "Persisted to SSD";
-        desc.innerHTML = "<strong>Scenario 6 (`close()`):</strong> Utility finishes archiving bundle and calls <code>close()</code>. The kernel flushes all dirty cache blocks to persistent storage media and deallocates process-local descriptors.";
-      }
+      renderMicrostepState();
     }
+
+    function microStep(dir) {
+      const maxSteps = scenarios[currentScenario].steps.length;
+      currentMicrostep += dir;
+      if (currentMicrostep < 0) currentMicrostep = 0;
+      if (currentMicrostep >= maxSteps) currentMicrostep = maxSteps - 1;
+      renderMicrostepState();
+    }
+
+    const microCoords = [75, 225, 385, 545, 690];
+
+    function renderMicrostepState() {
+      const scenario = scenarios[currentScenario];
+      const step = scenario.steps[currentMicrostep];
+
+      // Highlight active node
+      for (let i = 0; i < 5; i++) {
+        const el = document.getElementById(`micro-node-${i}`);
+        if (i === step.node) {
+          el.classList.add('active-sim-node');
+        } else {
+          el.classList.remove('active-sim-node');
+        }
+      }
+
+      // Move packet
+      const pkt = document.getElementById('microPacket');
+      pkt.style.opacity = '1';
+      pkt.setAttribute('cx', microCoords[step.node]);
+
+      // Update labels
+      document.getElementById('m-lbl-proc').textContent = step.proc;
+      document.getElementById('m-lbl-fd').textContent = step.fd;
+      document.getElementById('m-lbl-offset').textContent = step.offset;
+      document.getElementById('m-lbl-cache').textContent = step.cache;
+      document.getElementById('m-lbl-disk').textContent = step.disk;
+
+      // Update description
+      document.getElementById('microDesc').innerHTML = `<strong>Scenario: ${scenario.name} (Step ${currentMicrostep + 1} of ${scenario.steps.length}):</strong> ${step.text}`;
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadScenario(0);
+    });
   </script>
 </body>
 </html>
