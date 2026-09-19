@@ -99,6 +99,38 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .c-num { color: #fbbf24; }
     .c-comm { color: #64748b; font-style: italic; }
 
+    /* Floating Wikipedia-style Infobox */
+    .pioneers-infobox {
+      float: right;
+      width: 340px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--inspect-color);
+      border-radius: 6px;
+      padding: 14px;
+      margin-left: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-size: 0.85rem;
+    }
+    .pioneers-infobox h3 {
+      font-size: 0.95rem;
+      color: var(--inspect-color);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+    .pioneers-infobox table {
+      margin: 0;
+      font-size: 0.82rem;
+    }
+    .pioneers-infobox th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+
     /* Tour Panel Styles */
     .tour-panel {
       border: 1px solid #bae6fd;
@@ -158,27 +190,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 10px;
       margin-top: 10px;
       align-items: center;
-    }
-
-    /* Historical Infobox Styling */
-    .historical-infobox {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--inspect-color);
-      border-radius: 6px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .infobox-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--inspect-color);
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-      letter-spacing: 0.05em;
     }
 
     /* Kernel Inspector Sandbox Styles */
@@ -341,48 +352,40 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </header>
   <div class="main-container">
 
-    <!-- Historical Pioneers Infobox Card -->
-    <div class="card historical-infobox">
-      <div class="infobox-title">Historical Context: Architects of File Systems &amp; Operating Systems</div>
-      <p style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
-        The file descriptor model, byte-stream abstractions, i-node metadata structures, and directory hierarchies explored in this module were shaped by key pioneers in operating systems architecture and computer science education.
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Pioneer</th>
-            <th>Key Contributions</th>
-            <th>Impact</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Ken Thompson</strong></td>
-            <td>Unix, B Language, UTF-8, Early File System Tree</td>
-            <td>Designed core i-node architecture and hierarchical namespaces.</td>
-          </tr>
-          <tr>
-            <td><strong>Dennis Ritchie</strong></td>
-            <td>C Programming Language, Unix Co-Creator</td>
-            <td>Engineered portable systems programming standards built on system calls.</td>
-          </tr>
-          <tr>
-            <td><strong>Andrew S. Tanenbaum</strong></td>
-            <td>MINIX, Operating System Textbooks</td>
-            <td>Authored definitive academic architecture literature and educational kernels.</td>
-          </tr>
-          <tr>
-            <td><strong>Marshall Kirk McKusick</strong></td>
-            <td>Berkeley Fast File System (FFS), BSD Unix</td>
-            <td>Optimized storage retrieval performance and cylinder group layout.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
     <!-- Section 4.1.1: File Naming -->
     <div class="card">
       <h2>4.1.1 File Naming</h2>
+
+      <!-- Floating Pioneers Infobox -->
+      <div class="pioneers-infobox">
+        <h3>File System Pioneers</h3>
+        <p style="font-size: 0.82rem; color: #475569; margin-bottom: 8px; line-height: 1.4;">
+          Architects of core Unix storage abstractions and file tables:
+        </p>
+        <table>
+          <tr>
+            <th>Figure</th>
+            <th>Contribution</th>
+          </tr>
+          <tr>
+            <td><strong>Ken Thompson</strong></td>
+            <td>Unix, i-Node Architecture, Hierarchical Tree</td>
+          </tr>
+          <tr>
+            <td><strong>Dennis Ritchie</strong></td>
+            <td>C Language, System Call Abstractions</td>
+          </tr>
+          <tr>
+            <td><strong>Andrew S. Tanenbaum</strong></td>
+            <td>MINIX, OS Architecture Literature</td>
+          </tr>
+          <tr>
+            <td><strong>Marshall Kirk McKusick</strong></td>
+            <td>Berkeley Fast File System (FFS)</td>
+          </tr>
+        </table>
+      </div>
+
       <p>
         File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name.
       </p>
@@ -931,11 +934,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add Tanenbaum and McKusick to historical infobox in module 01
+COMMIT_MSG = """Format pioneers infobox as floating sidebar card in module 01
 
-Update week10-file-management/01-files-abstraction.html to expand the
-historical infobox card, adding Andrew S. Tanenbaum and Marshall Kirk McKusick
-alongside Ken Thompson and Dennis Ritchie."""
+Update week10-file-management/01-files-abstraction.html to style the
+historical pioneers panel as a classic floating sidebar infobox matching
+the memory management module layout."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -955,12 +958,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with complete historical infobox to {target_file}")
+    print(f"Wrote module file with floating pioneers infobox to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging complete historical infobox update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging floating infobox update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Complete Historical Infobox Module 01 created, committed, and pushed successfully!")
+    print("--> Floating Infobox Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
