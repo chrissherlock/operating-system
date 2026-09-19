@@ -71,7 +71,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .concept-box strong { color: #075985; }
 
-    /* Floating Bio Sidebar */
+    /* Floating Bio Sidebar on Right with text wrapping */
     .bio-sidebar {
       float: right;
       width: 320px;
@@ -397,12 +397,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
   <div class="main-container">
-    <!-- FRONT AND CENTRE: Detailed Explanation of Allocation Lists, Purpose, and History with Bio Sidebar -->
-    <div class="card" style="border-left: 4px solid var(--accent); background: #f0f9ff; overflow: hidden;">
+    <!-- INTRODUCTORY CARD WITH NO BORDERS AND TEXT WRAPPING AROUND RIGHT SIDEBAR -->
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
       <aside class="bio-sidebar">
         <h3>Pioneer Profiles</h3>
         <p>
-          <strong>Harry M. Markowitz</strong> formulated the binary buddy memory allocation algorithm in 1963 (he was later awarded the 1990 Nobel Memorial Prize in Economic Sciences for Modern Portfolio Theory).
+          <strong>Harry M. Markowitz</strong> formulated the binary buddy memory allocation algorithm in 1963 (later awarded the 1990 Nobel Memorial Prize in Economic Sciences for Modern Portfolio Theory).
         </p>
         <p>
           <strong>Kenneth C. Knowlton</strong> independently adapted and refined buddy allocation structures at Bell Labs in 1965 for symbol-table and list-processing architectures in Lisp.
@@ -412,24 +412,24 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </p>
       </aside>
 
-      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155;">
+      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         <strong>What are Allocation Lists?</strong> When an operating system kernel manages physical memory, it cannot simply guess which bytes of RAM are available. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. These consist of <em>Free Lists</em> (grouping unallocated blocks or holes) and <em>Used Lists/Trackers</em> (recording active process ownership, starting addresses, and block lengths).
       </p>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-top: 6px;">
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         <strong>Why are they used?</strong> Without allocation lists, the kernel would be forced to perform exhaustive linear scans across every byte of raw hardware RAM every time a program requests or releases memory. Allocation lists enable structured, rapid metadata lookups, prevent memory corruption, and allow efficient coalescing of adjacent free blocks to mitigate external fragmentation.
       </p>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-top: 6px;">
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         <strong>A Brief History:</strong> Early computer systems in the 1950s and early 1960s used primitive bitmaps and sequential linked lists of variable-length holes. To solve the persistent problem of external fragmentation and slow search times, the <strong>Binary Buddy System</strong> was introduced by <strong>Harry M. Markowitz</strong> in 1963, refined by <strong>Kenneth C. Knowlton</strong> in 1965, and standardized across computer science by <strong>Donald Knuth</strong>.
       </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; clear: both;">
-        <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; clear: both;">
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
           <strong style="color: #0284c7; font-size: 0.9rem;">Free Lists (Availability)</strong>
           <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
             Group unallocated blocks by power-of-two sizes (`free_area[0..MAX_ORDER]`). Enables instant $O(1)$ pop operations when allocating memory.
           </p>
         </div>
-        <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
           <strong style="color: #0284c7; font-size: 0.9rem;">Used Trackers (Ownership)</strong>
           <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
             Record active allocations and metadata. When a process frees a pointer, the kernel inspects this tracker to know the exact block boundaries for buddy coalescing.
@@ -851,11 +851,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add pioneer profile sidebar for Markowitz, Knowlton, and Knuth
+COMMIT_MSG = """Remove borders and enable text wrapping around buddy sidebar
 
-Incorporate a floating bio sidebar into week09-memory-management/
-01-free-used-lists-buddy.html detailing the contributions of Harry M.
-Markowitz, Kenneth C. Knowlton, and Donald E. Knuth."""
+Update week09-memory-management/01-free-used-lists-buddy.html by
+removing the card borders and background container styles from the
+historical introduction. Enable natural text wrapping around the
+right-aligned pioneer bio sidebar for Markowitz, Knowlton, and Knuth."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -878,7 +879,7 @@ def sync_module():
     run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Pioneer sidebar added and pushed successfully!")
+    print("--> Borderless intro and text wrapping pushed successfully!")
 
 if __name__ == "__main__":
     sync_module()
