@@ -216,7 +216,7 @@
     .theme-modern .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
+      gap: 2px;
       width: 100%;
       max-width: 1000px;
     }
@@ -434,7 +434,7 @@
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS STIPPLED UNUSED BLOCKS)
+       THEME 4: MS-DOS 6.22 DEFRAG (SOLID RETRO TONE, ZERO MOIRÉ)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -492,7 +492,7 @@
     .theme-olddos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px; /* Exactly 1px grid gap */
+      gap: 1px;
       width: 100%;
       max-width: 950px;
     }
@@ -510,12 +510,8 @@
       padding: 0;
       margin: 0;
     }
-    /* MS-DOS 6.22 Defrag Palette: Unused blocks use pure CSS radial stipples filling 100% of cell */
-    .theme-olddos .c-free {
-      background-color: #0000aa;
-      background-image: radial-gradient(#55ffff 35%, transparent 35%);
-      background-size: 3px 3px;
-    }
+    /* MS-DOS 6.22 Defrag Palette: Solid retro teal/cyan tone for unused blocks (Zero moiré fringe) */
+    .theme-olddos .c-free { background-color: #005577; color: #005577; }
     .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
@@ -561,6 +557,20 @@
     }
     .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
+
+    /* Matrix Dimensions */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(100, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .c-cell {
+      width: 100%;
+      height: 100%;
+      transition: background-color 0.04s ease;
+    }
   </style>
 </head>
 <body>
@@ -818,13 +828,11 @@
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
-          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
-          el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          // c-free uses pure CSS background fill, no text character needed
+          // Solid background fill, no text character needed
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
