@@ -93,6 +93,7 @@
     .c-num { color: #fbbf24; }
     .c-comm { color: #64748b; font-style: italic; }
 
+    /* Immersive Tour Panel Styles */
     .tour-panel {
       border: 1px solid #bae6fd;
       border-left: 5px solid var(--accent);
@@ -241,6 +242,8 @@
     .active-sim-node .sim-box { fill: #f0f9ff; stroke: #0284c7; stroke-width: 2.5px; filter: drop-shadow(0 3px 6px rgba(2,132,199,0.25)); }
     .active-sim-node .sim-text { fill: #0284c7; font-weight: 700; }
     .packet { fill: #0284c7; transition: all 0.5s ease-in-out; }
+    .tour-diagram-node { transition: all 0.3s ease; }
+    .tour-diagram-box { fill: #ffffff; stroke: #0284c7; stroke-width: 1.5px; rx: 6px; }
   </style>
 </head>
 <body>
@@ -540,7 +543,7 @@
       </div>
     </div>
 
-    <!-- Section Interative Tour: The Anatomy of a File Descriptor -->
+    <!-- Section Interactive Tour: The Anatomy of a File Descriptor -->
     <div class="card tour-panel" id="tourCard">
       <div class="tour-header">
         <span id="tourStepCounter">Stage 1 of 4: The Handshake</span>
@@ -551,18 +554,66 @@
         When a user-space process calls <code>open("data.txt", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.
       </div>
 
+      <!-- Interactive Tour Diagram SVG -->
+      <div style="background: #ffffff; border: 1px solid #7dd3fc; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase;" id="tourDiagramCaption">Figure: File Descriptor Table → Open File Table → Buffer Cache Pipeline</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Node: User Process -->
+          <g id="tour-d-0" class="tour-diagram-node">
+            <rect x="20" y="30" width="120" height="70" class="tour-diagram-box"/>
+            <text x="80" y="60" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">User Process</text>
+            <text x="80" y="78" font-size="9" fill="#475569" text-anchor="middle">fd = 3</text>
+          </g>
+
+          <path d="M 140 65 L 190 65" stroke="#0284c7" stroke-width="2" marker-end="url(#tourarrow)"/>
+
+          <!-- Node: Open File Table -->
+          <g id="tour-d-1" class="tour-diagram-node">
+            <rect x="190" y="30" width="140" height="70" class="tour-diagram-box"/>
+            <text x="260" y="55" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Open File Table</text>
+            <text x="260" y="72" font-size="9" fill="#475569" text-anchor="middle">Offset: <tspan id="tour-svg-offset" font-weight="700" fill="#0284c7">0B</tspan></text>
+            <text x="260" y="86" font-size="9" fill="#475569" text-anchor="middle">Flags: O_RDONLY</text>
+          </g>
+
+          <path d="M 330 65 L 380 65" stroke="#0284c7" stroke-width="2" marker-end="url(#tourarrow)"/>
+
+          <!-- Node: Buffer Cache -->
+          <g id="tour-d-2" class="tour-diagram-node">
+            <rect x="380" y="30" width="130" height="70" class="tour-diagram-box"/>
+            <text x="445" y="55" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Buffer Cache</text>
+            <text x="445" y="72" font-size="9" fill="#475569" text-anchor="middle">Block #104</text>
+            <text x="445" y="86" font-size="9" fill="#059669" font-weight="700" text-anchor="middle" id="tour-svg-cache">RAM Resident</text>
+          </g>
+
+          <path d="M 510 65 L 560 65" stroke="#0284c7" stroke-width="2" marker-end="url(#tourarrow)"/>
+
+          <!-- Node: Storage Media -->
+          <g id="tour-d-3" class="tour-diagram-node">
+            <rect x="560" y="30" width="100" height="70" class="tour-diagram-box"/>
+            <text x="610" y="60" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Storage Media</text>
+            <text x="610" y="78" font-size="9" fill="#475569" text-anchor="middle">Disks / SSDs</text>
+          </g>
+
+          <defs>
+            <marker id="tourarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
       <div class="telemetry-grid">
         <div class="telemetry-box">
           <span class="telemetry-label">Process FD Slot</span>
-          <span class="telemetry-value" id="tel-fd">fd [3] &rarr; Bound</span>
+          <span class="telemetry-value" id="tel-fd">fd [3] → Bound</span>
         </div>
         <div class="telemetry-box">
           <span class="telemetry-label">Open File Table Entry</span>
-          <span class="telemetry-value" id="tel-oft">Not Allocated</span>
+          <span class="telemetry-value" id="tel-oft">Ref Count: 1 | Offset: 0B</span>
         </div>
         <div class="telemetry-box">
           <span class="telemetry-label">In-Memory I-Node</span>
-          <span class="telemetry-value" id="tel-inode">Inactive</span>
+          <span class="telemetry-value" id="tel-inode">i-node #512 (Cached in RAM)</span>
         </div>
       </div>
 
@@ -642,7 +693,10 @@
         text: "When a user-space process calls <code>open(\"data.txt\", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.",
         fd: "fd [3] → Bound",
         oft: "Ref Count: 1 | Offset: 0B",
-        inode: "i-node #512 (Cached in RAM)"
+        inode: "i-node #512 (Cached in RAM)",
+        svgOffset: "0B",
+        svgCache: "RAM Resident",
+        caption: "Figure: File Descriptor Table → Open File Table → Buffer Cache Pipeline"
       },
       {
         counter: "Stage 2 of 4: The Data Stream",
@@ -650,7 +704,10 @@
         text: "During a <code>read(3, buffer, 4096)</code> system call, bytes are transferred from the kernel Buffer Cache into user space. Notice how the file offset inside the Open File Table automatically marches forward with every successful chunk read.",
         fd: "fd [3] → Active",
         oft: "Ref Count: 1 | Offset: 4096B",
-        inode: "i-node #512 (Read Lock)"
+        inode: "i-node #512 (Read Lock)",
+        svgOffset: "4096B",
+        svgCache: "Cache Hit (RAM)",
+        caption: "Figure: read() Data Transfer from Buffer Cache into User Space"
       },
       {
         counter: "Stage 3 of 4: Arbitrary Jumps",
@@ -658,7 +715,10 @@
         text: "When an application calls <code>lseek(3, 1024, SEEK_SET)</code>, zero disk I/O occurs. The kernel simply recalculates the logical byte offset pointer in the Open File Table instantly, preparing the pointer for random-access lookups.",
         fd: "fd [3] → Active",
         oft: "Ref Count: 1 | Offset: 1024B (Seeked)",
-        inode: "i-node #512 (Random Access)"
+        inode: "i-node #512 (Random Access)",
+        svgOffset: "1024B",
+        svgCache: "Zero Disk I/O",
+        caption: "Figure: lseek() Logical Offset Pointer Repositioning in Open File Table"
       },
       {
         counter: "Stage 4 of 4: The Cleanup",
@@ -666,7 +726,10 @@
         text: "When <code>close(3)</code> executes, the kernel flushes any dirty buffer cache blocks to physical disk storage, deallocates the slot in the process FD table, and decrements the open file table reference count.",
         fd: "fd [3] → Released",
         oft: "Table Entry Destroyed",
-        inode: "Ref Count Decremented"
+        inode: "Ref Count Decremented",
+        svgOffset: "Cleared",
+        svgCache: "Flushed & Synced",
+        caption: "Figure: close() Cache Flush and Descriptor Deallocation"
       }
     ];
 
@@ -690,6 +753,10 @@
       document.getElementById("tel-fd").textContent = stage.fd;
       document.getElementById("tel-oft").textContent = stage.oft;
       document.getElementById("tel-inode").textContent = stage.inode;
+
+      document.getElementById("tour-svg-offset").textContent = stage.svgOffset;
+      document.getElementById("tour-svg-cache").textContent = stage.svgCache;
+      document.getElementById("tourDiagramCaption").textContent = stage.caption;
 
       document.getElementById("tourPrevBtn").disabled = (currentTourStage === 0);
       document.getElementById("tourNextBtn").textContent = (currentTourStage === tourStages.length - 1) ? "Restart Tour" : "Next Stage →";
