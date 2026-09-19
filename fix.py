@@ -695,7 +695,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         Traditional Unix and FAT filesystems distribute file data, inodes, directory entries, and indirect blocks across random locations on disk. As processor and memory speeds outpaced mechanical disk seek times in the early 1990s, random disk head seeks emerged as the primary performance bottleneck. To solve this, <strong>Mendel Rosenblum and John K. Ousterhout</strong> pioneered <strong>Log-Structured File Systems (LFS)</strong> at UC Berkeley, fundamentally redesigning storage architectures by transforming the disk into a continuous sequential log.
       </p>
 
-      <!-- Pioneers Infobox with Enlarged Headshots & Integrated Biographies -->
+      <!-- Pioneers Infobox with Enlarged Headshots, Wikipedia links, & Biographies -->
       <div class="pioneers-infobox">
         <h4>Pioneers Profile: Mendel Rosenblum &amp; John K. Ousterhout</h4>
         <div class="pioneers-portraits">
@@ -704,7 +704,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <img src="../images/ousterhout.png" alt="John K. Ousterhout">
               <div class="pioneer-info">
                 <strong><a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: none;">John K. Ousterhout</a></strong>
-                <span>Stanford University</span>
+                <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
                 <span><a href="https://web.stanford.edu/~ouster/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit: Photo2012Small.png</a></span>
               </div>
             </div>
@@ -717,7 +717,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <img src="../images/rosenblum.jpg" alt="Mendel Rosenblum">
               <div class="pioneer-info">
                 <strong><a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: none;">Mendel Rosenblum</a></strong>
-                <span>Stanford University</span>
+                <span>Stanford University &bull; <a href="https://en.wikipedia.org/wiki/Mendel_Rosenblum" target="_blank" style="color: var(--accent); text-decoration: underline;">Wikipedia Entry</a></span>
                 <span><a href="http://www.stanford.edu/~mendel/" target="_blank" style="color: var(--text-muted); text-decoration: underline;">Photo Credit: RosenblumLowRes.jpg</a></span>
               </div>
             </div>
@@ -1076,10 +1076,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Enlarge pioneer portraits and place bios under metadata in LFS infobox\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html to increase "
-        "headshot sizes and embed professional biographies directly beneath each pioneer's "
-        "metadata card."
+        "Add explicit Wikipedia entry links to pioneer cards in LFS infobox\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html to include "
+        "direct Wikipedia biography hyperlinks in John Ousterhout and Mendel Rosenblum's "
+        "pioneer metadata cards."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
