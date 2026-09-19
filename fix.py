@@ -194,13 +194,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #075985;
     }
     .tutorial-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
+      font-size: 0.93rem;
+      line-height: 1.65;
       color: #0c4a6e;
-      min-height: 60px;
+      min-height: 85px;
     }
 
-    /* Scenario Picker Buttons */
     .scenario-picker {
       display: flex;
       gap: 8px;
@@ -692,7 +691,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 2 Yes: Action 2 (Down) -->
             <line id="walk-edge-age-yes" class="walk-edge" x1="238" y1="100" x2="238" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="244" y="120" font-size="8" font-weight="700" fill="#64748b">Yes</text>
+            <text x="244" y="120" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-inws" class="walk-node">
               <rect x="188" y="138" width="100" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
               <text x="238" y="150" font-size="8" font-weight="700" fill="#0369a1" text-anchor="middle">In Working Set</text>
@@ -885,7 +884,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GRANULAR MICRO-STEP SCENARIOS (NATIVE UNICODE FOR JS TEXT)
+       PART 2: GRANULAR MICRO-STEP SCENARIOS (NATIVE UNICODE STRINGS)
        ========================================================================= */
     const scenarios = [
       // Scenario 0: Frame 0 (R=1)
@@ -894,19 +893,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         steps: [
           {
             title: "1. Hand at Frame 0: Evaluating Gate 1 (R == 1?)",
-            text: "A page fault occurs at Virtual Time 2200. The clock hand inspects Frame 0 (Page A). The hardware MMU set R = 1 during recent program execution. Gate 1 evaluates: Is R == 1?",
-            math: "Inspecting Frame 0 → Test Gate 1: R == 1.",
+            text: "A page fault occurs at Virtual Time 2200. The clock hand inspects Frame 0 (Page A). When the CPU executes read or write instructions, the Memory Management Unit (MMU) automatically sets the page's hardware Referenced bit (R) to 1 in silicon. Gate 1 inspects this bit: Is R == 1? Here, R = 1, meaning the process touched Page A during the most recent quantum.",
+            math: "Hardware MMU set R = 1 during instruction execution → Gate 1 evaluates TRUE (Yes).",
             frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-r",
             activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
             ringClass: "active-warn",
             handTarget: { x: 270, y: 54 },
-            status: "Testing Gate 1: R == 1?"
+            status: "Gate 1: R == 1 (Recently Referenced)"
           },
           {
             title: "2. Gate 1 Evaluates Yes: Clear R-bit & Timestamp",
-            text: "Because R = 1, this page was referenced recently. Evicting it now would risk immediate thrashing. The algorithm follows the Yes branch: it clears R ← 0 and updates its timestamp of last use to current virtual time (2200).",
-            math: "Gate 1 (Yes) → Clear R = 0, update Last_Use = 2200.",
+            text: "Because R = 1, this page was referenced recently. Evicting it now would directly violate the principle of locality and risk plunging the CPU into thrashing. The algorithm follows the Yes branch: it clears R ← 0 to begin a new measurement window and refreshes the frame's Time of Last Use to the current virtual execution time (2200).",
+            math: "Action: Clear R ← 0, refresh Last_Use ← 2200 ticks. Page given a second chance.",
             frame: { name: "Page A (Frame 0)", r: 0, m: 0, time: 2200, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-r",
             highlightAction: "walk-action-r1",
@@ -921,8 +920,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "3. Advance Hand to Next Frame",
-            text: "Having given Page A a second chance and refreshed its age, the clock hand advances clockwise to Frame 1 without claiming an eviction victim.",
-            math: "Advance hand: Frame 0 → Frame 1.",
+            text: "Having granted Page A a second chance and refreshed its age to 0, no physical memory was freed. The page fault remains unresolved. The clock hand advances clockwise along the ring to inspect Frame 1 without stopping.",
+            math: "Hand pointer incremented: Hand moves Frame 0 → Frame 1.",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-r",
             ringClass: "active-focus",
@@ -938,8 +937,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         steps: [
           {
             title: "1. Hand at Frame 1: Evaluating Gate 1 (R == 1?)",
-            text: "The clock hand now points to Frame 1 (Page B). Its Referenced bit is R = 0 (it was not accessed during the latest slice). Gate 1 tests R == 1? → No.",
-            math: "Frame 1 → Gate 1: R == 0 (Follow No branch).",
+            text: "The clock hand now points to Frame 1 containing Page B. The hardware Referenced bit is R = 0, indicating that the CPU has not referenced this page since its R-bit was last cleared. Gate 1 evaluates R == 1? → No. The algorithm follows the No branch to evaluate the page's age.",
+            math: "Frame 1 check: R == 0 → Follow NO branch to Gate 2.",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-r",
             activeEdges: [
@@ -952,8 +951,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "2. Evaluating Gate 2: Age vs. Threshold (τ)",
-            text: "Because R = 0, the kernel calculates the page age: Current Virtual Time (2200) - Time of Last Use (1950) = 250 ticks. Gate 2 checks: Is Age ≤ τ (400)?",
-            math: "Age = 2200 - 1950 = 250 ticks. Compare with τ = 400.",
+            text: "Because R = 0, the kernel calculates how long it has been since Page B was last used: Age = Current Virtual Time (2200) - Time of Last Use (1950) = 250 ticks. Gate 2 compares this value against the working set threshold τ (400 ticks): Is Age ≤ τ? Here, 250 ≤ 400.",
+            math: "Calculation: Age = (2200 - 1950) = 250 ticks. Compare with τ = 400 ticks.",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-age",
             activeEdges: [
@@ -962,16 +961,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             ],
             ringClass: "active-focus",
             handTarget: { x: 332, y: 110 },
-            status: "Gate 2: Testing Age (250) ≤ τ (400)?"
+            status: "Gate 2: Age (250) ≤ τ (400)?"
           },
           {
             title: "3. Gate 2 Evaluates Yes: Resident in Working Set",
-            text: "Because 250 ≤ 400, Page B is still within the active working set window. Evicting it would violate Denning's working set model. The algorithm keeps the page in RAM and advances the hand to Frame 2.",
-            math: "Gate 2 (Yes) → Page in active working set. Advance hand to Frame 2.",
+            text: "Even though Page B was not referenced in the latest slice, its age (250) is still within the active working set window τ. According to Denning's principle, pages inside the working set must remain in physical RAM to prevent thrashing. The algorithm leaves Page B untouched and advances the hand to Frame 2.",
+            math: "Gate 2 (Yes) → 250 ≤ 400: Page is in active working set. Do not evict; advance hand.",
             frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
             highlightGate: "walk-gate-age",
             highlightAction: "walk-action-inws",
             actionClass: "active-action-blue",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-age-yes", marker: "w-blue", edgeClass: "edge-active" }
+            ],
             ringClass: "active-focus",
             handTarget: { x: 332, y: 110 },
             status: "Action: Keep in Working Set → Advance Hand"
@@ -985,8 +989,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         steps: [
           {
             title: "1. Hand at Frame 2: Gates 1 & 2 Evaluation",
-            text: "The hand advances to Frame 2 (Page C). Gate 1 checks R == 1? → No (R = 0). Gate 2 calculates age: 2200 - 1600 = 600 ticks. Because 600 > τ (400), the page is older than the working set threshold! Follow the No branch to Gate 3.",
-            math: "Frame 2 → R = 0, Age = 600 > τ (400) → Page outside working set.",
+            text: "The clock hand advances to Frame 2 (Page C). Gate 1 tests R == 1? → No (R = 0). Gate 2 calculates the page's age: 2200 - 1600 = 600 ticks. Gate 2 evaluates: Is 600 ≤ τ (400)? No! The page is older than τ, proving that Page C has dropped out of the process's active working set. The search branches to Gate 3.",
+            math: "Frame 2: R = 0, Age = 600 > τ (400) → Page is cold and outside active working set.",
             frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
             highlightGate: "walk-gate-age",
             activeEdges: [
@@ -1000,8 +1004,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "2. Evaluating Gate 3: Modified (Dirty) Status",
-            text: "Gate 3 inspects the Modified bit M. Has Page C been written to since it was brought into memory? In this case, M = 0 (clean). The disk already contains a 100% identical copy of this page.",
-            math: "Gate 3: M == 0? → Yes (Clean).",
+            text: "Gate 3 inspects the hardware Modified bit (M, also known as the dirty bit). When a process writes to memory, the MMU asserts M = 1. Here, M = 0 (clean). This indicates Page C has only been read; its contents on disk or swap storage are 100% identical to the bytes in RAM.",
+            math: "Gate 3 test: M == 0? → TRUE (Clean). No storage write-back required.",
             frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
             highlightGate: "walk-gate-m",
             activeEdges: [
@@ -1016,8 +1020,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "3. Immediate Victim Eviction!",
-            text: "Because Page C is outside the working set and requires zero disk write I/O, it is the perfect candidate. The kernel evicts Page C immediately, claims Frame 2 for the new virtual page, updates the PTE, and terminates the fault search!",
-            math: "Result: EVICTED IMMEDIATELY. Zero I/O penalty.",
+            text: "Because Page C is cold (Age > τ) and clean (M = 0), reclaiming it incurs zero disk I/O penalty. The OS immediately invalidates Page C's PTE, reclaims Frame 2 for the newly faulting virtual page, loads the new page, and exits the page fault handler. The hand remains positioned to resume here on the next fault.",
+            math: "Eviction complete: Frame 2 claimed. Hand stops at Frame 2. Zero disk flush overhead.",
             frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
             highlightGate: "walk-gate-m",
             highlightAction: "walk-action-evict",
@@ -1041,8 +1045,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         steps: [
           {
             title: "1. Hand at Frame 3: Age > τ, but M == 1 (Dirty)",
-            text: "Consider if the hand arrived at Frame 3 (Page D). R = 0, and Age = 2200 - 1500 = 700 ticks (> τ). However, Gate 3 detects M = 1 (dirty). The page has modified data that does not exist on disk.",
-            math: "Frame 3 → Age = 700 > τ, but M == 1 (Dirty).",
+            text: "Consider if the hand had instead arrived at Frame 3 (Page D). The page has R = 0 and Age = 2200 - 1500 = 700 ticks (> τ). Gate 2 branches to Gate 3. However, Gate 3 detects M = 1 (dirty). The process modified Page D, so its data in RAM no longer matches what is stored on disk.",
+            math: "Frame 3: R = 0, Age = 700 > τ (Cold), but M = 1 (Dirty).",
             frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
             highlightGate: "walk-gate-m",
             activeEdges: [
@@ -1057,8 +1061,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "2. Schedule Asynchronous Disk Write",
-            text: "To avoid stalling the CPU on slow disk I/O, WSClock issues an asynchronous write request to flush Page D to swap storage. It marks the write in flight and immediately advances the hand, hoping to find an already-clean page further down the ring.",
-            math: "Schedule Async Write → I/O in flight. Advance hand (non-blocking).",
+            text: "The kernel cannot overwrite Frame 3 yet without losing modified data. In older algorithms, the CPU would stall synchronously waiting milliseconds for disk write I/O. WSClock's key innovation is to schedule an asynchronous write via DMA and immediately advance the hand, searching for an already-clean candidate while disk I/O occurs in the background.",
+            math: "Action: Queue non-blocking DMA disk write. Keep hand moving to find clean candidate.",
             frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
             highlightGate: "walk-gate-m",
             highlightAction: "walk-action-dirty",
@@ -1082,8 +1086,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         steps: [
           {
             title: "1. Clock Hand Completes 360° Rotation",
-            text: "Suppose the hand sweeps all frames without finding a clean, cold page. The kernel checks its internal telemetry: Were any asynchronous disk writes scheduled during the sweep?",
-            math: "Full 360° sweep → Active disk writes in flight > 0.",
+            text: "Suppose the hand sweeps all frames in the circular ring without encountering an immediately evictable clean page (M = 0). The kernel checks its internal telemetry: Were any asynchronous disk writes scheduled during this sweep?",
+            math: "Full 360° rotation completed. Check scheduled writes counter: Writes_In_Flight > 0.",
             frame: { name: "All Frames (Ring Sweep)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-m",
             activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
@@ -1093,8 +1097,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "2. Await First Asynchronous Completion",
-            text: "Because at least one write was dispatched (such as Frame 3), the kernel simply keeps advancing the hand until that write completes. As soon as the storage controller signals completion, the page is marked clean (M = 0) and reclaimed.",
-            math: "I/O completion arrives → Frame becomes clean → Reclaim frame.",
+            text: "Because at least one write was dispatched (such as Frame 3 in Scenario 4), the hand continues advancing in circles until the first write completes. When the disk controller emits an interrupt signaling completion, the kernel clears M ← 0. The newly cleaned frame is immediately reclaimed as the victim.",
+            math: "DMA storage interrupt signals completion → Frame M cleared (M=0) → Claimed as clean victim.",
             frame: { name: "Frame 3 (I/O Complete)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
             highlightGate: "walk-gate-m",
             highlightAction: "walk-action-evict",
@@ -1112,8 +1116,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         steps: [
           {
             title: "1. 360° Sweep with Zero Writes Scheduled",
-            text: "What if the hand completes a full rotation and NO writes were scheduled? This implies that every single frame in memory was referenced recently or is currently within the active working set (Age ≤ τ).",
-            math: "Full rotation → Zero writes scheduled → All pages inside working set.",
+            text: "What if the hand completes a full 360° rotation and NO writes were scheduled? This occurs when every single page in physical RAM is actively needed by the working set (Age ≤ τ). The system has run out of non-working-set frames.",
+            math: "Condition: Full sweep finished, Writes_In_Flight == 0, all frames inside working set.",
             frame: { name: "All Frames (Thrashing)", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-age",
             activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
@@ -1123,8 +1127,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           },
           {
             title: "2. Kernel Fallback & Admission Control",
-            text: "The process is experiencing acute thrashing because its true working set exceeds physical memory capacity. WSClock falls back to evicting the first clean page it encounters regardless of age, or triggers OS admission control to suspend a lower-priority process.",
-            math: "Fallback: Evict first clean page OR suspend thread via admission control.",
+            text: "The process is thrashing because its true working set is larger than total available physical RAM. WSClock handles this emergency by either evicting the first clean page it encounters regardless of age, or notifying the scheduler to suspend the process entirely (admission control), freeing its frames so other processes can run without thrashing.",
+            math: "Emergency fallback: Force clean eviction OR invoke admission control to suspend process.",
             frame: { name: "Admission Control Handler", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
             highlightGate: "walk-gate-age",
             highlightAction: "walk-action-inws",
@@ -1204,7 +1208,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         handLine.setAttribute("y2", s.handTarget.y);
       }
 
-      // Update button labels and disabled states cleanly with Unicode
+      // Update button labels and disabled states
       document.getElementById("wtPrevBtn").disabled = (currentScenarioIdx === 0 && currentStepIdx === 0);
 
       const isLastStep = (currentStepIdx === scen.steps.length - 1);
@@ -1427,12 +1431,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Replace double-encoded HTML entities with native Unicode characters
+COMMIT_MSG = """Expand microstep theoretical explanations in 10-wsclock.html
 
-Convert literal entity strings (&rarr;, &larr;, &le;, &tau;) in
-10-wsclock.html JavaScript data tables to direct Unicode characters.
-This prevents textContent assignments from displaying raw ampersand
-entity text in button labels and telemetry badges."""
+Enrich each microstep in the WSClock walkthrough stepper with deeper
+architectural analysis. Cover MMU hardware bit assertions, working set
+age delta calculations, asynchronous DMA dirty writes, and kernel
+admission control fallback mechanics during full-sweep thrashing."""
 
 def execute_git_command(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1450,12 +1454,12 @@ def sync_repository():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote entity-cleaned module to {target_module}")
+    print(f"Wrote updated module with deep microstep explanations to {target_module}")
 
     execute_git_command(["git", "add", target_module], "Staging 10-wsclock.html")
     execute_git_command(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     execute_git_command(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Entity encoding fix committed and pushed to origin/main successfully!")
+    print("--> Updated explanations committed and pushed to origin/main successfully!")
 
 if __name__ == "__main__":
     sync_repository()
