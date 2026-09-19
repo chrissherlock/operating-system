@@ -23,7 +23,6 @@
       --buddy-glow: #ca8a04;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
@@ -35,11 +34,9 @@
       align-items: center;
       gap: 18px;
     }
-
     header { text-align: center; max-width: 900px; }
     h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
     p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-
     .main-container {
       display: flex;
       flex-direction: column;
@@ -47,7 +44,6 @@
       width: 100%;
       max-width: 1100px;
     }
-
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border);
@@ -58,7 +54,6 @@
       gap: 14px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-
     .concept-box {
       background: #f0f9ff;
       border: 1px solid #bae6fd;
@@ -70,13 +65,11 @@
       color: #0369a1;
     }
     .concept-box strong { color: #075985; }
-
     .figure-container {
       width: 100%; max-width: 720px; margin: 10px auto; display: flex; flex-direction: column;
       align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
       border-radius: 8px; padding: 20px;
     }
-
     .math-formula {
       display: flex;
       align-items: center;
@@ -88,7 +81,6 @@
       font-weight: 600;
       color: #0369a1;
     }
-
     .fraction {
       display: inline-flex;
       flex-direction: column;
@@ -96,17 +88,14 @@
       text-align: center;
       padding: 0 4px;
     }
-
     .numerator { border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
     .denominator { padding-top: 2px; }
-
     .tutorial-panel {
       border: 1px solid #fed7aa;
       border-left: 4px solid var(--inspect-color);
       background: #fffbeb;
       transition: all 0.3s ease;
     }
-
     .tutorial-header {
       display: flex;
       justify-content: space-between;
@@ -117,19 +106,16 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-
     .tutorial-title {
       font-size: 1.2rem;
       font-weight: 700;
       color: #78350f;
     }
-
     .tutorial-body {
       font-size: 0.95rem;
       line-height: 1.6;
       color: #451a03;
     }
-
     .math-callout {
       background: #ffffff;
       border: 1px solid #fcd34d;
@@ -142,14 +128,12 @@
       flex-direction: column;
       gap: 4px;
     }
-
     .tour-nav {
       display: flex;
       gap: 10px;
       margin-top: 10px;
       align-items: center;
     }
-
     button {
       background-color: var(--accent);
       color: #ffffff;
@@ -172,7 +156,6 @@
       color: var(--text);
     }
     button.btn-secondary:hover { background: #e2e8f0; }
-
     .memory-label-row {
       display: flex;
       justify-content: space-between;
@@ -180,7 +163,6 @@
       color: var(--text-muted);
       font-family: var(--font-mono);
     }
-
     .memory-bar {
       display: flex;
       width: 100%;
@@ -190,7 +172,6 @@
       overflow: hidden;
       background: #e2e8f0;
     }
-
     .block {
       display: flex;
       flex-direction: column;
@@ -208,40 +189,33 @@
       position: relative;
     }
     .block:last-child { border-right: none; }
-
     .block.free {
       background-color: var(--free-bg);
       color: var(--free-color);
       border-top: 4px solid var(--free-color);
     }
-
     .block.allocated {
       background-color: var(--alloc-bg);
       color: var(--alloc-color);
       border-top: 4px solid var(--alloc-color);
     }
-
     .block.state-inspecting {
       background-color: var(--inspect-bg) !important;
       border-top: 4px solid var(--inspect-color) !important;
       animation: pulseInspect 0.8s infinite alternate;
     }
-
     .block.state-buddy-active {
       border: 2px dashed var(--buddy-glow) !important;
       animation: pulseBuddy 0.7s infinite alternate;
     }
-
     @keyframes pulseInspect {
       0% { box-shadow: inset 0 0 4px rgba(217, 119, 6, 0.2); }
       100% { box-shadow: inset 0 0 14px rgba(217, 119, 6, 0.5); }
     }
-
     @keyframes pulseBuddy {
       0% { box-shadow: inset 0 0 6px rgba(202, 138, 4, 0.3); }
       100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
     }
-
     .lists-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -250,13 +224,11 @@
     @media(max-width: 768px) {
       .lists-container { grid-template-columns: 1fr; }
     }
-
     .free-area-list {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-
     .order-row {
       display: flex;
       align-items: center;
@@ -267,26 +239,22 @@
       border-radius: 4px;
       transition: background-color 0.25s ease;
     }
-
     .order-row.inspecting-row {
       background-color: #fef3c7;
       border-left: 3px solid var(--inspect-color);
     }
-
     .order-label {
       width: 140px;
       color: var(--text-muted);
       flex-shrink: 0;
       font-weight: 500;
     }
-
     .list-nodes {
       display: flex;
       align-items: center;
       gap: 6px;
       flex-wrap: wrap;
     }
-
     .node {
       background-color: #f1f5f9;
       padding: 3px 8px;
@@ -309,10 +277,8 @@
       background-color: #fefce8;
       font-weight: bold;
     }
-
     .node-empty { color: #94a3b8; font-style: italic; }
     .arrow { color: #94a3b8; }
-
     .used-list-box {
       background: #fff1f2;
       border: 1px solid #fecdd3;
@@ -333,7 +299,6 @@
       display: flex;
       justify-content: space-between;
     }
-
     .log-terminal {
       background-color: #f8fafc;
       border: 1px solid var(--border);
@@ -352,7 +317,6 @@
     .log-entry.alloc { color: #0284c7; }
     .log-entry.free { color: #059669; }
     .log-entry.merge { color: #ca8a04; }
-
     .nav-back {
       width: 100%;
       max-width: 1100px;
@@ -380,7 +344,6 @@
       color: #ffffff;
     }
   </style>
-  <!-- Configure MathJax to recognize single dollar signs for inline math -->
   <script>
     window.MathJax = {
       tex: {
@@ -394,31 +357,34 @@
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week Overview</a>
   </div>
-
   <header>
     <h1>Memory Bookkeeping, Free/Used Lists &amp; Buddy Allocator</h1>
     <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
-
   <div class="main-container">
-
-    <!-- FRONT AND CENTRE: The Point of Allocation Lists (Free & Used Lists) -->
+    <!-- FRONT AND CENTRE: Detailed Explanation of Allocation Lists, Purpose, and History -->
     <div class="card" style="border-left: 4px solid var(--accent); background: #f0f9ff;">
-      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem;">1. Up Front &amp; Centre: The Point of Allocation Lists (Free &amp; Used Trackers)</div>
+      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155;">
-        When an operating system manages raw hardware RAM, it cannot simply guess what memory is free. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. Here is why they are indispensable:
+        <strong>What are Allocation Lists?</strong> When an operating system kernel manages physical memory, it cannot simply guess which bytes of RAM are available. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. These consist of <em>Free Lists</em> (grouping unallocated blocks or holes) and <em>Used Lists/Trackers</em> (recording active process ownership, starting addresses, and block lengths).
       </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px;">
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-top: 6px;">
+        <strong>Why are they used?</strong> Without allocation lists, the kernel would be forced to perform exhaustive linear scans across every byte of raw hardware RAM every time a program requests or releases memory. Allocation lists enable structured, rapid metadata lookups, prevent memory corruption, and allow efficient coalescing of adjacent free blocks to mitigate external fragmentation.
+      </p>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-top: 6px;">
+        <strong>A Brief History &amp; Who Developed Them:</strong> Early computer systems in the 1950s and early 1960s used primitive bitmaps and sequential linked lists of variable-length holes, as detailed by foundational operating systems pioneers like <strong>Edsger Dijkstra</strong> and <strong>Andrew S. Tanenbaum</strong>. To solve the persistent problem of external fragmentation and slow search times, the <strong>Binary Buddy System</strong> was first introduced by <strong>Harry M. Markowitz</strong> in 1963. It was subsequently refined by <strong>Kenneth C. Knowlton</strong> in 1965 for Lisp symbol table management, and later popularized across computer science education by <strong>Donald Knuth</strong> in volume 1 of <em>The Art of Computer Programming</em>.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;">
         <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
           <strong style="color: #0284c7; font-size: 0.9rem;">Free Lists (Availability)</strong>
           <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
-            Group unallocated blocks or holes together. When a program requests memory, the kernel checks these lists to instantly find a block of sufficient size without searching every byte of RAM.
+            Group unallocated blocks by power-of-two sizes (`free_area[0..MAX_ORDER]`). Enables instant $O(1)$ pop operations when allocating memory.
           </p>
         </div>
         <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
-          <strong style="color: #0284c7; font-size: 0.9rem;">Used Lists / Trackers (Ownership)</strong>
+          <strong style="color: #0284c7; font-size: 0.9rem;">Used Trackers (Ownership)</strong>
           <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
-            Record active allocations (starting addresses, lengths, and ownership metadata). When a process frees a pointer, the kernel uses this tracker to know the exact size and boundary of the block for deallocation and coalescing.
+            Record active allocations and metadata. When a process frees a pointer, the kernel inspects this tracker to know the exact block boundaries for buddy coalescing.
           </p>
         </div>
       </div>
@@ -430,7 +396,6 @@
       <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
         Memory is partitioned into fixed allocation units (e.g., 4 KB blocks). Each unit corresponds to a single bit in a bitmap: <code>0</code> if free, and <code>1</code> if allocated to a process.
       </p>
-
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Memory Allocation Tracked via Bitmaps</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -444,7 +409,6 @@
             <rect x="210" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="230" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
             <rect x="252" y="30" width="40" height="40" fill="#ecfdf5" stroke="#059669"/><text x="272" y="55" font-size="9" fill="#059669" text-anchor="middle">0</text>
           </g>
-
           <g transform="translate(420, 20)">
             <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Bitmap Array:</text>
             <rect x="0" y="30" width="220" height="40" fill="#f8fafc" stroke="#334155" rx="4"/>
@@ -460,54 +424,40 @@
       <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
         The operating system maintains a linked list where each node indicates whether a region is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
       </p>
-
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Tanenbaum's Linked List of Segments (Holes &amp; Processes)</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <rect x="30" y="25" width="640" height="45" fill="#e2e8f0" stroke="#334155" stroke-width="1.5" rx="4"/>
-
           <rect x="30" y="25" width="140" height="45" fill="#e11d48" opacity="0.8"/>
           <text x="100" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process A (Addr 0, Len 140)</text>
-
           <rect x="170" y="25" width="90" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
           <text x="215" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 140, 90)</text>
-
           <rect x="260" y="25" width="200" height="45" fill="#e11d48" opacity="0.8"/>
           <text x="360" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process B (Addr 230, Len 200)</text>
-
           <rect x="460" y="25" width="210" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
           <text x="565" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 430, 210)</text>
-
           <g transform="translate(30, 95)">
             <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Linked List Nodes:</text>
-
             <rect x="0" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
             <text x="65" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 0 | Len: 140 ]</text>
             <line x1="0" y1="60" x2="130" y2="60" stroke="#f1f5f9"/>
             <text x="65" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
-
             <path d="M 130 62 L 175 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
-
             <rect x="175" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
             <text x="240" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 140 | Len: 90 ]</text>
             <line x1="175" y1="60" x2="305" y2="60" stroke="#f1f5f9"/>
             <text x="240" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
-
             <path d="M 305 62 L 350 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
-
             <rect x="350" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
             <text x="415" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 230 | Len: 200 ]</text>
             <line x1="350" y1="60" x2="480" y2="60" stroke="#f1f5f9"/>
             <text x="415" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
-
             <path d="M 480 62 L 525 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
-
             <rect x="525" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
             <text x="590" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 430 | Len: 210 ]</text>
             <line x1="525" y1="60" x2="655" y2="60" stroke="#f1f5f9"/>
             <text x="590" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; NULL</text>
           </g>
-
           <defs>
             <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
@@ -535,7 +485,6 @@
     <div class="concept-box">
       <strong>What is a PFN (Page Frame Number)?</strong><br>
       Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
-
       <div class="math-formula">
         <span>PFN</span>
         <span>=</span>
@@ -546,7 +495,6 @@
         <span>=</span>
         <span>Physical Address &gt;&gt; 12</span>
       </div>
-
       Physical address <code>0x0000</code> is PFN 0, <code>0x1000</code> is PFN 1, <code>0x2000</code> is PFN 2, and so on. The buddy system performs all pairing directly on this integer index.
     </div>
 
@@ -559,7 +507,6 @@
       <div id="tutorialTitle" class="tutorial-title">1. Initial Setup: The Single Max Block</div>
       <div id="tutorialText" class="tutorial-body"></div>
       <div id="mathBox" class="math-callout" style="display:none;"></div>
-
       <div class="tour-nav">
         <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Micro-Step</button>
         <button id="nextBtn">Next Micro-Step &rarr;</button>
@@ -602,13 +549,11 @@
       <span style="font-weight:600;">Kernel Memory Allocator Trace</span>
       <div id="actionLog" class="log-terminal"></div>
     </div>
-
   </div>
 
   <script>
     const MAX_ORDER = 4;
     const PAGE_SIZE_KB = 4;
-
     class BuddyNode {
       constructor(pfn, order, parent = null) {
         this.pfn = pfn;
@@ -624,11 +569,9 @@
       }
       get size() { return (1 << this.order); }
     }
-
     let root = null;
     let currentStep = 0;
     let inspectingOrderRow = null;
-
     const steps = [
       {
         title: "1. The Starting Pool (Order 4)",
@@ -642,7 +585,7 @@
         title: "2. Incoming Request: Allocate 4 KB (Order 0)",
         phase: "Scanning Lists",
         text: "A process calls <code>kmalloc(4096)</code>. The kernel translates 4 KB into <strong>Order 0</strong> (2<sup>0</sup> pages). It inspects <code>free_area[0]</code> first: <strong>empty!</strong> It checks <code>free_area[1]</code> through <code>[3]</code> (all empty), and finally reaches <code>free_area[4]</code> where PFN 0 is available.",
-        math: "Target Order = 0. Scanning upward: free_area[0]=NULL → [1]=NULL → [2]=NULL → [3]=NULL → [4]=PFN 0.",
+        math: "Target Order = 0. Scanning upward: free_area[0]=NULL &rarr; [1]=NULL &rarr; [2]=NULL &rarr; [3]=NULL &rarr; [4]=PFN 0.",
         inspectRow: 0,
         setup: () => { resetTree(); root.inspecting = true; }
       },
@@ -666,7 +609,7 @@
         title: "5. Allocation Complete: Block #A Claimed",
         phase: "Allocated",
         text: "PFN 0 is marked as <strong>Allocated</strong> (Block #A) and registered into the <strong>Used Tracker</strong>. Notice how PFN 0 is removed from the free lists entirely while PFN 1 remains free in <code>free_area[0]</code>.",
-        math: "Allocated: PFN 0 (Order 0).<br>Used List Entry: Block #A → PFN 0 (4 KB).",
+        math: "Allocated: PFN 0 (Order 0).<br>Used List Entry: Block #A &rarr; PFN 0 (4 KB).",
         inspectRow: 0,
         setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.isAllocated = true; leaf.tag = "A"; }
       },
@@ -674,7 +617,7 @@
         title: "6. Second Allocation: Immediate O(1) Hit",
         phase: "Instant Hit",
         text: "A second request for Order 0 arrives. The allocator checks <code>free_area[0]</code>. PFN 1 is right there! It pops PFN 1 off <code>free_area[0]</code> in O(1) time, assigns it as Block #B, and adds it to the Used list.",
-        math: "free_area[0] POP → PFN 1 assigned as Block #B.<br>Used List now tracks both #A and #B.",
+        math: "free_area[0] POP &rarr; PFN 1 assigned as Block #B.<br>Used List now tracks both #A and #B.",
         inspectRow: 0,
         setup: () => {
           resetTree();
@@ -691,7 +634,7 @@
         title: "7. Freeing Block #A: The Buddy Check",
         phase: "Checking Buddy",
         text: "The owner frees Block #A (PFN 0). It is removed from the Used list. Before coalescing, the kernel calculates buddy: <code>0 ^ (1 &lt;&lt; 0) = 1</code>. It inspects PFN 1. <strong>PFN 1 is allocated (#B)!</strong> Because its buddy is occupied, PFN 0 cannot merge. It is returned to <code>free_area[0]</code>.",
-        math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) → 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
+        math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) &rarr; 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
         inspectRow: 0,
         setup: () => {
           resetTree();
@@ -708,12 +651,11 @@
         title: "8. Freeing Block #B: The Coalescing Cascade",
         phase: "Coalesce / Merge",
         text: "Now Block #B (PFN 1) is freed and removed from the Used list. The kernel recalculates buddy <code>1 ^ 1 = 0</code>. PFN 0 is FREE! They fuse into Order 1 (PFN 0). The cascade ripples upward until the pool is restored to a single 64 KB block in <code>free_area[4]</code> and the Used list is completely empty.",
-        math: "Cascade:<br>[PFN 0 + PFN 1] → Order 1 (PFN 0)<br>[PFN 0 + PFN 2] → Order 2 (PFN 0)<br>[PFN 0 + PFN 4] → Order 3 (PFN 0)<br>[PFN 0 + PFN 8] → Order 4 (PFN 0)",
+        math: "Cascade:<br>[PFN 0 + PFN 1] &rarr; Order 1 (PFN 0)<br>[PFN 0 + PFN 2] &rarr; Order 2 (PFN 0)<br>[PFN 0 + PFN 4] &rarr; Order 3 (PFN 0)<br>[PFN 0 + PFN 8] &rarr; Order 4 (PFN 0)",
         inspectRow: 4,
         setup: () => { resetTree(); root.inspecting = true; }
       }
     ];
-
     function resetTree() { root = new BuddyNode(0, MAX_ORDER); }
     function splitNode(node) {
       const nextOrder = node.order - 1;
@@ -763,7 +705,7 @@
       step.setup();
       render();
       document.getElementById("prevBtn").disabled = (currentStep === 0);
-      document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step →";
+      document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step &rarr;";
       log(`[Step ${currentStep + 1}] ${step.title}`, "inspect");
     }
     function render() { renderMemoryBar(); renderFreeLists(); renderUsedList(); }
@@ -812,7 +754,7 @@
             if (idx < freeLists[order].length - 1) {
               const arrow = document.createElement("span");
               arrow.className = "arrow";
-              arrow.textContent = "⇄";
+              arrow.textContent = "&rarr;";
               nodesList.appendChild(arrow);
             }
           });

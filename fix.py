@@ -8,15 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>11. Local vs. Global Allocation Policies — COSC240</title>
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Memory Bookkeeping, Free/Used Lists &amp; Buddy Allocator — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -27,11 +19,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --proc-a: #0284c7;
-      --proc-b: #7c3aed;
+      --free-color: #059669;
+      --free-bg: #ecfdf5;
+      --alloc-color: #e11d48;
+      --alloc-bg: #ffe4e6;
+      --inspect-color: #d97706;
+      --inspect-bg: #fef3c7;
+      --buddy-glow: #ca8a04;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
@@ -43,10 +39,294 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       align-items: center;
       gap: 18px;
     }
-
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .concept-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #0369a1;
+    }
+    .concept-box strong { color: #075985; }
+    .figure-container {
+      width: 100%; max-width: 720px; margin: 10px auto; display: flex; flex-direction: column;
+      align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px;
+    }
+    .math-formula {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0369a1;
+    }
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+    }
+    .numerator { border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
+    .denominator { padding-top: 2px; }
+    .tutorial-panel {
+      border: 1px solid #fed7aa;
+      border-left: 4px solid var(--inspect-color);
+      background: #fffbeb;
+      transition: all 0.3s ease;
+    }
+    .tutorial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--inspect-color);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tutorial-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #78350f;
+    }
+    .tutorial-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #451a03;
+    }
+    .math-callout {
+      background: #ffffff;
+      border: 1px solid #fcd34d;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #b45309;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+    button {
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.btn-secondary {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    button.btn-secondary:hover { background: #e2e8f0; }
+    .memory-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .memory-bar {
+      display: flex;
+      width: 100%;
+      height: 76px;
+      border: 2px solid var(--border-dark);
+      border-radius: 6px;
+      overflow: hidden;
+      background: #e2e8f0;
+    }
+    .block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-right: 1px solid #cbd5e1;
+      transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease;
+      cursor: default;
+      user-select: none;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 4px;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .block:last-child { border-right: none; }
+    .block.free {
+      background-color: var(--free-bg);
+      color: var(--free-color);
+      border-top: 4px solid var(--free-color);
+    }
+    .block.allocated {
+      background-color: var(--alloc-bg);
+      color: var(--alloc-color);
+      border-top: 4px solid var(--alloc-color);
+    }
+    .block.state-inspecting {
+      background-color: var(--inspect-bg) !important;
+      border-top: 4px solid var(--inspect-color) !important;
+      animation: pulseInspect 0.8s infinite alternate;
+    }
+    .block.state-buddy-active {
+      border: 2px dashed var(--buddy-glow) !important;
+      animation: pulseBuddy 0.7s infinite alternate;
+    }
+    @keyframes pulseInspect {
+      0% { box-shadow: inset 0 0 4px rgba(217, 119, 6, 0.2); }
+      100% { box-shadow: inset 0 0 14px rgba(217, 119, 6, 0.5); }
+    }
+    @keyframes pulseBuddy {
+      0% { box-shadow: inset 0 0 6px rgba(202, 138, 4, 0.3); }
+      100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
+    }
+    .lists-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media(max-width: 768px) {
+      .lists-container { grid-template-columns: 1fr; }
+    }
+    .free-area-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .order-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.25s ease;
+    }
+    .order-row.inspecting-row {
+      background-color: #fef3c7;
+      border-left: 3px solid var(--inspect-color);
+    }
+    .order-label {
+      width: 140px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+    .list-nodes {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .node {
+      background-color: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .node.inspecting {
+      border-color: var(--inspect-color);
+      color: var(--inspect-color);
+      background-color: #fffbeb;
+      transform: scale(1.08);
+    }
+    .node.buddy-target {
+      border-color: var(--buddy-glow);
+      color: var(--buddy-glow);
+      background-color: #fefce8;
+      font-weight: bold;
+    }
+    .node-empty { color: #94a3b8; font-style: italic; }
+    .arrow { color: #94a3b8; }
+    .used-list-box {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .used-item {
+      background: #ffffff;
+      border: 1px solid #fda4af;
+      padding: 6px 10px;
+      border-radius: 4px;
+      color: #9f1239;
+      display: flex;
+      justify-content: space-between;
+    }
+    .log-terminal {
+      background-color: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      height: 130px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 3px;
+    }
+    .log-entry { line-height: 1.4; color: #334155; }
+    .log-entry.inspect { color: #d97706; font-weight: 600; }
+    .log-entry.alloc { color: #0284c7; }
+    .log-entry.free { color: #059669; }
+    .log-entry.merge { color: #ca8a04; }
     .nav-back {
       width: 100%;
       max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
       display: flex;
     }
     .nav-back a {
@@ -55,796 +335,485 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 6px;
       font-size: 0.85rem;
       font-weight: 600;
-      font-family: var(--font-mono);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       text-decoration: none;
-      color: var(--accent);
+      color: #0284c7;
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
       padding: 6px 12px;
       border-radius: 6px;
       transition: background-color 0.15s ease, color 0.15s ease;
     }
-    .nav-back a:hover { background-color: var(--accent); color: #fff; }
-
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 100%;
-      max-width: 1100px;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .theory-section {
-      line-height: 1.7;
-      font-size: 0.95rem;
-      color: #334155;
-      display: block;
-    }
-    .theory-section h2 {
-      font-size: 1.25rem;
-      color: var(--text);
-      margin-top: 16px;
-      margin-bottom: 4px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 4px;
-    }
-    .theory-section p {
-      margin-bottom: 10px;
-    }
-    .theory-callout {
-      background-color: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 12px 16px;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #0369a1;
-      font-family: var(--font-mono);
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .figure-container {
-      width: 100%;
-      max-width: 860px;
-      margin: 10px auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
-      clear: both;
-    }
-
-    .tutorial-panel {
-      border-left: 4px solid var(--accent);
-      background: #f0f9ff;
-    }
-    .tutorial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .tutorial-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #075985;
-      outline: none;
-    }
-    .tutorial-body {
-      font-size: 0.93rem;
-      line-height: 1.65;
-      color: #0c4a6e;
-      min-height: 90px;
-    }
-
-    .tour-nav {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .split-grid {
-      display: grid;
-      grid-template-columns: 500px 1fr;
-      gap: 20px;
-      align-items: start;
-      margin-top: 10px;
-    }
-    @media (max-width: 900px) {
-      .split-grid { grid-template-columns: 1fr; }
-    }
-
-    .guide-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
-      margin-top: 6px;
-      margin-bottom: 6px;
-    }
-    .guide-box {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.84rem;
-    }
-    .guide-box strong {
-      color: var(--accent);
-      font-size: 0.88rem;
-    }
-
-    .telemetry-box {
-      background: #0f172a;
-      color: #f8fafc;
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-    }
-
-    .terminal-box {
-      background: #0f172a;
-      color: #f8fafc;
-      border-radius: 6px;
-      padding: 12px 16px;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      height: 220px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 4px;
-    }
-
-    button {
-      background-color: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      user-select: none;
-      transition: background-color 0.15s ease, opacity 0.15s ease;
-    }
-    button:hover:not(:disabled) { background-color: var(--accent-hover); }
-    button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-    button.btn-sec {
-      background-color: #f1f5f9;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    button.btn-sec:hover:not(:disabled) { background-color: #e2e8f0; }
-
-    .ram-pool-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .ram-slot {
-      background: #f1f5f9;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px;
-      text-align: center;
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-height: 65px;
-      justify-content: center;
-      transition: all 0.25s ease;
-    }
-    .ram-slot.slot-a { background: #e0f2fe; border-color: #0284c7; color: #0369a1; font-weight: 700; }
-    .ram-slot.slot-b { background: #ede9fe; border-color: #7c3aed; color: #6d28d9; font-weight: 700; }
-
-    .walk-box {
-      transition: all 0.3s ease;
-    }
-    .walk-box.highlight rect {
-      stroke: #0284c7 !important;
-      stroke-width: 2.5px !important;
-      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.4));
-    }
-    .walk-box.victim rect {
-      stroke: #dc2626 !important;
-      stroke-width: 3px !important;
-      fill: #fee2e2 !important;
-      filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.5));
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
     }
   </style>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week Overview</a>
   </div>
-
   <header>
-    <h1>11. Local vs. Global Allocation Policies</h1>
-    <p class="subtitle">Tanenbaum Section 3.5.1 (Fig. 3-22): Process-local replacement quotas versus system-wide global frame allocation under memory pressure.</p>
+    <h1>Memory Bookkeeping, Free/Used Lists &amp; Buddy Allocator</h1>
+    <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
-
   <div class="main-container">
-
-    <!-- 1. THEORY SECTION -->
-    <div class="card">
-      <div class="theory-section">
-        <h2>1. The Core Allocation Dilemma in Multiprogramming</h2>
-        <p>
-          When multiple processes run concurrently in a virtual memory operating system, physical RAM must be divided among them. If a running process suffers a page fault and all physical frames are occupied, the kernel must select a resident page to evict. The foundational policy question is: <strong>Should the victim be chosen exclusively from the faulting process's own allocated frames, or from any frame in the entire machine?</strong>
-        </p>
-
-        <h2>2. Local Allocation Policies</h2>
-        <p>
-          A <strong>local replacement policy</strong> assigns each active process a fixed quota of physical page frames (e.g., determined at process startup based on executable size or dynamic working set estimation). When a page fault occurs, the kernel chooses a replacement victim strictly from the pages owned by that specific process.
-        </p>
-        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
-          <li><strong>Pros (Isolation):</strong> Processes are isolated from one another. A poorly written, thrashing program cannot steal frames from other well-behaved applications.</li>
-          <li><strong>Cons (Inflexibility):</strong> If a process enters a heavy compute phase requiring more memory, it cannot borrow idle frames from an inactive process, leading to artificial page faults and suboptimal performance.</li>
-        </ul>
-
-        <h2>3. Global Allocation Policies</h2>
-        <p>
-          A <strong>global replacement policy</strong> treats all physical memory frames in the machine as a unified, shared pool. When any process incurs a page fault, the kernel selects a replacement victim from the entire system-wide population of resident pages, regardless of which process owns them.
-        </p>
-        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
-          <li><strong>Pros (Adaptability):</strong> Highly efficient. If Process A is idle, its resident frames naturally migrate to Process B if B's working set is expanding. Overall system throughput is maximized.</li>
-          <li><strong>Cons (Vulnerability):</strong> Lack of isolation. A runaway or thrashing program can continuously steal frames from other processes, dragging down system-wide responsiveness.</li>
-        </ul>
-
-        <!-- Embedded SVG Diagram: Tanenbaum Figure 3-22 -->
-        <div class="figure-container">
-          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-22: Local vs. Global Page Replacement (Tanenbaum)</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 260" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
-            <defs>
-              <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
-              </marker>
-            </defs>
-
-            <!-- (a) Original Configuration -->
-            <rect x="30" y="30" width="200" height="190" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
-            <text x="130" y="52" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">(a) Original Configuration</text>
-            <rect x="50" y="70" width="160" height="60" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2" rx="4"/>
-            <text x="130" y="95" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle">Process A (5 Frames)</text>
-            <rect x="50" y="145" width="160" height="60" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.2" rx="4"/>
-            <text x="130" y="170" font-size="10" font-weight="700" fill="#6d28d9" text-anchor="middle">Process B (5 Frames)</text>
-
-            <!-- Arrow 1 -->
-            <line x1="240" y1="125" x2="275" y2="125" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
-
-            <!-- (b) Local Replacement -->
-            <rect x="285" y="30" width="200" height="190" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" rx="6"/>
-            <text x="385" y="52" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">(b) Local Replacement</text>
-            <rect x="305" y="70" width="160" height="60" fill="#ffffff" stroke="#16a34a" stroke-width="1.2" rx="4"/>
-            <text x="385" y="95" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Process A faults:</text>
-            <text x="385" y="112" font-size="9" fill="#166534" text-anchor="middle">Evicts only from A's quota</text>
-            <rect x="305" y="145" width="160" height="60" fill="#ffffff" stroke="#16a34a" stroke-width="1.2" rx="4"/>
-            <text x="385" y="170" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Process B unaffected</text>
-            <text x="385" y="187" font-size="9" fill="#166534" text-anchor="middle">Quotas remain strictly 5/5</text>
-
-            <!-- Arrow 2 -->
-            <line x1="495" y1="125" x2="530" y2="125" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
-
-            <!-- (c) Global Replacement -->
-            <rect x="540" y="30" width="190" height="190" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="6"/>
-            <text x="635" y="52" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">(c) Global Replacement</text>
-            <rect x="555" y="70" width="160" height="60" fill="#ffffff" stroke="#d97706" stroke-width="1.2" rx="4"/>
-            <text x="635" y="95" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">Process A faults:</text>
-            <text x="635" y="112" font-size="9" fill="#b45309" text-anchor="middle">Can steal frame from B!</text>
-            <rect x="555" y="145" width="160" height="60" fill="#ffffff" stroke="#d97706" stroke-width="1.2" rx="4"/>
-            <text x="635" y="170" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">Dynamic Quotas:</text>
-            <text x="635" y="187" font-size="9" fill="#b45309" text-anchor="middle">A grows (6), B shrinks (4)</text>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH SVG DIAGRAM -->
-    <div class="card tutorial-panel">
-      <div class="tutorial-header">
-        <span id="wtCounter">Step 1 of 4</span>
-        <span>Guided Walkthrough: Allocation Mechanics</span>
-      </div>
-      <div id="wtTitle" class="tutorial-title" tabindex="-1">1. The Baseline Multiprogramming State</div>
-
-      <div class="split-grid">
-        <!-- Live Walkthrough SVG Graphic -->
-        <div style="background:#ffffff; border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:6px;">
-          <span style="font-family:var(--font-mono); font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Live Step Schematic</span>
-
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#f8fafc; border-radius:4px;">
-            <defs>
-              <marker id="tour-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-              </marker>
-              <marker id="tour-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626" />
-              </marker>
-            </defs>
-
-            <!-- Machine Pool Container -->
-            <rect x="20" y="20" width="460" height="160" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" rx="6"/>
-            <text x="250" y="40" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Physical RAM Pool (8 Total Frames)</text>
-
-            <!-- Process A Quota Box -->
-            <g id="tourBoxA" class="walk-box highlight" transform="translate(40, 55)">
-              <rect x="0" y="0" width="180" height="105" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-              <text x="90" y="22" font-size="10.5" font-weight="700" fill="#0369a1" text-anchor="middle">Process A Quota</text>
-              <text x="90" y="40" font-size="9" fill="#0284c7" text-anchor="middle">Frames [0, 1, 2, 3]</text>
-              <!-- Mini Frames -->
-              <rect x="15" y="52" width="32" height="38" rx="3" fill="#ffffff" stroke="#0284c7"/>
-              <text x="31" y="75" font-size="8.5" font-weight="700" fill="#0369a1" text-anchor="middle">F0</text>
-              <rect x="53" y="52" width="32" height="38" rx="3" fill="#ffffff" stroke="#0284c7"/>
-              <text x="69" y="75" font-size="8.5" font-weight="700" fill="#0369a1" text-anchor="middle">F1</text>
-              <rect x="91" y="52" width="32" height="38" rx="3" fill="#ffffff" stroke="#0284c7"/>
-              <text x="107" y="75" font-size="8.5" font-weight="700" fill="#0369a1" text-anchor="middle">F2</text>
-              <rect x="129" y="52" width="32" height="38" rx="3" id="tourFrame3" fill="#ffffff" stroke="#0284c7"/>
-              <text x="145" y="75" font-size="8.5" font-weight="700" fill="#0369a1" text-anchor="middle">F3</text>
-            </g>
-
-            <!-- Isolation Barrier or Stealing Vector -->
-            <g id="tourBarrier">
-              <line x1="250" y1="55" x2="250" y2="160" stroke="#16a34a" stroke-width="2.5" stroke-dasharray="4"/>
-              <text x="250" y="175" font-size="8.5" font-weight="700" fill="#15803d" text-anchor="middle">Isolation Boundary</text>
-            </g>
-
-            <!-- Process B Quota Box -->
-            <g id="tourBoxB" class="walk-box" transform="translate(280, 55)">
-              <rect x="0" y="0" width="180" height="105" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
-              <text x="90" y="22" font-size="10.5" font-weight="700" fill="#6d28d9" text-anchor="middle">Process B Quota</text>
-              <text x="90" y="40" font-size="9" fill="#7c3aed" text-anchor="middle">Frames [4, 5, 6, 7]</text>
-              <!-- Mini Frames -->
-              <rect x="15" y="52" width="32" height="38" rx="3" fill="#ffffff" stroke="#7c3aed"/>
-              <text x="31" y="75" font-size="8.5" font-weight="700" fill="#6d28d9" text-anchor="middle">F4</text>
-              <rect x="53" y="52" width="32" height="38" rx="3" fill="#ffffff" stroke="#7c3aed"/>
-              <text x="69" y="75" font-size="8.5" font-weight="700" fill="#6d28d9" text-anchor="middle">F5</text>
-              <rect x="91" y="52" width="32" height="38" rx="3" fill="#ffffff" stroke="#7c3aed"/>
-              <text x="107" y="75" font-size="8.5" font-weight="700" fill="#6d28d9" text-anchor="middle">F6</text>
-              <rect x="129" y="52" width="32" height="38" rx="3" id="tourFrame7" fill="#ffffff" stroke="#7c3aed"/>
-              <text x="145" y="75" font-size="8.5" font-weight="700" fill="#6d28d9" text-anchor="middle">F7</text>
-            </g>
-          </svg>
-        </div>
-
-        <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
-          <div class="tutorial-body" id="wtText"></div>
-          <div class="tour-nav">
-            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
-            <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Step &rarr;</button>
-            <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Sandbox &darr;</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. INTERACTIVE ALLOCATION SANDBOX -->
-    <div class="card" id="sandboxSection">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <div>
-          <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive Multi-Process Allocation Sandbox</h2>
-          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Trigger page faults for Process A or Process B under Local vs. Global allocation policies and observe frame ownership.
+    <!-- FRONT AND CENTRE: Detailed Explanation of Allocation Lists, Purpose, and History -->
+    <div class="card" style="border-left: 4px solid var(--accent); background: #f0f9ff;">
+      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155;">
+        <strong>What are Allocation Lists?</strong> When an operating system kernel manages physical memory, it cannot simply guess which bytes of RAM are available. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. These consist of <em>Free Lists</em> (grouping unallocated blocks or holes) and <em>Used Lists/Trackers</em> (recording active process ownership, starting addresses, and block lengths).
+      </p>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-top: 6px;">
+        <strong>Why are they used?</strong> Without allocation lists, the kernel would be forced to perform exhaustive linear scans across every byte of raw hardware RAM every time a program requests or releases memory. Allocation lists enable structured, rapid metadata lookups, prevent memory corruption, and allow efficient coalescing of adjacent free blocks to mitigate external fragmentation.
+      </p>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-top: 6px;">
+        <strong>A Brief History &amp; Who Developed Them:</strong> Early computer systems in the 1950s and early 1960s used primitive bitmaps and sequential linked lists of variable-length holes, as detailed by foundational operating systems pioneers like <strong>Edsger Dijkstra</strong> and <strong>Andrew S. Tanenbaum</strong>. To solve the persistent problem of external fragmentation and slow search times, the <strong>Binary Buddy System</strong> was first introduced by <strong>Harry M. Markowitz</strong> in 1963. It was subsequently refined by <strong>Kenneth C. Knowlton</strong> in 1965 for Lisp symbol table management, and later popularized across computer science education by <strong>Donald Knuth</strong> in volume 1 of <em>The Art of Computer Programming</em>.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;">
+        <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
+          <strong style="color: #0284c7; font-size: 0.9rem;">Free Lists (Availability)</strong>
+          <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
+            Group unallocated blocks by power-of-two sizes (`free_area[0..MAX_ORDER]`). Enables instant $O(1)$ pop operations when allocating memory.
           </p>
         </div>
-        <div style="display:flex; gap:8px;">
-          <button type="button" class="btn-sec" onclick="resetSandbox()">Reset Sandbox</button>
-        </div>
-      </div>
-
-      <!-- Instruction Guide Card -->
-      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
-        <strong style="color: var(--accent); font-size: 0.9rem;">How the Sandbox Works &amp; What to Observe:</strong>
-        <div class="guide-grid">
-          <div class="guide-box">
-            <strong>1. Select Policy Mode</strong>
-            <span>Choose <em>Local Allocation</em> to keep quotas strictly fixed at 4/4, or <em>Global Allocation</em> to allow cross-process frame stealing.</span>
-          </div>
-          <div class="guide-box">
-            <strong>2. Trigger Faults</strong>
-            <span>Click <em>Fault Process A</em> or <em>Fault Process B</em> to simulate a page fault. Watch the SVG system memory map update instantly.</span>
-          </div>
-          <div class="guide-box">
-            <strong>3. Observe Frame Stealing vs. Isolation</strong>
-            <span>Under Local mode, notice how faults stay strictly contained within each process's quota. Under Global mode, faulting Process A seizes frames from Process B with a red visual tracking vector!</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Controls -->
-      <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:12px 14px; border:1px solid var(--border); border-radius:6px;">
-        <label style="font-size:0.85rem; font-weight:600;">Policy Mode:</label>
-        <select id="policySelect" onchange="switchPolicy(this.value)" style="padding:5px 10px; font-family:var(--font-mono); font-size:0.85rem; border:1px solid var(--border); border-radius:4px;">
-          <option value="local">Local Allocation (Fixed Quotas)</option>
-          <option value="global">Global Allocation (Shared Pool)</option>
-        </select>
-
-        <div style="display:flex; gap:8px; margin-left:auto;">
-          <button type="button" onclick="faultProcess('A')" style="background:#0284c7;">Fault Process A</button>
-          <button type="button" onclick="faultProcess('B')" style="background:#7c3aed;">Fault Process B</button>
-        </div>
-      </div>
-
-      <!-- Live Dynamic SVG Memory Map -->
-      <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:12px; display:flex; flex-direction:column; gap:6px;">
-        <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Live System Memory Map (8 Frames)</span>
-
-        <svg id="sandboxMapSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 110" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#f8fafc; border-radius:4px;">
-          <defs>
-            <marker id="map-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-            </marker>
-            <marker id="map-local-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
-            </marker>
-          </defs>
-          <g id="mapFramesGroup"></g>
-          <!-- Global Steal Vector -->
-          <path id="mapStealVector" d="M 0 0 L 0 0" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="4" fill="none" marker-end="url(#map-arr)" opacity="0"/>
-          <text id="mapStealLabel" x="360" y="20" font-size="9" font-weight="700" fill="#dc2626" text-anchor="middle" opacity="0">FRAME STOLEN ACROSS PROCESSES!</text>
-          <!-- Local Containment Vector -->
-          <path id="mapLocalVector" d="M 0 0 L 0 0" stroke="#16a34a" stroke-width="2.5" fill="none" marker-end="url(#map-local-arr)" opacity="0"/>
-          <text id="mapLocalLabel" x="360" y="20" font-size="9" font-weight="700" fill="#16a34a" text-anchor="middle" opacity="0">LOCAL POLICY: Quota isolated. Other process protected!</text>
-        </svg>
-      </div>
-
-      <!-- Telemetry Banner -->
-      <div class="telemetry-box">
-        <span>Active Policy: <strong id="statPolicy" style="color:#38bdf8;">Local Allocation</strong></span>
-        <span>Process A Frames: <strong id="statFramesA" style="color:#38bdf8;">4</strong></span>
-        <span>Process B Frames: <strong id="statFramesB" style="color:#a78bfa;">4</strong></span>
-      </div>
-
-      <div class="split-grid">
-        <!-- Physical RAM Pool Grid -->
-        <div>
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Physical RAM Frames Grid</span>
-          <div id="ramPoolGrid" class="ram-pool-grid" style="margin-top:6px;"></div>
-        </div>
-
-        <!-- Kernel Event Log -->
-        <div style="display:flex; flex-direction:column; gap:6px;">
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Kernel Allocation Event Log</span>
-          <div id="sandboxLog" class="terminal-box"></div>
+        <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
+          <strong style="color: #0284c7; font-size: 0.9rem;">Used Trackers (Ownership)</strong>
+          <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
+            Record active allocations and metadata. When a process frees a pointer, the kernel inspects this tracker to know the exact block boundaries for buddy coalescing.
+          </p>
         </div>
       </div>
     </div>
 
+    <!-- Tanenbaum Section 1: Bitmaps -->
+    <div class="card">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">2. Tanenbaum's Method 1: Bookkeeping with Bitmaps</div>
+      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+        Memory is partitioned into fixed allocation units (e.g., 4 KB blocks). Each unit corresponds to a single bit in a bitmap: <code>0</code> if free, and <code>1</code> if allocated to a process.
+      </p>
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Memory Allocation Tracked via Bitmaps</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <g transform="translate(20, 20)">
+            <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Memory Units (4 KB each):</text>
+            <rect x="0" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="20" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
+            <rect x="42" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="62" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
+            <rect x="84" y="30" width="40" height="40" fill="#ecfdf5" stroke="#059669"/><text x="104" y="55" font-size="9" fill="#059669" text-anchor="middle">0</text>
+            <rect x="126" y="30" width="40" height="40" fill="#ecfdf5" stroke="#059669"/><text x="146" y="55" font-size="9" fill="#059669" text-anchor="middle">0</text>
+            <rect x="168" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="188" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
+            <rect x="210" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="230" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
+            <rect x="252" y="30" width="40" height="40" fill="#ecfdf5" stroke="#059669"/><text x="272" y="55" font-size="9" fill="#059669" text-anchor="middle">0</text>
+          </g>
+          <g transform="translate(420, 20)">
+            <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Bitmap Array:</text>
+            <rect x="0" y="30" width="220" height="40" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="110" y="55" font-size="12" font-family="monospace" font-weight="700" fill="#0284c7" text-anchor="middle">1 1 0 0 1 1 0</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Tanenbaum Section 2: Linked Lists -->
+    <div class="card">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">3. Tanenbaum's Method 2: Bookkeeping with Linked Lists of Segments</div>
+      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+        The operating system maintains a linked list where each node indicates whether a region is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
+      </p>
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Tanenbaum's Linked List of Segments (Holes &amp; Processes)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <rect x="30" y="25" width="640" height="45" fill="#e2e8f0" stroke="#334155" stroke-width="1.5" rx="4"/>
+          <rect x="30" y="25" width="140" height="45" fill="#e11d48" opacity="0.8"/>
+          <text x="100" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process A (Addr 0, Len 140)</text>
+          <rect x="170" y="25" width="90" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+          <text x="215" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 140, 90)</text>
+          <rect x="260" y="25" width="200" height="45" fill="#e11d48" opacity="0.8"/>
+          <text x="360" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process B (Addr 230, Len 200)</text>
+          <rect x="460" y="25" width="210" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+          <text x="565" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 430, 210)</text>
+          <g transform="translate(30, 95)">
+            <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Linked List Nodes:</text>
+            <rect x="0" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="65" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 0 | Len: 140 ]</text>
+            <line x1="0" y1="60" x2="130" y2="60" stroke="#f1f5f9"/>
+            <text x="65" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
+            <path d="M 130 62 L 175 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
+            <rect x="175" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="240" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 140 | Len: 90 ]</text>
+            <line x1="175" y1="60" x2="305" y2="60" stroke="#f1f5f9"/>
+            <text x="240" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
+            <path d="M 305 62 L 350 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
+            <rect x="350" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="415" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 230 | Len: 200 ]</text>
+            <line x1="350" y1="60" x2="480" y2="60" stroke="#f1f5f9"/>
+            <text x="415" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
+            <path d="M 480 62 L 525 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
+            <rect x="525" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="590" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 430 | Len: 210 ]</text>
+            <line x1="525" y1="60" x2="655" y2="60" stroke="#f1f5f9"/>
+            <text x="590" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; NULL</text>
+          </g>
+          <defs>
+            <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Section 4: Classical Placement Strategies -->
+    <div class="card">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">4. Classical Placement Strategies (First Fit, Best Fit, Worst Fit, Next Fit)</div>
+      <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-muted);">
+        When allocating memory from a linked list of holes, the kernel uses placement algorithms to decide which hole to assign:
+      </p>
+      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
+        <li><strong>First Fit:</strong> Scan from the start and pick the <em>first</em> hole that is big enough. Fast, but clutters the front of memory with small splinters.</li>
+        <li><strong>Best Fit:</strong> Search the <em>entire</em> list and pick the hole closest in size to the request. Minimizes leftover waste per allocation, but is slow and leaves tiny, unusable slivers.</li>
+        <li><strong>Worst Fit:</strong> Allocate from the <em>largest</em> hole so leftovers remain useful. In practice, it rapidly exhausts large blocks.</li>
+        <li><strong>Next Fit:</strong> Like First Fit, but starts scanning from the location of the <em>last allocation</em> rather than the beginning.</li>
+      </ul>
+    </div>
+
+    <!-- PFN Explanation Banner -->
+    <div class="concept-box">
+      <strong>What is a PFN (Page Frame Number)?</strong><br>
+      Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
+      <div class="math-formula">
+        <span>PFN</span>
+        <span>=</span>
+        <div class="fraction">
+          <span class="numerator">Physical Address</span>
+          <span class="denominator">4096</span>
+        </div>
+        <span>=</span>
+        <span>Physical Address &gt;&gt; 12</span>
+      </div>
+      Physical address <code>0x0000</code> is PFN 0, <code>0x1000</code> is PFN 1, <code>0x2000</code> is PFN 2, and so on. The buddy system performs all pairing directly on this integer index.
+    </div>
+
+    <!-- Tutorial Control Box -->
+    <div class="card tutorial-panel" id="tutorialCard">
+      <div class="tutorial-header">
+        <span id="stepCounter">Step 1 of 8</span>
+        <span id="stepPhase">State: Idle</span>
+      </div>
+      <div id="tutorialTitle" class="tutorial-title">1. Initial Setup: The Single Max Block</div>
+      <div id="tutorialText" class="tutorial-body"></div>
+      <div id="mathBox" class="math-callout" style="display:none;"></div>
+      <div class="tour-nav">
+        <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Micro-Step</button>
+        <button id="nextBtn">Next Micro-Step &rarr;</button>
+        <button id="jumpSandboxBtn" class="btn-secondary" style="margin-left:auto;">Jump to Summary</button>
+      </div>
+    </div>
+
+    <!-- Physical Memory Bar -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:600;">Physical Memory Range (PFN 0 to 15)</span>
+        <span style="font-size:0.8rem; color:var(--text-muted);">16 Pages &times; 4 KB = 64 KB Total Pool</span>
+      </div>
+      <div class="memory-label-row">
+        <span>PFN 0 (0x0000)</span>
+        <span>PFN 4 (0x4000)</span>
+        <span>PFN 8 (0x8000)</span>
+        <span>PFN 12 (0xC000)</span>
+        <span>PFN 15 (0xF000)</span>
+      </div>
+      <div id="memoryBar" class="memory-bar"></div>
+    </div>
+
+    <!-- Kernel Free Area & Used Tracking Grid -->
+    <div class="lists-container">
+      <div class="card">
+        <span style="font-weight:600;">Kernel Free List Array (<code>free_area[0..4]</code>)</span>
+        <div id="freeAreaLists" class="free-area-list"></div>
+      </div>
+      <div class="card">
+        <span style="font-weight:600;">Active Allocations (Used Tracker)</span>
+        <div id="usedListBox" class="used-list-box">
+          <span style="color: #94a3b8; font-style: italic;">No active allocations (Used list empty).</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Execution Terminal -->
+    <div class="card">
+      <span style="font-weight:600;">Kernel Memory Allocator Trace</span>
+      <div id="actionLog" class="log-terminal"></div>
+    </div>
   </div>
 
   <script>
-    /* =========================================================================
-       PART 2: GUIDED WALKTHROUGH LOGIC WITH SYNCHRONIZED DIAGRAM
-       ========================================================================= */
-    let wtStep = 0;
-    const wtSteps = [
+    const MAX_ORDER = 4;
+    const PAGE_SIZE_KB = 4;
+    class BuddyNode {
+      constructor(pfn, order, parent = null) {
+        this.pfn = pfn;
+        this.order = order;
+        this.parent = parent;
+        this.left = null;
+        this.right = null;
+        this.isAllocated = false;
+        this.isSplit = false;
+        this.tag = null;
+        this.inspecting = false;
+        this.isBuddyHighlighted = false;
+      }
+      get size() { return (1 << this.order); }
+    }
+    let root = null;
+    let currentStep = 0;
+    let inspectingOrderRow = null;
+    const steps = [
       {
-        title: "1. The Baseline Multiprogramming State",
-        text: "Consider a computer with 8 physical frames shared between two active processes, Process A and Process B. In the initial baseline state, each process is allocated an equal quota of 4 frames.",
-        boxA: "highlight",
-        boxB: "",
-        barrierColor: "#16a34a",
-        barrierText: "Isolation Boundary",
-        frame3Fill: "#ffffff",
-        frame7Fill: "#ffffff"
+        title: "1. The Starting Pool (Order 4)",
+        phase: "Inspection",
+        text: "The kernel starts with 16 continuous page frames (PFN 0 through 15). Because 16 = 2<sup>4</sup>, this is managed as a single block of <strong>Order 4</strong>. Notice that <code>free_area[4]</code> holds <code>[PFN 0]</code>, while lists 0 through 3 are empty (NULL). The Used list has no entries.",
+        math: "Block size = 2<sup>4</sup> = 16 pages (64 KB). Base PFN = 0.",
+        inspectRow: 4,
+        setup: () => { resetTree(); }
       },
       {
-        title: "2. Page Fault Under Local Allocation",
-        text: "Process A incurs a page fault. Under a <strong>Local Allocation</strong> policy, the operating system is restricted to choosing a victim page exclusively from Process A's own 4 frames. The strict isolation barrier prevents Process A from touching Process B's quota.",
-        boxA: "highlight victim",
-        boxB: "",
-        barrierColor: "#16a34a",
-        barrierText: "Strict Isolation Barrier",
-        frame3Fill: "#fee2e2",
-        frame7Fill: "#ffffff"
+        title: "2. Incoming Request: Allocate 4 KB (Order 0)",
+        phase: "Scanning Lists",
+        text: "A process calls <code>kmalloc(4096)</code>. The kernel translates 4 KB into <strong>Order 0</strong> (2<sup>0</sup> pages). It inspects <code>free_area[0]</code> first: <strong>empty!</strong> It checks <code>free_area[1]</code> through <code>[3]</code> (all empty), and finally reaches <code>free_area[4]</code> where PFN 0 is available.",
+        math: "Target Order = 0. Scanning upward: free_area[0]=NULL &rarr; [1]=NULL &rarr; [2]=NULL &rarr; [3]=NULL &rarr; [4]=PFN 0.",
+        inspectRow: 0,
+        setup: () => { resetTree(); root.inspecting = true; }
       },
       {
-        title: "3. Page Fault Under Global Allocation",
-        text: "Now consider the same page fault under a <strong>Global Allocation</strong> policy. The isolation barrier is removed. If Process B's frame (e.g. Frame 7) is older, the kernel seizes it and reassigns it to Process A, shifting quotas to 5 for A and 3 for B.",
-        boxA: "highlight",
-        boxB: "victim",
-        barrierColor: "#dc2626",
-        barrierText: "Global Pool (Frame Seized!)",
-        frame3Fill: "#ffffff",
-        frame7Fill: "#fee2e2"
+        title: "3. Granular Split: Order 4 down to Order 3",
+        phase: "Splitting Block",
+        text: "The kernel removes PFN 0 from <code>free_area[4]</code> and splits it in half. Two Order 3 blocks are created: Left child (PFN 0) and Right child (PFN 8). PFN 8 is parked on <code>free_area[3]</code> as an idle buddy!",
+        math: "Split PFN 0 (Order 4): Buddy PFN = 0 ^ (1 &lt;&lt; 3) = 0 ^ 8 = PFN 8.<br>free_area[3] now gets [PFN 8].",
+        inspectRow: 3,
+        setup: () => { resetTree(); splitNode(root); root.left.inspecting = true; root.right.isBuddyHighlighted = true; }
       },
       {
-        title: "4. Trade-Offs: Protection vs. Efficiency",
-        text: "Local allocation provides rigid isolation, ensuring processes cannot starve each other. Global allocation maximizes RAM utilization across active tasks, but exposes well-behaved applications to memory hogging by runaway threads.",
-        boxA: "highlight",
-        boxB: "highlight",
-        barrierColor: "#0284c7",
-        barrierText: "Unified Shared Pool",
-        frame3Fill: "#ffffff",
-        frame7Fill: "#ffffff"
+        title: "4. Cascading Down to Order 0",
+        phase: "Splitting Cascades",
+        text: "The left halves are recursively split until an Order 0 block is reached. At each split, the unused right half registers as a free buddy deposited into its respective free list: PFN 4 in <code>free_area[2]</code>, PFN 2 in <code>free_area[1]</code>, and PFN 1 in <code>free_area[0]</code>.",
+        math: "Unused buddies deposited:<br>free_area[2] gets PFN 4<br>free_area[1] gets PFN 2<br>free_area[0] gets PFN 1",
+        inspectRow: 0,
+        setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.inspecting = true; }
+      },
+      {
+        title: "5. Allocation Complete: Block #A Claimed",
+        phase: "Allocated",
+        text: "PFN 0 is marked as <strong>Allocated</strong> (Block #A) and registered into the <strong>Used Tracker</strong>. Notice how PFN 0 is removed from the free lists entirely while PFN 1 remains free in <code>free_area[0]</code>.",
+        math: "Allocated: PFN 0 (Order 0).<br>Used List Entry: Block #A &rarr; PFN 0 (4 KB).",
+        inspectRow: 0,
+        setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.isAllocated = true; leaf.tag = "A"; }
+      },
+      {
+        title: "6. Second Allocation: Immediate O(1) Hit",
+        phase: "Instant Hit",
+        text: "A second request for Order 0 arrives. The allocator checks <code>free_area[0]</code>. PFN 1 is right there! It pops PFN 1 off <code>free_area[0]</code> in O(1) time, assigns it as Block #B, and adds it to the Used list.",
+        math: "free_area[0] POP &rarr; PFN 1 assigned as Block #B.<br>Used List now tracks both #A and #B.",
+        inspectRow: 0,
+        setup: () => {
+          resetTree();
+          const leafA = splitDownTo(root, 0);
+          leafA.isAllocated = true;
+          leafA.tag = "A";
+          const leafB = root.left.left.left.right;
+          leafB.isAllocated = true;
+          leafB.tag = "B";
+          leafB.inspecting = true;
+        }
+      },
+      {
+        title: "7. Freeing Block #A: The Buddy Check",
+        phase: "Checking Buddy",
+        text: "The owner frees Block #A (PFN 0). It is removed from the Used list. Before coalescing, the kernel calculates buddy: <code>0 ^ (1 &lt;&lt; 0) = 1</code>. It inspects PFN 1. <strong>PFN 1 is allocated (#B)!</strong> Because its buddy is occupied, PFN 0 cannot merge. It is returned to <code>free_area[0]</code>.",
+        math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) &rarr; 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
+        inspectRow: 0,
+        setup: () => {
+          resetTree();
+          const leafA = splitDownTo(root, 0);
+          leafA.isAllocated = false;
+          const leafB = root.left.left.left.right;
+          leafB.isAllocated = true;
+          leafB.tag = "B";
+          leafA.inspecting = true;
+          leafB.isBuddyHighlighted = true;
+        }
+      },
+      {
+        title: "8. Freeing Block #B: The Coalescing Cascade",
+        phase: "Coalesce / Merge",
+        text: "Now Block #B (PFN 1) is freed and removed from the Used list. The kernel recalculates buddy <code>1 ^ 1 = 0</code>. PFN 0 is FREE! They fuse into Order 1 (PFN 0). The cascade ripples upward until the pool is restored to a single 64 KB block in <code>free_area[4]</code> and the Used list is completely empty.",
+        math: "Cascade:<br>[PFN 0 + PFN 1] &rarr; Order 1 (PFN 0)<br>[PFN 0 + PFN 2] &rarr; Order 2 (PFN 0)<br>[PFN 0 + PFN 4] &rarr; Order 3 (PFN 0)<br>[PFN 0 + PFN 8] &rarr; Order 4 (PFN 0)",
+        inspectRow: 4,
+        setup: () => { resetTree(); root.inspecting = true; }
       }
     ];
-
-    function renderWt() {
-      const s = wtSteps[wtStep];
-      document.getElementById("wtCounter").textContent = `Step ${wtStep + 1} of ${wtSteps.length}`;
-      document.getElementById("wtTitle").textContent = s.title;
-      document.getElementById("wtText").innerHTML = s.text;
-
-      document.getElementById("tourBoxA").className = `walk-box ${s.boxA}`;
-      document.getElementById("tourBoxB").className = `walk-box ${s.boxB}`;
-      document.getElementById("tourFrame3").setAttribute("fill", s.frame3Fill);
-      document.getElementById("tourFrame7").setAttribute("fill", s.frame7Fill);
-
-      const barrierLine = document.querySelector("#tourBarrier line");
-      const barrierText = document.querySelector("#tourBarrier text");
-      if (barrierLine && barrierText) {
-        barrierLine.setAttribute("stroke", s.barrierColor);
-        barrierText.setAttribute("fill", s.barrierColor);
-        barrierText.textContent = s.barrierText;
+    function resetTree() { root = new BuddyNode(0, MAX_ORDER); }
+    function splitNode(node) {
+      const nextOrder = node.order - 1;
+      const buddySize = 1 << nextOrder;
+      node.isSplit = true;
+      node.left = new BuddyNode(node.pfn, nextOrder, node);
+      node.right = new BuddyNode(node.pfn + buddySize, nextOrder, node);
+      return node;
+    }
+    function splitDownTo(node, targetOrder) {
+      if (node.order === targetOrder) return node;
+      splitNode(node);
+      return splitDownTo(node.left, targetOrder);
+    }
+    function collectLeaves(node, result = []) {
+      if (!node.isSplit) { result.push(node); }
+      else { collectLeaves(node.left, result); collectLeaves(node.right, result); }
+      return result;
+    }
+    function collectFreeLists() {
+      const lists = Array.from({ length: MAX_ORDER + 1 }, () => []);
+      function traverse(n) {
+        if (!n.isSplit && !n.isAllocated) { lists[n.order].push(n); }
+        else if (n.isSplit) { traverse(n.left); traverse(n.right); }
       }
-
-      document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
-      document.getElementById("wtNextBtn").disabled = (wtStep === wtSteps.length - 1);
-      document.getElementById("wtTitle").focus();
+      traverse(root);
+      return lists;
     }
-
-    function stepWtForward() {
-      if (wtStep < wtSteps.length - 1) {
-        wtStep++;
-        renderWt();
+    function collectUsedNodes(node, result = []) {
+      if (node.isAllocated) { result.push(node); }
+      else if (node.isSplit) {
+        collectUsedNodes(node.left, result);
+        collectUsedNodes(node.right, result);
       }
+      return result;
     }
-
-    function stepWtBackward() {
-      if (wtStep > 0) {
-        wtStep--;
-        renderWt();
-      }
+    function updateStep() {
+      const step = steps[currentStep];
+      document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${steps.length}`;
+      document.getElementById("stepPhase").textContent = `Phase: ${step.phase}`;
+      document.getElementById("tutorialTitle").textContent = step.title;
+      document.getElementById("tutorialText").innerHTML = step.text;
+      const mBox = document.getElementById("mathBox");
+      if (step.math) { mBox.style.display = "flex"; mBox.innerHTML = step.math; }
+      else { mBox.style.display = "none"; }
+      inspectingOrderRow = step.inspectRow;
+      step.setup();
+      render();
+      document.getElementById("prevBtn").disabled = (currentStep === 0);
+      document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step &rarr;";
+      log(`[Step ${currentStep + 1}] ${step.title}`, "inspect");
     }
-
-    renderWt();
-
-    /* =========================================================================
-       PART 3: LIVE SANDBOX LOGIC WITH DYNAMIC SVG MAP
-       ========================================================================= */
-    let policy = "local";
-    let ramFrames = [
-      { id: 0, owner: "A", age: 10 },
-      { id: 1, owner: "A", age: 20 },
-      { id: 2, owner: "A", age: 30 },
-      { id: 3, owner: "A", age: 40 },
-      { id: 4, owner: "B", age: 5 },
-      { id: 5, owner: "B", age: 15 },
-      { id: 6, owner: "B", age: 25 },
-      { id: 7, owner: "B", age: 35 }
-    ];
-
-    function logSandbox(msg) {
-      const term = document.getElementById("sandboxLog");
-      const row = document.createElement("div");
-      row.className = "log-row";
-      row.textContent = `> ${msg}`;
-      term.prepend(row);
-    }
-
-    function renderSandboxMap(stolenFrameIdx = -1, stolenFrom = "", localVictimIdx = -1, localProc = "") {
-      const group = document.getElementById("mapFramesGroup");
-      group.innerHTML = "";
-
-      const boxWidth = 75;
-      const boxHeight = 45;
-      const startX = 25;
-      const startY = 35;
-      const gap = 12;
-
-      ramFrames.forEach((f, idx) => {
-        const x = startX + idx * (boxWidth + gap);
-        const y = startY;
-
-        const isStolen = (idx === stolenFrameIdx || idx === localVictimIdx);
-        const fillColor = (f.owner === "A" ? "#e0f2fe" : "#ede9fe");
-        const strokeColor = (f.owner === "A" ? "#0284c7" : "#7c3aed");
-        const textColor = (f.owner === "A" ? "#0369a1" : "#6d28d9");
-
-        let html = `
-          <rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="4" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isStolen ? '2.5' : '1.2'}"/>
-          <text x="${x + boxWidth/2}" y="${y + 18}" font-size="9.5" font-weight="700" fill="${textColor}" text-anchor="middle">Frame #${f.id}</text>
-          <text x="${x + boxWidth/2}" y="${y + 32}" font-size="9" fill="${textColor}" text-anchor="middle">Proc ${f.owner}</text>
-        `;
-        group.innerHTML += html;
-      });
-
-      const vectorPath = document.getElementById("mapStealVector");
-      const labelEl = document.getElementById("mapStealLabel");
-      const localVectorPath = document.getElementById("mapLocalVector");
-      const localLabelEl = document.getElementById("mapLocalLabel");
-
-      if (stolenFrameIdx !== -1 && policy === "global") {
-        localVectorPath.setAttribute("opacity", "0");
-        localLabelEl.setAttribute("opacity", "0");
-
-        const boxX = startX + stolenFrameIdx * (boxWidth + gap) + boxWidth/2;
-        vectorPath.setAttribute("d", `M ${boxX} 28 L ${boxX} 15`);
-        vectorPath.setAttribute("opacity", "1");
-        labelEl.textContent = `GLOBAL POLICY: Frame #${stolenFrameIdx} stolen from Process ${stolenFrom}!`;
-        labelEl.setAttribute("opacity", "1");
-
-        setTimeout(() => {
-          vectorPath.setAttribute("opacity", "0");
-          labelEl.setAttribute("opacity", "0");
-        }, 1500);
-      } else if (localVictimIdx !== -1 && policy === "local") {
-        vectorPath.setAttribute("opacity", "0");
-        labelEl.setAttribute("opacity", "0");
-
-        const boxX = startX + localVictimIdx * (boxWidth + gap) + boxWidth/2;
-        localVectorPath.setAttribute("d", `M ${boxX} 28 L ${boxX} 15`);
-        localVectorPath.setAttribute("opacity", "1");
-        localLabelEl.textContent = `LOCAL POLICY: Evicting within Process ${localProc} quota. Other process protected!`;
-        localLabelEl.setAttribute("opacity", "1");
-
-        setTimeout(() => {
-          localVectorPath.setAttribute("opacity", "0");
-          localLabelEl.setAttribute("opacity", "0");
-        }, 1500);
-      } else {
-        vectorPath.setAttribute("opacity", "0");
-        labelEl.setAttribute("opacity", "0");
-        localVectorPath.setAttribute("opacity", "0");
-        localLabelEl.setAttribute("opacity", "0");
-      }
-    }
-
-    function renderSandbox() {
-      const grid = document.getElementById("ramPoolGrid");
-      grid.innerHTML = "";
-
-      let countA = 0;
-      let countB = 0;
-
-      ramFrames.forEach(f => {
-        if (f.owner === "A") countA++;
-        if (f.owner === "B") countB++;
-
+    function render() { renderMemoryBar(); renderFreeLists(); renderUsedList(); }
+    function renderMemoryBar() {
+      const bar = document.getElementById("memoryBar");
+      bar.innerHTML = "";
+      collectLeaves(root).forEach(node => {
         const div = document.createElement("div");
-        div.className = `ram-slot slot-${f.owner.toLowerCase()}`;
-        div.innerHTML = `
-          <span>Frame #${f.id}</span>
-          <strong>Proc ${f.owner}</strong>
-          <span style="font-size:0.72rem; opacity:0.8;">Age: ${f.age}</span>
-        `;
-        grid.appendChild(div);
+        div.className = `block ${node.isAllocated ? 'allocated' : 'free'}`;
+        if (node.inspecting) div.classList.add("state-inspecting");
+        if (node.isBuddyHighlighted) div.classList.add("state-buddy-active");
+        div.style.flex = node.size;
+        const sizeKb = node.size * PAGE_SIZE_KB;
+        const pfnText = node.size === 1 ? `PFN ${node.pfn}` : `PFN ${node.pfn}..${node.pfn + node.size - 1}`;
+        if (node.isAllocated) {
+          div.innerHTML = `<strong>#${node.tag} [Alloc]</strong><span>${sizeKb}KB (O${node.order})</span><span>${pfnText}</span>`;
+        } else {
+          div.innerHTML = `<strong>Free</strong><span>${sizeKb}KB (O${node.order})</span><span>${pfnText}</span>`;
+        }
+        bar.appendChild(div);
       });
-
-      document.getElementById("statPolicy").textContent = (policy === "local" ? "Local Allocation (Fixed Quotas)" : "Global Allocation (Shared Pool)");
-      document.getElementById("statFramesA").textContent = countA;
-      document.getElementById("statFramesB").textContent = countB;
     }
-
-    function switchPolicy(val) {
-      policy = val;
-      logSandbox(`Allocation policy switched to: ${policy.toUpperCase()}.`);
-      renderSandbox();
-      renderSandboxMap();
-    }
-
-    function faultProcess(proc) {
-      const targetProc = proc;
-
-      logSandbox(`--------------------------------------------------`);
-      logSandbox(`Page fault triggered by Process ${targetProc}!`);
-
-      if (policy === "local") {
-        let oldestAge = -1;
-        let victimIdx = -1;
-
-        ramFrames.forEach((f, idx) => {
-          if (f.owner === targetProc && f.age > oldestAge) {
-            oldestAge = f.age;
-            victimIdx = idx;
-          }
-        });
-
-        if (victimIdx !== -1) {
-          ramFrames[victimIdx].age = 0;
-          ramFrames.forEach(f => f.age += 5);
-          logSandbox(`LOCAL POLICY: Evicted Process ${targetProc}'s oldest frame (#${victimIdx}). Quotas strictly maintained (4 A / 4 B).`);
-          renderSandboxMap(-1, "", victimIdx, targetProc);
+    function renderFreeLists() {
+      const container = document.getElementById("freeAreaLists");
+      container.innerHTML = "";
+      const freeLists = collectFreeLists();
+      for (let order = MAX_ORDER; order >= 0; order--) {
+        const row = document.createElement("div");
+        row.className = "order-row";
+        if (inspectingOrderRow === order) row.classList.add("inspecting-row");
+        const label = document.createElement("span");
+        label.className = "order-label";
+        label.textContent = `free_area[${order}] (${(1 << order) * PAGE_SIZE_KB}KB):`;
+        const nodesList = document.createElement("div");
+        nodesList.className = "list-nodes";
+        if (freeLists[order].length === 0) {
+          nodesList.innerHTML = `<span class="node-empty">NULL</span>`;
+        } else {
+          freeLists[order].forEach((n, idx) => {
+            const nodeEl = document.createElement("span");
+            nodeEl.className = "node";
+            if (n.inspecting) nodeEl.classList.add("inspecting");
+            if (n.isBuddyHighlighted) nodeEl.classList.add("buddy-target");
+            nodeEl.textContent = `[PFN ${n.pfn}]`;
+            nodesList.appendChild(nodeEl);
+            if (idx < freeLists[order].length - 1) {
+              const arrow = document.createElement("span");
+              arrow.className = "arrow";
+              arrow.textContent = "&rarr;";
+              nodesList.appendChild(arrow);
+            }
+          });
         }
-      } else {
-        let oldestAge = -1;
-        let victimIdx = -1;
-
-        ramFrames.forEach((f, idx) => {
-          if (f.age > oldestAge) {
-            oldestAge = f.age;
-            victimIdx = idx;
-          }
-        });
-
-        if (victimIdx !== -1) {
-          const stolenFrom = ramFrames[victimIdx].owner;
-          ramFrames[victimIdx].owner = targetProc;
-          ramFrames[victimIdx].age = 0;
-          ramFrames.forEach(f => f.age += 5);
-          logSandbox(`GLOBAL POLICY: Stole Frame #${victimIdx} from Process ${stolenFrom} and assigned to Process ${targetProc}!`);
-          renderSandboxMap(victimIdx, stolenFrom);
-        }
+        row.appendChild(label);
+        row.appendChild(nodesList);
+        container.appendChild(row);
       }
-
-      renderSandbox();
     }
-
-    function resetSandbox() {
-      policy = "local";
-      document.getElementById("policySelect").value = "local";
-      ramFrames = [
-        { id: 0, owner: "A", age: 10 },
-        { id: 1, owner: "A", age: 20 },
-        { id: 2, owner: "A", age: 30 },
-        { id: 3, owner: "A", age: 40 },
-        { id: 4, owner: "B", age: 5 },
-        { id: 5, owner: "B", age: 15 },
-        { id: 6, owner: "B", age: 25 },
-        { id: 7, owner: "B", age: 35 }
-      ];
-      document.getElementById("sandboxLog").innerHTML = "";
-      logSandbox("Sandbox reset to baseline 4/4 frame distribution.");
-      renderSandbox();
-      renderSandboxMap();
+    function renderUsedList() {
+      const box = document.getElementById("usedListBox");
+      box.innerHTML = "";
+      const usedNodes = collectUsedNodes(root);
+      if (usedNodes.length === 0) {
+        box.innerHTML = `<span style="color: #94a3b8; font-style: italic;">No active allocations (Used list empty).</span>`;
+        return;
+      }
+      usedNodes.forEach(n => {
+        const item = document.createElement("div");
+        item.className = "used-item";
+        const sizeKb = n.size * PAGE_SIZE_KB;
+        item.innerHTML = `<span>Block #${n.tag} (Order ${n.order})</span><span>PFN ${n.pfn} (${sizeKb} KB)</span>`;
+        box.appendChild(item);
+      });
     }
-
-    renderSandbox();
-    renderSandboxMap();
-    logSandbox("Sandbox initialized with Local Allocation policy.");
+    function log(msg, type = "") {
+      const terminal = document.getElementById("actionLog");
+      const el = document.createElement("div");
+      el.className = `log-entry ${type}`;
+      el.textContent = `> ${msg}`;
+      terminal.prepend(el);
+    }
+    document.getElementById("nextBtn").onclick = () => {
+      currentStep = (currentStep < steps.length - 1) ? currentStep + 1 : 0;
+      updateStep();
+    };
+    document.getElementById("prevBtn").onclick = () => {
+      if (currentStep > 0) { currentStep--; updateStep(); }
+    };
+    document.getElementById("jumpSandboxBtn").onclick = () => {
+      alert("Tutorial completed! You can now freely review the 8 micro-steps.");
+    };
+    updateStep();
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Add local allocation indicators and instructions to sandbox
+COMMIT_MSG = """Add detailed historical and conceptual intro to buddy allocator module
 
-Implement green local containment vectors and instructional cards in
-11-local-vs-global.html. Make local allocation evictions explicitly
-visible on the SVG memory map, highlighting that the other process's
-quota remains fully protected."""
+Update week09-memory-management/01-free-used-lists-buddy.html with a
+comprehensive opening section detailing the definition, purpose, and
+history of allocation lists and the binary buddy system (covering Harry
+Markowitz, Kenneth Knowlton, and Donald Knuth)."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -858,16 +827,16 @@ def run_git_step(cmd, desc):
         sys.exit(res.returncode)
 
 def sync_module():
-    target_module = "week09-memory-management/11-local-vs-global.html"
+    target_module = "week09-memory-management/01-free-used-lists-buddy.html"
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
     print(f"Wrote updated module to {target_module}")
 
-    run_git_step(["git", "add", target_module], "Staging 11-local-vs-global.html")
+    run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Local indicators and instructions published successfully!")
+    print("--> Historical intro added and pushed successfully!")
 
 if __name__ == "__main__":
     sync_module()
