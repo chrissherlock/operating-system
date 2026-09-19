@@ -197,7 +197,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 0.95rem;
       line-height: 1.6;
       color: #0c4a6e;
-      min-height: 72px;
+      min-height: 60px;
     }
 
     .tour-nav {
@@ -343,6 +343,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .walk-edge.edge-active-red {
       stroke: #dc2626 !important;
       stroke-width: 2.5px !important;
+    }
+
+    /* Interactive Walkthrough Ring Dynamic Styles */
+    .walk-ring-frame rect {
+      transition: all 0.25s ease;
+    }
+    .walk-ring-frame.active-focus rect {
+      stroke: #0284c7 !important;
+      stroke-width: 2.5px !important;
+      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.4));
+    }
+    .walk-ring-frame.active-victim rect {
+      stroke: #dc2626 !important;
+      stroke-width: 3px !important;
+      fill: #fee2e2 !important;
+      filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.5));
+    }
+    .walk-ring-frame.active-warn rect {
+      stroke: #d97706 !important;
+      stroke-width: 2.5px !important;
+      fill: #fef3c7 !important;
+      filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.4));
     }
   </style>
 </head>
@@ -536,23 +558,25 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH DEDICATED INTERACTIVE FLOWCHART -->
+    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH DUAL INTERACTIVE VISUALS -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
         <span id="wtCounter">Step 1 of 4</span>
-        <span>Guided Walkthrough: Hand Evaluation Cases</span>
+        <span>Guided Walkthrough: Live Hand & Ring Evaluation</span>
       </div>
       <div id="wtTitle" class="tutorial-title">1. The R = 1 Case (Recently Active)</div>
 
       <div class="split-grid">
-        <!-- Interactive Decision Tree Flowchart -->
-        <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+        <!-- Dual Interactive Visual Console -->
+        <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:12px;">
+
+          <!-- Top: Interactive Decision Tree -->
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-family:var(--font-mono); font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Live Decision Tree Tracer</span>
-            <span id="walkActiveStatus" style="font-family:var(--font-mono); font-size:0.78rem; font-weight:700; color:var(--accent);">Branch Active</span>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">1. Decision Path Gate</span>
+            <span id="walkActiveStatus" style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--accent);">Branch Active</span>
           </div>
 
-          <svg id="walkTreeSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#ffffff;">
+          <svg id="walkTreeSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#ffffff;">
             <defs>
               <marker id="w-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
@@ -573,82 +597,134 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Start Node -->
             <g id="walk-node-start" class="walk-node">
-              <rect x="8" y="72" width="76" height="34" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
-              <text x="46" y="87" font-size="9" font-weight="700" fill="#0f172a" text-anchor="middle">Page Fault</text>
-              <text x="46" y="99" font-size="8" fill="#64748b" text-anchor="middle">Hand &rarr; Frame</text>
+              <rect x="8" y="65" width="70" height="30" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
+              <text x="43" y="79" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Page Fault</text>
+              <text x="43" y="90" font-size="7.5" fill="#64748b" text-anchor="middle">Hand &rarr; Frame</text>
             </g>
-            <line id="walk-edge-start" class="walk-edge" x1="84" y1="89" x2="114" y2="89" stroke="#334155" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <line id="walk-edge-start" class="walk-edge" x1="78" y1="80" x2="108" y2="80" stroke="#334155" stroke-width="1.2" marker-end="url(#w-arr)"/>
 
             <!-- Gate 1: R == 1? -->
             <g id="walk-gate-r" class="walk-node">
-              <polygon points="145,67 176,89 145,111 114,89" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="145" y="92" font-size="9" font-weight="700" fill="#0f172a" text-anchor="middle">R == 1?</text>
+              <polygon points="135,60 164,80 135,100 106,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
+              <text x="135" y="83" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">R == 1?</text>
             </g>
 
             <!-- Gate 1 Yes: Action 1 (Up) -->
-            <path id="walk-edge-r-yes" class="walk-edge" d="M 145 67 L 145 28 L 182 28" stroke="#cbd5e1" stroke-width="1.2" fill="none" marker-end="url(#w-arr)"/>
-            <text x="153" y="48" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <path id="walk-edge-r-yes" class="walk-edge" d="M 135 60 L 135 24 L 174 24" stroke="#cbd5e1" stroke-width="1.2" fill="none" marker-end="url(#w-arr)"/>
+            <text x="142" y="42" font-size="8" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-r1" class="walk-node">
-              <rect x="185" y="12" width="112" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="241" y="25" font-size="8.5" font-weight="700" fill="#b45309" text-anchor="middle">R &larr; 0, Time &larr; T_curr</text>
-              <text x="241" y="37" font-size="7.5" fill="#78350f" text-anchor="middle">Advance Hand &rarr;</text>
+              <rect x="178" y="10" width="112" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="234" y="22" font-size="8" font-weight="700" fill="#b45309" text-anchor="middle">R &larr; 0, Time &larr; T_curr</text>
+              <text x="234" y="33" font-size="7.5" fill="#78350f" text-anchor="middle">Advance Hand &rarr;</text>
             </g>
 
             <!-- Gate 1 No -> Gate 2 (Right) -->
-            <line id="walk-edge-r-no" class="walk-edge" x1="176" y1="89" x2="216" y2="89" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="194" y="83" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <line id="walk-edge-r-no" class="walk-edge" x1="164" y1="80" x2="204" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="182" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 2: Age <= tau? -->
             <g id="walk-gate-age" class="walk-node">
-              <polygon points="252,67 288,89 252,111 216,89" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="252" y="87" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
-              <text x="252" y="99" font-size="7" fill="#64748b" text-anchor="middle">(In WS?)</text>
+              <polygon points="238,60 272,80 238,100 204,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
+              <text x="238" y="78" font-size="8" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
+              <text x="238" y="89" font-size="6.5" fill="#64748b" text-anchor="middle">(In WS?)</text>
             </g>
 
             <!-- Gate 2 Yes: Action 2 (Down) -->
-            <line id="walk-edge-age-yes" class="walk-edge" x1="252" y1="111" x2="252" y2="148" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="258" y="132" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <line id="walk-edge-age-yes" class="walk-edge" x1="238" y1="100" x2="238" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="244" y="120" font-size="8" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-inws" class="walk-node">
-              <rect x="196" y="152" width="112" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="252" y="165" font-size="8.5" font-weight="700" fill="#0369a1" text-anchor="middle">In Working Set</text>
-              <text x="252" y="177" font-size="7.5" fill="#0284c7" text-anchor="middle">Advance Hand &rarr;</text>
+              <rect x="188" y="138" width="100" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="238" y="150" font-size="8" font-weight="700" fill="#0369a1" text-anchor="middle">In Working Set</text>
+              <text x="238" y="161" font-size="7.5" fill="#0284c7" text-anchor="middle">Advance Hand &rarr;</text>
             </g>
 
             <!-- Gate 2 No -> Gate 3 (Right) -->
-            <line id="walk-edge-age-no" class="walk-edge" x1="288" y1="89" x2="330" y2="89" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="306" y="83" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <line id="walk-edge-age-no" class="walk-edge" x1="272" y1="80" x2="312" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="290" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 3: M == 0? -->
             <g id="walk-gate-m" class="walk-node">
-              <polygon points="362,67 394,89 362,111 330,89" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="362" y="87" font-size="9" font-weight="700" fill="#0f172a" text-anchor="middle">M == 0?</text>
-              <text x="362" y="99" font-size="7" fill="#64748b" text-anchor="middle">(Clean?)</text>
+              <polygon points="342,60 374,80 342,100 310,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
+              <text x="342" y="78" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">M == 0?</text>
+              <text x="342" y="89" font-size="6.5" fill="#64748b" text-anchor="middle">(Clean?)</text>
             </g>
 
             <!-- Gate 3 Yes: Evict Action (Right) -->
-            <line id="walk-edge-m-yes" class="walk-edge" x1="394" y1="89" x2="432" y2="89" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="410" y="83" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
+            <line id="walk-edge-m-yes" class="walk-edge" x1="374" y1="80" x2="416" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="394" y="75" font-size="8" font-weight="700" fill="#64748b">Yes</text>
             <g id="walk-action-evict" class="walk-node">
-              <rect x="436" y="71" width="96" height="36" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="484" y="86" font-size="9.5" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
-              <text x="484" y="99" font-size="7.5" fill="#166534" text-anchor="middle">Claim frame now</text>
+              <rect x="420" y="65" width="102" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="471" y="79" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
+              <text x="471" y="91" font-size="7" fill="#166534" text-anchor="middle">Claim frame now</text>
             </g>
 
             <!-- Gate 3 No: Dirty Action (Down) -->
-            <line id="walk-edge-m-no" class="walk-edge" x1="362" y1="111" x2="362" y2="148" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="368" y="132" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <line id="walk-edge-m-no" class="walk-edge" x1="342" y1="100" x2="342" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <text x="348" y="120" font-size="8" font-weight="700" fill="#64748b">No</text>
             <g id="walk-action-dirty" class="walk-node">
-              <rect x="306" y="152" width="112" height="34" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="362" y="165" font-size="8.5" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
-              <text x="362" y="178" font-size="7.5" fill="#7f1d1d" text-anchor="middle">Advance Hand &rarr;</text>
+              <rect x="296" y="138" width="112" height="30" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+              <text x="352" y="150" font-size="8" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
+              <text x="352" y="161" font-size="7" fill="#7f1d1d" text-anchor="middle">Advance Hand &rarr;</text>
             </g>
           </svg>
 
-          <!-- Frame Inspector State Tag -->
-          <div id="wtFrameBox" style="font-family:var(--font-mono); font-size:0.82rem; padding:8px 10px; border-radius:6px; background:#f8fafc; border:1px solid var(--border);"></div>
+          <!-- Bottom: Interactive Circular Ring Model -->
+          <div style="border-top:1px dashed var(--border); padding-top:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">2. Circular Frame Ring State</span>
+              <span id="walkRingHandPos" style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:#0369a1;">Hand: Frame 0</span>
+            </div>
+
+            <svg id="walkRingSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 220" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#ffffff;">
+              <defs>
+                <marker id="ring-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+                </marker>
+              </defs>
+
+              <!-- Central Circular Ring Track -->
+              <circle cx="270" cy="110" r="70" fill="none" stroke="#cbd5e1" stroke-width="1.8" stroke-dasharray="4"/>
+
+              <!-- Frame 0 (Top) -->
+              <g id="ring-node-0" class="walk-ring-frame" transform="translate(270, 32)">
+                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
+                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 0 (Page A)</text>
+                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=1 | M=0 | T=2180</text>
+              </g>
+
+              <!-- Frame 1 (Right) -->
+              <g id="ring-node-1" class="walk-ring-frame" transform="translate(390, 110)">
+                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
+                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 1 (Page B)</text>
+                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=0 | M=0 | T=1950</text>
+              </g>
+
+              <!-- Frame 2 (Bottom) -->
+              <g id="ring-node-2" class="walk-ring-frame" transform="translate(270, 188)">
+                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
+                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 2 (Page C)</text>
+                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=0 | M=0 | T=1600</text>
+              </g>
+
+              <!-- Frame 3 (Left) -->
+              <g id="ring-node-3" class="walk-ring-frame" transform="translate(150, 110)">
+                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
+                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 3 (Page D)</text>
+                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=0 | M=1 | T=1500</text>
+              </g>
+
+              <!-- Clock Hand Hub & Pointer -->
+              <circle cx="270" cy="110" r="12" fill="#0284c7"/>
+              <line id="walkRingHandLine" x1="270" y1="110" x2="270" y2="54" stroke="#0284c7" stroke-width="2.5" marker-end="url(#ring-arr)"/>
+              <text x="270" y="113" font-size="7" font-weight="700" fill="#ffffff" text-anchor="middle">HAND</text>
+            </svg>
+          </div>
+
+          <!-- Live Frame Telemetry Line -->
+          <div id="wtFrameBox" style="font-family:var(--font-mono); font-size:0.8rem; padding:8px 10px; border-radius:6px; background:#f8fafc; border:1px solid var(--border);"></div>
         </div>
 
-        <!-- Walkthrough Text and Stepper Controls -->
+        <!-- Walkthrough Text & Stepper Controls -->
         <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
           <div id="wtText" class="tutorial-body"></div>
           <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
@@ -716,18 +792,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GUIDED WALKTHROUGH WITH DEDICATED INTERACTIVE FLOWCHART
+       PART 2: GUIDED WALKTHROUGH WITH DUAL INTERACTIVE VISUALS
        ========================================================================= */
     let wtStep = 0;
     const wtCases = [
       {
         title: "1. The R = 1 Case (Recently Active)",
-        text: "The hand inspects a frame where the hardware Referenced bit R = 1. The process touched this page recently, so evicting it would cause thrashing. The algorithm clears R &larr; 0, updates its timestamp to current virtual time, and advances the hand.",
-        frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400 },
+        text: "The hand inspects Frame 0 where the hardware Referenced bit R = 1. The process touched this page recently, so evicting it would cause thrashing. The algorithm clears R &larr; 0, updates its timestamp to current virtual time, and advances the hand.",
+        frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400, frameId: 0 },
         math: "R = 1 &rarr; Set R=0, Last_Use = 2200. Advance hand without evicting.",
         highlightGate: "walk-gate-r",
         highlightAction: "walk-action-r1",
         actionClass: "active-action-warn",
+        ringClass: "active-warn",
+        handTarget: { x: 270, y: 54 },
         activeEdges: [
           { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-r-yes", marker: "w-amber", edgeClass: "edge-active-warn" }
@@ -736,12 +814,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       },
       {
         title: "2. The R = 0, Age &le; &tau; Case (Resident in Working Set)",
-        text: "The hand inspects a frame with R = 0, but its age (2200 - 1950 = 250) is less than threshold &tau; = 400. Even though it wasn't accessed in the most recent slice, it still belongs to the active working set. The hand steps past it.",
-        frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400 },
+        text: "The hand inspects Frame 1 with R = 0, but its age (2200 - 1950 = 250) is less than threshold &tau; = 400. Even though it wasn't accessed in the most recent slice, it still belongs to the active working set. The hand steps past it.",
+        frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
         math: "Age = (2200 - 1950) = 250 &le; &tau; (400) &rarr; Keep page in RAM.",
         highlightGate: "walk-gate-age",
         highlightAction: "walk-action-inws",
         actionClass: "active-action-blue",
+        ringClass: "active-focus",
+        handTarget: { x: 332, y: 110 },
         activeEdges: [
           { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
@@ -751,12 +831,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       },
       {
         title: "3. The R = 0, Age &gt; &tau;, M = 0 Case (Clean Eviction!)",
-        text: "The hand inspects a frame with R = 0, an age (2200 - 1600 = 600) greater than &tau;, and a clean Modified bit M = 0. This cold, clean page is officially outside the working set and requires zero disk writes. It is evicted immediately!",
-        frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400 },
+        text: "The hand inspects Frame 2 with R = 0, an age (2200 - 1600 = 600) greater than &tau;, and a clean Modified bit M = 0. This cold, clean page is officially outside the working set and requires zero disk writes. It is evicted immediately!",
+        frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
         math: "Age = 600 &gt; &tau;, M = 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty).",
         highlightGate: "walk-gate-m",
         highlightAction: "walk-action-evict",
         actionClass: "active-action-evict",
+        ringClass: "active-victim",
+        handTarget: { x: 270, y: 166 },
         activeEdges: [
           { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
@@ -767,12 +849,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       },
       {
         title: "4. The R = 0, Age &gt; &tau;, M = 1 Case (Asynchronous Dirty Flush)",
-        text: "The hand inspects a frame whose age exceeds &tau;, but M = 1 (dirty). The data must be flushed to disk before the frame can be claimed. To avoid stalling the CPU, WSClock issues an asynchronous disk write and keeps advancing.",
-        frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400 },
+        text: "The hand inspects Frame 3 whose age exceeds &tau;, but M = 1 (dirty). The data must be flushed to disk before the frame can be claimed. To avoid stalling the CPU, WSClock issues an asynchronous disk write and keeps advancing.",
+        frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
         math: "Age = 700 &gt; &tau;, M = 1 &rarr; Schedule Async Disk Write. Keep advancing hand.",
         highlightGate: "walk-gate-m",
         highlightAction: "walk-action-dirty",
         actionClass: "active-action-dirty",
+        ringClass: "active-warn",
+        handTarget: { x: 208, y: 110 },
         activeEdges: [
           { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
           { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
@@ -783,7 +867,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
     ];
 
-    function resetWalkTree() {
+    function resetWalkVisuals() {
+      // 1. Reset Flowchart Tree
       document.querySelectorAll(".walk-node").forEach(n => {
         n.className.baseVal = "walk-node";
       });
@@ -791,6 +876,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         e.className.baseVal = "walk-edge";
         e.setAttribute("stroke", "#cbd5e1");
         e.setAttribute("marker-end", "url(#w-arr)");
+      });
+
+      // 2. Reset Circular Ring
+      document.querySelectorAll(".walk-ring-frame").forEach(rf => {
+        rf.className.baseVal = "walk-ring-frame";
       });
     }
 
@@ -809,9 +899,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       `;
       document.getElementById("wtMathSummary").innerHTML = c.math;
       document.getElementById("walkActiveStatus").textContent = c.status;
+      document.getElementById("walkRingHandPos").textContent = `Hand: Frame ${f.frameId}`;
 
-      resetWalkTree();
+      resetWalkVisuals();
 
+      // Highlight decision gate & terminal action in tree
       const gateEl = document.getElementById(c.highlightGate);
       if (gateEl) gateEl.classList.add("active-gate");
 
@@ -826,7 +918,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       });
 
-      // Update disabled states at bounds
+      // Highlight frame node in circular ring
+      const ringFrameEl = document.getElementById(`ring-node-${f.frameId}`);
+      if (ringFrameEl) {
+        ringFrameEl.className.baseVal = `walk-ring-frame ${c.ringClass}`;
+      }
+
+      // Rotate/position hand line towards the active frame
+      const handLine = document.getElementById("walkRingHandLine");
+      if (handLine && c.handTarget) {
+        handLine.setAttribute("x2", c.handTarget.x);
+        handLine.setAttribute("y2", c.handTarget.y);
+      }
+
+      // Maintain disabled states at boundaries
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtCases.length - 1);
     }
@@ -1000,12 +1105,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix disabled button styling in 10-wsclock.html walkthrough
+COMMIT_MSG = """Add interactive WSClock circular ring to walkthrough stepper
 
-Add button:disabled CSS rule with opacity and pointer-event controls to
-properly grey out navigation buttons at the boundaries of the WSClock
-walkthrough. Ensure Previous Case is disabled at step 0 and Next Case is
-disabled on the final case."""
+Incorporate an interactive SVG copy of the circular frame ring into Part
+2 of 10-wsclock.html alongside the decision tree. Dynamically rotate the
+clock hand and highlight corresponding frame nodes and states as the
+walkthrough advances through evaluation cases."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -1023,12 +1128,12 @@ def sync_module():
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module to {target_module}")
+    print(f"Wrote updated module with interactive circular ring to {target_module}")
 
     run_git_step(["git", "add", target_module], "Staging 10-wsclock.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Completed successfully!")
+    print("--> Interactive ring added, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     sync_module()
