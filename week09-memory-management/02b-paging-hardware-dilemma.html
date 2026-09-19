@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paging in Action &amp; The Implementation Dilemma — COSC240</title>
+  <title>The Paging Hardware Dilemma: The Two-Access Penalty &amp; TLB Acceleration — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -14,15 +14,12 @@
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --reg-color: #7c3aed;
-      --reg-bg: #ede9fe;
-      --mem-color: #d97706;
-      --mem-bg: #fef3c7;
-      --tlb-color: #16a34a;
-      --tlb-bg: #dcfce7;
+      --hit-color: #059669;
+      --hit-bg: #ecfdf5;
+      --miss-color: #e11d48;
+      --miss-bg: #ffe4e6;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg);
@@ -34,10 +31,102 @@
       align-items: center;
       gap: 18px;
     }
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .concept-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #0369a1;
+    }
+    .concept-box strong { color: #075985; }
+
+    /* Interactive Simulator Panel */
+    .sim-panel {
+      border: 1px solid #bae6fd;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sim-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    button {
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button.btn-secondary {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    button.btn-secondary:hover { background: #e2e8f0; }
+    button.active {
+      background-color: var(--text);
+      color: #fff;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    @media(max-width: 768px) {
+      .stat-grid { grid-template-columns: 1fr; }
+    }
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-mono);
+    }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+    .stat-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
 
     .nav-back {
       width: 100%;
       max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
       display: flex;
     }
     .nav-back a {
@@ -46,162 +135,20 @@
       gap: 6px;
       font-size: 0.85rem;
       font-weight: 600;
-      font-family: var(--font-mono);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       text-decoration: none;
-      color: var(--accent);
+      color: #0284c7;
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
       padding: 6px 12px;
       border-radius: 6px;
       transition: background-color 0.15s ease, color 0.15s ease;
     }
-    .nav-back a:hover { background-color: var(--accent); color: #fff; }
-
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.75rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 100%;
-      max-width: 1100px;
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
     }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .theory-section {
-      line-height: 1.68;
-      font-size: 0.95rem;
-      color: #334155;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .theory-section h2 {
-      font-size: 1.25rem;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
-    .theory-callout {
-      background-color: #f8fafc;
-      border-left: 4px solid var(--accent);
-      padding: 12px 18px;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.92rem;
-      color: #0369a1;
-      font-family: var(--font-mono);
-      line-height: 1.5;
-    }
-
-    .figure-container {
-      width: 100%;
-      max-width: 820px;
-      margin: 10px auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    /* Interactive Comparison Sandbox */
-    .spectrum-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-      margin-top: 10px;
-    }
-    @media (max-width: 850px) {
-      .spectrum-grid { grid-template-columns: 1fr; }
-    }
-    .spectrum-col {
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #fafafa;
-    }
-    .spectrum-col.col-reg { border-top: 4px solid var(--reg-color); }
-    .spectrum-col.col-mem { border-top: 4px solid var(--mem-color); }
-    .spectrum-col.col-tlb { border-top: 4px solid var(--tlb-color); }
-
-    .spectrum-title { font-weight: 700; font-size: 0.95rem; }
-    .spectrum-spec { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted); }
-    .metric-box {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 8px 12px;
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-    }
-
-    /* Interactive Stepper */
-    .tutorial-panel {
-      border-left: 4px solid var(--accent);
-      background: #f0f9ff;
-    }
-    .tutorial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .tutorial-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #075985;
-    }
-    .tutorial-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #0c4a6e;
-    }
-    .tour-nav {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-top: 6px;
-    }
-
-    button {
-      background-color: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    button:hover { background-color: var(--accent-hover); }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-    button.btn-sec {
-      background-color: #f1f5f9;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    button.btn-sec:hover { background-color: #e2e8f0; }
   </style>
-  <!-- Configure MathJax to recognize single dollar signs for inline math -->
   <script>
     window.MathJax = {
       tex: {
@@ -212,222 +159,176 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week Overview</a>
   </div>
-
   <header>
-    <h1>Paging in Action &amp; The Implementation Dilemma</h1>
-    <p class="subtitle">Tanenbaum Sections 3.3.2 &amp; 3.3.3: How linear page tables work in memory, and the conflicting hardware constraints that require a TLB.</p>
+    <h1>The Paging Hardware Dilemma: The Two-Access Penalty &amp; TLB</h1>
+    <p class="subtitle">Tanenbaum Chapter 3: Overcoming the 2x Memory Performance Bottleneck via Associative Hardware Caching.</p>
   </header>
-
   <div class="main-container">
 
-    <!-- TEXTBOOK SECTION 3.3.2: HOW PAGING WORKS -->
+    <!-- Section 1: The Core Dilemma -->
     <div class="card">
-      <div class="theory-section">
-        <h2>1. The Linear Page Table as an Array</h2>
-        <p>
-          In the previous lesson, we dissected the individual <strong>Page Table Entry (PTE)</strong> and its control bits (Present, Protection, Modified, Referenced). But where do these entries actually live, and how does the CPU look them up?
-        </p>
-        <p>
-          Conceptually, the simplest page table is a <strong>linear indexed array</strong>. Every process has its own page table. When the CPU executes an instruction referencing virtual address <code>0x00004080</code> with 4 KB pages (2<sup>12</sup> = 4,096 bytes):
-        </p>
-        <div class="theory-callout">
-          Virtual Address = [ Virtual Page Number (VPN) : 20 bits ] [ In-Page Offset : 12 bits ]<br>
-          VPN = 0x00004080 &gt;&gt; 12 = 4<br>
-          Offset = 0x00004080 &amp; 0xFFF = 0x080
-        </div>
-        <p>
-          The hardware MMU simply indexes into the array: <code>PTE = PageTable[VPN]</code>. If <code>PTE.present == 1</code>, the MMU takes the <strong>Page Frame Number (PFN)</strong> from that slot, concatenates the original 12-bit offset, and emits the physical address onto the memory bus.
-        </p>
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">1. The Fundamental Paging Dilemma (The Two-Memory-Access Overhead)</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: var(--text-muted);">
+        When paging is implemented purely in software/hardware tables stored in main DRAM, every single CPU instruction or data fetch encounters a severe performance penalty. To translate a virtual address into a physical address, the Memory Management Unit (MMU) must:
+      </p>
+      <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
+        <li><strong>Access #1:</strong> Read the Page Table Entry (PTE) from the page table residing in RAM.</li>
+        <li><strong>Access #2:</strong> Read or write the actual data/instruction payload at the translated physical address in RAM.</li>
+      </ol>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: var(--text-muted);">
+        This <strong>two-memory-access bottleneck</strong> effectively cuts CPU memory throughput in half (a 100% slowdown). Without hardware acceleration, paging would be prohibitively slow for modern high-performance architectures.
+      </p>
+    </div>
+
+    <!-- Section 2: Mathematical Modeling (EAT) -->
+    <div class="concept-box">
+      <strong>Quantifying Performance: Effective Access Time ($EAT$)</strong><br>
+      To solve this, hardware engineers introduced the <strong>Translation Lookaside Buffer (TLB)</strong>—a small, ultra-fast associative hardware cache holding recent virtual-to-physical mappings. The Effective Access Time is modeled as:
+      $$EAT = (h \times t_{tlb}) + (1 - h) \times (t_{tlb} + t_{ram\_table} + t_{ram\_data})$$
+      Where $h$ is the TLB hit rate, $t_{tlb}$ is the TLB lookup latency (e.g., 1 ns), $t_{ram\_table}$ is the time to fetch a PTE from RAM, and $t_{ram\_data}$ is the payload fetch time. When $h \ge 99\%$, $EAT$ remains remarkably close to unpaged memory speeds!
+    </div>
+
+    <!-- Section 3: Interactive TLB Lookup Simulator -->
+    <div class="card sim-panel">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">2. Interactive Hardware Translation Simulator (TLB Hit vs. Miss)</div>
+      <p style="font-size: 0.9rem; color: var(--text-muted);">
+        Simulate an MMU virtual address translation request and observe the hardware traversal path and latency breakdown.
+      </p>
+
+      <div class="sim-controls">
+        <button id="hitBtn" class="active" onclick="setScenario('hit')">Simulate TLB Hit ($h = 99\%$)</button>
+        <button id="missBtn" class="btn-secondary" onclick="setScenario('miss')">Simulate TLB Miss ($h = 0\%$)</button>
       </div>
 
-      <!-- EMBEDDED DIAGRAM: HOW THE LINEAR ARRAY MAPS ADDRESSES -->
-      <div class="figure-container">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 230" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <!-- Visual Hardware Flow Diagram -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <span id="flowTitle" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--hit-color);">PATHWAY: CPU &rarr; TLB (Match Found) &rarr; Physical Memory</span>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 110" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- CPU Node -->
+          <rect x="20" y="25" width="100" height="60" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
+          <text x="70" y="52" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">CPU Virtual</text>
+          <text x="70" y="66" font-size="10" fill="#475569" text-anchor="middle">Address</text>
+
+          <path d="M 120 55 L 170 55" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- TLB Node -->
+          <rect x="170" y="25" width="110" height="60" id="tlbBox" fill="#ecfdf5" stroke="#059669" stroke-width="2" rx="6"/>
+          <text x="225" y="52" font-size="11" font-weight="700" id="tlbTextTitle" fill="#059669" text-anchor="middle">TLB Lookup</text>
+          <text x="225" y="66" font-size="10" id="tlbTextSub" fill="#059669" text-anchor="middle">1 ns (Fast)</text>
+
+          <path d="M 280 55 L 330 55" id="pathMiddle" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- RAM Table Node (Conditional) -->
+          <rect x="330" y="25" width="110" height="60" id="ramTableBox" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" opacity="0.4" rx="6"/>
+          <text x="385" y="52" font-size="11" font-weight="700" id="ramTableTitle" fill="#64748b" text-anchor="middle">RAM Table Walk</text>
+          <text x="385" y="66" font-size="10" id="ramTableSub" fill="#64748b" text-anchor="middle">Bypassed (Hit)</text>
+
+          <path d="M 440 55 L 490 55" id="pathRight" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- Physical RAM Data Node -->
+          <rect x="490" y="25" width="120" height="60" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
+          <text x="550" y="52" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Physical RAM</text>
+          <text x="550" y="66" font-size="10" fill="#475569" text-anchor="middle">Data Payload</text>
+
           <defs>
-            <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
             </marker>
           </defs>
-
-          <!-- Virtual Address Split -->
-          <g>
-            <rect x="30" y="40" width="160" height="40" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-            <text x="110" y="60" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Virtual Page No. (VPN)</text>
-            <text x="110" y="74" font-size="10" fill="#0284c7" text-anchor="middle">Bits 31-12 (Index: 4)</text>
-
-            <rect x="190" y="40" width="110" height="40" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" rx="4"/>
-            <text x="245" y="60" font-size="11" font-weight="700" fill="#475569" text-anchor="middle">Offset</text>
-            <text x="245" y="74" font-size="10" fill="#64748b" text-anchor="middle">Bits 11-0 (0x080)</text>
-
-            <text x="165" y="26" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">32-Bit Virtual Address (0x00004080)</text>
-          </g>
-
-          <!-- Index Pointer Arrow -->
-          <path d="M 110 80 L 110 140 L 320 140" stroke="#0284c7" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
-          <text x="180" y="132" font-size="10" font-weight="700" fill="#0284c7">Array Index [4]</text>
-
-          <!-- Linear Page Table in Memory -->
-          <g>
-            <rect x="330" y="30" width="160" height="170" fill="#ffffff" stroke="#334155" stroke-width="1.5" rx="4"/>
-            <text x="410" y="20" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">Linear Page Table (Array)</text>
-
-            <rect x="335" y="40" width="150" height="22" fill="#f8fafc" stroke="#cbd5e1"/>
-            <text x="410" y="55" font-size="10" fill="#64748b" text-anchor="middle">PTE [0]</text>
-
-            <rect x="335" y="62" width="150" height="22" fill="#f8fafc" stroke="#cbd5e1"/>
-            <text x="410" y="77" font-size="10" fill="#64748b" text-anchor="middle">PTE [1]</text>
-
-            <text x="410" y="105" font-size="12" fill="#94a3b8" text-anchor="middle">&bull;&bull;&bull;</text>
-
-            <rect x="335" y="128" width="150" height="26" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"/>
-            <text x="410" y="145" font-size="11" font-weight="700" fill="#854d0e" text-anchor="middle">PTE [4] &rarr; PFN 82</text>
-
-            <text x="410" y="175" font-size="12" fill="#94a3b8" text-anchor="middle">&bull;&bull;&bull;</text>
-
-            <rect x="335" y="180" width="150" height="16" fill="#f8fafc" stroke="#cbd5e1"/>
-          </g>
-
-          <!-- Output Physical Address -->
-          <path d="M 485 141 L 525 141 L 525 60 L 550 60" stroke="#ca8a04" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
-          <path d="M 300 60 L 550 60" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4" fill="none" marker-end="url(#arr)"/>
-
-          <g>
-            <rect x="560" y="40" width="150" height="40" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" rx="4"/>
-            <text x="635" y="59" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Physical Address</text>
-            <text x="635" y="73" font-size="10" fill="#16a34a" text-anchor="middle">PFN 82 + Offset 0x080</text>
-          </g>
         </svg>
       </div>
-    </div>
 
-    <!-- TEXTBOOK SECTION 3.3.3: THE TWO HARDWARE CONSTRAINTS -->
-    <div class="card">
-      <div class="theory-section">
-        <h2>2. Tanenbaum's Two Conflicting Constraints</h2>
-        <p>
-          As Tanenbaum emphasizes at the start of Section 3.3.3, any hardware implementation of paging must confront two fundamental dilemmas:
-        </p>
-        <ol style="padding-left: 20px;">
-          <li>
-            <strong>Constraint 1: The mapping must be blazingly fast.</strong> A typical instruction executes in under 1 ns, and memory is referenced multiple times per instruction (once to fetch the instruction, and often 1–2 times to fetch operands). If translation adds even 10 ns, the entire computer slows down by an order of magnitude.
-          </li>
-          <li>
-            <strong>Constraint 2: If the virtual address space is large, the page table is gigantic.</strong>
-            A 32-bit address space with 4 KB pages has 2<sup>32</sup> / 2<sup>12</sup> = 2<sup>20</sup> (1,048,576) pages. At 4 bytes per entry, each process needs a <strong>4 MB page table</strong>. In a system running 100 processes, 400 MB of RAM is consumed just for bookkeeping tables! On 64-bit architectures with 2<sup>52</sup> pages, a linear table is physically impossible.
-          </li>
-        </ol>
-      </div>
-    </div>
-
-    <!-- THE SPECTRUM OF EXTREMES: WHY A TLB IS INVENTED -->
-    <div class="card">
-      <div class="theory-section">
-        <h2>3. The Extreme Implementation Choices</h2>
-        <p>
-          Before arriving at the modern solution, operating systems historically evaluated two extremes:
-        </p>
-      </div>
-
-      <div class="spectrum-grid">
-        <!-- Extreme 1 -->
-        <div class="spectrum-col col-reg">
-          <span class="spectrum-title" style="color:var(--reg-color);">Extreme 1: Pure Hardware Registers</span>
-          <p class="spectrum-spec">Store the entire page table inside fast CPU registers inside the MMU.</p>
-          <div class="metric-box">
-            <strong>Pros:</strong> Extremely fast. Zero DRAM lookup overhead (< 1 ns).
-          </div>
-          <div class="metric-box">
-            <strong>Cons:</strong> Storing 1,000,000 registers on-chip is cost-prohibitive. Furthermore, on <em>every context switch</em>, the OS must reload all 1,000,000 registers, crippling multitasking.
-          </div>
+      <!-- Latency Stat Metrics -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Translation Latency</span>
+          <span id="statLatency" class="stat-value" style="color: var(--hit-color);">1 ns (TLB Hit)</span>
         </div>
-
-        <!-- Extreme 2 -->
-        <div class="spectrum-col col-mem">
-          <span class="spectrum-title" style="color:var(--mem-color);">Extreme 2: Pure Memory-Resident Table</span>
-          <p class="spectrum-spec">Keep the table entirely in off-chip DRAM. The CPU holds only 1 register: the Page Table Base Register (CR3).</p>
-          <div class="metric-box">
-            <strong>Pros:</strong> Cheap. Context switching is instant: simply write 1 register (pointer to the new process table).
-          </div>
-          <div class="metric-box">
-            <strong>Cons:</strong> Doubles (or quintuples) memory access latency. Every single variable access requires a DRAM lookup before fetching the data.
-          </div>
+        <div class="stat-card">
+          <span class="stat-label">RAM Accesses Required</span>
+          <span id="statAccesses" class="stat-value">1 Access (Data Only)</span>
         </div>
-
-        <!-- The Modern Hybrid -->
-        <div class="spectrum-col col-tlb">
-          <span class="spectrum-title" style="color:var(--tlb-color);">The Solution: The Hybrid TLB</span>
-          <p class="spectrum-spec">Keep the full table in DRAM, but equip the MMU with an on-chip associative cache (the TLB) for the ~64 hottest entries.</p>
-          <div class="metric-box">
-            <strong>Result:</strong> Fast context switching (point CR3 to new table), near-zero latency for 98% of accesses (TLB hits), and bounded memory footprint!
-          </div>
+        <div class="stat-card">
+          <span class="stat-label">Performance Penalty</span>
+          <span id="statPenalty" class="stat-value" style="color: var(--hit-color);">~1.02x (Near Zero)</span>
         </div>
       </div>
     </div>
-
-    <!-- PART 1: GUIDED COMPARISON STEPPER -->
-    <div class="card tutorial-panel">
-      <div class="tutorial-header">
-        <span id="tutStepLabel">Step 1 of 3</span>
-        <span>Guided Concept Stepper</span>
-      </div>
-      <div id="tutStepTitle" class="tutorial-title">1. Why not store the page table entirely in CPU registers?</div>
-      <div id="tutStepBody" class="tutorial-body"></div>
-      <div class="tour-nav">
-        <button id="tutPrevBtn" class="btn-sec" onclick="stepBackward()">Back</button>
-        <button id="tutNextBtn" onclick="stepForward()">Next Step &rarr;</button>
-        <a class="btn-sec" style="margin-left:auto; text-decoration:none; display:inline-flex; align-items:center;" href="02-tlb-sandbox.html">Proceed to TLB Simulator &rarr;</a>
-      </div>
-    </div>
-
   </div>
 
   <script>
-    const steps = [
-      {
-        title: "1. Why not store the page table entirely in CPU registers?",
-        body: "Early computers with tiny address spaces (e.g. 16 pages) did exactly this! The MMU held 16 hardware registers. On context switch, the OS loaded 16 values. But with 32-bit systems requiring 1,048,576 pages, building a CPU with 1 million 32-bit registers is impossible. Worse, copying 4 MB of registers on every 10 ms timer interrupt would spend 90% of CPU time switching processes."
-      },
-      {
-        title: "2. Why not leave it entirely in regular DRAM?",
-        body: "This solves the space problem: DRAM is cheap, and switching processes only requires updating a single hardware pointer: the Page Table Base Register (called <code>CR3</code> on x86). But the speed penalty is catastrophic: every single memory access now requires <strong>at least two DRAM reads</strong> (one to fetch the PTE, one to fetch the data). The CPU's execution throughput is cut in half."
-      },
-      {
-        title: "3. The Compromise: Why the TLB Is the Only Viable Path",
-        body: "Because neither extreme works, operating system designers arrived at the TLB. By keeping the full 4 MB linear table in cheap DRAM, but caching the 64 most recently used translations in on-chip associative registers, we get the best of both worlds: instant context switches, low hardware cost, and single-cycle memory translation for &gt;98% of instructions. Click below to explore the TLB in action!"
+    function setScenario(type) {
+      const hitBtn = document.getElementById("hitBtn");
+      const missBtn = document.getElementById("missBtn");
+      const flowTitle = document.getElementById("flowTitle");
+      const tlbBox = document.getElementById("tlbBox");
+      const tlbTextTitle = document.getElementById("tlbTextTitle");
+      const tlbTextSub = document.getElementById("tlbTextSub");
+      const ramTableBox = document.getElementById("ramTableBox");
+      const ramTableTitle = document.getElementById("ramTableTitle");
+      const ramTableSub = document.getElementById("ramTableSub");
+      const statLatency = document.getElementById("statLatency");
+      const statAccesses = document.getElementById("statAccesses");
+      const statPenalty = document.getElementById("statPenalty");
+
+      if (type === 'hit') {
+        hitBtn.className = "active";
+        missBtn.className = "btn-secondary";
+        flowTitle.textContent = "PATHWAY: CPU -> TLB (Match Found) -> Physical Memory (1 RAM Fetch)";
+        flowTitle.style.color = "var(--hit-color)";
+
+        tlbBox.setAttribute("fill", "#ecfdf5");
+        tlbBox.setAttribute("stroke", "#059669");
+        tlbTextTitle.textContent = "TLB Lookup";
+        tlbTextTitle.setAttribute("fill", "#059669");
+        tlbTextSub.textContent = "1 ns (Hit!)";
+        tlbTextSub.setAttribute("fill", "#059669");
+
+        ramTableBox.setAttribute("fill", "#f1f5f9");
+        ramTableBox.setAttribute("stroke", "#94a3b8");
+        ramTableBox.style.opacity = "0.4";
+        ramTableTitle.textContent = "RAM Table Walk";
+        ramTableTitle.setAttribute("fill", "#64748b");
+        ramTableSub.textContent = "Bypassed (Hit)";
+        ramTableSub.setAttribute("fill", "#64748b");
+
+        statLatency.textContent = "1 ns (TLB Hit)";
+        statLatency.style.color = "var(--hit-color)";
+        statAccesses.textContent = "1 Access (Data Only)";
+        statPenalty.textContent = "~1.02x (Near Zero)";
+        statPenalty.style.color = "var(--hit-color)";
+      } else {
+        missBtn.className = "active";
+        hitBtn.className = "btn-secondary";
+        flowTitle.textContent = "PATHWAY: CPU -> TLB (Miss) -> RAM Page Table Walk -> Physical Memory (2 RAM Fetches)";
+        flowTitle.style.color = "var(--miss-color)";
+
+        tlbBox.setAttribute("fill", "#ffe4e6");
+        tlbBox.setAttribute("stroke", "#e11d48");
+        tlbTextTitle.textContent = "TLB Lookup";
+        tlbTextTitle.setAttribute("fill", "#e11d48");
+        tlbTextSub.textContent = "1 ns (Miss!)";
+        tlbTextSub.setAttribute("fill", "#e11d48");
+
+        ramTableBox.setAttribute("fill", "#fff1f2");
+        ramTableBox.setAttribute("stroke", "#e11d48");
+        ramTableBox.style.opacity = "1";
+        ramTableTitle.textContent = "RAM Table Walk";
+        ramTableTitle.setAttribute("fill", "#e11d48");
+        ramTableSub.textContent = "+ 100 ns (Required)";
+        ramTableSub.setAttribute("fill", "#e11d48");
+
+        statLatency.textContent = "101 ns (TLB Miss + RAM Walk)";
+        statLatency.style.color = "var(--miss-color)";
+        statAccesses.textContent = "2 Accesses (Table + Data)";
+        statPenalty.textContent = "2.00x (50% Slowdown)";
+        statPenalty.style.color = "var(--miss-color)";
       }
-    ];
-
-    let currentStep = 0;
-
-    function renderStep() {
-      const s = steps[currentStep];
-      document.getElementById("tutStepLabel").textContent = `Step ${currentStep + 1} of ${steps.length}`;
-      document.getElementById("tutStepTitle").textContent = s.title;
-      document.getElementById("tutStepBody").innerHTML = s.body;
-
-      document.getElementById("tutPrevBtn").disabled = (currentStep === 0);
-      document.getElementById("tutNextBtn").disabled = (currentStep === steps.length - 1);
     }
-
-    function stepForward() {
-      if (currentStep < steps.length - 1) {
-        currentStep++;
-        renderStep();
-      }
-    }
-
-    function stepBackward() {
-      if (currentStep > 0) {
-        currentStep--;
-        renderStep();
-      }
-    }
-
-    renderStep();
   </script>
 </body>
 </html>

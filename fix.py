@@ -8,7 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memory Bookkeeping, Free/Used Lists &amp; Buddy Allocator — COSC240</title>
+  <title>The Paging Hardware Dilemma: The Two-Access Penalty &amp; TLB Acceleration — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -19,13 +19,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --free-color: #059669;
-      --free-bg: #ecfdf5;
-      --alloc-color: #e11d48;
-      --alloc-bg: #ffe4e6;
-      --inspect-color: #d97706;
-      --inspect-bg: #fef3c7;
-      --buddy-glow: #ca8a04;
+      --hit-color: #059669;
+      --hit-bg: #ecfdf5;
+      --miss-color: #e11d48;
+      --miss-bg: #ffe4e6;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -71,130 +68,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .concept-box strong { color: #075985; }
 
-    /* Stacked Row Layout for Pioneer Profiles */
-    .pioneer-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      width: 100%;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
-    @media(max-width: 768px) {
-      .pioneer-row { grid-template-columns: 1fr; }
-    }
-    .pioneer-profile {
+    /* Interactive Simulator Panel */
+    .sim-panel {
+      border: 1px solid #bae6fd;
       background: #f8fafc;
-      border: 1px solid var(--border);
-      border-top: 4px solid var(--accent);
-      border-radius: 6px;
-      padding: 16px;
+      border-radius: 8px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      font-size: 0.84rem;
+      gap: 16px;
     }
-    .pioneer-profile img {
-      width: 100%;
-      height: auto;
-      max-height: 220px;
-      object-fit: contain;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: #e2e8f0;
-    }
-    .pioneer-profile h3 {
-      font-size: 0.95rem;
-      color: var(--accent);
-      margin-top: 2px;
-    }
-    .pioneer-profile p {
-      color: var(--text-muted);
-      line-height: 1.45;
-      font-size: 0.8rem;
-    }
-    .pioneer-profile .attr {
-      font-size: 0.72rem;
-      color: #64748b;
-      font-style: italic;
-    }
-    .pioneer-profile a {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .pioneer-profile a:hover {
-      text-decoration: underline;
-    }
-
-    .figure-container {
-      width: 100%; max-width: 720px; margin: 10px auto; display: flex; flex-direction: column;
-      align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
-      border-radius: 8px; padding: 20px;
-    }
-    .math-formula {
+    .sim-controls {
       display: flex;
+      gap: 12px;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin: 10px 0;
-      font-family: var(--font-mono);
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #0369a1;
-    }
-    .fraction {
-      display: inline-flex;
-      flex-direction: column;
-      vertical-align: middle;
-      text-align: center;
-      padding: 0 4px;
-    }
-    .numerator { border-bottom: 1.5px solid currentColor; padding-bottom: 2px; }
-    .denominator { padding-top: 2px; }
-    .tutorial-panel {
-      border: 1px solid #fed7aa;
-      border-left: 4px solid var(--inspect-color);
-      background: #fffbeb;
-      transition: all 0.3s ease;
-    }
-    .tutorial-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--inspect-color);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .tutorial-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #78350f;
-    }
-    .tutorial-body {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #451a03;
-    }
-    .math-callout {
-      background: #ffffff;
-      border: 1px solid #fcd34d;
-      padding: 10px 14px;
-      border-radius: 6px;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: #b45309;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .tour-nav {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      align-items: center;
+      flex-wrap: wrap;
     }
     button {
       background-color: var(--accent);
@@ -205,181 +93,40 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: 600;
       font-size: 0.9rem;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       transition: all 0.15s ease;
     }
     button:hover { background-color: var(--accent-hover); }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
     button.btn-secondary {
       background: #f1f5f9;
       border: 1px solid var(--border);
       color: var(--text);
     }
     button.btn-secondary:hover { background: #e2e8f0; }
-    .memory-label-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
+    button.active {
+      background-color: var(--text);
+      color: #fff;
     }
-    .memory-bar {
-      display: flex;
-      width: 100%;
-      height: 76px;
-      border: 2px solid var(--border-dark);
-      border-radius: 6px;
-      overflow: hidden;
-      background: #e2e8f0;
-    }
-    .block {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      border-right: 1px solid #cbd5e1;
-      transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease;
-      cursor: default;
-      user-select: none;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      padding: 4px;
-      text-align: center;
-      overflow: hidden;
-      position: relative;
-    }
-    .block:last-child { border-right: none; }
-    .block.free {
-      background-color: var(--free-bg);
-      color: var(--free-color);
-      border-top: 4px solid var(--free-color);
-    }
-    .block.allocated {
-      background-color: var(--alloc-bg);
-      color: var(--alloc-color);
-      border-top: 4px solid var(--alloc-color);
-    }
-    .block.state-inspecting {
-      background-color: var(--inspect-bg) !important;
-      border-top: 4px solid var(--inspect-color) !important;
-      animation: pulseInspect 0.8s infinite alternate;
-    }
-    .block.state-buddy-active {
-      border: 2px dashed var(--buddy-glow) !important;
-      animation: pulseBuddy 0.7s infinite alternate;
-    }
-    @keyframes pulseInspect {
-      0% { box-shadow: inset 0 0 4px rgba(217, 119, 6, 0.2); }
-      100% { box-shadow: inset 0 0 14px rgba(217, 119, 6, 0.5); }
-    }
-    @keyframes pulseBuddy {
-      0% { box-shadow: inset 0 0 6px rgba(202, 138, 4, 0.3); }
-      100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
-    }
-    /* Two-column layout for Free Lists and Used Trackers side-by-side */
-    .lists-container {
+    .stat-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
     @media(max-width: 768px) {
-      .lists-container { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr; }
     }
-    .free-area-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .order-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      padding: 4px 8px;
-      border-radius: 4px;
-      transition: background-color 0.25s ease;
-    }
-    .order-row.inspecting-row {
-      background-color: #fef3c7;
-      border-left: 3px solid var(--inspect-color);
-    }
-    .order-label {
-      width: 140px;
-      color: var(--text-muted);
-      flex-shrink: 0;
-      font-weight: 500;
-    }
-    .list-nodes {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .node {
-      background-color: #f1f5f9;
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 0.8rem;
+    .stat-card {
+      background: #ffffff;
       border: 1px solid var(--border);
-      color: var(--accent);
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-    .node.inspecting {
-      border-color: var(--inspect-color);
-      color: var(--inspect-color);
-      background-color: #fffbeb;
-      transform: scale(1.08);
-    }
-    .node.buddy-target {
-      border-color: var(--buddy-glow);
-      color: var(--buddy-glow);
-      background-color: #fefce8;
-      font-weight: bold;
-    }
-    .node-empty { color: #94a3b8; font-style: italic; }
-    .arrow { color: #94a3b8; }
-    .used-list-box {
-      background: #fff1f2;
-      border: 1px solid #fecdd3;
       border-radius: 6px;
       padding: 12px;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-    }
-    .used-item {
-      background: #ffffff;
-      border: 1px solid #fda4af;
-      padding: 6px 10px;
-      border-radius: 4px;
-      color: #9f1239;
-      display: flex;
-      justify-content: space-between;
-    }
-    .log-terminal {
-      background-color: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px;
+      gap: 4px;
       font-family: var(--font-mono);
-      font-size: 0.8rem;
-      height: 130px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 3px;
     }
-    .log-entry { line-height: 1.4; color: #334155; }
-    .log-entry.inspect { color: #d97706; font-weight: 600; }
-    .log-entry.alloc { color: #0284c7; }
-    .log-entry.free { color: #059669; }
-    .log-entry.merge { color: #ca8a04; }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+    .stat-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+
     .nav-back {
       width: 100%;
       max-width: 1100px;
@@ -421,486 +168,182 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <a href="index.html">&larr; Back to Week Overview</a>
   </div>
   <header>
-    <h1>Memory Bookkeeping, Free/Used Lists &amp; Buddy Allocator</h1>
-    <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
+    <h1>The Paging Hardware Dilemma: The Two-Access Penalty &amp; TLB</h1>
+    <p class="subtitle">Tanenbaum Chapter 3: Overcoming the 2x Memory Performance Bottleneck via Associative Hardware Caching.</p>
   </header>
   <div class="main-container">
-    <!-- Row 1: Historical Foundations & Introduction -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0;">
-      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
-        <strong>What are Allocation Lists?</strong> When an operating system kernel manages physical memory, it cannot simply guess which bytes of RAM are available. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. These consist of <em>Free Lists</em> (grouping unallocated blocks or holes) and <em>Used Lists/Trackers</em> (recording active process ownership, starting addresses, and block lengths).
+
+    <!-- Section 1: The Core Dilemma -->
+    <div class="card">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">1. The Fundamental Paging Dilemma (The Two-Memory-Access Overhead)</div>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: var(--text-muted);">
+        When paging is implemented purely in software/hardware tables stored in main DRAM, every single CPU instruction or data fetch encounters a severe performance penalty. To translate a virtual address into a physical address, the Memory Management Unit (MMU) must:
       </p>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
-        <strong>Why are they used?</strong> Without allocation lists, the kernel would be forced to perform exhaustive linear scans across every byte of raw hardware RAM every time a program requests or releases memory. Allocation lists enable structured, rapid metadata lookups, prevent memory corruption, and allow efficient coalescing of adjacent free blocks to mitigate external fragmentation.
+      <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
+        <li><strong>Access #1:</strong> Read the Page Table Entry (PTE) from the page table residing in RAM.</li>
+        <li><strong>Access #2:</strong> Read or write the actual data/instruction payload at the translated physical address in RAM.</li>
+      </ol>
+      <p style="font-size: 0.93rem; line-height: 1.6; color: var(--text-muted);">
+        This <strong>two-memory-access bottleneck</strong> effectively cuts CPU memory throughput in half (a 100% slowdown). Without hardware acceleration, paging would be prohibitively slow for modern high-performance architectures.
       </p>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
-        <strong>A Brief History:</strong> Early computer systems in the 1950s and early 1960s used primitive bitmaps and sequential linked lists of variable-length holes. To solve the persistent problem of external fragmentation and slow search times, the <strong>Binary Buddy System</strong> was introduced by <strong>Harry M. Markowitz</strong> in 1963, refined by <strong>Kenneth C. Knowlton</strong> in 1965, and standardized across computer science by <strong>Donald Knuth</strong>.
-      </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
-        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
-          <strong style="color: #0284c7; font-size: 0.9rem;">Free Lists (Availability)</strong>
-          <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
-            Group unallocated blocks by power-of-two sizes (`free_area[0..MAX_ORDER]`). Enables instant $O(1)$ pop operations when allocating memory.
-          </p>
-        </div>
-        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
-          <strong style="color: #0284c7; font-size: 0.9rem;">Used Trackers (Ownership)</strong>
-          <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
-            Record active allocations and metadata. When a process frees a pointer, the kernel inspects this tracker to know the exact block boundaries for buddy coalescing.
-          </p>
-        </div>
-      </div>
     </div>
 
-    <!-- Row 2: Pioneer Profiles Grid -->
-    <div class="pioneer-row">
-      <!-- Markowitz Infobox -->
-      <div class="pioneer-profile">
-        <img src="../images/markowitz.jpg" alt="Harry Markowitz" onerror="this.style.display='none'">
-        <h3>Harry M. Markowitz</h3>
-        <p>Formulated the binary buddy allocation algorithm (1963). Nobel laureate.</p>
-        <div class="attr">Image source: <a href="https://zicklin.baruch.cuny.edu/zicklin_news/nobel-winner-harry-markowitz-former-zicklin-professor-dies/" target="_blank">Zicklin News, Baruch College</a> (Copyrighted).</div>
-        <div><a href="https://en.wikipedia.org/wiki/Harry_Markowitz" target="_blank">View Wikipedia &rarr;</a></div>
-      </div>
-
-      <!-- Knowlton Infobox -->
-      <div class="pioneer-profile">
-        <img src="../images/knowlton.png" alt="Ken Knowlton" onerror="this.style.display='none'">
-        <h3>Kenneth C. Knowlton</h3>
-        <p>Refined buddy allocation structures at Bell Labs (1965) for Lisp architectures.</p>
-        <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
-        <div><a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">View Wikipedia &rarr;</a></div>
-      </div>
-
-      <!-- Knuth Infobox -->
-      <div class="pioneer-profile">
-        <img src="../images/knuth.png" alt="Donald Knuth" onerror="this.style.display='none'">
-        <h3>Donald E. Knuth</h3>
-        <p>Rigorously analyzed and popularized buddy systems in <em>The Art of Computer Programming</em>.</p>
-        <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
-        <div><a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">View Wikipedia &rarr;</a></div>
-      </div>
+    <!-- Section 2: Mathematical Modeling (EAT) -->
+    <div class="concept-box">
+      <strong>Quantifying Performance: Effective Access Time ($EAT$)</strong><br>
+      To solve this, hardware engineers introduced the <strong>Translation Lookaside Buffer (TLB)</strong>—a small, ultra-fast associative hardware cache holding recent virtual-to-physical mappings. The Effective Access Time is modeled as:
+      $$EAT = (h \times t_{tlb}) + (1 - h) \times (t_{tlb} + t_{ram\_table} + t_{ram\_data})$$
+      Where $h$ is the TLB hit rate, $t_{tlb}$ is the TLB lookup latency (e.g., 1 ns), $t_{ram\_table}$ is the time to fetch a PTE from RAM, and $t_{ram\_data}$ is the payload fetch time. When $h \ge 99\%$, $EAT$ remains remarkably close to unpaged memory speeds!
     </div>
 
-    <!-- Tanenbaum Section 1: Bitmaps (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
-      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">2. Tanenbaum's Method 1: Bookkeeping with Bitmaps</div>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
-        Memory is partitioned into fixed allocation units (e.g., 4 KB blocks). Each unit corresponds to a single bit in a bitmap: <code>0</code> if free, and <code>1</code> if allocated to a process.
+    <!-- Section 3: Interactive TLB Lookup Simulator -->
+    <div class="card sim-panel">
+      <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">2. Interactive Hardware Translation Simulator (TLB Hit vs. Miss)</div>
+      <p style="font-size: 0.9rem; color: var(--text-muted);">
+        Simulate an MMU virtual address translation request and observe the hardware traversal path and latency breakdown.
       </p>
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Memory Allocation Tracked via Bitmaps</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <g transform="translate(20, 20)">
-            <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Memory Units (4 KB each):</text>
-            <rect x="0" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="20" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
-            <rect x="42" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="62" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
-            <rect x="84" y="30" width="40" height="40" fill="#ecfdf5" stroke="#059669"/><text x="104" y="55" font-size="9" fill="#059669" text-anchor="middle">0</text>
-            <rect x="126" y="30" width="40" height="40" fill="#ecfdf5" stroke="#059669"/><text x="146" y="55" font-size="9" fill="#059669" text-anchor="middle">0</text>
-            <rect x="168" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="188" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
-            <rect x="210" y="30" width="40" height="40" fill="#e11d48" opacity="0.8"/><text x="230" y="55" font-size="9" fill="#fff" text-anchor="middle">1</text>
-            <rect x="252" y="30" width="40" height="40" fill="#ecfdf5" stroke="#059669"/><text x="272" y="55" font-size="9" fill="#059669" text-anchor="middle">0</text>
-          </g>
-          <g transform="translate(420, 20)">
-            <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Bitmap Array:</text>
-            <rect x="0" y="30" width="220" height="40" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="110" y="55" font-size="12" font-family="monospace" font-weight="700" fill="#0284c7" text-anchor="middle">1 1 0 0 1 1 0</text>
-          </g>
-        </svg>
-      </div>
-    </div>
 
-    <!-- Tanenbaum Section 2: Linked Lists (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
-      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">3. Tanenbaum's Method 2: Bookkeeping with Linked Lists of Segments</div>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
-        The operating system maintains a linked list where each node indicates whether a region is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
-      </p>
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Tanenbaum's Linked List of Segments (Holes &amp; Processes)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="30" y="25" width="640" height="45" fill="#e2e8f0" stroke="#334155" stroke-width="1.5" rx="4"/>
-          <rect x="30" y="25" width="140" height="45" fill="#e11d48" opacity="0.8"/>
-          <text x="100" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process A (Addr 0, Len 140)</text>
-          <rect x="170" y="25" width="90" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
-          <text x="215" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 140, 90)</text>
-          <rect x="260" y="25" width="200" height="45" fill="#e11d48" opacity="0.8"/>
-          <text x="360" y="52" font-size="10" font-weight="700" fill="#ffffff" text-anchor="middle">Process B (Addr 230, Len 200)</text>
-          <rect x="460" y="25" width="210" height="45" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
-          <text x="565" y="52" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Hole (Addr 430, 210)</text>
-          <g transform="translate(30, 95)">
-            <text x="0" y="15" font-size="10" font-weight="700" fill="#0f172a">Linked List Nodes:</text>
-            <rect x="0" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
-            <text x="65" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 0 | Len: 140 ]</text>
-            <line x1="0" y1="60" x2="130" y2="60" stroke="#f1f5f9"/>
-            <text x="65" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
-            <path d="M 130 62 L 175 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
-            <rect x="175" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
-            <text x="240" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 140 | Len: 90 ]</text>
-            <line x1="175" y1="60" x2="305" y2="60" stroke="#f1f5f9"/>
-            <text x="240" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
-            <path d="M 305 62 L 350 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
-            <rect x="350" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
-            <text x="415" y="50" font-size="9" font-weight="700" fill="#e11d48" text-anchor="middle">[ P | Start: 230 | Len: 200 ]</text>
-            <line x1="350" y1="60" x2="480" y2="60" stroke="#f1f5f9"/>
-            <text x="415" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; points to next</text>
-            <path d="M 480 62 L 525 62" stroke="#0284c7" stroke-width="1.8" marker-end="url(#arr-blue)"/>
-            <rect x="525" y="30" width="130" height="65" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
-            <text x="590" y="50" font-size="9" font-weight="700" fill="#059669" text-anchor="middle">[ H | Start: 430 | Len: 210 ]</text>
-            <line x1="525" y1="60" x2="655" y2="60" stroke="#f1f5f9"/>
-            <text x="590" y="80" font-size="8" fill="#64748b" text-anchor="middle">&rarr; NULL</text>
-          </g>
+      <div class="sim-controls">
+        <button id="hitBtn" class="active" onclick="setScenario('hit')">Simulate TLB Hit ($h = 99\%$)</button>
+        <button id="missBtn" class="btn-secondary" onclick="setScenario('miss')">Simulate TLB Miss ($h = 0\%$)</button>
+      </div>
+
+      <!-- Visual Hardware Flow Diagram -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <span id="flowTitle" style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--hit-color);">PATHWAY: CPU &rarr; TLB (Match Found) &rarr; Physical Memory</span>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 110" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- CPU Node -->
+          <rect x="20" y="25" width="100" height="60" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
+          <text x="70" y="52" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">CPU Virtual</text>
+          <text x="70" y="66" font-size="10" fill="#475569" text-anchor="middle">Address</text>
+
+          <path d="M 120 55 L 170 55" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- TLB Node -->
+          <rect x="170" y="25" width="110" height="60" id="tlbBox" fill="#ecfdf5" stroke="#059669" stroke-width="2" rx="6"/>
+          <text x="225" y="52" font-size="11" font-weight="700" id="tlbTextTitle" fill="#059669" text-anchor="middle">TLB Lookup</text>
+          <text x="225" y="66" font-size="10" id="tlbTextSub" fill="#059669" text-anchor="middle">1 ns (Fast)</text>
+
+          <path d="M 280 55 L 330 55" id="pathMiddle" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- RAM Table Node (Conditional) -->
+          <rect x="330" y="25" width="110" height="60" id="ramTableBox" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" opacity="0.4" rx="6"/>
+          <text x="385" y="52" font-size="11" font-weight="700" id="ramTableTitle" fill="#64748b" text-anchor="middle">RAM Table Walk</text>
+          <text x="385" y="66" font-size="10" id="ramTableSub" fill="#64748b" text-anchor="middle">Bypassed (Hit)</text>
+
+          <path d="M 440 55 L 490 55" id="pathRight" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- Physical RAM Data Node -->
+          <rect x="490" y="25" width="120" height="60" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
+          <text x="550" y="52" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Physical RAM</text>
+          <text x="550" y="66" font-size="10" fill="#475569" text-anchor="middle">Data Payload</text>
+
           <defs>
-            <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
             </marker>
           </defs>
         </svg>
       </div>
-    </div>
 
-    <!-- Section 3: Classical Placement Strategies (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
-      <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">4. Classical Placement Strategies (First Fit, Best Fit, Worst Fit, Next Fit)</div>
-      <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
-        When allocating memory from a linked list of holes, the kernel uses placement algorithms to decide which hole to assign:
-      </p>
-      <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.93rem; color: #334155; line-height: 1.5;">
-        <li><strong>First Fit:</strong> Scan from the start and pick the <em>first</em> hole that is big enough. Fast, but clutters the front of memory with small splinters.</li>
-        <li><strong>Best Fit:</strong> Search the <em>entire</em> list and pick the hole closest in size to the request. Minimizes leftover waste per allocation, but is slow and leaves tiny, unusable slivers.</li>
-        <li><strong>Worst Fit:</strong> Allocate from the <em>largest</em> hole so leftovers remain useful. In practice, it rapidly exhausts large blocks.</li>
-        <li><strong>Next Fit:</strong> Like First Fit, but starts scanning from the location of the <em>last allocation</em> rather than the beginning.</li>
-      </ul>
-    </div>
-
-    <!-- PFN Explanation Banner -->
-    <div class="concept-box">
-      <strong>What is a PFN (Page Frame Number)?</strong><br>
-      Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
-      <div class="math-formula">
-        <span>PFN</span>
-        <span>=</span>
-        <div class="fraction">
-          <span class="numerator">Physical Address</span>
-          <span class="denominator">4096</span>
+      <!-- Latency Stat Metrics -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Translation Latency</span>
+          <span id="statLatency" class="stat-value" style="color: var(--hit-color);">1 ns (TLB Hit)</span>
         </div>
-        <span>=</span>
-        <span>Physical Address &gt;&gt; 12</span>
-      </div>
-      Physical address <code>0x0000</code> is PFN 0, <code>0x1000</code> is PFN 1, <code>0x2000</code> is PFN 2, and so on. The buddy system performs all pairing directly on this integer index.
-    </div>
-
-    <!-- Tutorial Control Box -->
-    <div class="card tutorial-panel" id="tutorialCard">
-      <div class="tutorial-header">
-        <span id="stepCounter">Step 1 of 8</span>
-        <span id="stepPhase">State: Idle</span>
-      </div>
-      <div id="tutorialTitle" class="tutorial-title">1. Initial Setup: The Single Max Block</div>
-      <div id="tutorialText" class="tutorial-body"></div>
-      <div id="mathBox" class="math-callout" style="display:none;"></div>
-      <div class="tour-nav">
-        <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Micro-Step</button>
-        <button id="nextBtn">Next Micro-Step &rarr;</button>
-        <button id="jumpSandboxBtn" class="btn-secondary" style="margin-left:auto;">Jump to Summary</button>
-      </div>
-    </div>
-
-    <!-- Physical Memory Bar -->
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:600;">Physical Memory Range (PFN 0 to 15)</span>
-        <span style="font-size:0.8rem; color:var(--text-muted);">16 Pages &times; 4 KB = 64 KB Total Pool</span>
-      </div>
-      <div class="memory-label-row">
-        <span>PFN 0 (0x0000)</span>
-        <span>PFN 4 (0x4000)</span>
-        <span>PFN 8 (0x8000)</span>
-        <span>PFN 12 (0xC000)</span>
-        <span>PFN 15 (0xF000)</span>
-      </div>
-      <div id="memoryBar" class="memory-bar"></div>
-    </div>
-
-    <!-- Kernel Free Area & Used Tracking Grid -->
-    <div class="lists-container">
-      <div class="card">
-        <span style="font-weight:600;">Kernel Free List Array (<code>free_area[0..4]</code>)</span>
-        <div id="freeAreaLists" class="free-area-list"></div>
-      </div>
-      <div class="card">
-        <span style="font-weight:600;">Active Allocations (Used Tracker)</span>
-        <div id="usedListBox" class="used-list-box">
-          <span style="color: #94a3b8; font-style: italic;">No active allocations (Used list empty).</span>
+        <div class="stat-card">
+          <span class="stat-label">RAM Accesses Required</span>
+          <span id="statAccesses" class="stat-value">1 Access (Data Only)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Performance Penalty</span>
+          <span id="statPenalty" class="stat-value" style="color: var(--hit-color);">~1.02x (Near Zero)</span>
         </div>
       </div>
-    </div>
-
-    <!-- Execution Terminal -->
-    <div class="card">
-      <span style="font-weight:600;">Kernel Memory Allocator Trace</span>
-      <div id="actionLog" class="log-terminal"></div>
     </div>
   </div>
 
   <script>
-    const MAX_ORDER = 4;
-    const PAGE_SIZE_KB = 4;
-    class BuddyNode {
-      constructor(pfn, order, parent = null) {
-        this.pfn = pfn;
-        this.order = order;
-        this.parent = parent;
-        this.left = null;
-        this.right = null;
-        this.isAllocated = false;
-        this.isSplit = false;
-        this.tag = null;
-        this.inspecting = false;
-        this.isBuddyHighlighted = false;
-      }
-      get size() { return (1 << this.order); }
-    }
-    let root = null;
-    let currentStep = 0;
-    let inspectingOrderRow = null;
-    const steps = [
-      {
-        title: "1. The Starting Pool (Order 4)",
-        phase: "Inspection",
-        text: "The kernel starts with 16 continuous page frames (PFN 0 through 15). Because 16 = 2<sup>4</sup>, this is managed as a single block of <strong>Order 4</strong>. Notice that <code>free_area[4]</code> holds <code>[PFN 0]</code>, while lists 0 through 3 are empty (NULL). The Used list has no entries.",
-        math: "Block size = 2<sup>4</sup> = 16 pages (64 KB). Base PFN = 0.",
-        inspectRow: 4,
-        setup: () => { resetTree(); }
-      },
-      {
-        title: "2. Incoming Request: Allocate 4 KB (Order 0)",
-        phase: "Scanning Lists",
-        text: "A process calls <code>kmalloc(4096)</code>. The kernel translates 4 KB into <strong>Order 0</strong> (2<sup>0</sup> pages). It inspects <code>free_area[0]</code> first: <strong>empty!</strong> It checks <code>free_area[1]</code> through <code>[3]</code> (all empty), and finally reaches <code>free_area[4]</code> where PFN 0 is available.",
-        math: "Target Order = 0. Scanning upward: free_area[0]=NULL &rarr; [1]=NULL &rarr; [2]=NULL &rarr; [3]=NULL &rarr; [4]=PFN 0.",
-        inspectRow: 0,
-        setup: () => { resetTree(); root.inspecting = true; }
-      },
-      {
-        title: "3. Granular Split: Order 4 down to Order 3",
-        phase: "Splitting Block",
-        text: "The kernel removes PFN 0 from <code>free_area[4]</code> and splits it in half. Two Order 3 blocks are created: Left child (PFN 0) and Right child (PFN 8). PFN 8 is parked on <code>free_area[3]</code> as an idle buddy!",
-        math: "Split PFN 0 (Order 4): Buddy PFN = 0 ^ (1 &lt;&lt; 3) = 0 ^ 8 = PFN 8.<br>free_area[3] now gets [PFN 8].",
-        inspectRow: 3,
-        setup: () => { resetTree(); splitNode(root); root.left.inspecting = true; root.right.isBuddyHighlighted = true; }
-      },
-      {
-        title: "4. Cascading Down to Order 0",
-        phase: "Splitting Cascades",
-        text: "The left halves are recursively split until an Order 0 block is reached. At each split, the unused right half registers as a free buddy deposited into its respective free list: PFN 4 in <code>free_area[2]</code>, PFN 2 in <code>free_area[1]</code>, and PFN 1 in <code>free_area[0]</code>.",
-        math: "Unused buddies deposited:<br>free_area[2] gets PFN 4<br>free_area[1] gets PFN 2<br>free_area[0] gets PFN 1",
-        inspectRow: 0,
-        setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.inspecting = true; }
-      },
-      {
-        title: "5. Allocation Complete: Block #A Claimed",
-        phase: "Allocated",
-        text: "PFN 0 is marked as <strong>Allocated</strong> (Block #A) and registered into the <strong>Used Tracker</strong>. Notice how PFN 0 is removed from the free lists entirely while PFN 1 remains free in <code>free_area[0]</code>.",
-        math: "Allocated: PFN 0 (Order 0).<br>Used List Entry: Block #A &rarr; PFN 0 (4 KB).",
-        inspectRow: 0,
-        setup: () => { resetTree(); const leaf = splitDownTo(root, 0); leaf.isAllocated = true; leaf.tag = "A"; }
-      },
-      {
-        title: "6. Second Allocation: Immediate O(1) Hit",
-        phase: "Instant Hit",
-        text: "A second request for Order 0 arrives. The allocator checks <code>free_area[0]</code>. PFN 1 is right there! It pops PFN 1 off <code>free_area[0]</code> in O(1) time, assigns it as Block #B, and adds it to the Used list.",
-        math: "free_area[0] POP &rarr; PFN 1 assigned as Block #B.<br>Used List now tracks both #A and #B.",
-        inspectRow: 0,
-        setup: () => {
-          resetTree();
-          const leafA = splitDownTo(root, 0);
-          leafA.isAllocated = true;
-          leafA.tag = "A";
-          const leafB = root.left.left.left.right;
-          leafB.isAllocated = true;
-          leafB.tag = "B";
-          leafB.inspecting = true;
-        }
-      },
-      {
-        title: "7. Freeing Block #A: The Buddy Check",
-        phase: "Checking Buddy",
-        text: "The owner frees Block #A (PFN 0). It is removed from the Used list. Before coalescing, the kernel calculates buddy: <code>0 ^ (1 &lt;&lt; 0) = 1</code>. It inspects PFN 1. <strong>PFN 1 is allocated (#B)!</strong> Because its buddy is occupied, PFN 0 cannot merge. It is returned to <code>free_area[0]</code>.",
-        math: "Formula: Buddy = PFN ^ (1 &lt;&lt; order) &rarr; 0 ^ 1 = 1.<br>State check: PFN 1 is BUSY. Coalesce blocked.",
-        inspectRow: 0,
-        setup: () => {
-          resetTree();
-          const leafA = splitDownTo(root, 0);
-          leafA.isAllocated = false;
-          const leafB = root.left.left.left.right;
-          leafB.isAllocated = true;
-          leafB.tag = "B";
-          leafA.inspecting = true;
-          leafB.isBuddyHighlighted = true;
-        }
-      },
-      {
-        title: "8. Freeing Block #B: The Coalescing Cascade",
-        phase: "Coalesce / Merge",
-        text: "Now Block #B (PFN 1) is freed and removed from the Used list. The kernel recalculates buddy <code>1 ^ 1 = 0</code>. PFN 0 is FREE! They fuse into Order 1 (PFN 0). The cascade ripples upward until the pool is restored to a single 64 KB block in <code>free_area[4]</code> and the Used list is completely empty.",
-        math: "Cascade:<br>[PFN 0 + PFN 1] &rarr; Order 1 (PFN 0)<br>[PFN 0 + PFN 2] &rarr; Order 2 (PFN 0)<br>[PFN 0 + PFN 4] &rarr; Order 3 (PFN 0)<br>[PFN 0 + PFN 8] &rarr; Order 4 (PFN 0)",
-        inspectRow: 4,
-        setup: () => { resetTree(); root.inspecting = true; }
-      }
-    ];
-    function resetTree() { root = new BuddyNode(0, MAX_ORDER); }
-    function splitNode(node) {
-      const nextOrder = node.order - 1;
-      const buddySize = 1 << nextOrder;
-      node.isSplit = true;
-      node.left = new BuddyNode(node.pfn, nextOrder, node);
-      node.right = new BuddyNode(node.pfn + buddySize, nextOrder, node);
-      return node;
-    }
-    function splitDownTo(node, targetOrder) {
-      if (node.order === targetOrder) return node;
-      splitNode(node);
-      return splitDownTo(node.left, targetOrder);
-    }
-    function collectLeaves(node, result = []) {
-      if (!node.isSplit) { result.push(node); }
-      else { collectLeaves(node.left, result); collectLeaves(node.right, result); }
-      return result;
-    }
-    function collectFreeLists() {
-      const lists = Array.from({ length: MAX_ORDER + 1 }, () => []);
-      function traverse(n) {
-        if (!n.isSplit && !n.isAllocated) { lists[n.order].push(n); }
-        else if (n.isSplit) { traverse(n.left); traverse(n.right); }
-      }
-      traverse(root);
-      return lists;
-    }
-    function collectUsedNodes(node, result = []) {
-      if (node.isAllocated) { result.push(node); }
-      else if (node.isSplit) {
-        collectUsedNodes(node.left, result);
-        collectUsedNodes(node.right, result);
-      }
-      return result;
-    }
-    function updateStep() {
-      const step = steps[currentStep];
-      document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${steps.length}`;
-      document.getElementById("stepPhase").textContent = `Phase: ${step.phase}`;
-      document.getElementById("tutorialTitle").textContent = step.title;
-      document.getElementById("tutorialText").innerHTML = step.text;
-      const mBox = document.getElementById("mathBox");
-      if (step.math) { mBox.style.display = "flex"; mBox.innerHTML = step.math; }
-      else { mBox.style.display = "none"; }
-      inspectingOrderRow = step.inspectRow;
-      step.setup();
-      render();
-      document.getElementById("prevBtn").disabled = (currentStep === 0);
-      document.getElementById("nextBtn").textContent = (currentStep === steps.length - 1) ? "Restart Tutorial" : "Next Micro-Step &rarr;";
-      log(`[Step ${currentStep + 1}] ${step.title}`, "inspect");
-    }
-    function render() { renderMemoryBar(); renderFreeLists(); renderUsedList(); }
-    function renderMemoryBar() {
-      const bar = document.getElementById("memoryBar");
-      bar.innerHTML = "";
-      collectLeaves(root).forEach(node => {
-        const div = document.createElement("div");
-        div.className = `block ${node.isAllocated ? 'allocated' : 'free'}`;
-        if (node.inspecting) div.classList.add("state-inspecting");
-        if (node.isBuddyHighlighted) div.classList.add("state-buddy-active");
-        div.style.flex = node.size;
-        const sizeKb = node.size * PAGE_SIZE_KB;
-        const pfnText = node.size === 1 ? `PFN ${node.pfn}` : `PFN ${node.pfn}..${node.pfn + node.size - 1}`;
-        if (node.isAllocated) {
-          div.innerHTML = `<strong>#${node.tag} [Alloc]</strong><span>${sizeKb}KB (O${node.order})</span><span>${pfnText}</span>`;
-        } else {
-          div.innerHTML = `<strong>Free</strong><span>${sizeKb}KB (O${node.order})</span><span>${pfnText}</span>`;
-        }
-        bar.appendChild(div);
-      });
-    }
-    function renderFreeLists() {
-      const container = document.getElementById("freeAreaLists");
-      container.innerHTML = "";
-      const freeLists = collectFreeLists();
-      for (let order = MAX_ORDER; order >= 0; order--) {
-        const row = document.createElement("div");
-        row.className = "order-row";
-        if (inspectingOrderRow === order) row.classList.add("inspecting-row");
-        const label = document.createElement("span");
-        label.className = "order-label";
-        label.textContent = `free_area[${order}] (${(1 << order) * PAGE_SIZE_KB}KB):`;
-        const nodesList = document.createElement("div");
-        nodesList.className = "list-nodes";
-        if (freeLists[order].length === 0) {
-          nodesList.innerHTML = `<span class="node-empty">NULL</span>`;
-        } else {
-          freeLists[order].forEach((n, idx) => {
-            const nodeEl = document.createElement("span");
-            nodeEl.className = "node";
-            if (n.inspecting) nodeEl.classList.add("inspecting");
-            if (n.isBuddyHighlighted) nodeEl.classList.add("buddy-target");
-            nodeEl.textContent = `[PFN ${n.pfn}]`;
-            nodesList.appendChild(nodeEl);
-            if (idx < freeLists[order].length - 1) {
-              const arrow = document.createElement("span");
-              arrow.className = "arrow";
-              arrow.textContent = "&rarr;";
-              nodesList.appendChild(arrow);
-            }
-          });
-        }
-        row.appendChild(label);
-        row.appendChild(nodesList);
-        container.appendChild(row);
+    function setScenario(type) {
+      const hitBtn = document.getElementById("hitBtn");
+      const missBtn = document.getElementById("missBtn");
+      const flowTitle = document.getElementById("flowTitle");
+      const tlbBox = document.getElementById("tlbBox");
+      const tlbTextTitle = document.getElementById("tlbTextTitle");
+      const tlbTextSub = document.getElementById("tlbTextSub");
+      const ramTableBox = document.getElementById("ramTableBox");
+      const ramTableTitle = document.getElementById("ramTableTitle");
+      const ramTableSub = document.getElementById("ramTableSub");
+      const statLatency = document.getElementById("statLatency");
+      const statAccesses = document.getElementById("statAccesses");
+      const statPenalty = document.getElementById("statPenalty");
+
+      if (type === 'hit') {
+        hitBtn.className = "active";
+        missBtn.className = "btn-secondary";
+        flowTitle.textContent = "PATHWAY: CPU -> TLB (Match Found) -> Physical Memory (1 RAM Fetch)";
+        flowTitle.style.color = "var(--hit-color)";
+
+        tlbBox.setAttribute("fill", "#ecfdf5");
+        tlbBox.setAttribute("stroke", "#059669");
+        tlbTextTitle.textContent = "TLB Lookup";
+        tlbTextTitle.setAttribute("fill", "#059669");
+        tlbTextSub.textContent = "1 ns (Hit!)";
+        tlbTextSub.setAttribute("fill", "#059669");
+
+        ramTableBox.setAttribute("fill", "#f1f5f9");
+        ramTableBox.setAttribute("stroke", "#94a3b8");
+        ramTableBox.style.opacity = "0.4";
+        ramTableTitle.textContent = "RAM Table Walk";
+        ramTableTitle.setAttribute("fill", "#64748b");
+        ramTableSub.textContent = "Bypassed (Hit)";
+        ramTableSub.setAttribute("fill", "#64748b");
+
+        statLatency.textContent = "1 ns (TLB Hit)";
+        statLatency.style.color = "var(--hit-color)";
+        statAccesses.textContent = "1 Access (Data Only)";
+        statPenalty.textContent = "~1.02x (Near Zero)";
+        statPenalty.style.color = "var(--hit-color)";
+      } else {
+        missBtn.className = "active";
+        hitBtn.className = "btn-secondary";
+        flowTitle.textContent = "PATHWAY: CPU -> TLB (Miss) -> RAM Page Table Walk -> Physical Memory (2 RAM Fetches)";
+        flowTitle.style.color = "var(--miss-color)";
+
+        tlbBox.setAttribute("fill", "#ffe4e6");
+        tlbBox.setAttribute("stroke", "#e11d48");
+        tlbTextTitle.textContent = "TLB Lookup";
+        tlbTextTitle.setAttribute("fill", "#e11d48");
+        tlbTextSub.textContent = "1 ns (Miss!)";
+        tlbTextSub.setAttribute("fill", "#e11d48");
+
+        ramTableBox.setAttribute("fill", "#fff1f2");
+        ramTableBox.setAttribute("stroke", "#e11d48");
+        ramTableBox.style.opacity = "1";
+        ramTableTitle.textContent = "RAM Table Walk";
+        ramTableTitle.setAttribute("fill", "#e11d48");
+        ramTableSub.textContent = "+ 100 ns (Required)";
+        ramTableSub.setAttribute("fill", "#e11d48");
+
+        statLatency.textContent = "101 ns (TLB Miss + RAM Walk)";
+        statLatency.style.color = "var(--miss-color)";
+        statAccesses.textContent = "2 Accesses (Table + Data)";
+        statPenalty.textContent = "2.00x (50% Slowdown)";
+        statPenalty.style.color = "var(--miss-color)";
       }
     }
-    function renderUsedList() {
-      const box = document.getElementById("usedListBox");
-      box.innerHTML = "";
-      const usedNodes = collectUsedNodes(root);
-      if (usedNodes.length === 0) {
-        box.innerHTML = `<span style="color: #94a3b8; font-style: italic;">No active allocations (Used list empty).</span>`;
-        return;
-      }
-      usedNodes.forEach(n => {
-        const item = document.createElement("div");
-        item.className = "used-item";
-        const sizeKb = n.size * PAGE_SIZE_KB;
-        item.innerHTML = `<span>Block #${n.tag} (Order ${n.order})</span><span>PFN ${n.pfn} (${sizeKb} KB)</span>`;
-        box.appendChild(item);
-      });
-    }
-    function log(msg, type = "") {
-      const terminal = document.getElementById("actionLog");
-      const el = document.createElement("div");
-      el.className = `log-entry ${type}`;
-      el.textContent = `> ${msg}`;
-      terminal.prepend(el);
-    }
-    document.getElementById("nextBtn").onclick = () => {
-      currentStep = (currentStep < steps.length - 1) ? currentStep + 1 : 0;
-      updateStep();
-    };
-    document.getElementById("prevBtn").onclick = () => {
-      if (currentStep > 0) { currentStep--; updateStep(); }
-    };
-    document.getElementById("jumpSandboxBtn").onclick = () => {
-      alert("Tutorial completed! You can now freely review the 8 micro-steps.");
-    };
-    updateStep();
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Switch historical intro and pioneer sidebar to stacked row layout
+COMMIT_MSG = """Replace stepper with TLB simulation in paging dilemma module
 
-Update week09-memory-management/01-free-used-lists-buddy.html by removing
-the side-by-side grid column. Stack the historical introduction and
-pioneer profiles into distinct vertical rows to eliminate layout gaps."""
+Drop the linear concept stepper in 02b-paging-hardware-dilemma.html in
+favor of an interactive TLB hit/miss lookup simulator. Highlights the
+two-memory-access penalty and hardware Effective Access Time modeling."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -914,16 +357,16 @@ def run_git_step(cmd, desc):
         sys.exit(res.returncode)
 
 def execute_pipeline():
-    target_module = "week09-memory-management/01-free-used-lists-buddy.html"
+    target_module = "week09-memory-management/02b-paging-hardware-dilemma.html"
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
     print(f"Wrote updated module to {target_module}")
 
-    run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
+    run_git_step(["git", "add", target_module], "Staging 02b-paging-hardware-dilemma.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Stacked row layout applied, committed, and pushed successfully!")
+    print("--> Paging hardware dilemma module updated, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
