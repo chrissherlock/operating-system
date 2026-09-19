@@ -219,6 +219,7 @@
       gap: 2px;
       width: 100%;
       max-width: 1000px;
+      height: 140px; /* Reduced height for 20 rows */
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
@@ -323,6 +324,7 @@
       gap: 2px;
       width: 100%;
       max-width: 1000px;
+      height: 140px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
@@ -402,14 +404,15 @@
       gap: 1px;
       width: 100%;
       max-width: 950px;
+      height: 140px;
     }
     .theme-dos .c-cell {
-      aspect-ratio: 1 / 1.65;
+      aspect-ratio: 1 / 1.45;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: bold;
       line-height: 1;
       user-select: none;
@@ -495,24 +498,25 @@
       gap: 1px;
       width: 100%;
       max-width: 950px;
+      height: 130px; /* Perfectly scaled 20-row height */
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.6;
+      aspect-ratio: 1 / 1.4;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
       user-select: none;
     }
     /* MS-DOS 6.22 Defrag Palette */
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; } /* Shaded / Dotted */
-    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }   /* Solid Yellow */
-    .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; } /* Shaded cyan */
-    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; } /* Yellow with X */
+    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
+    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
+    .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; }
+    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
     .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
     .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
 
@@ -553,7 +557,7 @@
       padding-left: 4px;
       font-weight: bold;
     }
-    .theme-olddos .ui-status-panel { display: none; } /* Replaced by authentic box */
+    .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
 
     /* Matrix Dimensions */
@@ -664,7 +668,7 @@
           </div>
         </div>
 
-        <!-- Single-Screen Matrix Well -->
+        <!-- Single-Screen Matrix Well (Reduced to 20 Rows = 1,000 Blocks) -->
         <div class="grid-wrapper">
           <div class="screen-grid" id="clusterGrid"></div>
         </div>
@@ -694,7 +698,7 @@
               <div>B - Bad</div>
               <div>X - Unmovable</div>
             </div>
-            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C: 1 block = 54 clusters</div>
+            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
           </div>
         </div>
 
@@ -711,7 +715,7 @@
 
         <!-- Real-Time Status Panel -->
         <div class="ui-status-panel">
-          <span id="txtStatusMsg">500 MB Volume Initialized. 1,500 Blocks on Screen (1:85 Cluster Ratio).</span>
+          <span id="txtStatusMsg">500 MB Volume Initialized. 1,000 Blocks on Screen.</span>
           <span id="txtProgressMetric">Optimization: 0% | Fragmentation: High</span>
         </div>
       </div>
@@ -735,8 +739,8 @@
   </div>
 
   <script>
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
-    const TOTAL_CELLS = 1500; // 50 cols x 30 rows fits completely on one screen
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (20 Rows = 1,000 Blocks) ---
+    const TOTAL_CELLS = 1000; // 50 cols x 20 rows fits effortlessly on 800x600 screens
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
@@ -884,9 +888,9 @@
       initMatrix();
 
       // System Unmovable files at designated positions (Marked as X in DOS 6.22)
-      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
+      const unmovable = [12, 35, 75, 110, 160, 260, 350, 480, 600, 760, 920];
       unmovable.forEach(idx => {
-        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+        if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
       // Front 18% optimized
@@ -924,7 +928,7 @@
         if (cells[i].isSystem) continue;
 
         let row = Math.floor(i / 50);
-        if (row < 4) {
+        if (row < 3) {
           cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
         } else {
           let seed = (i * 31 + row * 43) % 100;
@@ -936,9 +940,9 @@
         }
       }
 
-      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
+      const unmovable = [12, 35, 75, 110, 160, 260, 350, 480, 600, 760, 920];
       unmovable.forEach(idx => {
-        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+        if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
       renderAllCells();
@@ -953,7 +957,7 @@
       const totalData = opt + unopt;
       const pct = totalData > 0 ? Math.round((opt / totalData) * 100) : 0;
 
-      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/1,500`;
+      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/1,000`;
 
       // Update DOS 6.22 status widget
       const dosPct = document.getElementById("dosPctText");
@@ -1093,7 +1097,7 @@
     // Initialize Simulator on Load
     initMatrix();
     selectDiskCapacity(500);
-    switchTheme('olddos'); // Default to MS-DOS 6.22 mode for immediate visual satisfaction
+    switchTheme('olddos');
   </script>
 </body>
 </html>
