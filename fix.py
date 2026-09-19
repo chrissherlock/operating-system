@@ -70,10 +70,40 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #0369a1;
     }
     .concept-box strong { color: #075985; }
+
+    /* Floating Bio Sidebar */
+    .bio-sidebar {
+      float: right;
+      width: 320px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px;
+      margin-left: 24px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.86rem;
+      shape-outside: margin-box;
+    }
+    .bio-sidebar h3 {
+      font-size: 0.98rem;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+    .bio-sidebar p {
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-size: 0.83rem;
+      margin-bottom: 4px;
+    }
+
     .figure-container {
       width: 100%; max-width: 720px; margin: 10px auto; display: flex; flex-direction: column;
       align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
-      border-radius: 8px; padding: 20px;
+      border-radius: 8px; padding: 20px; clear: both;
     }
     .math-formula {
       display: flex;
@@ -367,8 +397,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
   <div class="main-container">
-    <!-- FRONT AND CENTRE: Detailed Explanation of Allocation Lists, Purpose, and History -->
-    <div class="card" style="border-left: 4px solid var(--accent); background: #f0f9ff;">
+    <!-- FRONT AND CENTRE: Detailed Explanation of Allocation Lists, Purpose, and History with Bio Sidebar -->
+    <div class="card" style="border-left: 4px solid var(--accent); background: #f0f9ff; overflow: hidden;">
+      <aside class="bio-sidebar">
+        <h3>Pioneer Profiles</h3>
+        <p>
+          <strong>Harry M. Markowitz</strong> formulated the binary buddy memory allocation algorithm in 1963 (he was later awarded the 1990 Nobel Memorial Prize in Economic Sciences for Modern Portfolio Theory).
+        </p>
+        <p>
+          <strong>Kenneth C. Knowlton</strong> independently adapted and refined buddy allocation structures at Bell Labs in 1965 for symbol-table and list-processing architectures in Lisp.
+        </p>
+        <p>
+          <strong>Donald E. Knuth</strong> rigorously analyzed and popularized the binary buddy algorithm in Volume 1 of <em>The Art of Computer Programming</em> (1968).
+        </p>
+      </aside>
+
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155;">
         <strong>What are Allocation Lists?</strong> When an operating system kernel manages physical memory, it cannot simply guess which bytes of RAM are available. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. These consist of <em>Free Lists</em> (grouping unallocated blocks or holes) and <em>Used Lists/Trackers</em> (recording active process ownership, starting addresses, and block lengths).
@@ -377,9 +420,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <strong>Why are they used?</strong> Without allocation lists, the kernel would be forced to perform exhaustive linear scans across every byte of raw hardware RAM every time a program requests or releases memory. Allocation lists enable structured, rapid metadata lookups, prevent memory corruption, and allow efficient coalescing of adjacent free blocks to mitigate external fragmentation.
       </p>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-top: 6px;">
-        <strong>A Brief History &amp; Who Developed Them:</strong> Early computer systems in the 1950s and early 1960s used primitive bitmaps and sequential linked lists of variable-length holes, as detailed by foundational operating systems pioneers like <strong>Edsger Dijkstra</strong> and <strong>Andrew S. Tanenbaum</strong>. To solve the persistent problem of external fragmentation and slow search times, the <strong>Binary Buddy System</strong> was first introduced by <strong>Harry M. Markowitz</strong> in 1963. It was subsequently refined by <strong>Kenneth C. Knowlton</strong> in 1965 for Lisp symbol table management, and later popularized across computer science education by <strong>Donald Knuth</strong> in volume 1 of <em>The Art of Computer Programming</em>.
+        <strong>A Brief History:</strong> Early computer systems in the 1950s and early 1960s used primitive bitmaps and sequential linked lists of variable-length holes. To solve the persistent problem of external fragmentation and slow search times, the <strong>Binary Buddy System</strong> was introduced by <strong>Harry M. Markowitz</strong> in 1963, refined by <strong>Kenneth C. Knowlton</strong> in 1965, and standardized across computer science by <strong>Donald Knuth</strong>.
       </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; clear: both;">
         <div style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
           <strong style="color: #0284c7; font-size: 0.9rem;">Free Lists (Availability)</strong>
           <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
@@ -808,12 +851,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add detailed historical and conceptual intro to buddy allocator module
+COMMIT_MSG = """Add pioneer profile sidebar for Markowitz, Knowlton, and Knuth
 
-Update week09-memory-management/01-free-used-lists-buddy.html with a
-comprehensive opening section detailing the definition, purpose, and
-history of allocation lists and the binary buddy system (covering Harry
-Markowitz, Kenneth Knowlton, and Donald Knuth)."""
+Incorporate a floating bio sidebar into week09-memory-management/
+01-free-used-lists-buddy.html detailing the contributions of Harry M.
+Markowitz, Kenneth C. Knowlton, and Donald E. Knuth."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -836,7 +878,7 @@ def sync_module():
     run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Historical intro added and pushed successfully!")
+    print("--> Pioneer sidebar added and pushed successfully!")
 
 if __name__ == "__main__":
     sync_module()
