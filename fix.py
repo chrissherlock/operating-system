@@ -8,7 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Directory Systems &amp; Hierarchies — COSC240 Week 10</title>
+  <title>03. File-System Implementation — COSC240 Week 10</title>
   <script>
     window.MathJax = {
       tex: {
@@ -122,7 +122,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin: 0 auto 16px auto;
       padding: 0 4px;
       display: flex;
-      flex-direction: column;
     }
     .nav-back a {
       display: inline-flex;
@@ -144,7 +143,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
-
     .figure-container {
       width: 100%;
       margin: 10px auto;
@@ -158,7 +156,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 16px;
       overflow-x: auto;
     }
-
     .callout {
       background-color: #f0f9ff;
       border-left: 4px solid var(--accent);
@@ -171,8 +168,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 4px;
     }
 
-    /* Unified Simulator & Phase-Driven Walkthrough */
-    .fs-sim-card {
+    /* Simulator Styles */
+    .sim-card {
       background: #0f172a;
       color: #f8fafc;
       border: 1px solid #334155;
@@ -182,14 +179,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       flex-direction: column;
       gap: 16px;
     }
-    .fs-sim-header {
+    .sim-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #334155;
       padding-bottom: 8px;
     }
-    .fs-sim-title {
+    .sim-title {
       font-size: 1.05rem;
       font-weight: 700;
       color: #38bdf8;
@@ -197,233 +194,46 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       letter-spacing: 0.05em;
       font-family: var(--font-mono);
     }
-
-    /* Phase Badges Navigation */
-    .phases-track {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    .sim-controls {
+      display: flex;
       gap: 8px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 8px;
-    }
-    .phase-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 4px;
-      background: #0f172a;
-      border: 1px solid #334155;
-      font-size: 0.78rem;
-      font-family: var(--font-mono);
-      color: #94a3b8;
-      user-select: none;
-      transition: all 0.2s ease;
-    }
-    .phase-badge .phase-num {
-      font-weight: 700;
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: #1e293b;
-      color: #cbd5e1;
-      font-size: 0.7rem;
-    }
-    .phase-badge.active-phase {
-      border-color: #38bdf8;
-      background: #082f49;
-      color: #ffffff;
-    }
-    .phase-badge.active-phase .phase-num {
-      background: #0284c7;
-      color: #ffffff;
-    }
-    .phase-badge.completed-phase {
-      border-color: #059669;
-      color: #34d399;
-    }
-    .phase-badge.completed-phase .phase-num {
-      background: #059669;
-      color: #ffffff;
-    }
-
-    /* Phase Action Control Bar */
-    .phase-control-bar {
-      position: sticky;
-      top: 10px;
-      z-index: 100;
-      background: #020617;
-      border: 1px solid #38bdf8;
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-    .phase-indicator-label {
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: #fbbf24;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .phase-button-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    button {
-      background-color: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      cursor: pointer;
-      font-family: var(--font-mono);
-      transition: background-color 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #1e293b; border: 1px solid #475569; color: #cbd5e1; }
-    button.btn-sec:hover { background-color: #334155; color: #fff; }
-
-    .walkthrough-banner {
       background: #020617;
       border: 1px solid #1e293b;
-      border-left: 4px solid #38bdf8;
-      border-radius: 4px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.84rem;
-      line-height: 1.45;
-    }
-
-    .fs-sim-grid {
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 820px) {
-      .fs-sim-grid { grid-template-columns: 1fr; }
-    }
-    .fs-tree-view {
-      background: #020617;
-      border: 1px solid #1e293b;
+      padding: 10px 14px;
       border-radius: 6px;
-      padding: 14px;
-      height: 280px;
-      overflow-y: auto;
-      line-height: 1.6;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
     }
-    .fs-node {
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-block;
-      user-select: none;
-      transition: background 0.15s ease;
-    }
-    .fs-node:hover { background: #1e293b; color: #38bdf8; }
-    .fs-node.active { background: #0284c7; color: #ffffff; font-weight: 700; }
-    .fs-node.file { color: #94a3b8; cursor: default; }
-    .fs-table-view {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-    }
-    .fs-table-title {
-      font-size: 0.82rem;
-      color: #fbbf24;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .fs-table {
-      width: 100%;
-      border-collapse: collapse;
+    button.sim-btn {
+      background-color: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 7px 14px;
+      border-radius: 5px;
       font-size: 0.8rem;
-    }
-    .fs-table th, .fs-table td {
-      border: 1px solid #334155;
-      padding: 5px 8px;
-      text-align: left;
-    }
-    .fs-table th { background: #0f172a; color: #94a3b8; }
-    .fs-terminal {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      font-weight: 600;
       font-family: var(--font-mono);
-    }
-    .fs-term-log {
-      color: #38bdf8;
-      min-height: 52px;
-      white-space: pre-wrap;
-      line-height: 1.45;
-      font-size: 0.82rem;
-    }
-    .fs-term-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-top: 1px dashed #1e293b;
-      padding-top: 8px;
-      font-size: 0.85rem;
-    }
-    .fs-prompt { color: #34d399; font-weight: 700; }
-    .fs-input {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: inherit;
-      flex-grow: 1;
-    }
-    .fs-quick-btn {
-      background: #1e293b;
-      color: #f8fafc;
-      border: 1px solid #334155;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 0.78rem;
       cursor: pointer;
-      font-family: var(--font-mono);
+      transition: all 0.15s ease;
     }
-    .fs-quick-btn:hover { background: #334155; }
-
-    /* Live Telemetry Panels */
-    .inspector-grid {
+    button.sim-btn:hover {
+      background-color: #334155;
+      color: #ffffff;
+    }
+    button.sim-btn.active-btn {
+      background-color: var(--accent);
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.4);
+    }
+    .sim-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 14px;
     }
-    .inspector-panel {
+    @media (max-width: 820px) {
+      .sim-grid { grid-template-columns: 1fr; }
+    }
+    .sim-panel {
       background: #020617;
       border: 1px solid #334155;
       border-radius: 6px;
@@ -434,25 +244,34 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-family: var(--font-mono);
       font-size: 0.82rem;
     }
-    .inspector-title {
-      font-size: 0.85rem;
+    .sim-panel-title {
+      color: #fbbf24;
+      font-size: 0.82rem;
       font-weight: 700;
-      color: #38bdf8;
       text-transform: uppercase;
       border-bottom: 1px solid #1e293b;
       padding-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
     }
-    .inspector-row {
+    .sim-row {
       display: flex;
       justify-content: space-between;
-      color: #ffffff;
       padding: 3px 0;
       border-bottom: 1px dashed #1e293b;
+      color: #cbd5e1;
     }
-    .inspector-row span.highlight { color: #34d399; font-weight: 700; }
-    .inspector-row span.alert { color: #f87171; font-weight: 700; }
+    .sim-row span.val { color: #38bdf8; font-weight: 700; }
+    .sim-console {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #38bdf8;
+      min-height: 60px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -460,1055 +279,358 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <a href="index.html">&larr; Back to Week 10 Index</a>
   </div>
   <header>
-    <h1>02. Directory Systems &amp; Hierarchies</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.2: Comprehensive Reference on Single-Level, Two-Level, and Hierarchical Directory Structures, Path Resolution, and System Operations.</p>
+    <h1>03. File-System Implementation</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.3: Physical Layouts, Storage Allocation Models, Directory Records, Virtual File Systems, and Journaling.</p>
   </header>
   <div class="main-container">
 
-    <!-- Section 4.2.1: Single-Level Directory Systems -->
+    <!-- Section 4.3.1: File-System Layout -->
     <div class="card">
-      <h2>4.2.1 Single-Level Directory Systems</h2>
+      <h2>4.3.1 File-System Layout</h2>
       <p>
-        To track files stored on secondary storage media, the operating system maintains a mapping between human-readable file names and physical storage locations. The simplest conceivable design is a <strong>single-level directory system</strong> (often termed a flat directory structure).
+        File systems are stored on non-volatile disks, solid-state drives, or partitions. Physical storage devices divide raw media into fixed-size physical sectors (typically 512 bytes or 4096 bytes). Operating system file systems group these physical sectors into larger logical <strong>blocks</strong> (clusters), typically ranging from 1 KB to 64 KB, to balance metadata overhead against internal fragmentation.
       </p>
 
-      <h3>Architectural Characteristics</h3>
+      <h3>1. Partitioning &amp; Boot Records</h3>
+      <p>
+        Before a filesystem can be initialized, a storage drive is segmented into one or more partitions. Sector 0 of the entire physical disk contains the <strong>Master Boot Record (MBR)</strong> or the primary <strong>GUID Partition Table (GPT)</strong>:
+      </p>
       <ul>
-        <li><strong>Unified Global Namespace:</strong> A single directory contains every file present on the entire storage volume. There are no subdirectories, namespaces, or divisions by user account.</li>
-        <li><strong>Global Name Uniqueness:</strong> Every file must have a distinct, globally unique identifier. If one user creates a file named <code>assignment.c</code>, no other user can create a file named <code>assignment.c</code> on that disk volume.</li>
-        <li><strong>Direct Linear Mapping:</strong> The directory entry directly pairs each file name with its file attributes and disk allocation addresses (or a pointer to a metadata block).</li>
+        <li><strong>Master Boot Record (MBR):</strong> Contains bootstrap executable code executed by the BIOS, along with a 64-byte partition table defining the boundaries and types of up to four primary partitions.</li>
+        <li><strong>GPT / UEFI:</strong> Modern replacement for MBR supporting 64-bit logical block addressing, redundant partition headers, CRC32 checksums, and globally unique partition identifiers.</li>
       </ul>
 
-      <h3>Practical Applications &amp; Legacy Context</h3>
+      <h3>2. On-Disk Structural Regions</h3>
       <p>
-        Single-level directory systems appeared in early mainframe operating systems and first-generation personal microcomputers, such as early CP/M and the original MS-DOS 1.0 release for floppy disk media. On a 160 KB or 360 KB 5.25-inch diskette holding at most a few dozen files, a flat directory was computationally inexpensive and simple to maintain.
+        When a partition is formatted (for instance, via <code>mkfs</code>), the operating system initializes several distinct functional regions laid out sequentially across the partition blocks:
       </p>
-
-      <h3>Fundamental Limitations</h3>
       <ol>
-        <li><strong>Name Collisions in Shared Environments:</strong> As soon as multiple users share a machine, coordinate naming conventions break down. Users are forced to invent artificial prefixes (e.g., <code>alice_prog.c</code> versus <code>bob_prog.c</code>) to avoid clobbering one another's files.</li>
-        <li><strong>Project Segmentation Failure:</strong> Even for a single user, once a disk stores hundreds or thousands of files, keeping source code, object binaries, data files, and system tools in a single flat list makes search and cataloging difficult.</li>
-        <li><strong>Linear Search Bottlenecks:</strong> Directory lookup requires scanning an increasingly large linear table, increasing disk access latency on file creation and retrieval.</li>
+        <li><strong>Boot Block:</strong> The first block of the partition. Contains partition-specific bootstrap code read into memory by the MBR/UEFI to launch the target operating system. Present even if the partition is not bootable.</li>
+        <li><strong>Superblock:</strong> The central administrative descriptor. Stores critical geometry parameters: magic number (identifying filesystem type), total number of blocks, number of i-nodes, block size, volume state flags (clean/dirty), and pointers to free-space tracking structures. If the superblock is corrupted, the filesystem cannot be mounted; thus, kernels maintain redundant backup copies across the volume.</li>
+        <li><strong>Free Space Management:</strong> Data structures tracking unallocated blocks available for new file data. Common implementations include:
+          <ul>
+            <li><em>Bitmap (Bit Vector):</em> An array of bits where bit $i = 0$ indicates block $i$ is free, and bit $i = 1$ indicates allocation. Compact and cache-friendly.</li>
+            <li><em>Linked Free List:</em> Dedicated disk blocks holding arrays of free block numbers chained together.</li>
+          </ul>
+        </li>
+        <li><strong>I-Node Table:</strong> An array of linear metadata records (index-nodes), pre-allocated across contiguous tracks. Every file and directory on the partition occupies exactly one slot in this table, indexed by a unique integer (the i-node number).</li>
+        <li><strong>Root Directory:</strong> The top-level directory node (often bound to a hard-coded index, such as i-node 2 in ext2/ext3/ext4) from which the entire hierarchical namespace tree descends.</li>
+        <li><strong>Data Blocks:</strong> The vast remainder of the partition volume dedicated to storing actual file content bytes and subdirectory entry tables.</li>
       </ol>
 
       <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-1: Single-Level Flat Directory Layout</span>
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-5: Standard Unix/POSIX Disk Partition Layout</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="20" y="15" width="720" height="45" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
-          <text x="380" y="34" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Root / Master Directory (Flat Table)</text>
-          <text x="380" y="48" font-size="9" fill="#0369a1" text-anchor="middle">All users share one namespace | High collision probability</text>
+          <!-- Disk container -->
+          <rect x="15" y="20" width="730" height="90" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="6"/>
 
-          <g transform="translate(45, 75)">
-            <rect width="110" height="45" fill="#ffffff" stroke="#94a3b8" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">file1.txt</text>
-            <text x="55" y="34" font-size="8" fill="#64748b" text-anchor="middle">Blocks: 10, 11</text>
-          </g>
-          <g transform="translate(190, 75)">
-            <rect width="110" height="45" fill="#ffffff" stroke="#94a3b8" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">notes.c</text>
-            <text x="55" y="34" font-size="8" fill="#64748b" text-anchor="middle">Blocks: 14, 15</text>
-          </g>
-          <g transform="translate(335, 75)">
-            <rect width="110" height="45" fill="#ffffff" stroke="#94a3b8" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">game.exe</text>
-            <text x="55" y="34" font-size="8" fill="#64748b" text-anchor="middle">Blocks: 22, 23</text>
-          </g>
-          <g transform="translate(480, 75)">
-            <rect width="110" height="45" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">memo.txt</text>
-            <text x="55" y="34" font-size="8" fill="#b91c1c" text-anchor="middle">Alice's Copy</text>
-          </g>
-          <g transform="translate(615, 75)">
-            <rect width="110" height="45" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,3" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">memo.txt</text>
-            <text x="55" y="34" font-size="8" fill="#b91c1c" text-anchor="middle">COLLISION (Denied)</text>
-          </g>
+          <!-- Boot Block -->
+          <rect x="25" y="30" width="70" height="70" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.2" rx="3"/>
+          <text x="60" y="60" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Boot</text>
+          <text x="60" y="74" font-size="8" fill="#0369a1" text-anchor="middle">Block</text>
 
-          <line x1="100" y1="60" x2="100" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="245" y1="60" x2="245" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="390" y1="60" x2="390" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="535" y1="60" x2="535" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="670" y1="60" x2="670" y2="75" stroke="#dc2626" stroke-width="1.5"/>
+          <!-- Superblock -->
+          <rect x="100" y="30" width="90" height="70" fill="#fee2e2" stroke="#f87171" stroke-width="1.2" rx="3"/>
+          <text x="145" y="60" font-size="9" font-weight="700" fill="#991b1b" text-anchor="middle">Superblock</text>
+          <text x="145" y="74" font-size="7.5" fill="#7f1d1d" text-anchor="middle">Geometry / Magic</text>
+
+          <!-- Free Space Mgmt -->
+          <rect x="195" y="30" width="110" height="70" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.2" rx="3"/>
+          <text x="250" y="60" font-size="9" font-weight="700" fill="#92400e" text-anchor="middle">Free Space</text>
+          <text x="250" y="74" font-size="7.5" fill="#b45309" text-anchor="middle">Bitmap / Free List</text>
+
+          <!-- i-node Table -->
+          <rect x="310" y="30" width="120" height="70" fill="#ecfdf5" stroke="#34d399" stroke-width="1.2" rx="3"/>
+          <text x="370" y="60" font-size="9" font-weight="700" fill="#065f46" text-anchor="middle">i-Node Table</text>
+          <text x="370" y="74" font-size="7.5" fill="#047857" text-anchor="middle">Pre-allocated Metadata</text>
+
+          <!-- Root Directory -->
+          <rect x="435" y="30" width="75" height="70" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.2" rx="3"/>
+          <text x="472" y="60" font-size="9" font-weight="700" fill="#5b21b6" text-anchor="middle">Root Dir</text>
+          <text x="472" y="74" font-size="7.5" fill="#6d28d9" text-anchor="middle">i-node #2</text>
+
+          <!-- Data Blocks -->
+          <rect x="515" y="30" width="220" height="70" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" rx="3"/>
+          <text x="625" y="60" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Data Blocks Area</text>
+          <text x="625" y="74" font-size="8" fill="#64748b" text-anchor="middle">File Content &amp; Subdirectories</text>
         </svg>
       </div>
     </div>
 
-    <!-- Section 4.2.2: Two-Level Directory Systems -->
+    <!-- Section 4.3.2: Implementing Files / Allocation Strategies -->
     <div class="card">
-      <h2>4.2.2 Two-Level Directory Systems</h2>
-
-      <h3>1. Motivation and Historical Impetus</h3>
+      <h2>4.3.2 Implementing Files: Allocation Strategies</h2>
       <p>
-        The transition from batch systems dedicated to a single job at a time to multi-user time-sharing architectures (such as MIT's CTSS and early DEC systems like TOPS-10) exposed the primary flaw of single-level directories: <strong>global namespace collision</strong>.
-      </p>
-      <p>
-        When dozens or hundreds of independent users share a single disk volume, requiring unique file names across the entire storage pool is unworkable. Two users working on independent tasks will naturally choose obvious names like <code>main.c</code>, <code>test.dat</code>, or <code>notes.txt</code>. Under a single-level system, whichever user saves first claims the identifier; the second user is either blocked by a creation error or silently overwrites the existing file. To eliminate this conflict without introducing the structural complexity of recursive tree traversal, operating system designers introduced the <strong>two-level directory system</strong>.
-      </p>
-
-      <h3>2. Structural Topology: MFD and UFD</h3>
-      <p>
-        A two-level directory hierarchy establishes a fixed two-tier topology consisting of two distinct classes of directories:
-      </p>
-      <ul>
-        <li>
-          <strong>Master File Directory (MFD):</strong> The root-level administrative symbol table maintained by the kernel. It contains exactly one entry for each registered user account or project group, indexed by username, account number, or project-programmer number (PPN). Each entry contains administrative metadata and a physical pointer to the disk location where that user's private directory begins.
-        </li>
-        <li>
-          <strong>User File Directory (UFD):</strong> A dedicated directory table created for each individual account. It contains entries solely for the files created by or assigned to that specific user. Each entry maps an individual file name to its metadata (file size, access permissions, creation timestamps, and physical disk block addresses). From the user's perspective, the UFD behaves like an isolated single-level directory; no other user's files appear within it by default.
-        </li>
-      </ul>
-
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2A: Two-Level Directory Structural Topology (MFD to UFD)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="230" y="15" width="300" height="42" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-          <text x="380" y="32" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Master File Directory (MFD)</text>
-          <text x="380" y="47" font-size="9" fill="#64748b" text-anchor="middle">[ALICE] | [BOB] | [SYSTEM]</text>
-
-          <path d="M 300 57 L 140 85" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 380 57 L 380 85" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 460 57 L 620 85" stroke="#94a3b8" stroke-width="1.5"/>
-
-          <rect x="50" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="140" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: ALICE</text>
-          <rect x="65" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="124" font-size="8.5" fill="#065f46" text-anchor="middle">main.c (i-node #108)</text>
-          <rect x="65" y="134" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="148" font-size="8.5" fill="#065f46" text-anchor="middle">test.dat (i-node #109)</text>
-          <rect x="65" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="169" font-size="8" fill="#065f46" text-anchor="middle">output.log</text>
-
-          <rect x="290" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="380" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: BOB</text>
-          <rect x="305" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="124" font-size="8.5" fill="#065f46" text-anchor="middle">main.c (i-node #214)</text>
-          <rect x="305" y="134" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="148" font-size="8.5" fill="#065f46" text-anchor="middle">project.asm (i-node #215)</text>
-          <rect x="305" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="169" font-size="8" fill="#065f46" text-anchor="middle">notes.txt</text>
-
-          <rect x="530" y="85" width="180" height="92" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
-          <text x="620" y="102" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">UFD: SYSTEM (SYS:)</text>
-          <rect x="545" y="110" width="150" height="20" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="620" y="124" font-size="8.5" fill="#92400e" text-anchor="middle">cc (Compiler binary)</text>
-          <rect x="545" y="134" width="150" height="20" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="620" y="148" font-size="8.5" fill="#92400e" text-anchor="middle">ed (Editor binary)</text>
-          <rect x="545" y="158" width="150" height="15" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="620" y="169" font-size="8" fill="#92400e" text-anchor="middle">as (Assembler binary)</text>
-        </svg>
-      </div>
-
-      <h3>3. Operational Mechanics and Resolution Traversal</h3>
-      <h4>Login and Context Binding</h4>
-      <p>
-        When a user logs into the operating system, the authentication sequence performs a targeted lookup:
-      </p>
-      <ol>
-        <li>The kernel queries the user identification table and locates the user's corresponding record within the <strong>MFD</strong>.</li>
-        <li>The kernel extracts the disk address of the user's <strong>UFD</strong> and caches its root references in memory.</li>
-        <li>The executing session sets its <strong>current default directory pointer</strong> directly to this UFD.</li>
-      </ol>
-
-      <h4>Name Resolution Algorithm</h4>
-      <p>
-        Whenever an executing program executes a file system call (such as <code>open</code>, <code>creat</code>, or <code>delete</code>):
-      </p>
-      <ul>
-        <li>The file name string is resolved <strong>locally</strong> within the active session's UFD.</li>
-        <li>Because lookups are scoped strictly to the current UFD, identical file names across different accounts cause zero interference.</li>
-        <li>Alice opening <code>main.c</code> accesses i-node/FCB <code>#108</code> from her UFD; Bob opening <code>main.c</code> accesses i-node/FCB <code>#214</code> from his own UFD without naming conflict.</li>
-      </ul>
-
-      <h3>4. The System Utility and Library Dilemma</h3>
-      <p>
-        While segregating accounts resolves user collisions, it introduces a major operational challenge: <strong>how to access standard system software</strong>. Operating systems depend on common executable utilities—compilers (<code>cc</code>), assemblers (<code>as</code>), text editors (<code>ed</code>), linkers (<code>ld</code>), and shared runtime libraries. In a strict two-level system where lookups only query the caller's UFD, standard commands fail unless those programs reside in that specific UFD.
-      </p>
-
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2B: Utility Duplication Waste vs. Two-Stage Fallback Search</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="30" y="15" width="320" height="130" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" rx="4"/>
-          <text x="190" y="34" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">Option 1: Redundant Executable Duplication</text>
-
-          <rect x="45" y="45" width="135" height="60" fill="#ffffff" stroke="#fca5a5" rx="3"/>
-          <text x="112" y="60" font-size="8.5" font-weight="600" fill="#991b1b" text-anchor="middle">UFD: ALICE</text>
-          <text x="112" y="75" font-size="8" fill="#334155" text-anchor="middle">cc (1 MB) [Duplicate]</text>
-          <text x="112" y="90" font-size="8" fill="#334155" text-anchor="middle">ed (500 KB) [Duplicate]</text>
-
-          <rect x="200" y="45" width="135" height="60" fill="#ffffff" stroke="#fca5a5" rx="3"/>
-          <text x="267" y="60" font-size="8.5" font-weight="600" fill="#991b1b" text-anchor="middle">UFD: BOB</text>
-          <text x="267" y="75" font-size="8" fill="#334155" text-anchor="middle">cc (1 MB) [Duplicate]</text>
-          <text x="267" y="90" font-size="8" fill="#334155" text-anchor="middle">ed (500 KB) [Duplicate]</text>
-
-          <text x="190" y="128" font-size="8.5" fill="#b91c1c" text-anchor="middle">Severe secondary storage exhaustion across accounts</text>
-
-          <rect x="390" y="15" width="340" height="130" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="560" y="34" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">Option 2: Two-Stage Fallback Search Rule</text>
-
-          <rect x="410" y="45" width="130" height="42" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="475" y="60" font-size="8.5" font-weight="600" fill="#065f46" text-anchor="middle">Step 1: Local UFD</text>
-          <text x="475" y="75" font-size="8" fill="#64748b" text-anchor="middle">Check active user files</text>
-
-          <path d="M 540 66 L 580 66" stroke="#059669" stroke-width="1.5" marker-end="url(#arrow-green)"/>
-          <text x="560" y="60" font-size="7.5" fill="#059669" font-weight="700" text-anchor="middle">Miss</text>
-
-          <rect x="580" y="45" width="130" height="42" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="645" y="60" font-size="8.5" font-weight="600" fill="#065f46" text-anchor="middle">Step 2: SYSTEM UFD</text>
-          <text x="645" y="75" font-size="8" fill="#047857" text-anchor="middle">Locate shared cc / ed</text>
-
-          <text x="560" y="112" font-size="8.5" fill="#065f46" text-anchor="middle">Eliminates duplicate disk storage entirely</text>
-          <text x="560" y="128" font-size="8" fill="#64748b" text-anchor="middle">Local file names may shadow system executables</text>
-
-          <defs>
-            <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669" />
-            </marker>
-          </defs>
-        </svg>
-      </div>
-
-      <h4>The Two-Stage Fallback Search</h4>
-      <p>
-        Duplicating executables across every user's directory wastes precious secondary storage. Two-level architectures resolved this by designating a special system directory (often indexed in the MFD as <code>SYS</code>, <code>SYSTEM</code>, or user number <code>0</code>) and altering the directory search rule:
+        The central design challenge of a file system is mapping a linear stream of logical file bytes:
       </p>
       <div class="callout">
-        $$\text{Search Target} = \begin{cases}
-        \text{Search Active UFD}, & \text{Step 1} \\
-        \text{If not found} \longrightarrow \text{Search SYSTEM UFD}, & \text{Step 2} \\
-        \text{If not found} \longrightarrow \text{Return Error (File Not Found)}, & \text{Step 3}
-        \end{cases}$$
+        $$\text{Logical Address Stream } [0, 1, 2, \dots, \text{Size} - 1] \quad \xrightarrow{\text{Allocation Strategy}} \quad \text{Physical Disk Blocks } \{B_{k_1}, B_{k_2}, \dots\}$$
       </div>
       <p>
-        This fallback rule allowed all users to execute standard system binaries without duplicating blocks on disk. However, it introduced subtle shadowing issues: if Alice created a private data file or test script named <code>cc</code>, her local version shadowed the system compiler, causing unexpected command behavior.
+        Over the evolution of operating systems, four foundational allocation strategies have been developed, each presenting distinct performance tradeoffs between sequential throughput, random-access latency, and disk space fragmentation.
       </p>
 
-      <h3>5. Cross-User File Sharing and Namespace Syntax</h3>
+      <h3>1. Contiguous Allocation</h3>
       <p>
-        Real-world multi-user collaboration frequently requires reading or executing files belonging to another account. Because the standard lookup stops at the active user's UFD, systems had to invent <strong>cross-directory naming syntax</strong>:
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Operating System</th>
-            <th>Syntax Convention</th>
-            <th>Resolution Mechanism</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>DEC PDP-10 (TOPS-10)</strong></td>
-            <td><code>[Project,Programmer]Filename</code><br>(e.g., <code>[10,20]DATA.DAT</code>)</td>
-            <td>Bypasses active UFD; queries MFD for project 10, programmer 20, then scans target UFD.</td>
-          </tr>
-          <tr>
-            <td><strong>Early UNIX Precursors</strong></td>
-            <td><code>username/filename</code> or <code>:user:filename</code></td>
-            <td>Explicitly names the peer MFD bucket before locating the file entry.</td>
-          </tr>
-          <tr>
-            <td><strong>CP/M 2.2 / 3.0 (User Areas)</strong></td>
-            <td><code>USER N:</code><br>(e.g., <code>USER 2:</code>, <code>B2:FILE.DAT</code>)</td>
-            <td>Swaps the active drive user area partition mask before reading directory allocation blocks.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h4>Protection and Access Control</h4>
-      <p>
-        Allowing one user to specify another user's directory entry created immediate security risks. Two-level systems could no longer rely on physical isolation and had to implement explicit protection checks:
+        Stores each file as a contiguous sequence of physical disk blocks. For example, a 20 KB file using 4 KB blocks starting at block 100 occupies blocks 100, 101, 102, 103, and 104.
       </p>
       <ul>
-        <li><strong>Access Permissions:</strong> Every entry in a UFD incorporated permission bits defining whether peer users could read, write, or execute the underlying file.</li>
-        <li><strong>Directory Read Restrictions:</strong> Users could be prevented from listing the contents of a peer's UFD, even if they were permitted to read a specifically named file inside it.</li>
+        <li><strong>Advantages:</strong> Read/write performance is optimal. Accessing an entire file requires only a single disk seek operation. Successive blocks stream beneath the drive read/write head without rotational delay. Directory entries need only two integers: starting block and length.</li>
+        <li><strong>Disadvantages:</strong> Suffers from severe <strong>external fragmentation</strong>. As files are created and deleted over time, the free disk space becomes fragmented into small gaps. Compaction is expensive. Furthermore, files cannot easily grow: appending to a file requires relocating the entire file if the adjacent block is already occupied.</li>
+        <li><strong>Modern Context:</strong> Standard in read-only optical media (CD-ROMs, DVDs via ISO 9660) where file sizes are permanently known in advance. Also used in high-performance streaming or continuous recording setups.</li>
       </ul>
 
-      <h3>6. Architectural Evaluation and Inevitable Evolution</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Architectural Dimension</th>
-            <th>Single-Level System</th>
-            <th>Two-Level System</th>
-            <th>Hierarchical Tree System</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Directory Depth</strong></td>
-            <td>Exactly 1</td>
-            <td>Exactly 2 (Fixed)</td>
-            <td>Arbitrary ($N \ge 1$)</td>
-          </tr>
-          <tr>
-            <td><strong>Namespace Isolation</strong></td>
-            <td>None (Global shared pool)</td>
-            <td>Isolated per user account</td>
-            <td>Isolated per directory node</td>
-          </tr>
-          <tr>
-            <td><strong>Inter-User Collisions</strong></td>
-            <td>Chronic problem</td>
-            <td>Completely eliminated</td>
-            <td>Completely eliminated</td>
-          </tr>
-          <tr>
-            <td><strong>Intra-User Grouping</strong></td>
-            <td>Impossible</td>
-            <td>Impossible (Single flat UFD)</td>
-            <td>Fully supported (Nested subfolders)</td>
-          </tr>
-          <tr>
-            <td><strong>Path Traversal Cost</strong></td>
-            <td>1 Directory block scan</td>
-            <td>2 Directory block scans</td>
-            <td>$N$ Directory block scans</td>
-          </tr>
-          <tr>
-            <td><strong>System Utility Access</strong></td>
-            <td>Direct lookup</td>
-            <td>Requires two-stage fallback</td>
-            <td>Handled via configurable <code>PATH</code> search lists</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h4>The Ceiling of the Two-Level Model</h4>
+      <h3>2. Linked-List Allocation</h3>
       <p>
-        While the two-level directory solved the inter-user naming dilemma, it quickly reached its architectural limits:
-      </p>
-      <ol>
-        <li><strong>Intra-Account Clutter:</strong> Individual users accumulating hundreds of files suffered from the exact same flat-namespace problem inside their own UFD. A programmer working on three independent projects had to keep all source modules, documentation, and object files in one unorganized pile.</li>
-        <li><strong>Artificial Depth Barrier:</strong> The structural distinction between the MFD (which could only point to UFDs) and UFDs (which could only point to data files) was an arbitrary, rigid restriction.</li>
-        <li><strong>The Generalization Step:</strong> Operating system researchers realized that if a directory entry could point to either a data file <strong>or another directory</strong>, the rigid two-level structure naturally generalized into an arbitrary <strong>hierarchical tree</strong>. This removed all restrictions on depth and enabled users to build structured, self-contained subtrees.</li>
-      </ol>
-    </div>
-
-    <!-- Section 4.2.3: Hierarchical Directory Systems -->
-    <div class="card">
-      <h2>4.2.3 Hierarchical (Tree-Structured) Directory Systems</h2>
-
-      <h3>1. Generalization from the Two-Level Architecture</h3>
-      <p>
-        The two-level directory system demonstrated that partitioning a namespace into multiple directories completely eliminated inter-user name collisions. However, restricting directory depth to exactly two tiers—where a Master File Directory (MFD) may contain only User File Directories (UFDs), and a UFD may contain only regular files—introduced an artificial boundary.
-      </p>
-      <p>
-        Operating system designers realized that this structure could be generalized: <strong>if a directory is permitted to contain entries that point not only to regular files but also to other directories</strong>, the rigid two-level scheme naturally becomes an arbitrary, multi-level tree hierarchy.
+        Each file is represented as a linked list of disk blocks. The directory entry stores the address of the first block. Inside each block, a small header (e.g., 4 bytes) stores a pointer to the next physical block in the sequence.
       </p>
       <ul>
-        <li><strong>Arbitrary Depth:</strong> Subdirectories can be nested to whatever depth suits the application or user.</li>
-        <li><strong>Component-Level Scoping:</strong> Identical file names (e.g., <code>main.c</code>, <code>Makefile</code>, <code>README.md</code>) can coexist without conflict, provided they reside in different directory nodes.</li>
-        <li><strong>Subtree Autonomy:</strong> Whole project subtrees can be created, archived, transferred, or deleted as a single unit without touching unrelated directories.</li>
+        <li><strong>Advantages:</strong> Eliminates external fragmentation entirely. Any free block from the pool can be appended to any file without relocation. Directory entries only store the first block pointer.</li>
+        <li><strong>Disadvantages:</strong> Random access is slow: retrieving logical block $N$ requires traversing and reading all $N-1$ preceding blocks from disk sequentially. Furthermore, storing pointers inside data blocks wastes space (e.g., 4092 bytes data + 4 bytes pointer), breaking standard power-of-two buffer alignments required by hardware controllers.</li>
       </ul>
 
-      <h3>2. The Nature of Directories: Specialized Files</h3>
+      <h3>3. File Allocation Table (FAT)</h3>
       <p>
-        A central innovation of modern operating systems (pioneered by Multics and Unix) is that <strong>a directory is fundamentally just a file with a special file type</strong>.
+        Takes the linked-list concept and removes pointers from data blocks, placing them in an in-memory table called the <strong>File Allocation Table</strong>.
       </p>
       <ul>
-        <li>
-          <strong>Readable Like Data Files:</strong> In early Unix systems, user programs could issue standard <code>read()</code> calls on directory files to inspect raw entry records. Modern operating systems preserve the abstract concept but enforce dedicated API wrappers (<code>opendir()</code>, <code>readdir()</code>, <code>closedir()</code>) so the kernel can change on-disk layout formats (e.g., linear lists, B-trees, hash tables) without breaking user software.
+        <li><strong>Mechanism:</strong> The table contains an entry for every physical cluster on disk. The directory entry stores the starting cluster number. The table entry at index $k$ points to the next cluster in the chain, or holds an End-of-File (EOF) marker.</li>
+        <li><strong>Advantages:</strong> Full block capacity is preserved for user data (power-of-two alignment). Random access is fast because the chain can be traversed in system memory without issuing mechanical disk seeks.</li>
+        <li><strong>Disadvantages:</strong> Scalability limits. The entire allocation table must reside in RAM to deliver acceptable access performance. On a 1 TB drive with 4 KB clusters ($2^{28}$ clusters), a 32-bit FAT table requires over 1 GB of non-pageable memory.</li>
+      </ul>
+
+      <h3>4. Index-Nodes (I-Nodes)</h3>
+      <p>
+        Associates each file with a dedicated metadata structure known as an <strong>i-node (Index-Node)</strong>. Rather than maintaining a global table in memory, the index structure is stored with the file itself.
+      </p>
+      <ul>
+        <li><strong>Multi-Level Indirect Addressing:</strong> A standard Unix i-node contains:
+          <ul>
+            <li>12 <strong>Direct Pointers:</strong> Address the first 12 data blocks directly. Small files (up to 48 KB with 4 KB blocks) incur zero indirect lookup overhead.</li>
+            <li>1 <strong>Single Indirect Pointer:</strong> Points to a block containing an array of direct block addresses (adds $1024 \times 4\text{ KB} = 4\text{ MB}$).</li>
+            <li>1 <strong>Double Indirect Pointer:</strong> Points to a block containing an array of indirect block pointers (adds $1024 \times 1024 \times 4\text{ KB} = 4\text{ GB}$).</li>
+            <li>1 <strong>Triple Indirect Pointer:</strong> Supports files exceeding 4 TB.</li>
+          </ul>
         </li>
-        <li>
-          <strong>Kernel-Guarded Writes:</strong> While regular files accept arbitrary user writes, <strong>user programs are strictly prohibited from writing directly to directory files via <code>write()</code></strong>. Only the operating system kernel may alter directory bytes during system calls such as <code>creat()</code>, <code>link()</code>, <code>unlink()</code>, <code>mkdir()</code>, and <code>rmdir()</code>. This protection prevents user-space bugs from corrupting the tree structure or synthesizing invalid pointer references.
-        </li>
+        <li><strong>Memory Efficiency:</strong> An i-node is loaded into RAM only when its corresponding file is open, making memory consumption proportional to the number of active open files rather than total disk capacity.</li>
       </ul>
 
-      <h3>3. Tree Traversal Mechanics: The Self and Parent Links (<code>.</code> and <code>..</code>)</h3>
-      <p>
-        Every directory created in a hierarchical file system is automatically initialized with two structural entries:
-      </p>
-      <ul>
-        <li><strong><code>.</code> (Current Directory / Self):</strong> Points directly to the directory's own metadata node (i-node / file control block). It allows software to explicitly refer to the local directory context without knowing its absolute path.</li>
-        <li><strong><code>..</code> (Parent Directory):</strong> Points directly to the metadata node of the directory immediately above it in the hierarchy.</li>
-      </ul>
-
-      <div class="callout">
-        <strong>The Root Invariant:</strong> In the root directory (<code>/</code>), there is no higher parent. To prevent traversal algorithms from crashing or escaping volume boundaries, the kernel defines:<br>
-        $$\text{Root Directory Invariant: } \quad \text{inode}(\text{"/.."}) \equiv \text{inode}(\text{"/."}) \equiv \text{Root i-node}$$
-        Attempting to traverse above the root simply circles back to the root itself.
-      </div>
-
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-3: Hierarchical Tree &amp; Structural Self/Parent Links</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 210" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="330" y="15" width="100" height="35" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-          <text x="380" y="36" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">/ (Root)</text>
-
-          <path d="M 350 50 L 180 80" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 380 50 L 380 80" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 410 50 L 580 80" stroke="#94a3b8" stroke-width="1.5"/>
-
-          <rect x="130" y="80" width="100" height="30" fill="#f0f9ff" stroke="#0284c7" rx="3"/>
-          <text x="180" y="100" font-size="10" font-weight="600" fill="#0369a1" text-anchor="middle">bin/</text>
-
-          <rect x="330" y="80" width="100" height="30" fill="#f0f9ff" stroke="#0284c7" rx="3"/>
-          <text x="380" y="100" font-size="10" font-weight="600" fill="#0369a1" text-anchor="middle">etc/</text>
-
-          <rect x="530" y="80" width="100" height="30" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="3"/>
-          <text x="580" y="100" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">home/</text>
-
-          <path d="M 580 110 L 580 135" stroke="#d97706" stroke-width="1.5"/>
-
-          <rect x="520" y="135" width="120" height="65" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
-          <text x="580" y="152" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">student/ (i: 104)</text>
-
-          <rect x="526" y="160" width="50" height="18" fill="#ffffff" stroke="#cbd5e1" rx="2"/>
-          <text x="551" y="173" font-size="8" font-family="monospace" fill="#0f172a" text-anchor="middle">. (104)</text>
-
-          <rect x="584" y="160" width="50" height="18" fill="#ffffff" stroke="#cbd5e1" rx="2"/>
-          <text x="609" y="173" font-size="8" font-family="monospace" fill="#0f172a" text-anchor="middle">.. (42)</text>
-
-          <rect x="526" y="180" width="108" height="16" fill="#ecfdf5" stroke="#10b981" rx="2"/>
-          <text x="580" y="192" font-size="8" font-family="monospace" fill="#065f46" text-anchor="middle">lab10.c (112)</text>
-
-          <path d="M 526 169 C 480 169, 480 145, 515 145" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="2,2"/>
-          <text x="470" y="158" font-size="8" font-weight="600" fill="#0284c7" text-anchor="end">. points to self</text>
-
-          <path d="M 634 169 C 680 169, 680 95, 635 95" fill="none" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2,2"/>
-          <text x="685" y="135" font-size="8" font-weight="600" fill="#d97706" text-anchor="start">.. points to parent (/home)</text>
-        </svg>
-      </div>
-
-      <h3>4. Path Names: Absolute vs. Relative Traversal</h3>
-      <p>
-        A path name is a string representing a sequence of directory transitions needed to reach a target file:
-      </p>
+      <!-- Comparison Matrix -->
+      <h3>Comparison of File Allocation Strategies</h3>
       <table>
         <thead>
           <tr>
-            <th>Path Class</th>
-            <th>Starting Point</th>
-            <th>Syntax Signature</th>
-            <th>Example</th>
-            <th>Lookup Behavior</th>
+            <th>Strategy</th>
+            <th>Sequential Access</th>
+            <th>Random Access</th>
+            <th>Space Efficiency</th>
+            <th>Fragmentation</th>
+            <th>Primary Limitation</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Absolute Path</strong></td>
-            <td>Root directory (<code>/</code> or <code>C:\</code>)</td>
-            <td>Leading slash or drive specifier</td>
-            <td><code>/home/alice/src/main.c</code></td>
-            <td>Traversal starts unconditionally at the root metadata node, regardless of caller location.</td>
+            <td><strong>Contiguous</strong></td>
+            <td>Optimal (Single seek)</td>
+            <td>Fast ($O(1)$ arithmetic)</td>
+            <td>High (No pointers)</td>
+            <td>Severe External</td>
+            <td>Files cannot grow easily; compaction cost</td>
           </tr>
           <tr>
-            <td><strong>Relative Path</strong></td>
-            <td>Current Working Directory (CWD)</td>
-            <td>No leading slash</td>
-            <td><code>src/main.c</code> or <code>../bob/notes.txt</code></td>
-            <td>Traversal starts from the directory pointer registered in the calling context's kernel record.</td>
+            <td><strong>Linked List</strong></td>
+            <td>Good</td>
+            <td>Slow ($O(N)$ disk seeks)</td>
+            <td>Unaligned (Pointer in block)</td>
+            <td>None External; Internal</td>
+            <td>Slow random access; pointer corruption vulnerability</td>
+          </tr>
+          <tr>
+            <td><strong>FAT Table</strong></td>
+            <td>Good</td>
+            <td>Fast (RAM traversal)</td>
+            <td>Good (Clean data blocks)</td>
+            <td>None External; Internal</td>
+            <td>Entire table must reside in memory; scale limits</td>
+          </tr>
+          <tr>
+            <td><strong>I-Nodes</strong></td>
+            <td>Good</td>
+            <td>Fast ($O(1)$ to $O(3)$ lookups)</td>
+            <td>High (Scales per open file)</td>
+            <td>None External; Internal</td>
+            <td>Indirect block traversal latency on very large files</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Embedded Interactive Hierarchical Tree Simulator -->
-    <div class="card fs-sim-card">
-      <div class="fs-sim-header">
-        <span class="fs-sim-title">Interactive Hierarchical Tree &amp; Path Resolution Simulator</span>
-        <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">Tanenbaum &sect;4.2.3</span>
+    <!-- Interactive Allocation Visualizer & Address Translation Sandbox -->
+    <div class="card sim-card">
+      <div class="sim-header">
+        <span class="sim-title">Interactive Allocation Model &amp; Offset Translator</span>
+        <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">Tanenbaum &sect;4.3.2 Simulator</span>
       </div>
 
-      <div class="fs-sim-grid">
-        <div class="fs-tree-view" id="treeDisplay"></div>
+      <p style="color:#cbd5e1; font-size:0.86rem;">
+        Select an allocation model below and adjust the logical file byte offset to observe how the operating system translates logical file positions into physical disk blocks and calculates required I/O operations.
+      </p>
 
-        <div class="fs-table-view">
-          <div class="fs-table-title" id="activeTableTitle">On-Disk Table for: /</div>
-          <table class="fs-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>i-node</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody id="dirTableBody"></tbody>
-          </table>
-          <div style="margin-top:auto; font-size:0.75rem; color:#94a3b8; line-height:1.4;">
-            Every directory contains structural self-references (<code style="color:#38bdf8;">.</code>) and parent-references (<code style="color:#38bdf8;">..</code>), making path traversal recursive.
-          </div>
+      <div class="sim-controls">
+        <button class="sim-btn active-btn" id="btn-alloc-inode" onclick="selectAllocModel('inode')">1. I-Node (Unix Multi-Level)</button>
+        <button class="sim-btn" id="btn-alloc-fat" onclick="selectAllocModel('fat')">2. FAT (Cluster Chaining)</button>
+        <button class="sim-btn" id="btn-alloc-linked" onclick="selectAllocModel('linked')">3. Linked-List (Block Pointers)</button>
+        <button class="sim-btn" id="btn-alloc-contiguous" onclick="selectAllocModel('contiguous')">4. Contiguous (Run Extents)</button>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px; background:#020617; border:1px solid #1e293b; padding:10px 14px; border-radius:6px; font-family:var(--font-mono); font-size:0.82rem;">
+        <span style="color:#fbbf24; font-weight:700;">Target Byte Offset:</span>
+        <input type="range" id="offsetSlider" min="0" max="65536" step="1024" value="16384" oninput="updateOffset(this.value)" style="flex-grow:1; cursor:pointer;" />
+        <span id="offsetDisplay" style="color:#38bdf8; font-weight:700; width:90px; text-align:right;">16,384 B</span>
+      </div>
+
+      <div class="sim-grid">
+        <div class="sim-panel">
+          <div class="sim-panel-title">Logical Address Translation</div>
+          <div class="sim-row"><span>Logical Block Index:</span><span class="val" id="resLogicBlock">Block #4</span></div>
+          <div class="sim-row"><span>Block Offset:</span><span class="val" id="resBlockOffset">0 Bytes</span></div>
+          <div class="sim-row"><span>Physical Disk Block:</span><span class="val" id="resPhysBlock">Sector 1024</span></div>
+          <div class="sim-row"><span>Address Strategy:</span><span class="val" id="resStrategy">Direct Pointer</span></div>
+        </div>
+
+        <div class="sim-panel">
+          <div class="sim-panel-title">Performance &amp; Memory Metrics</div>
+          <div class="sim-row"><span>Mechanical Disk Seeks:</span><span class="val" id="resSeeks">1 Seek</span></div>
+          <div class="sim-row"><span>RAM Footprint:</span><span class="val" id="resRam">128 Bytes (Open File)</span></div>
+          <div class="sim-row"><span>Data Alignment:</span><span class="val" id="resAlign">Clean (4096 B / Block)</span></div>
+          <div class="sim-row"><span>External Fragmentation:</span><span class="val" id="resFrag">Zero (Any block allocable)</span></div>
         </div>
       </div>
 
-      <div class="fs-terminal">
-        <div class="fs-term-log" id="termLog">$ session started. Active working directory set to /</div>
-        <div class="fs-term-input-row">
-          <span class="fs-prompt" id="promptPath">/ $</span>
-          <input type="text" class="fs-input" id="cmdInput" placeholder="Try: cd home/alice, cd .., cd /bin, ls" autocomplete="off" />
-        </div>
-      </div>
-
-      <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-        <span style="font-size:0.75rem; color:#94a3b8; margin-right:4px; font-family:var(--font-mono);">Quick Navigation:</span>
-        <button class="fs-quick-btn" onclick="execCd('/')">cd /</button>
-        <button class="fs-quick-btn" onclick="execCd('home/alice')">cd home/alice</button>
-        <button class="fs-quick-btn" onclick="execCd('src')">cd src</button>
-        <button class="fs-quick-btn" onclick="execCd('..')">cd ..</button>
-        <button class="fs-quick-btn" onclick="execCd('../../bin')">cd ../../bin</button>
-      </div>
+      <div class="sim-console" id="allocConsole">$ Translation engine initialized. Ready to simulate offset resolution...</div>
     </div>
 
-    <!-- Section 4.2.4: Directory Operations & System Calls -->
+    <!-- Section 4.3.3 to 4.3.8: Overview of Advanced Implementations -->
     <div class="card">
-      <h2>4.2.4 Directory Operations &amp; System Calls</h2>
+      <h2>4.3.5 &ndash; 4.3.8 Advanced File Systems (LFS, Journaling, Flash, VFS)</h2>
       <p>
-        Because operating system kernels protect filesystem invariants by forbidding raw byte modifications to directory files, user programs must interact with directories through specialized system calls.
-      </p>
-
-      <h3>1. Creating &amp; Deleting Directories (`mkdir` / `rmdir`)</h3>
-      <ul>
-        <li>
-          <strong>Directory Creation (<code>mkdir</code>):</strong> When an execution context requests a new directory, the kernel allocates an unused i-node or directory record, sets its directory attribute flag, and assigns an initial data block. The kernel then formats this block with exactly two initial entries: <code>.</code> (pointing to the newly allocated i-node) and <code>..</code> (pointing to the calling parent directory's i-node).
-        </li>
-        <li>
-          <strong>Directory Deletion (<code>rmdir</code>):</strong> Removes a named directory entry from its parent. To prevent the creation of orphaned subtrees that consume space without being reachable, modern kernels enforce an <strong>emptiness invariant</strong>: the target directory must contain no entries other than <code>.</code> and <code>..</code> before deletion succeeds.
-        </li>
-      </ul>
-
-      <h3>2. Inspecting Directory Entries (`opendir`, `readdir`, `closedir`)</h3>
-      <p>
-        In early Unix implementations, directories were structured as plain arrays of 16-byte records (2 bytes for i-node, 14 bytes for filename), and user programs used standard <code>read()</code> system calls directly.
-      </p>
-      <div class="callout">
-        <strong>The Abstraction Rationale:</strong> As filesystems grew, fixed 14-byte names were replaced by variable-length filenames, B-trees, extensible hashing, and extent maps. Exposing raw directory blocks to user space broke binary portability whenever filesystem layouts changed. Modern POSIX systems mandate <code>opendir()</code>, <code>readdir()</code>, and <code>closedir()</code> to encapsulate internal filesystem formats and present a uniform stream of directory records.
-      </div>
-
-      <h3>3. Atomic Namespace Rebinding (`rename`)</h3>
-      <p>
-        The <code>rename()</code> system call updates a file or directory identifier without moving its data blocks on disk. If the destination path already exists, the kernel replaces it atomically: an executing reader either sees the old destination file or the new renamed file, with no window where the destination is missing.
-      </p>
-
-      <h3>4. Hard Links vs. Symbolic Links (`link` and `unlink`)</h3>
-      <p>
-        File namespaces support two distinct pointer models:
+        Modern workloads require specialized architectures beyond basic block tables:
       </p>
       <ul>
         <li>
-          <strong>Hard Links (<code>link</code>):</strong> Creates an additional directory entry in the namespace pointing directly to an existing file's i-node. The file's internal <strong>reference count</strong> increases by 1. All hard links have equal status; there is no "original" file once linked.
+          <strong>Log-Structured File Systems (LFS):</strong> Capitalizes on large main-memory caches. Since most reads are satisfied from cache, disk traffic is dominated by writes. LFS structures the entire disk as an append-only log, batching small random writes into large sequential segments to eliminate disk head seek latency.
         </li>
         <li>
-          <strong>Symbolic / Soft Links:</strong> Creates a new file containing the text string of a target path. If the target is deleted, the symbolic link becomes dangling.
+          <strong>Journaling File Systems:</strong> Protects filesystem consistency across sudden crashes (e.g., power loss). Critical metadata modifications are written to an idempotent sequential journal on disk before physical directory or i-node tables are updated. Upon reboot, the system replays or rolls back the log, recovering in seconds rather than running exhaustive disk-wide checks (such as <code>fsck</code>).
         </li>
         <li>
-          <strong>Unlink Mechanics (<code>unlink</code>):</strong> Removes a directory entry and decrements the target i-node's reference count. The disk blocks and i-node are only freed when the reference count drops to zero <em>and</em> no active process holds an open file descriptor to that i-node.
+          <strong>Flash-Based File Systems (SSDs):</strong> Flash memory cells cannot be overwritten in place without first erasing an entire block (typically 128 KB to 2 MB). Storage devices utilize a <strong>Flash Translation Layer (FTL)</strong> to manage wear-leveling, garbage collection, and out-of-place writes, supported by the operating system's <code>TRIM</code> command.
+        </li>
+        <li>
+          <strong>Virtual File Systems (VFS):</strong> An object-oriented abstraction layer within the kernel. VFS exposes uniform abstract data structures (superblock, inode, dentry, file) and function pointer tables, allowing user-space POSIX calls (<code>read</code>, <code>write</code>, <code>open</code>) to seamlessly interact with heterogeneous local (ext4, NTFS, FAT) and remote network filesystems (NFS, SMB).
         </li>
       </ul>
-
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-4: Structural Comparison (Hard Links vs. Symbolic Links)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="20" y="15" width="340" height="150" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-          <text x="190" y="34" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Hard Link Architecture (Shared i-Node)</text>
-
-          <rect x="35" y="48" width="125" height="40" fill="#ffffff" stroke="#bae6fd" rx="3"/>
-          <text x="97" y="66" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">Entry: notes.txt</text>
-          <text x="97" y="80" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #50</text>
-
-          <rect x="35" y="105" width="125" height="40" fill="#ffffff" stroke="#bae6fd" rx="3"/>
-          <text x="97" y="123" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">Entry: backup.txt</text>
-          <text x="97" y="137" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #50</text>
-
-          <path d="M 160 68 L 220 95" stroke="#0284c7" stroke-width="1.5"/>
-          <path d="M 160 125 L 220 95" stroke="#0284c7" stroke-width="1.5"/>
-
-          <rect x="220" y="70" width="120" height="50" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="280" y="90" font-size="9.5" font-weight="700" fill="#047857" text-anchor="middle">i-Node #50</text>
-          <text x="280" y="106" font-size="8.5" fill="#065f46" text-anchor="middle">link_count: 2</text>
-
-          <rect x="400" y="15" width="340" height="150" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
-          <text x="570" y="34" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Symbolic Link Architecture (Path String Pointer)</text>
-
-          <rect x="415" y="48" width="125" height="40" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="477" y="66" font-size="9" font-weight="600" fill="#92400e" text-anchor="middle">Entry: file.txt</text>
-          <text x="477" y="80" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #80</text>
-
-          <rect x="415" y="105" width="125" height="40" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="477" y="123" font-size="9" font-weight="600" fill="#92400e" text-anchor="middle">Entry: link_to_file</text>
-          <text x="477" y="137" font-size="8" fill="#64748b" text-anchor="middle">Points to i-node #81</text>
-
-          <path d="M 540 68 L 600 68" stroke="#d97706" stroke-width="1.5"/>
-          <rect x="600" y="48" width="120" height="40" fill="#ecfdf5" stroke="#059669" rx="3"/>
-          <text x="660" y="66" font-size="9" font-weight="700" fill="#047857" text-anchor="middle">i-Node #80 (File)</text>
-          <text x="660" y="80" font-size="8" fill="#065f46" text-anchor="middle">Data: "Hello World"</text>
-
-          <path d="M 540 125 L 600 125" stroke="#d97706" stroke-width="1.5"/>
-          <rect x="600" y="105" width="120" height="40" fill="#fef2f2" stroke="#dc2626" rx="3"/>
-          <text x="660" y="123" font-size="9" font-weight="700" fill="#b91c1c" text-anchor="middle">i-Node #81 (Symlink)</text>
-          <text x="660" y="137" font-size="8" fill="#7f1d1d" text-anchor="middle">Path: "file.txt"</text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Architectural Overview of the Walkthrough -->
-    <div class="card">
-      <h2>Understanding the Directory Lifecycle Walkthrough</h2>
-      <p>
-        The simulator below demonstrates the lower-level mechanics carried out by an operating system kernel during directory operations. Rather than treating directories as visual folders, the simulator reveals how directories operate as <strong>lookup tables of <code>(Filename, i-node)</code> pairs</strong> and how a file's lifetime is governed by its <strong>link reference count</strong>:
-      </p>
-
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 6px;">
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 4px; padding: 12px;">
-          <strong style="color: var(--accent); display: block; margin-bottom: 4px;">1. Directory Table Panel</strong>
-          <span style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
-            Represents the on-disk data blocks of the directory file. Newly allocated directories are never empty—they immediately bind entries <code>.</code> (pointing to self) and <code>..</code> (pointing to parent). Additional files or hard links occupy subsequent slots.
-          </span>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--success-color); border-radius: 4px; padding: 12px;">
-          <strong style="color: var(--success-color); display: block; margin-bottom: 4px;">2. i-Node Telemetry Panel</strong>
-          <span style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
-            Monitors target metadata. Watch how the <strong>Reference Count (nlink)</strong> transitions ($1 \rightarrow 2 \rightarrow 1 \rightarrow 0$). Physical data blocks are not copied when hard linking, and storage is only reclaimed when the reference count drops to zero.
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Phase-Driven Directory Simulator & Walkthrough -->
-    <div class="card fs-sim-card">
-      <div class="fs-sim-header">
-        <span class="fs-sim-title">Directory Operations Lifecycle Walkthrough</span>
-        <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">POSIX Sequential Simulation</span>
-      </div>
-
-      <!-- Phase Track -->
-      <div class="phases-track">
-        <div class="phase-badge active-phase" id="badge-p1">
-          <span class="phase-num">1</span>
-          <span>mkdir("project")</span>
-        </div>
-        <div class="phase-badge" id="badge-p2">
-          <span class="phase-num">2</span>
-          <span>creat("main.c")</span>
-        </div>
-        <div class="phase-badge" id="badge-p3">
-          <span class="phase-num">3</span>
-          <span>link("backup.c")</span>
-        </div>
-        <div class="phase-badge" id="badge-p4">
-          <span class="phase-num">4</span>
-          <span>rmdir Check</span>
-        </div>
-        <div class="phase-badge" id="badge-p5">
-          <span class="phase-num">5</span>
-          <span>unlink &amp; Reclaim</span>
-        </div>
-      </div>
-
-      <!-- Sticky Controller Bar -->
-      <div class="phase-control-bar">
-        <div>
-          <span class="phase-indicator-label" id="phaseStatusLabel">Phase 1 of 5 Ready</span>
-          <div style="font-size:0.78rem; color:#cbd5e1; font-family:var(--font-mono); margin-top:2px;" id="phaseSubLabel">
-            Next Action: Execute mkdir("/home/project")
-          </div>
-        </div>
-        <div class="phase-button-group">
-          <button class="btn-sec" onclick="resetWalkthrough()">Reset</button>
-          <button onclick="advanceNextPhase()" id="btnNextAction">Execute Next Step &rarr;</button>
-        </div>
-      </div>
-
-      <!-- Walkthrough Assistant Banner -->
-      <div class="walkthrough-banner">
-        <div>
-          <strong style="color:#38bdf8; font-family:var(--font-mono); text-transform:uppercase;">Phase Objective: </strong>
-          <span id="guideObjective">Initialize directory /home/project and inspect automatic structural self/parent entries (. and ..).</span>
-        </div>
-        <div style="color:#94a3b8; font-size:0.78rem;" id="guideInsight">
-          Expected Invariant: The newly created directory file contains exactly two formatted lookup entries.
-        </div>
-      </div>
-
-      <!-- Live Inspector Grid -->
-      <div class="inspector-grid">
-        <div class="inspector-panel">
-          <div class="inspector-title"><span>Directory Table On Disk</span><span id="wtDirLabel">/home/project</span></div>
-          <div class="inspector-row"><span>Slot [0]:</span><span id="wtEntry0" class="alert">-- UNALLOCATED --</span></div>
-          <div class="inspector-row"><span>Slot [1]:</span><span id="wtEntry1" class="alert">-- UNALLOCATED --</span></div>
-          <div class="inspector-row"><span>Slot [2]:</span><span id="wtEntry2" class="alert">-- UNALLOCATED --</span></div>
-          <div class="inspector-row"><span>Slot [3]:</span><span id="wtEntry3" class="alert">-- UNALLOCATED --</span></div>
-        </div>
-
-        <div class="inspector-panel">
-          <div class="inspector-title"><span>i-Node Metadata Telemetry</span><span id="wtInodeLabel">Target File</span></div>
-          <div class="inspector-row"><span>Active i-Node:</span><span id="wtInodeNum">None</span></div>
-          <div class="inspector-row"><span>Reference Count (nlink):</span><span id="wtLinkCount" class="highlight">0</span></div>
-          <div class="inspector-row"><span>Allocated Data Blocks:</span><span id="wtBlocks">0 Blocks</span></div>
-          <div class="inspector-row"><span>Storage Extent Status:</span><span id="wtStatus" class="alert">FREE</span></div>
-        </div>
-      </div>
-
-      <!-- Terminal Console -->
-      <div class="fs-terminal">
-        <div class="fs-term-log" id="simLog">$ Walkthrough initialized. Click 'Execute Next Step' to begin Phase 1...</div>
-      </div>
     </div>
 
   </div>
 
   <script>
-    // --- Hierarchical Tree Simulator Logic ---
-    const fsNodes = {
-      1: { name: "/", type: "DIR", inode: 1, parent: 1, children: [2, 3, 4] },
-      2: { name: "bin", type: "DIR", inode: 2, parent: 1, children: [5, 6] },
-      3: { name: "etc", type: "DIR", inode: 3, parent: 1, children: [7] },
-      4: { name: "home", type: "DIR", inode: 4, parent: 1, children: [8, 9] },
-      5: { name: "cat", type: "FILE", inode: 5, parent: 2 },
-      6: { name: "ls", type: "FILE", inode: 6, parent: 2 },
-      7: { name: "passwd", type: "FILE", inode: 7, parent: 3 },
-      8: { name: "alice", type: "DIR", inode: 8, parent: 4, children: [10, 11, 12] },
-      9: { name: "bob", type: "DIR", inode: 9, parent: 4, children: [13] },
-      10: { name: "docs", type: "DIR", inode: 10, parent: 8, children: [14] },
-      11: { name: "src", type: "DIR", inode: 11, parent: 8, children: [15] },
-      12: { name: "notes.txt", type: "FILE", inode: 12, parent: 8 },
-      13: { name: "build.sh", type: "FILE", inode: 13, parent: 9 },
-      14: { name: "thesis.pdf", type: "FILE", inode: 14, parent: 10 },
-      15: { name: "main.c", type: "FILE", inode: 15, parent: 11 }
-    };
+    let currentModel = 'inode';
+    let currentByteOffset = 16384;
+    const BLOCK_SIZE = 4096;
 
-    let currentInode = 1;
-
-    function getPathString(inode) {
-      if (inode === 1) return "/";
-      let segments = [];
-      let curr = fsNodes[inode];
-      while (curr && curr.inode !== 1) {
-        segments.unshift(curr.name);
-        curr = fsNodes[curr.parent];
-      }
-      return "/" + segments.join("/");
-    }
-
-    function renderTree() {
-      const treeEl = document.getElementById("treeDisplay");
-      let out = "";
-
-      function walk(inode, depth, prefix) {
-        const node = fsNodes[inode];
-        const isDir = node.type === "DIR";
-        const isActive = inode === currentInode;
-        const label = node.name + (isDir && inode !== 1 ? "/" : "");
-
-        let clickAttr = isDir ? `onclick="selectNode(${inode})"` : "";
-        let cls = `fs-node ${isDir ? "dir" : "file"} ${isActive ? "active" : ""}`;
-
-        out += `<div>${prefix}<span class="${cls}" ${clickAttr}>${label}</span></div>`;
-
-        if (isDir && node.children) {
-          node.children.forEach((childInode, idx) => {
-            const isLast = idx === node.children.length - 1;
-            const nextPrefix = prefix + (depth === 0 ? "  " : (isLast ? "    " : "│   "));
-            walk(childInode, depth + 1, nextPrefix);
-          });
-        }
-      }
-
-      walk(1, 0, "");
-      treeEl.innerHTML = out;
-    }
-
-    function renderDirTable() {
-      const curr = fsNodes[currentInode];
-      const pathStr = getPathString(currentInode);
-      document.getElementById("activeTableTitle").textContent = `On-Disk Table for: ${pathStr} (i-node #${curr.inode})`;
-
-      const tbody = document.getElementById("dirTableBody");
-      tbody.innerHTML = "";
-
-      tbody.innerHTML += `
-        <tr>
-          <td style="color:#38bdf8; font-weight:700;">.</td>
-          <td>DIR</td>
-          <td>#${curr.inode}</td>
-          <td>Points to self (${curr.name})</td>
-        </tr>
-        <tr>
-          <td style="color:#38bdf8; font-weight:700;">..</td>
-          <td>DIR</td>
-          <td>#${curr.parent}</td>
-          <td>Points to parent (${fsNodes[curr.parent].name})</td>
-        </tr>
-      `;
-
-      if (curr.children) {
-        curr.children.forEach(cid => {
-          const cnode = fsNodes[cid];
-          tbody.innerHTML += `
-            <tr>
-              <td>${cnode.name}${cnode.type === "DIR" ? "/" : ""}</td>
-              <td>${cnode.type}</td>
-              <td>#${cnode.inode}</td>
-              <td>${cnode.type === "DIR" ? "Subdirectory entry" : "File record reference"}</td>
-            </tr>
-          `;
-        });
-      }
-    }
-
-    function updateSimUI(logMessage) {
-      renderTree();
-      renderDirTable();
-      const pathStr = getPathString(currentInode);
-      document.getElementById("promptPath").textContent = `${pathStr === "/" ? "" : pathStr}/ $`;
-      if (logMessage) {
-        document.getElementById("termLog").textContent = logMessage;
-      }
-    }
-
-    function selectNode(inode) {
-      currentInode = inode;
-      updateSimUI(`$ chdir("${getPathString(inode)}");\n[Kernel] CWD updated to i-node #${inode}.`);
-    }
-
-    function resolvePath(pathInput) {
-      let raw = pathInput.trim();
-      if (!raw) return null;
-
-      let targetInode = raw.startsWith("/") ? 1 : currentInode;
-      let parts = raw.split("/").filter(p => p.length > 0);
-
-      for (let i = 0; i < parts.length; i++) {
-        let part = parts[i];
-        let curr = fsNodes[targetInode];
-
-        if (curr.type !== "DIR") {
-          return { error: `ENOTDIR: Component '${curr.name}' is not a directory.` };
-        }
-
-        if (part === ".") {
-          continue;
-        } else if (part === "..") {
-          targetInode = curr.parent;
+    function selectAllocModel(model) {
+      currentModel = model;
+      const btns = ['inode', 'fat', 'linked', 'contiguous'];
+      btns.forEach(b => {
+        const btn = document.getElementById(`btn-alloc-${b}`);
+        if (b === model) {
+          btn.classList.add('active-btn');
         } else {
-          let foundChild = curr.children ? curr.children.find(cid => fsNodes[cid].name === part) : null;
-          if (!foundChild) {
-            return { error: `ENOENT: No such file or directory component: '${part}'.` };
-          }
-          targetInode = foundChild;
+          btn.classList.remove('active-btn');
         }
-      }
-
-      return { inode: targetInode };
+      });
+      recomputeTranslation();
     }
 
-    function execCd(targetPath) {
-      const res = resolvePath(targetPath);
-      if (!res) return;
-
-      if (res.error) {
-        updateSimUI(`$ cd ${targetPath}\n[Kernel Error] ${res.error}`);
-        return;
-      }
-
-      const node = fsNodes[res.inode];
-      if (node.type !== "DIR") {
-        updateSimUI(`$ cd ${targetPath}\n[Kernel Error] ENOTDIR: '${node.name}' is a regular file, cannot change directory.`);
-        return;
-      }
-
-      currentInode = res.inode;
-      const resolvedPath = getPathString(currentInode);
-      updateSimUI(`$ cd ${targetPath}\n[Kernel] Path resolved successfully via hierarchical traversal.\nNew CWD: ${resolvedPath} (i-node #${currentInode})`);
+    function updateOffset(val) {
+      currentByteOffset = parseInt(val, 10);
+      document.getElementById('offsetDisplay').textContent = Number(val).toLocaleString() + " B";
+      recomputeTranslation();
     }
 
-    document.getElementById("cmdInput").addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        const line = this.value.trim();
-        this.value = "";
-        if (!line) return;
+    function recomputeTranslation() {
+      const logicalBlock = Math.floor(currentByteOffset / BLOCK_SIZE);
+      const blockOffset = currentByteOffset % BLOCK_SIZE;
 
-        if (line === "ls") {
-          const curr = fsNodes[currentInode];
-          let items = [".", ".."];
-          if (curr.children) {
-            curr.children.forEach(cid => items.push(fsNodes[cid].name + (fsNodes[cid].type === "DIR" ? "/" : "")));
-          }
-          updateSimUI(`$ ls\n${items.join("   ")}`);
-        } else if (line.startsWith("cd ") || line === "cd") {
-          const arg = line.substring(3).trim() || "/";
-          execCd(arg);
+      document.getElementById('resLogicBlock').textContent = `Block #${logicalBlock}`;
+      document.getElementById('resBlockOffset').textContent = `${blockOffset} Bytes`;
+
+      const physEl = document.getElementById('resPhysBlock');
+      const stratEl = document.getElementById('resStrategy');
+      const seeksEl = document.getElementById('resSeeks');
+      const ramEl = document.getElementById('resRam');
+      const alignEl = document.getElementById('resAlign');
+      const fragEl = document.getElementById('resFrag');
+      const consoleEl = document.getElementById('allocConsole');
+
+      if (currentModel === 'inode') {
+        alignEl.textContent = "Clean (4096 B / Block)";
+        fragEl.textContent = "Zero (Any block allocable)";
+        ramEl.textContent = "128 Bytes (Active i-node in RAM)";
+
+        if (logicalBlock < 12) {
+          stratEl.textContent = `Direct Pointer [${logicalBlock}]`;
+          physEl.textContent = `Sector ${500 + logicalBlock * 8}`;
+          seeksEl.textContent = "1 Seek (Direct Data Access)";
+          consoleEl.textContent = `$ resolve_offset(${currentByteOffset}):\n[i-Node] Logical block #${logicalBlock} mapped directly via direct_pointers[${logicalBlock}].\n[Physical] Disk head targets block ${500 + logicalBlock * 8} with zero indirect table reads.`;
         } else {
-          updateSimUI(`$ ${line}\n[Shell] Unknown command. Supported commands: 'cd <path>', 'ls'`);
+          stratEl.textContent = "Single Indirect Table";
+          physEl.textContent = `Sector ${800 + (logicalBlock - 12) * 8}`;
+          seeksEl.textContent = "2 Seeks (1 Indirect Block + 1 Data)";
+          consoleEl.textContent = `$ resolve_offset(${currentByteOffset}):\n[i-Node] Offset exceeds 12 direct blocks (48 KB).\n[i-Node] Read indirect pointer block at Sector 750 -> Traversed entry index [${logicalBlock - 12}] -> Physical sector ${800 + (logicalBlock - 12) * 8}.`;
         }
-      }
-    });
-
-    // --- Sequential Phase Walkthrough Controller ---
-    let currentPhase = 0;
-
-    const phaseConfig = [
-      {
-        badgeId: "badge-p1",
-        statusLabel: "Phase 1 of 5 Ready",
-        subLabel: "Next Action: Execute mkdir(\"/home/project\")",
-        objective: "Initialize directory /home/project and inspect automatic structural self/parent entries (. and ..).",
-        insight: "Notice that a newly created directory is never truly empty—the kernel formats initial self-referential bindings immediately.",
-        btnLabel: "Execute mkdir(\"project\") &rarr;"
-      },
-      {
-        badgeId: "badge-p2",
-        statusLabel: "Phase 2 of 5 Ready",
-        subLabel: "Next Action: Execute creat(\"main.c\")",
-        objective: "Allocate regular file main.c inside project directory with an initial link count of 1.",
-        insight: "Notice that the directory table binds the human name 'main.c' to i-node #120, allocating 3 physical storage blocks.",
-        btnLabel: "Execute creat(\"main.c\") &rarr;"
-      },
-      {
-        badgeId: "badge-p3",
-        statusLabel: "Phase 3 of 5 Ready",
-        subLabel: "Next Action: Execute link(\"main.c\", \"backup.c\")",
-        objective: "Establish a hard link 'backup.c' referencing existing i-node #120.",
-        insight: "Notice that zero data blocks are duplicated. The kernel increments reference count nlink from 1 to 2.",
-        btnLabel: "Execute link(\"backup.c\") &rarr;"
-      },
-      {
-        badgeId: "badge-p4",
-        statusLabel: "Phase 4 of 5 Ready",
-        subLabel: "Next Action: Execute rmdir(\"project\") [Emptiness Check]",
-        objective: "Attempt removing /home/project while child files remain to observe the emptiness invariant guard.",
-        insight: "Notice the kernel traps ENOTEMPTY. Deletion is denied to prevent child files from becoming orphaned on disk.",
-        btnLabel: "Test rmdir(\"project\") &rarr;"
-      },
-      {
-        badgeId: "badge-p5",
-        statusLabel: "Phase 5 of 5 Ready",
-        subLabel: "Next Action: Execute unlink(\"main.c\") and unlink(\"backup.c\")",
-        objective: "Sequentially remove directory entries until nlink reaches 0, triggering physical storage reclamation.",
-        insight: "Notice that unlinking 'main.c' retains the file blocks because 'backup.c' holds count 1. Only when count hits 0 are blocks freed.",
-        btnLabel: "Execute Unlinks & Reclaim &rarr;"
-      },
-      {
-        badgeId: "badge-p5",
-        statusLabel: "Walkthrough Cycle Complete",
-        subLabel: "All phases executed successfully",
-        objective: "Clean directory deletion verified. Storage returned to pool and directory inode recycled.",
-        insight: "You have verified directory entry binding, hard link reference tracking, emptiness protection, and deferred unlinking.",
-        btnLabel: "Restart Walkthrough &#8634;"
-      }
-    ];
-
-    function updatePhaseBadges(activeIdx) {
-      for (let i = 1; i <= 5; i++) {
-        const badge = document.getElementById(`badge-p${i}`);
-        badge.classList.remove('active-phase', 'completed-phase');
-        if (i < activeIdx) {
-          badge.classList.add('completed-phase');
-        } else if (i === activeIdx) {
-          badge.classList.add('active-phase');
-        }
+      } else if (currentModel === 'fat') {
+        alignEl.textContent = "Clean (4096 B / Block)";
+        fragEl.textContent = "Zero External";
+        ramEl.textContent = "Full Table in RAM (~32 MB - 1 GB)";
+        stratEl.textContent = `FAT Table Chain [Step ${logicalBlock}]`;
+        physEl.textContent = `Cluster ${120 + logicalBlock * 3}`;
+        seeksEl.textContent = "1 Seek (RAM chain pre-computed)";
+        consoleEl.textContent = `$ resolve_offset(${currentByteOffset}):\n[FAT] Traversed in-memory cluster chain: 120 -> 123 -> 126 -> 129 -> ${120 + logicalBlock * 3}.\n[I/O] Zero disk seeks spent traversing pointers; table lookup resolved completely in RAM.`;
+      } else if (currentModel === 'linked') {
+        const usableData = 4092;
+        const actualBlock = Math.floor(currentByteOffset / usableData);
+        alignEl.textContent = "Unaligned (4092 B Data + 4 B Ptr)";
+        fragEl.textContent = "Zero External";
+        ramEl.textContent = "Minimal (Only current block pointer)";
+        stratEl.textContent = `Linked Block Pointer Traversal`;
+        physEl.textContent = `Block ${200 + actualBlock * 14}`;
+        seeksEl.textContent = `${actualBlock + 1} Sequential Seeks`;
+        consoleEl.textContent = `$ resolve_offset(${currentByteOffset}):\n[Linked-List] Severe random access penalty: must sequentially read ${actualBlock} disk blocks to follow pointer chains.\n[Warning] Required ${actualBlock + 1} mechanical disk I/O operations to access target offset.`;
+      } else if (currentModel === 'contiguous') {
+        alignEl.textContent = "Clean (4096 B / Block)";
+        fragEl.textContent = "Severe External Fragmentation";
+        ramEl.textContent = "Minimal (Starting Block + Length)";
+        stratEl.textContent = `Arithmetic Offset (${logicalBlock})`;
+        physEl.textContent = `Block ${1000 + logicalBlock}`;
+        seeksEl.textContent = "1 Direct Seek";
+        consoleEl.textContent = `$ resolve_offset(${currentByteOffset}):\n[Contiguous] Physical Block = Starting Block (1000) + Logical Block (${logicalBlock}) = Block ${1000 + logicalBlock}.\n[Performance] Optimal streaming throughput; $O(1)$ arithmetic address resolution.`;
       }
     }
 
-    function advanceNextPhase() {
-      currentPhase++;
-      if (currentPhase > 5) {
-        resetWalkthrough();
-        return;
-      }
-
-      const e0 = document.getElementById("wtEntry0");
-      const e1 = document.getElementById("wtEntry1");
-      const e2 = document.getElementById("wtEntry2");
-      const e3 = document.getElementById("wtEntry3");
-      const inum = document.getElementById("wtInodeNum");
-      const lCount = document.getElementById("wtLinkCount");
-      const bCount = document.getElementById("wtBlocks");
-      const stEl = document.getElementById("wtStatus");
-      const logEl = document.getElementById("simLog");
-
-      if (currentPhase === 1) {
-        // Phase 1: mkdir
-        e0.innerHTML = "<span class='highlight'>. &rarr; i-node #115 (Self)</span>";
-        e1.innerHTML = "<span class='highlight'>.. &rarr; i-node #4 (Parent /home)</span>";
-        e2.innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-        e3.innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-        inum.textContent = "None";
-        lCount.textContent = "0";
-        bCount.textContent = "0 Blocks";
-        stEl.textContent = "FREE";
-        stEl.className = "alert";
-
-        logEl.textContent = "$ mkdir(\"/home/project\", 0755);\n[Kernel] Allocated directory i-node #115.\n[Kernel] Formatted initial table with slot [0] '.' -> #115 and slot [1] '..' -> #4.\n[Invariant] Directory is initialized with mandatory recursive structural references.";
-      } else if (currentPhase === 2) {
-        // Phase 2: creat
-        e2.innerHTML = "<span class='highlight'>main.c &rarr; i-node #120</span>";
-        e3.innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-        inum.textContent = "#120";
-        lCount.textContent = "1";
-        bCount.textContent = "3 (12 KB)";
-        stEl.textContent = "ALLOCATED";
-        stEl.className = "highlight";
-
-        logEl.textContent = "$ creat(\"/home/project/main.c\", 0644);\n[Kernel] Allocated regular file i-node #120 with 3 disk blocks (12 KB).\n[Kernel] Bound entry 'main.c' to i-node #120 in directory table #115.\n[Kernel] Initialized reference count nlink = 1.";
-      } else if (currentPhase === 3) {
-        // Phase 3: link
-        e3.innerHTML = "<span class='highlight'>backup.c &rarr; i-node #120</span>";
-        lCount.textContent = "2";
-        bCount.textContent = "3 (12 KB)";
-
-        logEl.textContent = "$ link(\"main.c\", \"backup.c\");\n[Kernel] Created new directory entry [3] 'backup.c' mapped to existing i-node #120.\n[Kernel] Incremented i-node #120 reference count nlink from 1 to 2.\n[Notice] Zero data blocks duplicated. Both directory slots reference identical storage extents.";
-      } else if (currentPhase === 4) {
-        // Phase 4: rmdir fail test
-        logEl.textContent = "$ rmdir(\"/home/project\");\n[Kernel Fault] ENOTEMPTY: Directory not empty!\n[Kernel] Emptiness invariant check failed: entries exist beyond '.' and '..'.\n[Protection] Deletion denied to protect active files from becoming orphaned.";
-      } else if (currentPhase === 5) {
-        // Phase 5: unlink both and reclaim
-        e2.innerHTML = "<span class='alert'>-- UNLINKED --</span>";
-        e3.innerHTML = "<span class='alert'>-- UNLINKED --</span>";
-        lCount.textContent = "0";
-        bCount.textContent = "0 Blocks (Reclaimed)";
-        stEl.textContent = "DEALLOCATED";
-        stEl.className = "alert";
-
-        logEl.textContent = "$ unlink(\"main.c\");\n[Kernel] Removed slot [2] 'main.c'. i-node #120 nlink decreased from 2 to 1.\n[Retention] File data remains alive and reachable via 'backup.c'.\n\n$ unlink(\"backup.c\");\n[Kernel] Removed slot [3] 'backup.c'. i-node #120 nlink reached 0.\n[Deallocation] No active file descriptors open; returned 3 blocks to free pool and purged i-node #120.\n\n$ rmdir(\"/home/project\");\n[Kernel] Emptiness check confirmed (only '.' and '..' present). Recycled directory i-node #115.";
-      }
-
-      // Update Phase UI Elements
-      const cfg = phaseConfig[currentPhase];
-      updatePhaseBadges(currentPhase === 5 ? 5 : currentPhase + 1);
-      document.getElementById("phaseStatusLabel").textContent = cfg.statusLabel;
-      document.getElementById("phaseSubLabel").textContent = cfg.subLabel;
-      document.getElementById("guideObjective").textContent = cfg.objective;
-      document.getElementById("guideInsight").textContent = cfg.insight;
-      document.getElementById("btnNextAction").innerHTML = cfg.btnLabel;
-    }
-
-    function resetWalkthrough() {
-      currentPhase = 0;
-      updatePhaseBadges(1);
-      const cfg = phaseConfig[0];
-      document.getElementById("phaseStatusLabel").textContent = cfg.statusLabel;
-      document.getElementById("phaseSubLabel").textContent = cfg.subLabel;
-      document.getElementById("guideObjective").textContent = cfg.objective;
-      document.getElementById("guideInsight").textContent = cfg.insight;
-      document.getElementById("btnNextAction").innerHTML = cfg.btnLabel;
-
-      document.getElementById("wtEntry0").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-      document.getElementById("wtEntry1").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-      document.getElementById("wtEntry2").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-      document.getElementById("wtEntry3").innerHTML = "<span class='alert'>-- UNALLOCATED --</span>";
-      document.getElementById("wtInodeNum").textContent = "None";
-      document.getElementById("wtLinkCount").textContent = "0";
-      document.getElementById("wtBlocks").textContent = "0 Blocks";
-      const stEl = document.getElementById("wtStatus");
-      stEl.textContent = "FREE";
-      stEl.className = "alert";
-
-      document.getElementById("simLog").textContent = "$ Walkthrough reset. Click 'Execute Next Step' to start Phase 1...";
-    }
-
-    // Initialize Components
-    updateSimUI();
-    resetWalkthrough();
+    // Initialize Simulator
+    recomputeTranslation();
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Refactor directory walkthrough into sequential phases with next button
+COMMIT_MSG = """Split and expand sections 4.3.1 and 4.3.2 with allocation visualizer
 
-Update week10-file-management/02-directories.html to replace button grid
-with sequential phases and a dedicated next-step controller."""
+Update week10-file-management/03-filesystem-implementation.html to separate
+file-system layout (4.3.1) from file allocation strategies (4.3.2), adding
+detailed theory, architectural SVGs, and an interactive lookup sandbox."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1524,16 +646,16 @@ def run_git_step(cmd, desc):
 def deploy_module():
     target_dir = "week10-file-management"
     os.makedirs(target_dir, exist_ok=True)
-    target_file = os.path.join(target_dir, "02-directories.html")
+    target_file = os.path.join(target_dir, "03-filesystem-implementation.html")
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module file 02-directories.html to {target_file}")
+    print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging updated 02-directories.html")
+    run_git_step(["git", "add", target_file], "Staging updated 03-filesystem-implementation.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 02 Phase-Driven Walkthrough deployed successfully!")
+    print("--> Module 03 Layout & Allocation update successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
