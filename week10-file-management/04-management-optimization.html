@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Management &amp; Optimization — COSC240 Week 10</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .card h2 {
+      font-size: 1.25rem;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+    }
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: #0284c7;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-back">
+    <a href="index.html">&larr; Back to Week 10 Index</a>
+  </div>
+  <header>
+    <h1>04. Management &amp; Optimization</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.4: Disk-Space Management, Backups, Consistency, Performance, Defragmentation, and Encryption.</p>
+  </header>
+  <div class="main-container">
+
+    <div class="card">
+      <h2>4.4.1 - 4.4.3 Space Management, Backups &amp; Consistency</h2>
+      <ul>
+        <li><strong>Disk-Space Management:</strong> Balances space efficiency and performance via optimal block sizing (e.g., 4 KB to 64 KB) and tracking free space using bitmaps vs. free lists[cite: 4]. Enforces user disk quotas using soft and hard limits[cite: 4].</li>
+        <li><strong>File-System Backups:</strong> Utilizes physical dumps (raw sector copy) or logical dumps (incremental tree-walking using i-node modification bitmaps) to recover from disasters or user mistakes[cite: 4].</li>
+        <li><strong>File-System Consistency:</strong> Consistency checkers (`fsck`) scan metadata tables and bitmaps to repair missing blocks, duplicate allocations, and incorrect link counts[cite: 4].</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>4.4.4 - 4.4.7 Performance &amp; Security Optimization</h2>
+      <ul>
+        <li><strong>Caching &amp; Read-Ahead:</strong> Employs block/buffer caches integrated with virtual memory page caches, write-through vs. write-back policies (`sync`), and read-ahead heuristics[cite: 4].</li>
+        <li><strong>Defragmentation:</strong> Re-aligns fragmented clusters on traditional hard disks (avoided on SSDs to prevent unnecessary wear)[cite: 4].</li>
+        <li><strong>Compression &amp; Deduplication:</strong> Reduces storage footprints using block hashing and pattern encoding[cite: 4].</li>
+        <li><strong>Secure Deletion &amp; Disk Encryption:</strong> Employs full-disk encryption (AES/TPM/SEDs) to protect data at rest against physical extraction[cite: 4].</li>
+      </ul>
+    </div>
+
+  </div>
+</body>
+</html>

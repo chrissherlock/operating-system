@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File-System Implementation — COSC240 Week 10</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .card h2 {
+      font-size: 1.25rem;
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+    }
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 16px auto;
+      padding: 0 4px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: #0284c7;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-back">
+    <a href="index.html">&larr; Back to Week 10 Index</a>
+  </div>
+  <header>
+    <h1>03. File-System Implementation</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.3: Layouts, Allocation Strategies, VFS, Journaling, LFS, and Flash-based File Systems.</p>
+  </header>
+  <div class="main-container">
+
+    <div class="card">
+      <h2>4.3.1 &amp; 4.3.2 File-System Layout &amp; Allocation</h2>
+      <p>
+        Partitions start with boot blocks (MBR or GPT/UEFI), followed by superblocks (key administrative parameters), free space management bitmaps/lists, i-nodes, root directories, and data blocks[cite: 3, 4]. To track which blocks belong to a file, operating systems utilize several allocation strategies[cite: 4]:
+      </p>
+      <ul>
+        <li><strong>Contiguous Allocation:</strong> Stores each file as a contiguous run of blocks[cite: 4]. Excellent read performance, but leads to severe disk fragmentation[cite: 4].</li>
+        <li><strong>Linked-List Allocation:</strong> Each block contains a pointer to the next block[cite: 4]. Eliminates external fragmentation but makes random access painfully slow[cite: 4].</li>
+        <li><strong>File Allocation Table (FAT):</strong> Moves pointers into an in-memory table, enabling fast random access while keeping entire blocks free for data[cite: 4].</li>
+        <li><strong>I-Nodes (Index-Nodes):</strong> Associates each file with an i-node containing attributes and direct/indirect disk addresses, scaling efficiently regardless of disk capacity[cite: 4].</li>
+      </ul>
+
+      <!-- SVG Allocation Comparison Diagram -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: I-Node vs FAT Allocation Architecture</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- I-Node Box -->
+          <rect x="30" y="30" width="150" height="90" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
+          <text x="105" y="55" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">I-Node Structure</text>
+          <text x="105" y="75" font-size="10" fill="#475569" text-anchor="middle">Metadata &amp; Attributes</text>
+          <text x="105" y="95" font-size="10" fill="#475569" text-anchor="middle">Direct &amp; Indirect Pointers</text>
+
+          <path d="M 180 75 L 260 75" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- Data Blocks -->
+          <rect x="260" y="40" width="80" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="300" y="60" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Block 4</text>
+
+          <rect x="360" y="40" width="80" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="400" y="60" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Block 7</text>
+
+          <rect x="460" y="40" width="80" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="500" y="60" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Block 12</text>
+
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>4.3.5 - 4.3.8 Advanced File Systems (LFS, Journaling, Flash, VFS)</h2>
+      <ul>
+        <li><strong>Log-Structured File Systems (LFS):</strong> Treats the entire disk as a circular log, batching small random writes into large sequential segment writes[cite: 4].</li>
+        <li><strong>Journaling File Systems:</strong> Maintains an idempotent transaction log of metadata changes (e.g., ext4, NTFS) to ensure fast crash recovery[cite: 4].</li>
+        <li><strong>Flash-Based File Systems (SSDs):</strong> Incorporates Flash Translation Layers (FTL), wear-leveling, garbage collection, and the `TRIM` command to handle asymmetric read/write performance[cite: 4].</li>
+        <li><strong>Virtual File Systems (VFS):</strong> Provides an object-oriented abstraction layer that unifies heterogeneous local and network file systems under standard POSIX system calls[cite: 4].</li>
+      </ul>
+    </div>
+
+  </div>
+</body>
+</html>
