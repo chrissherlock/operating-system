@@ -8,7 +8,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Historical Pioneers — COSC240 Week 10</title>
+  <title>Directory Systems &amp; Hierarchies — COSC240 Week 10</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -81,28 +81,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     td {
       color: #334155;
     }
-    .infobox {
-      float: right;
-      width: 320px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-      margin-left: 16px;
-      margin-bottom: 12px;
-      font-size: 0.85rem;
-    }
-    .infobox table {
-      margin: 0;
-    }
-    .infobox th {
-      background-color: #e2e8f0;
-      text-align: center;
-    }
-    p {
-      line-height: 1.6;
+    ul, ol {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
       color: #334155;
-      font-size: 0.95rem;
+      font-size: 0.93rem;
+      line-height: 1.5;
     }
     .nav-back {
       width: 100%;
@@ -139,89 +125,89 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <a href="index.html">&larr; Back to Week 10 Index</a>
   </div>
   <header>
-    <h1>Historical Pioneers of File Systems &amp; Operating Systems</h1>
-    <p class="subtitle">Foundational Architects Who Shaped Modern Operating Systems, File Hierarchies, and Storage Design.</p>
+    <h1>02. Directory Systems &amp; Hierarchies</h1>
+    <p class="subtitle">Tanenbaum Chapter 4.2: Comprehensive Reference on Single-Level, Two-Level, and Hierarchical Directory Structures.</p>
   </header>
   <div class="main-container">
 
-    <!-- Ken Thompson -->
+    <!-- Section 4.2.1: Single-Level & Hierarchical Directories -->
     <div class="card">
-      <h2>Ken Thompson</h2>
-      <div class="infobox">
-        <table>
-          <tr><th colspan="2">Ken Thompson</th></tr>
-          <tr><td><strong>Born</strong></td><td>February 4, 1943</td></tr>
-          <tr><td><strong>Key Works</strong></td><td>Unix, B Language, Go, UTF-8</td></tr>
-          <tr><td><strong>Alma Mater</strong></td><td>UC Berkeley</td></tr>
-          <tr><td><strong>Affiliations</strong></td><td>Bell Labs, Google</td></tr>
-        </table>
-      </div>
+      <h2>4.2.1 Single-Level &amp; Hierarchical Directories</h2>
       <p>
-        Ken Thompson is an American computer pioneer who shaped modern computing architecture. During his tenure at Bell Labs, he played a central role in designing and implementing the original Unix operating system. His foundational contributions also include co-creating the B programming language, which served as the direct precursor to C, and defining the UTF-8 character encoding scheme alongside Rob Pike.
+        To keep track of thousands or millions of individual files stored on persistent media, operating systems organize files using <strong>directories</strong> (also referred to as folders in various environments). A directory is itself a system-managed file that acts as a symbol table, translating file names into their corresponding metadata or disk block addresses. Across the evolution of operating systems, three primary directory organization models have emerged.
       </p>
-      <p>
-        In later years, Thompson joined Google, where he contributed to the design of the Go programming language. His work emphasizes simplicity, efficiency, and elegant system design, laying the structural foundation for modern cloud infrastructure, internet connectivity, and operating systems utilized worldwide.
-      </p>
-    </div>
 
-    <!-- Dennis Ritchie -->
-    <div class="card">
-      <h2>Dennis Ritchie</h2>
-      <div class="infobox">
-        <table>
-          <tr><th colspan="2">Dennis Ritchie</th></tr>
-          <tr><td><strong>Born</strong></td><td>September 9, 1941</td></tr>
-          <tr><td><strong>Died</strong></td><td>October 12, 2011</td></tr>
-          <tr><td><strong>Key Works</strong></td><td>C Language, Unix</td></tr>
-          <tr><td><strong>Alma Mater</strong></td><td>Harvard University</td></tr>
-          <tr><td><strong>Affiliations</strong></td><td>Bell Labs</td></tr>
-        </table>
-      </div>
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">1. Single-Level Directory Systems</div>
       <p>
-        Dennis Ritchie was an influential computer scientist celebrated worldwide for creating the C programming language and co-creating the Unix operating system. Working alongside Ken Thompson at Bell Labs, Ritchie sought to build an operating system that was flexible, portable, and efficient across varied hardware. The C language emerged from this effort as an innovative tool that bridged low-level assembly capabilities with high-level structural readability.
+        The earliest and simplest directory architecture consists of a single directory containing all files for all users.
       </p>
-      <p>
-        The impact of Ritchie's work is difficult to overstate. Nearly all modern operating systems, database management engines, and application runtimes rely heavily on C or its derivative languages. His clear, pragmatic approach to software engineering established enduring technical standards across the entire technology industry.
-      </p>
-    </div>
+      <ul>
+        <li><strong>Characteristics:</strong> Every file within the system must possess a completely unique name. Because there is only one shared namespace, two different users cannot create files with identical names (such as <code>notes.txt</code> or <code>main.c</code>).</li>
+        <li><strong>Advantages:</strong> Implementation is straightforward; file lookup requires scanning a single flat list, and system calls are computationally minimal.</li>
+        <li><strong>Limitations:</strong> In multi-user computing environments, name collisions become frequent and unmanageable. Isolating projects or maintaining user privacy is impossible without complex naming prefixes.</li>
+      </ul>
 
-    <!-- Andrew S. Tanenbaum -->
-    <div class="card">
-      <h2>Andrew S. Tanenbaum</h2>
-      <div class="infobox">
-        <table>
-          <tr><th colspan="2">Andrew S. Tanenbaum</th></tr>
-          <tr><td><strong>Born</strong></td><td>March 16, 1944</td></tr>
-          <tr><td><strong>Key Works</strong></td><td>MINIX, Academic Textbooks</td></tr>
-          <tr><td><strong>Alma Mater</strong></td><td>Caltech, MIT</td></tr>
-          <tr><td><strong>Affiliations</strong></td><td>Vrije Universiteit Amsterdam</td></tr>
-        </table>
-      </div>
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">2. Two-Level Directory Systems</div>
       <p>
-        Andrew S. Tanenbaum is a renowned computer scientist and academic recognized for his extensive contributions to computer science education and operating system design. As a professor at the Vrije Universiteit Amsterdam, he authored widely read textbooks covering computer networks and operating systems architecture. His pedagogical approach successfully demystified complex hardware-software interactions for generations of students globally.
+        To resolve name collisions in multi-user systems, operating systems introduced a two-level directory hierarchy.
       </p>
-      <p>
-        Tanenbaum also created MINIX, a lightweight Unix-like operating system designed explicitly for instructional clarity. MINIX famously served as the initial inspiration and development environment for Linus Torvalds when building the early Linux kernel, anchoring Tanenbaum's enduring legacy in open-source software development history.
-      </p>
-    </div>
+      <ul>
+        <li><strong>Characteristics:</strong> The system maintains a master directory containing one entry for every user. Each user entry points to a separate, private user directory containing that specific user's files.</li>
+        <li><strong>Advantages:</strong> Different users can now create files with identical names (e.g., User A and User B can both maintain a file named <code>budget.csv</code>) because names are scoped within individual user directories.</li>
+        <li><strong>Limitations:</strong> While isolation between users is achieved, individual users cannot group or organize their own files into subdirectories. As a user accumulates hundreds of files, a flat single-level list within their private directory becomes difficult to manage.</li>
+      </ul>
 
-    <!-- Marshall Kirk McKusick -->
-    <div class="card">
-      <h2>Marshall Kirk McKusick</h2>
-      <div class="infobox">
-        <table>
-          <tr><th colspan="2">Marshall Kirk McKusick</th></tr>
-          <tr><td><strong>Key Works</strong></td><td>Berkeley Fast File System (FFS)</td></tr>
-          <tr><td><strong>Alma Mater</strong></td><td>Cornell, UC Berkeley</td></tr>
-          <tr><td><strong>Affiliations</strong></td><td>UC Berkeley</td></tr>
-        </table>
+      <div style="font-weight: 600; color: var(--text); margin-top: 4px;">3. Hierarchical (Tree-Structured) Directory Systems</div>
+      <p>
+        Modern operating systems (including UNIX, Linux, macOS, and Windows) implement hierarchical directory structures configured as arbitrary trees.
+      </p>
+      <ul>
+        <li><strong>Characteristics:</strong> Users can create arbitrary subdirectories within their own directories, nesting folders to any logical depth. The file system begins at a designated root directory (denoted by <code>/</code> in UNIX or drive letters like <code>C:\</code> in Windows).</li>
+        <li><strong>Path Resolution:</strong> To locate a file within a hierarchy, applications specify paths using two primary formats:
+          <ul>
+            <li><em>Absolute Paths:</em> Specify the exact traversal route starting from the root directory (e.g., <code>/home/student/cosc240/lab10.c</code>).</li>
+            <li><em>Relative Paths:</em> Specify a route starting from the calling application's current working directory (CWD), utilizing special directory entries such as <code>.</code> (referencing the current directory) and <code>..</code> (referencing the parent directory).</li>
+          </ul>
+        </li>
+      </ul>
+
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Structural Comparison (Single-Level vs. Two-Level vs. Hierarchical Tree)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Single-Level -->
+          <text x="110" y="20" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Single-Level</text>
+          <rect x="20" y="30" width="180" height="150" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
+          <text x="110" y="55" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">Master Directory</text>
+          <text x="110" y="85" font-size="9" fill="#334155" text-anchor="middle">file1.txt</text>
+          <text x="110" y="110" font-size="9" fill="#334155" text-anchor="middle">file2.txt (Collision Risk)</text>
+          <text x="110" y="135" font-size="9" fill="#334155" text-anchor="middle">data.dat</text>
+
+          <!-- Two-Level -->
+          <text x="360" y="20" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Two-Level</text>
+          <rect x="220" y="30" width="280" height="150" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="360" y="55" font-size="9" font-weight="600" fill="#059669" text-anchor="middle">Master Directory</text>
+
+          <rect x="235" y="70" width="120" height="95" fill="#ffffff" stroke="#059669" stroke-width="1" rx="3"/>
+          <text x="295" y="88" font-size="9" font-weight="600" fill="#047857" text-anchor="middle">User A Dir</text>
+          <text x="295" y="112" font-size="8" fill="#334155" text-anchor="middle">notes.txt</text>
+          <text x="295" y="132" font-size="8" fill="#334155" text-anchor="middle">budget.csv</text>
+
+          <rect x="365" y="70" width="120" height="95" fill="#ffffff" stroke="#059669" stroke-width="1" rx="3"/>
+          <text x="425" y="88" font-size="9" font-weight="600" fill="#047857" text-anchor="middle">User B Dir</text>
+          <text x="425" y="112" font-size="8" fill="#334155" text-anchor="middle">notes.txt</text>
+          <text x="425" y="132" font-size="8" fill="#334155" text-anchor="middle">budget.csv</text>
+
+          <!-- Hierarchical (Left-Aligned Tree) -->
+          <text x="610" y="20" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Hierarchical Tree</text>
+          <rect x="520" y="30" width="180" height="150" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
+          <text x="610" y="55" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Root Directory (/)</text>
+
+          <text x="545" y="82" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">├── bin/</text>
+          <text x="545" y="104" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">├── home/</text>
+          <text x="545" y="126" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">│   └── student/</text>
+          <text x="545" y="148" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">└── etc/</text>
+        </svg>
       </div>
-      <p>
-        Marshall Kirk McKusick is a key figure in the history of academic and open-source operating systems, best known for his work on the Berkeley Software Distribution (BSD) UNIX variants. Working at the University of California, Berkeley, McKusick significantly advanced storage performance by designing the Berkeley Fast File System (FFS).
-      </p>
-      <p>
-        Prior to FFS, file storage systems suffered from severe throughput limitations due to suboptimal disk block layout strategies. McKusick's cylinder group optimization and intelligent block allocation techniques dramatically accelerated file retrieval speeds. His ongoing stewardship and technical leadership within the BSD ecosystem helped sustain robust, secure operating environments utilized across enterprise computing.
-      </p>
     </div>
 
   </div>
@@ -229,11 +215,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add historical pioneers module covering Unix architects
+COMMIT_MSG = """Fix hierarchical tree SVG alignment with left-anchored coordinates
 
-Add week10-file-management/05-historical-pioneers.html featuring
-detailed biographies and structured infoboxes for Ken Thompson,
-Dennis Ritchie, Andrew S. Tanenbaum, and Marshall Kirk McKusick."""
+Update week10-file-management/02-directories.html to set strict left-aligned
+text-anchor coordinates for the directory tree lines, correcting the wonky
+centering."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -246,19 +232,19 @@ def run_git_step(cmd, desc):
         print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
 
-def deploy_pioneers_page():
+def execute_pipeline():
     target_dir = "week10-file-management"
     os.makedirs(target_dir, exist_ok=True)
-    target_file = os.path.join(target_dir, "05-historical-pioneers.html")
+    target_file = os.path.join(target_dir, "02-directories.html")
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file 05-historical-pioneers.html to {target_file}")
+    print(f"Wrote module file 02-directories.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging 05-historical-pioneers.html update")
+    run_git_step(["git", "add", target_file], "Staging 02-directories.html update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 05 Historical Pioneers created, committed, and pushed successfully!")
+    print("--> Module 02 Directory Systems left-aligned tree committed and pushed successfully!")
 
 if __name__ == "__main__":
-    deploy_pioneers_page()
+    execute_pipeline()
