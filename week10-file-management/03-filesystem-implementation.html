@@ -124,7 +124,7 @@
       color: #ffffff;
     }
 
-    /* Pioneers Infobox Styling with Headshots */
+    /* Pioneers Infobox Styling with Headshots & Biographies */
     .pioneers-infobox {
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
@@ -283,10 +283,7 @@
       width: 100%;
       max-width: 1000px;
     }
-    .theme-modern .c-cell {
-      aspect-ratio: 1 / 1;
-      border-radius: 0.5px;
-    }
+    .theme-modern .c-cell { aspect-ratio: 1 / 1; border-radius: 0.5px; }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
     .theme-modern .c-unopt { background-color: #f59e0b; }
@@ -355,10 +352,7 @@
       color: #000000 !important;
       cursor: pointer;
     }
-    .theme-win95 .ctrl-btn.active {
-      background-color: #d4d4d4;
-      font-weight: bold;
-    }
+    .theme-win95 .ctrl-btn.active { background-color: #d4d4d4; font-weight: bold; }
     .theme-win95 .grid-wrapper {
       border-top: 2px solid #808080;
       border-left: 2px solid #808080;
@@ -682,7 +676,7 @@
         Traditional Unix and FAT filesystems distribute file data, inodes, directory entries, and indirect blocks across random locations on disk. As processor and memory speeds outpaced mechanical disk seek times in the early 1990s, random disk head seeks emerged as the primary performance bottleneck. To solve this, <strong>Mendel Rosenblum and John K. Ousterhout</strong> pioneered <strong>Log-Structured File Systems (LFS)</strong> at UC Berkeley, fundamentally redesigning storage architectures by transforming the disk into a continuous sequential log.
       </p>
 
-      <!-- Pioneers Infobox with Headshots -->
+      <!-- Pioneers Infobox with Headshots, Wikipedia links, & Biographies -->
       <div class="pioneers-infobox">
         <h4>Pioneers Profile: Mendel Rosenblum &amp; John K. Ousterhout</h4>
         <div class="pioneers-portraits">
@@ -708,6 +702,10 @@
           <li><strong>Key Publication:</strong> &ldquo;The Design and Implementation of a Log-Structured File System&rdquo; (ACM TOCS, 1992)</li>
           <li><strong>Core Innovation:</strong> Replaced random in-place metadata and data updates with continuous sequential log writes, accompanied by inode maps and background segment cleaning.</li>
         </ul>
+        <div style="font-size: 0.9rem; color: #334155; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; border-top: 1px solid #bae6fd; padding-top: 10px;">
+          <p><strong>John K. Ousterhout</strong> is a professor of computer science at Stanford University. He received his B.S. from Yale University and his Ph.D. from Carnegie Mellon University. Alongside his foundational work on LFS, he is widely renowned for creating the <strong>Tcl/Tk scripting language</strong> and leading the Sprite distributed operating system project at UC Berkeley.</p>
+          <p><strong>Mendel Rosenblum</strong> is a professor of computer science at Stanford University and co-founder of <strong>VMware</strong>. He received his B.A., M.S., and Ph.D. degrees from the University of California, Berkeley. His pioneering research spans operating systems, virtual machine monitors, distributed storage, and large-scale systems architecture.</p>
+        </div>
       </div>
 
       <h3>1. The Log-Structured Paradigm &amp; Sequential Writes</h3>
