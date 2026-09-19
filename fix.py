@@ -173,37 +173,39 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Structural Comparison (Single-Level vs. Two-Level vs. Hierarchical Tree)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <!-- Single-Level -->
           <text x="110" y="20" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Single-Level</text>
-          <rect x="20" y="30" width="180" height="130" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-          <text x="110" y="50" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">Master Directory</text>
-          <text x="110" y="75" font-size="9" fill="#334155" text-anchor="middle">file1.txt</text>
-          <text x="110" y="95" font-size="9" fill="#334155" text-anchor="middle">file2.txt (Collision Risk)</text>
-          <text x="110" y="115" font-size="9" fill="#334155" text-anchor="middle">data.dat</text>
+          <rect x="20" y="30" width="180" height="150" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
+          <text x="110" y="55" font-size="9" font-weight="600" fill="#0369a1" text-anchor="middle">Master Directory</text>
+          <text x="110" y="85" font-size="9" fill="#334155" text-anchor="middle">file1.txt</text>
+          <text x="110" y="110" font-size="9" fill="#334155" text-anchor="middle">file2.txt (Collision Risk)</text>
+          <text x="110" y="135" font-size="9" fill="#334155" text-anchor="middle">data.dat</text>
 
           <!-- Two-Level -->
           <text x="360" y="20" font-size="10" font-weight="700" fill="#059669" text-anchor="middle">Two-Level</text>
-          <rect x="230" y="30" width="260" height="130" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="360" y="50" font-size="9" font-weight="600" fill="#059669" text-anchor="middle">Master Directory</text>
-          <rect x="245" y="65" width="105" height="85" fill="#ffffff" stroke="#059669" stroke-width="1" rx="3"/>
-          <text x="297" y="80" font-size="8" font-weight="600" fill="#047857" text-anchor="middle">User A Dir</text>
-          <text x="297" y="100" font-size="8" fill="#334155" text-anchor="middle">notes.txt</text>
-          <text x="297" y="115" font-size="8" fill="#334155" text-anchor="middle">budget.csv</text>
+          <rect x="220" y="30" width="280" height="150" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="360" y="55" font-size="9" font-weight="600" fill="#059669" text-anchor="middle">Master Directory</text>
 
-          <rect x="370" y="65" width="105" height="85" fill="#ffffff" stroke="#059669" stroke-width="1" rx="3"/>
-          <text x="422" y="80" font-size="8" font-weight="600" fill="#047857" text-anchor="middle">User B Dir</text>
-          <text x="422" y="100" font-size="8" fill="#334155" text-anchor="middle">notes.txt</text>
-          <text x="422" y="115" font-size="8" fill="#334155" text-anchor="middle">budget.csv</text>
+          <rect x="235" y="70" width="120" height="95" fill="#ffffff" stroke="#059669" stroke-width="1" rx="3"/>
+          <text x="295" y="88" font-size="9" font-weight="600" fill="#047857" text-anchor="middle">User A Dir</text>
+          <text x="295" y="112" font-size="8" fill="#334155" text-anchor="middle">notes.txt</text>
+          <text x="295" y="132" font-size="8" fill="#334155" text-anchor="middle">budget.csv</text>
 
-          <!-- Hierarchical -->
+          <rect x="365" y="70" width="120" height="95" fill="#ffffff" stroke="#059669" stroke-width="1" rx="3"/>
+          <text x="425" y="88" font-size="9" font-weight="600" fill="#047857" text-anchor="middle">User B Dir</text>
+          <text x="425" y="112" font-size="8" fill="#334155" text-anchor="middle">notes.txt</text>
+          <text x="425" y="132" font-size="8" fill="#334155" text-anchor="middle">budget.csv</text>
+
+          <!-- Hierarchical (Left-Aligned Tree) -->
           <text x="610" y="20" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Hierarchical Tree</text>
-          <rect x="510" y="30" width="190" height="130" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
-          <text x="605" y="50" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Root (/)</text>
-          <text x="605" y="75" font-size="9" fill="#334155" text-anchor="middle">├── bin/</text>
-          <text x="605" y="95" font-size="9" fill="#334155" text-anchor="middle">├── home/</text>
-          <text x="605" y="115" font-size="9" fill="#334155" text-anchor="middle">│   └── student/</text>
-          <text x="605" y="135" font-size="9" fill="#334155" text-anchor="middle">└── etc/</text>
+          <rect x="520" y="30" width="180" height="150" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
+          <text x="610" y="55" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Root Directory (/)</text>
+
+          <text x="545" y="82" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">├── bin/</text>
+          <text x="545" y="104" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">├── home/</text>
+          <text x="545" y="126" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">│   └── student/</text>
+          <text x="545" y="148" font-size="9" font-family="monospace" fill="#334155" text-anchor="start">└── etc/</text>
         </svg>
       </div>
     </div>
@@ -213,11 +215,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Expand section 4.2.1 on single-level and hierarchical directories
+COMMIT_MSG = """Fix hierarchical tree SVG alignment with left-anchored coordinates
 
-Update week10-file-management/02-directories.html to provide a detailed,
-textbook-aligned exploration of single-level, two-level, and hierarchical
-directory systems, path traversal, and structural comparisons."""
+Update week10-file-management/02-directories.html to set strict left-aligned
+text-anchor coordinates for the directory tree lines, correcting the wonky
+centering."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -242,7 +244,7 @@ def execute_pipeline():
     run_git_step(["git", "add", target_file], "Staging 02-directories.html update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 02 Directory Systems created, committed, and pushed successfully!")
+    print("--> Module 02 Directory Systems left-aligned tree committed and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
