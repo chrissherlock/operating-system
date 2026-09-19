@@ -430,7 +430,7 @@
       </table>
     </div>
 
-    <!-- Section 4.1.6: File Operations & System Calls (Interactive Kernel Debugger Simulator) -->
+    <!-- Section 4.1.6: File Operations & System Calls (Interactive Kernel Debugger Simulator with Scenarios) -->
     <div class="card">
       <h2>4.1.6 File Operations &amp; System Calls</h2>
       <p>
@@ -452,11 +452,14 @@
       <!-- Interactive Kernel Debugger Simulator Widget -->
       <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Interactive Kernel Debugger Simulator: POSIX Data-Flow</span>
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Interactive Kernel Debugger Simulator: Real-World Workflows</span>
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button onclick="debuggerStep(-1)" class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">&larr; Step Back</button>
-            <button onclick="debuggerStep(1)" style="font-size: 0.75rem; padding: 4px 10px;">Step Forward &rarr;</button>
-            <button onclick="resetDebugger()" class="btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">Reset</button>
+            <button onclick="setScenario(0)" id="btn-s0" style="font-size: 0.73rem; padding: 4px 8px;">1. creat() Config</button>
+            <button onclick="setScenario(1)" id="btn-s1" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">2. open() Logs</button>
+            <button onclick="setScenario(2)" id="btn-s2" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">3. read() Stream</button>
+            <button onclick="setScenario(3)" id="btn-s3" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">4. write() State</button>
+            <button onclick="setScenario(4)" id="btn-s4" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">5. lseek() DB</button>
+            <button onclick="setScenario(5)" id="btn-s5" class="btn-secondary" style="font-size: 0.73rem; padding: 4px 8px;">6. close() Flush</button>
           </div>
         </div>
 
@@ -510,7 +513,7 @@
         </svg>
 
         <div id="simDesc" style="font-size: 0.88rem; color: var(--text); text-align: center; background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 6px; width: 100%; line-height: 1.5;">
-          <strong>Debugger Stage 0 of 5:</strong> Click <strong>"Step Forward"</strong> to begin tracing the POSIX lifecycle (`open() &rarr; read() &rarr; write() &rarr; lseek() &rarr; close()`).
+          Select a real-world scenario above to simulate kernel subsystem interactions and data flow.
         </div>
       </div>
     </div>
@@ -650,7 +653,7 @@ int main(int argc, char *argv[]) {
       } else if (cmd === 'read') {
         term.textContent = "$ read(3, buffer, 4096);\n[Kernel] Copied 256 bytes from buffer cache block #104 into user buffer. Offset advanced to 256.\nStatus: Success (Bytes read: 256)";
       } else if (cmd === 'write') {
-        term.textContent = "$ write(3, \"TIMEOUT=30\\n\", 11);\n[Kernel] Copied 11 bytes into buffer cache block #104 at offset 256. File size updated to 267 bytes.\nStatus: Success (Bytes written: 11)";
+        term.textContent = "$ write(3, \"TIMEOUT=30\\n\", 11);\n[Kernel] Copied 11 bytes into buffer cache block #104 at offset 256. File size updated to 11 bytes.\nStatus: Success (Bytes written: 11)";
       } else if (cmd === 'seek') {
         term.textContent = "$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned file read/write offset pointer for descriptor fd=3 back to byte position 0.\nStatus: Success (Offset: 0)";
       } else if (cmd === 'close') {
@@ -658,71 +661,100 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // Kernel Debugger Simulator State Machine
-    let simStage = 0;
+    // Scenario Simulator State Machine
     const simCoordinates = [75, 225, 385, 545, 690];
 
-    function debuggerStep(dir) {
-      simStage += dir;
-      if (simStage < 0) simStage = 0;
-      if (simStage > 5) simStage = 5;
-      renderDebuggerState();
-    }
+    function setScenario(index) {
+      // Reset button styles
+      for (let i = 0; i < 6; i++) {
+        const btn = document.getElementById(`btn-s${i}`);
+        if (i === index) {
+          btn.style.backgroundColor = 'var(--accent)';
+          btn.className = '';
+        } else {
+          btn.style.backgroundColor = '#334155';
+          btn.className = 'btn-secondary';
+        }
+      }
 
-    function resetDebugger() {
-      simStage = 0;
-      renderDebuggerState();
-    }
-
-    function renderDebuggerState() {
-      // Clear node highlights
       document.querySelectorAll('.sim-node').forEach(n => n.classList.remove('active-sim-node'));
       const pkt = document.getElementById('simPacket');
       const desc = document.getElementById('simDesc');
 
-      if (simStage === 0) {
-        pkt.style.opacity = '0';
-        document.getElementById('lbl-proc').textContent = "Idle";
-        document.getElementById('lbl-fd').textContent = "fd = --";
-        document.getElementById('lbl-offset').textContent = "Offset: 0B";
-        document.getElementById('lbl-cache').textContent = "Cache: Clean";
-        document.getElementById('lbl-disk').textContent = "Disk: Ready";
-        desc.innerHTML = "<strong>Debugger Stage 0 of 5:</strong> System initialized. Click <strong>\"Step Forward\"</strong> to initiate <code>open()</code>.";
-      } else if (simStage === 1) {
+      if (index === 0) {
+        // creat() Config File
         pkt.style.opacity = '1';
-        pkt.setAttribute('cx', simCoordinates[1]); // FD Table
+        pkt.setAttribute('cx', simCoordinates[2]);
+        document.getElementById('sim-node-process').classList.add('active-sim-node');
+        document.getElementById('sim-node-inode').classList.add('active-sim-node');
+        document.getElementById('sim-node-disk').classList.add('active-sim-node');
+        document.getElementById('lbl-proc').textContent = "creat() Daemon";
+        document.getElementById('lbl-fd').textContent = "fd = 3";
+        document.getElementById('lbl-offset').textContent = "Offset: 0B";
+        document.getElementById('lbl-cache').textContent = "Cache Allocated";
+        document.getElementById('lbl-disk').textContent = "i-node #512 Created";
+        desc.innerHTML = "<strong>Scenario 1 (`creat()`):</strong> System daemon provisions <code>/etc/app.conf</code>. The kernel allocates a fresh i-node on disk and returns file descriptor 3 with initial permissions <code>0644</code>.";
+      } else if (index === 1) {
+        // open() Log Ingestion
+        pkt.style.opacity = '1';
+        pkt.setAttribute('cx', simCoordinates[1]);
         document.getElementById('sim-node-process').classList.add('active-sim-node');
         document.getElementById('sim-node-fd').classList.add('active-sim-node');
-        document.getElementById('lbl-proc').textContent = "Calling open()";
-        document.getElementById('lbl-fd').textContent = "fd = 3 allocated";
-        desc.innerHTML = "<strong>Debugger Stage 1 of 5 (`open()`):</strong> The User Process invokes <code>open(\"data.txt\")</code>. The kernel resolves path name lookup, allocates i-node metadata into RAM, and returns file descriptor <strong>fd = 3</strong>.";
-      } else if (simStage === 2) {
-        pkt.setAttribute('cx', simCoordinates[3]); // Buffer Cache
+        document.getElementById('sim-node-inode').classList.add('active-sim-node');
+        document.getElementById('lbl-proc').textContent = "Worker Process";
+        document.getElementById('lbl-fd').textContent = "fd = 4 (Append)";
+        document.getElementById('lbl-offset').textContent = "Offset: EOF";
+        document.getElementById('lbl-cache').textContent = "Shared RAM Table";
+        document.getElementById('lbl-disk').textContent = "Log Path Bound";
+        desc.innerHTML = "<strong>Scenario 2 (`open()`):</strong> NGINX worker opens <code>access.log</code> with <code>O_APPEND</code>. The kernel establishes an open file table entry pointing write pointers directly to the end of the file.";
+      } else if (index === 2) {
+        // read() Streaming
+        pkt.style.opacity = '1';
+        pkt.setAttribute('cx', simCoordinates[3]);
         document.getElementById('sim-node-fd').classList.add('active-sim-node');
         document.getElementById('sim-node-inode').classList.add('active-sim-node');
         document.getElementById('sim-node-cache').classList.add('active-sim-node');
+        document.getElementById('lbl-proc').textContent = "Compiler Loop";
         document.getElementById('lbl-fd').textContent = "fd = 3 active";
-        document.getElementById('lbl-offset').textContent = "Offset: 4096B";
-        document.getElementById('lbl-cache').textContent = "Cache Hit";
-        desc.innerHTML = "<strong>Debugger Stage 2 of 5 (`read()`):</strong> Process issues <code>read(3, buf, 4096)</code>. The kernel checks the Open File Table offset, resolves disk block pointers via the i-node, fetches data from the <strong>Buffer Cache</strong>, and advances the offset.";
-      } else if (simStage === 3) {
-        pkt.setAttribute('cx', simCoordinates[3]); // Buffer Cache
+        document.getElementById('lbl-offset').textContent = "Offset: +4096B";
+        document.getElementById('lbl-cache').textContent = "Cache Hit (RAM)";
+        document.getElementById('lbl-disk').textContent = "Blocks Streamed";
+        desc.innerHTML = "<strong>Scenario 3 (`read()`):</strong> Compiler streams source files in 4 KB chunks. Data is copied directly from the memory-resident <strong>Buffer Cache</strong>, automatically advancing the file offset.";
+      } else if (index === 3) {
+        // write() State Persistence
+        pkt.style.opacity = '1';
+        pkt.setAttribute('cx', simCoordinates[3]);
         document.getElementById('sim-node-inode').classList.add('active-sim-node');
         document.getElementById('sim-node-cache').classList.add('active-sim-node');
-        document.getElementById('lbl-offset').textContent = "Offset: 4122B";
-        document.getElementById('lbl-cache').textContent = "Cache Dirty";
-        desc.innerHTML = "<strong>Debugger Stage 3 of 5 (`write()`):</strong> Process issues <code>write(3, data, 26)</code>. Data is copied into the memory-resident <strong>Buffer Cache</strong>, marking the buffer block as dirty and updating the file size attribute.";
-      } else if (simStage === 4) {
-        pkt.setAttribute('cx', simCoordinates[2]); // Open File Table
+        document.getElementById('lbl-proc').textContent = "Editor Auto-Save";
+        document.getElementById('lbl-fd').textContent = "fd = 3 active";
+        document.getElementById('lbl-offset').textContent = "Offset Updated";
+        document.getElementById('lbl-cache').textContent = "Dirty Cache Block";
+        document.getElementById('lbl-disk').textContent = "Pending Flush";
+        desc.innerHTML = "<strong>Scenario 4 (`write()`):</strong> Text editor saves user document changes. Data payloads are written into volatile buffer cache blocks, marking them dirty and updating i-node size metrics.";
+      } else if (index === 4) {
+        // lseek() Database Lookup
+        pkt.style.opacity = '1';
+        pkt.setAttribute('cx', simCoordinates[2]);
+        document.getElementById('sim-node-process').classList.add('active-sim-node');
         document.getElementById('sim-node-inode').classList.add('active-sim-node');
-        document.getElementById('lbl-offset').textContent = "Offset: 0B (Seek)";
-        desc.innerHTML = "<strong>Debugger Stage 4 of 5 (`lseek()`):</strong> Process invokes <code>lseek(3, 0, SEEK_SET)</code>. The kernel directly updates the logical byte offset pointer inside the Open File Table to 0 without touching disk hardware.";
-      } else if (simStage === 5) {
-        pkt.setAttribute('cx', simCoordinates[4]); // Storage Media
+        document.getElementById('lbl-proc').textContent = "DB Query Engine";
+        document.getElementById('lbl-fd').textContent = "fd = 5 (Record #504)";
+        document.getElementById('lbl-offset').textContent = "Offset: 245760B";
+        document.getElementById('lbl-cache').textContent = "Cache Active";
+        document.getElementById('lbl-disk').textContent = "Zero Disk I/O";
+        desc.innerHTML = "<strong>Scenario 5 (`lseek()`):</strong> Database engine queries product record #504. <code>lseek()</code> instantly repositions the logical byte offset pointer in RAM without performing any physical disk head movement.";
+      } else if (index === 5) {
+        // close() Resource Cleanup
+        pkt.style.opacity = '1';
+        pkt.setAttribute('cx', simCoordinates[4]);
         document.querySelectorAll('.sim-node').forEach(n => n.classList.add('active-sim-node'));
-        document.getElementById('lbl-fd').textContent = "fd = 3 closed";
-        document.getElementById('lbl-disk').textContent = "Disk Synced";
-        desc.innerHTML = "<strong>Debugger Stage 5 of 5 (`close()`):</strong> Process invokes <code>close(3)</code>. The kernel flushes dirty cache blocks to <strong>Storage Media</strong>, deallocates the FD table entry, and releases the i-node reference.";
+        document.getElementById('lbl-proc').textContent = "Task Complete";
+        document.getElementById('lbl-fd').textContent = "fd Released";
+        document.getElementById('lbl-offset').textContent = "Offset Cleared";
+        document.getElementById('lbl-cache').textContent = "Cache Flushed";
+        document.getElementById('lbl-disk').textContent = "Persisted to SSD";
+        desc.innerHTML = "<strong>Scenario 6 (`close()`):</strong> Utility finishes archiving bundle and calls <code>close()</code>. The kernel flushes all dirty cache blocks to persistent storage media and deallocates process-local descriptors.";
       }
     }
   </script>
