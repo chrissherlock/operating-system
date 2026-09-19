@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 import os
+import ssl
 import subprocess
 import sys
 import urllib.request
 
 ASSET_URLS = {
     "markowitz.jpg": "https://zicklin.baruch.cuny.edu/wp-content/uploads/sites/10/2023/07/Harry-Markowitz-1_WP_350x467.jpg",
-    "knowlton.jpg": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Ken_Knowlton_in_2007.jpg",
-    "knuth.jpg": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Donald_Ervin_Knuth_%28cropped%29.jpg"
+    "knowlton.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Ken_Knowlton_in_2007.jpg/330px-Ken_Knowlton_in_2007.jpg",
+    "knuth.jpg": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Donald_Ervin_Knuth_%28cropped%29.jpg/330px-Donald_Ervin_Knuth_%28cropped%29.jpg"
 }
 
 HTML_CONTENT = r"""<!DOCTYPE html>
@@ -113,6 +114,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       object-position: top;
       border-radius: 4px;
       border: 1px solid var(--border);
+      background: #e2e8f0;
     }
     .pioneer-profile h3 {
       font-size: 0.95rem;
@@ -440,7 +442,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <aside class="bio-sidebar">
         <!-- Markowitz Infobox -->
         <div class="pioneer-profile">
-          <img src="images/markowitz.jpg" alt="Harry Markowitz">
+          <img src="images/markowitz.jpg" alt="Harry Markowitz" onerror="this.style.display='none'">
           <h3>Harry M. Markowitz</h3>
           <p>Formulated the binary buddy allocation algorithm (1963). Nobel laureate.</p>
           <div class="attr">Image source: <a href="https://zicklin.baruch.cuny.edu/zicklin_news/nobel-winner-harry-markowitz-former-zicklin-professor-dies/" target="_blank">Zicklin News, Baruch College</a> (Copyrighted).</div>
@@ -449,7 +451,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <!-- Knowlton Infobox -->
         <div class="pioneer-profile">
-          <img src="images/knowlton.jpg" alt="Ken Knowlton">
+          <img src="images/knowlton.jpg" alt="Ken Knowlton" onerror="this.style.display='none'">
           <h3>Kenneth C. Knowlton</h3>
           <p>Refined buddy allocation structures at Bell Labs (1965) for Lisp architectures.</p>
           <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
@@ -458,7 +460,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <!-- Knuth Infobox -->
         <div class="pioneer-profile">
-          <img src="images/knuth.jpg" alt="Donald Knuth">
+          <img src="images/knuth.jpg" alt="Donald Knuth" onerror="this.style.display='none'">
           <h3>Donald E. Knuth</h3>
           <p>Rigorously analyzed and popularized buddy systems in <em>The Art of Computer Programming</em>.</p>
           <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
@@ -905,24 +907,25 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Download pioneer portraits locally and update image paths in HTML
+COMMIT_MSG = """Fix SSL verification and direct Wikimedia CDN image paths
 
-Fetch portraits for Markowitz, Knowlton, and Knuth via Python and store
-them locally in week09-memory-management/images/. Update HTML image src
-attributes to reference local repository assets."""
+Update asset downloader script in 01-free-used-lists-buddy.html generation
+to bypass local SSL certificate verification for Baruch CUNY and switch
+to direct Wikimedia CDN URLs for Knowlton and Knuth portraits."""
 
 def download_assets():
     images_dir = "week09-memory-management/images"
     os.makedirs(images_dir, exist_ok=True)
 
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
+    ctx = ssl._create_unverified_context()
 
     for filename, url in ASSET_URLS.items():
         filepath = os.path.join(images_dir, filename)
         print(f"--> Downloading {filename} from {url}...")
         try:
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req) as response:
+            with urllib.request.urlopen(req, context=ctx) as response:
                 data = response.read()
                 print(f"    [Trace] Status: {response.status}, Content-Length: {len(data)} bytes")
                 with open(filepath, "wb") as out:
