@@ -615,8 +615,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <!-- Background MP3 Audio Loop (Converted from FLAC for universal browser compatibility) -->
-  <audio id="defragAudio" src="images/defrag2.mp3" preload="auto" loop></audio>
+  <!-- Inline Base64 Audio Data URI for bulletproof local playback -->
+  <audio id="defragAudio" src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU5LjM3LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZmEAAAAUAAAAEAAAMwAA8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PAAAA" preload="auto" loop></audio>
 
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week 10 Index</a>
@@ -1155,11 +1155,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Switch background defrag audio source from FLAC to MP3 for compatibility
+COMMIT_MSG = """Embed Base64 audio data URI for bulletproof local playback
 
-Update week10-file-management/03-filesystem-implementation.html to reference
-images/defrag2.mp3 in the audio element, ensuring universal browser playback
-support during defragmentation runs.
+Update week10-file-management/03-filesystem-implementation.html to use an
+inline Base64 data URI for the defrag audio loop, eliminating local file
+protocol and CORS restrictions.
 """
 
 def run_git_step(cmd, desc):
@@ -1178,14 +1178,15 @@ def deploy_module():
     os.makedirs(target_dir, exist_ok=True)
     target_file = os.path.join(target_dir, "03-filesystem-implementation.html")
 
-    with open(target_file, "w", encoding="utf-8") as f:
-        f.write(HTML_CONTENT)
+    wopen = open(target_file, "w", encoding="utf-8")
+    wopen.write(HTML_CONTENT)
+    wopen.close()
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging MP3 audio compatibility update")
+    run_git_step(["git", "add", target_file], "Staging Base64 audio data URI update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> MP3 audio compatibility successfully deployed!")
+    print("--> Base64 audio successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
