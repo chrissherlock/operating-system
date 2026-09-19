@@ -610,8 +610,8 @@
   </style>
 </head>
 <body>
-  <!-- Background FLAC Audio Loop -->
-  <audio id="defragAudio" src="images/defrag2.flac" preload="auto" loop></audio>
+  <!-- Background MP3 Audio Loop (Converted from FLAC for universal browser compatibility) -->
+  <audio id="defragAudio" src="images/defrag2.mp3" preload="auto" loop></audio>
 
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week 10 Index</a>
@@ -1015,7 +1015,7 @@
 
         if (audioEl) {
           audioEl.currentTime = 0;
-          audioEl.play().catch(e => console.log("Audio play blocked by browser policy:", e));
+          audioEl.play().catch(e => console.log("Audio playback blocked:", e));
         }
 
         const btn = document.getElementById("btnStartDefrag");

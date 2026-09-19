@@ -615,8 +615,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <!-- Background FLAC Audio Loop -->
-  <audio id="defragAudio" src="images/defrag2.flac" preload="auto" loop></audio>
+  <!-- Background MP3 Audio Loop (Converted from FLAC for universal browser compatibility) -->
+  <audio id="defragAudio" src="images/defrag2.mp3" preload="auto" loop></audio>
 
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week 10 Index</a>
@@ -1020,7 +1020,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         if (audioEl) {
           audioEl.currentTime = 0;
-          audioEl.play().catch(e => console.log("Audio play blocked by browser policy:", e));
+          audioEl.play().catch(e => console.log("Audio playback blocked:", e));
         }
 
         const btn = document.getElementById("btnStartDefrag");
@@ -1155,11 +1155,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Play background defrag2.flac audio loop during defragmentation runs
+COMMIT_MSG = """Switch background defrag audio source from FLAC to MP3 for compatibility
 
-Update week10-file-management/03-filesystem-implementation.html to embed and
-play images/defrag2.flac in the background when defragmentation starts, and pause
-it when paused or completed.
+Update week10-file-management/03-filesystem-implementation.html to reference
+images/defrag2.mp3 in the audio element, ensuring universal browser playback
+support during defragmentation runs.
 """
 
 def run_git_step(cmd, desc):
@@ -1182,10 +1182,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging background FLAC audio update")
+    run_git_step(["git", "add", target_file], "Staging MP3 audio compatibility update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Background FLAC audio successfully deployed!")
+    print("--> MP3 audio compatibility successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
