@@ -110,7 +110,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     .bio-sidebar {
       float: right;
-      width: 350px;
+      width: 360px;
       background: #f8fafc;
       border: 1px solid var(--border);
       border-top: 4px solid var(--inspect-color);
@@ -143,10 +143,24 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 0;
       padding-bottom: 0;
     }
+    .pioneer-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
     .pioneer-name {
       font-weight: 700;
       color: var(--text);
       font-size: 0.9rem;
+    }
+    .pioneer-wiki {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+    }
+    .pioneer-wiki a {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 600;
     }
     .pioneer-meta {
       font-size: 0.78rem;
@@ -160,11 +174,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       line-height: 1.4;
       font-size: 0.82rem;
       margin-top: 2px;
-    }
-    .pioneer-bio a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-weight: 600;
     }
 
     .figure-container {
@@ -355,25 +364,37 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <h3>File System Pioneers</h3>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">Ken Thompson</a></div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Ken Thompson</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">[Wiki]</a></div>
+            </div>
             <div class="pioneer-meta">Born: Feb 4, 1943 | Bell Labs</div>
             <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">Dennis Ritchie</a></div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Dennis Ritchie</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">[Wiki]</a></div>
+            </div>
             <div class="pioneer-meta">Born: Sep 9, 1941 — Died: Oct 12, 2011 | Bell Labs</div>
             <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">Andrew S. Tanenbaum</a></div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Andrew S. Tanenbaum</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">[Wiki]</a></div>
+            </div>
             <div class="pioneer-meta">Born: Mar 16, 1944 | Vrije Universiteit</div>
             <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">Marshall Kirk McKusick</a></div>
+            <div class="pioneer-header-row">
+              <div class="pioneer-name">Marshall Kirk McKusick</div>
+              <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">[Wiki]</a></div>
+            </div>
             <div class="pioneer-meta">Born: Jan 19, 1954 | UC Berkeley</div>
             <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation.</p>
           </div>
@@ -381,7 +402,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <h2>4.1.1 File Naming &amp; Structural Abstractions</h2>
         <p>
-          File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across process boundaries. When a process creates a file, it assigns a unique name; when that process terminates, the file persists and remains accessible to other processes using that same name. Modern operating systems support extended identifiers up to 255 characters, balancing case sensitivity models across UNIX and Windows environments.
+          File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across execution contexts. When a context creates a file, it assigns a unique name; when that context terminates, the file persists and remains accessible to other contexts using that same name. Modern operating systems support extended identifiers up to 255 characters, balancing case sensitivity models across UNIX and Windows environments.
         </p>
 
         <h2>4.1.2 File Structure &amp; Organization</h2>
@@ -725,7 +746,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     function loadChallenge(id) {
       const desc = document.getElementById("challengeDesc");
       if (id === 1) {
-        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
+        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Observe how the kernel immediately catches the fault.";
         runInspectionOp('close');
       } else if (id === 2) {
         desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-context systems, shared open file tables cause coupled offsets!";
@@ -741,11 +762,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add Wikipedia links and metadata to pioneers sidebar infobox
+COMMIT_MSG = """Separate Wikipedia links from pioneer names in sidebar infobox
 
-Update week10-file-management/01-files-abstraction.html to include Wikipedia
-biography links, birth/death dates, alma maters, and primary places of work
-for Ken Thompson, Dennis Ritchie, Andrew S. Tanenbaum, and Marshall Kirk McKusick."""
+Update week10-file-management/01-files-abstraction.html to place Wikipedia
+hyperlinks as discrete inline tags next to metadata rather than on the names."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -765,12 +785,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with complete pioneers sidebar infobox to {target_file}")
+    print(f"Wrote module file with clean Wikipedia links to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging pioneers sidebar update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging clean links update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Pioneers Sidebar Module 01 created, committed, and pushed successfully!")
+    print("--> Clean Links Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
