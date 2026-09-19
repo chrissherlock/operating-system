@@ -99,6 +99,67 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .c-num { color: #fbbf24; }
     .c-comm { color: #64748b; font-style: italic; }
 
+    /* Tour Panel Styles */
+    .tour-panel {
+      border: 1px solid #bae6fd;
+      border-left: 5px solid var(--accent);
+      background: #f0f9ff;
+    }
+    .tour-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tour-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0369a1;
+    }
+    .tour-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #0c4a6e;
+    }
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .telemetry-box {
+      background: #ffffff;
+      border: 1px solid #7dd3fc;
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .telemetry-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0284c7;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .telemetry-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0f172a;
+      font-family: var(--font-mono);
+    }
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
     /* Kernel Inspector Sandbox Styles */
     .kernel-sandbox {
       background: #0f172a;
@@ -479,24 +540,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <div class="card kernel-sandbox">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;">3. Interactive Kernel Table Inspector &amp; State Machine</div>
-        <div class="sandbox-controls">
-          <button onclick="inspectExec('creat')" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
-          <button onclick="inspectExec('open')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
-          <button onclick="inspectExec('read')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
-          <button onclick="inspectExec('write')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
-          <button onclick="inspectExec('seek')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
-          <button onclick="inspectExec('close')" class="btn-secondary btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
-        </div>
       </div>
 
       <!-- Detailed Instructional Breakdown -->
       <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #ffffff; line-height: 1.6;">
         <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.8rem; font-family: var(--font-mono);">How to Use This Kernel Inspector &amp; What You Are Seeing:</div>
         <p style="color: #cbd5e1;">
-          This interactive sandbox simulates how the operating system kernel maintains state across process boundaries during POSIX file operations. As you click system call buttons above, examine how the interface updates across three synchronized telemetry views:
+          This interactive sandbox simulates how the operating system kernel maintains state across process boundaries during POSIX file operations. Use the system call action buttons (positioned directly below) to trigger state transitions and examine how the interface updates across three synchronized telemetry views:
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px; color: #cbd5e1;">
-          <li><strong style="color: #ffffff;">1. The State Machine Diagram (Above):</strong> Visually tracks the active lifecycle state of your file descriptor in real time.</li>
+          <li><strong style="color: #ffffff;">1. The State Machine Diagram (Below):</strong> Visually tracks the active lifecycle state of your file descriptor in real time.</li>
           <li><strong style="color: #ffffff;">2. The Three Kernel Tables (Below):</strong>
             <ul style="padding-left: 18px; margin-top: 2px; color: #94a3b8;">
               <li><em style="color: #cbd5e1;">Process FD Table:</em> Shows private per-process file descriptor integer slots (e.g., slot <code>3</code>).</li>
@@ -506,6 +559,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </li>
           <li><strong style="color: #ffffff;">3. The Kernel Console &amp; Challenges (Bottom):</strong> Reports exact kernel return codes (such as success or <code>EBADF</code> faults) and lets you test real-world debugging challenges.</li>
         </ul>
+      </div>
+
+      <!-- Action Buttons positioned closer to challenge/controls -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 12px;">
+        <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">System Call Action Controls:</div>
+        <div class="sandbox-controls">
+          <button onclick="inspectExec('creat')" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
+          <button onclick="inspectExec('open')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
+          <button onclick="inspectExec('read')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
+          <button onclick="inspectExec('write')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
+          <button onclick="inspectExec('seek')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
+          <button onclick="inspectExec('close')" class="btn-secondary btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
+        </div>
       </div>
 
       <!-- Embedded Interactive State Machine Diagram -->
@@ -776,11 +842,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add detailed kernel state glossary explaining FD lifecycle states
+COMMIT_MSG = """Reposition system call controls closer to debugging challenge
 
-Update week10-file-management/01-files-abstraction.html to include a clear
-technical glossary card breaking down UNALLOCATED, FD_ALLOCATED, OFT_BOUND,
-and RAM_CACHED states within the interactive inspector sandbox."""
+Update week10-file-management/01-files-abstraction.html to relocate the
+interactive system call action buttons directly above the state diagram and
+near the instructions for improved ergonomics."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -800,12 +866,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with state glossary to {target_file}")
+    print(f"Wrote module file with repositioned layout to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging state glossary update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging layout update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> State Glossary Module 01 created, committed, and pushed successfully!")
+    print("--> Layout Update Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
