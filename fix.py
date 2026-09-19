@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-import re
 
 PAGE_CONTENT = """<!DOCTYPE html>
 <html lang="en">
@@ -8,6 +7,15 @@ PAGE_CONTENT = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>7. Page Replacement: The Clock Algorithm — COSC240</title>
+  <!-- Configure MathJax to recognize single dollar signs for inline math -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\\\(', '\\\\)']]
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -125,7 +133,6 @@ PAGE_CONTENT = """<!DOCTYPE html>
       overflow-x: auto;
     }
 
-    /* Tutorial Panel */
     .tutorial-panel {
       border-left: 4px solid var(--accent);
       background: #f0f9ff;
@@ -181,7 +188,6 @@ PAGE_CONTENT = """<!DOCTYPE html>
     }
     button.btn-sec:hover { background-color: #e2e8f0; }
 
-    /* Sandbox & Walkthrough Grid Layouts */
     .split-grid {
       display: grid;
       grid-template-columns: 340px 1fr;
@@ -250,6 +256,37 @@ PAGE_CONTENT = """<!DOCTYPE html>
     .log-fault { color: #f87171; font-weight: 700; }
     .log-clear { color: #facc15; }
     .log-info { color: #38bdf8; }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+      margin-bottom: 12px;
+    }
+    .guide-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.85rem;
+    }
+    .guide-box strong {
+      color: var(--accent);
+      font-size: 0.88rem;
+    }
+    .experiment-card {
+      background: #ffffff;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -270,7 +307,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
       <div class="theory-section">
         <h2>1. The Need for Page Replacement</h2>
         <p>
-          When a page fault occurs and all physical memory frames are occupied, the operating system kernel must choose an existing page to evict from physical RAM. If the evicted page was modified while in memory, it must be written back to disk; if unmodified, the incoming page overwrites the frame directly.
+          When a page fault occurs and all physical memory frames are occupied, the operating system kernel must choose an existing page to evict from physical RAM. If the evicted page was modified while in memory ($M = 1$), it must be written back to disk; if unmodified, the incoming page overwrites the frame directly.
         </p>
         <p>
           While the <strong>Least Recently Used (LRU)</strong> policy is theoretically optimal among practical algorithms, recording an exact LRU sequence in hardware requires updating a counter or moving a linked-list node on every single memory reference, introducing severe memory bus latency.
@@ -278,11 +315,11 @@ PAGE_CONTENT = """<!DOCTYPE html>
 
         <h2>2. Second-Chance and the Clock Optimization</h2>
         <p>
-          A practical approximation of LRU is the <strong>Second-Chance</strong> replacement policy. The OS examines the <strong>Referenced (R) bit</strong> in the hardware page table entry:
+          A practical approximation of LRU is the <strong>Second-Chance</strong> replacement policy. The OS examines the <strong>Referenced ($R$) bit</strong> in the hardware page table entry:
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
-          <li>If <code>R = 0</code>: The page is old and has not been referenced recently. It is evicted immediately.</li>
-          <li>If <code>R = 1</code>: The page was recently referenced. The OS clears <code>R &rarr; 0</code>, grants it a second chance, and inspects the next candidate.</li>
+          <li>If $R = 0$: The page is old and has not been referenced recently. It is evicted immediately.</li>
+          <li>If $R = 1$: The page was recently referenced. The OS clears $R \to 0$, grants it a second chance, and inspects the next candidate.</li>
         </ul>
         <div class="theory-callout">
           <strong>Tanenbaum's Clock Optimization (Fig. 3-16):</strong><br>
@@ -397,7 +434,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 3. INTERACTIVE CLOCK REPLACEMENT SANDBOX -->
+    <!-- 3. INTERACTIVE CLOCK REPLACEMENT SANDBOX (WITH EMBEDDED GUIDE) -->
     <div class="card" id="sandboxSection">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div>
@@ -411,14 +448,26 @@ PAGE_CONTENT = """<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- How-To Guide Callout -->
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #16a34a; border-radius: 0 6px 6px 0; padding: 12px 16px; font-size: 0.88rem; color: #166534; line-height: 1.5;">
-        <strong>How to Use This Sandbox:</strong>
-        <ul style="margin-top: 4px; padding-left: 18px; display: flex; flex-direction: column; gap: 4px;">
-          <li><strong>Access a Page:</strong> Type any page letter (e.g. <code>H</code>) into the input box and click <em>Access Page</em>. If the page is already in RAM, it results in a <strong>Hit</strong> (setting $R=1$, with the clock hand remaining completely stationary). If absent, it triggers a <strong>Page Fault</strong>, causing the clock hand to sweep across frames until an $R=0$ victim is evicted.</li>
-          <li><strong>Toggle Individual R-Bits:</strong> Click directly on any frame rectangle in the circular SVG canvas or click the <em>Toggle R</em> button in the table to manually flip a page's referenced bit.</li>
-          <li><strong>Simulate Timer Interrupts:</strong> Click <em>Periodic Timer Tick</em> to clear all $R$ bits across every frame to <code>0</code> simultaneously, simulating an OS timer aging sweep.</li>
-        </ul>
+      <!-- Embedded How-To Guide & Rules -->
+      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+        <strong style="color: var(--accent); font-size: 0.92rem;">How to Use the Sandbox &amp; Observable Rules</strong>
+        <div class="guide-grid">
+          <div class="guide-box">
+            <strong>1. Access a Page</strong>
+            <span>Type any page letter (e.g. <code>H</code>) in the input box and click <em>Access Page</em>. If resident &rarr; <strong>Hit</strong> ($R \to 1$, hand stays put). If absent &rarr; <strong>Fault</strong> (hand sweeps to find and evict an $R=0$ victim).</span>
+          </div>
+          <div class="guide-box">
+            <strong>2. Toggle R-Bits</strong>
+            <span>Click directly on any frame square in the circular SVG canvas or click <em>Toggle R</em> in the table to manually change referenced bits.</span>
+          </div>
+          <div class="guide-box">
+            <strong>3. Periodic Timer Tick</strong>
+            <span>Click <em>Periodic Timer Tick</em> to simulate an OS interrupt clearing all $R$ bits across every frame to <code>0</code> simultaneously.</span>
+          </div>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; border-top: 1px dashed var(--border); padding-top: 8px;">
+          <strong>Suggested Experiment:</strong> Click <em>Reset Frames</em> to load Tanenbaum Figure 3-16. Enter absent page <code>I</code> and click <em>Access Page</em>. Watch the animated sweep step through Frame 0 (giving a second chance: $R=1 \to 0$) and evict Frame 1 (where $R=0$).
+        </div>
       </div>
 
       <!-- Controls -->
@@ -794,39 +843,14 @@ PAGE_CONTENT = """<!DOCTYPE html>
 </html>
 """
 
-def clean_file_references(file_path):
-    if not os.path.exists(file_path):
-        return
-    with open(file_path, "r", encoding="utf-8") as f:
-        data = f.read()
-
-    cleaned_data = re.sub(r'(?:07-)+clock\.html', '07-clock.html', data)
-    cleaned_data = re.sub(r'(?<!07-)clock\.html', '07-clock.html', cleaned_data)
-
-    if cleaned_data != data:
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(cleaned_data)
-        print(f"Sanitized link references in {file_path}")
-
-def purge_obsolete_file(file_path):
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        print(f"Removed legacy/duplicate file: {file_path}")
-
 def main():
     base_dir = "."
     w09_dir = os.path.join(base_dir, "week09-memory-management")
-    target_clock = os.path.join(w09_dir, "07-clock.html")
+    target_file = os.path.join(w09_dir, "07-clock.html")
 
-    with open(target_clock, "w", encoding="utf-8") as f:
+    with open(target_file, "w", encoding="utf-8") as f:
         f.write(PAGE_CONTENT)
-    print(f"Successfully generated {target_clock} with detailed instructions and animated sandbox.")
-
-    purge_obsolete_file(os.path.join(w09_dir, "clock.html"))
-    purge_obsolete_file(os.path.join(w09_dir, "07-07-clock.html"))
-
-    clean_file_references(os.path.join(w09_dir, "index.html"))
-    clean_file_references(os.path.join(base_dir, "index.html"))
+    print(f"Successfully updated {target_file} with MathJax support and integrated how-to instructions.")
 
 if __name__ == "__main__":
     main()
