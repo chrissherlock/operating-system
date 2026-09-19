@@ -68,8 +68,14 @@
     .card h3 {
       font-size: 1.05rem;
       color: var(--text);
-      margin-top: 8px;
+      margin-top: 10px;
       margin-bottom: 4px;
+    }
+    .card h4 {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-top: 6px;
+      margin-bottom: 2px;
     }
     table {
       width: 100%;
@@ -333,76 +339,261 @@
       </div>
     </div>
 
-    <!-- Section 4.2.2: Two-Level Directory Systems -->
+    <!-- Section 4.2.2: Two-Level Directory Systems (Expanded) -->
     <div class="card">
       <h2>4.2.2 Two-Level Directory Systems</h2>
+
+      <h3>1. Motivation and Historical Impetus</h3>
       <p>
-        To eliminate name collisions between different users without incurring the overhead of arbitrary tree traversal, operating systems transitioned to <strong>two-level directory systems</strong>.
+        The transition from batch systems dedicated to a single job at a time to multi-user time-sharing architectures (such as MIT's CTSS and early DEC systems like TOPS-10) exposed the primary flaw of single-level directories: <strong>global namespace collision</strong>.
+      </p>
+      <p>
+        When dozens or hundreds of independent users share a single disk volume, requiring unique file names across the entire storage pool is unworkable. Two users working on independent tasks will naturally choose obvious names like <code>main.c</code>, <code>test.dat</code>, or <code>notes.txt</code>. Under a single-level system, whichever user saves first claims the identifier; the second user is either blocked by a creation error or silently overwrites the existing file. To eliminate this conflict without introducing the structural complexity of recursive tree traversal, operating system designers introduced the <strong>two-level directory system</strong>.
       </p>
 
-      <h3>Structural Division</h3>
+      <h3>2. Structural Topology: MFD and UFD</h3>
       <p>
-        A two-level directory system splits the storage namespace into two distinct operational tiers:
+        A two-level directory hierarchy establishes a fixed two-tier topology consisting of two distinct classes of directories:
       </p>
       <ul>
-        <li><strong>Master File Directory (MFD):</strong> The primary root-level system table. The MFD is indexed by user identity or account number; each entry points directly to that user's private directory.</li>
-        <li><strong>User File Directory (UFD):</strong> A private directory allocated to each individual user. A UFD lists only the files belonging to that user, paired with their respective attributes and storage block pointers.</li>
+        <li>
+          <strong>Master File Directory (MFD):</strong> The root-level administrative symbol table maintained by the kernel. It contains exactly one entry for each registered user account or project group, indexed by username, account number, or project-programmer number (PPN). Each entry contains administrative metadata and a physical pointer to the disk location where that user's private directory begins.
+        </li>
+        <li>
+          <strong>User File Directory (UFD):</strong> A dedicated directory table created for each individual account. It contains entries solely for the files created by or assigned to that specific user. Each entry maps an individual file name to its metadata (file size, access permissions, creation timestamps, and physical disk block addresses). From the user's perspective, the UFD behaves like an isolated single-level directory; no other user's files appear within it by default.
+        </li>
       </ul>
-
-      <h3>Operational Advantages</h3>
-      <ul>
-        <li><strong>Namespace Isolation:</strong> Different users can pick identical names without conflict. User $A$ and User $B$ can both create a file named <code>prog.c</code>; the operating system resolves them unambiguously based on the executing context's active UFD.</li>
-        <li><strong>Access Control Boundaries:</strong> The operating system enforces natural isolation boundaries by confining standard file lookups strictly to the calling user's allocated UFD.</li>
-      </ul>
-
-      <h3>Limitations &amp; The Sharing Dilemma</h3>
-      <p>
-        While two-level structures resolve inter-user name collisions, they introduce severe operational constraints:
-      </p>
-      <ol>
-        <li><strong>No Intra-User Grouping:</strong> Individual users cannot subdivide their work into functional subdirectories, courses, or components. A user with 500 files must still manage them inside a single, flat UFD.</li>
-        <li><strong>Restricted File Sharing:</strong> If User $A$ needs to run an executable or inspect a data file belonging to User $B$, the system requires explicit syntax to cross UFD boundaries (e.g., <code>[UserB]data.txt</code> or <code>/userB/data.txt</code>), complicating file lookup routines and permission checking.</li>
-        <li><strong>System Program Duplication:</strong> Standard utilities (compilers, text editors, system binaries) either had to be copied into every user's UFD—wasting limited disk space—or the operating system had to build an ad-hoc search rule that checked a special system directory whenever a file was not found in the local UFD.</li>
-      </ol>
 
       <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2: Two-Level Directory Architecture (MFD to UFD Separation)</span>
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2A: Two-Level Directory Structural Topology (MFD to UFD)</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <!-- MFD -->
-          <rect x="230" y="15" width="300" height="40" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="4"/>
+          <rect x="230" y="15" width="300" height="42" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="4"/>
           <text x="380" y="32" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Master File Directory (MFD)</text>
-          <text x="380" y="45" font-size="9" fill="#64748b" text-anchor="middle">Indexes User Accounts</text>
+          <text x="380" y="47" font-size="9" fill="#64748b" text-anchor="middle">[ALICE] | [BOB] | [SYSTEM]</text>
 
           <!-- Links to UFDs -->
-          <path d="M 310 55 L 140 85" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 380 55 L 380 85" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 450 55 L 620 85" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 300 57 L 140 85" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 380 57 L 380 85" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 460 57 L 620 85" stroke="#94a3b8" stroke-width="1.5"/>
 
-          <!-- UFD 1 -->
-          <rect x="50" y="85" width="180" height="90" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="140" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">User A Directory (UFD)</text>
-          <rect x="65" y="112" width="150" height="24" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="128" font-size="9" fill="#065f46" text-anchor="middle">prog.c (Blocks: 4, 5)</text>
-          <rect x="65" y="142" width="150" height="24" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="158" font-size="9" fill="#065f46" text-anchor="middle">data.dat (Blocks: 9)</text>
+          <!-- UFD ALICE -->
+          <rect x="50" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="140" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: ALICE</text>
+          <rect x="65" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="140" y="124" font-size="8.5" fill="#065f46" text-anchor="middle">main.c (i-node #108)</text>
+          <rect x="65" y="134" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="140" y="148" font-size="8.5" fill="#065f46" text-anchor="middle">test.dat (i-node #109)</text>
+          <rect x="65" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="140" y="169" font-size="8" fill="#065f46" text-anchor="middle">output.log</text>
 
-          <!-- UFD 2 -->
-          <rect x="290" y="85" width="180" height="90" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="380" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">User B Directory (UFD)</text>
-          <rect x="305" y="112" width="150" height="24" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="128" font-size="9" fill="#065f46" text-anchor="middle">prog.c (Blocks: 18, 19)</text>
-          <rect x="305" y="142" width="150" height="24" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="158" font-size="9" fill="#065f46" text-anchor="middle">test.out (Blocks: 21)</text>
+          <!-- UFD BOB -->
+          <rect x="290" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="380" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: BOB</text>
+          <rect x="305" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="380" y="124" font-size="8.5" fill="#065f46" text-anchor="middle">main.c (i-node #214)</text>
+          <rect x="305" y="134" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="380" y="148" font-size="8.5" fill="#065f46" text-anchor="middle">project.asm (i-node #215)</text>
+          <rect x="305" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="380" y="169" font-size="8" fill="#065f46" text-anchor="middle">notes.txt</text>
 
-          <!-- UFD 3 -->
-          <rect x="530" y="85" width="180" height="90" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="620" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">System / Shared UFD</text>
-          <rect x="545" y="112" width="150" height="24" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="620" y="128" font-size="9" fill="#065f46" text-anchor="middle">cc (Compiler binary)</text>
-          <rect x="545" y="142" width="150" height="24" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="620" y="158" font-size="9" fill="#065f46" text-anchor="middle">sh (Shell binary)</text>
+          <!-- UFD SYSTEM -->
+          <rect x="530" y="85" width="180" height="92" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
+          <text x="620" y="102" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">UFD: SYSTEM (SYS:)</text>
+          <rect x="545" y="110" width="150" height="20" fill="#ffffff" stroke="#fde68a" rx="3"/>
+          <text x="620" y="124" font-size="8.5" fill="#92400e" text-anchor="middle">cc (Compiler binary)</text>
+          <rect x="545" y="134" width="150" height="20" fill="#ffffff" stroke="#fde68a" rx="3"/>
+          <text x="620" y="148" font-size="8.5" fill="#92400e" text-anchor="middle">ed (Editor binary)</text>
+          <rect x="545" y="158" width="150" height="15" fill="#ffffff" stroke="#fde68a" rx="3"/>
+          <text x="620" y="169" font-size="8" fill="#92400e" text-anchor="middle">as (Assembler binary)</text>
         </svg>
       </div>
+
+      <h3>3. Operational Mechanics and Resolution Traversal</h3>
+      <h4>Login and Context Binding</h4>
+      <p>
+        When a user logs into the operating system, the authentication sequence performs a targeted lookup:
+      </p>
+      <ol>
+        <li>The kernel queries the user identification table and locates the user's corresponding record within the <strong>MFD</strong>.</li>
+        <li>The kernel extracts the disk address of the user's <strong>UFD</strong> and caches its root references in memory.</li>
+        <li>The executing session sets its <strong>current default directory pointer</strong> directly to this UFD.</li>
+      </ol>
+
+      <h4>Name Resolution Algorithm</h4>
+      <p>
+        Whenever an executing program executes a file system call (such as <code>open</code>, <code>creat</code>, or <code>delete</code>):
+      </p>
+      <ul>
+        <li>The file name string is resolved <strong>locally</strong> within the active session's UFD.</li>
+        <li>Because lookups are scoped strictly to the current UFD, identical file names across different accounts cause zero interference.</li>
+        <li>Alice opening <code>main.c</code> accesses i-node/FCB <code>#108</code> from her UFD; Bob opening <code>main.c</code> accesses i-node/FCB <code>#214</code> from his own UFD without naming conflict.</li>
+      </ul>
+
+      <h3>4. The System Utility and Library Dilemma</h3>
+      <p>
+        While segregating accounts resolves user collisions, it introduces a major operational challenge: <strong>how to access standard system software</strong>. Operating systems depend on common executable utilities—compilers (<code>cc</code>), assemblers (<code>as</code>), text editors (<code>ed</code>), linkers (<code>ld</code>), and shared runtime libraries. In a strict two-level system where lookups only query the caller's UFD, standard commands fail unless those programs reside in that specific UFD.
+      </p>
+
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2B: Utility Duplication Waste vs. Two-Stage Fallback Search</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Option 1 -->
+          <rect x="30" y="15" width="320" height="130" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" rx="4"/>
+          <text x="190" y="34" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">Option 1: Redundant Executable Duplication</text>
+
+          <rect x="45" y="45" width="135" height="60" fill="#ffffff" stroke="#fca5a5" rx="3"/>
+          <text x="112" y="60" font-size="8.5" font-weight="600" fill="#991b1b" text-anchor="middle">UFD: ALICE</text>
+          <text x="112" y="75" font-size="8" fill="#334155" text-anchor="middle">cc (1 MB) [Duplicate]</text>
+          <text x="112" y="90" font-size="8" fill="#334155" text-anchor="middle">ed (500 KB) [Duplicate]</text>
+
+          <rect x="200" y="45" width="135" height="60" fill="#ffffff" stroke="#fca5a5" rx="3"/>
+          <text x="267" y="60" font-size="8.5" font-weight="600" fill="#991b1b" text-anchor="middle">UFD: BOB</text>
+          <text x="267" y="75" font-size="8" fill="#334155" text-anchor="middle">cc (1 MB) [Duplicate]</text>
+          <text x="267" y="90" font-size="8" fill="#334155" text-anchor="middle">ed (500 KB) [Duplicate]</text>
+
+          <text x="190" y="128" font-size="8.5" fill="#b91c1c" text-anchor="middle">Severe secondary storage exhaustion across accounts</text>
+
+          <!-- Option 2 -->
+          <rect x="390" y="15" width="340" height="130" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="560" y="34" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">Option 2: Two-Stage Fallback Search Rule</text>
+
+          <rect x="410" y="45" width="130" height="42" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="475" y="60" font-size="8.5" font-weight="600" fill="#065f46" text-anchor="middle">Step 1: Local UFD</text>
+          <text x="475" y="75" font-size="8" fill="#64748b" text-anchor="middle">Check active user files</text>
+
+          <path d="M 540 66 L 580 66" stroke="#059669" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+          <text x="560" y="60" font-size="7.5" fill="#059669" font-weight="700" text-anchor="middle">Miss</text>
+
+          <rect x="580" y="45" width="130" height="42" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
+          <text x="645" y="60" font-size="8.5" font-weight="600" fill="#065f46" text-anchor="middle">Step 2: SYSTEM UFD</text>
+          <text x="645" y="75" font-size="8" fill="#047857" text-anchor="middle">Locate shared cc / ed</text>
+
+          <text x="560" y="112" font-size="8.5" fill="#065f46" text-anchor="middle">Eliminates duplicate disk storage entirely</text>
+          <text x="560" y="128" font-size="8" fill="#64748b" text-anchor="middle">Local file names may shadow system executables</text>
+
+          <defs>
+            <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <h4>The Two-Stage Fallback Search</h4>
+      <p>
+        Duplicating executables across every user's directory wastes precious secondary storage. Two-level architectures resolved this by designating a special system directory (often indexed in the MFD as <code>SYS</code>, <code>SYSTEM</code>, or user number <code>0</code>) and altering the directory search rule:
+      </p>
+      <div class="callout">
+        $$\text{Search Target} = \begin{cases}
+        \text{Search Active UFD}, & \text{Step 1} \\
+        \text{If not found} \longrightarrow \text{Search SYSTEM UFD}, & \text{Step 2} \\
+        \text{If not found} \longrightarrow \text{Return Error (File Not Found)}, & \text{Step 3}
+        \end{cases}$$
+      </div>
+      <p>
+        This fallback rule allowed all users to execute standard system binaries without duplicating blocks on disk. However, it introduced subtle shadowing issues: if Alice created a private data file or test script named <code>cc</code>, her local version shadowed the system compiler, causing unexpected command behavior.
+      </p>
+
+      <h3>5. Cross-User File Sharing and Namespace Syntax</h3>
+      <p>
+        Real-world multi-user collaboration frequently requires reading or executing files belonging to another account. Because the standard lookup stops at the active user's UFD, systems had to invent <strong>cross-directory naming syntax</strong>:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Operating System</th>
+            <th>Syntax Convention</th>
+            <th>Resolution Mechanism</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>DEC PDP-10 (TOPS-10)</strong></td>
+            <td><code>[Project,Programmer]Filename</code><br>(e.g., <code>[10,20]DATA.DAT</code>)</td>
+            <td>Bypasses active UFD; queries MFD for project 10, programmer 20, then scans target UFD.</td>
+          </tr>
+          <tr>
+            <td><strong>Early UNIX Precursors</strong></td>
+            <td><code>username/filename</code> or <code>:user:filename</code></td>
+            <td>Explicitly names the peer MFD bucket before locating the file entry.</td>
+          </tr>
+          <tr>
+            <td><strong>CP/M 2.2 / 3.0 (User Areas)</strong></td>
+            <td><code>USER N:</code><br>(e.g., <code>USER 2:</code>, <code>B2:FILE.DAT</code>)</td>
+            <td>Swaps the active drive user area partition mask before reading directory allocation blocks.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Protection and Access Control</h4>
+      <p>
+        Allowing one user to specify another user's directory entry created immediate security risks. Two-level systems could no longer rely on physical isolation and had to implement explicit protection checks:
+      </p>
+      <ul>
+        <li><strong>Access Permissions:</strong> Every entry in a UFD incorporated permission bits defining whether peer users could read, write, or execute the underlying file.</li>
+        <li><strong>Directory Read Restrictions:</strong> Users could be prevented from listing the contents of a peer's UFD, even if they were permitted to read a specifically named file inside it.</li>
+      </ul>
+
+      <h3>6. Architectural Evaluation and Inevitable Evolution</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Architectural Dimension</th>
+            <th>Single-Level System</th>
+            <th>Two-Level System</th>
+            <th>Hierarchical Tree System</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Directory Depth</strong></td>
+            <td>Exactly 1</td>
+            <td>Exactly 2 (Fixed)</td>
+            <td>Arbitrary ($N \ge 1$)</td>
+          </tr>
+          <tr>
+            <td><strong>Namespace Isolation</strong></td>
+            <td>None (Global shared pool)</td>
+            <td>Isolated per user account</td>
+            <td>Isolated per directory node</td>
+          </tr>
+          <tr>
+            <td><strong>Inter-User Collisions</strong></td>
+            <td>Chronic problem</td>
+            <td>Completely eliminated</td>
+            <td>Completely eliminated</td>
+          </tr>
+          <tr>
+            <td><strong>Intra-User Grouping</strong></td>
+            <td>Impossible</td>
+            <td>Impossible (Single flat UFD)</td>
+            <td>Fully supported (Nested subfolders)</td>
+          </tr>
+          <tr>
+            <td><strong>Path Traversal Cost</strong></td>
+            <td>1 Directory block scan</td>
+            <td>2 Directory block scans</td>
+            <td>$N$ Directory block scans</td>
+          </tr>
+          <tr>
+            <td><strong>System Utility Access</strong></td>
+            <td>Direct lookup</td>
+            <td>Requires two-stage fallback</td>
+            <td>Handled via configurable <code>PATH</code> search lists</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>The Ceiling of the Two-Level Model</h4>
+      <p>
+        While the two-level directory solved the inter-user naming dilemma, it quickly reached its architectural limits:
+      </p>
+      <ol>
+        <li><strong>Intra-Account Clutter:</strong> Individual users accumulating hundreds of files suffered from the exact same flat-namespace problem inside their own UFD. A programmer working on three independent projects had to keep all source modules, documentation, and object files in one unorganized pile.</li>
+        <li><strong>Artificial Depth Barrier:</strong> The structural distinction between the MFD (which could only point to UFDs) and UFDs (which could only point to data files) was an arbitrary, rigid restriction.</li>
+        <li><strong>The Generalization Step:</strong> Operating system researchers realized that if a directory entry could point to either a data file <strong>or another directory</strong>, the rigid two-level structure naturally generalized into an arbitrary <strong>hierarchical tree</strong>. This removed all restrictions on depth and enabled users to build structured, self-contained subtrees.</li>
+      </ol>
     </div>
 
     <!-- Section 4.2.3: Hierarchical Directory Systems -->
@@ -481,62 +672,6 @@
           <text x="685" y="135" font-size="8" font-weight="600" fill="#d97706" text-anchor="start">.. points to parent (/home)</text>
         </svg>
       </div>
-
-      <h3>Comparison of Directory Organization Models</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Dimension</th>
-            <th>Single-Level</th>
-            <th>Two-Level</th>
-            <th>Hierarchical (Tree)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Namespace Scope</strong></td>
-            <td>Single global table</td>
-            <td>Master directory with per-user tables</td>
-            <td>Arbitrary tree rooted at <code>/</code> or drive letters</td>
-          </tr>
-          <tr>
-            <td><strong>Subdirectory Support</strong></td>
-            <td>None</td>
-            <td>Fixed at 1 level below master</td>
-            <td>Arbitrary depth ($\ge 1$)</td>
-          </tr>
-          <tr>
-            <td><strong>Name Clashes</strong></td>
-            <td>Frequent across all users</td>
-            <td>Prevented between users; frequent within user</td>
-            <td>Prevented across distinct directories</td>
-          </tr>
-          <tr>
-            <td><strong>File Grouping</strong></td>
-            <td>Impossible</td>
-            <td>Limited to user boundary</td>
-            <td>Fully user-configurable</td>
-          </tr>
-          <tr>
-            <td><strong>Lookup Mechanism</strong></td>
-            <td>Linear scan of global list</td>
-            <td>2-step scan (MFD $\rightarrow$ UFD)</td>
-            <td>Recursive path traversal component-by-component</td>
-          </tr>
-          <tr>
-            <td><strong>Implementation Complexity</strong></td>
-            <td>Minimal</td>
-            <td>Low</td>
-            <td>Moderate to High (requires path parsing &amp; recursion)</td>
-          </tr>
-          <tr>
-            <td><strong>Modern Usage</strong></td>
-            <td>Embedded microcontrollers, small FAT12 partitions</td>
-            <td>Specialized embedded or batch systems</td>
-            <td>Standard across Linux, macOS, Windows, BSD</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
 
     <!-- Section 4.2.4: Directory Operations & System Calls -->
