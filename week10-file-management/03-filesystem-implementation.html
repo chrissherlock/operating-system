@@ -151,10 +151,10 @@
       width: 100%;
       border-radius: 8px;
       transition: all 0.25s ease;
-      padding: 12px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     /* MODERN THEME LEGEND */
@@ -244,7 +244,7 @@
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 210px;
+      height: 190px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
@@ -349,7 +349,7 @@
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 210px;
+      height: 190px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
@@ -429,7 +429,7 @@
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 210px;
+      height: 190px;
     }
     .theme-dos .c-cell {
       aspect-ratio: 1 / 1.5;
@@ -462,7 +462,7 @@
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (NON-ANTIALIASED BITMAP CP437)
+       THEME 4: MS-DOS 6.22 DEFRAG (COMPACT 800x600 FIT)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -480,8 +480,8 @@
     .theme-olddos .ui-topbar {
       background: #ffffff;
       color: #0000aa;
-      padding: 3px 6px;
-      font-size: 10.5px;
+      padding: 2px 6px;
+      font-size: 10px;
       font-weight: bold;
       display: flex;
       justify-content: space-between;
@@ -490,20 +490,20 @@
       image-rendering: pixelated;
       -webkit-font-smoothing: none;
     }
-    .theme-olddos .ui-title { color: #0000aa; font-size: 10.5px; font-weight: bold; }
+    .theme-olddos .ui-title { color: #0000aa; font-size: 10px; font-weight: bold; }
     .theme-olddos .ui-controls {
       background: #0000aa;
       border-bottom: 1px solid #55ffff;
-      padding: 4px 8px;
-      gap: 5px;
+      padding: 3px 6px;
+      gap: 4px;
       image-rendering: pixelated;
     }
     .theme-olddos .ctrl-btn {
       background-color: #0000aa;
       color: #ffff55;
       border: 1px solid #ffff55;
-      padding: 2px 5px;
-      font-size: 9.5px;
+      padding: 2px 4px;
+      font-size: 9px;
       font-family: 'PerfectDOS', monospace;
       image-rendering: pixelated;
       -webkit-font-smoothing: none;
@@ -516,7 +516,7 @@
     .theme-olddos .grid-wrapper {
       background: #0000aa;
       border: 1px solid #55ffff;
-      margin: 4px;
+      margin: 3px;
       padding: 2px;
       display: flex;
       justify-content: center;
@@ -527,15 +527,15 @@
       gap: 1px;
       width: 100%;
       max-width: 950px;
-      height: 200px;
+      height: 165px; /* Compact height ensures zero vertical scroll on 800x600 */
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.6;
+      aspect-ratio: 1 / 1.5;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
@@ -553,35 +553,35 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       border: 1px solid #55ffff;
-      margin: 4px;
+      margin: 3px;
       background: #0000aa;
       color: #ffffff;
-      font-size: 9.5px;
+      font-size: 9px;
       font-family: 'PerfectDOS', monospace;
       image-rendering: pixelated;
       -webkit-font-smoothing: none;
     }
     .theme-olddos .dos-status-col {
-      padding: 6px;
+      padding: 4px 6px;
       border-right: 1px solid #55ffff;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .theme-olddos .dos-legend-col {
-      padding: 6px;
       display: flex;
       flex-direction: column;
       gap: 3px;
     }
+    .theme-olddos .dos-legend-col {
+      padding: 4px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
     .theme-olddos .dos-prog-bar {
       background: #ffffff;
       color: #0000aa;
-      height: 12px;
+      height: 10px;
       width: 100%;
       position: relative;
       overflow: hidden;
-      font-size: 8.5px;
+      font-size: 8px;
       display: flex;
       align-items: center;
       padding-left: 4px;
@@ -706,8 +706,8 @@
         <!-- Authentic MS-DOS 6.22 Split Status & Legend Box -->
         <div class="dos-legend-box" id="dosLegendBox">
           <div class="dos-status-col">
-            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Status</div>
-            <div style="display:flex; justify-content:space-between; font-size:9px;">
+            <div style="border-bottom:1px solid #55ffff; padding-bottom:1px; font-weight:bold; color:#ffff55;">Status</div>
+            <div style="display:flex; justify-content:space-between; font-size:8.5px;">
               <span id="dosClusterText">Cluster 16,936</span>
               <span id="dosPctText">29%</span>
             </div>
@@ -715,12 +715,12 @@
               <div id="dosProgressBarFill" style="background:#55ffff; width:29%; height:100%; position:absolute; left:0; top:0; z-index:1;"></div>
               <span id="dosProgressText" style="position:relative; z-index:2; color:#0000aa; margin:auto;"></span>
             </div>
-            <div style="text-align:center; font-size:9px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
-            <div style="text-align:center; font-size:9px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
+            <div style="text-align:center; font-size:8.5px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
+            <div style="text-align:center; font-size:8.5px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
           </div>
           <div class="dos-legend-col">
-            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Legend</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2px; font-size:8.5px;">
+            <div style="border-bottom:1px solid #55ffff; padding-bottom:1px; font-weight:bold; color:#ffff55;">Legend</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1px; font-size:8px;">
               <div>■ - Used</div>
               <div>▒ - Unused</div>
               <div>r - Reading</div>
@@ -728,7 +728,7 @@
               <div>B - Bad</div>
               <div>X - Unmovable</div>
             </div>
-            <div style="margin-top:auto; font-size:8.5px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
+            <div style="margin-top:auto; font-size:8px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
           </div>
         </div>
 
