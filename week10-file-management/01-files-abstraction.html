@@ -195,16 +195,16 @@
     <div class="card">
       <div style="font-weight: 700; color: var(--text); font-size: 1.1rem;">1. Architectural Foundations: The File Abstraction</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: var(--text-muted);">
-        Just as the operating system abstracts physical RAM into virtual address spaces and CPU cores into processes, it abstracts raw disk hardware (cylinders, sectors, and magnetic heads) into <strong>files</strong>[cite: 4]. A file is an abstract logical unit of persistent information created by processes[cite: 4].
+        Just as the operating system abstracts physical RAM into virtual address spaces and CPU cores into processes, it abstracts raw disk hardware (cylinders, sectors, and magnetic heads) into <strong>files</strong>. A file is an abstract logical unit of persistent information created by processes.
       </p>
 
       <div style="font-weight: 600; color: var(--accent); margin-top: 4px;">Core Concepts Covered in Tanenbaum 4.1:</div>
       <ul>
-        <li><strong>File Naming &amp; Sensitivity:</strong> Rules governing valid strings (up to 255+ characters) and whether the OS distinguishes uppercase and lowercase (UNIX vs. Windows)[cite: 4].</li>
-        <li><strong>File Structure Models:</strong> Unstructured byte sequences (UNIX/Windows), record sequences (mainframe batch systems), and key-indexed tree structures[cite: 4].</li>
-        <li><strong>File Types:</strong> Regular files (ASCII/binary), directories, and device abstractions (character and block special files)[cite: 4].</li>
-        <li><strong>Access Modes:</strong> Sequential access (reading byte-by-byte from the beginning) vs. random access (using explicit offset seeking)[cite: 4].</li>
-        <li><strong>File Attributes (Metadata):</strong> Protection permissions, ownership (UID/GID), sizes, and timestamps (creation, access, modification)[cite: 4].</li>
+        <li><strong>File Naming &amp; Sensitivity:</strong> Rules governing valid strings (up to 255+ characters) and whether the OS distinguishes uppercase and lowercase (UNIX vs. Windows).</li>
+        <li><strong>File Structure Models:</strong> Unstructured byte sequences (UNIX/Windows), record sequences (mainframe batch systems), and key-indexed tree structures.</li>
+        <li><strong>File Types:</strong> Regular files (ASCII/binary), directories, and device abstractions (character and block special files).</li>
+        <li><strong>Access Modes:</strong> Sequential access (reading byte-by-byte from the beginning) vs. random access (using explicit offset seeking).</li>
+        <li><strong>File Attributes (Metadata):</strong> Protection permissions, ownership (UID/GID), sizes, and timestamps (creation, access, modification).</li>
       </ul>
 
       <!-- SVG Architectural Diagram -->
@@ -247,7 +247,7 @@
       </div>
       <div id="tutorialTitle" class="tutorial-title">1. Opening a File &amp; Allocating Descriptors</div>
       <div id="tutorialText" class="tutorial-body">
-        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process **File Descriptor Table** pointing to an open file table entry[cite: 4].
+        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry.
       </div>
       <div class="tour-nav">
         <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Step</button>
@@ -279,19 +279,19 @@
     const tutorialSteps = [
       {
         title: "1. Opening a File & Allocating Descriptors",
-        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry[cite: 4]."
+        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry."
       },
       {
         title: "2. Sequential vs. Random Read Operations",
-        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read[cite: 4]."
+        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read."
       },
       {
         title: "3. Arbitrary Offsets via lseek()",
-        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>[cite: 4]."
+        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>."
       },
       {
         title: "4. Closing Files & Releasing Resources",
-        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count[cite: 4]."
+        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count."
       }
     ];
 
