@@ -299,6 +299,15 @@
     .log-warn { color: #facc15; }
     .log-info { color: #38bdf8; }
   </style>
+  <!-- Configure MathJax to recognize single dollar signs for inline math -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 

@@ -324,6 +324,15 @@
     .log-hard { color: #f87171; font-weight: 700; }
     .log-segv { color: #ef4444; font-weight: 800; background: rgba(239, 68, 68, 0.15); padding: 2px 4px; border-radius: 3px; }
   </style>
+  <!-- Configure MathJax to recognize single dollar signs for inline math -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 

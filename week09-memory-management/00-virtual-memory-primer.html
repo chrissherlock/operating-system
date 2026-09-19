@@ -70,6 +70,15 @@
     button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
     button.btn-sec:hover { background-color: #e2e8f0; }
   </style>
+  <!-- Configure MathJax to recognize single dollar signs for inline math -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <div class="nav-back"><a href="index.html">&larr; Back to Week Overview</a></div>
