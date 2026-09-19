@@ -220,21 +220,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-modern .screen-grid {
       display: grid;
-      grid-template-columns: repeat(100, 1fr); /* 100 columns for half-sized blocks */
-      gap: 1px;
+      grid-template-columns: repeat(100, 1fr);
+      gap: 0px; /* Zero gap for tight grid packing */
       width: 100%;
       max-width: 1000px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
-      border-radius: 0.5px;
+      border-radius: 0;
+      margin: 0;
+      padding: 0;
     }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
     .theme-modern .c-unopt { background-color: #f59e0b; }
     .theme-modern .c-system { background-color: #dc2626; }
-    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 4px #facc15; }
-    .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
+    .theme-modern .c-read { background-color: #facc15 !important; }
+    .theme-modern .c-write { background-color: #34d399 !important; }
     .theme-modern .ui-status-panel {
       background: #020617;
       border: 1px solid #1e293b;
@@ -325,20 +327,22 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-win95 .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
+      gap: 0px;
       width: 100%;
       max-width: 1000px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
       border-radius: 0;
+      margin: 0;
+      padding: 0;
     }
     .theme-win95 .c-free { background-color: #ffffff; }
     .theme-win95 .c-opt { background-color: #000080; }
     .theme-win95 .c-unopt { background-color: #5ce1e6; }
     .theme-win95 .c-system { background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%); }
-    .theme-win95 .c-read { background-color: #00ff00 !important; box-shadow: 0 0 4px #00ff00; }
-    .theme-win95 .c-write { background-color: #ff0000 !important; box-shadow: 0 0 4px #ff0000; }
+    .theme-win95 .c-read { background-color: #00ff00 !important; }
+    .theme-win95 .c-write { background-color: #ff0000 !important; }
     .theme-win95 .ui-status-panel {
       border-top: 1px solid #808080;
       padding-top: 4px;
@@ -404,7 +408,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
+      gap: 0px;
       width: 100%;
       max-width: 950px;
     }
@@ -417,6 +421,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 6px;
       font-weight: bold;
       line-height: 1;
+      margin: 0;
+      padding: 0;
       user-select: none;
     }
     .theme-dos .c-free { background-color: #000055; color: #0000aa; }
@@ -424,7 +430,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .c-unopt { background-color: #0000aa; color: #ff5555; }
     .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
     .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
-    .theme-dos .c-write { background-color: #ffff55 !important; color: #000000 !important; }
+    .theme-dos .c-write { background-color: #ffff55 !important; color: #0000aa !important; }
     .theme-dos .ui-status-panel {
       background: #0000aa;
       border-top: 1px dashed #ffffff;
@@ -439,7 +445,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (100x30 HALF-SIZE BLOCKS)
+       THEME 4: MS-DOS 6.22 DEFRAG (TIGHT ZERO-PADDING CELLS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -496,8 +502,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-olddos .screen-grid {
       display: grid;
-      grid-template-columns: repeat(100, 1fr); /* 100 columns */
-      gap: 1px;
+      grid-template-columns: repeat(100, 1fr);
+      gap: 0px; /* Zero grid gap for seamless tight block packing */
       width: 100%;
       max-width: 950px;
     }
@@ -507,9 +513,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 6px; /* Scaled down font for half-size blocks */
+      font-size: 115%; /* Maximize glyph coverage */
       font-weight: bold;
       line-height: 1;
+      margin: 0;
+      padding: 0; /* Strict zero padding */
       image-rendering: pixelated;
       user-select: none;
     }
@@ -560,20 +568,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-olddos .ui-status-panel { display: none; }
     .theme-olddos .theme-label { color: #0000aa; }
-
-    /* Matrix Dimensions */
-    .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(100, 1fr);
-      gap: 2px;
-      width: 100%;
-      max-width: 1000px;
-    }
-    .c-cell {
-      width: 100%;
-      height: 100%;
-      transition: background-color 0.04s ease;
-    }
   </style>
 </head>
 <body>
@@ -669,7 +663,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Single-Screen Matrix Well (100 Columns = 3,000 Blocks) -->
+        <!-- Single-Screen Matrix Well (3,000 Blocks) -->
         <div class="grid-wrapper">
           <div class="screen-grid" id="clusterGrid"></div>
         </div>
@@ -1104,11 +1098,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Double grid columns to 100 to make blocks half size
+COMMIT_MSG = """Fix syntax error in python file writing statement
 
-Update week10-file-management/03-filesystem-implementation.html with 100
-columns and 30 rows (3,000 blocks), cutting block dimensions in half and
-matching authentic high-density DOS defrag layouts."""
+Correct typo in file deployment script where 'w open' was written instead
+of 'with open'.
+"""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1130,7 +1124,7 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging half-size block density update")
+    run_git_step(["git", "add", target_file], "Staging syntax fix and half-size block update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
     print("--> Half-size block density successfully deployed!")
