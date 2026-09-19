@@ -197,7 +197,35 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 0.95rem;
       line-height: 1.6;
       color: #0c4a6e;
-      min-height: 72px;
+      min-height: 60px;
+    }
+
+    /* Scenario Picker Buttons */
+    .scenario-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+    .btn-scenario {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 5px 10px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-scenario:hover {
+      background: #e2e8f0;
+    }
+    .btn-scenario.active {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      border-color: #0369a1 !important;
     }
 
     .tour-nav {
@@ -580,13 +608,24 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH DUAL INTERACTIVE VISUALS -->
+    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH GRANULAR MICRO-STEPS -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
-        <span id="wtCounter">Scenario 1 of 6</span>
-        <span>Guided Walkthrough: Micro-Step Decision Scenarios</span>
+        <span id="wtCounter">Scenario 1 (Step 1 of 3)</span>
+        <span>Interactive Decision Tracer</span>
       </div>
-      <div id="wtTitle" class="tutorial-title">1. Scenario 1: Hand at Frame 0 (The R = 1 Case)</div>
+
+      <!-- Scenario Tab Buttons -->
+      <div class="scenario-picker">
+        <button type="button" class="btn-scenario active" id="tabScen0" onclick="selectScenario(0)">1. Frame 0 (R=1)</button>
+        <button type="button" class="btn-scenario" id="tabScen1" onclick="selectScenario(1)">2. Frame 1 (Age &le; &tau;)</button>
+        <button type="button" class="btn-scenario" id="tabScen2" onclick="selectScenario(2)">3. Frame 2 (Clean Evict)</button>
+        <button type="button" class="btn-scenario" id="tabScen3" onclick="selectScenario(3)">4. Frame 3 (Dirty Flush)</button>
+        <button type="button" class="btn-scenario" id="tabScen4" onclick="selectScenario(4)">5. Full Sweep (Writes)</button>
+        <button type="button" class="btn-scenario" id="tabScen5" onclick="selectScenario(5)">6. Full Sweep (Thrash)</button>
+      </div>
+
+      <div id="wtTitle" class="tutorial-title">1. Hand at Frame 0: Evaluating Gate 1</div>
 
       <div class="split-grid">
         <!-- Dual Interactive Visual Console -->
@@ -594,7 +633,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
           <!-- Top: Interactive Decision Tree -->
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">1. Decision Path Gate</span>
+            <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">1. Active Decision Tree Branch</span>
             <span id="walkActiveStatus" style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--accent);">Branch Active</span>
           </div>
 
@@ -642,7 +681,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 1 No -> Gate 2 (Right) -->
             <line id="walk-edge-r-no" class="walk-edge" x1="164" y1="80" x2="204" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="182" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <text x="182" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 2: Age <= tau? -->
             <g id="walk-gate-age" class="walk-node">
@@ -662,7 +701,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
             <!-- Gate 2 No -> Gate 3 (Right) -->
             <line id="walk-edge-age-no" class="walk-edge" x1="272" y1="80" x2="312" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="290" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <text x="290" y="75" font-size="8" font-weight="700" fill="#64748b">No</text>
 
             <!-- Gate 3: M == 0? -->
             <g id="walk-gate-m" class="walk-node">
@@ -751,8 +790,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div id="wtText" class="tutorial-body"></div>
           <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
           <div class="tour-nav">
-            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous Scenario</button>
-            <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Scenario &rarr;</button>
+            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="retreatStep()">Previous Decision Gate</button>
+            <button type="button" id="wtNextBtn" onclick="advanceStep()">Next Decision Gate &rarr;</button>
             <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Simulator &darr;</button>
           </div>
         </div>
@@ -846,110 +885,265 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GUIDED WALKTHROUGH WITH 6 DISCRETE MICRO-SCENARIOS
+       PART 2: GRANULAR MICRO-STEP SCENARIOS
        ========================================================================= */
-    let wtStep = 0;
-    const wtCases = [
+    const scenarios = [
+      // Scenario 0: Frame 0 (R=1)
       {
-        title: "1. Scenario 1: Hand at Frame 0 (The R = 1 Case)",
-        text: "The hand inspects Frame 0 holding Page A. The MMU hardware set R = 1 during recent instruction execution. Because the page was actively referenced, evicting it would risk thrashing. The algorithm clears R &larr; 0, resets its timestamp to current virtual time (2200), and advances the hand to Frame 1.",
-        frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400, frameId: 0 },
-        math: "Gate 1: R == 1 &rarr; Set R = 0, Last_Use = 2200. Advance hand to Frame 1.",
-        highlightGate: "walk-gate-r",
-        highlightAction: "walk-action-r1",
-        actionClass: "active-action-warn",
-        ringClass: "active-warn",
-        handTarget: { x: 270, y: 54 },
-        activeEdges: [
-          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-r-yes", marker: "w-amber", edgeClass: "edge-active-warn" }
-        ],
-        status: "Gate 1: R == 1 (Reset R=0, Advance Hand)"
+        name: "1. Frame 0 (R=1)",
+        steps: [
+          {
+            title: "1. Hand at Frame 0: Evaluating Gate 1 (R == 1?)",
+            text: "A page fault occurs at Virtual Time 2200. The clock hand inspects Frame 0 (Page A). The hardware MMU set R = 1 during recent program execution. Gate 1 evaluates: Is R == 1?",
+            math: "Inspecting Frame 0 &rarr; Test Gate 1: R == 1.",
+            frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400, frameId: 0 },
+            highlightGate: "walk-gate-r",
+            activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
+            ringClass: "active-warn",
+            handTarget: { x: 270, y: 54 },
+            status: "Testing Gate 1: R == 1?"
+          },
+          {
+            title: "2. Gate 1 Evaluates Yes: Clear R-bit & Timestamp",
+            text: "Because R = 1, this page was referenced recently. Evicting it now would risk immediate thrashing. The algorithm follows the Yes branch: it clears R &larr; 0 and updates its timestamp of last use to current virtual time (2200).",
+            math: "Gate 1 (Yes) &rarr; Clear R = 0, update Last_Use = 2200.",
+            frame: { name: "Page A (Frame 0)", r: 0, m: 0, time: 2200, currTime: 2200, tau: 400, frameId: 0 },
+            highlightGate: "walk-gate-r",
+            highlightAction: "walk-action-r1",
+            actionClass: "active-action-warn",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-yes", marker: "w-amber", edgeClass: "edge-active-warn" }
+            ],
+            ringClass: "active-warn",
+            handTarget: { x: 270, y: 54 },
+            status: "Action: R &larr; 0, Time &larr; 2200"
+          },
+          {
+            title: "3. Advance Hand to Next Frame",
+            text: "Having given Page A a second chance and refreshed its age, the clock hand advances clockwise to Frame 1 without claiming an eviction victim.",
+            math: "Advance hand: Frame 0 &rarr; Frame 1.",
+            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
+            highlightGate: "walk-gate-r",
+            ringClass: "active-focus",
+            handTarget: { x: 332, y: 110 },
+            status: "Hand advanced to Frame 1"
+          }
+        ]
       },
+
+      // Scenario 1: Frame 1 (Age <= tau)
       {
-        title: "2. Scenario 2: Hand at Frame 1 (Age &le; &tau;, Active in Working Set)",
-        text: "The hand advances to Frame 1 (Page B). Here R = 0, so it proceeds to Gate 2. The page's age is calculated: 2200 - 1950 = 250 ticks. Because 250 &le; &tau; (400), Page B still belongs to the active working set. Evicting it would violate Denning's principle. The hand steps past it without making changes.",
-        frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
-        math: "Gate 2: Age = (2200 - 1950) = 250 &le; &tau; (400) &rarr; Keep page in RAM. Advance hand to Frame 2.",
-        highlightGate: "walk-gate-age",
-        highlightAction: "walk-action-inws",
-        actionClass: "active-action-blue",
-        ringClass: "active-focus",
-        handTarget: { x: 332, y: 110 },
-        activeEdges: [
-          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-age-yes", marker: "w-blue", edgeClass: "edge-active" }
-        ],
-        status: "Gate 2: Age &le; &tau; (In Working Set, Advance Hand)"
+        name: "2. Frame 1 (Age <= tau)",
+        steps: [
+          {
+            title: "1. Hand at Frame 1: Evaluating Gate 1 (R == 1?)",
+            text: "The clock hand now points to Frame 1 (Page B). Its Referenced bit is R = 0 (it was not accessed during the latest slice). Gate 1 tests R == 1? &rarr; No.",
+            math: "Frame 1 &rarr; Gate 1: R == 0 (Follow No branch).",
+            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
+            highlightGate: "walk-gate-r",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" }
+            ],
+            ringClass: "active-focus",
+            handTarget: { x: 332, y: 110 },
+            status: "Gate 1: R == 0 &rarr; Branch to Gate 2"
+          },
+          {
+            title: "2. Evaluating Gate 2: Age vs. Threshold (&tau;)",
+            text: "Because R = 0, the kernel calculates the page age: Current Virtual Time (2200) - Time of Last Use (1950) = 250 ticks. Gate 2 checks: Is Age &le; &tau; (400)?",
+            math: "Age = 2200 - 1950 = 250 ticks. Compare with &tau; = 400.",
+            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
+            highlightGate: "walk-gate-age",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" }
+            ],
+            ringClass: "active-focus",
+            handTarget: { x: 332, y: 110 },
+            status: "Gate 2: Testing Age (250) &le; &tau; (400)?"
+          },
+          {
+            title: "3. Gate 2 Evaluates Yes: Resident in Working Set",
+            text: "Because 250 &le; 400, Page B is still within the active working set window. Evicting it would violate Denning's working set model. The algorithm keeps the page in RAM and advances the hand to Frame 2.",
+            math: "Gate 2 (Yes) &rarr; Page in active working set. Advance hand to Frame 2.",
+            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
+            highlightGate: "walk-gate-age",
+            highlightAction: "walk-action-inws",
+            actionClass: "active-action-blue",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-age-yes", marker: "w-blue", edgeClass: "edge-active" }
+            ],
+            ringClass: "active-focus",
+            handTarget: { x: 332, y: 110 },
+            status: "Action: Keep in Working Set &rarr; Advance Hand"
+          }
+        ]
       },
+
+      // Scenario 2: Frame 2 (Clean Eviction)
       {
-        title: "3. Scenario 3: Hand at Frame 2 (Clean Eviction Victim!)",
-        text: "The hand advances to Frame 2 (Page C). Here R = 0, and its age is 2200 - 1600 = 600 ticks. Gate 2 evaluates 600 &gt; &tau; (400), confirming the page has dropped out of the working set. At Gate 3, M = 0 (clean). No disk write is necessary! Frame 2 is reclaimed immediately as the eviction victim.",
-        frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
-        math: "Gate 3: Age = 600 &gt; &tau;, M == 0 &rarr; EVICTED IMMEDIATELY (Zero I/O penalty).",
-        highlightGate: "walk-gate-m",
-        highlightAction: "walk-action-evict",
-        actionClass: "active-action-evict",
-        ringClass: "active-victim",
-        handTarget: { x: 270, y: 166 },
-        activeEdges: [
-          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-m-yes", marker: "w-green", edgeClass: "edge-active-green" }
-        ],
-        status: "Gate 3: Clean Victim (Claim Frame Immediately)"
+        name: "3. Frame 2 (Clean Evict)",
+        steps: [
+          {
+            title: "1. Hand at Frame 2: Gates 1 &amp; 2 Evaluation",
+            text: "The hand advances to Frame 2 (Page C). Gate 1 checks R == 1? &rarr; No (R = 0). Gate 2 calculates age: 2200 - 1600 = 600 ticks. Because 600 &gt; &tau; (400), the page is older than the working set threshold! Follow the No branch to Gate 3.",
+            math: "Frame 2 &rarr; R = 0, Age = 600 &gt; &tau; (400) &rarr; Page outside working set.",
+            frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
+            highlightGate: "walk-gate-age",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" }
+            ],
+            ringClass: "active-victim",
+            handTarget: { x: 270, y: 166 },
+            status: "Gate 2: Age &gt; &tau; &rarr; Branch to Gate 3 (Check M)"
+          },
+          {
+            title: "2. Evaluating Gate 3: Modified (Dirty) Status",
+            text: "Gate 3 inspects the Modified bit M. Has Page C been written to since it was brought into memory? In this case, M = 0 (clean). The disk already contains a 100% identical copy of this page.",
+            math: "Gate 3: M == 0? &rarr; Yes (Clean).",
+            frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
+            highlightGate: "walk-gate-m",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-m-yes", marker: "w-green", edgeClass: "edge-active-green" }
+            ],
+            ringClass: "active-victim",
+            handTarget: { x: 270, y: 166 },
+            status: "Gate 3: M == 0 (Clean & Cold Candidate)"
+          },
+          {
+            title: "3. Immediate Victim Eviction!",
+            text: "Because Page C is outside the working set and requires zero disk write I/O, it is the perfect candidate. The kernel evicts Page C immediately, claims Frame 2 for the new virtual page, updates the PTE, and terminates the fault search!",
+            math: "Result: EVICTED IMMEDIATELY. Zero I/O penalty.",
+            frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
+            highlightGate: "walk-gate-m",
+            highlightAction: "walk-action-evict",
+            actionClass: "active-action-evict",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-m-yes", marker: "w-green", edgeClass: "edge-active-green" }
+            ],
+            ringClass: "active-victim",
+            handTarget: { x: 270, y: 166 },
+            status: "VICTIM CLAIMED &rarr; Search Complete"
+          }
+        ]
       },
+
+      // Scenario 3: Frame 3 (Dirty Flush)
       {
-        title: "4. Scenario 4: Hand at Frame 3 (Asynchronous Dirty Flush)",
-        text: "Suppose instead the hand encountered Frame 3 (Page D), where Age = 2200 - 1500 = 700 &gt; &tau;, but M = 1 (dirty). The modified data must be saved to swap before the frame can be re-allocated. Rather than halting the CPU on synchronous I/O, WSClock schedules an asynchronous disk write and keeps advancing.",
-        frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
-        math: "Gate 3: Age = 700 &gt; &tau;, M == 1 &rarr; Schedule Async Write. Hand continues advancing.",
-        highlightGate: "walk-gate-m",
-        highlightAction: "walk-action-dirty",
-        actionClass: "active-action-dirty",
-        ringClass: "active-warn",
-        handTarget: { x: 208, y: 110 },
-        activeEdges: [
-          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
-          { id: "walk-edge-m-no", marker: "w-red", edgeClass: "edge-active-red" }
-        ],
-        status: "Gate 3: Dirty Candidate (Queue Write, Advance Hand)"
+        name: "4. Frame 3 (Dirty Flush)",
+        steps: [
+          {
+            title: "1. Hand at Frame 3: Age > &tau;, but M == 1 (Dirty)",
+            text: "Consider if the hand arrived at Frame 3 (Page D). R = 0, and Age = 2200 - 1500 = 700 ticks (&gt; &tau;). However, Gate 3 detects M = 1 (dirty). The page has modified data that does not exist on disk.",
+            math: "Frame 3 &rarr; Age = 700 &gt; &tau;, but M == 1 (Dirty).",
+            frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
+            highlightGate: "walk-gate-m",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-m-no", marker: "w-red", edgeClass: "edge-active-red" }
+            ],
+            ringClass: "active-warn",
+            handTarget: { x: 208, y: 110 },
+            status: "Gate 3: M == 1 &rarr; Dirty Candidate"
+          },
+          {
+            title: "2. Schedule Asynchronous Disk Write",
+            text: "To avoid stalling the CPU on slow disk I/O, WSClock issues an asynchronous write request to flush Page D to swap storage. It marks the write in flight and immediately advances the hand, hoping to find an already-clean page further down the ring.",
+            math: "Schedule Async Write &rarr; I/O in flight. Advance hand (non-blocking).",
+            frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
+            highlightGate: "walk-gate-m",
+            highlightAction: "walk-action-dirty",
+            actionClass: "active-action-dirty",
+            activeEdges: [
+              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
+              { id: "walk-edge-m-no", marker: "w-red", edgeClass: "edge-active-red" }
+            ],
+            ringClass: "active-warn",
+            handTarget: { x: 208, y: 110 },
+            status: "Action: Schedule Async Write &rarr; Advance Hand"
+          }
+        ]
       },
+
+      // Scenario 4: Full Sweep (Writes in Flight)
       {
-        title: "5. Scenario 5: Full Ring Sweep (Writes in Flight)",
-        text: "If the hand completes a full 360-degree rotation without finding an evicted clean page, it checks whether any dirty writes were scheduled during the sweep. Because at least one asynchronous write was queued (Scenario 4), the hand simply continues advancing until that write completes, claiming the newly clean frame.",
-        frame: { name: "All Frames (Ring Full Sweep)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 0 },
-        math: "Full Rotation &rarr; Writes in flight &gt; 0 &rarr; Hand advances to await first clean completion.",
-        highlightGate: "walk-gate-m",
-        highlightAction: "walk-action-r1",
-        actionClass: "active-action-warn",
-        ringClass: "active-focus",
-        handTarget: { x: 270, y: 54 },
-        activeEdges: [
-          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }
-        ],
-        status: "Full Sweep: Awaiting In-Flight Disk Write Completion"
+        name: "5. Full Sweep (Writes)",
+        steps: [
+          {
+            title: "1. Clock Hand Completes 360&deg; Rotation",
+            text: "Suppose the hand sweeps all frames without finding a clean, cold page. The kernel checks its internal telemetry: Were any asynchronous disk writes scheduled during the sweep?",
+            math: "Full 360&deg; sweep &rarr; Active disk writes in flight &gt; 0.",
+            frame: { name: "All Frames (Ring Sweep)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 0 },
+            highlightGate: "walk-gate-m",
+            activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
+            ringClass: "active-focus",
+            handTarget: { x: 270, y: 54 },
+            status: "Telemetry Check: Writes in Flight?"
+          },
+          {
+            title: "2. Await First Asynchronous Completion",
+            text: "Because at least one write was dispatched (such as Frame 3), the kernel simply keeps advancing the hand until that write completes. As soon as the storage controller signals completion, the page is marked clean (M = 0) and reclaimed.",
+            math: "I/O completion arrives &rarr; Frame becomes clean &rarr; Reclaim frame.",
+            frame: { name: "Frame 3 (I/O Complete)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
+            highlightGate: "walk-gate-m",
+            highlightAction: "walk-action-evict",
+            actionClass: "active-action-evict",
+            ringClass: "active-victim",
+            handTarget: { x: 208, y: 110 },
+            status: "Write completed &rarr; Reclaimed as Clean Victim"
+          }
+        ]
       },
+
+      // Scenario 5: Full Sweep (Severe Thrashing Fallback)
       {
-        title: "6. Scenario 6: Full Ring Sweep (Thrashing / Degenerate Fallback)",
-        text: "What if the hand completes a full 360-degree rotation and NO writes were scheduled? This means every resident frame is actively needed by the working set (Age &le; &tau;). The process is thrashing under extreme memory pressure! WSClock falls back to evicting the first clean frame it finds, or triggers kernel admission control to suspend a process.",
-        frame: { name: "All Frames (Thrashing State)", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
-        math: "Full Rotation &rarr; Writes in flight == 0 &rarr; Severe memory pressure (Fallback or Suspend).",
-        highlightGate: "walk-gate-age",
-        highlightAction: "walk-action-inws",
-        actionClass: "active-action-blue",
-        ringClass: "active-warn",
-        handTarget: { x: 270, y: 54 },
-        activeEdges: [
-          { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }
-        ],
-        status: "Fallback: Thrashing Detected &rarr; Clean Fallback / Suspend"
+        name: "6. Full Sweep (Thrash)",
+        steps: [
+          {
+            title: "1. 360&deg; Sweep with Zero Writes Scheduled",
+            text: "What if the hand completes a full rotation and NO writes were scheduled? This implies that every single frame in memory was referenced recently or is currently within the active working set (Age &le; &tau;).",
+            math: "Full rotation &rarr; Zero writes scheduled &rarr; All pages inside working set.",
+            frame: { name: "All Frames (Thrashing)", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
+            highlightGate: "walk-gate-age",
+            activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
+            ringClass: "active-warn",
+            handTarget: { x: 270, y: 54 },
+            status: "Thrashing Detected: Working Set > Physical RAM"
+          },
+          {
+            title: "2. Kernel Fallback &amp; Admission Control",
+            text: "The process is experiencing acute thrashing because its true working set exceeds physical memory capacity. WSClock falls back to evicting the first clean page it encounters regardless of age, or triggers OS admission control to suspend a lower-priority process.",
+            math: "Fallback: Evict first clean page OR suspend thread via admission control.",
+            frame: { name: "Admission Control Handler", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
+            highlightGate: "walk-gate-age",
+            highlightAction: "walk-action-inws",
+            actionClass: "active-action-blue",
+            ringClass: "active-warn",
+            handTarget: { x: 270, y: 54 },
+            status: "Fallback: Reclaim Clean Frame / Suspend Process"
+          }
+        ]
       }
     ];
+
+    let currentScenarioIdx = 0;
+    let currentStepIdx = 0;
 
     function resetWalkVisuals() {
       document.querySelectorAll(".walk-node").forEach(n => {
@@ -965,32 +1159,38 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       });
     }
 
-    function renderWt() {
-      const c = wtCases[wtStep];
-      document.getElementById("wtCounter").textContent = `Scenario ${wtStep + 1} of ${wtCases.length}`;
-      document.getElementById("wtTitle").textContent = c.title;
-      document.getElementById("wtText").innerHTML = c.text;
+    function renderStep() {
+      const scen = scenarios[currentScenarioIdx];
+      const s = scen.steps[currentStepIdx];
 
-      const f = c.frame;
+      document.getElementById("wtCounter").textContent = `${scen.name} (Step ${currentStepIdx + 1} of ${scen.steps.length})`;
+      document.getElementById("wtTitle").textContent = s.title;
+      document.getElementById("wtText").innerHTML = s.text;
+
+      const f = s.frame;
       const age = f.currTime - f.time;
       document.getElementById("wtFrameBox").innerHTML = `
         <strong>Inspecting ${f.name}:</strong>
         R = <strong>${f.r}</strong> | M = <strong>${f.m}</strong> |
         Last Used = <strong>${f.time}</strong> | Age = <strong>${age}</strong> (&tau; = ${f.tau})
       `;
-      document.getElementById("wtMathSummary").innerHTML = c.math;
-      document.getElementById("walkActiveStatus").textContent = c.status;
+      document.getElementById("wtMathSummary").innerHTML = s.math;
+      document.getElementById("walkActiveStatus").textContent = s.status;
       document.getElementById("walkRingHandPos").textContent = `Hand: Frame ${f.frameId}`;
 
       resetWalkVisuals();
 
-      const gateEl = document.getElementById(c.highlightGate);
-      if (gateEl) gateEl.classList.add("active-gate");
+      if (s.highlightGate) {
+        const gateEl = document.getElementById(s.highlightGate);
+        if (gateEl) gateEl.classList.add("active-gate");
+      }
 
-      const actionEl = document.getElementById(c.highlightAction);
-      if (actionEl) actionEl.classList.add(c.actionClass);
+      if (s.highlightAction) {
+        const actionEl = document.getElementById(s.highlightAction);
+        if (actionEl && s.actionClass) actionEl.classList.add(s.actionClass);
+      }
 
-      (c.activeEdges || []).forEach(edgeInfo => {
+      (s.activeEdges || []).forEach(edgeInfo => {
         const edgeEl = document.getElementById(edgeInfo.id);
         if (edgeEl) {
           edgeEl.className.baseVal = `walk-edge ${edgeInfo.edgeClass}`;
@@ -999,35 +1199,66 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       });
 
       const ringFrameEl = document.getElementById(`ring-node-${f.frameId}`);
-      if (ringFrameEl) {
-        ringFrameEl.className.baseVal = `walk-ring-frame ${c.ringClass}`;
+      if (ringFrameEl && s.ringClass) {
+        ringFrameEl.className.baseVal = `walk-ring-frame ${s.ringClass}`;
       }
 
       const handLine = document.getElementById("walkRingHandLine");
-      if (handLine && c.handTarget) {
-        handLine.setAttribute("x2", c.handTarget.x);
-        handLine.setAttribute("y2", c.handTarget.y);
+      if (handLine && s.handTarget) {
+        handLine.setAttribute("x2", s.handTarget.x);
+        handLine.setAttribute("y2", s.handTarget.y);
       }
 
-      document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
-      document.getElementById("wtNextBtn").disabled = (wtStep === wtCases.length - 1);
-    }
+      // Update button labels and disabled states
+      document.getElementById("wtPrevBtn").disabled = (currentScenarioIdx === 0 && currentStepIdx === 0);
 
-    function stepWtForward() {
-      if (wtStep < wtCases.length - 1) {
-        wtStep++;
-        renderWt();
-      }
-    }
+      const isLastStep = (currentStepIdx === scen.steps.length - 1);
+      const isLastScenario = (currentScenarioIdx === scenarios.length - 1);
 
-    function stepWtBackward() {
-      if (wtStep > 0) {
-        wtStep--;
-        renderWt();
+      if (isLastStep && isLastScenario) {
+        document.getElementById("wtNextBtn").disabled = true;
+        document.getElementById("wtNextBtn").textContent = "All Scenarios Explored";
+      } else {
+        document.getElementById("wtNextBtn").disabled = false;
+        document.getElementById("wtNextBtn").textContent = isLastStep ? "Next Scenario &rarr;" : "Next Decision Gate &rarr;";
       }
     }
 
-    renderWt();
+    function selectScenario(idx) {
+      currentScenarioIdx = idx;
+      currentStepIdx = 0;
+      for (let i = 0; i < scenarios.length; i++) {
+        const tab = document.getElementById(`tabScen${i}`);
+        if (tab) {
+          if (i === idx) tab.classList.add("active");
+          else tab.classList.remove("active");
+        }
+      }
+      renderStep();
+    }
+
+    function advanceStep() {
+      const scen = scenarios[currentScenarioIdx];
+      if (currentStepIdx < scen.steps.length - 1) {
+        currentStepIdx++;
+        renderStep();
+      } else if (currentScenarioIdx < scenarios.length - 1) {
+        selectScenario(currentScenarioIdx + 1);
+      }
+    }
+
+    function retreatStep() {
+      if (currentStepIdx > 0) {
+        currentStepIdx--;
+        renderStep();
+      } else if (currentScenarioIdx > 0) {
+        selectScenario(currentScenarioIdx - 1);
+        currentStepIdx = scenarios[currentScenarioIdx].steps.length - 1;
+        renderStep();
+      }
+    }
+
+    selectScenario(0);
 
     /* =========================================================================
        PART 3: LIVE SIMULATOR LOGIC
@@ -1201,14 +1432,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add simulator instructions and page access controls to 10-wsclock.html
+COMMIT_MSG = """Add granular micro-step walkthrough to WSClock decision tree
 
-Introduce a detailed pre-flight instructional guide above Part 3 in
-10-wsclock.html explaining circular ring telemetry, age evaluation, and
-clock hand progression. Add interactive read/write page reference
-stimulus buttons so users can set R and M bits before triggering faults."""
+Refactor the walkthrough in 10-wsclock.html into an interactive, multi-
+step simulator where each scenario provides micro-steps through every
+decision gate (R==1, Age<=tau, M==0). Synchronize the decision tree
+and circular ring animations, and fix HTML entity encodings."""
 
-def run_git_step(cmd, step_desc):
+def execute_git_command(cmd, step_desc):
     print(f"--> {step_desc}...")
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.stdout.strip():
@@ -1219,17 +1450,17 @@ def run_git_step(cmd, step_desc):
         print(f"Error during {step_desc} (code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
 
-def sync_module():
+def sync_repository():
     target_module = "week09-memory-management/10-wsclock.html"
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated module to {target_module}")
+    print(f"Wrote updated module with micro-step scenarios to {target_module}")
 
-    run_git_step(["git", "add", target_module], "Staging 10-wsclock.html")
-    run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
-    run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Instructions added, committed, and pushed successfully!")
+    execute_git_command(["git", "add", target_module], "Staging 10-wsclock.html")
+    execute_git_command(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
+    execute_git_command(["git", "push", "origin", "main"], "Pushing main to origin")
+    print("--> Completed successfully!")
 
 if __name__ == "__main__":
-    sync_module()
+    sync_repository()
