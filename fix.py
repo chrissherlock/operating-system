@@ -140,6 +140,30 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
+    .figure-container {
+      width: 100%;
+      margin: 10px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+    }
+    .callout {
+      background-color: #f0f9ff;
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #0369a1;
+      line-height: 1.5;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
 
     /* =========================================================
        DEFRAGMENTER SHELL & TRIPLE-THEME CONTAINER STYLING
@@ -185,6 +209,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 8px 12px;
       border-radius: 6px;
       align-items: center;
+      color: #f8fafc;
     }
     .theme-modern .ctrl-btn {
       background-color: #1e293b;
@@ -200,6 +225,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-modern .ctrl-btn:hover { background-color: #334155; color: #ffffff; }
     .theme-modern .ctrl-btn.active { background-color: var(--accent); color: #fff; border-color: #38bdf8; }
+    .theme-modern .ctrl-btn.churn-btn { color: #fbbf24; }
     .theme-modern .grid-wrapper {
       background: #020617;
       border: 1px solid #1e293b;
@@ -235,12 +261,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: flex;
       justify-content: space-between;
     }
+    .theme-modern .theme-label { color: #94a3b8; }
 
-    /* THEME 2: WINDOWS 95 / 98 */
+    /* THEME 2: WINDOWS 95 / 98 (CRISP SYSTEM BLACK & WHITE ON GREY) */
     .theme-win95 {
       background-color: #008080;
       color: #000000;
-      font-family: "MS Sans Serif", Tahoma, sans-serif;
+      font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif;
       padding: 12px;
       border-radius: 4px;
     }
@@ -271,6 +298,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: transparent;
       padding: 6px 0;
       align-items: center;
+      color: #000000; /* Strict black on grey */
     }
     .theme-win95 .ctrl-btn {
       background-color: #c0c0c0;
@@ -281,7 +309,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
       padding: 3px 10px;
       font-size: 11px;
-      color: #000000;
+      color: #000000 !important; /* Strict high-contrast black text */
       cursor: pointer;
     }
     .theme-win95 .ctrl-btn:active {
@@ -294,6 +322,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-win95 .ctrl-btn.active {
       background-color: #d4d4d4;
       font-weight: bold;
+      color: #000000 !important;
+    }
+    .theme-win95 .ctrl-btn.churn-btn {
+      color: #000000 !important; /* No yellow text on grey */
     }
     .theme-win95 .grid-wrapper {
       border-top: 2px solid #808080;
@@ -313,7 +345,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       max-width: 1000px;
     }
     .theme-win95 .c-cell {
-      aspect-ratio: 1 / 1; /* Crisp square clusters */
+      aspect-ratio: 1 / 1;
       border-radius: 0;
     }
     .theme-win95 .c-free { background-color: #ffffff; }
@@ -329,10 +361,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 11px;
       display: flex;
       justify-content: space-between;
-      color: #000000;
+      color: #000000 !important;
     }
+    .theme-win95 .theme-label { color: #ffffff !important; }
 
-    /* THEME 3: MS-DOS / NORTON SPEED DISK (TALL RECTANGULAR ASCII CHARACTERS) */
+    /* THEME 3: MS-DOS / NORTON SPEED DISK (AUTHENTIC CP437 ASCII) */
     .theme-dos {
       background-color: #0000aa;
       color: #ffffff;
@@ -360,6 +393,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: transparent;
       padding: 6px 0;
       align-items: center;
+      color: #ffffff;
     }
     .theme-dos .ctrl-btn {
       background-color: #0000aa;
@@ -373,6 +407,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-dos .ctrl-btn:hover { background-color: #00aaaa; color: #000000; }
     .theme-dos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; }
+    .theme-dos .ctrl-btn.churn-btn { color: #ffff55; }
     .theme-dos .grid-wrapper {
       background: #000055;
       border: 2px solid #55ffff;
@@ -387,7 +422,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       width: 100%;
       max-width: 950px;
     }
-    /* Authentic 80x25 tall rectangular character ratio */
     .theme-dos .c-cell {
       aspect-ratio: 1 / 1.65;
       border-radius: 0;
@@ -414,6 +448,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #ffff55;
       display: flex;
       justify-content: space-between;
+    }
+    .theme-dos .theme-label { color: #000000; }
+
+    /* Matrix Dimensions */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .c-cell {
+      width: 100%;
+      height: 100%;
+      transition: background-color 0.04s ease;
     }
   </style>
 </head>
@@ -477,7 +526,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div class="ui-topbar">
           <span class="ui-title" id="shellTitle">FAT32 Volume Optimizer (500 MB Drive)</span>
           <div style="display:flex; gap:6px; align-items:center;">
-            <span style="font-size:11px;" id="themeLabel">Theme:</span>
+            <span style="font-size:11px;" class="theme-label" id="themeLabel">Theme:</span>
             <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
             <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
             <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
@@ -487,8 +536,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Controls Bar -->
         <div class="ui-controls">
           <button class="ctrl-btn" onclick="defragInitVolume()">1. Format 500MB</button>
-          <button class="ctrl-btn" onclick="defragHeavyChurn()" style="color:#fbbf24;">2. Heavy Churn (Fragment!)</button>
-          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="background:#059669; color:#fff; font-weight:700;">Start Defrag</button>
+          <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">2. Heavy Churn (Fragment!)</button>
+          <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
           <div style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px;">
             <span>Speed:</span>
             <button class="ctrl-btn" onclick="setDefragSpeed(120)">Slow (Observable)</button>
@@ -697,8 +746,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         defragPause();
       } else {
         isRunning = true;
-        document.getElementById("btnStartDefrag").textContent = "Pause";
-        document.getElementById("btnStartDefrag").style.background = "#b91c1c";
+        const btn = document.getElementById("btnStartDefrag");
+        btn.textContent = "Pause";
+        if (currentTheme === 'modern') btn.style.background = "#b91c1c";
         document.getElementById("txtStatusMsg").textContent = "Defragmenting 500 MB Volume... Gathering scattered cluster runs.";
         runDefragCycle();
       }
@@ -710,7 +760,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const btn = document.getElementById("btnStartDefrag");
       if (btn) {
         btn.textContent = "Resume";
-        btn.style.background = "#059669";
+        if (currentTheme === 'modern') btn.style.background = "#059669";
       }
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].state === "read") cells[i].state = "unoptimized";
@@ -794,8 +844,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       }
       renderAllCells();
-      document.getElementById("btnStartDefrag").textContent = "Start Defrag";
-      document.getElementById("btnStartDefrag").style.background = "#059669";
+      const btn = document.getElementById("btnStartDefrag");
+      btn.textContent = "Start Defrag";
+      if (currentTheme === 'modern') btn.style.background = "#059669";
       document.getElementById("txtStatusMsg").textContent = "100% Complete. 500 MB Volume Fully Optimized. Free space consolidated at tail.";
     }
 
@@ -807,11 +858,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Update defrag sectors to square cells and tall DOS ASCII character blocks
+COMMIT_MSG = """Fix text contrast and system colors in Windows 95 defrag theme
 
-Update week10-file-management/03-filesystem-implementation.html with square
-clusters for Modern/Win95 and authentic 80x25 tall ASCII CP437 blocks for
-the MS-DOS Norton Speed Disk interface."""
+Update week10-file-management/03-filesystem-implementation.html to enforce
+black text on grey window surfaces in the Windows 95 theme, restricting
+yellow text strictly to the MS-DOS theme."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -833,10 +884,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging updated defragmenter module")
+    run_git_step(["git", "add", target_file], "Staging contrast fix update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Module 03 DOS ASCII and Square Defragmenter successfully deployed!")
+    print("--> Module 03 Contrast Fix successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
