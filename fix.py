@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import re
 import subprocess
 import sys
 
@@ -8,7 +9,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>10. The WSClock Algorithm — COSC240</title>
+  <title>11. Local vs. Global Allocation Policies — COSC240</title>
   <script>
     window.MathJax = {
       tex: {
@@ -27,12 +28,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --hit-color: #16a34a;
-      --hit-bg: #dcfce7;
-      --fault-color: #dc2626;
-      --fault-bg: #fee2e2;
-      --warn-color: #d97706;
-      --warn-bg: #fef3c7;
+      --proc-a: #0284c7;
+      --proc-b: #7c3aed;
+      --proc-c: #16a34a;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
@@ -122,42 +120,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 12px;
     }
 
-    /* Floating Bio Sidebar */
-    .bio-sidebar {
-      float: right;
-      width: 300px;
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-top: 4px solid var(--accent);
-      border-radius: 6px;
-      padding: 16px;
-      margin-left: 24px;
-      margin-right: 0px;
-      margin-bottom: 16px;
-      margin-top: 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      font-size: 0.88rem;
-      shape-outside: margin-box;
-    }
-    .bio-sidebar h3 {
-      font-size: 1rem;
-      color: var(--accent);
-      margin-bottom: 2px;
-    }
-    .bio-sidebar p {
-      color: var(--text-muted);
-      line-height: 1.5;
-      font-size: 0.85rem;
-      margin-bottom: 6px;
-    }
-    .bio-sidebar a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-weight: 600;
-    }
-
     .figure-container {
       width: 100%;
       max-width: 860px;
@@ -192,43 +154,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-size: 1.25rem;
       font-weight: 700;
       color: #075985;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      outline: none; /* Prevent focus ring on title anchor */
+      outline: none;
     }
     .tutorial-body {
       font-size: 0.93rem;
       line-height: 1.65;
       color: #0c4a6e;
-      min-height: 120px;
-    }
-
-    .scenario-picker {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-      margin-bottom: 6px;
-    }
-    .btn-scenario {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      padding: 5px 10px;
-      border-radius: 4px;
-      background: #f1f5f9;
-      color: var(--text);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .btn-scenario:hover {
-      background: #e2e8f0;
-    }
-    .btn-scenario.active {
-      background: #0284c7 !important;
-      color: #ffffff !important;
-      border-color: #0369a1 !important;
+      min-height: 90px;
     }
 
     .tour-nav {
@@ -240,56 +172,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     .split-grid {
       display: grid;
-      grid-template-columns: 550px 1fr;
+      grid-template-columns: 500px 1fr;
       gap: 20px;
       align-items: start;
       margin-top: 10px;
     }
-    @media (max-width: 980px) {
+    @media (max-width: 900px) {
       .split-grid { grid-template-columns: 1fr; }
-      .bio-sidebar { float: none; width: 100%; margin-left: 0; }
     }
-
-    .guide-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
-      margin-top: 6px;
-      margin-bottom: 6px;
-    }
-    .guide-box {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 0.84rem;
-    }
-    .guide-box strong {
-      color: var(--accent);
-      font-size: 0.88rem;
-    }
-
-    .table-container {
-      min-height: 275px;
-    }
-
-    .table-spec {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.82rem;
-      font-family: var(--font-mono);
-    }
-    .table-spec th, .table-spec td {
-      border: 1px solid var(--border);
-      padding: 6px 8px;
-      text-align: center;
-    }
-    .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
-    .table-spec tr.hand-active { background: #e0f2fe; font-weight: 700; }
-    .table-spec tr.victim-row { background: #fee2e2; font-weight: 700; }
 
     .telemetry-box {
       background: #0f172a;
@@ -309,7 +199,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 12px 16px;
       font-family: var(--font-mono);
       font-size: 0.82rem;
-      height: 240px;
+      height: 220px;
       overflow-y: auto;
       display: flex;
       flex-direction: column-reverse;
@@ -344,81 +234,30 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     button.btn-sec:hover:not(:disabled) { background-color: #e2e8f0; }
 
-    /* Interactive Decision Flowchart Dynamic Styles */
-    .walk-node polygon, .walk-node rect {
-      transition: all 0.25s ease;
+    /* Sandbox Ram Slots */
+    .ram-pool-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
     }
-    .walk-node.active-gate polygon, .walk-node.active-gate rect {
-      stroke: #0284c7 !important;
-      stroke-width: 2.5px !important;
-      fill: #e0f2fe !important;
-      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.4));
+    .ram-slot {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-height: 65px;
+      justify-content: center;
     }
-    .walk-node.active-action-warn rect {
-      stroke: #d97706 !important;
-      stroke-width: 2.5px !important;
-      fill: #fef3c7 !important;
-      filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.4));
-    }
-    .walk-node.active-action-blue rect {
-      stroke: #0284c7 !important;
-      stroke-width: 2.5px !important;
-      fill: #e0f2fe !important;
-      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.4));
-    }
-    .walk-node.active-action-evict rect {
-      stroke: #16a34a !important;
-      stroke-width: 3px !important;
-      fill: #dcfce7 !important;
-      filter: drop-shadow(0 0 8px rgba(22, 163, 74, 0.5));
-    }
-    .walk-node.active-action-dirty rect {
-      stroke: #dc2626 !important;
-      stroke-width: 2.5px !important;
-      fill: #fee2e2 !important;
-      filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.4));
-    }
-    .walk-edge {
-      transition: stroke 0.25s ease, stroke-width 0.25s ease;
-    }
-    .walk-edge.edge-active {
-      stroke: #0284c7 !important;
-      stroke-width: 2.5px !important;
-    }
-    .walk-edge.edge-active-green {
-      stroke: #16a34a !important;
-      stroke-width: 2.5px !important;
-    }
-    .walk-edge.edge-active-warn {
-      stroke: #d97706 !important;
-      stroke-width: 2.5px !important;
-    }
-    .walk-edge.edge-active-red {
-      stroke: #dc2626 !important;
-      stroke-width: 2.5px !important;
-    }
-
-    /* Interactive Walkthrough Ring Dynamic Styles */
-    .walk-ring-frame rect {
-      transition: all 0.25s ease;
-    }
-    .walk-ring-frame.active-focus rect {
-      stroke: #0284c7 !important;
-      stroke-width: 2.5px !important;
-      filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.4));
-    }
-    .walk-ring-frame.active-victim rect {
-      stroke: #dc2626 !important;
-      stroke-width: 3px !important;
-      fill: #fee2e2 !important;
-      filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.5));
-    }
-    .walk-ring-frame.active-warn rect {
-      stroke: #d97706 !important;
-      stroke-width: 2.5px !important;
-      fill: #fef3c7 !important;
-      filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.4));
-    }
+    .ram-slot.slot-a { background: #e0f2fe; border-color: #0284c7; color: #0369a1; font-weight: 700; }
+    .ram-slot.slot-b { background: #ede9fe; border-color: #7c3aed; color: #6d28d9; font-weight: 700; }
+    .ram-slot.slot-c { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -428,458 +267,147 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <header>
-    <h1>10. The WSClock Page Replacement Algorithm</h1>
-    <p class="subtitle">Tanenbaum Section 3.4.6 (Fig. 3-20): Combining the simplicity of Clock with the thrashing-resistance of the Working Set model.</p>
+    <h1>11. Local vs. Global Allocation Policies</h1>
+    <p class="subtitle">Tanenbaum Section 3.5.1 (Fig. 3-22): Process-local replacement quotas versus system-wide global frame allocation under memory pressure.</p>
   </header>
 
   <div class="main-container">
 
-    <!-- 1. THEORY SECTION WITH PIONEER PROFILE & STATIC FLOWCHART -->
+    <!-- 1. THEORY SECTION -->
     <div class="card">
       <div class="theory-section">
-        <!-- Bio Sidebar on Right -->
-        <aside class="bio-sidebar">
-          <h3>Pioneer Profile</h3>
-          <p>
-            <strong>Richard W. Carr</strong> and <strong>John L. Hennessy</strong> formulated the <strong>WSClock</strong> algorithm in their seminal 1981 paper, <em>"WSCLOCK—A Simple and Effective Algorithm for Virtual Memory Management"</em>, presented at the 8th ACM Symposium on Operating Systems Principles (SOSP).
-          </p>
-          <p>
-            Recognizing that Denning's pure working set algorithm suffered from an expensive \(O(N)\) linear scan on every page fault, they married the low-overhead circular pointer of the Clock algorithm with working set age thresholds (\(\tau\)).
-          </p>
-          <p>
-            <strong>Dr. John L. Hennessy</strong> later co-developed the MIPS RISC architecture, co-authored the definitive computer architecture textbooks with David Patterson, served as the 10th President of Stanford University, and was awarded the ACM A.M. Turing Award in 2017.
-          </p>
-        </aside>
-
-        <h2>1. Why Simple Working Set Is Too Expensive</h2>
+        <h2>1. The Core Allocation Dilemma in Multiprogramming</h2>
         <p>
-          While the theoretical Working Set model prevents thrashing by ensuring a process's active pages ($w(k, t)$) remain resident in RAM, implementing it naively is impractical. In a basic working set algorithm, every single page fault triggers a linear scan across <strong>all</strong> allocated page table entries to evaluate whether their age exceeds $\tau$. On systems with gigabytes of RAM and hundreds of thousands of frames, this $O(N)$ traversal consumes an unacceptable number of CPU cycles.
+          When multiple processes run concurrently in a virtual memory operating system, physical RAM must be divided among them. If a running process suffers a page fault and all physical frames are occupied, the kernel must select a resident page to evict. The foundational policy question is: <strong>Should the victim be chosen exclusively from the faulting process's own allocated frames, or from any frame in the entire machine?</strong>
         </p>
 
-        <h2>2. The WSClock Innovation: Circular List with Asynchronous Flushing</h2>
+        <h2>2. Local Allocation Policies</h2>
         <p>
-          To solve this problem, Carr and Hennessy formulated <strong>WSClock</strong>. Like the standard Clock algorithm, all allocated page frames are linked in a circular ring traversed by a single moving hand. When a page fault occurs, the hand examines the page pointed to and evaluates four specific criteria:
-        </p>
-        <div class="theory-callout">
-          <strong>WSClock Decision Logic per Frame:</strong><br>
-          Let $T_{\text{current}}$ be the process's current virtual execution time, and let $\tau$ be the working set age threshold.<br>
-          1. <strong>If $R = 1$:</strong> The page was referenced recently. Clear $R \leftarrow 0$, update $\text{Time of Last Use} \leftarrow T_{\text{current}}$, and advance the hand.<br>
-          2. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) \le \tau$:</strong> The page is still within the active working set window. Do not evict; advance the hand.<br>
-          3. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) > \tau$ and $M = 0$:</strong> The page is cold and clean. <strong>Immediate Victim!</strong> Evict this page, claim the frame, and finish.<br>
-          4. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) > \tau$ and $M = 1$:</strong> The page is cold but dirty. To avoid blocking the CPU, schedule an <strong>asynchronous disk write</strong> and keep advancing the hand in search of a clean candidate.
-        </div>
-
-        <!-- Static Textbook Decision Flowchart (Figure 2) -->
-        <div class="figure-container" style="margin-top: 14px; margin-bottom: 18px;">
-          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 2: WSClock Per-Frame Decision Pipeline</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
-            <defs>
-              <marker id="fc-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
-              </marker>
-              <marker id="fc-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#15803d" />
-              </marker>
-              <marker id="fc-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626" />
-              </marker>
-              <marker id="fc-amber" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
-              </marker>
-            </defs>
-
-            <!-- Start Node -->
-            <rect x="20" y="70" width="110" height="42" rx="6" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
-            <text x="75" y="88" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Page Fault</text>
-            <text x="75" y="102" font-size="9" fill="#64748b" text-anchor="middle">Hand points to Frame</text>
-            <line x1="130" y1="91" x2="168" y2="91" stroke="#334155" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
-
-            <!-- Decision 1: R == 1? -->
-            <polygon points="215,63 260,91 215,119 170,91" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
-            <text x="215" y="95" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">R == 1?</text>
-
-            <!-- Branch R == 1 (Yes -> Up) -->
-            <line x1="215" y1="63" x2="215" y2="24" stroke="#d97706" stroke-width="1.5"/>
-            <line x1="215" y1="24" x2="260" y2="24" stroke="#d97706" stroke-width="1.5" marker-end="url(#fc-amber)"/>
-            <text x="226" y="48" font-size="9.5" font-weight="700" fill="#d97706">Yes</text>
-            <rect x="265" y="6" width="135" height="36" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.2"/>
-            <text x="332" y="21" font-size="9.5" font-weight="700" fill="#b45309" text-anchor="middle">Clear R &larr; 0, Time &larr; T_curr</text>
-            <text x="332" y="34" font-size="8.5" fill="#78350f" text-anchor="middle">Advance Hand &rarr; Next Frame</text>
-
-            <!-- Branch R == 0 (No -> Right) -->
-            <line x1="260" y1="91" x2="318" y2="91" stroke="#334155" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
-            <text x="285" y="84" font-size="9.5" font-weight="700" fill="#64748b">No</text>
-
-            <!-- Decision 2: Age <= tau? -->
-            <polygon points="370,63 422,91 370,119 318,91" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
-            <text x="370" y="89" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
-            <text x="370" y="102" font-size="8" fill="#64748b" text-anchor="middle">(In WS?)</text>
-
-            <!-- Branch Age <= tau (Yes -> Down) -->
-            <line x1="370" y1="119" x2="370" y2="165" stroke="#0284c7" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
-            <text x="378" y="142" font-size="9.5" font-weight="700" fill="#0284c7">Yes</text>
-            <rect x="305" y="170" width="130" height="36" rx="4" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.2"/>
-            <text x="370" y="185" font-size="9.5" font-weight="700" fill="#0369a1" text-anchor="middle">Keep in Working Set</text>
-            <text x="370" y="198" font-size="8.5" fill="#0284c7" text-anchor="middle">Advance Hand &rarr; Next Frame</text>
-
-            <!-- Branch Age > tau (No -> Right) -->
-            <line x1="422" y1="91" x2="478" y2="91" stroke="#334155" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
-            <text x="445" y="84" font-size="9.5" font-weight="700" fill="#64748b">No</text>
-
-            <!-- Decision 3: M == 0? -->
-            <polygon points="525,63 570,91 525,119 480,91" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
-            <text x="525" y="89" font-size="10.5" font-weight="700" fill="#0f172a" text-anchor="middle">M == 0?</text>
-            <text x="525" y="102" font-size="8" fill="#64748b" text-anchor="middle">(Clean?)</text>
-
-            <!-- Branch M == 0 (Clean -> Yes -> Right -> Evict!) -->
-            <line x1="570" y1="91" x2="628" y2="91" stroke="#16a34a" stroke-width="2" marker-end="url(#fc-green)"/>
-            <text x="595" y="84" font-size="9.5" font-weight="700" fill="#15803d">Yes</text>
-            <rect x="635" y="70" width="145" height="42" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-            <text x="707" y="88" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
-            <text x="707" y="102" font-size="8.5" fill="#166534" text-anchor="middle">Claim frame, exit fault handler</text>
-
-            <!-- Branch M == 1 (Dirty -> No -> Down -> Schedule Write) -->
-            <line x1="525" y1="119" x2="525" y2="165" stroke="#dc2626" stroke-width="1.5" marker-end="url(#fc-red)"/>
-            <text x="535" y="142" font-size="9.5" font-weight="700" fill="#dc2626">No</text>
-            <rect x="460" y="170" width="160" height="44" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
-            <text x="540" y="186" font-size="9.5" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
-            <text x="540" y="200" font-size="8.5" fill="#7f1d1d" text-anchor="middle">Keep hand advancing (non-blocking)</text>
-          </svg>
-        </div>
-
-        <h2>3. Handling Full Hand Sweeps</h2>
-        <p>
-          If the clock hand completes a full 360-degree rotation without finding an evicted clean page:
+          A <strong>local replacement policy</strong> assigns each active process a fixed quota of physical page frames (e.g., determined at process startup based on executable size or dynamic working set estimation). When a page fault occurs, the kernel chooses a replacement victim strictly from the pages owned by that specific process.
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
-          <li><strong>If at least one write was scheduled:</strong> The hand continues advancing until the first scheduled write completes, allowing that newly clean frame to be reclaimed.</li>
-          <li><strong>If no writes were scheduled:</strong> All resident pages have $R=1$ or are within the working set $\tau$. The process is genuinely thrashing under severe memory pressure, so the OS picks the first clean page it encounters or falls back to standard Clock.</li>
+          <li><strong>Pros (Isolation):</strong> Processes are isolated from one another. A poorly written, thrashing program cannot steal frames from other well-behaved applications.</li>
+          <li><strong>Cons (Inflexibility):</strong> If a process enters a heavy compute phase requiring more memory, it cannot borrow idle frames from an inactive process, leading to artificial page faults and suboptimal performance.</li>
         </ul>
-      </div>
 
-      <!-- Embedded SVG Diagram for WSClock Ring (Figure 3-20) -->
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-20: The WSClock Ring Architecture (Tanenbaum)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
-          <defs>
-            <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-            </marker>
-          </defs>
+        <h2>3. Global Allocation Policies</h2>
+        <p>
+          A <strong>global replacement policy</strong> treats all physical memory frames in the machine as a unified, shared pool. When any process incurs a page fault, the kernel selects a replacement victim from the entire system-wide population of resident pages, regardless of which process owns them.
+        </p>
+        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+          <li><strong>Pros (Adaptability):</strong> Highly efficient. If Process A is idle, its resident frames naturally migrate to Process B if B's working set is expanding. Overall system throughput is maximized.</li>
+          <li><strong>Cons (Vulnerability):</strong> Lack of isolation. A runaway or thrashing program can continuously steal frames from other processes, dragging down system-wide responsiveness.</li>
+        </ul>
 
-          <text x="380" y="26" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">WSClock Circular Frame Ring Structure</text>
-          <text x="380" y="44" font-size="11" fill="#64748b" text-anchor="middle">Circular buffer of physical frames evaluating R-bit, Modified-bit, and Age delta (Current Time - Last Use)</text>
-
-          <circle cx="380" cy="190" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6"/>
-
-          <!-- Frame Node 0 -->
-          <g transform="translate(380, 75)">
-            <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
-            <text x="0" y="-4" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 0 (Page A)</text>
-            <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#334155" text-anchor="middle">R=1 | M=0 | T=2184</text>
-          </g>
-
-          <!-- Frame Node 1 -->
-          <g transform="translate(495, 190)">
-            <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
-            <text x="0" y="-4" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 1 (Page B)</text>
-            <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#334155" text-anchor="middle">R=0 | M=1 | T=1020</text>
-          </g>
-
-          <!-- Frame Node 2 -->
-          <g transform="translate(380, 305)">
-            <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="0" y="-4" font-size="11" font-weight="700" fill="#b91c1c" text-anchor="middle">Frame 2 (Page C)</text>
-            <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#991b1b" text-anchor="middle">R=0 | M=0 | T=850</text>
-          </g>
-
-          <!-- Frame Node 3 -->
-          <g transform="translate(265, 190)">
-            <rect x="-65" y="-22" width="130" height="44" rx="5" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
-            <text x="0" y="-4" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 3 (Page D)</text>
-            <text x="0" y="12" font-size="9.5" font-family="monospace" fill="#334155" text-anchor="middle">R=0 | M=0 | T=2140</text>
-          </g>
-
-          <circle cx="380" cy="190" r="16" fill="#0284c7"/>
-          <line x1="380" y1="190" x2="380" y2="280" stroke="#0284c7" stroke-width="3" marker-end="url(#arr)"/>
-          <text x="380" y="194" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">HAND</text>
-
-          <path d="M 450 305 L 530 305" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3"/>
-          <text x="540" y="302" font-size="10.5" font-weight="700" fill="#dc2626">Victim Evicted!</text>
-          <text x="540" y="316" font-size="9" fill="#475569">R=0, Age &gt; &tau; (1350 &gt; 400), M=0</text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH WITH GRANULAR MICRO-STEPS -->
-    <div class="card tutorial-panel">
-      <div class="tutorial-header">
-        <span id="wtCounter">Scenario 1 (Step 1 of 3)</span>
-        <span>Interactive Decision Tracer</span>
-      </div>
-
-      <!-- Scenario Tab Buttons -->
-      <div class="scenario-picker">
-        <button type="button" class="btn-scenario active" id="tabScen0" onclick="selectScenario(0)">1. Frame 0 (R=1)</button>
-        <button type="button" class="btn-scenario" id="tabScen1" onclick="selectScenario(1)">2. Frame 1 (Age &le; &tau;)</button>
-        <button type="button" class="btn-scenario" id="tabScen2" onclick="selectScenario(2)">3. Frame 2 (Clean Evict)</button>
-        <button type="button" class="btn-scenario" id="tabScen3" onclick="selectScenario(3)">4. Frame 3 (Dirty Flush)</button>
-        <button type="button" class="btn-scenario" id="tabScen4" onclick="selectScenario(4)">5. Full Sweep (Writes)</button>
-        <button type="button" class="btn-scenario" id="tabScen5" onclick="selectScenario(5)">6. Full Sweep (Thrash)</button>
-      </div>
-
-      <div id="wtTitle" class="tutorial-title" tabindex="-1">1. Hand at Frame 0: Evaluating Gate 1</div>
-
-      <div class="split-grid">
-        <!-- Dual Interactive Visual Console -->
-        <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:12px;">
-
-          <!-- Top: Interactive Decision Tree -->
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">1. Active Decision Tree Branch</span>
-            <span id="walkActiveStatus" style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--accent);">Branch Active</span>
-          </div>
-
-          <svg id="walkTreeSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#ffffff;">
+        <!-- Embedded SVG Diagram: Tanenbaum Figure 3-22 -->
+        <div class="figure-container">
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-22: Local vs. Global Page Replacement (Tanenbaum)</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 260" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
             <defs>
-              <marker id="w-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
-              </marker>
-              <marker id="w-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-              </marker>
-              <marker id="w-amber" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
-              </marker>
-              <marker id="w-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a" />
-              </marker>
-              <marker id="w-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626" />
               </marker>
             </defs>
 
-            <!-- Start Node -->
-            <g id="walk-node-start" class="walk-node">
-              <rect x="8" y="65" width="70" height="30" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
-              <text x="43" y="79" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Page Fault</text>
-              <text x="43" y="90" font-size="7.5" fill="#64748b" text-anchor="middle">Hand &rarr; Frame</text>
-            </g>
-            <line id="walk-edge-start" class="walk-edge" x1="78" y1="80" x2="108" y2="80" stroke="#334155" stroke-width="1.2" marker-end="url(#w-arr)"/>
+            <!-- (a) Original Configuration -->
+            <rect x="30" y="30" width="200" height="190" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="6"/>
+            <text x="130" y="52" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">(a) Original Configuration</text>
+            <rect x="50" y="70" width="160" height="60" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2" rx="4"/>
+            <text x="130" y="95" font-size="10" font-weight="700" fill="#0369a1" text-anchor="middle">Process A (5 Frames)</text>
+            <rect x="50" y="145" width="160" height="60" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.2" rx="4"/>
+            <text x="130" y="170" font-size="10" font-weight="700" fill="#6d28d9" text-anchor="middle">Process B (5 Frames)</text>
 
-            <!-- Gate 1: R == 1? -->
-            <g id="walk-gate-r" class="walk-node">
-              <polygon points="135,60 164,80 135,100 106,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="135" y="83" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">R == 1?</text>
-            </g>
+            <!-- Arrow 1 -->
+            <line x1="240" y1="125" x2="275" y2="125" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
 
-            <!-- Gate 1 Yes: Action 1 (Up) -->
-            <path id="walk-edge-r-yes" class="walk-edge" d="M 135 60 L 135 24 L 174 24" stroke="#cbd5e1" stroke-width="1.2" fill="none" marker-end="url(#w-arr)"/>
-            <text x="142" y="42" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
-            <g id="walk-action-r1" class="walk-node">
-              <rect x="178" y="10" width="112" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="234" y="22" font-size="8" font-weight="700" fill="#b45309" text-anchor="middle">R &larr; 0, Time &larr; T_curr</text>
-              <text x="234" y="33" font-size="7.5" fill="#78350f" text-anchor="middle">Advance Hand &rarr;</text>
-            </g>
+            <!-- (b) Local Replacement -->
+            <rect x="285" y="30" width="200" height="190" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" rx="6"/>
+            <text x="385" y="52" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">(b) Local Replacement</text>
+            <rect x="305" y="70" width="160" height="60" fill="#ffffff" stroke="#16a34a" stroke-width="1.2" rx="4"/>
+            <text x="385" y="95" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Process A faults:</text>
+            <text x="385" y="112" font-size="9" fill="#166534" text-anchor="middle">Evicts only from A's quota</text>
+            <rect x="305" y="145" width="160" height="60" fill="#ffffff" stroke="#16a34a" stroke-width="1.2" rx="4"/>
+            <text x="385" y="170" font-size="10" font-weight="700" fill="#15803d" text-anchor="middle">Process B unaffected</text>
+            <text x="385" y="187" font-size="9" fill="#166534" text-anchor="middle">Quotas remain strictly 5/5</text>
 
-            <!-- Gate 1 No -> Gate 2 (Right) -->
-            <line id="walk-edge-r-no" class="walk-edge" x1="164" y1="80" x2="204" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="182" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
+            <!-- Arrow 2 -->
+            <line x1="495" y1="125" x2="530" y2="125" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
 
-            <!-- Gate 2: Age <= tau? -->
-            <g id="walk-gate-age" class="walk-node">
-              <polygon points="238,60 272,80 238,100 204,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="238" y="78" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
-              <text x="238" y="89" font-size="6.5" fill="#64748b" text-anchor="middle">(In WS?)</text>
-            </g>
-
-            <!-- Gate 2 Yes: Action 2 (Down) -->
-            <line id="walk-edge-age-yes" class="walk-edge" x1="238" y1="100" x2="238" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="244" y="120" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
-            <g id="walk-action-inws" class="walk-node">
-              <rect x="188" y="138" width="100" height="28" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="238" y="150" font-size="8" font-weight="700" fill="#0369a1" text-anchor="middle">In Working Set</text>
-              <text x="238" y="161" font-size="7.5" fill="#0284c7" text-anchor="middle">Advance Hand &rarr;</text>
-            </g>
-
-            <!-- Gate 2 No -> Gate 3 (Right) -->
-            <line id="walk-edge-age-no" class="walk-edge" x1="272" y1="80" x2="312" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="290" y="75" font-size="8.5" font-weight="700" fill="#64748b">No</text>
-
-            <!-- Gate 3: M == 0? -->
-            <g id="walk-gate-m" class="walk-node">
-              <polygon points="342,60 374,80 342,100 310,80" fill="#f1f5f9" stroke="#334155" stroke-width="1.2"/>
-              <text x="342" y="78" font-size="8.5" font-weight="700" fill="#0f172a" text-anchor="middle">M == 0?</text>
-              <text x="342" y="89" font-size="6.5" fill="#64748b" text-anchor="middle">(Clean?)</text>
-            </g>
-
-            <!-- Gate 3 Yes: Evict Action (Right) -->
-            <line id="walk-edge-m-yes" class="walk-edge" x1="374" y1="80" x2="416" y2="80" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="394" y="75" font-size="8.5" font-weight="700" fill="#64748b">Yes</text>
-            <g id="walk-action-evict" class="walk-node">
-              <rect x="420" y="65" width="102" height="32" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="471" y="79" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
-              <text x="471" y="91" font-size="7" fill="#166534" text-anchor="middle">Claim frame now</text>
-            </g>
-
-            <!-- Gate 3 No: Dirty Action (Down) -->
-            <line id="walk-edge-m-no" class="walk-edge" x1="342" y1="100" x2="342" y2="134" stroke="#cbd5e1" stroke-width="1.2" marker-end="url(#w-arr)"/>
-            <text x="348" y="120" font-size="8.5" font-weight="700" fill="#64748b">No</text>
-            <g id="walk-action-dirty" class="walk-node">
-              <rect x="296" y="138" width="112" height="30" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-              <text x="352" y="150" font-size="8" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
-              <text x="352" y="161" font-size="7" fill="#7f1d1d" text-anchor="middle">Advance Hand &rarr;</text>
-            </g>
+            <!-- (c) Global Replacement -->
+            <rect x="540" y="30" width="190" height="190" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" rx="6"/>
+            <text x="635" y="52" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">(c) Global Replacement</text>
+            <rect x="555" y="70" width="160" height="60" fill="#ffffff" stroke="#d97706" stroke-width="1.2" rx="4"/>
+            <text x="635" y="95" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">Process A faults:</text>
+            <text x="635" y="112" font-size="9" fill="#b45309" text-anchor="middle">Can steal frame from B!</text>
+            <rect x="555" y="145" width="160" height="60" fill="#ffffff" stroke="#d97706" stroke-width="1.2" rx="4"/>
+            <text x="635" y="170" font-size="10" font-weight="700" fill="#92400e" text-anchor="middle">Dynamic Quotas:</text>
+            <text x="635" y="187" font-size="9" fill="#b45309" text-anchor="middle">A grows (6), B shrinks (4)</text>
           </svg>
-
-          <!-- Bottom: Interactive Circular Ring Model -->
-          <div style="border-top:1px dashed var(--border); padding-top:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">2. Circular Frame Ring State</span>
-              <span id="walkRingHandPos" style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; color:#0369a1;">Hand: Frame 0</span>
-            </div>
-
-            <svg id="walkRingSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 220" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color:#ffffff;">
-              <defs>
-                <marker id="ring-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-                </marker>
-              </defs>
-
-              <!-- Central Circular Ring Track -->
-              <circle cx="270" cy="110" r="70" fill="none" stroke="#cbd5e1" stroke-width="1.8" stroke-dasharray="4"/>
-
-              <!-- Frame 0 (Top) -->
-              <g id="ring-node-0" class="walk-ring-frame" transform="translate(270, 32)">
-                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
-                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 0 (Page A)</text>
-                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=1 | M=0 | T=2180</text>
-              </g>
-
-              <!-- Frame 1 (Right) -->
-              <g id="ring-node-1" class="walk-ring-frame" transform="translate(390, 110)">
-                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
-                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 1 (Page B)</text>
-                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=0 | M=0 | T=1950</text>
-              </g>
-
-              <!-- Frame 2 (Bottom) -->
-              <g id="ring-node-2" class="walk-ring-frame" transform="translate(270, 188)">
-                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
-                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 2 (Page C)</text>
-                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=0 | M=0 | T=1600</text>
-              </g>
-
-              <!-- Frame 3 (Left) -->
-              <g id="ring-node-3" class="walk-ring-frame" transform="translate(150, 110)">
-                <rect x="-55" y="-18" width="110" height="36" rx="4" fill="#f8fafc" stroke="#334155" stroke-width="1.2"/>
-                <text x="0" y="-3" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Frame 3 (Page D)</text>
-                <text x="0" y="10" font-size="8" font-family="monospace" fill="#475569" text-anchor="middle">R=0 | M=1 | T=1500</text>
-              </g>
-
-              <!-- Clock Hand Hub & Pointer -->
-              <circle cx="270" cy="110" r="12" fill="#0284c7"/>
-              <line id="walkRingHandLine" x1="270" y1="110" x2="270" y2="54" stroke="#0284c7" stroke-width="2.5" marker-end="url(#ring-arr)"/>
-              <text x="270" y="113" font-size="7" font-weight="700" fill="#ffffff" text-anchor="middle">HAND</text>
-            </svg>
-          </div>
-
-          <!-- Live Frame Telemetry Line -->
-          <div id="wtFrameBox" style="font-family:var(--font-mono); font-size:0.8rem; padding:8px 10px; border-radius:6px; background:#f8fafc; border:1px solid var(--border);"></div>
-        </div>
-
-        <!-- Walkthrough Text & Stepper Controls -->
-        <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
-          <div id="wtText" class="tutorial-body"></div>
-          <div id="wtMathSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700;"></div>
-          <div class="tour-nav">
-            <button type="button" id="wtPrevBtn" class="btn-sec" onclick="retreatStep()">Previous Decision Gate</button>
-            <button type="button" id="wtNextBtn" onclick="advanceStep()">Next Decision Gate &rarr;</button>
-            <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Simulator &darr;</button>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- 3. INTERACTIVE WSCLOCK SANDBOX -->
+    <!-- 2. INTERACTIVE GUIDED WALKTHROUGH -->
+    <div class="card tutorial-panel">
+      <div class="tutorial-header">
+        <span id="wtCounter">Step 1 of 4</span>
+        <span>Guided Walkthrough: Allocation Mechanics</span>
+      </div>
+      <div id="wtTitle" class="tutorial-title" tabindex="-1">1. The Baseline Multiprogramming State</div>
+      <div class="tutorial-body" id="wtText"></div>
+      <div class="tour-nav">
+        <button type="button" id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
+        <button type="button" id="wtNextBtn" onclick="stepWtForward()">Next Step &rarr;</button>
+        <button type="button" class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Sandbox &darr;</button>
+      </div>
+    </div>
+
+    <!-- 3. INTERACTIVE ALLOCATION SANDBOX -->
     <div class="card" id="sandboxSection">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div>
-          <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive WSClock Ring Simulator</h2>
+          <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive Multi-Process Allocation Sandbox</h2>
           <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Simulate reference streams, dirty write flushes, and observe real-time clock hand sweeps.
+            Trigger page faults for Process A or Process B under Local vs. Global allocation policies and observe frame ownership.
           </p>
         </div>
         <div style="display:flex; gap:8px;">
-          <button type="button" class="btn-sec" onclick="resetSimulator()">Reset Ring</button>
-        </div>
-      </div>
-
-      <!-- Instruction Guide Card -->
-      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
-        <strong style="color: var(--accent); font-size: 0.9rem;">How the Simulator Works &amp; What to Observe:</strong>
-        <div class="guide-grid">
-          <div class="guide-box">
-            <strong>1. Read or Write Pages</strong>
-            <span>Type a page letter (A-F) and choose <em>Read (R=1)</em> or <em>Write (M=1)</em>. Notice how the page's last used timestamp refreshes to current virtual time.</span>
-          </div>
-          <div class="guide-box">
-            <strong>2. Set Age Threshold (&tau;)</strong>
-            <span>Adjust the slider to control the working set window size. Pages older than &tau; become candidates for eviction or asynchronous flushing.</span>
-          </div>
-          <div class="guide-box">
-            <strong>3. Trigger Page Faults</strong>
-            <span>Click <em>Trigger Page Fault</em> to advance the clock hand. Watch the terminal trace calculate the exact age delta ($(T_{\text{curr}} - T_{\text{last}})$) for each frame.</span>
-          </div>
-        </div>
-        <div style="font-size: 0.84rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 6px;">
-          <strong>Suggested Experiment:</strong> Mark a page Dirty using <em>Write Page</em>, slide &tau; down to 100 ticks, and trigger a fault. Watch the algorithm schedule an asynchronous flush rather than evicting it immediately!
+          <button type="button" class="btn-sec" onclick="resetSandbox()">Reset Sandbox</button>
         </div>
       </div>
 
       <!-- Controls -->
-      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:12px 14px; border:1px solid var(--border); border-radius:6px;">
-        <button type="button" onclick="triggerFault()">Trigger Page Fault (Advance Hand)</button>
+      <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap; background:#f8fafc; padding:12px 14px; border:1px solid var(--border); border-radius:6px;">
+        <label style="font-size:0.85rem; font-weight:600;">Policy Mode:</label>
+        <select id="policySelect" onchange="switchPolicy(this.value)" style="padding:5px 10px; font-family:var(--font-mono); font-size:0.85rem; border:1px solid var(--border); border-radius:4px;">
+          <option value="local">Local Allocation (Fixed Quotas)</option>
+          <option value="global">Global Allocation (Shared Pool)</option>
+        </select>
 
-        <div style="display:flex; align-items:center; gap:6px; margin-left:8px;">
-          <label style="font-size:0.85rem; font-weight:600;">Page:</label>
-          <input type="text" id="simPageInput" value="C" maxlength="1" style="width:38px; text-align:center; padding:4px; font-family:var(--font-mono); text-transform:uppercase;">
-          <button type="button" class="btn-sec" onclick="accessSimPage(false)">Read Page (R=1)</button>
-          <button type="button" class="btn-sec" onclick="accessSimPage(true)">Write Page (M=1)</button>
-        </div>
-
-        <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
-          <label style="font-size:0.85rem; font-weight:600;">Threshold (&tau;):</label>
-          <input type="range" id="tauSlider" min="100" max="800" value="400" oninput="updateTau(this.value)">
-          <span id="tauVal" style="font-family:var(--font-mono); font-weight:700; color:var(--accent);">400 ticks</span>
-          <span style="font-size:0.85rem; font-family:var(--font-mono); font-weight:700; margin-left:10px;">Time: <span id="virtTimeDisplay" style="color:#0284c7;">2200</span></span>
+        <div style="display:flex; gap:8px; margin-left:auto;">
+          <button type="button" onclick="faultProcess('A')" style="background:#0284c7;">Fault Process A</button>
+          <button type="button" onclick="faultProcess('B')" style="background:#7c3aed;">Fault Process B</button>
         </div>
       </div>
 
       <!-- Telemetry Banner -->
       <div class="telemetry-box">
-        <span>Clock Hand Index: <strong id="handIdxDisplay" style="color:#38bdf8;">Frame 0</strong></span>
-        <span>Total Faults: <strong id="statFaults" style="color:#f87171;">0</strong></span>
-        <span>Dirty Writes Queued: <strong id="statWrites" style="color:#facc15;">0</strong></span>
-        <span>Clean Evictions: <strong id="statEvictions" style="color:#4ade80;">0</strong></span>
+        <span>Active Policy: <strong id="statPolicy" style="color:#38bdf8;">Local Allocation</strong></span>
+        <span>Process A Frames: <strong id="statFramesA" style="color:#38bdf8;">4</strong></span>
+        <span>Process B Frames: <strong id="statFramesB" style="color:#a78bfa;">4</strong></span>
       </div>
 
       <div class="split-grid">
-        <!-- Circular Buffer Table -->
-        <div class="table-container">
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Circular Buffer Frames</span>
-          <table class="table-spec" style="margin-top:6px;">
-            <thead>
-              <tr><th>Frame</th><th>Page</th><th>R</th><th>M</th><th>Last Used</th><th>Age</th><th>Status</th></tr>
-            </thead>
-            <tbody id="ringTableBody"></tbody>
-          </table>
+        <!-- Physical RAM Pool (8 Frames) -->
+        <div>
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Physical RAM Pool (8 Total Frames)</span>
+          <div id="ramPoolGrid" class="ram-pool-grid"></div>
         </div>
 
-        <!-- Kernel Log -->
+        <!-- Kernel Event Log -->
         <div style="display:flex; flex-direction:column; gap:6px;">
-          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Kernel WSClock Execution Trace</span>
-          <div id="wsLog" class="terminal-box"></div>
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Kernel Allocation Event Log</span>
+          <div id="sandboxLog" class="terminal-box"></div>
         </div>
       </div>
     </div>
@@ -888,585 +416,244 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
   <script>
     /* =========================================================================
-       PART 2: GRANULAR MICRO-STEP SCENARIOS (LOCALIZED FOCUS ANCHORING)
+       PART 2: GUIDED WALKTHROUGH LOGIC
        ========================================================================= */
-    const scenarios = [
-      // Scenario 0: Frame 0 (R=1)
+    let wtStep = 0;
+    const wtSteps = [
       {
-        name: "1. Frame 0 (R=1)",
-        steps: [
-          {
-            title: "1. Hand at Frame 0: Evaluating Gate 1 (R == 1?)",
-            text: "A page fault occurs at Virtual Time 2200. The clock hand inspects Frame 0 (Page A). When the CPU executes read or write instructions, the Memory Management Unit (MMU) automatically sets the page's hardware Referenced bit (R) to 1 in silicon. Gate 1 inspects this bit: Is R == 1? Here, R = 1, meaning the process touched Page A during the most recent quantum.",
-            math: "Hardware MMU set R = 1 during instruction execution → Gate 1 evaluates TRUE (Yes).",
-            frame: { name: "Page A (Frame 0)", r: 1, m: 0, time: 2180, currTime: 2200, tau: 400, frameId: 0 },
-            highlightGate: "walk-gate-r",
-            activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
-            ringClass: "active-warn",
-            handTarget: { x: 270, y: 54 },
-            status: "Gate 1: R == 1 (Recently Referenced)"
-          },
-          {
-            title: "2. Gate 1 Evaluates Yes: Clear R-bit & Timestamp",
-            text: "Because R = 1, this page was referenced recently. Evicting it now would directly violate the principle of locality and risk plunging the CPU into thrashing. The algorithm follows the Yes branch: it clears R ← 0 to begin a new measurement window and refreshes the frame's Time of Last Use to the current virtual execution time (2200).",
-            math: "Action: Clear R ← 0, refresh Last_Use ← 2200 ticks. Page given a second chance.",
-            frame: { name: "Page A (Frame 0)", r: 0, m: 0, time: 2200, currTime: 2200, tau: 400, frameId: 0 },
-            highlightGate: "walk-gate-r",
-            highlightAction: "walk-action-r1",
-            actionClass: "active-action-warn",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-yes", marker: "w-amber", edgeClass: "edge-active-warn" }
-            ],
-            ringClass: "active-warn",
-            handTarget: { x: 270, y: 54 },
-            status: "Action: R ← 0, Time ← 2200"
-          },
-          {
-            title: "3. Advance Hand to Next Frame",
-            text: "Having granted Page A a second chance and refreshed its age to 0, no physical memory was freed. The page fault remains unresolved. The clock hand advances clockwise along the ring to inspect Frame 1 without stopping.",
-            math: "Hand pointer incremented: Hand moves Frame 0 → Frame 1.",
-            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
-            highlightGate: "walk-gate-r",
-            ringClass: "active-focus",
-            handTarget: { x: 332, y: 110 },
-            status: "Hand advanced to Frame 1"
-          }
-        ]
+        title: "1. The Baseline Multiprogramming State",
+        text: "Consider a computer with 8 physical frames shared between two active processes, Process A and Process B. In the initial baseline state, each process is allocated an equal quota of 4 frames."
       },
-
-      // Scenario 1: Frame 1 (Age <= tau)
       {
-        name: "2. Frame 1 (Age ≤ τ)",
-        steps: [
-          {
-            title: "1. Hand at Frame 1: Evaluating Gate 1 (R == 1?)",
-            text: "The clock hand now points to Frame 1 containing Page B. The hardware Referenced bit is R = 0, indicating that the CPU has not referenced this page since its R-bit was last cleared. Gate 1 evaluates R == 1? → No. The algorithm follows the No branch to evaluate the page's age.",
-            math: "Frame 1 check: R == 0 → Follow NO branch to Gate 2.",
-            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
-            highlightGate: "walk-gate-r",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" }
-            ],
-            ringClass: "active-focus",
-            handTarget: { x: 332, y: 110 },
-            status: "Gate 1: R == 0 → Branch to Gate 2"
-          },
-          {
-            title: "2. Evaluating Gate 2: Age vs. Threshold (τ)",
-            text: "Because R = 0, the kernel calculates how long it has been since Page B was last used: Age = Current Virtual Time (2200) - Time of Last Use (1950) = 250 ticks. Gate 2 compares this value against the working set threshold τ (400 ticks): Is Age ≤ τ? Here, 250 ≤ 400.",
-            math: "Calculation: Age = (2200 - 1950) = 250 ticks. Compare with τ = 400 ticks.",
-            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
-            highlightGate: "walk-gate-age",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" }
-            ],
-            ringClass: "active-focus",
-            handTarget: { x: 332, y: 110 },
-            status: "Gate 2: Age (250) ≤ τ (400)?"
-          },
-          {
-            title: "3. Gate 2 Evaluates Yes: Resident in Working Set",
-            text: "Even though Page B was not referenced in the latest slice, its age (250) is still within the active working set window τ. According to Denning's principle, pages inside the working set must remain in physical RAM to prevent thrashing. The algorithm leaves Page B untouched and advances the hand to Frame 2.",
-            math: "Gate 2 (Yes) → 250 ≤ 400: Page is in active working set. Do not evict; advance hand.",
-            frame: { name: "Page B (Frame 1)", r: 0, m: 0, time: 1950, currTime: 2200, tau: 400, frameId: 1 },
-            highlightGate: "walk-gate-age",
-            highlightAction: "walk-action-inws",
-            actionClass: "active-action-blue",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-age-yes", marker: "w-blue", edgeClass: "edge-active" }
-            ],
-            ringClass: "active-focus",
-            handTarget: { x: 332, y: 110 },
-            status: "Action: Keep in Working Set → Advance Hand"
-          }
-        ]
+        title: "2. Page Fault Under Local Allocation",
+        text: "Process A incurs a page fault. Under a <strong>Local Allocation</strong> policy, the operating system is restricted to choosing a victim page exclusively from Process A's own 4 frames. Even if Process B is completely idle and has cold pages, Process A cannot touch them."
       },
-
-      // Scenario 2: Frame 2 (Clean Eviction)
       {
-        name: "3. Frame 2 (Clean Evict)",
-        steps: [
-          {
-            title: "1. Hand at Frame 2: Gates 1 & 2 Evaluation",
-            text: "The clock hand advances to Frame 2 (Page C). Gate 1 tests R == 1? → No (R = 0). Gate 2 calculates the page's age: 2200 - 1600 = 600 ticks. Gate 2 evaluates: Is 600 ≤ τ (400)? No! The page is older than τ, proving that Page C has dropped out of the process's active working set. The search branches to Gate 3.",
-            math: "Frame 2: R = 0, Age = 600 > τ (400) → Page is cold and outside active working set.",
-            frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
-            highlightGate: "walk-gate-age",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" }
-            ],
-            ringClass: "active-victim",
-            handTarget: { x: 270, y: 166 },
-            status: "Gate 2: Age > τ → Branch to Gate 3 (Check M)"
-          },
-          {
-            title: "2. Evaluating Gate 3: Modified (Dirty) Status",
-            text: "Gate 3 inspects the hardware Modified bit (M, also known as the dirty bit). When a process writes to memory, the MMU asserts M = 1. Here, M = 0 (clean). This indicates Page C has only been read; its contents on disk or swap storage are 100% identical to the bytes in RAM.",
-            math: "Gate 3 test: M == 0? → TRUE (Clean). No storage write-back required.",
-            frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
-            highlightGate: "walk-gate-m",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-m-yes", marker: "w-green", edgeClass: "edge-active-green" }
-            ],
-            ringClass: "active-victim",
-            handTarget: { x: 270, y: 166 },
-            status: "Gate 3: M == 0 (Clean & Cold Candidate)"
-          },
-          {
-            title: "3. Immediate Victim Eviction!",
-            text: "Because Page C is cold (Age > τ) and clean (M = 0), reclaiming it incurs zero disk I/O penalty. The OS immediately invalidates Page C's PTE, reclaims Frame 2 for the newly faulting virtual page, loads the new page, and exits the page fault handler. The hand remains positioned to resume here on the next fault.",
-            math: "Eviction complete: Frame 2 claimed. Hand stops at Frame 2. Zero disk flush overhead.",
-            frame: { name: "Page C (Frame 2)", r: 0, m: 0, time: 1600, currTime: 2200, tau: 400, frameId: 2 },
-            highlightGate: "walk-gate-m",
-            highlightAction: "walk-action-evict",
-            actionClass: "active-action-evict",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-m-yes", marker: "w-green", edgeClass: "edge-active-green" }
-            ],
-            ringClass: "active-victim",
-            handTarget: { x: 270, y: 166 },
-            status: "VICTIM CLAIMED → Search Complete"
-          }
-        ]
+        title: "3. Page Fault Under Global Allocation",
+        text: "Now consider the same page fault under a <strong>Global Allocation</strong> policy. The kernel scans all 8 frames across the entire machine. If Process B's page was accessed less recently than Process A's candidate, Process B's frame is seized and reassigned to Process A. Process A's quota grows to 5 while Process B shrinks to 3."
       },
-
-      // Scenario 3: Frame 3 (Dirty Flush)
       {
-        name: "4. Frame 3 (Dirty Flush)",
-        steps: [
-          {
-            title: "1. Hand at Frame 3: Age > τ, but M == 1 (Dirty)",
-            text: "Consider if the hand had instead arrived at Frame 3 (Page D). The page has R = 0 and Age = 2200 - 1500 = 700 ticks (> τ). Gate 2 branches to Gate 3. However, Gate 3 detects M = 1 (dirty). The process modified Page D, so its data in RAM no longer matches what is stored on disk.",
-            math: "Frame 3: R = 0, Age = 700 > τ (Cold), but M = 1 (Dirty).",
-            frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
-            highlightGate: "walk-gate-m",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-m-no", marker: "w-red", edgeClass: "edge-active-red" }
-            ],
-            ringClass: "active-warn",
-            handTarget: { x: 208, y: 110 },
-            status: "Gate 3: M == 1 → Dirty Candidate"
-          },
-          {
-            title: "2. Schedule Asynchronous Disk Write",
-            text: "The kernel cannot overwrite Frame 3 yet without losing modified data. In older algorithms, the CPU would stall synchronously waiting milliseconds for disk write I/O. WSClock's key innovation is to schedule an asynchronous write via DMA and immediately advance the hand, searching for an already-clean candidate while disk I/O occurs in the background.",
-            math: "Action: Queue non-blocking DMA disk write. Keep hand moving to find clean candidate.",
-            frame: { name: "Page D (Frame 3)", r: 0, m: 1, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
-            highlightGate: "walk-gate-m",
-            highlightAction: "walk-action-dirty",
-            actionClass: "active-action-dirty",
-            activeEdges: [
-              { id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-r-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-age-no", marker: "w-blue", edgeClass: "edge-active" },
-              { id: "walk-edge-m-no", marker: "w-red", edgeClass: "edge-active-red" }
-            ],
-            ringClass: "active-warn",
-            handTarget: { x: 208, y: 110 },
-            status: "Action: Schedule Async Write → Advance Hand"
-          }
-        ]
-      },
-
-      // Scenario 4: Full Sweep (Writes in Flight)
-      {
-        name: "5. Full Sweep (Writes)",
-        steps: [
-          {
-            title: "1. Clock Hand Completes 360° Rotation",
-            text: "Suppose the hand sweeps all frames in the circular ring without encountering an immediately evictable clean page (M = 0). The kernel checks its internal telemetry: Were any asynchronous disk writes scheduled during this sweep?",
-            math: "Full 360° rotation completed. Check scheduled writes counter: Writes_In_Flight > 0.",
-            frame: { name: "All Frames (Ring Sweep)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 0 },
-            highlightGate: "walk-gate-m",
-            activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
-            ringClass: "active-focus",
-            handTarget: { x: 270, y: 54 },
-            status: "Telemetry Check: Writes in Flight?"
-          },
-          {
-            title: "2. Await First Asynchronous Completion",
-            text: "Because at least one write was dispatched (such as Frame 3 in Scenario 4), the hand continues advancing in circles until the first write completes. When the disk controller emits an interrupt signaling completion, the kernel clears M ← 0. The newly cleaned frame is immediately reclaimed as the victim.",
-            math: "DMA storage interrupt signals completion → Frame M cleared (M=0) → Claimed as clean victim.",
-            frame: { name: "Frame 3 (I/O Complete)", r: 0, m: 0, time: 1500, currTime: 2200, tau: 400, frameId: 3 },
-            highlightGate: "walk-gate-m",
-            highlightAction: "walk-action-evict",
-            actionClass: "active-action-evict",
-            ringClass: "active-victim",
-            handTarget: { x: 208, y: 110 },
-            status: "Write completed → Reclaimed as Clean Victim"
-          }
-        ]
-      },
-
-      // Scenario 5: Full Sweep (Severe Thrashing Fallback)
-      {
-        name: "6. Full Sweep (Thrash)",
-        steps: [
-          {
-            title: "1. 360° Sweep with Zero Writes Scheduled",
-            text: "What if the hand completes a full 360° rotation and NO writes were scheduled? This occurs when every single page in physical RAM is actively needed by the working set (Age ≤ τ). The system has run out of non-working-set frames.",
-            math: "Condition: Full sweep finished, Writes_In_Flight == 0, all frames inside working set.",
-            frame: { name: "All Frames (Thrashing)", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
-            highlightGate: "walk-gate-age",
-            activeEdges: [{ id: "walk-edge-start", marker: "w-blue", edgeClass: "edge-active" }],
-            ringClass: "active-warn",
-            handTarget: { x: 270, y: 54 },
-            status: "Thrashing Detected: Working Set > Physical RAM"
-          },
-          {
-            title: "2. Kernel Fallback & Admission Control",
-            text: "The process is thrashing because its true working set is larger than total available physical RAM. WSClock handles this emergency by either evicting the first clean page it encounters regardless of age, or notifying the scheduler to suspend the process entirely (admission control), freeing its frames so other processes can run without thrashing.",
-            math: "Emergency fallback: Force clean eviction OR invoke admission control to suspend process.",
-            frame: { name: "Admission Control Handler", r: 0, m: 0, time: 2190, currTime: 2200, tau: 400, frameId: 0 },
-            highlightGate: "walk-gate-age",
-            highlightAction: "walk-action-inws",
-            actionClass: "active-action-blue",
-            ringClass: "active-warn",
-            handTarget: { x: 270, y: 54 },
-            status: "Fallback: Reclaim Clean Frame / Suspend Process"
-          }
-        ]
+        title: "4. Trade-Offs: Protection vs. Efficiency",
+        text: "Local allocation provides rigid isolation, ensuring processes cannot starve each other, but it wastes memory when workloads fluctuate. Global allocation maximizes RAM utilization across active tasks, but exposes well-behaved applications to memory hogging by runaway threads."
       }
     ];
 
-    let currentScenarioIdx = 0;
-    let currentStepIdx = 0;
-
-    function resetWalkVisuals() {
-      document.querySelectorAll(".walk-node").forEach(n => {
-        n.className.baseVal = "walk-node";
-      });
-      document.querySelectorAll(".walk-edge").forEach(e => {
-        e.className.baseVal = "walk-edge";
-        e.setAttribute("stroke", "#cbd5e1");
-        e.setAttribute("marker-end", "url(#w-arr)");
-      });
-      document.querySelectorAll(".walk-ring-frame").forEach(rf => {
-        rf.className.baseVal = "walk-ring-frame";
-      });
-    }
-
-    function renderStep() {
-      const scen = scenarios[currentScenarioIdx];
-      const s = scen.steps[currentStepIdx];
-
-      document.getElementById("wtCounter").textContent = `${scen.name} (Step ${currentStepIdx + 1} of ${scen.steps.length})`;
+    function renderWt() {
+      const s = wtSteps[wtStep];
+      document.getElementById("wtCounter").textContent = `Step ${wtStep + 1} of ${wtSteps.length}`;
       document.getElementById("wtTitle").textContent = s.title;
       document.getElementById("wtText").innerHTML = s.text;
 
-      const f = s.frame;
-      const age = f.currTime - f.time;
-      document.getElementById("wtFrameBox").innerHTML = `
-        <strong>Inspecting ${f.name}:</strong>
-        R = <strong>${f.r}</strong> | M = <strong>${f.m}</strong> |
-        Last Used = <strong>${f.time}</strong> | Age = <strong>${age}</strong> (τ = ${f.tau})
-      `;
-      document.getElementById("wtMathSummary").innerHTML = s.math;
-      document.getElementById("walkActiveStatus").textContent = s.status;
-      document.getElementById("walkRingHandPos").textContent = `Hand: Frame ${f.frameId}`;
-
-      resetWalkVisuals();
-
-      if (s.highlightGate) {
-        const gateEl = document.getElementById(s.highlightGate);
-        if (gateEl) gateEl.classList.add("active-gate");
-      }
-
-      if (s.highlightAction) {
-        const actionEl = document.getElementById(s.highlightAction);
-        if (actionEl && s.actionClass) actionEl.classList.add(s.actionClass);
-      }
-
-      (s.activeEdges || []).forEach(edgeInfo => {
-        const edgeEl = document.getElementById(edgeInfo.id);
-        if (edgeEl) {
-          edgeEl.className.baseVal = `walk-edge ${edgeInfo.edgeClass}`;
-          edgeEl.setAttribute("marker-end", `url(#${edgeInfo.marker})`);
-        }
-      });
-
-      const ringFrameEl = document.getElementById(`ring-node-${f.frameId}`);
-      if (ringFrameEl && s.ringClass) {
-        ringFrameEl.className.baseVal = `walk-ring-frame ${s.ringClass}`;
-      }
-
-      const handLine = document.getElementById("walkRingHandLine");
-      if (handLine && s.handTarget) {
-        handLine.setAttribute("x2", s.handTarget.x);
-        handLine.setAttribute("y2", s.handTarget.y);
-      }
-
-      // Update button labels and disabled states
-      document.getElementById("wtPrevBtn").disabled = (currentScenarioIdx === 0 && currentStepIdx === 0);
-
-      const isLastStep = (currentStepIdx === scen.steps.length - 1);
-      const isLastScenario = (currentScenarioIdx === scenarios.length - 1);
-
-      if (isLastStep && isLastScenario) {
-        document.getElementById("wtNextBtn").disabled = true;
-        document.getElementById("wtNextBtn").textContent = "All Scenarios Explored";
-      } else {
-        document.getElementById("wtNextBtn").disabled = false;
-        document.getElementById("wtNextBtn").textContent = isLastStep ? "Next Scenario →" : "Next Decision Gate →";
-      }
-
-      // Anchor focus locally to prevent window jump to top of page when buttons disable
+      document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
+      document.getElementById("wtNextBtn").disabled = (wtStep === wtSteps.length - 1);
       document.getElementById("wtTitle").focus();
     }
 
-    function selectScenario(idx) {
-      currentScenarioIdx = idx;
-      currentStepIdx = 0;
-      for (let i = 0; i < scenarios.length; i++) {
-        const tab = document.getElementById(`tabScen${i}`);
-        if (tab) {
-          if (i === idx) tab.classList.add("active");
-          else tab.classList.remove("active");
-        }
-      }
-      renderStep();
-    }
-
-    function advanceStep() {
-      const scen = scenarios[currentScenarioIdx];
-      if (currentStepIdx < scen.steps.length - 1) {
-        currentStepIdx++;
-        renderStep();
-      } else if (currentScenarioIdx < scenarios.length - 1) {
-        selectScenario(currentScenarioIdx + 1);
+    function stepWtForward() {
+      if (wtStep < wtSteps.length - 1) {
+        wtStep++;
+        renderWt();
       }
     }
 
-    function retreatStep() {
-      if (currentStepIdx > 0) {
-        currentStepIdx--;
-        renderStep();
-      } else if (currentScenarioIdx > 0) {
-        selectScenario(currentScenarioIdx - 1);
-        currentStepIdx = scenarios[currentScenarioIdx].steps.length - 1;
-        renderStep();
+    function stepWtBackward() {
+      if (wtStep > 0) {
+        wtStep--;
+        renderWt();
       }
     }
 
-    selectScenario(0);
+    renderWt();
 
     /* =========================================================================
-       PART 3: LIVE SIMULATOR LOGIC
+       PART 3: LIVE SANDBOX LOGIC
        ========================================================================= */
-    let tau = 400;
-    let virtualTime = 2200;
-    let handIdx = 0;
-    let statFaults = 0;
-    let statWrites = 0;
-    let statEvictions = 0;
-
-    let frames = [
-      { id: 0, page: "A", r: 1, m: 0, lastUse: 2184 },
-      { id: 1, page: "B", r: 0, m: 1, lastUse: 1200 },
-      { id: 2, page: "C", r: 0, m: 0, lastUse: 850 },
-      { id: 3, page: "D", r: 0, m: 0, lastUse: 2140 },
-      { id: 4, page: "E", r: 1, m: 1, lastUse: 2190 },
-      { id: 5, page: "F", r: 0, m: 1, lastUse: 1500 }
+    let policy = "local";
+    let ramFrames = [
+      { id: 0, owner: "A", age: 10 },
+      { id: 1, owner: "A", age: 20 },
+      { id: 2, owner: "A", age: 30 },
+      { id: 3, owner: "A", age: 40 },
+      { id: 4, owner: "B", age: 5 },
+      { id: 5, owner: "B", age: 15 },
+      { id: 6, owner: "B", age: 25 },
+      { id: 7, owner: "B", age: 35 }
     ];
 
-    function logSim(msg) {
-      const term = document.getElementById("wsLog");
+    function logSandbox(msg) {
+      const term = document.getElementById("sandboxLog");
       const row = document.createElement("div");
       row.className = "log-row";
       row.textContent = `> ${msg}`;
       term.prepend(row);
     }
 
-    function renderRingTable(victimIdx = -1) {
-      const tbody = document.getElementById("ringTableBody");
-      tbody.innerHTML = "";
+    function renderSandbox() {
+      const grid = document.getElementById("ramPoolGrid");
+      grid.innerHTML = "";
 
-      frames.forEach((f, idx) => {
-        const tr = document.createElement("tr");
-        const age = virtualTime - f.lastUse;
-        const isHand = (idx === handIdx);
-        const isVictim = (idx === victimIdx);
+      let countA = 0;
+      let countB = 0;
 
-        if (isVictim) tr.className = "victim-row";
-        else if (isHand) tr.className = "hand-active";
+      ramFrames.forEach(f => {
+        if (f.owner === "A") countA++;
+        if (f.owner === "B") countB++;
 
-        tr.innerHTML = `
-          <td>Frame ${f.id} ${isHand ? '👉 [HAND]' : ''}</td>
-          <td><strong>${f.page}</strong></td>
-          <td>${f.r}</td>
-          <td>${f.m}</td>
-          <td>${f.lastUse}</td>
-          <td>${age}</td>
-          <td>${isVictim ? '<span style="color:#b91c1c;font-weight:700;">CLAIMED</span>' : (age <= tau ? 'Active WS' : (f.m ? 'Dirty' : 'Clean Candidate'))}</td>
+        const div = document.createElement("div");
+        div.className = `ram-slot slot-${f.owner.toLowerCase()}`;
+        div.innerHTML = `
+          <span>Frame #${f.id}</span>
+          <strong>Proc ${f.owner}</strong>
+          <span style="font-size:0.72rem; opacity:0.8;">Age: ${f.age}</span>
         `;
-        tbody.appendChild(tr);
+        grid.appendChild(div);
       });
 
-      document.getElementById("handIdxDisplay").textContent = `Frame ${handIdx}`;
-      document.getElementById("virtTimeDisplay").textContent = virtualTime;
-      document.getElementById("statFaults").textContent = statFaults;
-      document.getElementById("statWrites").textContent = statWrites;
-      document.getElementById("statEvictions").textContent = statEvictions;
+      document.getElementById("statPolicy").textContent = (policy === "local" ? "Local Allocation (Fixed Quotas)" : "Global Allocation (Shared Pool)");
+      document.getElementById("statFramesA").textContent = countA;
+      document.getElementById("statFramesB").textContent = countB;
     }
 
-    function updateTau(val) {
-      tau = parseInt(val, 10);
-      document.getElementById("tauVal").textContent = `${tau} ticks`;
-      renderRingTable();
+    function switchPolicy(val) {
+      policy = val;
+      logSandbox(`Allocation policy switched to: ${policy.toUpperCase()}.`);
+      renderSandbox();
     }
 
-    function accessSimPage(isWrite) {
-      const input = document.getElementById("simPageInput");
-      const pageName = input.value.trim().toUpperCase();
-      if (!pageName) return;
+    function faultProcess(proc) {
+      const targetProc = proc;
+      const victimProc = (targetProc === "A" ? "B" : "A");
 
-      virtualTime += 10;
-      const f = frames.find(frame => frame.page === pageName);
+      logSandbox(`--------------------------------------------------`);
+      logSandbox(`Page fault triggered by Process ${targetProc}!`);
 
-      if (f) {
-        f.r = 1;
-        if (isWrite) f.m = 1;
-        f.lastUse = virtualTime;
-        logSim(`Instruction ${isWrite ? 'WRITES to' : 'READS'} Page '${pageName}' in Frame ${f.id}. Refreshed LastUse=${virtualTime}, set R=1${isWrite ? ', M=1' : ''}.`);
+      if (policy === "local") {
+        // Local: find oldest frame owned by targetProc
+        let oldestAge = -1;
+        let victimIdx = -1;
+
+        ramFrames.forEach((f, idx) => {
+          if (f.owner === targetProc && f.age > oldestAge) {
+            oldestAge = f.age;
+            victimIdx = idx;
+          }
+        });
+
+        if (victimIdx !== -1) {
+          ramFrames[victimIdx].age = 0;
+          // Age others
+          ramFrames.forEach(f => f.age += 5);
+          logSandbox(`LOCAL POLICY: Evicted Process ${targetProc}'s oldest frame (#${victimIdx}). Quotas strictly maintained.`);
+        }
       } else {
-        logSim(`Instruction references Page '${pageName}' (Absent from memory! Click 'Trigger Page Fault' to resolve).`);
+        // Global: find oldest frame in the entire machine
+        let oldestAge = -1;
+        let victimIdx = -1;
+
+        ramFrames.forEach((f, idx) => {
+          if (f.age > oldestAge) {
+            oldestAge = f.age;
+            victimIdx = idx;
+          }
+        });
+
+        if (victimIdx !== -1) {
+          const stolenFrom = ramFrames[victimIdx].owner;
+          ramFrames[victimIdx].owner = targetProc;
+          ramFrames[victimIdx].age = 0;
+          ramFrames.forEach(f => f.age += 5);
+          logSandbox(`GLOBAL POLICY: Stole Frame #${victimIdx} from Process ${stolenFrom} and assigned to Process ${targetProc}!`);
+        }
       }
-      renderRingTable();
+
+      renderSandbox();
     }
 
-    function triggerFault() {
-      statFaults++;
-      virtualTime += 50;
-      logSim(`--------------------------------------------------`);
-      logSim(`Page fault at Virtual Time = ${virtualTime}. Evaluating circular ring from Frame ${handIdx}...`);
-
-      let evicted = false;
-
-      for (let i = 0; i < frames.length * 2; i++) {
-        let f = frames[handIdx];
-        let age = virtualTime - f.lastUse;
-
-        // Gate 1: R = 1
-        if (f.r === 1) {
-          f.r = 0;
-          f.lastUse = virtualTime;
-          logSim(`Frame ${f.id} (${f.page}): R=1. Reset R=0, updated lastUse=${virtualTime}. Hand advances.`);
-          handIdx = (handIdx + 1) % frames.length;
-          continue;
-        }
-
-        // Gate 2: R = 0, Age <= tau
-        if (age <= tau) {
-          logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} <= tau(${tau}). Inside Working Set. Hand advances.`);
-          handIdx = (handIdx + 1) % frames.length;
-          continue;
-        }
-
-        // Gate 3: R = 0, Age > tau, M = 0 (Clean eviction)
-        if (f.m === 0) {
-          logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} > tau(${tau}), Clean (M=0). EVICTED!`);
-          statEvictions++;
-          let oldPage = f.page;
-          f.page = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-          f.r = 1;
-          f.m = 0;
-          f.lastUse = virtualTime;
-          renderRingTable(f.id);
-          handIdx = (handIdx + 1) % frames.length;
-          evicted = true;
-          logSim(`Claimed Frame ${f.id}. Loaded new Page '${f.page}' (R=1). Hand advances to Frame ${handIdx}.`);
-          break;
-        }
-
-        // Gate 4: R = 0, Age > tau, M = 1 (Dirty write scheduled)
-        if (f.m === 1) {
-          statWrites++;
-          f.m = 0; // Async write scheduled, cleans buffer
-          logSim(`Frame ${f.id} (${f.page}): R=0, Age=${age} > tau(${tau}), Dirty (M=1). Scheduled Async Write. Cleared M.`);
-          handIdx = (handIdx + 1) % frames.length;
-        }
-      }
-
-      if (!evicted) {
-        logSim(`Full ring scan completed. Evicting first available clean candidate.`);
-        renderRingTable();
-      }
-    }
-
-    function resetSimulator() {
-      tau = 400;
-      virtualTime = 2200;
-      handIdx = 0;
-      statFaults = 0;
-      statWrites = 0;
-      statEvictions = 0;
-      frames = [
-        { id: 0, page: "A", r: 1, m: 0, lastUse: 2184 },
-        { id: 1, page: "B", r: 0, m: 1, lastUse: 1200 },
-        { id: 2, page: "C", r: 0, m: 0, lastUse: 850 },
-        { id: 3, page: "D", r: 0, m: 0, lastUse: 2140 },
-        { id: 4, page: "E", r: 1, m: 1, lastUse: 2190 },
-        { id: 5, page: "F", r: 0, m: 1, lastUse: 1500 }
+    function resetSandbox() {
+      policy = "local";
+      document.getElementById("policySelect").value = "local";
+      ramFrames = [
+        { id: 0, owner: "A", age: 10 },
+        { id: 1, owner: "A", age: 20 },
+        { id: 2, owner: "A", age: 30 },
+        { id: 3, owner: "A", age: 40 },
+        { id: 4, owner: "B", age: 5 },
+        { id: 5, owner: "B", age: 15 },
+        { id: 6, owner: "B", age: 25 },
+        { id: 7, owner: "B", age: 35 }
       ];
-      document.getElementById("tauSlider").value = 400;
-      document.getElementById("tauVal").textContent = "400 ticks";
-      document.getElementById("wsLog").innerHTML = "";
-      logSim("WSClock simulator reset to default state.");
-      renderRingTable();
+      document.getElementById("sandboxLog").innerHTML = "";
+      logSandbox("Sandbox reset to baseline 4/4 frame distribution.");
+      renderSandbox();
     }
 
-    renderRingTable();
-    logSim("WSClock simulator initialized with 6 physical frames.");
+    renderSandbox();
+    logSandbox("Sandbox initialized with Local Allocation policy.");
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Stabilize container heights to eliminate layout jumps in 10-wsclock.html
+COMMIT_MSG = """Add Local vs Global Allocation Policies module and update index
 
-Lock down minimum heights for walkthrough text bodies (.tutorial-body)
-and table containers (.table-container) in 10-wsclock.html. Fixing these
-layout boundaries prevents vertical reflow and page jumping when clicking
-stepper buttons or updating simulator states."""
+Implement 11-local-vs-global.html covering Tanenbaum Section 3.5.1
+(Figure 3-22). Provide theoretical breakdown of process-local fixed
+allocations versus system-wide global frame allocation under
+multiprogrammed memory pressure.
 
-def execute_git_command(cmd, step_desc):
-    print(f"--> {step_desc}...")
+Include a comparative SVG diagram, 4-step guided walkthrough, and an
+interactive multi-process allocation sandbox. Update index.html to link
+to 11-local-vs-global.html and mark it as published."""
+
+def run_git_step(cmd, desc):
+    print(f"--> {desc}...")
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.stdout.strip():
         print(res.stdout.strip())
     if res.stderr.strip():
-        print(f"[{step_desc} stderr]\n{res.stderr.strip()}")
+        print(f"[{desc} stderr]\n{res.stderr.strip()}")
     if res.returncode != 0:
-        print(f"Error during {step_desc} (code {res.returncode})", file=sys.stderr)
+        print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
 
-def sync_repository():
-    target_module = "week09-memory-management/10-wsclock.html"
+def sync_module_and_index():
+    target_module = "week09-memory-management/11-local-vs-global.html"
+    index_file = "week09-memory-management/index.html"
+
+    # 1. Write 11-local-vs-global.html
     os.makedirs(os.path.dirname(target_module), exist_ok=True)
     with open(target_module, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote stabilized module to {target_module}")
+    print(f"Wrote module to {target_module}")
 
-    execute_git_command(["git", "add", target_module], "Staging 10-wsclock.html")
-    execute_git_command(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
-    execute_git_command(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Completed successfully!")
+    # 2. Update index.html to point to 11-local-vs-global.html and mark published
+    if os.path.exists(index_file):
+        with open(index_file, "r", encoding="utf-8") as f:
+            idx_content = f.read()
+
+        # Update link href and badge status for topic 11
+        idx_content = re.sub(
+            r'href=["\']11-local-vs-global\.html["\']',
+            'href="11-local-vs-global.html"',
+            idx_content
+        )
+
+        # Mark badge as published if draft
+        idx_content = re.sub(
+            r'(<a[^>]*href=["\']11-local-vs-global\.html["\'][^>]*>[\s\S]*?<span[^>]*class=["\'])badge\s+draft(["\']>)Draft(</span>)',
+            r'\1badge completed published\2Published\3',
+            idx_content
+        )
+
+        with open(index_file, "w", encoding="utf-8") as f:
+            f.write(idx_content)
+        print(f"Updated link and published badge in {index_file}")
+
+    # 3. Git add, commit -a -m, and push
+    run_git_step(["git", "add", target_module, index_file], "Staging files")
+    run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
+    run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
+    print("--> Local vs Global module created and index published successfully!")
 
 if __name__ == "__main__":
-    sync_repository()
+    sync_module_and_index()
