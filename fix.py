@@ -422,23 +422,24 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <!-- 1. Small k Zone -->
           <line x1="180" y1="260" x2="180" y2="242" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2"/>
           <circle cx="180" cy="245" r="4" fill="#d97706"/>
-          <text x="180" y="228" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
-          <text x="180" y="216" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
+          <text x="180" y="218" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
+          <text x="180" y="230" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
 
-          <!-- 2. Optimal Window (tau) & Repositioned Target RAM Allocation to the Left -->
+          <!-- 2. Optimal Window (tau) & Target RAM Allocation -->
           <line x1="360" y1="135" x2="360" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
           <circle cx="360" cy="135" r="6" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
           <text x="360" y="278" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Optimal Window (τ)</text>
-
-          <!-- Placed in the clear open space to the upper-left of the knee -->
           <text x="335" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
           <line x1="340" y1="114" x2="356" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
-          <!-- 3. Large k Zone -->
+          <!-- 3. Large k Zone (Contained in a solid white-backed badge above the plateau curve) -->
           <line x1="590" y1="260" x2="590" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
           <circle cx="590" cy="120" r="4" fill="#7c3aed"/>
-          <text x="590" y="145" font-size="10" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
-          <text x="590" y="157" font-size="9" fill="#475569" text-anchor="middle">Encompasses entire program</text>
+          <g>
+            <rect x="505" y="74" width="170" height="32" fill="#ffffff" stroke="#7c3aed" stroke-width="1" rx="4"/>
+            <text x="590" y="87" font-size="10" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
+            <text x="590" y="99" font-size="8.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
+          </g>
 
           <!-- Bottom Legend / Summary Box -->
           <rect x="80" y="315" width="620" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
@@ -671,37 +672,41 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Relocate target RAM allocation label left of the curve in Fig 3-19
+COMMIT_MSG = """Move Large k label above plateau with white backing in Fig 3-19
 
-Shift the 'Target RAM Allocation w(k, t)' text and arrow annotation to
-the left of the curve inflection point in Figure 3-19. Positioning the
-label in the open upper-left quadrant prevents it from overlapping
-either the rising slope or the horizontal plateau curve in
+Relocate the 'Large k' annotation box above the curve plateau in
+Figure 3-19 and back it with a solid fill container. This ensures the
+text sits cleanly in the upper area of the graph without intersecting
+the curve, horizontal grid lines, or vertical reference indicators in
 09-working-set.html."""
 
-def run_git(cmd, desc):
-    print(f"--> {desc}...")
+def run_git_step(cmd, step_desc):
+    print(f"--> {step_desc}...")
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.stdout.strip():
         print(res.stdout.strip())
     if res.stderr.strip():
-        print(f"[{desc} stderr]\n{res.stderr.strip()}")
+        print(f"[{step_desc} stderr]\n{res.stderr.strip()}")
     if res.returncode != 0:
-        print(f"Error during {desc} (exit code {res.returncode})", file=sys.stderr)
+        print(f"Execution failed during {step_desc} (code {res.returncode})", file=sys.stderr)
         sys.exit(res.returncode)
     return res.stdout.strip()
 
-def sync_module():
+def sync_module_file():
     target_path = "week09-memory-management/09-working-set.html"
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     with open(target_path, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote updated HTML to {target_path}")
+    print(f"Wrote updated HTML content to {target_path}")
 
-    # Commit all tracked modified files using -a -m
-    run_git(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing modified files with -a -m")
-    run_git(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Complete! Successfully committed and pushed to origin/main.")
+    # Explicit stage followed by commit with -a -m and remote push
+    run_git_step(["git", "add", target_path], "Explicitly staging 09-working-set.html")
+    run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing tracked changes with -a -m")
+    run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
+    print("--> Successfully committed and pushed to origin/main.")
+
+def main():
+    sync_module_file()
 
 if __name__ == "__main__":
-    sync_module()
+    main()

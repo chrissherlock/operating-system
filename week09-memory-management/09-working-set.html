@@ -417,23 +417,24 @@
           <!-- 1. Small k Zone -->
           <line x1="180" y1="260" x2="180" y2="242" stroke="#d97706" stroke-width="1.5" stroke-dasharray="2"/>
           <circle cx="180" cy="245" r="4" fill="#d97706"/>
-          <text x="180" y="228" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
-          <text x="180" y="216" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
+          <text x="180" y="218" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
+          <text x="180" y="230" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
 
-          <!-- 2. Optimal Window (tau) & Repositioned Target RAM Allocation to the Left -->
+          <!-- 2. Optimal Window (tau) & Target RAM Allocation -->
           <line x1="360" y1="135" x2="360" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
           <circle cx="360" cy="135" r="6" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
           <text x="360" y="278" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Optimal Window (τ)</text>
-
-          <!-- Placed in the clear open space to the upper-left of the knee -->
           <text x="335" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
           <line x1="340" y1="114" x2="356" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
-          <!-- 3. Large k Zone -->
+          <!-- 3. Large k Zone (Contained in a solid white-backed badge above the plateau curve) -->
           <line x1="590" y1="260" x2="590" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
           <circle cx="590" cy="120" r="4" fill="#7c3aed"/>
-          <text x="590" y="145" font-size="10" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
-          <text x="590" y="157" font-size="9" fill="#475569" text-anchor="middle">Encompasses entire program</text>
+          <g>
+            <rect x="505" y="74" width="170" height="32" fill="#ffffff" stroke="#7c3aed" stroke-width="1" rx="4"/>
+            <text x="590" y="87" font-size="10" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
+            <text x="590" y="99" font-size="8.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
+          </g>
 
           <!-- Bottom Legend / Summary Box -->
           <rect x="80" y="315" width="620" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
