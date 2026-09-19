@@ -280,11 +280,11 @@
     }
 
     /* State Machine Diagram Styles */
-    .sm-state { cursor: pointer; transition: all 0.25s ease; }
-    .sm-box { fill: #ffffff; stroke: #0284c7; stroke-width: 2px; rx: 6px; }
-    .sm-text { font-size: 10px; font-weight: 700; fill: #0369a1; text-anchor: middle; font-family: var(--font-mono); }
-    .sm-subtext { font-size: 8px; fill: #64748b; text-anchor: middle; }
-    .active-state .sm-box { fill: #0284c7; stroke: #0369a1; stroke-width: 3px; filter: drop-shadow(0 4px 8px rgba(2,132,199,0.3)); }
+    .sm-state { transition: all 0.25s ease; }
+    .sm-box { fill: #0f172a; stroke: #38bdf8; stroke-width: 2px; rx: 6px; }
+    .sm-text { font-size: 10px; font-weight: 700; fill: #38bdf8; text-anchor: middle; font-family: var(--font-mono); }
+    .sm-subtext { font-size: 8px; fill: #94a3b8; text-anchor: middle; }
+    .active-state .sm-box { fill: #0284c7; stroke: #38bdf8; stroke-width: 3px; filter: drop-shadow(0 4px 8px rgba(2,132,199,0.4)); }
     .active-state .sm-text { fill: #ffffff; }
     .active-state .sm-subtext { fill: #e0f2fe; }
   </style>
@@ -531,10 +531,10 @@
       </ol>
     </div>
 
-    <!-- Section 3: Interactive Kernel Table Inspector Sandbox -->
+    <!-- Section 3: Interactive Kernel Table Inspector & Embedded State Machine Sandbox -->
     <div class="card kernel-sandbox">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div style="font-weight: 700; font-size: 1.1rem; color: #f8fafc;">3. Interactive Kernel Table Inspector Sandbox</div>
+        <div style="font-weight: 700; font-size: 1.1rem; color: #f8fafc;">3. Interactive Kernel Table Inspector &amp; State Machine</div>
         <div class="sandbox-controls">
           <button onclick="inspectExec('creat')" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
           <button onclick="inspectExec('open')" class="btn-secondary" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
@@ -545,9 +545,58 @@
         </div>
       </div>
       <p style="font-size: 0.88rem; color: #94a3b8;">
-        Execute POSIX system calls below to observe how the kernel updates volatile memory tables and file descriptors in real time.
+        Execute POSIX system calls below to observe how the kernel updates volatile memory tables and file descriptor state transitions in real time.
       </p>
 
+      <!-- Embedded Interactive State Machine Diagram -->
+      <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+        <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #38bdf8; text-transform: uppercase;">Live File Descriptor Lifecycle State Machine</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 120" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <g id="sm-state-0" class="sm-state active-state">
+            <rect x="20" y="25" width="110" height="55" class="sm-box"/>
+            <text x="75" y="48" class="sm-text">UNALLOCATED</text>
+            <text x="75" y="64" class="sm-subtext">Process Closed</text>
+          </g>
+          <path d="M 130 52 L 180 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
+          <text x="155" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">creat/open()</text>
+
+          <g id="sm-state-1" class="sm-state">
+            <rect x="180" y="25" width="120" height="55" class="sm-box"/>
+            <text x="240" y="48" class="sm-text">FD_ALLOCATED</text>
+            <text x="240" y="64" class="sm-subtext">fd slot bound</text>
+          </g>
+          <path d="M 300 52 L 350 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
+          <text x="325" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">read()</text>
+
+          <g id="sm-state-2" class="sm-state">
+            <rect x="350" y="25" width="110" height="55" class="sm-box"/>
+            <text x="405" y="48" class="sm-text">OFT_BOUND</text>
+            <text x="405" y="64" class="sm-subtext">Offset advancing</text>
+          </g>
+          <path d="M 460 52 L 510 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
+          <text x="485" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">lseek()</text>
+
+          <g id="sm-state-3" class="sm-state">
+            <rect x="510" y="25" width="110" height="55" class="sm-box"/>
+            <text x="565" y="48" class="sm-text">RAM_CACHED</text>
+            <text x="565" y="64" class="sm-subtext">Random Access</text>
+          </g>
+
+          <path d="M 565 80 L 565 102 L 75 102 L 75 80" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#smarrow-close)"/>
+          <text x="320" y="112" font-size="8" fill="#fbbf24" font-weight="700" text-anchor="middle">close() [Flushes Cache &amp; Deallocates FD]</text>
+
+          <defs>
+            <marker id="smarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
+            <marker id="smarrow-close" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Side-by-Side Kernel Table Panels -->
       <div class="inspector-grid">
         <div class="inspector-panel">
           <div class="inspector-title"><span>Process FD Table</span><span>(Private)</span></div>
@@ -574,6 +623,7 @@
         </div>
       </div>
 
+      <!-- Guided Debugging Challenge Panel -->
       <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
         <div style="font-size: 0.78rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; font-family: var(--font-mono);">Guided Debugging Challenge</div>
         <div style="font-size: 0.85rem; color: #cbd5e1;" id="challengeDesc">
@@ -587,81 +637,6 @@
       </div>
 
       <div id="inspectorConsole" class="kernel-console">$ sandbox telemetry initialized. Ready for system calls...</div>
-    </div>
-
-    <!-- Section Interactive Tour: The Anatomy of a File Descriptor & State Machine -->
-    <div class="card tour-panel" id="tourCard">
-      <div class="tour-header">
-        <span id="tourStepCounter">Stage 1 of 4: The Handshake</span>
-        <span>Interactive Kernel State Machine Tour</span>
-      </div>
-      <div id="tourTitle" class="tour-title">1. Opening the Gateway: The File Descriptor Allocation</div>
-      <div id="tourText" class="tour-body">
-        When a user-space process calls <code>open("data.txt", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.
-      </div>
-
-      <!-- Interactive SVG State Machine Diagram -->
-      <div style="background: #ffffff; border: 1px solid #7dd3fc; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase;" id="tourDiagramCaption">Figure: File Descriptor Lifecycle State Machine</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <g id="sm-state-0" class="sm-state active-state" onclick="jumpTourStage(0)">
-            <rect x="20" y="35" width="110" height="60" class="sm-box"/>
-            <text x="75" y="60" class="sm-text">UNALLOCATED</text>
-            <text x="75" y="76" class="sm-subtext">Process Closed</text>
-          </g>
-          <path d="M 130 65 L 180 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="155" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">open()</text>
-          <g id="sm-state-1" class="sm-state" onclick="jumpTourStage(1)">
-            <rect x="180" y="35" width="120" height="60" class="sm-box"/>
-            <text x="240" y="60" class="sm-text">FD_ALLOCATED</text>
-            <text x="240" y="76" class="sm-subtext">fd slot bound</text>
-          </g>
-          <path d="M 300 65 L 350 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="325" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">read()</text>
-          <g id="sm-state-2" class="sm-state" onclick="jumpTourStage(2)">
-            <rect x="350" y="35" width="110" height="60" class="sm-box"/>
-            <text x="405" y="60" class="sm-text">OFT_BOUND</text>
-            <text x="405" y="76" class="sm-subtext">Offset advancing</text>
-          </g>
-          <path d="M 460 65 L 510 65" stroke="#0284c7" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="485" y="55" font-size="8" fill="#0369a1" font-weight="600" text-anchor="middle">lseek()</text>
-          <g id="sm-state-3" class="sm-state" onclick="jumpTourStage(3)">
-            <rect x="510" y="35" width="110" height="60" class="sm-box"/>
-            <text x="565" y="60" class="sm-text">RAM_CACHED</text>
-            <text x="565" y="76" class="sm-subtext">Random Access</text>
-          </g>
-          <path d="M 565 95 L 565 115 L 75 115 L 75 95" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#smarrow-close)"/>
-          <text x="320" y="128" font-size="8" fill="#d97706" font-weight="700" text-anchor="middle">close() [Flushes Cache &amp; Deallocates FD]</text>
-          <defs>
-            <marker id="smarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-            </marker>
-            <marker id="smarrow-close" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
-            </marker>
-          </defs>
-        </svg>
-      </div>
-
-      <div class="telemetry-grid">
-        <div class="telemetry-box">
-          <span class="telemetry-label">Process FD Slot</span>
-          <span class="telemetry-value" id="tel-fd">fd [3] → Bound</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-label">Open File Table Entry</span>
-          <span class="telemetry-value" id="tel-oft">Ref Count: 1 | Offset: 0B</span>
-        </div>
-        <div class="telemetry-box">
-          <span class="telemetry-label">In-Memory I-Node</span>
-          <span class="telemetry-value" id="tel-inode">i-node #512 (Cached in RAM)</span>
-        </div>
-      </div>
-
-      <div class="tour-nav">
-        <button id="tourPrevBtn" class="btn-secondary" disabled>&larr; Previous Stage</button>
-        <button id="tourNextBtn" onclick="nextTourStage()">Next Stage &rarr;</button>
-      </div>
     </div>
 
     <!-- Section 4.1.7: Example Program (Syntax Highlighted) -->
@@ -718,7 +693,8 @@
       inode: "None",
       block: "None",
       dirty: "CLEAN",
-      size: 0
+      size: 0,
+      stateIndex: 0
     };
 
     function updateInspectorUI(consoleMsg) {
@@ -739,6 +715,16 @@
 
       document.getElementById("insp-size").textContent = kernelState.size + " Bytes";
       document.getElementById("inspectorConsole").textContent = consoleMsg;
+
+      // Update State Machine node highlights
+      for (let i = 0; i < 4; i++) {
+        const node = document.getElementById(`sm-state-${i}`);
+        if (i === kernelState.stateIndex) {
+          node.classList.add('active-state');
+        } else {
+          node.classList.remove('active-state');
+        }
+      }
     }
 
     function inspectExec(cmd) {
@@ -753,6 +739,7 @@
         kernelState.block = "Block #104";
         kernelState.dirty = "CLEAN";
         kernelState.size = 256;
+        kernelState.stateIndex = 1; // FD_ALLOCATED
         updateInspectorUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Process FD Table. Created Open File Table entry & loaded i-node #512 into RAM.`);
       } else if (cmd === 'read') {
         if (!kernelState.isOpen) {
@@ -760,6 +747,7 @@
           return;
         }
         kernelState.offset += 4096;
+        kernelState.stateIndex = 2; // OFT_BOUND
         updateInspectorUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into user space. Offset advanced to ${kernelState.offset} Bytes.`);
       } else if (cmd === 'write') {
         if (!kernelState.isOpen) {
@@ -769,6 +757,7 @@
         kernelState.offset += 64;
         kernelState.size += 64;
         kernelState.dirty = "DIRTY";
+        kernelState.stateIndex = 3; // RAM_CACHED
         updateInspectorUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`);
       } else if (cmd === 'seek') {
         if (!kernelState.isOpen) {
@@ -776,6 +765,7 @@
           return;
         }
         kernelState.offset = 0;
+        kernelState.stateIndex = 2; // OFT_BOUND
         updateInspectorUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`);
       } else if (cmd === 'close') {
         if (!kernelState.isOpen) {
@@ -792,6 +782,7 @@
         kernelState.inode = "None";
         kernelState.block = "None";
         kernelState.dirty = "CLEAN";
+        kernelState.stateIndex = 0; // UNALLOCATED
         updateInspectorUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`);
       }
     }
@@ -810,97 +801,6 @@
         setTimeout(() => inspectExec('write'), 200);
       }
     }
-
-    const tourStages = [
-      {
-        counter: "Stage 1 of 4: The Handshake",
-        title: "1. Opening the Gateway: The File Descriptor Allocation",
-        text: "When a user-space process calls <code>open(\"data.txt\", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.",
-        fd: "fd [3] → Bound",
-        oft: "Ref Count: 1 | Offset: 0B",
-        inode: "i-node #512 (Cached in RAM)",
-        stateIndex: 0,
-        caption: "Figure: State Machine in [UNALLOCATED] → Transitioning via open()"
-      },
-      {
-        counter: "Stage 2 of 4: The Data Stream",
-        title: "2. Traversing & Advancing: The Read Cycle",
-        text: "During a <code>read(3, buffer, 4096)</code> system call, bytes are transferred from the kernel Buffer Cache into user space. Notice how the file offset inside the Open File Table automatically marches forward with every successful chunk read.",
-        fd: "fd [3] → Active",
-        oft: "Ref Count: 1 | Offset: 4096B",
-        inode: "i-node #512 (Read Lock)",
-        stateIndex: 1,
-        caption: "Figure: State Machine in [FD_ALLOCATED] → Transitioning via read()"
-      },
-      {
-        counter: "Stage 3 of 4: Arbitrary Jumps",
-        title: "3. Instant Repositioning: The Seek Operation",
-        text: "When an application calls <code>lseek(3, 1024, SEEK_SET)</code>, zero disk I/O occurs. The kernel simply recalculates the logical byte offset pointer in the Open File Table instantly, preparing the pointer for random-access lookups.",
-        fd: "fd [3] → Active",
-        oft: "Ref Count: 1 | Offset: 1024B (Seeked)",
-        inode: "i-node #512 (Random Access)",
-        stateIndex: 2,
-        caption: "Figure: State Machine in [OFT_BOUND] → Transitioning via lseek()"
-      },
-      {
-        counter: "Stage 4 of 4: The Cleanup",
-        title: "4. Releasing the Gateway: Closing the Descriptor",
-        text: "When <code>close(3)</code> executes, the kernel flushes any dirty buffer cache blocks to physical disk storage, deallocates the slot in the process FD table, and decrements the open file table reference count.",
-        fd: "fd [3] → Released",
-        oft: "Table Entry Destroyed",
-        inode: "Ref Count Decremented",
-        stateIndex: 3,
-        caption: "Figure: State Machine returning to [UNALLOCATED] via close()"
-      }
-    ];
-
-    let currentTourStage = 0;
-
-    function nextTourStage() {
-      if (currentTourStage < tourStages.length - 1) {
-        currentTourStage++;
-        updateTourDisplay();
-      } else {
-        currentTourStage = 0;
-        updateTourDisplay();
-      }
-    }
-
-    function jumpTourStage(index) {
-      currentTourStage = index;
-      updateTourDisplay();
-    }
-
-    function updateTourDisplay() {
-      const stage = tourStages[currentTourStage];
-      document.getElementById("tourStepCounter").textContent = stage.counter;
-      document.getElementById("tourTitle").textContent = stage.title;
-      document.getElementById("tourText").innerHTML = stage.text;
-      document.getElementById("tel-fd").textContent = stage.fd;
-      document.getElementById("tel-oft").textContent = stage.oft;
-      document.getElementById("tel-inode").textContent = stage.inode;
-
-      document.getElementById("tourDiagramCaption").textContent = stage.caption;
-
-      for (let i = 0; i < 4; i++) {
-        const node = document.getElementById(`sm-state-${i}`);
-        if (i === stage.stateIndex) {
-          node.classList.add('active-state');
-        } else {
-          node.classList.remove('active-state');
-        }
-      }
-
-      document.getElementById("tourPrevBtn").disabled = (currentTourStage === 0);
-      document.getElementById("tourNextBtn").textContent = (currentTourStage === tourStages.length - 1) ? "Restart Tour" : "Next Stage →";
-    }
-
-    document.getElementById("tourPrevBtn").onclick = () => {
-      if (currentTourStage > 0) {
-        currentTourStage--;
-        updateTourDisplay();
-      }
-    };
   </script>
 </body>
 </html>
