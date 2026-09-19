@@ -1,0 +1,811 @@
+#!/usr/bin/env python3
+import os
+import re
+
+PAGE_CONTENT = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7. Page Replacement: The Clock Algorithm — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --hit-color: #16a34a;
+      --hit-bg: #dcfce7;
+      --fault-color: #dc2626;
+      --fault-bg: #fee2e2;
+      --warn-color: #d97706;
+      --warn-bg: #fef3c7;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover { background-color: var(--accent); color: #fff; }
+
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .theory-section {
+      line-height: 1.7;
+      font-size: 0.95rem;
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .theory-section h2 {
+      font-size: 1.25rem;
+      color: var(--text);
+      margin-bottom: 4px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 4px;
+    }
+    .theory-callout {
+      background-color: #f0f9ff;
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #0369a1;
+      font-family: var(--font-mono);
+      line-height: 1.5;
+    }
+
+    .figure-container {
+      width: 100%;
+      max-width: 820px;
+      margin: 10px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    /* Tutorial Panel */
+    .tutorial-panel {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+    }
+    .tutorial-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tutorial-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #075985;
+    }
+    .tutorial-body {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #0c4a6e;
+    }
+
+    .tour-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.15s ease;
+    }
+    button:hover { background-color: var(--accent-hover); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.btn-sec {
+      background-color: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    button.btn-sec:hover { background-color: #e2e8f0; }
+
+    /* Sandbox & Walkthrough Grid Layouts */
+    .split-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    @media (max-width: 860px) {
+      .split-grid { grid-template-columns: 1fr; }
+    }
+
+    .clock-canvas-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .table-spec {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+    }
+    .table-spec th, .table-spec td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: center;
+    }
+    .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
+    .table-spec tr.hand-row { background-color: #fef08a; font-weight: 700; }
+
+    .telemetry-box {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    .terminal-box {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 4px;
+    }
+    .log-row { line-height: 1.4; }
+    .log-hit { color: #4ade80; font-weight: 700; }
+    .log-fault { color: #f87171; font-weight: 700; }
+    .log-clear { color: #facc15; }
+    .log-info { color: #38bdf8; }
+  </style>
+</head>
+<body>
+
+  <div class="nav-back">
+    <a href="index.html">&larr; Back to Week Overview</a>
+  </div>
+
+  <header>
+    <h1>7. Page Replacement: The Clock Algorithm</h1>
+    <p class="subtitle">Tanenbaum Section 3.4.4 (Fig. 3-16): Second-chance circular FIFO replacement, R-bit clearing sweeps, and live page fault handling.</p>
+  </header>
+
+  <div class="main-container">
+
+    <!-- 1. DETAILED THEORETICAL EXPLANATION -->
+    <div class="card">
+      <div class="theory-section">
+        <h2>1. The Need for Page Replacement</h2>
+        <p>
+          When a page fault occurs and all physical memory frames are occupied, the operating system kernel must choose an existing page to evict from physical RAM. If the evicted page was modified while in memory, it must be written back to disk; if unmodified, the incoming page overwrites the frame directly.
+        </p>
+        <p>
+          While the <strong>Least Recently Used (LRU)</strong> policy is theoretically optimal among practical algorithms, recording an exact LRU sequence in hardware requires updating a counter or moving a linked-list node on every single memory reference, introducing severe memory bus latency.
+        </p>
+
+        <h2>2. Second-Chance and the Clock Optimization</h2>
+        <p>
+          A practical approximation of LRU is the <strong>Second-Chance</strong> replacement policy. The OS examines the <strong>Referenced (R) bit</strong> in the hardware page table entry:
+        </p>
+        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
+          <li>If <code>R = 0</code>: The page is old and has not been referenced recently. It is evicted immediately.</li>
+          <li>If <code>R = 1</code>: The page was recently referenced. The OS clears <code>R &rarr; 0</code>, grants it a second chance, and inspects the next candidate.</li>
+        </ul>
+        <div class="theory-callout">
+          <strong>Tanenbaum's Clock Optimization (Fig. 3-16):</strong><br>
+          Second-chance requires moving unreferenced pages to the tail of a linked list, which is unnecessarily slow. The <strong>Clock Algorithm</strong> eliminates this list-shuffling overhead by arranging all page frames into a circular buffer governed by a single rotating clock hand.
+        </div>
+      </div>
+
+      <!-- Embedded SVG Diagram for Figure 3-16 -->
+      <div class="figure-container">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-16: The Clock Page Replacement Algorithm (Before and After Page Fault at Time 20)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 270" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+            </marker>
+          </defs>
+
+          <!-- Left Clock Ring (a) -->
+          <g transform="translate(10, 0)">
+            <circle cx="180" cy="130" r="85" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+            <text x="180" y="240" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">(a) State before page fault occurs</text>
+
+            <rect x="160" y="30" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="180" y="50" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">A, R=1</text>
+
+            <rect x="235" y="65" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="255" y="85" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">B, R=0</text>
+
+            <rect x="250" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="270" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">C, R=0</text>
+
+            <rect x="200" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="220" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">D, R=1</text>
+
+            <rect x="120" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="140" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">E, R=1</text>
+
+            <rect x="70" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="90" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">F, R=0</text>
+
+            <rect x="85" y="65" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="105" y="85" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">G, R=1</text>
+
+            <!-- Hand Pointer -->
+            <path d="M 180 130 L 180 65" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+            <circle cx="180" cy="130" r="4" fill="#0284c7"/>
+            <text x="180" y="115" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Hand &rarr; A</text>
+          </g>
+
+          <!-- Right Clock Ring (b) -->
+          <g transform="translate(390, 0)">
+            <circle cx="180" cy="130" r="85" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+            <text x="180" y="240" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">(b) Page B evicted &rarr; Page I loaded, Hand advances</text>
+
+            <rect x="160" y="30" width="40" height="30" fill="#fef3c7" stroke="#d97706" rx="4"/>
+            <text x="180" y="50" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">A, R=0</text>
+
+            <rect x="235" y="65" width="40" height="30" fill="#dcfce7" stroke="#16a34a" rx="4"/>
+            <text x="255" y="85" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">I, R=1</text>
+
+            <rect x="250" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="270" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">C, R=0</text>
+
+            <rect x="200" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="220" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">D, R=1</text>
+
+            <rect x="120" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="140" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">E, R=1</text>
+
+            <rect x="70" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="90" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">F, R=0</text>
+
+            <rect x="85" y="65" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
+            <text x="105" y="85" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">G, R=1</text>
+
+            <!-- Hand Pointer pointing to C -->
+            <path d="M 180 130 L 245 150" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+            <circle cx="180" cy="130" r="4" fill="#0284c7"/>
+            <text x="195" y="150" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Hand &rarr; C</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- 2. GUIDED WALKTHROUGH WIDGET WITH INTERACTIVE CLOCK VISUALIZATION -->
+    <div class="card tutorial-panel">
+      <div class="tutorial-header">
+        <span id="wtCounter">Step 1 of 4</span>
+        <span>Interactive Clock Hand Stepper</span>
+      </div>
+      <div id="wtTitle" class="tutorial-title">1. Incoming Page Fault: Requesting Page 'I'</div>
+
+      <div class="split-grid">
+        <!-- Dedicated Walkthrough Clock Graphic -->
+        <div class="clock-canvas-box">
+          <svg id="wtClockSvg" viewBox="0 0 320 320" width="290" height="290" style="font-family: var(--font-mono);">
+            <circle cx="160" cy="160" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+            <g id="wtSvgFramesGroup"></g>
+            <line id="wtSvgHandLine" x1="160" y1="160" x2="160" y2="65" stroke="#0284c7" stroke-width="3.5" marker-end="url(#arrow)"/>
+            <circle cx="160" cy="160" r="5" fill="#0284c7"/>
+          </svg>
+        </div>
+
+        <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
+          <div id="wtText" class="tutorial-body"></div>
+          <div class="tour-nav">
+            <button id="wtPrevBtn" class="btn-sec" onclick="stepWtBackward()">Previous</button>
+            <button id="wtNextBtn" onclick="stepWtForward()">Next Step &rarr;</button>
+            <button class="btn-sec" style="margin-left:auto;" onclick="document.getElementById('sandboxSection').scrollIntoView({behavior:'smooth'})">Jump to Sandbox &darr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. INTERACTIVE CLOCK REPLACEMENT SANDBOX -->
+    <div class="card" id="sandboxSection">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive Clock Algorithm Sandbox</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
+            Issue page references, inspect the circular pointer sweep, and toggle referenced bits on the live canvas.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-sec" onclick="resetClockState()">Reset Frames</button>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <label style="font-size:0.85rem; font-weight:600;">Reference Page:</label>
+        <input type="text" id="refPageInput" value="I" maxlength="2" style="width:45px; text-align:center; padding:4px; font-family:var(--font-mono); text-transform:uppercase;">
+        <button onclick="executePageAccess()">Access Page</button>
+        <button class="btn-sec" onclick="clearAllRefBits()">Periodic Timer Tick (Clear All R)</button>
+      </div>
+
+      <!-- Telemetry Banner -->
+      <div class="telemetry-box">
+        <span>Total Accesses: <strong id="statAccesses">0</strong></span>
+        <span>Hits: <strong id="statHits" style="color:#4ade80;">0</strong></span>
+        <span>Faults: <strong id="statFaults" style="color:#f87171;">0</strong></span>
+        <span>Hit Rate: <strong id="statHitRate" style="color:#38bdf8;">0.0%</strong></span>
+      </div>
+
+      <div class="split-grid">
+        <!-- SVG Visual Clock Face -->
+        <div class="clock-canvas-box">
+          <svg id="clockSvg" viewBox="0 0 320 320" width="300" height="300" style="font-family: var(--font-mono);">
+            <circle cx="160" cy="160" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
+            <g id="svgFramesGroup"></g>
+            <line id="svgHandLine" x1="160" y1="160" x2="160" y2="65" stroke="#0284c7" stroke-width="3" marker-end="url(#arrow)"/>
+            <circle cx="160" cy="160" r="5" fill="#0284c7"/>
+          </svg>
+        </div>
+
+        <!-- Frame Table & Execution Log -->
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Circular Frame Array</span>
+            <table class="table-spec" style="margin-top:6px;">
+              <thead>
+                <tr><th>Frame</th><th>Page</th><th>R Bit</th><th>Pointer</th><th>Action</th></tr>
+              </thead>
+              <tbody id="clockTableBody"></tbody>
+            </table>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Kernel Replacement Log</span>
+            <div id="clockLog" class="terminal-box"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function calcAngleCoordinates(index, total, radius, cx, cy) {
+      const angle = (index * (2 * Math.PI / total)) - (Math.PI / 2);
+      return {
+        x: cx + radius * Math.cos(angle),
+        y: cy + radius * Math.sin(angle)
+      };
+    }
+
+    /* =========================================================================
+       PART 2: DYNAMIC WALKTHROUGH WITH GRAPHICAL CLOCK
+       ========================================================================= */
+    let wtStep = 0;
+    const wtSteps = [
+      {
+        title: "1. Incoming Page Fault: Requesting Page 'I'",
+        text: "The CPU attempts to reference Page <code>I</code>. A page fault occurs because Page <code>I</code> is not resident in physical memory. The clock hand points directly to <strong>Frame 0 (Page A)</strong>.",
+        hand: 0,
+        frames: [
+          { page: "A", r: 1 },
+          { page: "B", r: 0 },
+          { page: "C", r: 0 },
+          { page: "D", r: 1 },
+          { page: "E", r: 1 },
+          { page: "F", r: 0 },
+          { page: "G", r: 1 }
+        ]
+      },
+      {
+        title: "2. Inspecting Page A (R = 1): Second Chance Granted",
+        text: "The pointer inspects Frame 0 holding Page A. Because its <strong>R bit is 1</strong>, Page A was recently used. The algorithm grants A a second chance: it clears <code>R &rarr; 0</code> and rotates clockwise to Frame 1.",
+        hand: 1,
+        frames: [
+          { page: "A", r: 0 },
+          { page: "B", r: 0 },
+          { page: "C", r: 0 },
+          { page: "D", r: 1 },
+          { page: "E", r: 1 },
+          { page: "F", r: 0 },
+          { page: "G", r: 1 }
+        ]
+      },
+      {
+        title: "3. Inspecting Page B (R = 0): Victim Selected!",
+        text: "The pointer reaches Frame 1 holding Page B. Its <strong>R bit is 0</strong>! Page B is the victim: Frame 1 is reclaimed, Page B is evicted, and incoming Page I is loaded with <code>R = 1</code>.",
+        hand: 1,
+        frames: [
+          { page: "A", r: 0 },
+          { page: "I", r: 1 },
+          { page: "C", r: 0 },
+          { page: "D", r: 1 },
+          { page: "E", r: 1 },
+          { page: "F", r: 0 },
+          { page: "G", r: 1 }
+        ]
+      },
+      {
+        title: "4. Advancing Pointer to Next Frame",
+        text: "Having loaded Page I into Frame 1, the clock hand advances one position past the new entry, pointing to <strong>Frame 2 (Page C)</strong> ready for future page faults.",
+        hand: 2,
+        frames: [
+          { page: "A", r: 0 },
+          { page: "I", r: 1 },
+          { page: "C", r: 0 },
+          { page: "D", r: 1 },
+          { page: "E", r: 1 },
+          { page: "F", r: 0 },
+          { page: "G", r: 1 }
+        ]
+      }
+    ];
+
+    function renderWt() {
+      const s = wtSteps[wtStep];
+      document.getElementById("wtCounter").textContent = `Step ${wtStep + 1} of ${wtSteps.length}`;
+      document.getElementById("wtTitle").textContent = s.title;
+      document.getElementById("wtText").innerHTML = s.text;
+
+      // Render Walkthrough Clock graphic
+      const group = document.getElementById("wtSvgFramesGroup");
+      group.innerHTML = "";
+      const total = s.frames.length;
+
+      s.frames.forEach((f, idx) => {
+        const coords = calcAngleCoordinates(idx, total, 115, 160, 160);
+        const rectColor = f.r ? "#dcfce7" : "#fee2e2";
+        const strokeColor = f.r ? "#16a34a" : "#dc2626";
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", coords.x - 22);
+        rect.setAttribute("y", coords.y - 18);
+        rect.setAttribute("width", 44);
+        rect.setAttribute("height", 36);
+        rect.setAttribute("fill", rectColor);
+        rect.setAttribute("stroke", strokeColor);
+        rect.setAttribute("stroke-width", "1.5");
+        rect.setAttribute("rx", "4");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", coords.x);
+        text.setAttribute("y", coords.y - 1);
+        text.setAttribute("font-size", "11");
+        text.setAttribute("font-weight", "700");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "#0f172a");
+        text.textContent = `${f.page}`;
+
+        const subText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        subText.setAttribute("x", coords.x);
+        subText.setAttribute("y", coords.y + 11);
+        subText.setAttribute("font-size", "9");
+        subText.setAttribute("font-weight", "600");
+        subText.setAttribute("text-anchor", "middle");
+        subText.setAttribute("fill", strokeColor);
+        subText.textContent = `R=${f.r}`;
+
+        group.appendChild(rect);
+        group.appendChild(text);
+        group.appendChild(subText);
+      });
+
+      // Move Walkthrough hand pointer
+      const handCoords = calcAngleCoordinates(s.hand, total, 80, 160, 160);
+      const handLine = document.getElementById("wtSvgHandLine");
+      handLine.setAttribute("x2", handCoords.x);
+      handLine.setAttribute("y2", handCoords.y);
+
+      document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
+      document.getElementById("wtNextBtn").disabled = (wtStep === wtSteps.length - 1);
+    }
+
+    function stepWtForward() {
+      if (wtStep < wtSteps.length - 1) { wtStep++; renderWt(); }
+    }
+    function stepWtBackward() {
+      if (wtStep > 0) { wtStep--; renderWt(); }
+    }
+    renderWt();
+
+    /* =========================================================================
+       PART 3: INTERACTIVE CLOCK SANDBOX LOGIC
+       ========================================================================= */
+    let clockFrames = [
+      { id: 0, page: "A", r: 1 },
+      { id: 1, page: "B", r: 0 },
+      { id: 2, page: "C", r: 0 },
+      { id: 3, page: "D", r: 1 },
+      { id: 4, page: "E", r: 1 },
+      { id: 5, page: "F", r: 0 },
+      { id: 6, page: "G", r: 1 }
+    ];
+    let clockHand = 0;
+    let statTotal = 0;
+    let statHits = 0;
+    let statFaults = 0;
+
+    function renderClock() {
+      const group = document.getElementById("svgFramesGroup");
+      group.innerHTML = "";
+      const total = clockFrames.length;
+
+      clockFrames.forEach((f, idx) => {
+        const coords = calcAngleCoordinates(idx, total, 115, 160, 160);
+        const rectColor = f.r ? "#dcfce7" : "#fee2e2";
+        const strokeColor = f.r ? "#16a34a" : "#dc2626";
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", coords.x - 22);
+        rect.setAttribute("y", coords.y - 18);
+        rect.setAttribute("width", 44);
+        rect.setAttribute("height", 36);
+        rect.setAttribute("fill", rectColor);
+        rect.setAttribute("stroke", strokeColor);
+        rect.setAttribute("stroke-width", "1.5");
+        rect.setAttribute("rx", "4");
+        rect.style.cursor = "pointer";
+        rect.onclick = () => toggleRefBit(idx);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", coords.x);
+        text.setAttribute("y", coords.y - 1);
+        text.setAttribute("font-size", "11");
+        text.setAttribute("font-weight", "700");
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("fill", "#0f172a");
+        text.textContent = `${f.page}`;
+
+        const subText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        subText.setAttribute("x", coords.x);
+        subText.setAttribute("y", coords.y + 11);
+        subText.setAttribute("font-size", "9");
+        subText.setAttribute("font-weight", "600");
+        subText.setAttribute("text-anchor", "middle");
+        subText.setAttribute("fill", strokeColor);
+        subText.textContent = `R=${f.r}`;
+
+        group.appendChild(rect);
+        group.appendChild(text);
+        group.appendChild(subText);
+      });
+
+      const handCoords = calcAngleCoordinates(clockHand, total, 80, 160, 160);
+      const handLine = document.getElementById("svgHandLine");
+      handLine.setAttribute("x2", handCoords.x);
+      handLine.setAttribute("y2", handCoords.y);
+
+      const tbody = document.getElementById("clockTableBody");
+      tbody.innerHTML = "";
+      clockFrames.forEach((f, idx) => {
+        const tr = document.createElement("tr");
+        if (idx === clockHand) tr.className = "hand-row";
+        tr.innerHTML = `
+          <td>Frame ${f.id}</td>
+          <td><strong>${f.page}</strong></td>
+          <td><span style="color:${f.r ? 'var(--hit-color)' : 'var(--fault-color)'}; font-weight:700;">${f.r}</span></td>
+          <td>${idx === clockHand ? '&rarr; [Hand]' : ''}</td>
+          <td><button class="btn-sec" style="padding:2px 8px; font-size:0.75rem;" onclick="toggleRefBit(${idx})">Toggle R</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("statAccesses").textContent = statTotal;
+      document.getElementById("statHits").textContent = statHits;
+      document.getElementById("statFaults").textContent = statFaults;
+      const rate = statTotal > 0 ? ((statHits / statTotal) * 100).toFixed(1) : "0.0";
+      document.getElementById("statHitRate").textContent = `${rate}%`;
+    }
+
+    function logEvent(msg, type = "log-row") {
+      const term = document.getElementById("clockLog");
+      const row = document.createElement("div");
+      row.className = `log-row ${type}`;
+      row.textContent = `> ${msg}`;
+      term.prepend(row);
+    }
+
+    function toggleRefBit(idx) {
+      clockFrames[idx].r = clockFrames[idx].r ? 0 : 1;
+      logEvent(`Manually toggled Frame ${idx} ('${clockFrames[idx].page}') R-bit &rarr; ${clockFrames[idx].r}`, "log-clear");
+      renderClock();
+    }
+
+    function clearAllRefBits() {
+      clockFrames.forEach(f => f.r = 0);
+      logEvent("OS Timer Tick: Cleared R-bit to 0 across all physical frames.", "log-clear");
+      renderClock();
+    }
+
+    function executePageAccess() {
+      const input = document.getElementById("refPageInput");
+      const p = input.value.trim().toUpperCase();
+      if (!p) return;
+
+      statTotal++;
+      logEvent(`--------------------------------------------------`);
+      logEvent(`Instruction references virtual Page '${p}'...`, "log-info");
+
+      const hitIdx = clockFrames.findIndex(f => f.page === p);
+      if (hitIdx !== -1) {
+        statHits++;
+        clockFrames[hitIdx].r = 1;
+        logEvent(`PAGE HIT: Page '${p}' is resident in Frame ${hitIdx}. Set R=1.`, "log-hit");
+        renderClock();
+        return;
+      }
+
+      statFaults++;
+      logEvent(`PAGE FAULT: Page '${p}' is absent from RAM! Running Clock eviction...`, "log-fault");
+      let searched = 0;
+      while (searched < clockFrames.length * 2) {
+        let cur = clockFrames[clockHand];
+        if (cur.r === 0) {
+          let evicted = cur.page;
+          cur.page = p;
+          cur.r = 1;
+          logEvent(`EVICTION: Hand at Frame ${clockHand} found R=0. Evicted '${evicted}' &rarr; loaded '${p}'.`, "log-fault");
+          clockHand = (clockHand + 1) % clockFrames.length;
+          logEvent(`Clock hand advanced to Frame ${clockHand}.`, "log-info");
+          break;
+        } else {
+          cur.r = 0;
+          logEvent(`SECOND CHANCE: Frame ${clockHand} ('${cur.page}') had R=1. Cleared to R=0.`, "log-clear");
+          clockHand = (clockHand + 1) % clockFrames.length;
+        }
+        searched++;
+      }
+      renderClock();
+    }
+
+    function resetClockState() {
+      clockFrames = [
+        { id: 0, page: "A", r: 1 },
+        { id: 1, page: "B", r: 0 },
+        { id: 2, page: "C", r: 0 },
+        { id: 3, page: "D", r: 1 },
+        { id: 4, page: "E", r: 1 },
+        { id: 5, page: "F", r: 0 },
+        { id: 6, page: "G", r: 1 }
+      ];
+      clockHand = 0;
+      statTotal = 0;
+      statHits = 0;
+      statFaults = 0;
+      document.getElementById("clockLog").innerHTML = "";
+      logEvent("Clock simulation reset to textbook initial state (Fig. 3-16).");
+      renderClock();
+    }
+
+    renderClock();
+    logEvent("Clock algorithm initialized with 7 physical frames.");
+  </script>
+</body>
+</html>
+"""
+
+def clean_file_references(file_path):
+    if not os.path.exists(file_path):
+        return
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = f.read()
+
+    # Normalize any chained variations of 07-07-clock, clock.html, etc. to 07-clock.html
+    cleaned = re.sub(r'(?:07-)+clock\.html', '07-clock.html', data)
+    cleaned = re.sub(r'(?<!07-)clock\.html', '07-clock.html', cleaned)
+
+    if cleaned != data:
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(cleaned)
+        print(f"Sanitized references in {file_path}")
+
+def main():
+    base_dir = "."
+    w09_dir = os.path.join(base_dir, "week09-memory-management")
+    dest_file = os.path.join(w09_dir, "07-clock.html")
+
+    # 1. Write the unified 07-clock.html file with the interactive walkthrough clock
+    with open(dest_file, "w", encoding="utf-8") as f:
+        f.write(PAGE_CONTENT)
+    print(f"Generated complete module: {dest_file}")
+
+    # 2. Delete unwanted legacy artifacts
+    for unwanted in ["clock.html", "07-07-clock.html"]:
+        target = os.path.join(w09_dir, unwanted)
+        if os.path.exists(target):
+            os.remove(target)
+            print(f"Removed legacy artifact: {target}")
+
+    # 3. Clean up index references
+    clean_file_references(os.path.join(w09_dir, "index.html"))
+    clean_file_references(os.path.join(base_dir, "index.html"))
+
+if __name__ == "__main__":
+    main()
