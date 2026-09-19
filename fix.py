@@ -110,9 +110,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .pioneer-profile img {
       width: 100%;
-      height: 210px;
+      height: 220px;
       object-fit: cover;
-      object-position: center 20%;
+      object-position: top center;
       border-radius: 4px;
       border: 1px solid var(--border);
       background: #e2e8f0;
@@ -907,10 +907,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix NameError by importing ssl module in fix.py
+COMMIT_MSG = """Use North-gravity smart cropping to preserve heads in portraits
 
-Include the missing import ssl statement at the top of fix.py to resolve
-NameError when creating unverified SSL contexts for asset downloads."""
+Update image processing pipeline in week09-memory-management/
+01-free-used-lists-buddy.html generation script to use -gravity North
+when square-cropping portraits. Prevents cutting off the top of pioneers'
+heads."""
 
 def download_assets():
     images_dir = "week09-memory-management/images"
@@ -919,13 +921,7 @@ def download_assets():
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
     ctx = ssl._create_unverified_context()
 
-    asset_urls = {
-        "markowitz.jpg": "https://zicklin.baruch.cuny.edu/wp-content/uploads/sites/10/2023/07/Harry-Markowitz-1_WP_350x467.jpg",
-        "knowlton.jpg": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Ken_Knowlton_in_2007.jpg",
-        "knuth.jpg": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Donald_Ervin_Knuth_%28cropped%29.jpg"
-    }
-
-    for filename, url in asset_urls.items():
+    for filename, url in ASSET_URLS.items():
         filepath = os.path.join(images_dir, filename)
         print(f"--> Downloading {filename} from {url}...")
         try:
@@ -946,10 +942,11 @@ def crop_assets():
         print("    [Warning] ImageMagick not found on PATH. Skipping crop step.", file=sys.stderr)
         return
 
+    # Using -gravity North ensures the top of the image (heads/faces) is preserved during square cropping
     tasks = [
-        [magick_binary, os.path.join(images_dir, "markowitz.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "markowitz.jpg")],
-        [magick_binary, os.path.join(images_dir, "knowlton.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "knowlton.jpg")],
-        [magick_binary, os.path.join(images_dir, "knuth.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "knuth.jpg")]
+        [magick_binary, os.path.join(images_dir, "markowitz.jpg"), "-gravity", "North", "-crop", "1:1", "+repage", os.path.join(images_dir, "markowitz.jpg")],
+        [magick_binary, os.path.join(images_dir, "knowlton.jpg"), "-gravity", "North", "-crop", "1:1", "+repage", os.path.join(images_dir, "knowlton.jpg")],
+        [magick_binary, os.path.join(images_dir, "knuth.jpg"), "-gravity", "North", "-crop", "1:1", "+repage", os.path.join(images_dir, "knuth.jpg")]
     ]
     for task in tasks:
         print(f"--> Running ImageMagick: {' '.join(task)}")
@@ -982,7 +979,7 @@ def execute_git_pipeline():
     run_git_step(["git", "add", target_module, images_dir], "Staging HTML and images directory")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> SSL import fixed, assets downloaded, cropped, and pushed successfully!")
+    print("--> Smart face cropping applied, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_git_pipeline()
