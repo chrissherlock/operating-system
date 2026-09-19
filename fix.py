@@ -615,7 +615,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <!-- Inline Base64 Audio Data URI for bulletproof local playback -->
+  <!-- Inline Base64 Audio Data URI -->
   <audio id="defragAudio" src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU5LjM3LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZmEAAAAUAAAAEAAAMwAA8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PAAAA" preload="auto" loop></audio>
 
   <div class="nav-back">
@@ -700,6 +700,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button class="ctrl-btn" onclick="defragInitVolume()" id="btnFormatDisk">Format Disk</button>
           <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">Heavy Churn (Fragment!)</button>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
+
+          <!-- Explicit Audio Toggle Button to Unlock Browser Autoplay -->
+          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #0284c7; color: #fff;">🔊 Audio: Off</button>
 
           <!-- Speed Controls -->
           <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
@@ -791,6 +794,26 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     let selectedCapacityMB = 500;
     let startTime = 0;
     let elapsedTimer = null;
+    let audioEnabled = false;
+
+    function toggleAudioMute() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById("btnAudioToggle");
+      const audioEl = document.getElementById("defragAudio");
+      if (audioEnabled) {
+        btn.textContent = "🔊 Audio: On";
+        btn.style.background = "#059669";
+        if (isRunning && audioEl) {
+          audioEl.play().catch(e => console.log("Audio play failed:", e));
+        }
+      } else {
+        btn.textContent = "🔇 Audio: Off";
+        btn.style.background = "#0284c7";
+        if (audioEl) {
+          audioEl.pause();
+        }
+      }
+    }
 
     function selectDiskCapacity(sizeMB) {
       selectedCapacityMB = sizeMB;
@@ -1018,7 +1041,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         if (elapsedTimer) clearInterval(elapsedTimer);
         elapsedTimer = setInterval(updateElapsedClock, 1000);
 
-        if (audioEl) {
+        if (audioEnabled && audioEl) {
           audioEl.currentTime = 0;
           audioEl.play().catch(e => console.log("Audio playback blocked:", e));
         }
@@ -1155,11 +1178,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Embed Base64 audio data URI for bulletproof local playback
+COMMIT_MSG = """Add explicit audio toggle button to bypass browser autoplay policy
 
-Update week10-file-management/03-filesystem-implementation.html to use an
-inline Base64 data URI for the defrag audio loop, eliminating local file
-protocol and CORS restrictions.
+Update week10-file-management/03-filesystem-implementation.html to include
+an interactive audio toggle button in the control bar, allowing users to
+manually enable and unlock audio playback.
 """
 
 def run_git_step(cmd, desc):
@@ -1178,15 +1201,14 @@ def deploy_module():
     os.makedirs(target_dir, exist_ok=True)
     target_file = os.path.join(target_dir, "03-filesystem-implementation.html")
 
-    wopen = open(target_file, "w", encoding="utf-8")
-    wopen.write(HTML_CONTENT)
-    wopen.close()
+    with open(target_file, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging Base64 audio data URI update")
+    run_git_step(["git", "add", target_file], "Staging audio toggle button update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Base64 audio successfully deployed!")
+    print("--> Audio toggle successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()

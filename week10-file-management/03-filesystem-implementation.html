@@ -610,7 +610,7 @@
   </style>
 </head>
 <body>
-  <!-- Inline Base64 Audio Data URI for bulletproof local playback -->
+  <!-- Inline Base64 Audio Data URI -->
   <audio id="defragAudio" src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU5LjM3LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZmEAAAAUAAAAEAAAMwAA8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PAAAA" preload="auto" loop></audio>
 
   <div class="nav-back">
@@ -695,6 +695,9 @@
           <button class="ctrl-btn" onclick="defragInitVolume()" id="btnFormatDisk">Format Disk</button>
           <button class="ctrl-btn churn-btn" onclick="defragHeavyChurn()">Heavy Churn (Fragment!)</button>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
+
+          <!-- Explicit Audio Toggle Button to Unlock Browser Autoplay -->
+          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #0284c7; color: #fff;">🔊 Audio: Off</button>
 
           <!-- Speed Controls -->
           <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
@@ -786,6 +789,26 @@
     let selectedCapacityMB = 500;
     let startTime = 0;
     let elapsedTimer = null;
+    let audioEnabled = false;
+
+    function toggleAudioMute() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById("btnAudioToggle");
+      const audioEl = document.getElementById("defragAudio");
+      if (audioEnabled) {
+        btn.textContent = "🔊 Audio: On";
+        btn.style.background = "#059669";
+        if (isRunning && audioEl) {
+          audioEl.play().catch(e => console.log("Audio play failed:", e));
+        }
+      } else {
+        btn.textContent = "🔇 Audio: Off";
+        btn.style.background = "#0284c7";
+        if (audioEl) {
+          audioEl.pause();
+        }
+      }
+    }
 
     function selectDiskCapacity(sizeMB) {
       selectedCapacityMB = sizeMB;
@@ -1013,7 +1036,7 @@
         if (elapsedTimer) clearInterval(elapsedTimer);
         elapsedTimer = setInterval(updateElapsedClock, 1000);
 
-        if (audioEl) {
+        if (audioEnabled && audioEl) {
           audioEl.currentTime = 0;
           audioEl.play().catch(e => console.log("Audio playback blocked:", e));
         }
