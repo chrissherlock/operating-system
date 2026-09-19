@@ -341,6 +341,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .blk-identified-live { background: #059669 !important; color: #fff; outline: 2px solid #34d399; }
     .blk-discarded { opacity: 0.25; text-decoration: line-through; }
 
+    /* Journaling Interactive Block States */
+    .blk-journal-head { background: #9333ea; color: #fff; }
+    .blk-journal-tx { background: #3b82f6; color: #fff; }
+    .blk-journal-commit { background: #059669; color: #fff; font-weight: 900; }
+    .blk-journal-corrupt { background: #dc2626; color: #fff; text-decoration: line-through; }
+    .blk-fs-checkpointed { background: #10b981; color: #fff; }
+
     /* Flash / FTL Block Classes */
     .blk-flash-erased { background: #0f172a; border: 1px dashed #38bdf8; color: #38bdf8; }
     .blk-flash-valid { background: #0284c7; color: #ffffff; }
@@ -756,35 +763,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         LFS breaks recursive imap indirection using fixed Checkpoint Regions (CRs). To prevent write tearing during power cuts, LFS alternates between dual regions (CR A and CR B), picking the most recent valid checksum upon reboot.
       </p>
 
-      <!-- Diagram: Dual Alternating Checkpoints -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 230" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="230" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.5C: Dual Alternating Checkpoints for Atomic Consistency</text>
-
-          <rect x="50" y="60" width="220" height="130" fill="#ecfdf5" stroke="#10b981" rx="4"/>
-          <text x="160" y="82" font-family="sans-serif" font-size="12" font-weight="bold" fill="#047857" text-anchor="middle">Checkpoint Region A (Block 0)</text>
-          <line x1="60" y1="92" x2="260" y2="92" stroke="#a7f3d0" stroke-width="1"/>
-          <text x="160" y="112" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">Timestamp: 10:45:00 (Valid)</text>
-          <text x="160" y="132" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">Imap Chunk Pointers: [P1, P2, ...]</text>
-          <text x="160" y="152" font-family="sans-serif" font-size="10" fill="#065f46" text-anchor="middle">CRC Checksum: OK &check;</text>
-          <text x="160" y="174" font-family="sans-serif" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">&larr; Selected on Boot &larr;</text>
-
-          <rect x="310" y="95" width="180" height="60" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="3,3" rx="4"/>
-          <text x="400" y="122" font-family="sans-serif" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">Segments &amp; Log Stream</text>
-          <text x="400" y="140" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">(Continuous Sequential Appends)</text>
-
-          <rect x="530" y="60" width="220" height="130" fill="#fef2f2" stroke="#ef4444" rx="4"/>
-          <text x="640" y="82" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Checkpoint Region B (Block 1)</text>
-          <line x1="540" y1="92" x2="740" y2="92" stroke="#fecaca" stroke-width="1"/>
-          <text x="640" y="112" font-family="sans-serif" font-size="10" fill="#991b1b" text-anchor="middle">Timestamp: 10:45:30 (Interrupted)</text>
-          <text x="640" y="132" font-family="sans-serif" font-size="10" fill="#991b1b" text-anchor="middle">Imap Chunk Pointers: [Truncated]</text>
-          <text x="640" y="152" font-family="sans-serif" font-size="10" fill="#dc2626" font-weight="bold" text-anchor="middle">CRC Checksum: MISMATCH &cross;</text>
-          <text x="640" y="174" font-family="sans-serif" font-size="11" font-weight="bold" fill="#dc2626" text-anchor="middle">&cross; Safely Discarded &cross;</text>
-        </svg>
-        <figcaption>Figure 4.3.5C: Alternating checkpoints guarantee crash resilience even if power fails mid-write.</figcaption>
-      </figure>
-
       <!-- Section 4: Segment Cleaning & Garbage Collection -->
       <h3>4. Background Garbage Collection &amp; Segment Cleaning</h3>
       <p>
@@ -819,48 +797,211 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Section 4.3.6: Journaling File Systems -->
+    <!-- MASSIVELY EXPANDED SECTION 4.3.6: JOURNALING & WRITE-AHEAD LOGGING -->
     <div class="section-block">
-      <h2>4.3.6 Journaling File Systems</h2>
+      <h2>4.3.6 Journaling File Systems &amp; Write-Ahead Logging (WAL)</h2>
       <p>
-        System crashes mid-write often leave traditional filesystems in an inconsistent state, requiring lengthy full-volume integrity scans (such as <code>fsck</code>). <strong>Journaling File Systems</strong> introduce Write-Ahead Logging (WAL) to guarantee crash consistency.
+        Traditional filesystems update structures directly in-place across scattered disk blocks. When a sudden power outage, kernel panic, or hardware disconnect occurs mid-write, the filesystem is caught midway through mutating interlinked records, producing severe metadata desynchronization.
+      </p>
+      <p>
+        To prevent lengthy multi-hour volume repair scans upon reboot (such as <code>fsck</code>), modern filesystems (including Linux <code>ext3</code>, <code>ext4</code>, <code>XFS</code>, and Windows <code>NTFS</code>) implement <strong>Write-Ahead Logging (WAL)</strong>, universally referred to as <strong>Journaling</strong>.
       </p>
 
       <h3>1. The Crash Consistency Problem</h3>
       <p>
-        Modifying a file requires non-atomic updates across data blocks, inodes, and bitmaps. A crash mid-update leaves metadata desynchronized.
+        A single high-level file modification rarely maps to a single physical disk write. Appending data to an existing file requires executing three distinct physical writes:
+      </p>
+      <ol>
+        <li><strong>Data Block Write:</strong> Writing user payload bytes into a newly allocated data block ($D$).</li>
+        <li><strong>Inode Metadata Update:</strong> Modifying the file's inode ($I$) to update file length, modification timestamps, and insert an address pointer referencing block $D$.</li>
+        <li><strong>Data Allocation Bitmap Update:</strong> Toggling the corresponding bit in the block allocation bitmap ($B$) from <code>0</code> (free) to <code>1</code> (allocated) to prevent other files from claiming block $D$.</li>
+      </ol>
+      <p>
+        Physical storage controllers guarantee atomic writes strictly at the granularity of a <strong>single physical sector</strong> (typically 512 bytes or 4 KB). Atomic writes across three completely separate disk blocks located thousands of sectors apart are physically impossible. If the system loses power between any of these operations, the filesystem enters an inconsistent failure state:
+      </p>
+      <ul>
+        <li><strong>Crash after Inode ($I$), before Bitmap ($B$):</strong> The inode references block $D$, but the bitmap marks block $D$ as free. When another process creates a file, the allocator will grant that exact same block $D$ to the new file, producing <strong>block cross-allocation and catastrophic data theft</strong>.</li>
+        <li><strong>Crash after Bitmap ($B$), before Inode ($I$):</strong> Block $D$ is marked occupied in the bitmap, but no inode in the entire file system points to it. This creates a permanent, silent <strong>storage space leak</strong>.</li>
+        <li><strong>Crash after Inode ($I$), before Data ($D$):</strong> The inode points to block $D$, but block $D$ was never written. Reading the file returns uninitialized remnants of whatever deleted data resided in that sector previously, causing <strong>data corruption and severe security information leakage</strong>.</li>
+      </ul>
+
+      <h3>2. The Write-Ahead Logging (WAL) Protocol</h3>
+      <p>
+        Journaling solves this vulnerability by importing the <strong>Write-Ahead Logging (WAL)</strong> protocol from relational database engines. The governing invariant of Write-Ahead Logging is absolute:
+      </p>
+      <blockquote>
+        <strong>The Fundamental WAL Rule:</strong> Never overwrite or update the permanent in-place filesystem structures on disk until a complete description of the impending changes has been sequentially logged, flushed to non-volatile media, and anchored by an explicit, atomic commit record.
+      </blockquote>
+      <p>
+        Rather than writing directly to the permanent inode tables and allocation bitmaps, the operating system routes modifications through a dedicated, contiguous circular ring buffer called the <strong>Journal</strong> (or log).
       </p>
 
-      <!-- Diagram 4.3.6A: WAL -->
+      <h4>The Anatomy of a Journal Transaction</h4>
+      <p>
+        Related updates are bundled together into an atomic container called a <strong>Transaction</strong>. A transaction proceeds through four chronological stages:
+      </p>
+      <ol>
+        <li><strong>Transaction Header (Tx Begin):</strong> A special descriptor block containing a unique monotonically increasing Transaction ID (TID), starting timestamp, and a manifest of the dirty metadata blocks scheduled for modification.</li>
+        <li><strong>Descriptor &amp; Payload Blocks:</strong> The operating system writes exact in-memory copies of the updated inode ($I$), the updated allocation bitmap ($B$), and any modified directory blocks into the sequential journal stream.</li>
+        <li><strong>Write Barrier &amp; The Commit Block:</strong> The controller issues a strict hardware write barrier (e.g., <code>FLUSH CACHE</code> or <code>FUA</code> &ndash; Force Unit Access) to ensure all payload blocks are physically seated on persistent media. Only then does it append the <strong>Commit Block</strong>. The commit block contains the matching Transaction ID and a cryptographic/CRC32 checksum of the entire transaction payload. The instant this commit block reaches disk, the transaction is durable.</li>
+        <li><strong>Checkpointing (In-Place Flushing):</strong> With the transaction safely recorded in the journal, the operating system writes the modified blocks out to their permanent locations across the disk (the real inode table, the real bitmap).</li>
+        <li><strong>Transaction Release (Journal Free):</strong> Once in-place checkpointing finishes, the circular journal marks that transaction's ring buffer sectors as reclaimed, advancing the journal head pointer.</li>
+      </ol>
+
+      <!-- Diagram 4.3.6A: WAL Pipeline & Invariants -->
+      <figure class="diagram-figure">
+        <svg class="diagram-svg" viewBox="0 0 800 250" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="250" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6A: The Write-Ahead Logging (WAL) Architecture and Atomic Commit Boundary</text>
+
+          <!-- Traditional Unsafe Box -->
+          <rect x="30" y="55" width="340" height="175" fill="#fef2f2" stroke="#f87171" rx="4"/>
+          <text x="200" y="76" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b91c1c" text-anchor="middle">Traditional Non-Atomic Writes (Vulnerable)</text>
+          <line x1="40" y1="86" x2="360" y2="86" stroke="#fecaca" stroke-width="1"/>
+
+          <rect x="45" y="100" width="85" height="40" fill="#0284c7" rx="2"/><text x="87.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">1. Data ($D$)</text>
+          <line x1="130" y1="120" x2="160" y2="120" stroke="#dc2626" stroke-width="2"/>
+          <rect x="160" y="100" width="85" height="40" fill="#f59e0b" rx="2"/><text x="202.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">2. Inode ($I$)</text>
+
+          <!-- Lightning Bolt Crash Window -->
+          <line x1="255" y1="92" x2="255" y2="150" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,3"/>
+          <text x="255" y="90" font-family="sans-serif" font-size="14" fill="#dc2626" text-anchor="middle">&#9889;</text>
+          <text x="255" y="165" font-family="sans-serif" font-size="8" font-weight="bold" fill="#dc2626" text-anchor="middle">Power Cut!</text>
+
+          <rect x="270" y="100" width="85" height="40" fill="#94a3b8" rx="2" stroke="#dc2626" stroke-dasharray="2,2"/><text x="312.5" y="125" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">3. Bitmap ($B$)</text>
+
+          <text x="200" y="195" font-family="sans-serif" font-size="9" fill="#7f1d1d" text-anchor="middle">Result: $I$ points to $D$, but $B$ marks $D$ as free!</text>
+          <text x="200" y="212" font-family="sans-serif" font-size="9" font-weight="bold" fill="#b91c1c" text-anchor="middle">Causes cross-allocation, corrupt files, or space leaks.</text>
+
+          <!-- Safe WAL Pipeline Box -->
+          <rect x="400" y="55" width="370" height="175" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
+          <text x="585" y="76" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">Write-Ahead Logging (WAL) Protocol (Crash-Proof)</text>
+          <line x1="410" y1="86" x2="760" y2="86" stroke="#bbf7d0" stroke-width="1"/>
+
+          <!-- Step 1 & 2: Log write -->
+          <rect x="415" y="98" width="60" height="38" fill="#3b82f6" rx="2"/><text x="445" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Tx Begin</text>
+          <rect x="480" y="98" width="65" height="38" fill="#3b82f6" rx="2"/><text x="512.5" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Payload ($I, B$)</text>
+
+          <!-- Barrier -->
+          <line x1="550" y1="95" x2="550" y2="142" stroke="#0284c7" stroke-width="2"/>
+
+          <!-- Commit block -->
+          <rect x="555" y="98" width="70" height="38" fill="#059669" rx="2"/><text x="590" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Commit Blk</text>
+
+          <!-- Arrow to checkpoint -->
+          <line x1="630" y1="117" x2="665" y2="117" stroke="#16a34a" stroke-width="2"/>
+          <polygon points="670,117 662,112 662,122" fill="#16a34a"/>
+
+          <!-- Checkpoint -->
+          <rect x="670" y="98" width="90" height="38" fill="#10b981" rx="2"/><text x="715" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">In-Place Write</text>
+
+          <text x="585" y="165" font-family="sans-serif" font-size="9" font-weight="bold" fill="#047857" text-anchor="middle">&uarr; Atomic Commit Boundary (CRC Checksum) &uarr;</text>
+          <text x="585" y="190" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Crash before commit: Drop partial transaction cleanly.</text>
+          <text x="585" y="206" font-family="sans-serif" font-size="9" fill="#14532d" text-anchor="middle">Crash after commit: Redo logging replays checkpoint.</text>
+        </svg>
+        <figcaption>Figure 4.3.6A: The WAL protocol isolates multi-block updates behind an atomic, checksummed commit boundary.</figcaption>
+      </figure>
+
+      <h3>3. The Hardware Reality: Write Caches &amp; Write Barriers</h3>
+      <p>
+        The theoretical integrity of Write-Ahead Logging hinges on sequential execution: payload blocks must be physically recorded on media <em>before</em> the commit block is written.
+      </p>
+      <p>
+        In modern systems, hard drives and SSDs contain volatile onboard DRAM write caches. To optimize throughput, drive firmware reorders writes, grouping adjacent sectors to minimize seek times. Without operating system control, the storage controller might flush the small <strong>commit block</strong> to physical NAND/platters <em>before</em> it finishes writing the dirty inode or bitmap blocks. If power drops at that exact millisecond, the journal contains a valid commit block pointing to unwritten garbage!
+      </p>
+      <p>
+        To prevent this catastrophic out-of-order execution, journaling file systems issue explicit <strong>Write Barriers</strong> (cache flushes). A write barrier instructs the drive controller to flush its entire volatile cache to permanent media before accepting any further writes. Only after the drive acknowledges the completion of the barrier does the filesystem dispatch the commit block.
+      </p>
+
+      <h3>4. Journaling Modes &amp; Operational Trade-offs</h3>
+      <p>
+        Writing every single user data byte to the journal and then writing it again to its permanent file block imposes a 100% write overhead (a write amplification factor of 2.0). To balance data integrity against I/O throughput, filesystems provide three operational modes:
+      </p>
+
+      <h4>1. Journal Mode (Full Data &amp; Metadata Logging)</h4>
+      <p>
+        Both user data bytes and filesystem metadata blocks are written into the circular journal before being committed and checkpointed to permanent blocks.
+      </p>
+      <ul>
+        <li><strong>Consistency Guarantee:</strong> Absolute. Neither metadata nor file data can ever be lost or corrupted across a crash.</li>
+        <li><strong>Performance Cost:</strong> Severe. Every byte is written to storage twice, cutting effective sequential write bandwidth in half.</li>
+      </ul>
+
+      <h4>2. Ordered Mode (Metadata Journaling with Ordered Data Flushing)</h4>
+      <p>
+        Only filesystem metadata blocks are logged to the journal. However, to prevent file pointers from referencing garbage, the operating system enforces a strict ordering barrier: <em>all user payload data blocks must be flushed to their permanent in-place disk locations BEFORE the associated metadata transaction commits to the journal.</em>
+      </p>
+      <ul>
+        <li><strong>Consistency Guarantee:</strong> Guaranteed metadata integrity with strong data safety. Inodes never point to unwritten garbage or stale remnants of previously deleted files.</li>
+        <li><strong>Performance Cost:</strong> Highly optimal. User data is written to disk exactly once, eliminating write amplification while preserving crash consistency. This is the default mode in Linux <code>ext3</code> and <code>ext4</code>.</li>
+      </ul>
+
+      <h4>3. Writeback Mode (Relaxed Metadata Journaling)</h4>
+      <p>
+        Only metadata is journaled. No ordering constraints are imposed between user data writes and metadata commits. Metadata transactions can commit to the journal while user data blocks still sit dirty in volatile RAM.
+      </p>
+      <ul>
+        <li><strong>Consistency Guarantee:</strong> Metadata remains consistent, but files appended to shortly before a crash may contain stale remnants of old, deleted file content.</li>
+        <li><strong>Performance Cost:</strong> Highest possible write throughput and lowest write latency.</li>
+      </ul>
+
+      <!-- Diagram 4.3.6B: Circular Journal Ring Buffer -->
       <figure class="diagram-figure">
         <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
           <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6A: Crash Window Vulnerability vs. Write-Ahead Logging (WAL)</text>
+          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.6B: Circular Journal Ring Buffer &amp; In-Place Checkpoint Pipeline</text>
 
-          <rect x="30" y="55" width="340" height="155" fill="#fef2f2" stroke="#f87171" rx="4"/>
-          <text x="200" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#b91c1c" text-anchor="middle">Traditional Non-Atomic Writes</text>
-          <line x1="40" y1="88" x2="360" y2="88" stroke="#fecaca" stroke-width="1"/>
-          <rect x="50" y="100" width="80" height="35" fill="#0284c7" rx="2"/><text x="90" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">1. Data</text>
-          <line x1="135" y1="117" x2="160" y2="117" stroke="#dc2626" stroke-width="2"/>
-          <rect x="165" y="100" width="80" height="35" fill="#f59e0b" rx="2"/><text x="205" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">2. Inode</text>
-          <line x1="260" y1="92" x2="260" y2="145" stroke="#ef4444" stroke-width="3" stroke-dasharray="4,3"/>
-          <text x="260" y="88" font-family="sans-serif" font-size="14" fill="#dc2626" text-anchor="middle">&#9889;</text>
-          <rect x="275" y="100" width="80" height="35" fill="#94a3b8" rx="2" stroke="#dc2626" stroke-dasharray="2,2"/><text x="315" y="122" font-family="sans-serif" font-size="10" fill="#fff" text-anchor="middle">3. Bitmap</text>
+          <rect x="40" y="60" width="440" height="150" fill="#0f172a" stroke="#334155" rx="6"/>
+          <text x="260" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#38bdf8" text-anchor="middle">Circular Journal Ring Buffer</text>
 
-          <rect x="410" y="55" width="360" height="155" fill="#f0fdf4" stroke="#4ade80" rx="4"/>
-          <text x="590" y="78" font-family="sans-serif" font-size="12" font-weight="bold" fill="#15803d" text-anchor="middle">Write-Ahead Logging (WAL) Protocol</text>
-          <line x1="420" y1="88" x2="760" y2="88" stroke="#bbf7d0" stroke-width="1"/>
-          <rect x="430" y="100" width="70" height="35" fill="#3b82f6" rx="2"/><text x="465" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Tx Header</text>
-          <rect x="505" y="100" width="70" height="35" fill="#3b82f6" rx="2"/><text x="540" y="122" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Metadata</text>
-          <rect x="580" y="100" width="70" height="35" fill="#059669" rx="2"/><text x="615" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Commit Blk</text>
-          <line x1="655" y1="117" x2="680" y2="117" stroke="#16a34a" stroke-width="2"/>
-          <polygon points="685,117 678,112 678,122" fill="#16a34a"/>
-          <rect x="685" y="100" width="75" height="35" fill="#10b981" rx="2"/><text x="722" y="122" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Checkpoint</text>
+          <rect x="55" y="102" width="70" height="50" fill="#1e293b" stroke="#334155" rx="3"/>
+          <text x="90" y="125" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">Tx 101</text>
+          <text x="90" y="140" font-family="sans-serif" font-size="8" fill="#4ade80" text-anchor="middle">(Freed)</text>
+
+          <rect x="135" y="102" width="85" height="50" fill="#3b82f6" rx="3"/>
+          <text x="177" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 102 Data</text>
+          <text x="177" y="140" font-family="sans-serif" font-size="8" fill="#dbeafe" text-anchor="middle">Descriptor</text>
+
+          <rect x="230" y="102" width="85" height="50" fill="#059669" rx="3"/>
+          <text x="272" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 102 Commit</text>
+          <text x="272" y="140" font-family="sans-serif" font-size="8" fill="#d1fae5" text-anchor="middle">CRC Checksum</text>
+
+          <rect x="325" y="102" width="80" height="50" fill="#3b82f6" rx="3"/>
+          <text x="365" y="125" font-family="sans-serif" font-size="9" font-weight="bold" fill="#fff" text-anchor="middle">Tx 103 Writing</text>
+          <text x="365" y="140" font-family="sans-serif" font-size="8" fill="#dbeafe" text-anchor="middle">Pending</text>
+
+          <rect x="415" y="102" width="55" height="50" fill="#1e293b" stroke="#334155" rx="3"/>
+          <text x="442" y="132" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Unused</text>
+
+          <text x="260" y="190" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">&larr; Checkpoint Head advances &bull; Journal Tail writes forward &rarr;</text>
+
+          <path d="M 480 127 L 530 127" stroke="#10b981" stroke-width="3"/>
+          <polygon points="535,127 525,121 525,133" fill="#10b981"/>
+          <text x="507" y="115" font-family="sans-serif" font-size="9" font-weight="bold" fill="#10b981" text-anchor="middle">Flush</text>
+
+          <rect x="535" y="60" width="225" height="150" fill="#f8fafc" stroke="#cbd5e1" rx="6"/>
+          <text x="647" y="84" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">Permanent In-Place Blocks</text>
+
+          <rect x="550" y="102" width="60" height="40" fill="#0284c7" rx="3"/><text x="580" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Inode Table</text>
+          <rect x="620" y="102" width="60" height="40" fill="#f59e0b" rx="3"/><text x="650" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Bitmap</text>
+          <rect x="690" y="102" width="60" height="40" fill="#10b981" rx="3"/><text x="720" y="126" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">Data Block</text>
+
+          <text x="647" y="180" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Checkpointing writes in-place;</text>
+          <text x="647" y="196" font-family="sans-serif" font-size="9" fill="#475569" text-anchor="middle">Transaction 102 can then be freed</text>
         </svg>
-        <figcaption>Figure 4.3.6A: Write-Ahead Logging isolates multi-block updates behind an atomic commit boundary.</figcaption>
+        <figcaption>Figure 4.3.6B: Transactions advance through the circular ring buffer before updating permanent in-place structures.</figcaption>
       </figure>
 
-      <!-- Section 4.3.6 Walkthrough -->
+      <h3>5. Fast Crash Recovery: Redo Logging &amp; Rollback</h3>
+      <p>
+        When mounting a filesystem after a crash, the operating system bypasses full-disk scans and inspects only the journal:
+      </p>
+      <ul>
+        <li><strong>Committed Transactions (Redo Log Replay):</strong> The recovery engine scans sequentially from the journal head. When it encounters a transaction with an intact commit block and matching CRC checksum, it executes <strong>redo logging</strong>: reading the logged metadata blocks from the journal and writing them directly into their in-place filesystem blocks. Because redo operations are completely <em>idempotent</em>, re-applying a write that already made it to disk before the crash is harmless.</li>
+        <li><strong>Uncommitted Transactions (Torn Write Discard):</strong> If the recovery engine encounters a transaction that ends abruptly without a commit block (or whose CRC checksum fails due to a torn write), it halts scanning and discards the transaction. The uncommitted modifications never touch the permanent filesystem blocks, leaving the volume in the clean, consistent state it held prior to the interrupted operation.</li>
+      </ul>
+
+      <!-- WALKTHROUGH PART 3: JOURNALING TRANSACTION & RECOVERY SIMULATOR -->
       <div class="lfs-sim-container" id="journalingSim">
         <div class="lfs-topbar">
           <span class="lfs-title">Walkthrough Part 3: Journaling Transaction &amp; Crash Recovery Simulator</span>
@@ -923,178 +1064,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- MASSIVELY EXPANDED SECTION 4.3.8: VIRTUAL FILE SYSTEMS (VFS) -->
+    <!-- Section 4.3.8: Virtual File Systems (VFS) -->
     <div class="section-block">
       <h2>4.3.8 Virtual File Systems (VFS)</h2>
       <p>
-        A contemporary Unix or Linux installation concurrently manages dozens of radically different storage targets: local journaling filesystems (<code>ext4</code>, <code>XFS</code>), legacy FAT volumes on USB drives (<code>vfat</code>), remote network shares (<code>NFS</code>, <code>SMB</code>), optical disc structures (<code>ISO 9660</code>), and volatile kernel introspection pseudo-filesystems (<code>procfs</code>, <code>sysfs</code>).
-      </p>
-      <p>
-        If user applications were required to invoke unique, driver-specific system calls for every storage target (e.g., <code>ext4_read()</code>, <code>nfs_read()</code>, <code>fat_read()</code>), application portability would collapse. To deliver a seamless, uniform programming model, modern operating systems implement the <strong>Virtual File System (VFS)</strong> abstraction layer. Originally pioneered by Sun Microsystems in 1985 to integrate NFS into SunOS, VFS provides an object-oriented polymorphic interface in C that decouples standard POSIX system calls from concrete storage implementations.
+        Modern operating systems implement the Virtual File System (VFS) abstraction layer to support multiple disparate storage formats seamlessly through standard objects.
       </p>
 
-      <h3>1. The Polymorphic VFS Architecture</h3>
-      <p>
-        The core design principle of VFS is polymorphism: user processes execute generic POSIX system calls (<code>open()</code>, <code>read()</code>, <code>write()</code>, <code>close()</code>, <code>stat()</code>), which route directly into the VFS layer. The VFS layer contains generic algorithms for path navigation, security validation, and buffer caching.
-      </p>
-      <p>
-        When an action requires interacting with concrete storage, VFS dispatches the call through function pointer tables registered by the specific filesystem driver mounting that path.
-      </p>
-
-      <!-- Diagram 4.3.8A: VFS Polymorphic Dispatch Hierarchy -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="260" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.8A: VFS Polymorphic Dispatch Hierarchy Across Disparate Storage Media</text>
-
-          <!-- User Application Space -->
-          <rect x="50" y="45" width="700" height="35" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="400" y="67" font-family="sans-serif" font-size="12" font-weight="bold" fill="#334155" text-anchor="middle">User Space Applications (POSIX System Calls: open, read, write, close, stat)</text>
-
-          <!-- Syscall Boundary -->
-          <line x1="50" y1="95" x2="750" y2="95" stroke="#0284c7" stroke-width="2" stroke-dasharray="4,4"/>
-          <text x="400" y="90" font-family="sans-serif" font-size="9" fill="#0284c7" text-anchor="middle">System Call Interface Boundary (Trap to Kernel Mode)</text>
-
-          <!-- VFS Layer -->
-          <rect x="50" y="105" width="700" height="45" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
-          <text x="400" y="125" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0369a1" text-anchor="middle">Virtual File System (VFS) Abstraction Layer</text>
-          <text x="400" y="141" font-family="sans-serif" font-size="10" fill="#0284c7" text-anchor="middle">Manages Dentry Cache (Dcache), Inode Table, Mount Hierarchy &amp; Function Pointer Tables</text>
-
-          <!-- Dispatch Arrows -->
-          <line x1="140" y1="150" x2="140" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="140,178 135,170 145,170" fill="#0284c7"/>
-          <line x1="310" y1="150" x2="310" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="310,178 305,170 315,170" fill="#0284c7"/>
-          <line x1="490" y1="150" x2="490" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="490,178 485,170 495,170" fill="#0284c7"/>
-          <line x1="660" y1="150" x2="660" y2="175" stroke="#0284c7" stroke-width="2"/><polygon points="660,178 655,170 665,170" fill="#0284c7"/>
-
-          <!-- Concrete Filesystems -->
-          <rect x="60" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="140" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">ext4 Driver</text>
-          <text x="140" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Local NVMe / SSD Block</text>
-
-          <rect x="230" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="310" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">VFAT Driver</text>
-          <text x="310" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">USB Removable Drive</text>
-
-          <rect x="410" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="490" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">NFS Client</text>
-          <text x="490" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Remote RPC Socket</text>
-
-          <rect x="580" y="180" width="160" height="60" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
-          <text x="660" y="202" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">procfs Driver</text>
-          <text x="660" y="222" font-family="sans-serif" font-size="9" fill="#64748b" text-anchor="middle">Volatile Kernel Memory</text>
-        </svg>
-        <figcaption>Figure 4.3.8A: VFS presents a single POSIX interface while routing operations through driver-specific function pointers.</figcaption>
-      </figure>
-
-      <h3>2. The Four Primary VFS Data Objects</h3>
-      <p>
-        The Linux VFS architecture defines four core data structures that model every filesystem concept in memory:
-      </p>
-
-      <h4>1. The Superblock Object (<code>struct super_block</code>)</h4>
-      <p>
-        Represents an entire mounted filesystem instance. It holds filesystem-wide parameters, such as block size, device identifiers, mount flags, and a pointer to the root dentry. Crucially, it stores the <code>s_op</code> pointer pointing to <strong>Superblock Operations</strong>:
-      </p>
-      <ul>
-        <li><code>alloc_inode()</code>: Allocates memory for a new in-core inode structure.</li>
-        <li><code>write_inode()</code>: Flushes modified inode metadata from memory to storage.</li>
-        <li><code>sync_fs()</code>: Flushes dirty filesystem superblocks and metadata to disk.</li>
-        <li><code>statfs()</code>: Queries filesystem storage statistics (free blocks, total capacity).</li>
-      </ul>
-
-      <h4>2. The Inode Object (<code>struct inode</code>)</h4>
-      <p>
-        Represents a specific file, directory, socket, or device node uniquely within a filesystem. Unlike disk inodes, a VFS inode exists entirely in memory and contains file size, owner UID/GID, permission bits, access/modification timestamps, and locks. It holds two sets of operation tables:
-      </p>
-      <ul>
-        <li><code>i_op</code> (<strong>Inode Operations</strong>): Structural operations that manipulate file namespace and links, such as <code>lookup()</code>, <code>create()</code>, <code>link()</code>, <code>unlink()</code>, <code>mkdir()</code>, and <code>rename()</code>.</li>
-        <li><code>i_fop</code> (<strong>Default File Operations</strong>): Fallback file manipulation methods assigned when a file is opened.</li>
-      </ul>
-
-      <h4>3. The Dentry Object (<code>struct dentry</code>)</h4>
-      <p>
-        In Unix, inodes contain metadata and block pointers, but <em>no file names</em>. File names exist solely as entries within directory payloads. To enable high-speed string path resolution, the VFS introduces <strong>Directory Entries (dentries)</strong>.
-      </p>
-      <p>
-        A dentry represents a single path component (e.g., in <code>/usr/bin/python3</code>, there are dentries for <code>/</code>, <code>usr</code>, <code>bin</code>, and <code>python3</code>). Each dentry links a string name to its corresponding <code>struct inode</code>. Dentries are cached in the high-speed kernel <strong>Dentry Cache (Dcache)</strong>.
-      </p>
-
-      <h4>4. The File Object (<code>struct file</code>)</h4>
-      <p>
-        Represents a dynamic, open file descriptor instantiated when a user space thread invokes <code>open()</code>. While an inode represents the static file on disk, a <code>struct file</code> represents an active interaction context. It stores:
-      </p>
-      <ul>
-        <li><code>f_pos</code>: The current byte seek offset of the process within the file.</li>
-        <li><code>f_flags</code>: Open status flags (e.g., <code>O_RDONLY</code>, <code>O_APPEND</code>, <code>O_NONBLOCK</code>).</li>
-        <li><code>f_count</code>: Atomic reference counter tracking how many processes share this descriptor (e.g., post-<code>fork()</code>).</li>
-        <li><code>f_op</code>: Pointer to the <strong>File Operations</strong> table containing the implementation functions: <code>read()</code>, <code>write()</code>, <code>mmap()</code>, <code>llseek()</code>, and <code>fsync()</code>.</li>
-      </ul>
-
-      <!-- Diagram 4.3.8B: VFS Data Object Relationships -->
-      <figure class="diagram-figure">
-        <svg class="diagram-svg" viewBox="0 0 800 250" xmlns="http://www.w3.org/2000/svg">
-          <rect width="800" height="250" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
-          <text x="400" y="26" font-family="sans-serif" font-size="14" font-weight="bold" fill="#0f172a" text-anchor="middle">Figure 4.3.8B: Interconnection Network of VFS Core Kernel Objects</text>
-
-          <!-- Process File Descriptor -->
-          <rect x="30" y="60" width="140" height="150" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
-          <text x="100" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">User Process</text>
-          <line x1="40" y1="92" x2="160" y2="92" stroke="#cbd5e1" stroke-width="1"/>
-          <text x="100" y="110" font-family="sans-serif" font-size="10" fill="#475569" text-anchor="middle">task_struct</text>
-          <rect x="40" y="125" width="120" height="30" fill="#e0e7ff" rx="3"/>
-          <text x="100" y="144" font-family="sans-serif" font-size="10" font-weight="bold" fill="#4338ca" text-anchor="middle">fd table [fd 3]</text>
-
-          <!-- File Object -->
-          <line x1="170" y1="140" x2="220" y2="140" stroke="#4338ca" stroke-width="2"/><polygon points="225,140 217,135 217,145" fill="#4338ca"/>
-          <rect x="225" y="60" width="150" height="150" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
-          <text x="300" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">struct file</text>
-          <line x1="235" y1="92" x2="365" y2="92" stroke="#bae6fd" stroke-width="1"/>
-          <text x="300" y="112" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_pos = 4096</text>
-          <text x="300" y="132" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_flags = O_RDONLY</text>
-          <text x="300" y="152" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">f_count = 1</text>
-          <rect x="235" y="165" width="130" height="26" fill="#0284c7" rx="2"/>
-          <text x="300" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; f_op: read, write</text>
-
-          <!-- Dentry Object -->
-          <line x1="375" y1="140" x2="425" y2="140" stroke="#0284c7" stroke-width="2"/><polygon points="430,140 422,135 422,145" fill="#0284c7"/>
-          <rect x="430" y="60" width="150" height="150" fill="#f0fdf4" stroke="#16a34a" rx="4"/>
-          <text x="505" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">struct dentry</text>
-          <line x1="440" y1="92" x2="570" y2="92" stroke="#bbf7d0" stroke-width="1"/>
-          <text x="505" y="112" font-family="sans-serif" font-size="10" fill="#166534" text-anchor="middle">d_name = "syslog"</text>
-          <text x="505" y="132" font-family="sans-serif" font-size="10" fill="#166534" text-anchor="middle">d_parent = "log"</text>
-          <text x="505" y="152" font-family="sans-serif" font-size="9" fill="#166534" text-anchor="middle">(Cached in Dcache)</text>
-          <rect x="440" y="165" width="130" height="26" fill="#16a34a" rx="2"/>
-          <text x="505" y="182" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; d_inode Pointer</text>
-
-          <!-- Inode & Superblock -->
-          <line x1="580" y1="140" x2="630" y2="140" stroke="#16a34a" stroke-width="2"/><polygon points="635,140 627,135 627,145" fill="#16a34a"/>
-          <rect x="635" y="60" width="140" height="150" fill="#fffbeb" stroke="#d97706" rx="4"/>
-          <text x="705" y="82" font-family="sans-serif" font-size="11" font-weight="bold" fill="#b45309" text-anchor="middle">struct inode</text>
-          <line x1="645" y1="92" x2="765" y2="92" stroke="#fde68a" stroke-width="1"/>
-          <text x="705" y="112" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_ino = 1048576</text>
-          <text x="705" y="132" font-family="sans-serif" font-size="10" fill="#92400e" text-anchor="middle">i_size = 2.4 MB</text>
-          <rect x="645" y="145" width="120" height="24" fill="#d97706" rx="2"/>
-          <text x="705" y="161" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">&rarr; i_op: lookup, link</text>
-          <text x="705" y="195" font-family="sans-serif" font-size="9" fill="#92400e" text-anchor="middle">&bull; Linked to Superblock</text>
-        </svg>
-        <figcaption>Figure 4.3.8B: Relationship from process file descriptor down to physical inode and superblock.</figcaption>
-      </figure>
-
-      <h3>3. Path Resolution &amp; The Dentry Cache (Dcache)</h3>
-      <p>
-        In POSIX systems, looking up an absolute path such as <code>/usr/bin/gcc</code> requires stepping down the directory hierarchy. A naive implementation would read the root directory disk block, locate <code>usr</code>, fetch its inode, read <code>usr</code>'s disk block, locate <code>bin</code>, and repeat. This would impose severe mechanical seek penalties for simple commands.
-      </p>
-      <p>
-        The VFS solves this by evaluating paths through the in-memory <strong>Dentry Cache (Dcache)</strong>:
-      </p>
-      <ol>
-        <li><strong>Hash Table Lookup:</strong> The kernel hashes the tuple <code>(parent_dentry, "child_name")</code> and queries a global hash table.</li>
-        <li><strong>Dcache Hit:</strong> If the dentry is cached, VFS retrieves the associated <code>struct inode</code> instantly without any disk access. Modern Linux kernels execute this lookup locklessly using Read-Copy-Update (RCU).</li>
-        <li><strong>Dcache Miss:</strong> If the dentry is not present, VFS invokes the underlying filesystem driver's <code>inode->i_op->lookup()</code> method. The driver reads the directory block from disk, constructs a new dentry, attaches it to the inode, and inserts it into the Dcache.</li>
-        <li><strong>Mount Point Traversal:</strong> If a traversed dentry is flagged as a mount point (<code>DCACHE_MOUNTED</code>), VFS automatically redirects the lookup path to the root dentry of the mounted filesystem's superblock.</li>
-      </ol>
-
-      <!-- WALKTHROUGH PART 5: VFS DISPATCH & PATH RESOLUTION -->
+      <!-- Section 4.3.8 Walkthrough -->
       <div class="lfs-sim-container" id="vfsSim">
         <div class="lfs-topbar">
           <span class="lfs-title">Walkthrough Part 5: VFS Dispatch, Path Walk &amp; Mount Resolution</span>
@@ -1947,7 +1924,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const grid = document.getElementById("vfsSegmentsGrid");
       grid.innerHTML = "";
 
-      // Box 1: Process File Table
       let b1 = document.createElement("div");
       b1.className = "lfs-segment-box";
       b1.innerHTML = `<div class="lfs-seg-header"><span>Process File Table</span><span>fd=3</span></div>`;
@@ -1963,7 +1939,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       b1.appendChild(b1Content);
       grid.appendChild(b1);
 
-      // Box 2: Dentry Path Components
       let b2 = document.createElement("div");
       b2.className = "lfs-segment-box";
       b2.innerHTML = `<div class="lfs-seg-header"><span>Dcache Path Chain</span><span>Dentries</span></div>`;
@@ -1979,7 +1954,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       b2.appendChild(b2Content);
       grid.appendChild(b2);
 
-      // Box 3: Active Inode & Superblock
       let b3 = document.createElement("div");
       b3.className = "lfs-segment-box";
       b3.innerHTML = `<div class="lfs-seg-header"><span>Active Inode</span><span>${vfsState.driver}</span></div>`;
@@ -1995,7 +1969,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       b3.appendChild(b3Content);
       grid.appendChild(b3);
 
-      // Box 4: Polymorphic Function Table
       let b4 = document.createElement("div");
       b4.className = "lfs-segment-box";
       b4.innerHTML = `<div class="lfs-seg-header"><span>File Operations (f_op)</span><span>Function Table</span></div>`;
@@ -2290,7 +2263,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing expanded VFS section to {html_file}...")
+    print(f"--> Writing deepened WAL & expanded VFS content to {html_file}...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -2298,11 +2271,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Expand section 4.3.8 on Virtual File Systems with theory, SVGs and sim\n\n"
+        "Deepen WAL theory, failure modes, and commit barriers in section 4.3.6\n\n"
         "Update week10-file-management/03-filesystem-implementation.html to "
-        "comprehensively expand section 4.3.8 with polymorphic dispatch mechanics, "
-        "the four core VFS data structures, dcache path resolution, two SVG "
-        "diagrams, and an interactive VFS dispatch simulator."
+        "comprehensively explain Write-Ahead Logging (WAL), physical write barriers, "
+        "the anatomy of crash consistency failure modes, and commit block invariants."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
