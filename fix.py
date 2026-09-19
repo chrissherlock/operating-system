@@ -246,6 +246,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       justify-content: space-between;
     }
     .theme-modern .theme-label { color: #94a3b8; }
+    .theme-modern .dos-legend-box { display: none; }
 
     /* THEME 2: WINDOWS 95 / 98 */
     .theme-win95 {
@@ -348,6 +349,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #000000 !important;
     }
     .theme-win95 .theme-label { color: #ffffff !important; }
+    .theme-win95 .dos-legend-box { display: none; }
 
     /* THEME 3: MS-DOS / NORTON SPEED DISK */
     .theme-dos {
@@ -434,62 +436,60 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       justify-content: space-between;
     }
     .theme-dos .theme-label { color: #000000; }
+    .theme-dos .dos-legend-box { display: none; }
 
-    /* THEME 4: REALLY OLD DOS (AUTHENTIC IBM PC CGA/VGA BLUE PALETTE + CP437 BITMAP FONT) */
+    /* =========================================================
+       THEME 4: MS-DOS 6.22 DEFRAG (AUTHENTIC MICROSOFT DEFRAG)
+       ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
       color: #ffffff;
       font-family: 'PerfectDOS', monospace;
-      padding: 12px;
-      border: 4px solid #55ffff;
+      padding: 0;
+      border: 2px solid #55ffff;
       image-rendering: pixelated;
       -webkit-font-smoothing: none;
       font-smooth: never;
       text-rendering: geometricPrecision;
-      box-shadow: inset 0 0 20px rgba(85, 255, 255, 0.2), 0 0 15px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
     }
-    .theme-olddos .ui-window-box {
-      border: 1px solid #55ffff;
-      padding: 6px;
-      background: #000088;
-    }
+    .theme-olddos .ui-window-box { border: none; padding: 0; background: #0000aa; }
     .theme-olddos .ui-topbar {
-      background: #00aaaa;
-      color: #000000;
-      padding: 3px 6px;
-      font-size: 12px;
+      background: #ffffff;
+      color: #0000aa;
+      padding: 4px 8px;
+      font-size: 11px;
       font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 0;
     }
-    .theme-olddos .ui-title { color: #000000; font-size: 12px; font-weight: bold; }
+    .theme-olddos .ui-title { color: #0000aa; font-size: 11px; font-weight: bold; }
     .theme-olddos .ui-controls {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-      background: transparent;
-      padding: 4px 0;
-      align-items: center;
-      color: #ffff55;
+      background: #0000aa;
+      border-bottom: 1px solid #55ffff;
+      padding: 6px 10px;
+      gap: 6px;
     }
     .theme-olddos .ctrl-btn {
       background-color: #0000aa;
       color: #ffff55;
-      border: 1px solid #ffffff;
-      padding: 3px 7px;
-      font-size: 11px;
+      border: 1px solid #ffff55;
+      padding: 2px 6px;
+      font-size: 10px;
       font-family: inherit;
       image-rendering: pixelated;
       cursor: pointer;
     }
-    .theme-olddos .ctrl-btn:hover { background-color: #00aaaa; color: #000000; }
+    .theme-olddos .ctrl-btn:hover { background-color: #55ffff; color: #0000aa; }
     .theme-olddos .ctrl-btn.active { background-color: #ffff55; color: #0000aa; font-weight: bold; }
     .theme-olddos .ctrl-btn.churn-btn { color: #ffff55; }
+
     .theme-olddos .grid-wrapper {
-      background: #000055;
-      border: 2px solid #55ffff;
+      background: #0000aa;
+      border: 1px solid #55ffff;
+      margin: 6px;
       padding: 4px;
       display: flex;
       justify-content: center;
@@ -502,34 +502,64 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       max-width: 950px;
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.8;
+      aspect-ratio: 1 / 1.6;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
       user-select: none;
     }
-    .theme-olddos .c-free { background-color: #000055; color: #0000aa; }
-    .theme-olddos .c-opt { background-color: #0000aa; color: #ffffff; }
-    .theme-olddos .c-unopt { background-color: #0000aa; color: #ff5555; }
-    .theme-olddos .c-system { background-color: #aa0000; color: #ffffff; }
-    .theme-olddos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
-    .theme-olddos .c-write { background-color: #ffff55 !important; color: #000000 !important; }
-    .theme-olddos .ui-status-panel {
+    /* MS-DOS 6.22 Defrag Palette */
+    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; } /* Shaded / Dotted */
+    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }   /* Solid Yellow */
+    .theme-olddos .c-unopt { background-color: #0000aa; color: #55ffff; } /* Shaded cyan */
+    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; } /* Yellow with X */
+    .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
+    .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
+
+    /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
+    .theme-olddos .dos-legend-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border: 1px solid #55ffff;
+      margin: 6px;
       background: #0000aa;
-      border-top: 1px dashed #55ffff;
-      padding-top: 6px;
-      margin-top: 6px;
-      font-size: 11px;
-      color: #ffff55;
-      display: flex;
-      justify-content: space-between;
+      color: #ffffff;
+      font-size: 10px;
+      font-family: 'PerfectDOS', monospace;
     }
-    .theme-olddos .theme-label { color: #ffff55; }
+    .theme-olddos .dos-status-col {
+      padding: 8px;
+      border-right: 1px solid #55ffff;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .theme-olddos .dos-legend-col {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .theme-olddos .dos-prog-bar {
+      background: #ffffff;
+      color: #0000aa;
+      height: 14px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      padding-left: 4px;
+      font-weight: bold;
+    }
+    .theme-olddos .ui-status-panel { display: none; } /* Replaced by authentic box */
+    .theme-olddos .theme-label { color: #0000aa; }
 
     /* Matrix Dimensions */
     .screen-grid {
@@ -610,7 +640,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
             <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
             <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
             <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
-            <button class="ctrl-btn" onclick="switchTheme('olddos')" id="btn-theme-olddos">Really Old DOS</button>
+            <button class="ctrl-btn" onclick="switchTheme('olddos')" id="btn-theme-olddos">MS-DOS 6.22</button>
           </div>
         </div>
 
@@ -642,6 +672,46 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <!-- Single-Screen Matrix Well -->
         <div class="grid-wrapper">
           <div class="screen-grid" id="clusterGrid"></div>
+        </div>
+
+        <!-- Authentic MS-DOS 6.22 Split Status & Legend Box -->
+        <div class="dos-legend-box" id="dosLegendBox">
+          <div class="dos-status-col">
+            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Status</div>
+            <div style="display:flex; justify-content:space-between; font-size:9.5px;">
+              <span id="dosClusterText">Cluster 16,936</span>
+              <span id="dosPctText">29%</span>
+            </div>
+            <div class="dos-prog-bar">
+              <div id="dosProgressBarFill" style="background:#55ffff; width:29%; height:100%; position:absolute; left:0; top:0; z-index:1;"></div>
+              <span id="dosProgressText" style="position:relative; z-index:2; color:#0000aa; margin:auto;"></span>
+            </div>
+            <div style="text-align:center; font-size:9.5px;" id="dosElapsedText">Elapsed Time: 00:00:00</div>
+            <div style="text-align:center; font-size:9.5px; font-weight:bold; color:#ffff55;" id="dosOptModeText">Full Optimization</div>
+          </div>
+          <div class="dos-legend-col">
+            <div style="border-bottom:1px solid #55ffff; padding-bottom:2px; font-weight:bold; color:#ffff55;">Legend</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2px; font-size:9px;">
+              <div>■ - Used</div>
+              <div>▒ - Unused</div>
+              <div>r - Reading</div>
+              <div>W - Writing</div>
+              <div>B - Bad</div>
+              <div>X - Unmovable</div>
+            </div>
+            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C: 1 block = 54 clusters</div>
+          </div>
+        </div>
+
+        <!-- Explicit Visual Color Legend / Key for Modern Theme -->
+        <div class="modern-legend" id="modernLegend">
+          <span style="font-weight:700; color:#38bdf8;">Legend:</span>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#1e293b;"></div><span>Free Space</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#0284c7;"></div><span>Optimized (Contiguous)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#f59e0b;"></div><span>Unoptimized (Fragmented)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#dc2626;"></div><span>System (Unmovable)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#facc15;"></div><span>Reading (r)</span></div>
+          <div class="modern-legend-item"><div class="modern-swatch" style="background:#34d399;"></div><span>Writing (w)</span></div>
         </div>
 
         <!-- Real-Time Status Panel -->
@@ -678,6 +748,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     let stepDelay = 45;
     let currentTheme = 'modern';
     let selectedCapacityMB = 500;
+    let startTime = 0;
+    let elapsedTimer = null;
 
     function selectDiskCapacity(sizeMB) {
       selectedCapacityMB = sizeMB;
@@ -695,7 +767,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       if (currentTheme === 'modern') titleEl.textContent = `FAT32 Volume Optimizer (${label} Drive)`;
       else if (currentTheme === 'win95') titleEl.textContent = `Disk Defragmenter - Drive C: (${label} FAT)`;
       else if (currentTheme === 'dos') titleEl.textContent = `NORTON SPEED DISK - DRIVE C: [${label}]`;
-      else if (currentTheme === 'olddos') titleEl.textContent = `IBM PC DOS 3.30 SPEEDISK - DRIVE C: [${label}]`;
+      else if (currentTheme === 'olddos') titleEl.textContent = `Optimize            Esc=Stop Defrag`;
     }
 
     function switchTheme(theme) {
@@ -707,6 +779,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         const b = document.getElementById(`btn-theme-${t}`);
         if (b) b.classList.toggle('active', t === theme);
       });
+
+      // Show/hide legends
+      const leg = document.getElementById("modernLegend");
+      if (leg) leg.style.display = (theme === 'modern') ? 'flex' : 'none';
+
+      const dosLeg = document.getElementById("dosLegendBox");
+      if (dosLeg) dosLeg.style.display = (theme === 'olddos') ? 'grid' : 'none';
 
       updateShellTitle();
       renderAllCells();
@@ -739,8 +818,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.className = "c-cell";
       el.textContent = "";
 
-      if (currentTheme === 'dos' || currentTheme === 'olddos') {
-        // Authentic DOS tall character glyphs (CP437)
+      if (currentTheme === 'olddos') {
+        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs (Matching screenshot exactly)
+        if (c.state === "read") {
+          el.classList.add("c-read");
+          el.textContent = "r";
+        } else if (c.state === "write") {
+          el.classList.add("c-write");
+          el.textContent = "W";
+        } else if (c.isSystem) {
+          el.classList.add("c-system");
+          el.textContent = "X";
+        } else if (c.state === "optimized") {
+          el.classList.add("c-opt");
+          el.textContent = "■";
+        } else if (c.state === "unoptimized") {
+          el.classList.add("c-unopt");
+          el.textContent = "■";
+        } else {
+          el.classList.add("c-free");
+          el.textContent = "▒";
+        }
+      } else if (currentTheme === 'dos') {
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "R";
@@ -789,7 +888,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       defragPause();
       initMatrix();
 
-      // System Unmovable files at designated positions
+      // System Unmovable files at designated positions (Marked as X in DOS 6.22)
       const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
       unmovable.forEach(idx => {
         cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
@@ -817,13 +916,15 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const capLabel = selectedCapacityMB >= 1000 ? "1 GB" : `${selectedCapacityMB} MB`;
       document.getElementById("txtStatusMsg").textContent =
         `${capLabel} Volume Ready. Total Clusters: ${totalClusters.toLocaleString()} (1 Block = ${ratio} Clusters).`;
+
+      const dosBlockText = document.getElementById("dosDriveBlockText");
+      if (dosBlockText) dosBlockText.textContent = `Drive C:  1 block = ${ratio} clusters`;
     }
 
     function defragHeavyChurn() {
       defragPause();
       if (cells.length === 0) initMatrix();
 
-      // Generate heavy, realistic fragmentation pattern across the selected drive volume
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].isSystem) continue;
 
@@ -840,7 +941,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       }
 
-      // Preserve unmovable clusters
       const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
       unmovable.forEach(idx => {
         cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
@@ -859,6 +959,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const pct = totalData > 0 ? Math.round((opt / totalData) * 100) : 0;
 
       document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/1,500`;
+
+      // Update DOS 6.22 status widget
+      const dosPct = document.getElementById("dosPctText");
+      if (dosPct) dosPct.textContent = `${pct}%`;
+      const dosBar = document.getElementById("dosProgressBarFill");
+      if (dosBar) dosBar.style.width = `${pct}%`;
+      const dosCluster = document.getElementById("dosClusterText");
+      if (dosCluster) {
+        let activeClust = 10000 + Math.round((pct / 100) * 15636);
+        dosCluster.textContent = `Cluster ${activeClust.toLocaleString()}`;
+      }
     }
 
     function defragToggleRun() {
@@ -869,6 +980,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           defragHeavyChurn();
         }
         isRunning = true;
+        startTime = Date.now();
+        if (elapsedTimer) clearInterval(elapsedTimer);
+        elapsedTimer = setInterval(updateElapsedClock, 1000);
+
         const btn = document.getElementById("btnStartDefrag");
         btn.textContent = "Pause";
         btn.style.background = "#b91c1c";
@@ -878,9 +993,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
     }
 
+    function updateElapsedClock() {
+      if (!isRunning) return;
+      const secTotal = Math.floor((Date.now() - startTime) / 1000);
+      const hh = String(Math.floor(secTotal / 3600)).padStart(2, '0');
+      const mm = String(Math.floor((secTotal % 3600) / 60)).padStart(2, '0');
+      const ss = String(secTotal % 60).padStart(2, '0');
+      const el = document.getElementById("dosElapsedText");
+      if (el) el.textContent = `Elapsed Time: ${hh}:${mm}:${ss}`;
+    }
+
     function defragPause() {
       isRunning = false;
       if (stepTimer) clearTimeout(stepTimer);
+      if (elapsedTimer) clearInterval(elapsedTimer);
       const btn = document.getElementById("btnStartDefrag");
       if (btn) {
         btn.textContent = "Start Defrag";
@@ -896,7 +1022,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     function runDefragCycle() {
       if (!isRunning) return;
 
-      // Locate first free cluster from the top down
       let firstFree = -1;
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].state === "free") {
@@ -905,7 +1030,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       }
 
-      // Locate a scattered run of unoptimized clusters past this free space
       let sourceBlocks = [];
       for (let i = TOTAL_CELLS - 1; i > firstFree; i--) {
         if (cells[i].state === "unoptimized" && !cells[i].isSystem) {
@@ -919,7 +1043,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         return;
       }
 
-      // 1. Reading Phase: Highlight reading clusters
       sourceBlocks.forEach(idx => {
         cells[idx].state = "read";
         renderCell(idx);
@@ -928,7 +1051,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       stepTimer = setTimeout(() => {
         if (!isRunning) return;
 
-        // 2. Writing Phase: Highlight target free clusters
         let targetSlots = [];
         for (let i = firstFree; i < TOTAL_CELLS && targetSlots.length < sourceBlocks.length; i++) {
           if (cells[i].state === "free") {
@@ -941,7 +1063,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         stepTimer = setTimeout(() => {
           if (!isRunning) return;
 
-          // 3. Commit Move: Sources become free, Targets become optimized
           sourceBlocks.forEach(idx => {
             cells[idx] = { state: "free", isSystem: false, fileId: null };
             renderCell(idx);
@@ -960,6 +1081,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     function finishDefrag() {
       isRunning = false;
+      if (elapsedTimer) clearInterval(elapsedTimer);
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].state === "unoptimized") {
           cells[i].state = "optimized";
@@ -976,16 +1098,17 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     // Initialize Simulator on Load
     initMatrix();
     selectDiskCapacity(500);
+    switchTheme('olddos'); // Default to MS-DOS 6.22 mode for immediate visual satisfaction
   </script>
 </body>
 </html>
 """
 
-COMMIT_MSG = """Fix Windows 95 theme contrast and update Really Old DOS theme to blue
+COMMIT_MSG = """Add MS-DOS 6.22 defrag theme matching authentic Microsoft Defrag UI
 
-Update week10-file-management/03-filesystem-implementation.html to correct
-Windows 95 text contrast (black text on grey windows) and update the Really
-Old DOS theme palette to authentic IBM PC blue text mode (#0000aa background)."""
+Update week10-file-management/03-filesystem-implementation.html with an
+authentic MS-DOS 6.22 theme featuring blue background, yellow used blocks,
+shaded free space, X unmovable markers, and the exact Defrag status/legend box."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1007,10 +1130,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging blue old dos theme update")
+    run_git_step(["git", "add", target_file], "Staging MS-DOS 6.22 defrag update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Blue Really Old DOS theme successfully deployed!")
+    print("--> MS-DOS 6.22 Defragmenter theme successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
