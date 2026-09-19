@@ -615,8 +615,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </style>
 </head>
 <body>
-  <!-- Inline Base64 Audio Data URI -->
-  <audio id="defragAudio" src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU5LjM3LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZmEAAAAUAAAAEAAAMwAA8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PDw8PAAAA" preload="auto" loop></audio>
+  <!-- Background MP3 Audio Loop referencing defrag2.mp3 -->
+  <audio id="defragAudio" src="images/defrag2.mp3" preload="auto" loop></audio>
 
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week 10 Index</a>
@@ -1178,11 +1178,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add explicit audio toggle button to bypass browser autoplay policy
+COMMIT_MSG = """Revert background audio source back to defrag2.mp3
 
-Update week10-file-management/03-filesystem-implementation.html to include
-an interactive audio toggle button in the control bar, allowing users to
-manually enable and unlock audio playback.
+Update week10-file-management/03-filesystem-implementation.html to point
+the audio element back to images/defrag2.mp3.
 """
 
 def run_git_step(cmd, desc):
@@ -1205,10 +1204,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging audio toggle button update")
+    run_git_step(["git", "add", target_file], "Staging defrag2.mp3 reversion update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Audio toggle successfully deployed!")
+    print("--> defrag2.mp3 reversion successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
