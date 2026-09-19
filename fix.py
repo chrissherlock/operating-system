@@ -98,7 +98,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .c-num { color: #fbbf24; }
     .c-comm { color: #64748b; font-style: italic; }
 
-    /* Immersive Tour Panel Styles */
     .tour-panel {
       border: 1px solid #bae6fd;
       border-left: 5px solid var(--accent);
@@ -560,7 +559,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div class="telemetry-grid">
         <div class="telemetry-box">
           <span class="telemetry-label">Process FD Slot</span>
-          <span class="telemetry-value" id="tel-fd">fd [3] &rarr; Unbound</span>
+          <span class="telemetry-value" id="tel-fd">fd [3] &rarr; Bound</span>
         </div>
         <div class="telemetry-box">
           <span class="telemetry-label">Open File Table Entry</span>
@@ -641,13 +640,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // Immersive Tour State Machine
     const tourStages = [
       {
         counter: "Stage 1 of 4: The Handshake",
         title: "1. Opening the Gateway: The File Descriptor Allocation",
         text: "When a user-space process calls <code>open(\"data.txt\", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.",
-        fd: "fd [3] &rarr; Bound",
+        fd: "fd [3] → Bound",
         oft: "Ref Count: 1 | Offset: 0B",
         inode: "i-node #512 (Cached in RAM)"
       },
@@ -655,7 +653,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         counter: "Stage 2 of 4: The Data Stream",
         title: "2. Traversing & Advancing: The Read Cycle",
         text: "During a <code>read(3, buffer, 4096)</code> system call, bytes are transferred from the kernel Buffer Cache into user space. Notice how the file offset inside the Open File Table automatically marches forward with every successful chunk read.",
-        fd: "fd [3] &rarr; Active",
+        fd: "fd [3] → Active",
         oft: "Ref Count: 1 | Offset: 4096B",
         inode: "i-node #512 (Read Lock)"
       },
@@ -663,7 +661,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         counter: "Stage 3 of 4: Arbitrary Jumps",
         title: "3. Instant Repositioning: The Seek Operation",
         text: "When an application calls <code>lseek(3, 1024, SEEK_SET)</code>, zero disk I/O occurs. The kernel simply recalculates the logical byte offset pointer in the Open File Table instantly, preparing the pointer for random-access lookups.",
-        fd: "fd [3] &rarr; Active",
+        fd: "fd [3] → Active",
         oft: "Ref Count: 1 | Offset: 1024B (Seeked)",
         inode: "i-node #512 (Random Access)"
       },
@@ -671,7 +669,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         counter: "Stage 4 of 4: The Cleanup",
         title: "4. Releasing the Gateway: Closing the Descriptor",
         text: "When <code>close(3)</code> executes, the kernel flushes any dirty buffer cache blocks to physical disk storage, deallocates the slot in the process FD table, and decrements the open file table reference count.",
-        fd: "fd [3] &rarr; Released",
+        fd: "fd [3] → Released",
         oft: "Table Entry Destroyed",
         inode: "Ref Count Decremented"
       }
@@ -699,7 +697,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       document.getElementById("tel-inode").textContent = stage.inode;
 
       document.getElementById("tourPrevBtn").disabled = (currentTourStage === 0);
-      document.getElementById("tourNextBtn").textContent = (currentTourStage === tourStages.length - 1) ? "Restart Tour" : "Next Stage \u2192";
+      document.getElementById("tourNextBtn").textContent = (currentTourStage === tourStages.length - 1) ? "Restart Tour" : "Next Stage →";
     }
 
     document.getElementById("tourPrevBtn").onclick = () => {
