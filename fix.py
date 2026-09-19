@@ -221,12 +221,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-modern .screen-grid {
       display: grid;
       grid-template-columns: repeat(50, 1fr);
-      gap: 1px;
+      gap: 2px;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
     }
     .theme-modern .c-cell {
-      aspect-ratio: 1 / 1; /* Square cells for modern */
+      aspect-ratio: 1 / 1;
       border-radius: 1px;
     }
     .theme-modern .c-free { background-color: #1e293b; }
@@ -325,9 +325,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-win95 .screen-grid {
       display: grid;
       grid-template-columns: repeat(50, 1fr);
-      gap: 1px;
+      gap: 2px;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
     }
     .theme-win95 .c-cell {
       aspect-ratio: 1 / 1;
@@ -406,10 +406,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       grid-template-columns: repeat(50, 1fr);
       gap: 1px;
       width: 100%;
-      max-width: 900px;
+      max-width: 950px;
     }
     .theme-dos .c-cell {
-      aspect-ratio: 1 / 1.4; /* Taller than wide to match authentic DOS text-mode blocks */
+      aspect-ratio: 1 / 1.4;
       border-radius: 0;
       display: flex;
       align-items: center;
@@ -439,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (PROPER TALL ASPECT RATIO)
+       THEME 4: MS-DOS 6.22 DEFRAG (LEGEND-MATCHED CP437 GLYPHS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -499,10 +499,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       grid-template-columns: repeat(50, 1fr);
       gap: 1px;
       width: 100%;
-      max-width: 900px;
+      max-width: 950px;
     }
     .theme-olddos .c-cell {
-      aspect-ratio: 1 / 1.4; /* Taller than wide to match authentic DOS 8x16 character cells */
+      aspect-ratio: 1 / 1.4; /* Correct proportional height matching DOS text mode */
       border-radius: 0;
       display: flex;
       align-items: center;
@@ -513,31 +513,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       image-rendering: pixelated;
       user-select: none;
     }
-    /* MS-DOS 6.22 Defrag Palette */
-    .theme-olddos .c-free {
-      background-color: #0000aa;
-      background-image: repeating-linear-gradient(45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 4px);
-    }
-    .theme-olddos .c-opt {
-      background-color: #ffff55;
-    }
-    .theme-olddos .c-unopt {
-      background-color: #0000aa;
-      background-image: repeating-linear-gradient(-45deg, #55ffff 0, #55ffff 1px, transparent 0, transparent 4px);
-    }
-    .theme-olddos .c-system {
-      background-color: #ffff55;
-      color: #aa0000;
-      font-weight: 900;
-    }
-    .theme-olddos .c-read {
-      background-color: #ffffff !important;
-      color: #0000aa !important;
-    }
-    .theme-olddos .c-write {
-      background-color: #55ff55 !important;
-      color: #0000aa !important;
-    }
+    /* MS-DOS 6.22 Defrag Palette matching Legend exactly */
+    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; } /* ▒ - Unused */
+    .theme-olddos .c-opt { background-color: #0000aa; color: #ffff55; }  /* ■ - Used (Yellow) */
+    .theme-olddos .c-unopt { background-color: #0000aa; color: #ffff55; }/* ■ - Used (Yellow) */
+    .theme-olddos .c-system { background-color: #0000aa; color: #ffff55; font-weight: 900; } /* X - Unmovable */
+    .theme-olddos .c-read { background-color: #0000aa !important; color: #ffffff !important; } /* r - Reading */
+    .theme-olddos .c-write { background-color: #0000aa !important; color: #ffff55 !important; } /* W - Writing */
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
@@ -837,7 +819,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs (Matching screenshot exactly)
+        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs (Matching screenshot legend)
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";
@@ -849,10 +831,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
+          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
+          el.textContent = "■";
         } else {
           el.classList.add("c-free");
+          el.textContent = "▒";
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1119,11 +1104,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Fix cluster cell aspect ratio to prevent block distortion
+COMMIT_MSG = """Fix cell aspect ratios and legend character glyph matching
 
-Update week10-file-management/03-filesystem-implementation.html to enforce
-correct vertical-to-horizontal cell aspect ratios across all themes,
-ensuring retro blocks appear correctly proportioned rather than stretched."""
+Update week10-file-management/03-filesystem-implementation.html with proper
+tall DOS aspect ratios (1 / 1.4) and matching CP437 legend glyphs (■ for used,
+▒ for unused, X for unmovable) to prevent block distortion."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1145,10 +1130,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging cell aspect ratio fix")
+    run_git_step(["git", "add", target_file], "Staging aspect ratio and legend glyph fix")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Cell aspect ratio successfully deployed!")
+    print("--> Cell aspect ratios and legend glyph matching successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
