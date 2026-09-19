@@ -157,6 +157,31 @@
       gap: 12px;
     }
 
+    /* MODERN THEME LEGEND */
+    .modern-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem; /* Scaled down for clean layout */
+      color: #cbd5e1;
+      align-items: center;
+    }
+    .modern-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .modern-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
     /* THEME 1: MODERN (DEFAULT) */
     .theme-modern {
       background: #0f172a;
@@ -434,7 +459,7 @@
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (STRICT NON-ANTIALIASED PIXELATED)
+       THEME 4: MS-DOS 6.22 DEFRAG (STRICT PIXELATED FONT RENDERING)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
