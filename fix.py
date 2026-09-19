@@ -71,38 +71,33 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .concept-box strong { color: #075985; }
 
-    /* Floating Bio Infobox Sidebar on Right with text wrapping */
-    .bio-sidebar {
-      float: right;
-      width: 320px;
+    /* Stacked Row Layout for Pioneer Profiles */
+    .pioneer-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+    @media(max-width: 768px) {
+      .pioneer-row { grid-template-columns: 1fr; }
+    }
+    .pioneer-profile {
       background: #f8fafc;
       border: 1px solid var(--border);
       border-top: 4px solid var(--accent);
       border-radius: 6px;
       padding: 16px;
-      margin-left: 24px;
-      margin-bottom: 14px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 8px;
       font-size: 0.84rem;
-      shape-outside: margin-box;
-    }
-    .pioneer-profile {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .pioneer-profile:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
     }
     .pioneer-profile img {
       width: 100%;
       height: auto;
-      max-height: 260px;
+      max-height: 220px;
       object-fit: contain;
       border-radius: 4px;
       border: 1px solid var(--border);
@@ -135,7 +130,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .figure-container {
       width: 100%; max-width: 720px; margin: 10px auto; display: flex; flex-direction: column;
       align-items: center; gap: 10px; background: #ffffff; border: 1px solid var(--border);
-      border-radius: 8px; padding: 20px; clear: both;
+      border-radius: 8px; padding: 20px;
     }
     .math-formula {
       display: flex;
@@ -162,7 +157,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-left: 4px solid var(--inspect-color);
       background: #fffbeb;
       transition: all 0.3s ease;
-      clear: both;
     }
     .tutorial-header {
       display: flex;
@@ -284,12 +278,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       0% { box-shadow: inset 0 0 6px rgba(202, 138, 4, 0.3); }
       100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
     }
-    /* Vertical stack for lists container with float clearance */
+    /* Two-column layout for Free Lists and Used Trackers side-by-side */
     .lists-container {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 16px;
-      clear: both;
+    }
+    @media(max-width: 768px) {
+      .lists-container { grid-template-columns: 1fr; }
     }
     .free-area-list {
       display: flex;
@@ -429,36 +425,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <p class="subtitle">Tanenbaum Chapter 3: The Purpose of Allocation Lists, Bitmaps, Linked Lists of Segments, and Binary Buddy Systems.</p>
   </header>
   <div class="main-container">
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
-      <aside class="bio-sidebar">
-        <!-- Markowitz Infobox -->
-        <div class="pioneer-profile">
-          <img src="../images/markowitz.jpg" alt="Harry Markowitz" onerror="this.style.display='none'">
-          <h3>Harry M. Markowitz</h3>
-          <p>Formulated the binary buddy allocation algorithm (1963). Nobel laureate.</p>
-          <div class="attr">Image source: <a href="https://zicklin.baruch.cuny.edu/zicklin_news/nobel-winner-harry-markowitz-former-zicklin-professor-dies/" target="_blank">Zicklin News, Baruch College</a> (Copyrighted).</div>
-          <div><a href="https://en.wikipedia.org/wiki/Harry_Markowitz" target="_blank">View Wikipedia &rarr;</a></div>
-        </div>
-
-        <!-- Knowlton Infobox -->
-        <div class="pioneer-profile">
-          <img src="../images/knowlton.png" alt="Ken Knowlton" onerror="this.style.display='none'">
-          <h3>Kenneth C. Knowlton</h3>
-          <p>Refined buddy allocation structures at Bell Labs (1965) for Lisp architectures.</p>
-          <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
-          <div><a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">View Wikipedia &rarr;</a></div>
-        </div>
-
-        <!-- Knuth Infobox -->
-        <div class="pioneer-profile">
-          <img src="../images/knuth.png" alt="Donald Knuth" onerror="this.style.display='none'">
-          <h3>Donald E. Knuth</h3>
-          <p>Rigorously analyzed and popularized buddy systems in <em>The Art of Computer Programming</em>.</p>
-          <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
-          <div><a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">View Wikipedia &rarr;</a></div>
-        </div>
-      </aside>
-
+    <!-- Row 1: Historical Foundations & Introduction -->
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0;">
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">1. Historical Foundations &amp; The Purpose of Allocation Lists</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         <strong>What are Allocation Lists?</strong> When an operating system kernel manages physical memory, it cannot simply guess which bytes of RAM are available. It must maintain rigorous bookkeeping structures known as <strong>allocation lists</strong>. These consist of <em>Free Lists</em> (grouping unallocated blocks or holes) and <em>Used Lists/Trackers</em> (recording active process ownership, starting addresses, and block lengths).
@@ -469,7 +437,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         <strong>A Brief History:</strong> Early computer systems in the 1950s and early 1960s used primitive bitmaps and sequential linked lists of variable-length holes. To solve the persistent problem of external fragmentation and slow search times, the <strong>Binary Buddy System</strong> was introduced by <strong>Harry M. Markowitz</strong> in 1963, refined by <strong>Kenneth C. Knowlton</strong> in 1965, and standardized across computer science by <strong>Donald Knuth</strong>.
       </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; clear: both;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
         <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 12px;">
           <strong style="color: #0284c7; font-size: 0.9rem;">Free Lists (Availability)</strong>
           <p style="font-size: 0.85rem; color: #475569; margin-top: 4px; line-height: 1.5;">
@@ -485,8 +453,38 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- Row 2: Pioneer Profiles Grid -->
+    <div class="pioneer-row">
+      <!-- Markowitz Infobox -->
+      <div class="pioneer-profile">
+        <img src="../images/markowitz.jpg" alt="Harry Markowitz" onerror="this.style.display='none'">
+        <h3>Harry M. Markowitz</h3>
+        <p>Formulated the binary buddy allocation algorithm (1963). Nobel laureate.</p>
+        <div class="attr">Image source: <a href="https://zicklin.baruch.cuny.edu/zicklin_news/nobel-winner-harry-markowitz-former-zicklin-professor-dies/" target="_blank">Zicklin News, Baruch College</a> (Copyrighted).</div>
+        <div><a href="https://en.wikipedia.org/wiki/Harry_Markowitz" target="_blank">View Wikipedia &rarr;</a></div>
+      </div>
+
+      <!-- Knowlton Infobox -->
+      <div class="pioneer-profile">
+        <img src="../images/knowlton.png" alt="Ken Knowlton" onerror="this.style.display='none'">
+        <h3>Kenneth C. Knowlton</h3>
+        <p>Refined buddy allocation structures at Bell Labs (1965) for Lisp architectures.</p>
+        <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
+        <div><a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">View Wikipedia &rarr;</a></div>
+      </div>
+
+      <!-- Knuth Infobox -->
+      <div class="pioneer-profile">
+        <img src="../images/knuth.png" alt="Donald Knuth" onerror="this.style.display='none'">
+        <h3>Donald E. Knuth</h3>
+        <p>Rigorously analyzed and popularized buddy systems in <em>The Art of Computer Programming</em>.</p>
+        <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
+        <div><a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">View Wikipedia &rarr;</a></div>
+      </div>
+    </div>
+
     <!-- Tanenbaum Section 1: Bitmaps (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0; clear: both;">
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">2. Tanenbaum's Method 1: Bookkeeping with Bitmaps</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         Memory is partitioned into fixed allocation units (e.g., 4 KB blocks). Each unit corresponds to a single bit in a bitmap: <code>0</code> if free, and <code>1</code> if allocated to a process.
@@ -514,7 +512,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Tanenbaum Section 2: Linked Lists (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0; clear: both;">
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">3. Tanenbaum's Method 2: Bookkeeping with Linked Lists of Segments</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         The operating system maintains a linked list where each node indicates whether a region is a <strong>Process (P)</strong> or a <strong>Hole (H)</strong>, its starting address, and its length.
@@ -563,7 +561,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Section 3: Classical Placement Strategies (Borderless) -->
-    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0; clear: both;">
+    <div style="background: transparent; border: none; box-shadow: none; padding: 4px 0 16px 0;">
       <div style="font-weight: 700; color: #0369a1; font-size: 1.15rem; margin-bottom: 10px;">4. Classical Placement Strategies (First Fit, Best Fit, Worst Fit, Next Fit)</div>
       <p style="font-size: 0.93rem; line-height: 1.6; color: #334155; margin-bottom: 10px;">
         When allocating memory from a linked list of holes, the kernel uses placement algorithms to decide which hole to assign:
@@ -577,7 +575,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- PFN Explanation Banner -->
-    <div class="concept-box" style="clear: both;">
+    <div class="concept-box">
       <strong>What is a PFN (Page Frame Number)?</strong><br>
       Physical DRAM is partitioned by hardware into fixed-sized slots called <em>page frames</em> (commonly 4096 bytes or 2<sup>12</sup>). The <strong>PFN</strong> is simply the sequential integer index of that frame:
       <div class="math-formula">
@@ -594,7 +592,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Tutorial Control Box -->
-    <div class="card tutorial-panel" id="tutorialCard" style="clear: both;">
+    <div class="card tutorial-panel" id="tutorialCard">
       <div class="tutorial-header">
         <span id="stepCounter">Step 1 of 8</span>
         <span id="stepPhase">State: Idle</span>
@@ -610,7 +608,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Physical Memory Bar -->
-    <div class="card" style="clear: both;">
+    <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <span style="font-weight:600;">Physical Memory Range (PFN 0 to 15)</span>
         <span style="font-size:0.8rem; color:var(--text-muted);">16 Pages &times; 4 KB = 64 KB Total Pool</span>
@@ -626,7 +624,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Kernel Free Area & Used Tracking Grid -->
-    <div class="lists-container" style="clear: both;">
+    <div class="lists-container">
       <div class="card">
         <span style="font-weight:600;">Kernel Free List Array (<code>free_area[0..4]</code>)</span>
         <div id="freeAreaLists" class="free-area-list"></div>
@@ -640,7 +638,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     </div>
 
     <!-- Execution Terminal -->
-    <div class="card" style="clear: both;">
+    <div class="card">
       <span style="font-weight:600;">Kernel Memory Allocator Trace</span>
       <div id="actionLog" class="log-terminal"></div>
     </div>
@@ -898,11 +896,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Clear float for memory and list cards below pioneer bio sidebar
+COMMIT_MSG = """Switch historical intro and pioneer sidebar to stacked row layout
 
-Update week09-memory-management/01-free-used-lists-buddy.html by adding
-clear: both to the memory bar, free list, and used tracker cards so they
-render cleanly below the floating pioneer bio infobox."""
+Update week09-memory-management/01-free-used-lists-buddy.html by removing
+the side-by-side grid column. Stack the historical introduction and
+pioneer profiles into distinct vertical rows to eliminate layout gaps."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -925,7 +923,7 @@ def execute_pipeline():
     run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Float clearance applied, committed, and pushed successfully!")
+    print("--> Stacked row layout applied, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
