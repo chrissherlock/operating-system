@@ -848,6 +848,11 @@
         if (b) b.classList.toggle('active', t === theme);
       });
 
+      // Force Slow speed by default for DOS themes
+      if (theme === 'dos' || theme === 'olddos') {
+        setDefragSpeed(150, 'spd-slow');
+      }
+
       const leg = document.getElementById("modernLegend");
       if (leg) leg.style.display = (theme === 'modern') ? 'flex' : 'none';
 
