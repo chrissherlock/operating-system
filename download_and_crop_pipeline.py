@@ -1,4 +1,17 @@
-<!DOCTYPE html>
+#!/usr/bin/env python3
+import os
+import ssl
+import subprocess
+import sys
+import urllib.request
+
+ASSET_URLS = {
+    "markowitz.jpg": "https://zicklin.baruch.cuny.edu/wp-content/uploads/sites/10/2023/07/Harry-Markowitz-1_WP_350x467.jpg",
+    "knowlton.jpg": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Ken_Knowlton_in_2007.jpg",
+    "knuth.jpg": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Donald_Ervin_Knuth_%28cropped%29.jpg"
+}
+
+HTML_CONTENT = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -96,9 +109,9 @@
     }
     .pioneer-profile img {
       width: 100%;
-      height: auto;
-      max-height: 260px;
-      object-fit: contain;
+      height: 160px;
+      object-fit: cover;
+      object-position: top;
       border-radius: 4px;
       border: 1px solid var(--border);
       background: #e2e8f0;
@@ -428,7 +441,7 @@
       <aside class="bio-sidebar">
         <!-- Markowitz Infobox -->
         <div class="pioneer-profile">
-          <img src="../images/markowitz.jpg" alt="Harry Markowitz" onerror="this.style.display='none'">
+          <img src="images/markowitz.jpg" alt="Harry Markowitz" onerror="this.style.display='none'">
           <h3>Harry M. Markowitz</h3>
           <p>Formulated the binary buddy allocation algorithm (1963). Nobel laureate.</p>
           <div class="attr">Image source: <a href="https://zicklin.baruch.cuny.edu/zicklin_news/nobel-winner-harry-markowitz-former-zicklin-professor-dies/" target="_blank">Zicklin News, Baruch College</a> (Copyrighted).</div>
@@ -437,7 +450,7 @@
 
         <!-- Knowlton Infobox -->
         <div class="pioneer-profile">
-          <img src="../images/knowlton.png" alt="Ken Knowlton" onerror="this.style.display='none'">
+          <img src="images/knowlton.jpg" alt="Ken Knowlton" onerror="this.style.display='none'">
           <h3>Kenneth C. Knowlton</h3>
           <p>Refined buddy allocation structures at Bell Labs (1965) for Lisp architectures.</p>
           <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Ken_Knowlton" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
@@ -446,7 +459,7 @@
 
         <!-- Knuth Infobox -->
         <div class="pioneer-profile">
-          <img src="../images/knuth.png" alt="Donald Knuth" onerror="this.style.display='none'">
+          <img src="images/knuth.jpg" alt="Donald Knuth" onerror="this.style.display='none'">
           <h3>Donald E. Knuth</h3>
           <p>Rigorously analyzed and popularized buddy systems in <em>The Art of Computer Programming</em>.</p>
           <div class="attr">Image: <a href="https://en.wikipedia.org/wiki/Donald_Knuth" target="_blank">Wikimedia Commons</a> (CC BY 3.0, cropped).</div>
@@ -891,3 +904,79 @@
   </script>
 </body>
 </html>
+"""
+
+COMMIT_MSG = """Download pioneer portraits locally, crop via ImageMagick, and publish
+
+Fetch portraits for Markowitz, Knowlton, and Knuth via Python, process
+and crop them using local ImageMagick commands, and update HTML assets."""
+
+def download_assets():
+    images_dir = "week09-memory-management/images"
+    os.makedirs(images_dir, exist_ok=True)
+
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
+    ctx = ssl._create_unverified_context()
+
+    for filename, url in ASSET_URLS.items():
+        filepath = os.path.join(images_dir, filename)
+        print(f"--> Downloading {filename} from {url}...")
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, context=ctx) as response:
+                data = response.read()
+                print(f"    [Trace] Status: {response.status}, Content-Length: {len(data)} bytes")
+                with open(filepath, "wb") as out:
+                    out.write(data)
+            if os.path.exists(filepath):
+                print(f"    [Trace] Successfully saved to {filepath} ({os.path.getsize(filepath)} bytes)")
+            else:
+                print(f"    [Error] File {filepath} was not created.", file=sys.stderr)
+        except Exception as e:
+            print(f"    [Error] Failed to download {filename}: {e}", file=sys.stderr)
+
+def crop_assets():
+    images_dir = "week09-memory-management/images"
+    tasks = [
+        # Markowitz square crop
+        ["magick", "convert", os.path.join(images_dir, "markowitz.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "markowitz.jpg")],
+        # Knowlton square crop
+        ["magick", "convert", os.path.join(images_dir, "knowlton.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "knowlton.jpg")],
+        # Knuth square crop
+        ["magick", "convert", os.path.join(images_dir, "knuth.jpg"), "-gravity", "center", "-crop", "1:1", "+repage", os.path.join(images_dir, "knuth.jpg")]
+    ]
+    for task in tasks:
+        print(f"--> Running ImageMagick: {' '.join(task)}")
+        res = subprocess.run(task, capture_output=True, text=True)
+        if res.returncode != 0:
+            print(f"    [Warning] ImageMagick command failed: {res.stderr.strip()}", file=sys.stderr)
+
+def run_git_step(cmd, desc):
+    print(f"--> {desc}...")
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.stdout.strip():
+        print(res.stdout.strip())
+    if res.stderr.strip():
+        print(f"[{desc} stderr]\n{res.stderr.strip()}")
+    if res.returncode != 0:
+        print(f"Error during {desc} (code {res.returncode})", file=sys.stderr)
+        sys.exit(res.returncode)
+
+def execute_git_pipeline():
+    download_assets()
+    crop_assets()
+
+    target_module = "week09-memory-management/01-free-used-lists-buddy.html"
+    os.makedirs(os.path.dirname(target_module), exist_ok=True)
+    with open(target_module, "w", encoding="utf-8") as f:
+        f.write(HTML_CONTENT)
+    print(f"Wrote updated module to {target_module}")
+
+    images_dir = "week09-memory-management/images"
+    run_git_step(["git", "add", target_module, images_dir], "Staging HTML and images directory")
+    run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing with -a -m")
+    run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
+    print("--> Assets downloaded, cropped, committed, and pushed successfully!")
+
+if __name__ == "__main__":
+    execute_git_pipeline()
