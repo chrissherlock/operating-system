@@ -467,7 +467,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (PIXELATED, DOS AUDIO READY)
+       THEME 4: MS-DOS 6.22 DEFRAG (PIXELATED)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -615,6 +615,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </style>
 </head>
 <body>
+  <!-- Background FLAC Audio Loop -->
+  <audio id="defragAudio" src="images/defrag2.flac" preload="auto" loop></audio>
+
   <div class="nav-back">
     <a href="index.html">&larr; Back to Week 10 Index</a>
   </div>
@@ -778,41 +781,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // --- Synthesized Mechanical Hard Drive Audio (DOS Modes Only) ---
-    let audioCtx = null;
-    function playDriveClick() {
-      if (currentTheme !== 'dos' && currentTheme !== 'olddos') return;
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const bufferSize = audioCtx.sampleRate * 0.015;
-        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = Math.random() * 2 - 1;
-        }
-
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buffer;
-
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 1000 + Math.random() * 1000;
-        filter.Q.value = 3.0;
-
-        const gain = audioCtx.createGain();
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.015);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        noise.start();
-      } catch(e) {}
-    }
-
     // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (100 Columns = 3,000 Blocks) ---
     const TOTAL_CELLS = 3000;
     let cells = [];
@@ -1038,6 +1006,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
 
     function defragToggleRun() {
+      const audioEl = document.getElementById("defragAudio");
       if (isRunning) {
         defragPause();
       } else {
@@ -1048,6 +1017,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         startTime = Date.now();
         if (elapsedTimer) clearInterval(elapsedTimer);
         elapsedTimer = setInterval(updateElapsedClock, 1000);
+
+        if (audioEl) {
+          audioEl.currentTime = 0;
+          audioEl.play().catch(e => console.log("Audio play blocked by browser policy:", e));
+        }
 
         const btn = document.getElementById("btnStartDefrag");
         btn.textContent = "Pause";
@@ -1072,6 +1046,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       isRunning = false;
       if (stepTimer) clearTimeout(stepTimer);
       if (elapsedTimer) clearInterval(elapsedTimer);
+
+      const audioEl = document.getElementById("defragAudio");
+      if (audioEl) {
+        audioEl.pause();
+      }
+
       const btn = document.getElementById("btnStartDefrag");
       if (btn) {
         btn.textContent = "Start Defrag";
@@ -1107,8 +1087,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         finishDefrag();
         return;
       }
-
-      playDriveClick();
 
       sourceBlocks.forEach(idx => {
         cells[idx].state = "read";
@@ -1149,6 +1127,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     function finishDefrag() {
       isRunning = false;
       if (elapsedTimer) clearInterval(elapsedTimer);
+
+      const audioEl = document.getElementById("defragAudio");
+      if (audioEl) {
+        audioEl.pause();
+      }
+
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].state === "unoptimized") {
           cells[i].state = "optimized";
@@ -1171,11 +1155,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Default FAT defragmenter simulator theme to modern and fix legend
+COMMIT_MSG = """Play background defrag2.flac audio loop during defragmentation runs
 
-Update week10-file-management/03-filesystem-implementation.html to default
-the simulator to the modern theme on load and restore visible color swatches
-in the modern theme legend.
+Update week10-file-management/03-filesystem-implementation.html to embed and
+play images/defrag2.flac in the background when defragmentation starts, and pause
+it when paused or completed.
 """
 
 def run_git_step(cmd, desc):
@@ -1198,10 +1182,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging default modern theme & legend fix update")
+    run_git_step(["git", "add", target_file], "Staging background FLAC audio update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Default modern theme and legend successfully deployed!")
+    print("--> Background FLAC audio successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
