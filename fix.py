@@ -283,12 +283,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
-    .sim-node { transition: all 0.3s ease; }
-    .sim-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5px; rx: 6px; }
-    .sim-text { font-size: 11px; font-weight: 600; fill: #334155; text-anchor: middle; }
-    .active-sim-node .sim-box { fill: #f0f9ff; stroke: #0284c7; stroke-width: 2.5px; filter: drop-shadow(0 3px 6px rgba(2,132,199,0.25)); }
-    .active-sim-node .sim-text { fill: #0284c7; font-weight: 700; }
-    .packet { fill: #0284c7; transition: all 0.5s ease-in-out; }
+
+    /* State Machine Diagram Styles */
     .sm-state { cursor: pointer; transition: all 0.25s ease; }
     .sm-box { fill: #ffffff; stroke: #0284c7; stroke-width: 2px; rx: 6px; }
     .sm-text { font-size: 10px; font-weight: 700; fill: #0369a1; text-anchor: middle; font-family: var(--font-mono); }
@@ -557,9 +553,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         Execute POSIX system calls below to observe how the kernel updates volatile memory tables and file descriptors in real time.
       </p>
 
-      <!-- Side-by-Side Kernel Table Panels -->
       <div class="inspector-grid">
-        <!-- Panel 1: Process FD Table -->
         <div class="inspector-panel">
           <div class="inspector-title"><span>Process FD Table</span><span>(Private)</span></div>
           <div class="inspector-row"><span>fd [0]:</span><span>stdin (keyboard)</span></div>
@@ -568,7 +562,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div class="inspector-row"><span>fd [3]:</span><span id="insp-fd3" class="alert">-- UNUSED --</span></div>
         </div>
 
-        <!-- Panel 2: Open File Table -->
         <div class="inspector-panel">
           <div class="inspector-title"><span>Open File Table</span><span>(Shared Kernel)</span></div>
           <div class="inspector-row"><span>Target File:</span><span id="insp-filename">None</span></div>
@@ -577,7 +570,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div class="inspector-row"><span>Byte Offset Pointer:</span><span id="insp-offset" class="highlight">0 Bytes</span></div>
         </div>
 
-        <!-- Panel 3: Buffer Cache & i-Node -->
         <div class="inspector-panel">
           <div class="inspector-title"><span>Buffer Cache &amp; i-Node</span><span>(RAM / Disk)</span></div>
           <div class="inspector-row"><span>Active i-Node:</span><span id="insp-inode">None</span></div>
@@ -587,7 +579,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Guided Debugging Challenge Panel -->
       <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
         <div style="font-size: 0.78rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; font-family: var(--font-mono);">Guided Debugging Challenge</div>
         <div style="font-size: 0.85rem; color: #cbd5e1;" id="challengeDesc">
@@ -603,7 +594,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       <div id="inspectorConsole" class="kernel-console">$ sandbox telemetry initialized. Ready for system calls...</div>
     </div>
 
-    <!-- Section Interative Tour: The Anatomy of a File Descriptor -->
+    <!-- Section Interactive Tour: The Anatomy of a File Descriptor & State Machine -->
     <div class="card tour-panel" id="tourCard">
       <div class="tour-header">
         <span id="tourStepCounter">Stage 1 of 4: The Handshake</span>
@@ -722,7 +713,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // Kernel Table Inspector State Machine
     let kernelState = {
       isOpen: false,
       fd: "-- UNUSED --",
@@ -815,7 +805,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const desc = document.getElementById("challengeDesc");
       if (id === 1) {
         desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
-        inspectExec('close'); // ensure closed
+        inspectExec('close');
       } else if (id === 2) {
         desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-process systems, shared open file tables cause coupled offsets!";
         inspectExec('open');
@@ -826,7 +816,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
     }
 
-    // Tour State Machine
     const tourStages = [
       {
         counter: "Stage 1 of 4: The Handshake",
@@ -922,12 +911,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Upgrade sandbox to interactive kernel table inspector and debugger
+COMMIT_MSG = """Integrate both kernel table inspector and state machine diagram in module 01
 
-Update week10-file-management/01-files-abstraction.html to replace the
-legacy terminal sandbox with an advanced interactive Kernel Table Inspector
-visualizing live Process FD tables, Open File Tables, Buffer Cache states,
-and guided debugging challenges."""
+Update week10-file-management/01-files-abstraction.html to feature both the
+live interactive Kernel Table Inspector sandbox and the clickable SVG State
+Machine Diagram tour widget side-by-side."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -947,12 +935,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with kernel table inspector to {target_file}")
+    print(f"Wrote unified module file to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging kernel table inspector update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging unified module update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Kernel Table Inspector Module 01 created, committed, and pushed successfully!")
+    print("--> Unified Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
