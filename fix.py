@@ -439,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (ZERO-PADDING UNUSED BLOCKS)
+       THEME 4: MS-DOS 6.22 DEFRAG (BLUE DOT ON YELLOW BACKGROUND)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -497,7 +497,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
+      gap: 0px;
       width: 100%;
       max-width: 950px;
     }
@@ -515,18 +515,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       padding: 0;
       margin: 0;
     }
-    /* MS-DOS 6.22 Palette: Unused blocks use zero-padding CSS background fill pattern */
-    .theme-olddos .c-free {
-      background-color: #0000aa;
-      background-image: radial-gradient(#55ffff 35%, transparent 35%);
-      background-size: 3px 3px;
-      color: transparent; /* No text character needed, purely CSS filled */
-    }
-    .theme-olddos .c-opt { background-color: #0000aa; color: #ffff55; }
-    .theme-olddos .c-unopt { background-color: #0000aa; color: #ffff55; }
-    .theme-olddos .c-system { background-color: #0000aa; color: #ffff55; font-weight: 900; }
-    .theme-olddos .c-read { background-color: #0000aa !important; color: #ffffff !important; }
-    .theme-olddos .c-write { background-color: #0000aa !important; color: #ffff55 !important; }
+    /* MS-DOS 6.22 Defrag Palette: Blue dot/glyph on yellow background for used blocks */
+    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
+    .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }   /* Yellow background, blue glyph */
+    .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; } /* Yellow background, blue glyph */
+    .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
+    .theme-olddos .c-read { background-color: #ffffff !important; color: #0000aa !important; }
+    .theme-olddos .c-write { background-color: #55ff55 !important; color: #0000aa !important; }
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
@@ -844,7 +839,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          // c-free uses pure CSS background fill, no text character needed
+          el.textContent = "▒";
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1111,11 +1106,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Remove cell padding and margins on high-density grid cells
+COMMIT_MSG = """Fix MS-DOS 6.22 unused blocks with zero-padding CSS background
 
-Update week10-file-management/03-filesystem-implementation.html to ensure
-zero padding and zero margins on .c-cell elements, allowing MS-DOS unused
-blocks (and all other cells) to fill tight and clean.
+Update week10-file-management/03-filesystem-implementation.html so unused
+blocks render with a tight CSS gradient fill pattern rather than character
+glyphs, removing padding and filling cells edge-to-edge.
 """
 
 def run_git_step(cmd, desc):
@@ -1138,10 +1133,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging zero-padding tight grid update")
+    run_git_step(["git", "add", target_file], "Staging zero-padding free blocks update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Zero-padding tight grid successfully deployed!")
+    print("--> Zero-padding free blocks successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
