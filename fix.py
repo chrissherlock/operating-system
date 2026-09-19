@@ -215,7 +215,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </header>
   <div class="main-container">
 
-    <!-- Section 4.1.1: File Naming (Expanded) -->
+    <!-- Section 4.1.1: File Naming -->
     <div class="card">
       <h2>4.1.1 File Naming</h2>
       <p>
@@ -236,15 +236,50 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </ul>
     </div>
 
-    <!-- Section 4.1.2: File Structure -->
+    <!-- Section 4.1.2: File Structure (Expanded with Diagram) -->
     <div class="card">
       <h2>4.1.2 File Structure</h2>
-      <p>File organization models vary across operating systems and application requirements:</p>
+      <p>
+        File organization models dictate how the operating system or applications perceive and structure the internal layout of data within a file. Historically and across modern architectures, three primary file structures have been utilized:
+      </p>
       <ol>
-        <li><strong>Unsequence of Bytes:</strong> Used by UNIX and Windows. The file is simply a stream of bytes; the operating system does not interpret or structure the contents. Any internal formatting is up to applications.</li>
-        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each with internal structure (historically derived from 80-column punched cards or 132-character printer lines).</li>
-        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, each containing a key field. The file is sorted on the key, allowing applications to retrieve records by key rather than relative position (common in large mainframe commercial data processing).</li>
+        <li><strong>Unstructured Sequence of Bytes:</strong> Implemented by modern operating systems including UNIX, Linux, macOS, and Windows. In this model, a file is treated simply as an arbitrary sequence of bytes. The operating system does not interpret, parse, or impose any internal structure on the contents; everything from executable binaries to plain text documents is viewed as raw bytes. Any structuring or parsing of the data (such as lines, records, or headers) is left entirely to the application software reading and writing the file.</li>
+        <li><strong>Record Sequences:</strong> Modeled as a sequence of fixed-length records, each possessing its own internal structure. A read operation retrieves a complete record, while a write operation overwrites or appends an entire record. This model was heavily utilized in early mainframe and batch systems based on punch cards (structured around 80-character records) or line printers (structured around 132-character printer lines). While largely absent as a primary OS-level file model today, variations appear in specific legacy applications.</li>
+        <li><strong>Key-Indexed Trees:</strong> Consists of records of varying lengths, where each record contains a specific key field. The file is maintained and sorted dynamically based on this key, allowing applications to query and retrieve records using a specific key rather than specifying a relative byte position. New records can be inserted arbitrarily, with the operating system or file management library determining their exact physical placement. This structure differs markedly from unstructured byte streams and is traditionally used in large mainframe environments for commercial data processing.</li>
       </ol>
+
+      <!-- SVG File Structure Diagram -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: Comparison of File Structures (Byte Stream vs Record Sequence vs Key-Indexed)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Model 1: Byte Stream -->
+          <text x="20" y="25" font-size="11" font-weight="700" fill="#0284c7">1. Unstructured Byte Stream (UNIX / Windows)</text>
+          <rect x="20" y="35" width="660" height="30" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="4"/>
+          <text x="350" y="54" font-size="11" font-family="monospace" fill="#0369a1" text-anchor="middle">B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 ... (Raw Byte Sequence)</text>
+
+          <!-- Model 2: Record Sequence -->
+          <text x="20" y="85" font-size="11" font-weight="700" fill="#059669">2. Record Sequence (Fixed-Length Records)</text>
+          <rect x="20" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="120" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 1 (e.g., 80 Bytes)</text>
+
+          <rect x="230" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="330" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 2 (e.g., 80 Bytes)</text>
+
+          <rect x="440" y="95" width="200" height="30" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
+          <text x="540" y="114" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">Record 3 (e.g., 80 Bytes)</text>
+
+          <!-- Model 3: Key-Indexed Tree -->
+          <text x="20" y="145" font-size="11" font-weight="700" fill="#d97706">3. Key-Indexed Tree (Variable-Length Sorted Records)</text>
+          <rect x="20" y="155" width="140" height="20" fill="#fef3c7" stroke="#d97706" stroke-width="1" rx="3"/>
+          <text x="90" y="169" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Key: "Alpha"</text>
+
+          <rect x="170" y="155" width="160" height="20" fill="#fef3c7" stroke="#d97706" stroke-width="1" rx="3"/>
+          <text x="250" y="169" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Key: "Beta"</text>
+
+          <rect x="340" y="155" width="180" height="20" fill="#fef3c7" stroke="#d97706" stroke-width="1" rx="3"/>
+          <text x="430" y="169" font-size="9" font-weight="600" fill="#b45309" text-anchor="middle">Key: "Gamma"</text>
+        </svg>
+      </div>
     </div>
 
     <!-- Section 4.1.3: File Types -->
@@ -452,11 +487,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Expand subsection 4.1.1 file naming in week10 module 01
+COMMIT_MSG = """Expand subsection 4.1.2 file structure and add architectural diagram
 
-Update week10-file-management/01-files-abstraction.html to include
-exhaustive coverage of file naming conventions, character limits, and
-case-sensitivity models across UNIX and Windows environments."""
+Update week10-file-management/01-files-abstraction.html to incorporate
+comprehensive coverage of unstructured byte streams, record sequences,
+and key-indexed trees, accompanied by an architectural SVG diagram."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -476,12 +511,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote expanded module file to {target_file}")
+    print(f"Wrote expanded structure module file to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging expanded 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging expanded structure 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Expanded Module 01 created, committed, and pushed successfully!")
+    print("--> Expanded Structure Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
