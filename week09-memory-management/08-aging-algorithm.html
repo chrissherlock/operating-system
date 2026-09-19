@@ -153,7 +153,7 @@
       font-size: 0.95rem;
       line-height: 1.6;
       color: #0c4a6e;
-      min-height: 75px; /* Prevents vertical reflow jumping when text changes */
+      min-height: 75px;
     }
 
     .tour-nav {
@@ -188,7 +188,7 @@
 
     .split-grid {
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: 380px 1fr;
       gap: 20px;
       align-items: center;
       margin-top: 10px;
@@ -200,11 +200,47 @@
     .register-visual-box {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 14px;
+    }
+
+    /* Individual Bit Cell Styling */
+    .bit-cell-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 4px 6px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .bit-boxes {
+      display: flex;
+      gap: 2px;
+    }
+    .bit-box {
+      width: 22px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #0f172a;
+    }
+    .bit-box.msb-highlight {
+      background: #dcfce7;
+      border-color: #16a34a;
+      color: #15803d;
+      transform: scale(1.08);
+      box-shadow: 0 0 6px rgba(22, 163, 74, 0.4);
     }
 
     .table-spec {
@@ -458,7 +494,7 @@
           <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Physical Frame Registers (8-bit)</span>
           <table class="table-spec" style="margin-top:6px;">
             <thead>
-              <tr><th>Frame</th><th>Page</th><th>R</th><th>8-Bit Register (Binary)</th><th>Decimal</th></tr>
+              <tr><th>Frame</th><th>Page</th><th>R</th><th>8-Bit Register (Binary Cells)</th><th>Decimal</th></tr>
             </thead>
             <tbody id="agingTableBody"></tbody>
           </table>
@@ -476,7 +512,7 @@
 
   <script>
     /* =========================================================================
-       PART 2: WALKTHROUGH LOGIC
+       PART 2: WALKTHROUGH LOGIC WITH VISUAL BIT CELLS
        ========================================================================= */
     let wtStep = 0;
     const wtSteps = [
@@ -492,7 +528,8 @@
       },
       {
         title: "2. Clock Tick: Right Shift & MSB Insertion",
-        text: "When a clock tick occurs, the OS reads each page's hardware $R$ bit, shifts all 8-bit registers right by 1, and inserts $R$ into the MSB (bit 7).",
+        text: "When a clock tick occurs, each 8-bit register shifts right by 1 ($\gg 1$), and the current hardware $R$ bit is injected into Bit 7 (MSB, highlighted in green).",
+        highlightMsb: true,
         frames: [
           { page: "A", r: 1, reg: 0b11000100, dec: 196 },
           { page: "B", r: 0, reg: 0b00111000, dec: 56 },
@@ -502,7 +539,7 @@
       },
       {
         title: "3. Evaluating Eviction Candidates",
-        text: "Suppose a page fault occurs and the kernel needs to evict a page. It evaluates unsigned decimal values: Page B (56), Page C (64), Page D (153), Page A (196).",
+        text: "When a page fault occurs, the kernel evaluates unsigned decimal values: Page B (56), Page C (64), Page D (153), Page A (196).",
         frames: [
           { page: "A", r: 1, reg: 0b11000100, dec: 196 },
           { page: "B", r: 0, reg: 0b00111000, dec: 56, victim: true },
@@ -512,7 +549,7 @@
       },
       {
         title: "4. Victim Selected: Page B Evicted",
-        text: "Page B has the lowest numerical counter value (56), proving it has gone the longest without being referenced. Page B is evicted, and the incoming page takes its frame.",
+        text: "Page B has the lowest numerical counter value (56), proving it has gone the longest without being referenced. Page B is evicted.",
         frames: [
           { page: "A", r: 1, reg: 0b11000100, dec: 196 },
           { page: "X", r: 1, reg: 0b10000000, dec: 128, new: true },
@@ -522,8 +559,16 @@
       }
     ];
 
-    function toBin8(val) {
-      return (val >>> 0).toString(2).padStart(8, '0');
+    function renderBitBoxes(val, highlightMsb) {
+      const binStr = (val >>> 0).toString(2).padStart(8, '0');
+      let html = '<div class="bit-boxes">';
+      for (let i = 0; i < 8; i++) {
+        const bit = binStr[i];
+        const isMsb = (i === 0 && highlightMsb);
+        html += `<div class="bit-box ${isMsb ? 'msb-highlight' : ''}" title="Bit ${7-i}">${bit}</div>`;
+      }
+      html += '</div>';
+      return html;
     }
 
     function renderWt() {
@@ -532,19 +577,25 @@
       document.getElementById("wtTitle").textContent = s.title;
       document.getElementById("wtText").innerHTML = s.text;
 
-      // Re-run MathJax typesetting for dynamic content
-      if (window.MathJax && window.MathJax.typeset) {
-        MathJax.typeset();
-      }
-
       const box = document.getElementById("wtRegisterBox");
       box.innerHTML = "";
       s.frames.forEach(f => {
         const row = document.createElement("div");
-        row.style.cssText = "display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.85rem; padding:4px 8px; background:" + (f.victim ? "#fee2e2" : (f.new ? "#dcfce7" : "#f8fafc")) + "; border:1px solid var(--border); border-radius:4px;";
-        row.innerHTML = `<span><strong>Page ${f.page}</strong></span><span><code>${toBin8(f.reg)}</code> (${f.dec})</span>`;
+        row.className = "bit-cell-row";
+        if (f.victim) row.style.background = "#fee2e2";
+        if (f.new) row.style.background = "#dcfce7";
+
+        row.innerHTML = `
+          <span><strong>Page ${f.page}</strong></span>
+          ${renderBitBoxes(f.reg, s.highlightMsb)}
+          <span style="font-size:0.75rem; color:var(--text-muted);">${f.dec}</span>
+        `;
         box.appendChild(row);
       });
+
+      if (window.MathJax && window.MathJax.typeset) {
+        MathJax.typeset();
+      }
 
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtSteps.length - 1);
@@ -561,7 +612,7 @@
     renderWt();
 
     /* =========================================================================
-       PART 3: INTERACTIVE SANDBOX LOGIC
+       PART 3: INTERACTIVE SANDBOX LOGIC WITH BIT CELLS
        ========================================================================= */
     let agingFrames = [
       { id: 0, page: "A", r: 1, reg: 0b10001000 },
@@ -594,7 +645,7 @@
           <td>Frame ${f.id}</td>
           <td><strong>${f.page}</strong></td>
           <td><span style="color:${f.r ? 'var(--hit-color)' : 'var(--fault-color)'}; font-weight:700;">${f.r}</span></td>
-          <td><code>${toBin8(f.reg)}</code></td>
+          <td><div style="display:flex; justify-content:center;">${renderBitBoxes(f.reg, false)}</div></td>
           <td>${f.reg} ${idx === victimIdx ? ' &larr; [Victim]' : ''}</td>
         `;
         tbody.appendChild(tr);
