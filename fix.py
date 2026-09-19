@@ -432,11 +432,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="325" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
           <line x1="330" y1="114" x2="346" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
-          <!-- 3. Large k Zone (Shifted left along plateau, plain text without any container box) -->
-          <line x1="520" y1="260" x2="520" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
-          <circle cx="520" cy="120" r="4" fill="#7c3aed"/>
-          <text x="520" y="96" font-size="11" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
-          <text x="520" y="110" font-size="9.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
+          <!-- 3. Large k Zone (Shifted leftward to x=460 to stay clear of curve) -->
+          <line x1="480" y1="260" x2="480" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
+          <circle cx="480" cy="120" r="4" fill="#7c3aed"/>
+          <text x="460" y="96" font-size="11" font-weight="700" fill="#7c3aed" text-anchor="middle">Large k</text>
+          <text x="460" y="110" font-size="9.5" fill="#475569" text-anchor="middle">Encompasses entire program</text>
 
           <!-- Bottom Legend / Summary Box -->
           <rect x="70" y="315" width="700" height="50" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
@@ -669,13 +669,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Expand Fig 3-19 graph and move Large k left without container box
+COMMIT_MSG = """Shift Large k label leftward to eliminate curve overlap in Fig 3-19
 
-Widen the Figure 3-19 SVG canvas and plot box to provide more room
-along the horizontal reference axis. Remove the container rectangle
-around the 'Large k' annotation, shifting the plain text and marker
-leftward along the plateau so it sits above the curve without
-intersecting any plot or reference lines in 09-working-set.html."""
+Adjust the horizontal positioning of the 'Large k' annotation in Figure
+3-19 of 09-working-set.html. Shifting the text anchor to x=460 places
+the text entirely within the open white space above the inflection
+point, preventing any collision with the curve or grid lines."""
 
 def run_git_step(cmd, step_desc):
     print(f"--> {step_desc}...")
@@ -696,8 +695,7 @@ def sync_module_file():
         f.write(HTML_CONTENT)
     print(f"Wrote updated HTML content to {target_path}")
 
-    # Explicit stage, commit tracked changes with -a -m, and push to origin main
-    run_git_step(["git", "add", target_path], "Explicitly staging 09-working-set.html")
+    run_git_step(["git", "add", target_path], "Staging updated 09-working-set.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing tracked changes with -a -m")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
     print("--> Successfully committed and pushed to origin/main.")
