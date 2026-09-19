@@ -163,9 +163,9 @@
       margin-bottom: 4px;
     }
 
-    /* Defrag Simulator Styles */
+    /* High-Density Norton-Style Defrag Simulator Styles */
     .defrag-card {
-      background: #091a32;
+      background: #041226;
       color: #ffffff;
       border: 2px solid #38bdf8;
       border-radius: 8px;
@@ -174,7 +174,7 @@
       flex-direction: column;
       gap: 16px;
       font-family: var(--font-mono);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
     .defrag-header {
       display: flex;
@@ -184,7 +184,7 @@
       padding-bottom: 10px;
     }
     .defrag-title {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: #fbbf24;
       text-transform: uppercase;
@@ -194,7 +194,7 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      background: #020b18;
+      background: #020817;
       border: 1px solid #1e3a8a;
       padding: 10px 14px;
       border-radius: 6px;
@@ -204,7 +204,7 @@
       background-color: #1e3a8a;
       color: #ffffff;
       border: 1px solid #38bdf8;
-      padding: 7px 14px;
+      padding: 8px 15px;
       border-radius: 4px;
       font-size: 0.8rem;
       font-weight: 700;
@@ -216,62 +216,66 @@
       background-color: #2563eb;
       box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
     }
-    button.btn-warn {
-      background-color: #b45309;
-      border-color: #fbbf24;
-    }
-    button.btn-warn:hover {
-      background-color: #d97706;
-    }
-    button.btn-danger {
-      background-color: #991b1b;
-      border-color: #f87171;
-    }
-    button.btn-danger:hover {
-      background-color: #dc2626;
-    }
+    button.btn-warn { background-color: #b45309; border-color: #fbbf24; }
+    button.btn-warn:hover { background-color: #d97706; }
+    button.btn-danger { background-color: #991b1b; border-color: #f87171; }
+    button.btn-danger:hover { background-color: #dc2626; }
+    button.btn-success { background-color: #059669; border-color: #34d399; }
+    button.btn-success:hover { background-color: #10b981; }
 
-    /* Cluster Map Grid */
+    /* High-Density Sector Matrix Container */
     .cluster-grid-container {
-      background: #020b18;
-      border: 1px solid #1e3a8a;
+      background: #010612;
+      border: 2px solid #1e3a8a;
       border-radius: 6px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-    .cluster-map {
+    .cluster-map-dense {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(14px, 1fr));
-      gap: 3px;
-      max-height: 280px;
-      overflow-y: auto;
-      padding: 4px;
-      background: #010610;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      background: #000208;
       border: 1px solid #0f274a;
+      padding: 6px;
       border-radius: 4px;
+      max-height: 340px;
+      overflow-y: auto;
     }
-    .cluster-cell {
-      width: 100%;
-      height: 14px;
-      border-radius: 2px;
-      transition: background-color 0.1s ease;
+    .sector-block {
+      aspect-ratio: 1 / 1;
+      border-radius: 1px;
+      transition: background-color 0.05s ease;
+      min-width: 6px;
+      min-height: 6px;
     }
-    /* Cluster colors */
-    .c-free { background-color: #1e293b; }
-    .c-used-contig { background-color: #0284c7; }
-    .c-used-frag { background-color: #f59e0b; }
-    .c-system { background-color: #dc2626; }
-    .c-reading { background-color: #38bdf8; box-shadow: 0 0 6px #38bdf8; }
-    .c-writing { background-color: #34d399; box-shadow: 0 0 6px #34d399; }
+
+    /* Authentic Speed Disk Palette */
+    .s-free { background-color: #101c33; }
+    .s-contig { background-color: #0284c7; }
+    .s-frag { background-color: #f59e0b; }
+    .s-system { background-color: #dc2626; }
+    .s-read {
+      background-color: #facc15 !important;
+      box-shadow: 0 0 6px #facc15;
+      transform: scale(1.15);
+      z-index: 5;
+    }
+    .s-write {
+      background-color: #34d399 !important;
+      box-shadow: 0 0 6px #34d399;
+      transform: scale(1.15);
+      z-index: 5;
+    }
 
     /* Legend */
     .cluster-legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      font-size: 0.75rem;
+      gap: 14px;
+      font-size: 0.76rem;
       padding: 4px 0;
       color: #cbd5e1;
     }
@@ -281,8 +285,8 @@
       gap: 6px;
     }
     .legend-box {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 2px;
     }
 
@@ -366,12 +370,7 @@
       <ol>
         <li><strong>Boot Block:</strong> The first block of the partition. Contains partition-specific bootstrap code read into memory by the MBR/UEFI to launch the target operating system. Present even if the partition is not bootable.</li>
         <li><strong>Superblock:</strong> The central administrative descriptor. Stores critical geometry parameters: magic number (identifying filesystem type), total number of blocks, number of i-nodes, block size, volume state flags (clean/dirty), and pointers to free-space tracking structures. If the superblock is corrupted, the filesystem cannot be mounted; thus, kernels maintain redundant backup copies across the volume.</li>
-        <li><strong>Free Space Management:</strong> Data structures tracking unallocated blocks available for new file data. Common implementations include:
-          <ul>
-            <li><em>Bitmap (Bit Vector):</em> An array of bits where bit $i = 0$ indicates block $i$ is free, and bit $i = 1$ indicates allocation. Compact and cache-friendly.</li>
-            <li><em>Linked Free List:</em> Dedicated disk blocks holding arrays of free block numbers chained together.</li>
-          </ul>
-        </li>
+        <li><strong>Free Space Management:</strong> Data structures tracking unallocated blocks available for new file data (bitmaps or free lists).</li>
         <li><strong>I-Node Table:</strong> An array of linear metadata records (index-nodes), pre-allocated across contiguous tracks. Every file and directory on the partition occupies exactly one slot in this table, indexed by a unique integer (the i-node number).</li>
         <li><strong>Root Directory:</strong> The top-level directory node (often bound to a hard-coded index, such as i-node 2 in ext2/ext3/ext4) from which the entire hierarchical namespace tree descends.</li>
         <li><strong>Data Blocks:</strong> The vast remainder of the partition volume dedicated to storing actual file content bytes and subdirectory entry tables.</li>
@@ -409,62 +408,60 @@
       </div>
     </div>
 
-    <!-- Section 4.3.2: Implementing Files / Allocation Strategies -->
+    <!-- Section 4.3.2: Allocation Strategies & Fragmentation -->
     <div class="card">
       <h2>4.3.2 Implementing Files: Allocation Strategies &amp; Fragmentation</h2>
       <p>
-        The central design challenge of a file system is mapping a linear stream of logical file bytes into physical storage blocks:
-      </p>
-      <div class="callout">
-        $$\text{Logical Address Stream } [0, 1, 2, \dots, \text{Size} - 1] \quad \xrightarrow{\text{Allocation Strategy}} \quad \text{Physical Disk Blocks } \{B_{k_1}, B_{k_2}, \dots\}$$
-      </div>
-      <p>
-        Over time, as files are created, enlarged, truncated, and deleted, file systems face the challenge of <strong>fragmentation</strong>:
+        The central design challenge of a file system is mapping a linear stream of logical file bytes into physical storage blocks. Over time, file churn produces two distinct forms of fragmentation:
       </p>
       <ul>
-        <li><strong>External Fragmentation:</strong> Free storage blocks become scattered in non-contiguous gaps. In contiguous allocation models, external fragmentation prevents new files from being created even if total free space is sufficient.</li>
-        <li><strong>Internal File Fragmentation:</strong> In FAT and linked systems, a single file's cluster chain becomes scattered randomly across the disk volume. To read a fragmented file sequentially, a mechanical hard drive must physically reposition its read/write head (issuing random seeks) for every cluster boundary, degrading I/O throughput from over 100 MB/s to less than 5 MB/s.</li>
+        <li><strong>External Fragmentation:</strong> Free blocks become scattered in non-contiguous gaps. In contiguous allocation models, external fragmentation prevents new files from being written even when total free space is sufficient.</li>
+        <li><strong>Internal File Fragmentation:</strong> In FAT and linked systems, a single file's cluster chain becomes scattered randomly across the volume. Reading the file sequentially requires repeated mechanical head seeks, dropping throughput significantly.</li>
       </ul>
     </div>
 
-    <!-- Interactive 100MB FAT Norton-Style Defragmenter Simulator -->
+    <!-- High-Density Norton-Style Interactive Defragmenter -->
     <div class="defrag-card">
       <div class="defrag-header">
         <div>
-          <span class="defrag-title">Norton Speed Disk / FAT Volume Optimizer</span>
+          <span class="defrag-title">Norton Speed Disk / High-Density FAT Optimizer</span>
           <div style="font-size: 0.78rem; color: #93c5fd; margin-top: 2px;">
-            Target: 100 MB Drive | 4 KB Clusters (25,600 Total) | Visualized as 500 Cluster Blocks (1:50 Ratio)
+            Target: 100 MB FAT Volume | 4 KB Clusters (25,600 Total) | Visualized as 1,600 Discrete Sector Blocks
           </div>
         </div>
-        <div style="text-align: right;">
-          <span style="font-size: 0.8rem; color: #fbbf24; font-weight: 700;" id="defragStatusBadge">VOLUME READY</span>
+        <div>
+          <span style="font-size: 0.85rem; color: #fbbf24; font-weight: 700;" id="defragStatusBadge">VOLUME READY</span>
         </div>
       </div>
 
       <!-- Controls -->
       <div class="defrag-controls">
-        <button class="defrag-btn" onclick="populateDummyFiles()">1. Populate Fresh 100MB Disk</button>
-        <button class="defrag-btn btn-warn" onclick="fragmentVolume()">2. Simulate Heavy File Churn (Fragment!)</button>
-        <button class="defrag-btn" onclick="startDefrag()" id="btnStartDefrag" style="background:#059669; border-color:#34d399;">3. Run Defragmenter</button>
-        <button class="defrag-btn btn-danger" onclick="stopDefrag()">Stop</button>
+        <button class="defrag-btn" onclick="populateDummyFiles()">1. Populate 100MB Disk</button>
+        <button class="defrag-btn btn-warn" onclick="fragmentVolume()">2. Heavy Churn (Fragment Disk!)</button>
+        <button class="defrag-btn btn-success" onclick="startDefrag()" id="btnStartDefrag">3. Start Defragmentation</button>
+        <button class="defrag-btn btn-danger" onclick="stopDefrag()">Pause / Stop</button>
+        <span style="font-size: 0.75rem; color: #94a3b8; margin-left: auto;">Speed:</span>
+        <button class="defrag-btn" onclick="setSpeed(20)" style="padding: 4px 8px; font-size: 0.72rem;">1x</button>
+        <button class="defrag-btn" onclick="setSpeed(8)" style="padding: 4px 8px; font-size: 0.72rem;">2x</button>
+        <button class="defrag-btn" onclick="setSpeed(1)" style="padding: 4px 8px; font-size: 0.72rem;">Max</button>
       </div>
 
-      <!-- Cluster Map Matrix -->
+      <!-- Dense Matrix Grid -->
       <div class="cluster-grid-container">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem;">
-          <span style="color:#93c5fd; font-weight:700;">PHYSICAL CLUSTER MAP (1 Block = 50 Clusters / 200 KB):</span>
-          <span id="mapInspectionLabel" style="color:#fbbf24;">Hover over clusters to inspect file ownership</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem;">
+          <span style="color:#93c5fd; font-weight:700;">PHYSICAL SECTOR MATRIX (1,600 BLOCKS — 50 COLUMNS &times; 32 ROWS):</span>
+          <span id="mapInspectionLabel" style="color:#fbbf24;">Hover over sectors to inspect file allocation</span>
         </div>
 
-        <div class="cluster-map" id="clusterGrid"></div>
+        <div class="cluster-map-dense" id="denseGrid"></div>
 
         <!-- Legend -->
         <div class="cluster-legend">
-          <div class="legend-item"><div class="legend-box" style="background:#1e293b;"></div><span>Unallocated / Free</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#0284c7;"></div><span>Allocated (Contiguous)</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#f59e0b;"></div><span>Allocated (Fragmented)</span></div>
+          <div class="legend-item"><div class="legend-box" style="background:#101c33;"></div><span>Free Space</span></div>
+          <div class="legend-item"><div class="legend-box" style="background:#0284c7;"></div><span>Contiguous File</span></div>
+          <div class="legend-item"><div class="legend-box" style="background:#f59e0b;"></div><span>Fragmented File</span></div>
           <div class="legend-item"><div class="legend-box" style="background:#dc2626;"></div><span>System / Unmovable</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#38bdf8;"></div><span>Reading (r)</span></div>
+          <div class="legend-item"><div class="legend-box" style="background:#facc15;"></div><span>Reading (r)</span></div>
           <div class="legend-item"><div class="legend-box" style="background:#34d399;"></div><span>Writing (w)</span></div>
         </div>
       </div>
@@ -472,23 +469,23 @@
       <!-- Telemetry Readouts -->
       <div class="telemetry-grid">
         <div class="telemetry-card">
-          <div class="telemetry-card-title">FAT Volume Metrics</div>
+          <div class="telemetry-card-title">Volume Space Telemetry</div>
           <div class="telemetry-row"><span>Total Volume Size:</span><span class="val">100.0 MB</span></div>
-          <div class="telemetry-row"><span>Cluster Granularity:</span><span class="val">4,096 B (4 KB)</span></div>
-          <div class="telemetry-row"><span>Disk Space Used:</span><span class="val" id="valDiskUsed">0.0 MB (0%)</span></div>
-          <div class="telemetry-row"><span>Contiguous Free Gap:</span><span class="val" id="valContigFree">100.0 MB</span></div>
+          <div class="telemetry-row"><span>Cluster Size:</span><span class="val">4,096 B (4 KB)</span></div>
+          <div class="telemetry-row"><span>Allocated Sectors:</span><span class="val" id="valDiskUsed">0 / 1,600</span></div>
+          <div class="telemetry-row"><span>Free Space Available:</span><span class="val" id="valFreeSpace">100.0 MB</span></div>
         </div>
 
         <div class="telemetry-card">
-          <div class="telemetry-card-title">File Fragmentation Analysis</div>
+          <div class="telemetry-card-title">Fragmentation &amp; Seek Analysis</div>
           <div class="telemetry-row"><span>Total Active Files:</span><span class="val" id="valTotalFiles">0</span></div>
           <div class="telemetry-row"><span>Fragmented Files:</span><span class="val" id="valFragFiles" style="color:#f59e0b;">0</span></div>
           <div class="telemetry-row"><span>Volume Fragmentation:</span><span class="val" id="valFragPercent">0%</span></div>
-          <div class="telemetry-row"><span>Estimated Seek Overhead:</span><span class="val" id="valSeekOverhead">0 ms</span></div>
+          <div class="telemetry-row"><span>Mechanical Seek Penalty:</span><span class="val" id="valSeekOverhead">0 ms</span></div>
         </div>
       </div>
 
-      <div class="defrag-console" id="defragConsole">$ Speed Disk engine initialized. Click '1. Populate Fresh 100MB Disk' to start...</div>
+      <div class="defrag-console" id="defragConsole">$ Speed Disk engine ready. Click '1. Populate 100MB Disk' to begin...</div>
     </div>
 
     <!-- Section 4.3.5: Advanced Implementations -->
@@ -508,105 +505,129 @@
   </div>
 
   <script>
-    // --- 100MB FAT Defragmenter Simulation Engine ---
-    const TOTAL_CELLS = 500; // 500 visual cells, each cell = 50 clusters = 200 KB
-    let diskCells = [];
-    let files = [];
-    let isDefragging = false;
-    let defragTimer = null;
+    // --- 1,600 Block High-Density Norton Defragmenter Simulation Engine ---
+    const TOTAL_SECTORS = 1600; // 50 cols x 32 rows dense matrix
+    let sectors = [];
+    let fileCatalog = [];
+    let isDefragActive = false;
+    let defragTimeout = null;
+    let stepDelay = 8; // ms
 
-    // Initialize Grid
-    function initGrid() {
-      const gridEl = document.getElementById("clusterGrid");
-      gridEl.innerHTML = "";
-      diskCells = [];
-      for (let i = 0; i < TOTAL_CELLS; i++) {
-        const cell = document.createElement("div");
-        cell.className = "cluster-cell c-free";
-        cell.id = `cell-${i}`;
-        cell.title = `Block ${i} (Clusters ${i*50}-${(i+1)*50 - 1}): Free`;
-        gridEl.appendChild(cell);
-        diskCells.push({ state: "free", fileId: null, isSystem: false });
+    function setSpeed(ms) {
+      stepDelay = ms;
+    }
+
+    function initDenseGrid() {
+      const grid = document.getElementById("denseGrid");
+      grid.innerHTML = "";
+      sectors = [];
+      for (let i = 0; i < TOTAL_SECTORS; i++) {
+        const div = document.createElement("div");
+        div.className = "sector-block s-free";
+        div.id = `sec-${i}`;
+        div.addEventListener("mouseenter", () => inspectSector(i));
+        grid.appendChild(div);
+        sectors.push({ state: "free", fileId: null, isSystem: false });
       }
     }
 
-    function renderCells() {
-      for (let i = 0; i < TOTAL_CELLS; i++) {
-        const cellEl = document.getElementById(`cell-${i}`);
-        const data = diskCells[i];
-        cellEl.className = "cluster-cell";
+    function inspectSector(idx) {
+      const sec = sectors[idx];
+      const lbl = document.getElementById("mapInspectionLabel");
+      if (sec.state === "free") {
+        lbl.textContent = `Sector #${idx}: Free / Unallocated`;
+      } else if (sec.isSystem) {
+        lbl.textContent = `Sector #${idx}: System File (IO.SYS / MSDOS.SYS) [Unmovable]`;
+      } else {
+        const f = fileCatalog.find(item => item.id === sec.fileId);
+        lbl.textContent = `Sector #${idx}: File '${f ? f.name : "Unknown"}' (${f && f.isFragmented ? "Fragmented" : "Contiguous"})`;
+      }
+    }
 
-        if (data.state === "reading") {
-          cellEl.classList.add("c-reading");
-        } else if (data.state === "writing") {
-          cellEl.classList.add("c-writing");
-        } else if (data.isSystem) {
-          cellEl.classList.add("c-system");
-        } else if (data.state === "used") {
-          const file = files.find(f => f.id === data.fileId);
-          if (file && file.isFragmented) {
-            cellEl.classList.add("c-used-frag");
-          } else {
-            cellEl.classList.add("c-used-contig");
-          }
+    function renderSector(idx) {
+      const el = document.getElementById(`sec-${idx}`);
+      const sec = sectors[idx];
+      el.className = "sector-block";
+
+      if (sec.state === "read") {
+        el.classList.add("s-read");
+      } else if (sec.state === "write") {
+        el.classList.add("s-write");
+      } else if (sec.isSystem) {
+        el.classList.add("s-system");
+      } else if (sec.state === "used") {
+        const f = fileCatalog.find(item => item.id === sec.fileId);
+        if (f && f.isFragmented) {
+          el.classList.add("s-frag");
         } else {
-          cellEl.classList.add("c-free");
+          el.classList.add("s-contig");
         }
+      } else {
+        el.classList.add("s-free");
+      }
+    }
+
+    function renderAllSectors() {
+      for (let i = 0; i < TOTAL_SECTORS; i++) {
+        renderSector(i);
       }
       updateTelemetry();
     }
 
     function populateDummyFiles() {
       stopDefrag();
-      initGrid();
-      files = [];
+      initDenseGrid();
+      fileCatalog = [];
 
-      // System files (unmovable) at the very front
-      for (let i = 0; i < 15; i++) {
-        diskCells[i] = { state: "used", fileId: "sys", isSystem: true };
+      // 1. Reserved System Files at the front (Unmovable)
+      const sysLen = 40;
+      for (let i = 0; i < sysLen; i++) {
+        sectors[i] = { state: "used", fileId: "sys", isSystem: true };
       }
-      files.push({ id: "sys", name: "IO.SYS / MSDOS.SYS", sizeCells: 15, isFragmented: false, isSystem: true });
+      fileCatalog.push({ id: "sys", name: "IO.SYS / MSDOS.SYS", size: sysLen, isFragmented: false, isSystem: true });
 
-      // Clean sequential initial allocation
-      let currentIdx = 15;
-      const dummyList = [
-        { name: "COMMAND.COM", size: 8 },
-        { name: "DATABASE.DAT", size: 60 },
-        { name: "SPREADSHT.WK1", size: 35 },
-        { name: "GRAPHICS.LIB", size: 45 },
-        { name: "ARCHIVE.ZIP", size: 50 },
-        { name: "SYSTEM.LOG", size: 25 },
-        { name: "BACKUP_01.BAK", size: 40 },
-        { name: "PROJECTS.C", size: 30 }
+      // 2. Populate contiguous files across first half
+      let ptr = sysLen;
+      const initialFiles = [
+        { name: "COMMAND.COM", size: 24 },
+        { name: "CONFIG.SYS", size: 8 },
+        { name: "DATABASE.DAT", size: 180 },
+        { name: "SPREADSHT.WK1", size: 120 },
+        { name: "GRAPHICS.LIB", size: 160 },
+        { name: "ARCHIVE.ZIP", size: 140 },
+        { name: "SYSTEM.LOG", size: 90 },
+        { name: "USER_DATA.DB", size: 150 },
+        { name: "BACKUP_01.BAK", size: 130 },
+        { name: "PROJECTS.C", size: 110 }
       ];
 
-      dummyList.forEach((item, idx) => {
-        const fId = `f_${idx}`;
+      initialFiles.forEach((item, idx) => {
+        const fid = `file_${idx}`;
         for (let c = 0; c < item.size; c++) {
-          diskCells[currentIdx + c] = { state: "used", fileId: fId, isSystem: false };
+          sectors[ptr + c] = { state: "used", fileId: fid, isSystem: false };
         }
-        files.push({ id: fId, name: item.name, sizeCells: item.size, isFragmented: false, isSystem: false });
-        currentIdx += item.size;
+        fileCatalog.push({ id: fid, name: item.name, size: item.size, isFragmented: false, isSystem: false });
+        ptr += item.size;
       });
 
-      renderCells();
+      renderAllSectors();
       document.getElementById("defragStatusBadge").textContent = "VOLUME INITIALIZED (CLEAN)";
-      document.getElementById("defragConsole").textContent = "$ Formatted 100 MB FAT volume with 4 KB clusters.\n[Layout] Populated initial system binaries and user files contiguously.\n[Integrity] Volume Fragmentation: 0%. Ready for file churn simulation.";
+      document.getElementById("defragConsole").textContent = "$ Formatted 100 MB FAT volume with 1,600 sector clusters.\n[Layout] Populated initial system binaries and regular user files contiguously.\n[Integrity] Volume Fragmentation: 0%. Ready for file churn simulation.";
     }
 
     function fragmentVolume() {
       stopDefrag();
-      if (files.length === 0) populateDummyFiles();
+      if (fileCatalog.length === 0) populateDummyFiles();
 
-      document.getElementById("defragConsole").textContent = "$ Simulating intensive multi-user file churn (deletions, appends, truncations)...";
+      document.getElementById("defragConsole").textContent = "$ Simulating intensive multi-user file churn (deletions, appends, and scattered writes)...";
 
-      // 1. Delete middle files (creating scattered holes)
-      const toDelete = ["f_1", "f_4", "f_6"];
-      files = files.filter(f => {
-        if (toDelete.includes(f.id)) {
-          for (let i = 0; i < TOTAL_CELLS; i++) {
-            if (diskCells[i].fileId === f.id) {
-              diskCells[i] = { state: "free", fileId: null, isSystem: false };
+      // Delete alternating files across the volume to poke scattered gaps
+      const deleteIds = ["file_1", "file_3", "file_5", "file_7"];
+      fileCatalog = fileCatalog.filter(f => {
+        if (deleteIds.includes(f.id)) {
+          for (let i = 0; i < TOTAL_SECTORS; i++) {
+            if (sectors[i].fileId === f.id) {
+              sectors[i] = { state: "free", fileId: null, isSystem: false };
             }
           }
           return false;
@@ -614,41 +635,50 @@
         return true;
       });
 
-      // 2. Allocate new files into non-contiguous scattered holes
-      const newFragFiles = [
-        { id: "frag_1", name: "DATABASE.LOG", size: 65 },
-        { id: "frag_2", name: "VIDEO_CLIP.AVI", size: 70 },
-        { id: "frag_3", name: "TEMP_CACHE.TMP", size: 40 }
+      // Inject new fragmented files across the scattered holes and volume tail
+      const newFiles = [
+        { id: "frag_a", name: "SERVER_LOG.TXT", size: 140 },
+        { id: "frag_b", name: "VIDEO_STREAM.AVI", size: 260 },
+        { id: "frag_c", name: "TEMP_CACHE.TMP", size: 110 },
+        { id: "frag_d", name: "INDEX_TREE.BIN", size: 150 }
       ];
 
-      newFragFiles.forEach(nFile => {
-        let allocated = 0;
-        let pieces = [];
-        // Scan for free gaps across the volume
-        for (let i = 0; i < TOTAL_CELLS && allocated < nFile.size; i++) {
-          if (diskCells[i].state === "free") {
-            diskCells[i] = { state: "used", fileId: nFile.id, isSystem: false };
-            pieces.push(i);
-            allocated++;
+      newFiles.forEach(nf => {
+        let placed = 0;
+        let blocks = [];
+        // Interspersed allocation
+        for (let i = 40; i < TOTAL_SECTORS && placed < nf.size; i++) {
+          if (sectors[i].state === "free" && (i % 2 === 0 || i > 1200)) {
+            sectors[i] = { state: "used", fileId: nf.id, isSystem: false };
+            blocks.push(i);
+            placed++;
           }
         }
-        // Determine if non-contiguous
+        // If remaining bytes need space
+        for (let i = 40; i < TOTAL_SECTORS && placed < nf.size; i++) {
+          if (sectors[i].state === "free") {
+            sectors[i] = { state: "used", fileId: nf.id, isSystem: false };
+            blocks.push(i);
+            placed++;
+          }
+        }
+
         let isFrag = false;
-        for (let p = 1; p < pieces.length; p++) {
-          if (pieces[p] !== pieces[p - 1] + 1) {
+        for (let p = 1; p < blocks.length; p++) {
+          if (blocks[p] !== blocks[p - 1] + 1) {
             isFrag = true;
             break;
           }
         }
-        files.push({ id: nFile.id, name: nFile.name, sizeCells: allocated, isFragmented: isFrag, isSystem: false });
+        fileCatalog.push({ id: nf.id, name: nf.name, size: placed, isFragmented: isFrag, isSystem: false });
       });
 
-      // Mark any other file whose blocks are non-contiguous as fragmented
-      files.forEach(f => {
+      // Update fragmentation status for all user files
+      fileCatalog.forEach(f => {
         if (f.isSystem) return;
         let indices = [];
-        for (let i = 0; i < TOTAL_CELLS; i++) {
-          if (diskCells[i].fileId === f.id) indices.push(i);
+        for (let i = 0; i < TOTAL_SECTORS; i++) {
+          if (sectors[i].fileId === f.id) indices.push(i);
         }
         for (let p = 1; p < indices.length; p++) {
           if (indices[p] !== indices[p - 1] + 1) {
@@ -658,117 +688,118 @@
         }
       });
 
-      renderCells();
+      renderAllSectors();
       document.getElementById("defragStatusBadge").textContent = "VOLUME HEAVILY FRAGMENTED";
-      document.getElementById("defragConsole").textContent += "\n[Churn Complete] File chains broken across scattered gaps.\n[Warning] Sequential file reads will trigger frequent mechanical seek penalties!";
+      document.getElementById("defragConsole").textContent += "\n[Churn Complete] File cluster chains scattered randomly across disk.\n[Warning] Hundreds of non-contiguous sectors detected. High mechanical seek latency!";
     }
 
     function updateTelemetry() {
-      let usedCount = diskCells.filter(c => c.state !== "free").length;
-      let usedMB = (usedCount * 0.2).toFixed(1);
-      let usedPct = Math.round((usedCount / TOTAL_CELLS) * 100);
-      document.getElementById("valDiskUsed").textContent = `${usedMB} MB (${usedPct}%)`;
+      const usedSectors = sectors.filter(s => s.state !== "free").length;
+      const freeMB = (((TOTAL_SECTORS - usedSectors) / TOTAL_SECTORS) * 100).toFixed(1);
+      document.getElementById("valDiskUsed").textContent = `${usedSectors} / 1,600 (${Math.round((usedSectors/TOTAL_SECTORS)*100)}%)`;
+      document.getElementById("valFreeSpace").textContent = `${freeMB} MB`;
 
-      // Find largest contiguous free gap
-      let maxContig = 0;
-      let currContig = 0;
-      for (let i = 0; i < TOTAL_CELLS; i++) {
-        if (diskCells[i].state === "free") {
-          currContig++;
-          if (currContig > maxContig) maxContig = currContig;
-        } else {
-          currContig = 0;
-        }
-      }
-      document.getElementById("valContigFree").textContent = `${(maxContig * 0.2).toFixed(1)} MB`;
-
-      const userFiles = files.filter(f => !f.isSystem);
-      const fragCount = userFiles.filter(f => f.isFragmented).length;
-      const fragPct = userFiles.length > 0 ? Math.round((fragCount / userFiles.length) * 100) : 0;
+      const userFiles = fileCatalog.filter(f => !f.isSystem);
+      const fragFiles = userFiles.filter(f => f.isFragmented);
+      const fragPct = userFiles.length > 0 ? Math.round((fragFiles.length / userFiles.length) * 100) : 0;
 
       document.getElementById("valTotalFiles").textContent = userFiles.length;
-      document.getElementById("valFragFiles").textContent = `${fragCount} files`;
+      document.getElementById("valFragFiles").textContent = `${fragFiles.length} files`;
       document.getElementById("valFragPercent").textContent = `${fragPct}%`;
-      document.getElementById("valSeekOverhead").textContent = `${fragCount * 14} ms (Mechanical Seeks)`;
+      document.getElementById("valSeekOverhead").textContent = `${fragFiles.length * 18} ms`;
     }
+
+    // --- Dynamic Per-Sector Defragmentation Loop ---
+    let defragQueue = [];
 
     function startDefrag() {
-      if (isDefragging) return;
-      isDefragging = true;
+      if (isDefragActive) return;
+      isDefragActive = true;
       document.getElementById("defragStatusBadge").textContent = "DEFRAGMENTING VOLUME...";
-      document.getElementById("defragConsole").textContent = "$ Norton Speed Disk engine started.\n[Pass 1] Consolidating scattered clusters and packing free space toward drive end...";
+      document.getElementById("defragConsole").textContent = "$ Speed Disk engine started.\n[Sweep] Consolidating scattered cluster blocks and packing contiguous extents...";
 
-      defragStep();
+      runDynamicDefragStep();
     }
 
-    function defragStep() {
-      if (!isDefragging) return;
+    function runDynamicDefragStep() {
+      if (!isDefragActive) return;
 
-      // Find first free slot after system area
-      let firstFree = -1;
-      for (let i = 15; i < TOTAL_CELLS; i++) {
-        if (diskCells[i].state === "free") {
-          firstFree = i;
+      // Locate first free sector slot past the unmovable system area (index 40)
+      let targetFreeIdx = -1;
+      for (let i = 40; i < TOTAL_SECTORS; i++) {
+        if (sectors[i].state === "free") {
+          targetFreeIdx = i;
           break;
         }
       }
 
-      // Find last used cluster past the first free gap
-      let lastUsed = -1;
-      for (let i = TOTAL_CELLS - 1; i > firstFree; i--) {
-        if (diskCells[i].state !== "free" && !diskCells[i].isSystem) {
-          lastUsed = i;
+      // Locate a used sector past this free gap
+      let sourceUsedIdx = -1;
+      // Prefer moving fragmented file sectors first
+      for (let i = TOTAL_SECTORS - 1; i > targetFreeIdx; i--) {
+        if (sectors[i].state === "used" && !sectors[i].isSystem) {
+          sourceUsedIdx = i;
           break;
         }
       }
 
-      // If no used cluster past free space, volume is completely compacted
-      if (firstFree === -1 || lastUsed === -1 || firstFree >= lastUsed) {
-        completeDefrag();
+      // If no used sectors exist past the free gap, defragmentation is complete
+      if (targetFreeIdx === -1 || sourceUsedIdx === -1 || targetFreeIdx >= sourceUsedIdx) {
+        finishDefrag();
         return;
       }
 
-      // Animate: Highlight source as reading and destination as writing
-      const sourceCell = diskCells[lastUsed];
-      const targetIdx = firstFree;
-      const sourceIdx = lastUsed;
+      // Read phase (Flash Yellow)
+      const movingSector = sectors[sourceUsedIdx];
+      sectors[sourceUsedIdx].state = "read";
+      renderSector(sourceUsedIdx);
 
-      const cellSrcEl = document.getElementById(`cell-${sourceIdx}`);
-      const cellDstEl = document.getElementById(`cell-${targetIdx}`);
+      defragTimeout = setTimeout(() => {
+        if (!isDefragActive) return;
 
-      cellSrcEl.className = "cluster-cell c-reading";
-      cellDstEl.className = "cluster-cell c-writing";
+        // Write phase (Flash Green)
+        sectors[targetFreeIdx].state = "write";
+        renderSector(targetFreeIdx);
 
-      defragTimer = setTimeout(() => {
-        // Move block data
-        diskCells[targetIdx] = { state: "used", fileId: sourceCell.fileId, isSystem: false };
-        diskCells[sourceIdx] = { state: "free", fileId: null, isSystem: false };
+        defragTimeout = setTimeout(() => {
+          if (!isDefragActive) return;
 
-        renderCells();
+          // Migrate block data
+          sectors[targetFreeIdx] = { state: "used", fileId: movingSector.fileId, isSystem: false };
+          sectors[sourceUsedIdx] = { state: "free", fileId: null, isSystem: false };
 
-        defragTimer = setTimeout(defragStep, 35);
-      }, 35);
+          renderSector(sourceUsedIdx);
+          renderSector(targetFreeIdx);
+          updateTelemetry();
+
+          defragTimeout = setTimeout(runDynamicDefragStep, stepDelay);
+        }, stepDelay);
+      }, stepDelay);
     }
 
-    function completeDefrag() {
-      isDefragging = false;
-      // Mark all files as contiguous
-      files.forEach(f => { f.isFragmented = false; });
-      renderCells();
-
+    function finishDefrag() {
+      isDefragActive = false;
+      fileCatalog.forEach(f => { f.isFragmented = false; });
+      renderAllSectors();
       document.getElementById("defragStatusBadge").textContent = "OPTIMIZATION COMPLETE (100%)";
-      document.getElementById("defragConsole").textContent = "$ Defragmentation complete!\n[Result] 100% of files are contiguous. Free space packed into single trailing extent.\n[Performance] Mechanical seek overhead reduced to 0 ms.";
+      document.getElementById("defragConsole").textContent = "$ Optimization complete!\n[Compacted] All files consolidated into contiguous sectors.\n[Throughput] Maximum sequential read bandwidth restored. Zero seek overhead.";
     }
 
     function stopDefrag() {
-      isDefragging = false;
-      if (defragTimer) clearTimeout(defragTimer);
-      renderCells();
+      isDefragActive = false;
+      if (defragTimeout) clearTimeout(defragTimeout);
+      // Clean any active read/write flashes
+      for (let i = 0; i < TOTAL_SECTORS; i++) {
+        if (sectors[i].state === "read" || sectors[i].state === "write") {
+          sectors[i].state = "used";
+          renderSector(i);
+        }
+      }
       document.getElementById("defragStatusBadge").textContent = "DEFRAGMENTATION PAUSED";
     }
 
     // Initialize Simulator on Load
-    initGrid();
+    initDenseGrid();
     populateDummyFiles();
   </script>
 </body>
