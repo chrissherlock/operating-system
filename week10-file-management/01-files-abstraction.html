@@ -86,39 +86,66 @@
       overflow-x: auto;
       line-height: 1.6;
     }
-    /* Syntax Highlighting Colors */
-    .c-kw { color: #f472b6; font-weight: 600; }     /* Keywords: int, return, if, while */
-    .c-type { color: #38bdf8; font-weight: 600; }   /* Types: char */
-    .c-fn { color: #6ee7b7; font-weight: 600; }     /* Functions: open, read, write, close */
-    .c-prep { color: #c084fc; font-weight: 600; }   /* Preprocessor: #include, #define */
-    .c-num { color: #fbbf24; }                      /* Numbers: 4096, 0700, 1, 2 */
-    .c-str { color: #86efac; }                      /* Strings / Comments */
-    .c-comm { color: #64748b; font-style: italic; } /* Comments */
+    .c-kw { color: #f472b6; font-weight: 600; }
+    .c-type { color: #38bdf8; font-weight: 600; }
+    .c-fn { color: #6ee7b7; font-weight: 600; }
+    .c-prep { color: #c084fc; font-weight: 600; }
+    .c-num { color: #fbbf24; }
+    .c-comm { color: #64748b; font-style: italic; }
 
-    .tutorial-panel {
-      border: 1px solid #fed7aa;
-      border-left: 4px solid var(--inspect-color);
-      background: #fffbeb;
+    /* Immersive Tour Panel Styles */
+    .tour-panel {
+      border: 1px solid #bae6fd;
+      border-left: 5px solid var(--accent);
+      background: #f0f9ff;
     }
-    .tutorial-header {
+    .tour-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 0.85rem;
       font-weight: 700;
-      color: var(--inspect-color);
+      color: var(--accent);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .tutorial-title {
-      font-size: 1.15rem;
+    .tour-title {
+      font-size: 1.2rem;
       font-weight: 700;
-      color: #78350f;
+      color: #0369a1;
     }
-    .tutorial-body {
+    .tour-body {
       font-size: 0.95rem;
       line-height: 1.6;
-      color: #451a03;
+      color: #0c4a6e;
+    }
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .telemetry-box {
+      background: #ffffff;
+      border: 1px solid #7dd3fc;
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .telemetry-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0284c7;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+    .telemetry-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0f172a;
+      font-family: var(--font-mono);
     }
     .tour-nav {
       display: flex;
@@ -126,6 +153,7 @@
       margin-top: 10px;
       align-items: center;
     }
+
     .sandbox-panel {
       background: #0f172a;
       color: #f8fafc;
@@ -513,6 +541,38 @@
       </div>
     </div>
 
+    <!-- Section Interative Tour: The Anatomy of a File Descriptor -->
+    <div class="card tour-panel" id="tourCard">
+      <div class="tour-header">
+        <span id="tourStepCounter">Stage 1 of 4: The Handshake</span>
+        <span>Interactive Kernel Telemetry Tour</span>
+      </div>
+      <div id="tourTitle" class="tour-title">1. Opening the Gateway: The File Descriptor Allocation</div>
+      <div id="tourText" class="tour-body">
+        When a user-space process calls <code>open("data.txt", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="telemetry-box">
+          <span class="telemetry-label">Process FD Slot</span>
+          <span class="telemetry-value" id="tel-fd">fd [3] &rarr; Unbound</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-label">Open File Table Entry</span>
+          <span class="telemetry-value" id="tel-oft">Not Allocated</span>
+        </div>
+        <div class="telemetry-box">
+          <span class="telemetry-label">In-Memory I-Node</span>
+          <span class="telemetry-value" id="tel-inode">Inactive</span>
+        </div>
+      </div>
+
+      <div class="tour-nav">
+        <button id="tourPrevBtn" class="btn-secondary" disabled>&larr; Previous Stage</button>
+        <button id="tourNextBtn" onclick="nextTourStage()">Next Stage &rarr;</button>
+      </div>
+    </div>
+
     <!-- Section 4.1.7: Example Program (Syntax Highlighted) -->
     <div class="card">
       <h2>4.1.7 Example: POSIX File-Copy Program</h2>
@@ -554,22 +614,6 @@
 }</pre>
     </div>
 
-    <!-- Section 2: Guided Interactive Tutorial -->
-    <div class="card tutorial-panel" id="tutorialCard">
-      <div class="tutorial-header">
-        <span id="stepCounter">Step 1 of 4</span>
-        <span id="stepPhase">Concept: File Descriptor Lifecycle</span>
-      </div>
-      <div id="tutorialTitle" class="tutorial-title">1. Opening a File &amp; Allocating Descriptors</div>
-      <div id="tutorialText" class="tutorial-body">
-        When a process invokes <code>open("data.txt", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry.
-      </div>
-      <div class="tour-nav">
-        <button id="prevBtn" class="btn-secondary" disabled>&larr; Previous Step</button>
-        <button id="nextBtn" onclick="nextTutorialStep()">Next Step &rarr;</button>
-      </div>
-    </div>
-
     <!-- Section 3: Interactive Sandbox Playground -->
     <div class="card sandbox-panel">
       <div style="font-weight: 700; font-size: 1.1rem; color: #f8fafc;">3. Interactive POSIX System Call Sandbox</div>
@@ -592,50 +636,71 @@
   </div>
 
   <script>
-    const tutorialSteps = [
+    // Immersive Tour State Machine
+    const tourStages = [
       {
-        title: "1. Opening a File & Allocating Descriptors",
-        text: "When a process invokes <code>open(\"data.txt\", O_RDONLY)</code>, the kernel validates permissions against file attributes, loads the i-node into memory if not already cached, and allocates a small integer entry in the per-process <strong>File Descriptor Table</strong> pointing to an open file table entry."
+        counter: "Stage 1 of 4: The Handshake",
+        title: "1. Opening the Gateway: The File Descriptor Allocation",
+        text: "When a user-space process calls <code>open(\"data.txt\", O_RDONLY)</code>, the kernel performs a security handshake. It traverses the directory tree, inspects i-node permission bits, and allocates a small integer entry in the process-local <strong>File Descriptor Table</strong>.",
+        fd: "fd [3] &rarr; Bound",
+        oft: "Ref Count: 1 | Offset: 0B",
+        inode: "i-node #512 (Cached in RAM)"
       },
       {
-        title: "2. Sequential vs. Random Read Operations",
-        text: "During a <code>read(fd, buffer, n)</code> call, data bytes are copied from the kernel buffer cache into user-space memory. The file offset pointer inside the open file table automatically advances by the number of bytes successfully read."
+        counter: "Stage 2 of 4: The Data Stream",
+        title: "2. Traversing & Advancing: The Read Cycle",
+        text: "During a <code>read(3, buffer, 4096)</code> system call, bytes are transferred from the kernel Buffer Cache into user space. Notice how the file offset inside the Open File Table automatically marches forward with every successful chunk read.",
+        fd: "fd [3] &rarr; Active",
+        oft: "Ref Count: 1 | Offset: 4096B",
+        inode: "i-node #512 (Read Lock)"
       },
       {
-        title: "3. Arbitrary Offsets via lseek()",
-        text: "Unlike magnetic tape where only sequential traversal was possible, random access devices allow processes to reposition the read/write pointer anywhere within the file size limit instantly using <code>lseek(fd, offset, whence)</code>."
+        counter: "Stage 3 of 4: Arbitrary Jumps",
+        title: "3. Instant Repositioning: The Seek Operation",
+        text: "When an application calls <code>lseek(3, 1024, SEEK_SET)</code>, zero disk I/O occurs. The kernel simply recalculates the logical byte offset pointer in the Open File Table instantly, preparing the pointer for random-access lookups.",
+        fd: "fd [3] &rarr; Active",
+        oft: "Ref Count: 1 | Offset: 1024B (Seeked)",
+        inode: "i-node #512 (Random Access)"
       },
       {
-        title: "4. Closing Files & Releasing Resources",
-        text: "When file access is complete, calling <code>close(fd)</code> flushes any unwritten buffered blocks to disk, deallocates the open file descriptor table entry, and decrements the i-node reference count."
+        counter: "Stage 4 of 4: The Cleanup",
+        title: "4. Releasing the Gateway: Closing the Descriptor",
+        text: "When <code>close(3)</code> executes, the kernel flushes any dirty buffer cache blocks to physical disk storage, deallocates the slot in the process FD table, and decrements the open file table reference count.",
+        fd: "fd [3] &rarr; Released",
+        oft: "Table Entry Destroyed",
+        inode: "Ref Count Decremented"
       }
     ];
 
-    let currentStep = 0;
+    let currentTourStage = 0;
 
-    function nextTutorialStep() {
-      if (currentStep < tutorialSteps.length - 1) {
-        currentStep++;
-        updateTutorial();
+    function nextTourStage() {
+      if (currentTourStage < tourStages.length - 1) {
+        currentTourStage++;
+        updateTourDisplay();
       } else {
-        currentStep = 0;
-        updateTutorial();
+        currentTourStage = 0;
+        updateTourDisplay();
       }
     }
 
-    function updateTutorial() {
-      const step = tutorialSteps[currentStep];
-      document.getElementById("stepCounter").textContent = `Step ${currentStep + 1} of ${tutorialSteps.length}`;
-      document.getElementById("tutorialTitle").textContent = step.title;
-      document.getElementById("tutorialText").innerHTML = step.text;
-      document.getElementById("prevBtn").disabled = (currentStep === 0);
-      document.getElementById("nextBtn").textContent = (currentStep === tutorialSteps.length - 1) ? "Restart Tutorial" : "Next Step \u2192";
+    function updateTourDisplay() {
+      const stage = tourStages[currentTourStage];
+      document.getElementById("tourStepCounter").textContent = stage.counter;
+      document.getElementById("tourTitle").textContent = stage.title;
+      document.getElementById("tourText").innerHTML = stage.text;
+      document.getElementById("tel-fd").textContent = stage.fd;
+      document.getElementById("tel-oft").textContent = stage.oft;
+      document.getElementById("tel-inode").textContent = stage.inode;
+
+      document.getElementById("tourPrevBtn").disabled = (currentTourStage === 0);
+      document.getElementById("tourNextBtn").textContent = (currentTourStage === tourStages.length - 1) ? "Restart Tour" : "Next Stage \u2192";
     }
 
-    document.getElementById("prevBtn").onclick = () => {
-      if (currentStep > 0) {
-        currentStep--;
-        updateTutorial();
+    document.getElementById("tourPrevBtn").onclick = () => {
+      if (currentTourStage > 0) {
+        currentTourStage--;
+        updateTourDisplay();
       }
     };
 
