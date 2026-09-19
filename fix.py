@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 import os
+import re
 
-PAGE_CONTENT = """<!DOCTYPE html>
+AGING_HTML_CONTENT = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7. Page Replacement: The Clock Algorithm — COSC240</title>
-  <!-- Configure MathJax to recognize single dollar signs for inline math -->
+  <title>8. Simulating LRU: The Aging Algorithm — COSC240</title>
+  <!-- Configure MathJax for LaTeX transformation -->
   <script>
     window.MathJax = {
       tex: {
-        inlineMath: [['$', '$'], ['\\\\(', '\\\\)']]
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
       }
     };
   </script>
@@ -199,18 +200,14 @@ PAGE_CONTENT = """<!DOCTYPE html>
       .split-grid { grid-template-columns: 1fr; }
     }
 
-    .clock-canvas-box {
+    .register-visual-box {
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
       background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px;
-    }
-
-    #svgHandLine, #wtSvgHandLine {
-      transition: x2 0.25s ease, y2 0.25s ease;
+      padding: 14px;
     }
 
     .table-spec {
@@ -225,7 +222,7 @@ PAGE_CONTENT = """<!DOCTYPE html>
       text-align: center;
     }
     .table-spec th { background: #f8fafc; font-weight: 700; color: var(--text-muted); }
-    .table-spec tr.hand-row { background-color: #fef08a; font-weight: 700; }
+    .table-spec tr.victim-row { background-color: #fee2e2; font-weight: 700; }
 
     .telemetry-box {
       background: #0f172a;
@@ -296,8 +293,8 @@ PAGE_CONTENT = """<!DOCTYPE html>
   </div>
 
   <header>
-    <h1>7. Page Replacement: The Clock Algorithm</h1>
-    <p class="subtitle">Tanenbaum Section 3.4.4 (Fig. 3-16): Second-chance circular FIFO replacement, R-bit clearing sweeps, and live page fault handling.</p>
+    <h1>8. Simulating LRU: The Aging Algorithm</h1>
+    <p class="subtitle">Tanenbaum Section 3.4.5 (Fig. 3-17): Right-shift history registers, MSB insertion of R-bits, and multi-tick LRU approximation.</p>
   </header>
 
   <div class="main-container">
@@ -305,123 +302,95 @@ PAGE_CONTENT = """<!DOCTYPE html>
     <!-- 1. DETAILED THEORETICAL EXPLANATION -->
     <div class="card">
       <div class="theory-section">
-        <h2>1. The Need for Page Replacement</h2>
+        <h2>1. The Limitation of Simple Second-Chance</h2>
         <p>
-          When a page fault occurs and all physical memory frames are occupied, the operating system kernel must choose an existing page to evict from physical RAM. If the evicted page was modified while in memory ($M = 1$), it must be written back to disk; if unmodified, the incoming page overwrites the frame directly.
-        </p>
-        <p>
-          While the <strong>Least Recently Used (LRU)</strong> policy is theoretically optimal among practical algorithms, recording an exact LRU sequence in hardware requires updating a counter or moving a linked-list node on every single memory reference, introducing severe memory bus latency.
+          While the Clock algorithm (second-chance) avoids the heavy overhead of strict LRU, it is relatively coarse-grained. It only remembers whether a page was referenced during the <em>current</em> sweep cycle ($R = 1$ or $R = 0$). It cannot distinguish between a page referenced 10 instructions ago versus one referenced 10,000 instructions ago.
         </p>
 
-        <h2>2. Second-Chance and the Clock Optimization</h2>
+        <h2>2. The Aging Algorithm Solution</h2>
         <p>
-          A practical approximation of LRU is the <strong>Second-Chance</strong> replacement policy. The OS examines the <strong>Referenced ($R$) bit</strong> in the hardware page table entry:
+          To capture more precise access history without full LRU matrix overhead, operating systems use the <strong>Aging Algorithm</strong>. Each physical page frame is assigned a fixed-width binary history register (typically 8 bits wide, corresponding to 8 consecutive clock ticks).
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
-          <li>If $R = 0$: The page is old and has not been referenced recently. It is evicted immediately.</li>
-          <li>If $R = 1$: The page was recently referenced. The OS clears $R \to 0$, grants it a second chance, and inspects the next candidate.</li>
+          <li><strong>Clock Tick Interception:</strong> At regular hardware clock intervals (e.g., every 20ms), the OS interrupts execution and performs a right-shift operation on every page's counter: $R_i \to R_i \gg 1$.</li>
+          <li><strong>MSB Injection:</strong> During the shift, the current hardware Referenced ($R$) bit is inserted into the most significant bit (MSB, position 7) of the register: $R_7 = R$.</li>
+          <li><strong>Eviction Policy:</strong> When a page fault occurs, the kernel scans all frame registers as unsigned integers. The page with the <strong>lowest numerical value</strong> is chosen as the victim (indicating it has not been referenced for the longest sequence of ticks).</li>
         </ul>
         <div class="theory-callout">
-          <strong>Tanenbaum's Clock Optimization (Fig. 3-16):</strong><br>
-          Second-chance requires moving unreferenced pages to the tail of a linked list, which is unnecessarily slow. The <strong>Clock Algorithm</strong> eliminates this list-shuffling overhead by arranging all page frames into a circular buffer governed by a single rotating clock hand.
+          <strong>Tanenbaum's Aging Principle (Fig. 3-17):</strong><br>
+          An 8-bit history register records access over the last 8 clock ticks. For example, a register value of `10001000` (136 decimal) means the page was referenced 8 ticks ago and 4 ticks ago. A value of `00000001` (1 decimal) means it was only referenced 1 tick ago. Aging provides an exceptional approximation of true LRU.
         </div>
       </div>
 
-      <!-- Embedded SVG Diagram for Figure 3-16 -->
+      <!-- Embedded SVG Diagram for Figure 3-17 -->
       <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-16: The Clock Page Replacement Algorithm (Before and After Page Fault at Time 20)</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 270" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
-            </marker>
-          </defs>
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-17: The Aging Algorithm (8-bit History Registers across 4 Clock Ticks)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Header Row -->
+          <text x="380" y="25" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">Four pages with 8-bit reference counters at consecutive clock ticks</text>
 
-          <!-- Left Clock Ring (a) -->
-          <g transform="translate(10, 0)">
-            <circle cx="180" cy="130" r="85" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
-            <text x="180" y="240" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">(a) State before page fault occurs</text>
+          <!-- Page 0 -->
+          <text x="30" y="60" font-size="11" font-weight="700" fill="#0369a1">Page 0:</text>
+          <rect x="100" y="45" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
+          <text x="133" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="166" y1="45" x2="166" y2="71" stroke="#cbd5e1"/>
+          <text x="200" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="233" y1="45" x2="233" y2="71" stroke="#cbd5e1"/>
+          <text x="266" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="300" y1="45" x2="300" y2="71" stroke="#cbd5e1"/>
+          <text x="333" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="366" y1="45" x2="366" y2="71" stroke="#cbd5e1"/>
+          <text x="400" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="433" y1="45" x2="433" y2="71" stroke="#cbd5e1"/>
+          <text x="466" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="500" y1="45" x2="500" y2="71" stroke="#cbd5e1"/>
+          <text x="533" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="45" x2="566" y2="71" stroke="#cbd5e1"/>
+          <text x="600" y="62" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
 
-            <rect x="160" y="30" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="180" y="50" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">A, R=1</text>
+          <!-- Page 1 -->
+          <text x="30" y="100" font-size="11" font-weight="700" fill="#0369a1">Page 1:</text>
+          <rect x="100" y="85" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
+          <text x="133" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="166" y1="85" x2="166" y2="111" stroke="#cbd5e1"/>
+          <text x="200" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="233" y1="85" x2="233" y2="111" stroke="#cbd5e1"/>
+          <text x="266" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="300" y1="85" x2="300" y2="111" stroke="#cbd5e1"/>
+          <text x="333" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="366" y1="85" x2="366" y2="111" stroke="#cbd5e1"/>
+          <text x="400" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="433" y1="85" x2="433" y2="111" stroke="#cbd5e1"/>
+          <text x="466" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="500" y1="85" x2="500" y2="111" stroke="#cbd5e1"/>
+          <text x="533" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="85" x2="566" y2="111" stroke="#cbd5e1"/>
+          <text x="600" y="102" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
 
-            <rect x="235" y="65" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="255" y="85" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">B, R=0</text>
+          <!-- Page 2 -->
+          <text x="30" y="140" font-size="11" font-weight="700" fill="#0369a1">Page 2:</text>
+          <rect x="100" y="125" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
+          <text x="133" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="166" y1="125" x2="166" y2="151" stroke="#cbd5e1"/>
+          <text x="200" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="233" y1="125" x2="233" y2="151" stroke="#cbd5e1"/>
+          <text x="266" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="300" y1="125" x2="300" y2="151" stroke="#cbd5e1"/>
+          <text x="333" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="366" y1="125" x2="366" y2="151" stroke="#cbd5e1"/>
+          <text x="400" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="433" y1="125" x2="433" y2="151" stroke="#cbd5e1"/>
+          <text x="466" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="500" y1="125" x2="500" y2="151" stroke="#cbd5e1"/>
+          <text x="533" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="125" x2="566" y2="151" stroke="#cbd5e1"/>
+          <text x="600" y="142" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
 
-            <rect x="250" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="270" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">C, R=0</text>
-
-            <rect x="200" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="220" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">D, R=1</text>
-
-            <rect x="120" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="140" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">E, R=1</text>
-
-            <rect x="70" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="90" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">F, R=0</text>
-
-            <rect x="85" y="65" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="105" y="85" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">G, R=1</text>
-
-            <!-- Hand Pointer -->
-            <path d="M 180 130 L 180 65" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
-            <circle cx="180" cy="130" r="4" fill="#0284c7"/>
-            <text x="180" y="115" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Hand &rarr; A</text>
-          </g>
-
-          <!-- Right Clock Ring (b) -->
-          <g transform="translate(390, 0)">
-            <circle cx="180" cy="130" r="85" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
-            <text x="180" y="240" font-size="12" font-weight="700" fill="#0f172a" text-anchor="middle">(b) Page B evicted &rarr; Page I loaded, Hand advances</text>
-
-            <rect x="160" y="30" width="40" height="30" fill="#fef3c7" stroke="#d97706" rx="4"/>
-            <text x="180" y="50" font-size="11" font-weight="700" fill="#b45309" text-anchor="middle">A, R=0</text>
-
-            <rect x="235" y="65" width="40" height="30" fill="#dcfce7" stroke="#16a34a" rx="4"/>
-            <text x="255" y="85" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">I, R=1</text>
-
-            <rect x="250" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="270" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">C, R=0</text>
-
-            <rect x="200" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="220" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">D, R=1</text>
-
-            <rect x="120" y="200" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="140" y="220" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">E, R=1</text>
-
-            <rect x="70" y="140" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="90" y="160" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">F, R=0</text>
-
-            <rect x="85" y="65" width="40" height="30" fill="#f8fafc" stroke="#334155" rx="4"/>
-            <text x="105" y="85" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">G, R=1</text>
-
-            <!-- Hand Pointer pointing to C -->
-            <path d="M 180 130 L 245 150" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
-            <circle cx="180" cy="130" r="4" fill="#0284c7"/>
-            <text x="195" y="150" font-size="10" font-weight="700" fill="#0284c7" text-anchor="middle">Hand &rarr; C</text>
-          </g>
+          <!-- Page 3 -->
+          <text x="30" y="180" font-size="11" font-weight="700" fill="#0369a1">Page 3:</text>
+          <rect x="100" y="165" width="540" height="26" fill="#f8fafc" stroke="#334155" rx="3"/>
+          <text x="133" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="166" y1="165" x2="166" y2="191" stroke="#cbd5e1"/>
+          <text x="200" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="233" y1="165" x2="233" y2="191" stroke="#cbd5e1"/>
+          <text x="266" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="300" y1="165" x2="300" y2="191" stroke="#cbd5e1"/>
+          <text x="333" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="366" y1="165" x2="366" y2="191" stroke="#cbd5e1"/>
+          <text x="400" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="433" y1="165" x2="433" y2="191" stroke="#cbd5e1"/>
+          <text x="466" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">1</text><line x1="500" y1="165" x2="500" y2="191" stroke="#cbd5e1"/>
+          <text x="533" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text><line x1="566" y1="165" x2="566" y2="191" stroke="#cbd5e1"/>
+          <text x="600" y="182" font-size="10" font-family="monospace" fill="#0f172a" text-anchor="middle">0</text>
         </svg>
       </div>
     </div>
 
-    <!-- 2. GUIDED WALKTHROUGH WIDGET WITH INTERACTIVE CLOCK VISUALIZATION -->
+    <!-- 2. GUIDED WALKTHROUGH WIDGET WITH REGISTER SHIFT VISUALIZATION -->
     <div class="card tutorial-panel">
       <div class="tutorial-header">
         <span id="wtCounter">Step 1 of 4</span>
-        <span>Interactive Clock Hand Stepper</span>
+        <span>Interactive Aging Stepper</span>
       </div>
-      <div id="wtTitle" class="tutorial-title">1. Incoming Page Fault: Requesting Page 'I'</div>
+      <div id="wtTitle" class="tutorial-title">1. Initial State across 4 Frames</div>
 
       <div class="split-grid">
-        <!-- Dedicated Walkthrough Clock Graphic -->
-        <div class="clock-canvas-box">
-          <svg id="wtClockSvg" viewBox="0 0 320 320" width="290" height="290" style="font-family: var(--font-mono);">
-            <circle cx="160" cy="160" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
-            <g id="wtSvgFramesGroup"></g>
-            <line id="wtSvgHandLine" x1="160" y1="160" x2="160" y2="80" stroke="#0284c7" stroke-width="3.5" marker-end="url(#arrow)"/>
-            <circle cx="160" cy="160" r="5" fill="#0284c7"/>
-          </svg>
-        </div>
+        <!-- Dedicated Walkthrough Register Graphic -->
+        <div class="register-visual-box" id="wtRegisterBox"></div>
 
         <div style="display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px;">
           <div id="wtText" class="tutorial-body"></div>
@@ -434,17 +403,17 @@ PAGE_CONTENT = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 3. INTERACTIVE CLOCK REPLACEMENT SANDBOX (WITH EMBEDDED GUIDE) -->
+    <!-- 3. INTERACTIVE AGING ALGORITHM SANDBOX -->
     <div class="card" id="sandboxSection">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <div>
-          <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive Clock Algorithm Sandbox</h2>
+          <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive Aging Algorithm Sandbox</h2>
           <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Issue page references, inspect the circular pointer sweep, and toggle referenced bits on the live canvas.
+            Trigger clock ticks, shift history registers, and observe victim selection based on lowest unsigned integer values.
           </p>
         </div>
         <div style="display:flex; gap:8px;">
-          <button class="btn-sec" onclick="resetClockState()">Reset Frames</button>
+          <button class="btn-sec" onclick="resetAgingState()">Reset Frames</button>
         </div>
       </div>
 
@@ -454,28 +423,28 @@ PAGE_CONTENT = """<!DOCTYPE html>
         <div class="guide-grid">
           <div class="guide-box">
             <strong>1. Access a Page</strong>
-            <span>Type any page letter (e.g. <code>H</code>) in the input box and click <em>Access Page</em>. If resident &rarr; <strong>Hit</strong> ($R \to 1$, hand stays put). If absent &rarr; <strong>Fault</strong> (hand sweeps to find and evict an $R=0$ victim).</span>
+            <span>Type any page letter (e.g. <code>W</code>) and click <em>Access Page</em>. If resident, its hardware $R$-bit becomes 1. If absent, a page fault triggers, evicting the page with the lowest counter value.</span>
           </div>
           <div class="guide-box">
-            <strong>2. Toggle R-Bits</strong>
-            <span>Click directly on any frame square in the circular SVG canvas or click <em>Toggle R</em> in the table to manually change referenced bits.</span>
+            <strong>2. Trigger Clock Tick</strong>
+            <span>Click <em>Clock Tick (Shift >> 1)</em> to simulate the OS timer interrupt: all 8-bit registers shift right, and $R$ bits are inserted into the MSB (bit 7).</span>
           </div>
           <div class="guide-box">
-            <strong>3. Periodic Timer Tick</strong>
-            <span>Click <em>Periodic Timer Tick</em> to simulate an OS interrupt clearing all $R$ bits across every frame to <code>0</code> simultaneously.</span>
+            <strong>3. Examine Counter Values</strong>
+            <span>Watch decimal values update. Lower numbers mean the page hasn't been referenced for many ticks, making it the primary target for eviction.</span>
           </div>
         </div>
         <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; border-top: 1px dashed var(--border); padding-top: 8px;">
-          <strong>Suggested Experiment:</strong> Click <em>Reset Frames</em> to load Tanenbaum Figure 3-16. Enter absent page <code>I</code> and click <em>Access Page</em>. Watch the animated sweep step through Frame 0 (giving a second chance: $R=1 \to 0$) and evict Frame 1 (where $R=0$).
+          <strong>Suggested Experiment:</strong> Click <em>Clock Tick</em> 3 times without accessing any pages. Notice how all counters decay toward 0 as older references shift out of the 8-bit window!
         </div>
       </div>
 
       <!-- Controls -->
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <label style="font-size:0.85rem; font-weight:600;">Reference Page:</label>
-        <input type="text" id="refPageInput" value="I" maxlength="2" style="width:45px; text-align:center; padding:4px; font-family:var(--font-mono); text-transform:uppercase;">
-        <button id="accessPageBtn" onclick="executePageAccess()">Access Page</button>
-        <button class="btn-sec" onclick="clearAllRefBits()">Periodic Timer Tick (Clear All R)</button>
+        <input type="text" id="refPageInput" value="X" maxlength="2" style="width:45px; text-align:center; padding:4px; font-family:var(--font-mono); text-transform:uppercase;">
+        <button onclick="executeAgingAccess()">Access Page</button>
+        <button class="btn-sec" onclick="triggerClockTick()">Clock Tick (Shift &gt;&gt; 1)</button>
       </div>
 
       <!-- Telemetry Banner -->
@@ -483,36 +452,25 @@ PAGE_CONTENT = """<!DOCTYPE html>
         <span>Total Accesses: <strong id="statAccesses">0</strong></span>
         <span>Hits: <strong id="statHits" style="color:#4ade80;">0</strong></span>
         <span>Faults: <strong id="statFaults" style="color:#f87171;">0</strong></span>
-        <span>Hit Rate: <strong id="statHitRate" style="color:#38bdf8;">0.0%</strong></span>
+        <span>Clock Ticks: <strong id="statTicks" style="color:#38bdf8;">0</strong></span>
       </div>
 
       <div class="split-grid">
-        <!-- SVG Visual Clock Face -->
-        <div class="clock-canvas-box">
-          <svg id="clockSvg" viewBox="0 0 320 320" width="300" height="300" style="font-family: var(--font-mono);">
-            <circle cx="160" cy="160" r="115" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4"/>
-            <g id="svgFramesGroup"></g>
-            <line id="svgHandLine" x1="160" y1="160" x2="160" y2="80" stroke="#0284c7" stroke-width="3.5" marker-end="url(#arrow)"/>
-            <circle cx="160" cy="160" r="5" fill="#0284c7"/>
-          </svg>
+        <!-- Frame Table -->
+        <div>
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Physical Frame Registers (8-bit)</span>
+          <table class="table-spec" style="margin-top:6px;">
+            <thead>
+              <tr><th>Frame</th><th>Page</th><th>R</th><th>8-Bit Register (Binary)</th><th>Decimal</th></tr>
+            </thead>
+            <tbody id="agingTableBody"></tbody>
+          </table>
         </div>
 
-        <!-- Frame Table & Execution Log -->
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div>
-            <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Circular Frame Array</span>
-            <table class="table-spec" style="margin-top:6px;">
-              <thead>
-                <tr><th>Frame</th><th>Page</th><th>R Bit</th><th>Pointer</th><th>Action</th></tr>
-              </thead>
-              <tbody id="clockTableBody"></tbody>
-            </table>
-          </div>
-
-          <div style="display:flex; flex-direction:column; gap:6px;">
-            <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Kernel Replacement Log</span>
-            <div id="clockLog" class="terminal-box"></div>
-          </div>
+        <!-- Terminal Log -->
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <span style="font-weight:700; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase;">Kernel Aging Log</span>
+          <div id="agingLog" class="terminal-box"></div>
         </div>
       </div>
     </div>
@@ -520,76 +478,56 @@ PAGE_CONTENT = """<!DOCTYPE html>
   </div>
 
   <script>
-    function calcAngleCoordinates(index, total, radius, cx, cy) {
-      const angle = (index * (2 * Math.PI / total)) - (Math.PI / 2);
-      return {
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle)
-      };
-    }
-
     /* =========================================================================
-       PART 2: DYNAMIC WALKTHROUGH WITH GRAPHICAL CLOCK
+       PART 2: WALKTHROUGH LOGIC
        ========================================================================= */
     let wtStep = 0;
     const wtSteps = [
       {
-        title: "1. Incoming Page Fault: Requesting Page 'I'",
-        text: "The CPU attempts to reference Page <code>I</code>. A page fault occurs because Page <code>I</code> is not resident in physical memory. The clock hand points directly to <strong>Frame 0 (Page A)</strong>.",
-        hand: 0,
+        title: "1. Initial 8-Bit History Registers",
+        text: "Consider 4 physical frames holding pages A, B, C, and D. Each frame maintains an 8-bit history register tracking references over the last 8 clock ticks.",
         frames: [
-          { page: "A", r: 1 },
-          { page: "B", r: 0 },
-          { page: "C", r: 0 },
-          { page: "D", r: 1 },
-          { page: "E", r: 1 },
-          { page: "F", r: 0 },
-          { page: "G", r: 1 }
+          { page: "A", r: 1, reg: 0b10001000, dec: 136 },
+          { page: "B", r: 0, reg: 0b01110000, dec: 112 },
+          { page: "C", r: 0, reg: 0b10000000, dec: 128 },
+          { page: "D", r: 1, reg: 0b00110011, dec: 51 }
         ]
       },
       {
-        title: "2. Inspecting Page A (R = 1): Second Chance Granted",
-        text: "The pointer inspects Frame 0 holding Page A. Because its <strong>R bit is 1</strong>, Page A was recently used. The algorithm grants A a second chance: it clears <code>R &rarr; 0</code> and rotates clockwise to Frame 1.",
-        hand: 1,
+        title: "2. Clock Tick: Right Shift & MSB Insertion",
+        text: "When a clock tick occurs, the OS reads each page's hardware $R$ bit, shifts all 8-bit registers right by 1, and inserts $R$ into the MSB (bit 7).",
         frames: [
-          { page: "A", r: 0 },
-          { page: "B", r: 0 },
-          { page: "C", r: 0 },
-          { page: "D", r: 1 },
-          { page: "E", r: 1 },
-          { page: "F", r: 0 },
-          { page: "G", r: 1 }
+          { page: "A", r: 1, reg: 0b11000100, dec: 196 },
+          { page: "B", r: 0, reg: 0b00111000, dec: 56 },
+          { page: "C", r: 0, reg: 0b01000000, dec: 64 },
+          { page: "D", r: 1, reg: 0b10011001, dec: 153 }
         ]
       },
       {
-        title: "3. Inspecting Page B (R = 0): Victim Selected!",
-        text: "The pointer reaches Frame 1 holding Page B. Its <strong>R bit is 0</strong>! Page B is the victim: Frame 1 is reclaimed, Page B is evicted, and incoming Page I is loaded with <code>R = 1</code>.",
-        hand: 1,
+        title: "3. Evaluating Eviction Candidates",
+        text: "Suppose a page fault occurs and the kernel needs to evict a page. It evaluates unsigned decimal values: Page B (56), Page C (64), Page D (153), Page A (196).",
         frames: [
-          { page: "A", r: 0 },
-          { page: "I", r: 1 },
-          { page: "C", r: 0 },
-          { page: "D", r: 1 },
-          { page: "E", r: 1 },
-          { page: "F", r: 0 },
-          { page: "G", r: 1 }
+          { page: "A", r: 1, reg: 0b11000100, dec: 196 },
+          { page: "B", r: 0, reg: 0b00111000, dec: 56, victim: true },
+          { page: "C", r: 0, reg: 0b01000000, dec: 64 },
+          { page: "D", r: 1, reg: 0b10011001, dec: 153 }
         ]
       },
       {
-        title: "4. Advancing Pointer to Next Frame",
-        text: "Having loaded Page I into Frame 1, the clock hand advances one position past the new entry, pointing to <strong>Frame 2 (Page C)</strong> ready for future page faults.",
-        hand: 2,
+        title: "4. Victim Selected: Page B Evicted",
+        text: "Page B has the lowest numerical counter value (56), proving it has gone the longest without being referenced. Page B is evicted, and the incoming page takes its frame.",
         frames: [
-          { page: "A", r: 0 },
-          { page: "I", r: 1 },
-          { page: "C", r: 0 },
-          { page: "D", r: 1 },
-          { page: "E", r: 1 },
-          { page: "F", r: 0 },
-          { page: "G", r: 1 }
+          { page: "A", r: 1, reg: 0b11000100, dec: 196 },
+          { page: "X", r: 1, reg: 0b10000000, dec: 128, new: true },
+          { page: "C", r: 0, reg: 0b01000000, dec: 64 },
+          { page: "D", r: 1, reg: 0b10011001, dec: 153 }
         ]
       }
     ];
+
+    function toBin8(val) {
+      return (val >>> 0).toString(2).padStart(8, '0');
+    }
 
     function renderWt() {
       const s = wtSteps[wtStep];
@@ -597,52 +535,14 @@ PAGE_CONTENT = """<!DOCTYPE html>
       document.getElementById("wtTitle").textContent = s.title;
       document.getElementById("wtText").innerHTML = s.text;
 
-      const group = document.getElementById("wtSvgFramesGroup");
-      group.innerHTML = "";
-      const total = s.frames.length;
-
-      s.frames.forEach((f, idx) => {
-        const coords = calcAngleCoordinates(idx, total, 115, 160, 160);
-        const rectColor = f.r ? "#dcfce7" : "#fee2e2";
-        const strokeColor = f.r ? "#16a34a" : "#dc2626";
-
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", coords.x - 22);
-        rect.setAttribute("y", coords.y - 18);
-        rect.setAttribute("width", 44);
-        rect.setAttribute("height", 36);
-        rect.setAttribute("fill", rectColor);
-        rect.setAttribute("stroke", strokeColor);
-        rect.setAttribute("stroke-width", "1.5");
-        rect.setAttribute("rx", "4");
-
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", coords.x);
-        text.setAttribute("y", coords.y - 1);
-        text.setAttribute("font-size", "11");
-        text.setAttribute("font-weight", "700");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("fill", "#0f172a");
-        text.textContent = `${f.page}`;
-
-        const subText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        subText.setAttribute("x", coords.x);
-        subText.setAttribute("y", coords.y + 11);
-        subText.setAttribute("font-size", "9");
-        subText.setAttribute("font-weight", "600");
-        subText.setAttribute("text-anchor", "middle");
-        subText.setAttribute("fill", strokeColor);
-        subText.textContent = `R=${f.r}`;
-
-        group.appendChild(rect);
-        group.appendChild(text);
-        group.appendChild(subText);
+      const box = document.getElementById("wtRegisterBox");
+      box.innerHTML = "";
+      s.frames.forEach(f => {
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.85rem; padding:4px 8px; background:" + (f.victim ? "#fee2e2" : (f.new ? "#dcfce7" : "#f8fafc")) + "; border:1px solid var(--border); border-radius:4px;";
+        row.innerHTML = `<span><strong>Page ${f.page}</strong></span><span><code>${toBin8(f.reg)}</code> (${f.dec})</span>`;
+        box.appendChild(row);
       });
-
-      const handCoords = calcAngleCoordinates(s.hand, total, 80, 160, 160);
-      const handLine = document.getElementById("wtSvgHandLine");
-      handLine.setAttribute("x2", handCoords.x);
-      handLine.setAttribute("y2", handCoords.y);
 
       document.getElementById("wtPrevBtn").disabled = (wtStep === 0);
       document.getElementById("wtNextBtn").disabled = (wtStep === wtSteps.length - 1);
@@ -657,84 +557,41 @@ PAGE_CONTENT = """<!DOCTYPE html>
     renderWt();
 
     /* =========================================================================
-       PART 3: INTERACTIVE CLOCK SANDBOX WITH ANIMATED SWEEP
+       PART 3: INTERACTIVE SANDBOX LOGIC
        ========================================================================= */
-    let clockFrames = [
-      { id: 0, page: "A", r: 1 },
-      { id: 1, page: "B", r: 0 },
-      { id: 2, page: "C", r: 0 },
-      { id: 3, page: "D", r: 1 },
-      { id: 4, page: "E", r: 1 },
-      { id: 5, page: "F", r: 0 },
-      { id: 6, page: "G", r: 1 }
+    let agingFrames = [
+      { id: 0, page: "A", r: 1, reg: 0b10001000 },
+      { id: 1, page: "B", r: 0, reg: 0b01110000 },
+      { id: 2, page: "C", r: 0, reg: 0b10000000 },
+      { id: 3, page: "D", r: 1, reg: 0b00110011 }
     ];
-    let clockHand = 0;
     let statTotal = 0;
     let statHits = 0;
     let statFaults = 0;
-    let isEvicting = false;
+    let statTicks = 0;
 
-    function renderClock() {
-      const group = document.getElementById("svgFramesGroup");
-      group.innerHTML = "";
-      const total = clockFrames.length;
+    function renderAgingSandbox() {
+      const tbody = document.getElementById("agingTableBody");
+      tbody.innerHTML = "";
 
-      clockFrames.forEach((f, idx) => {
-        const coords = calcAngleCoordinates(idx, total, 115, 160, 160);
-        const rectColor = f.r ? "#dcfce7" : "#fee2e2";
-        const strokeColor = f.r ? "#16a34a" : "#dc2626";
-
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", coords.x - 22);
-        rect.setAttribute("y", coords.y - 18);
-        rect.setAttribute("width", 44);
-        rect.setAttribute("height", 36);
-        rect.setAttribute("fill", rectColor);
-        rect.setAttribute("stroke", strokeColor);
-        rect.setAttribute("stroke-width", idx === clockHand ? "2.5" : "1.5");
-        rect.setAttribute("rx", "4");
-        rect.style.cursor = isEvicting ? "default" : "pointer";
-        rect.onclick = () => { if (!isEvicting) toggleRefBit(idx); };
-
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", coords.x);
-        text.setAttribute("y", coords.y - 1);
-        text.setAttribute("font-size", "11");
-        text.setAttribute("font-weight", "700");
-        text.setAttribute("text-anchor", "middle");
-        text.setAttribute("fill", "#0f172a");
-        text.textContent = `${f.page}`;
-
-        const subText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        subText.setAttribute("x", coords.x);
-        subText.setAttribute("y", coords.y + 11);
-        subText.setAttribute("font-size", "9");
-        subText.setAttribute("font-weight", "600");
-        subText.setAttribute("text-anchor", "middle");
-        subText.setAttribute("fill", strokeColor);
-        subText.textContent = `R=${f.r}`;
-
-        group.appendChild(rect);
-        group.appendChild(text);
-        group.appendChild(subText);
+      let minVal = 999999;
+      let victimIdx = -1;
+      agingFrames.forEach((f, idx) => {
+        if (f.reg < minVal) {
+          minVal = f.reg;
+          victimIdx = idx;
+        }
       });
 
-      const handCoords = calcAngleCoordinates(clockHand, total, 80, 160, 160);
-      const handLine = document.getElementById("svgHandLine");
-      handLine.setAttribute("x2", handCoords.x);
-      handLine.setAttribute("y2", handCoords.y);
-
-      const tbody = document.getElementById("clockTableBody");
-      tbody.innerHTML = "";
-      clockFrames.forEach((f, idx) => {
+      agingFrames.forEach((f, idx) => {
         const tr = document.createElement("tr");
-        if (idx === clockHand) tr.className = "hand-row";
+        if (idx === victimIdx) tr.className = "victim-row";
         tr.innerHTML = `
           <td>Frame ${f.id}</td>
           <td><strong>${f.page}</strong></td>
           <td><span style="color:${f.r ? 'var(--hit-color)' : 'var(--fault-color)'}; font-weight:700;">${f.r}</span></td>
-          <td>${idx === clockHand ? '&rarr; [Hand]' : ''}</td>
-          <td><button class="btn-sec" style="padding:2px 8px; font-size:0.75rem;" onclick="toggleRefBit(${idx})" ${isEvicting ? 'disabled' : ''}>Toggle R</button></td>
+          <td><code>${toBin8(f.reg)}</code></td>
+          <td>${f.reg} ${idx === victimIdx ? ' &larr; [Victim]' : ''}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -742,115 +599,119 @@ PAGE_CONTENT = """<!DOCTYPE html>
       document.getElementById("statAccesses").textContent = statTotal;
       document.getElementById("statHits").textContent = statHits;
       document.getElementById("statFaults").textContent = statFaults;
-      const rate = statTotal > 0 ? ((statHits / statTotal) * 100).toFixed(1) : "0.0";
-      document.getElementById("statHitRate").textContent = `${rate}%`;
+      document.getElementById("statTicks").textContent = statTicks;
     }
 
-    function logEvent(msg, type = "log-row") {
-      const term = document.getElementById("clockLog");
+    function logAging(msg, type = "log-row") {
+      const term = document.getElementById("agingLog");
       const row = document.createElement("div");
       row.className = `log-row ${type}`;
       row.textContent = `> ${msg}`;
       term.prepend(row);
     }
 
-    function toggleRefBit(idx) {
-      clockFrames[idx].r = clockFrames[idx].r ? 0 : 1;
-      logEvent(`Manually toggled Frame ${idx} ('${clockFrames[idx].page}') R-bit &rarr; ${clockFrames[idx].r}`, "log-clear");
-      renderClock();
+    function triggerClockTick() {
+      statTicks++;
+      agingFrames.forEach(f => {
+        f.reg = (f.reg >>> 1) | (f.r << 7);
+        f.r = 0;
+      });
+      logAging(`Clock Tick #${statTicks}: Shifted registers right by 1 and inserted R bits into MSB.`, "log-clear");
+      renderAgingSandbox();
     }
 
-    function clearAllRefBits() {
-      if (isEvicting) return;
-      clockFrames.forEach(f => f.r = 0);
-      logEvent("OS Timer Tick: Cleared R-bit to 0 across all physical frames.", "log-clear");
-      renderClock();
-    }
-
-    function executePageAccess() {
-      if (isEvicting) return;
+    function executeAgingAccess() {
       const input = document.getElementById("refPageInput");
       const p = input.value.trim().toUpperCase();
       if (!p) return;
 
       statTotal++;
-      logEvent(`--------------------------------------------------`);
-      logEvent(`Instruction references virtual Page '${p}'...`, "log-info");
+      logAging(`--------------------------------------------------`);
+      logAging(`Instruction references virtual Page '${p}'...`, "log-info");
 
-      const hitIdx = clockFrames.findIndex(f => f.page === p);
+      const hitIdx = agingFrames.findIndex(f => f.page === p);
       if (hitIdx !== -1) {
         statHits++;
-        clockFrames[hitIdx].r = 1;
-        logEvent(`PAGE HIT: Page '${p}' is resident in Frame ${hitIdx}. Set R=1. (Hand remains at Frame ${clockHand}).`, "log-hit");
-        renderClock();
+        agingFrames[hitIdx].r = 1;
+        logAging(`PAGE HIT: Page '${p}' is resident in Frame ${hitIdx}. Hardware set R=1.`, "log-hit");
+        renderAgingSandbox();
         return;
       }
 
       statFaults++;
-      logEvent(`PAGE FAULT: Page '${p}' is absent from RAM! Stepping Clock hand...`, "log-fault");
-      isEvicting = true;
-      document.getElementById("accessPageBtn").disabled = true;
+      logAging(`PAGE FAULT: Page '${p}' is absent from RAM! Finding victim with lowest counter...`, "log-fault");
 
-      function stepClockSearch() {
-        let cur = clockFrames[clockHand];
-        if (cur.r === 0) {
-          let evicted = cur.page;
-          cur.page = p;
-          cur.r = 1;
-          logEvent(`EVICTION: Frame ${clockHand} had R=0. Evicted '${evicted}' &rarr; Loaded '${p}'.`, "log-fault");
-          clockHand = (clockHand + 1) % clockFrames.length;
-          logEvent(`Hand advanced clockwise to Frame ${clockHand}.`, "log-info");
-          isEvicting = false;
-          document.getElementById("accessPageBtn").disabled = false;
-          renderClock();
-        } else {
-          cur.r = 0;
-          logEvent(`SECOND CHANCE: Frame ${clockHand} ('${cur.page}') had R=1. Cleared to R=0.`, "log-clear");
-          clockHand = (clockHand + 1) % clockFrames.length;
-          renderClock();
-          setTimeout(stepClockSearch, 400);
+      let minVal = 999999;
+      let victimIdx = -1;
+      agingFrames.forEach((f, idx) => {
+        if (f.reg < minVal) {
+          minVal = f.reg;
+          victimIdx = idx;
         }
-      }
+      });
 
-      renderClock();
-      setTimeout(stepClockSearch, 300);
+      let evicted = agingFrames[victimIdx].page;
+      agingFrames[victimIdx].page = p;
+      agingFrames[victimIdx].r = 1;
+      agingFrames[victimIdx].reg = 0b10000000;
+
+      logAging(`EVICTION: Frame ${victimIdx} had lowest counter (${minVal}). Evicted '${evicted}' &rarr; Loaded '${p}'.`, "log-fault");
+      renderAgingSandbox();
     }
 
-    function resetClockState() {
-      if (isEvicting) return;
-      clockFrames = [
-        { id: 0, page: "A", r: 1 },
-        { id: 1, page: "B", r: 0 },
-        { id: 2, page: "C", r: 0 },
-        { id: 3, page: "D", r: 1 },
-        { id: 4, page: "E", r: 1 },
-        { id: 5, page: "F", r: 0 },
-        { id: 6, page: "G", r: 1 }
+    function resetAgingState() {
+      agingFrames = [
+        { id: 0, page: "A", r: 1, reg: 0b10001000 },
+        { id: 1, page: "B", r: 0, reg: 0b01110000 },
+        { id: 2, page: "C", r: 0, reg: 0b10000000 },
+        { id: 3, page: "D", r: 1, reg: 0b00110011 }
       ];
-      clockHand = 0;
       statTotal = 0;
       statHits = 0;
       statFaults = 0;
-      document.getElementById("clockLog").innerHTML = "";
-      logEvent("Clock simulation reset to textbook initial state (Fig. 3-16).");
-      renderClock();
+      statTicks = 0;
+      document.getElementById("agingLog").innerHTML = "";
+      logAging("Aging simulation reset to initial state.");
+      renderAgingSandbox();
     }
 
-    renderClock();
-    logEvent("Clock algorithm initialized with 7 physical frames.");
+    renderAgingSandbox();
+    logAging("Aging algorithm sandbox initialized with 4 physical frames.");
   </script>
 </body>
 </html>
 """
 
+def update_index_link(index_path):
+    if not os.path.exists(index_path):
+        return
+    with open(index_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    updated = content.replace('href="aging-algorithm.html"', 'href="08-aging-algorithm.html"')
+
+    if updated != content:
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write(updated)
+        print(f"Updated index link in {index_path}")
+
 def main():
     base_dir = "."
     w09_dir = os.path.join(base_dir, "week09-memory-management")
-    target_file = os.path.join(w09_dir, "07-clock.html")
+    target_file = os.path.join(w09_dir, "08-aging-algorithm.html")
 
     with open(target_file, "w", encoding="utf-8") as f:
-        f.write(PAGE_CONTENT)
-    print(f"Successfully updated {target_file} with MathJax support and integrated how-to instructions.")
+        f.write(AGING_HTML_CONTENT)
+    print(f"Successfully generated {target_file}")
+
+    for old_name in ["aging-algorithm.html", "08-08-aging-algorithm.html"]:
+        old_path = os.path.join(w09_dir, old_name)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+            print(f"Removed old placeholder: {old_path}")
+
+    update_index_link(os.path.join(w09_dir, "index.html"))
+    update_index_link(os.path.join(base_dir, "index.html"))
 
 if __name__ == "__main__":
     main()
