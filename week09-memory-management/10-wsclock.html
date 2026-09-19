@@ -320,6 +320,84 @@
           4. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) > \tau$ and $M = 1$:</strong> The page is cold but dirty. To avoid blocking the CPU, schedule an <strong>asynchronous disk write</strong> and keep advancing the hand in search of a clean candidate.
         </div>
 
+        <!-- Dedicated WSClock Decision Pipeline Flowchart -->
+        <div class="figure-container" style="margin-top: 14px; margin-bottom: 18px;">
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 2: WSClock Per-Frame Decision Pipeline</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 240" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
+            <defs>
+              <marker id="fc-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155" />
+              </marker>
+              <marker id="fc-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#15803d" />
+              </marker>
+              <marker id="fc-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#dc2626" />
+              </marker>
+              <marker id="fc-amber" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
+              </marker>
+            </defs>
+
+            <!-- Start Node -->
+            <rect x="20" y="70" width="110" height="42" rx="6" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+            <text x="75" y="88" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">Page Fault</text>
+            <text x="75" y="102" font-size="9" fill="#64748b" text-anchor="middle">Hand points to Frame</text>
+            <line x1="130" y1="91" x2="168" y2="91" stroke="#334155" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
+
+            <!-- Decision 1: R == 1? -->
+            <polygon points="215,63 260,91 215,119 170,91" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+            <text x="215" y="95" font-size="11" font-weight="700" fill="#0f172a" text-anchor="middle">R == 1?</text>
+
+            <!-- Branch R == 1 (Yes -> Up) -->
+            <line x1="215" y1="63" x2="215" y2="24" stroke="#d97706" stroke-width="1.5"/>
+            <line x1="215" y1="24" x2="260" y2="24" stroke="#d97706" stroke-width="1.5" marker-end="url(#fc-amber)"/>
+            <text x="226" y="48" font-size="9.5" font-weight="700" fill="#d97706">Yes</text>
+            <rect x="265" y="6" width="135" height="36" rx="4" fill="#fffbeb" stroke="#d97706" stroke-width="1.2"/>
+            <text x="332" y="21" font-size="9.5" font-weight="700" fill="#b45309" text-anchor="middle">Clear R &larr; 0, Time &larr; T_curr</text>
+            <text x="332" y="34" font-size="8.5" fill="#78350f" text-anchor="middle">Advance Hand &rarr; Next Frame</text>
+
+            <!-- Branch R == 0 (No -> Right) -->
+            <line x1="260" y1="91" x2="318" y2="91" stroke="#334155" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
+            <text x="285" y="84" font-size="9.5" font-weight="700" fill="#64748b">No</text>
+
+            <!-- Decision 2: Age <= tau? -->
+            <polygon points="370,63 422,91 370,119 318,91" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+            <text x="370" y="89" font-size="10" font-weight="700" fill="#0f172a" text-anchor="middle">Age &le; &tau;?</text>
+            <text x="370" y="102" font-size="8" fill="#64748b" text-anchor="middle">(In WS?)</text>
+
+            <!-- Branch Age <= tau (Yes -> Down) -->
+            <line x1="370" y1="119" x2="370" y2="165" stroke="#0284c7" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
+            <text x="378" y="142" font-size="9.5" font-weight="700" fill="#0284c7">Yes</text>
+            <rect x="305" y="170" width="130" height="36" rx="4" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.2"/>
+            <text x="370" y="185" font-size="9.5" font-weight="700" fill="#0369a1" text-anchor="middle">Keep in Working Set</text>
+            <text x="370" y="198" font-size="8.5" fill="#0284c7" text-anchor="middle">Advance Hand &rarr; Next Frame</text>
+
+            <!-- Branch Age > tau (No -> Right) -->
+            <line x1="422" y1="91" x2="478" y2="91" stroke="#334155" stroke-width="1.5" marker-end="url(#fc-arrow)"/>
+            <text x="445" y="84" font-size="9.5" font-weight="700" fill="#64748b">No</text>
+
+            <!-- Decision 3: M == 0? -->
+            <polygon points="525,63 570,91 525,119 480,91" fill="#f1f5f9" stroke="#334155" stroke-width="1.5"/>
+            <text x="525" y="89" font-size="10.5" font-weight="700" fill="#0f172a" text-anchor="middle">M == 0?</text>
+            <text x="525" y="102" font-size="8" fill="#64748b" text-anchor="middle">(Clean?)</text>
+
+            <!-- Branch M == 0 (Clean -> Yes -> Right -> Evict!) -->
+            <line x1="570" y1="91" x2="628" y2="91" stroke="#16a34a" stroke-width="2" marker-end="url(#fc-green)"/>
+            <text x="595" y="84" font-size="9.5" font-weight="700" fill="#15803d">Yes</text>
+            <rect x="635" y="70" width="145" height="42" rx="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+            <text x="707" y="88" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">EVICT VICTIM!</text>
+            <text x="707" y="102" font-size="8.5" fill="#166534" text-anchor="middle">Claim frame, exit fault handler</text>
+
+            <!-- Branch M == 1 (Dirty -> No -> Down -> Schedule Write) -->
+            <line x1="525" y1="119" x2="525" y2="165" stroke="#dc2626" stroke-width="1.5" marker-end="url(#fc-red)"/>
+            <text x="535" y="142" font-size="9.5" font-weight="700" fill="#dc2626">No</text>
+            <rect x="460" y="170" width="160" height="44" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.2"/>
+            <text x="540" y="186" font-size="9.5" font-weight="700" fill="#b91c1c" text-anchor="middle">Schedule Async Write</text>
+            <text x="540" y="200" font-size="8.5" fill="#7f1d1d" text-anchor="middle">Keep hand advancing (non-blocking)</text>
+          </svg>
+        </div>
+
         <h2>3. Handling Full Hand Sweeps</h2>
         <p>
           If the clock hand completes a full 360-degree rotation without finding an evicted clean page:
@@ -330,7 +408,7 @@
         </ul>
       </div>
 
-      <!-- Embedded SVG Diagram for WSClock -->
+      <!-- Embedded SVG Diagram for WSClock Ring -->
       <div class="figure-container">
         <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 3-20: The WSClock Ring Architecture (Tanenbaum)</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 340" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
