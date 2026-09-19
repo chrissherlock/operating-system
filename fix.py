@@ -283,13 +283,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       0% { box-shadow: inset 0 0 6px rgba(202, 138, 4, 0.3); }
       100% { box-shadow: inset 0 0 16px rgba(202, 138, 4, 0.7); }
     }
+    /* Vertical stack for lists container */
     .lists-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 16px;
-    }
-    @media(max-width: 768px) {
-      .lists-container { grid-template-columns: 1fr; }
     }
     .free-area-list {
       display: flex;
@@ -898,11 +896,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Restore natural aspect ratios for pioneer portrait images
+COMMIT_MSG = """Stack free lists and used trackers vertically in memory layout
 
 Update week09-memory-management/01-free-used-lists-buddy.html CSS for
-.pioneer-profile img. Remove fixed cropping and object-fit constraints
-so portraits render in their natural proportions without cutting off faces."""
+.lists-container to use a single-column vertical stack instead of a
+two-column horizontal layout."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -925,7 +923,7 @@ def execute_pipeline():
     run_git_step(["git", "add", target_module], "Staging 01-free-used-lists-buddy.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Natural aspect ratios restored, committed, and pushed successfully!")
+    print("--> Layout updated to vertical stacking, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
