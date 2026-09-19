@@ -1281,7 +1281,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       fourPhaseRender();
       document.getElementById("fourPhaseStepTag").textContent = "Phase 1: Candidate Selection";
       document.getElementById("fourPhaseExplanationBox").innerHTML =
-        "<strong>Phase 1 (Selection) Complete:</strong> The cleaner queried the on-disk segment usage table and computed $\\frac{(1-u) \\times \\text{Age}}{1+u}$. Segments 0 and 1 were selected because their low utilization ($u=0.25$) yields maximum contiguous free space. Click <strong>'2. Phase 2: Identification'</strong> to check block liveness!";
+        "<strong>Phase 1 (Selection) Complete:</strong> The cleaner queried the on-disk segment usage table and computed ((1 - u) &times; Age) / (1 + u). Segments 0 and 1 were selected because their low utilization (u = 0.25) yields maximum contiguous free space. Click <strong>'2. Phase 2: Identification'</strong> to check block liveness!";
       document.getElementById("fourPhaseStatusMsg").textContent = "Phase 1: Segments 0 & 1 selected for compaction.";
       document.getElementById("fourPhaseMetricMsg").textContent = "Selected: Segments 0 & 1 | Live Migrated: 0 | Reclaimed Segments: 0";
     }
@@ -1294,7 +1294,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       currentCompactionPhase = 2;
       identifiedLiveBlocks = [];
 
-      // Inspect summary tuples and verify against imap
       [0, 1].forEach(sIdx => {
         fourPhaseSegments[sIdx].blocks.forEach(blk => {
           if (blk.state === "live") {
@@ -1309,7 +1308,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       fourPhaseRender();
       document.getElementById("fourPhaseStepTag").textContent = "Phase 2: Liveness Verification";
       document.getElementById("fourPhaseExplanationBox").innerHTML =
-        `<strong>Phase 2 (Identification) Complete:</strong> The cleaner read the Segment Summary blocks and performed $O(1)$ Inode Map lookups. It confirmed <strong>4 surviving live blocks</strong> (<code>A1, A4, B2, B6</code> in green), while obsolete dead holes (dimmed) will be discarded. Click <strong>'3. Phase 3: Compaction & Append'</strong> to stream them to the log tail!`;
+        `<strong>Phase 2 (Identification) Complete:</strong> The cleaner read the Segment Summary blocks and performed O(1) Inode Map lookups. It confirmed <strong>4 surviving live blocks</strong> (<code>A1, A4, B2, B6</code> in green), while obsolete dead holes (dimmed) will be discarded. Click <strong>'3. Phase 3: Compaction & Append'</strong> to stream them to the log tail!`;
       document.getElementById("fourPhaseStatusMsg").textContent = `Phase 2: 4 live blocks verified against Imap (${identifiedLiveBlocks.join(', ')}).`;
       document.getElementById("fourPhaseMetricMsg").textContent = `Selected: Segments 0 & 1 | Verified Live: ${identifiedLiveBlocks.length} | Reclaimed Segments: 0`;
     }
@@ -1321,7 +1320,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
       currentCompactionPhase = 3;
 
-      // Append surviving live blocks contiguously into Seg 2 (Active Tail)
       let tailFreeSlots = fourPhaseSegments[2].blocks.filter(b => b.state === "free");
       for (let i = 0; i < identifiedLiveBlocks.length && i < tailFreeSlots.length; i++) {
         tailFreeSlots[i].id = identifiedLiveBlocks[i];
@@ -1346,7 +1344,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       }
       currentCompactionPhase = 4;
 
-      // Recycle candidate segments 0 and 1 into free pool
       [0, 1].forEach(sIdx => {
         fourPhaseSegments[sIdx].blocks = [
           { id: "·", state: "free", highlight: false },
@@ -1362,7 +1359,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         fourPhaseSegments[sIdx].label = `Segment ${sIdx} (Clean Free Pool)`;
       });
 
-      // Clear highlights from tail
       fourPhaseSegments[2].blocks.forEach(b => b.highlight = false);
 
       fourPhaseRender();
@@ -1694,7 +1690,7 @@ def execute_deployment():
     base64_str = read_and_encode_audio(audio_file)
     data_uri = f"data:audio/mp3;base64,{base64_str}"
 
-    print(f"--> Writing 4-phase compaction cycle walkthrough to {html_file}...")
+    print(f"--> Updating HTML file at {html_file} with clean math strings...")
     os.makedirs(os.path.dirname(html_file), exist_ok=True)
     final_content = HTML_CONTENT.replace("AUDIO_DATA_URI_PLACEHOLDER", data_uri)
     with open(html_file, "w", encoding="utf-8") as f:
@@ -1702,10 +1698,10 @@ def execute_deployment():
     print("--> HTML structure successfully written!")
 
     commit_msg = (
-        "Add interactive walkthrough for 4-phase LFS segment compaction cycle\n\n"
-        "Update week10-file-management/03-filesystem-implementation.html with "
-        "a guided 4-phase interactive simulator in section 4.3.5.4 stepping through "
-        "selection, identification, compaction/append, and segment reclamation."
+        "Replace leaking LaTeX markup with HTML/Unicode in dynamic script strings\n\n"
+        "Update week10-file-management/03-filesystem-implementation.html so that "
+        "runtime DOM updates display clean mathematical text rather than raw, "
+        "unrendered LaTeX markup."
     )
 
     execute_git_command(["git", "add", html_file], "Staging HTML file")
