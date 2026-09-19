@@ -350,7 +350,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       </ol>
     </div>
 
-    <!-- Section 4.1.5: File Attributes (Expanded) -->
+    <!-- Section 4.1.5: File Attributes (Expanded with Diagram) -->
     <div class="card">
       <h2>4.1.5 File Attributes (Metadata)</h2>
       <p>
@@ -373,6 +373,32 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <li><strong>Timestamps:</strong> Tracks the exact creation time, the time of the most recent access, and the time of the last modification. These are essential for utilities like the UNIX <code>make</code> program, which inspects modification timestamps to determine the minimum compilations needed to bring software up to date.</li>
         <li><strong>Size Metrics:</strong> Tracks the current byte count of the file as well as the maximum permissible size limit.</li>
       </ul>
+
+      <!-- SVG File Control Block / Metadata Layout Diagram -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure: File Control Block (FCB) / I-Node Metadata Layout</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+          <!-- Main Container Box -->
+          <rect x="150" y="15" width="400" height="160" fill="#f8fafc" stroke="#0284c7" stroke-width="2" rx="6"/>
+          <text x="350" y="38" font-size="12" font-weight="700" fill="#0284c7" text-anchor="middle">File Control Block / I-Node Metadata Structure</text>
+
+          <!-- Field 1: Protection & Ownership -->
+          <rect x="170" y="50" width="360" height="24" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1" rx="3"/>
+          <text x="180" y="66" font-size="10" font-weight="600" fill="#0369a1">Protection Modes &amp; Owner UID/GID</text>
+
+          <!-- Field 2: Operational Flags -->
+          <rect x="170" y="79" width="360" height="24" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1" rx="3"/>
+          <text x="180" y="95" font-size="10" font-weight="600" fill="#047857">Flags (Hidden, Read-Only, Archive, Lock)</text>
+
+          <!-- Field 3: Timestamps -->
+          <rect x="170" y="108" width="360" height="24" fill="#fffbeb" stroke="#fde68a" stroke-width="1" rx="3"/>
+          <text x="180" y="124" font-size="10" font-weight="600" fill="#b45309">Timestamps (Creation, Access, Modification)</text>
+
+          <!-- Field 4: Size & Pointers -->
+          <rect x="170" y="137" width="360" height="24" fill="#fef2f2" stroke="#fecaca" stroke-width="1" rx="3"/>
+          <text x="180" y="153" font-size="10" font-weight="600" fill="#b91c1c">File Size &amp; Disk Block Address Pointers</text>
+        </svg>
+      </div>
 
       <table>
         <thead>
@@ -569,11 +595,11 @@ int main(int argc, char *argv[]) {
 </html>
 """
 
-COMMIT_MSG = """Expand subsection 4.1.5 file attributes in week10 module 01
+COMMIT_MSG = """Add metadata layout SVG diagram to subsection 4.1.5 in week10 module 01
 
-Update week10-file-management/01-files-abstraction.html to include
-comprehensive coverage of file metadata attributes including protection
-modes, hidden/archive flags, timestamps, and record indexing keys."""
+Update week10-file-management/01-files-abstraction.html to include an
+architectural SVG diagram mapping out file metadata attributes within
+a File Control Block (FCB) / I-Node structure."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -593,12 +619,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote expanded file attributes module file to {target_file}")
+    print(f"Wrote module file with metadata diagram to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging expanded file attributes 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging metadata diagram update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Expanded File Attributes Module 01 created, committed, and pushed successfully!")
+    print("--> Metadata Diagram Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
