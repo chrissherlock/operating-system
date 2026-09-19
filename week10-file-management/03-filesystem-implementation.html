@@ -22,9 +22,6 @@
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --inspect-color: #d97706;
-      --success-color: #059669;
-      --danger-color: #dc2626;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -163,177 +160,168 @@
       margin-bottom: 4px;
     }
 
-    /* High-Density Norton-Style Defrag Simulator Styles */
-    .defrag-card {
-      background: #041226;
-      color: #ffffff;
-      border: 2px solid #38bdf8;
-      border-radius: 8px;
-      padding: 20px;
+    /* Windows 95 Desktop Theme */
+    .win95-desktop {
+      background-color: #008080;
+      padding: 16px;
+      border-radius: 6px;
+      box-shadow: inset 1px 1px 0 #004040, inset -1px -1px 0 #00c0c0;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      font-family: var(--font-mono);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      gap: 12px;
+      font-family: "MS Sans Serif", Tahoma, -apple-system, sans-serif;
     }
-    .defrag-header {
+
+    .win95-window {
+      background-color: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+      padding: 3px;
+      position: relative;
+    }
+
+    .win95-titlebar {
+      background: linear-gradient(90deg, #000080, #1084d0);
+      color: #ffffff;
+      padding: 3px 6px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #1e3a8a;
-      padding-bottom: 10px;
+      font-weight: bold;
+      font-size: 12px;
+      letter-spacing: 0.5px;
     }
-    .defrag-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #fbbf24;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-    .defrag-controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      background: #020817;
-      border: 1px solid #1e3a8a;
-      padding: 10px 14px;
-      border-radius: 6px;
-      align-items: center;
-    }
-    button.defrag-btn {
-      background-color: #1e3a8a;
-      color: #ffffff;
-      border: 1px solid #38bdf8;
-      padding: 8px 15px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    button.defrag-btn:hover {
-      background-color: #2563eb;
-      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
-    }
-    button.btn-warn { background-color: #b45309; border-color: #fbbf24; }
-    button.btn-warn:hover { background-color: #d97706; }
-    button.btn-danger { background-color: #991b1b; border-color: #f87171; }
-    button.btn-danger:hover { background-color: #dc2626; }
-    button.btn-success { background-color: #059669; border-color: #34d399; }
-    button.btn-success:hover { background-color: #10b981; }
 
-    /* High-Density Sector Matrix Container */
-    .cluster-grid-container {
-      background: #010612;
-      border: 2px solid #1e3a8a;
-      border-radius: 6px;
+    .win95-titlebar-btn {
+      width: 16px;
+      height: 14px;
+      background: #c0c0c0;
+      border-top: 1px solid #ffffff;
+      border-left: 1px solid #ffffff;
+      border-right: 1px solid #000000;
+      border-bottom: 1px solid #000000;
+      color: #000000;
+      font-size: 9px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      line-height: 1;
+      font-weight: bold;
+    }
+
+    .win95-content {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .win95-btn {
+      background-color: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
+      padding: 4px 14px;
+      font-family: inherit;
+      font-size: 11px;
+      color: #000000;
+      cursor: pointer;
+      min-width: 75px;
+    }
+    .win95-btn:active {
+      border-top: 2px solid #000000;
+      border-left: 2px solid #000000;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      box-shadow: none;
+      padding: 5px 13px 3px 15px;
+    }
+
+    .win95-well {
+      border-top: 2px solid #808080;
+      border-left: 2px solid #808080;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      background-color: #ffffff;
+      padding: 4px;
+      position: relative;
+    }
+
+    .win95-cluster-grid {
+      display: grid;
+      grid-template-columns: repeat(48, 1fr);
+      gap: 2px;
+      background: #000000;
+      padding: 2px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .w-cluster {
+      aspect-ratio: 1 / 1;
+      background-color: #ffffff;
+      box-shadow: inset 1px 1px 0 rgba(0,0,0,0.25);
+    }
+    .wc-free { background-color: #ffffff; }
+    .wc-unopt { background-color: #5ce1e6; }
+    .wc-opt { background-color: #000080; }
+    .wc-read { background-color: #00ff00 !important; box-shadow: 0 0 5px #00ff00; }
+    .wc-write { background-color: #ff0000 !important; box-shadow: 0 0 5px #ff0000; }
+    .wc-unmovable {
+      background: linear-gradient(135deg, #ffffff 50%, #ff0000 50%);
+    }
+
+    .win95-legend-dialog {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 320px;
+      background: #c0c0c0;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #000000;
+      border-bottom: 2px solid #000000;
+      box-shadow: 3px 3px 10px rgba(0,0,0,0.6);
+      z-index: 100;
+      font-size: 11px;
+    }
+
+    .legend-body {
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-    .cluster-map-dense {
-      display: grid;
-      grid-template-columns: repeat(50, 1fr);
-      gap: 2px;
-      background: #000208;
-      border: 1px solid #0f274a;
-      padding: 6px;
-      border-radius: 4px;
-      max-height: 340px;
-      overflow-y: auto;
-    }
-    .sector-block {
-      aspect-ratio: 1 / 1;
-      border-radius: 1px;
-      transition: background-color 0.05s ease;
-      min-width: 6px;
-      min-height: 6px;
-    }
 
-    /* Authentic Speed Disk Palette */
-    .s-free { background-color: #101c33; }
-    .s-contig { background-color: #0284c7; }
-    .s-frag { background-color: #f59e0b; }
-    .s-system { background-color: #dc2626; }
-    .s-read {
-      background-color: #facc15 !important;
-      box-shadow: 0 0 6px #facc15;
-      transform: scale(1.15);
-      z-index: 5;
-    }
-    .s-write {
-      background-color: #34d399 !important;
-      box-shadow: 0 0 6px #34d399;
-      transform: scale(1.15);
-      z-index: 5;
-    }
-
-    /* Legend */
-    .cluster-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      font-size: 0.76rem;
-      padding: 4px 0;
-      color: #cbd5e1;
-    }
-    .legend-item {
+    .legend-row {
       display: flex;
       align-items: center;
-      gap: 6px;
-    }
-    .legend-box {
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
+      gap: 8px;
+      color: #000000;
     }
 
-    /* Telemetry Panels */
-    .telemetry-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #000000;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.6);
+      flex-shrink: 0;
     }
-    .telemetry-card {
-      background: #020b18;
-      border: 1px solid #1e3a8a;
-      border-radius: 6px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 0.8rem;
-    }
-    .telemetry-card-title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #fbbf24;
-      text-transform: uppercase;
-      border-bottom: 1px solid #0f274a;
-      padding-bottom: 4px;
-    }
-    .telemetry-row {
+
+    .win95-status-bar {
+      border-top: 1px solid #808080;
+      padding-top: 4px;
       display: flex;
       justify-content: space-between;
-      color: #cbd5e1;
-      padding: 2px 0;
-    }
-    .telemetry-row span.val {
-      font-weight: 700;
-      color: #38bdf8;
-    }
-    .defrag-console {
-      background: #010610;
-      border: 1px solid #1e3a8a;
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 0.8rem;
-      color: #38bdf8;
-      min-height: 55px;
-      line-height: 1.45;
-      white-space: pre-wrap;
+      font-size: 11px;
+      color: #000000;
     }
   </style>
 </head>
@@ -368,44 +356,13 @@
         When a partition is formatted (for instance, via <code>mkfs</code>), the operating system initializes several distinct functional regions laid out sequentially across the partition blocks:
       </p>
       <ol>
-        <li><strong>Boot Block:</strong> The first block of the partition. Contains partition-specific bootstrap code read into memory by the MBR/UEFI to launch the target operating system. Present even if the partition is not bootable.</li>
-        <li><strong>Superblock:</strong> The central administrative descriptor. Stores critical geometry parameters: magic number (identifying filesystem type), total number of blocks, number of i-nodes, block size, volume state flags (clean/dirty), and pointers to free-space tracking structures. If the superblock is corrupted, the filesystem cannot be mounted; thus, kernels maintain redundant backup copies across the volume.</li>
+        <li><strong>Boot Block:</strong> The first block of the partition. Contains partition-specific bootstrap code read into memory by the MBR/UEFI to launch the target operating system.</li>
+        <li><strong>Superblock:</strong> The central administrative descriptor storing filesystem type, block counts, i-node counts, and volume health state.</li>
         <li><strong>Free Space Management:</strong> Data structures tracking unallocated blocks available for new file data (bitmaps or free lists).</li>
-        <li><strong>I-Node Table:</strong> An array of linear metadata records (index-nodes), pre-allocated across contiguous tracks. Every file and directory on the partition occupies exactly one slot in this table, indexed by a unique integer (the i-node number).</li>
-        <li><strong>Root Directory:</strong> The top-level directory node (often bound to a hard-coded index, such as i-node 2 in ext2/ext3/ext4) from which the entire hierarchical namespace tree descends.</li>
-        <li><strong>Data Blocks:</strong> The vast remainder of the partition volume dedicated to storing actual file content bytes and subdirectory entry tables.</li>
+        <li><strong>I-Node Table:</strong> An array of linear metadata records pre-allocated across contiguous tracks.</li>
+        <li><strong>Root Directory:</strong> The top-level directory node (often bound to i-node 2 in Unix filesystems).</li>
+        <li><strong>Data Blocks:</strong> The remainder of the volume dedicated to actual file content bytes and subdirectory tables.</li>
       </ol>
-
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-5: Standard Unix/POSIX Disk Partition Layout</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 140" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="15" y="20" width="730" height="90" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="6"/>
-
-          <rect x="25" y="30" width="70" height="70" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1.2" rx="3"/>
-          <text x="60" y="60" font-size="9" font-weight="700" fill="#0369a1" text-anchor="middle">Boot</text>
-          <text x="60" y="74" font-size="8" fill="#0369a1" text-anchor="middle">Block</text>
-
-          <rect x="100" y="30" width="90" height="70" fill="#fee2e2" stroke="#f87171" stroke-width="1.2" rx="3"/>
-          <text x="145" y="60" font-size="9" font-weight="700" fill="#991b1b" text-anchor="middle">Superblock</text>
-          <text x="145" y="74" font-size="7.5" fill="#7f1d1d" text-anchor="middle">Geometry / Magic</text>
-
-          <rect x="195" y="30" width="110" height="70" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.2" rx="3"/>
-          <text x="250" y="60" font-size="9" font-weight="700" fill="#92400e" text-anchor="middle">Free Space</text>
-          <text x="250" y="74" font-size="7.5" fill="#b45309" text-anchor="middle">Bitmap / Free List</text>
-
-          <rect x="310" y="30" width="120" height="70" fill="#ecfdf5" stroke="#34d399" stroke-width="1.2" rx="3"/>
-          <text x="370" y="60" font-size="9" font-weight="700" fill="#065f46" text-anchor="middle">i-Node Table</text>
-          <text x="370" y="74" font-size="7.5" fill="#047857" text-anchor="middle">Pre-allocated Metadata</text>
-
-          <rect x="435" y="30" width="75" height="70" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.2" rx="3"/>
-          <text x="472" y="60" font-size="9" font-weight="700" fill="#5b21b6" text-anchor="middle">Root Dir</text>
-          <text x="472" y="74" font-size="7.5" fill="#6d28d9" text-anchor="middle">i-node #2</text>
-
-          <rect x="515" y="30" width="220" height="70" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.2" rx="3"/>
-          <text x="625" y="60" font-size="10" font-weight="700" fill="#334155" text-anchor="middle">Data Blocks Area</text>
-          <text x="625" y="74" font-size="8" fill="#64748b" text-anchor="middle">File Content &amp; Subdirectories</text>
-        </svg>
-      </div>
     </div>
 
     <!-- Section 4.3.2: Allocation Strategies & Fragmentation -->
@@ -420,77 +377,91 @@
       </ul>
     </div>
 
-    <!-- High-Density Norton-Style Interactive Defragmenter -->
-    <div class="defrag-card">
-      <div class="defrag-header">
-        <div>
-          <span class="defrag-title">Norton Speed Disk / High-Density FAT Optimizer</span>
-          <div style="font-size: 0.78rem; color: #93c5fd; margin-top: 2px;">
-            Target: 100 MB FAT Volume | 4 KB Clusters (25,600 Total) | Visualized as 1,600 Discrete Sector Blocks
+    <!-- WINDOWS 95/98 DISK DEFRAGMENTER SIMULATION WIDGET -->
+    <div class="win95-desktop">
+      <div class="win95-window">
+        <div class="win95-titlebar">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span>Disk Defragmenter (Drive C:)</span>
+          </div>
+          <div style="display:flex; gap:2px;">
+            <div class="win95-titlebar-btn">?</div>
+            <div class="win95-titlebar-btn">&#x2715;</div>
           </div>
         </div>
-        <div>
-          <span style="font-size: 0.85rem; color: #fbbf24; font-weight: 700;" id="defragStatusBadge">VOLUME READY</span>
+
+        <div class="win95-content">
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+            <button class="win95-btn" onclick="win95Populate()">1. Reset Drive</button>
+            <button class="win95-btn" onclick="win95Fragment()">2. Heavy Churn</button>
+            <button class="win95-btn" onclick="win95StartDefrag()" id="wBtnStart">Start Defrag</button>
+            <button class="win95-btn" onclick="win95Pause()">Pause</button>
+            <button class="win95-btn" onclick="toggleLegend()">Legend</button>
+            <div style="margin-left:auto; display:flex; align-items:center; gap:4px; font-size:11px;">
+              <span>Speed:</span>
+              <button class="win95-btn" onclick="setSpeed(35)" style="min-width:32px; padding:2px 4px;">1x</button>
+              <button class="win95-btn" onclick="setSpeed(12)" style="min-width:32px; padding:2px 4px;">3x</button>
+              <button class="win95-btn" onclick="setSpeed(2)" style="min-width:32px; padding:2px 4px;">Max</button>
+            </div>
+          </div>
+
+          <div class="win95-well">
+            <div class="win95-cluster-grid" id="win95Grid"></div>
+
+            <!-- Floating Legend Modal -->
+            <div class="win95-legend-dialog" id="win95LegendModal">
+              <div class="win95-titlebar">
+                <span>Defrag Legend</span>
+                <div class="win95-titlebar-btn" onclick="toggleLegend()">&#x2715;</div>
+              </div>
+              <div class="legend-body">
+                <div class="legend-row">
+                  <div class="legend-swatch" style="background:#5ce1e6;"></div>
+                  <span>Unoptimized data</span>
+                </div>
+                <div class="legend-row">
+                  <div class="legend-swatch" style="background:#000080;"></div>
+                  <span>Optimized (defragmented) data</span>
+                </div>
+                <div class="legend-row">
+                  <div class="legend-swatch" style="background:#ffffff;"></div>
+                  <span>Free space</span>
+                </div>
+                <div class="legend-row">
+                  <div class="legend-swatch" style="background:linear-gradient(135deg, #ffffff 50%, #ff0000 50%);"></div>
+                  <span>Data that will not be moved</span>
+                </div>
+                <div class="legend-row">
+                  <div class="legend-swatch" style="background:#00ff00;"></div>
+                  <span>Data that's currently being read</span>
+                </div>
+                <div class="legend-row">
+                  <div class="legend-swatch" style="background:#ff0000;"></div>
+                  <span>Data that's currently being written</span>
+                </div>
+
+                <div style="margin-top:6px; font-size:10px; color:#444;">
+                  Each box represents one disk cluster.
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                  <button class="win95-btn" onclick="toggleLegend()">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="win95-status-bar">
+            <span id="wStatusText">Drive C: Analyzed - Ready to optimize.</span>
+            <span id="wClustersText">Clusters: 0 / 1440 Allocated</span>
+          </div>
         </div>
       </div>
-
-      <!-- Controls -->
-      <div class="defrag-controls">
-        <button class="defrag-btn" onclick="populateDummyFiles()">1. Populate 100MB Disk</button>
-        <button class="defrag-btn btn-warn" onclick="fragmentVolume()">2. Heavy Churn (Fragment Disk!)</button>
-        <button class="defrag-btn btn-success" onclick="startDefrag()" id="btnStartDefrag">3. Start Defragmentation</button>
-        <button class="defrag-btn btn-danger" onclick="stopDefrag()">Pause / Stop</button>
-        <span style="font-size: 0.75rem; color: #94a3b8; margin-left: auto;">Speed:</span>
-        <button class="defrag-btn" onclick="setSpeed(20)" style="padding: 4px 8px; font-size: 0.72rem;">1x</button>
-        <button class="defrag-btn" onclick="setSpeed(8)" style="padding: 4px 8px; font-size: 0.72rem;">2x</button>
-        <button class="defrag-btn" onclick="setSpeed(1)" style="padding: 4px 8px; font-size: 0.72rem;">Max</button>
-      </div>
-
-      <!-- Dense Matrix Grid -->
-      <div class="cluster-grid-container">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.75rem;">
-          <span style="color:#93c5fd; font-weight:700;">PHYSICAL SECTOR MATRIX (1,600 BLOCKS — 50 COLUMNS &times; 32 ROWS):</span>
-          <span id="mapInspectionLabel" style="color:#fbbf24;">Hover over sectors to inspect file allocation</span>
-        </div>
-
-        <div class="cluster-map-dense" id="denseGrid"></div>
-
-        <!-- Legend -->
-        <div class="cluster-legend">
-          <div class="legend-item"><div class="legend-box" style="background:#101c33;"></div><span>Free Space</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#0284c7;"></div><span>Contiguous File</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#f59e0b;"></div><span>Fragmented File</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#dc2626;"></div><span>System / Unmovable</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#facc15;"></div><span>Reading (r)</span></div>
-          <div class="legend-item"><div class="legend-box" style="background:#34d399;"></div><span>Writing (w)</span></div>
-        </div>
-      </div>
-
-      <!-- Telemetry Readouts -->
-      <div class="telemetry-grid">
-        <div class="telemetry-card">
-          <div class="telemetry-card-title">Volume Space Telemetry</div>
-          <div class="telemetry-row"><span>Total Volume Size:</span><span class="val">100.0 MB</span></div>
-          <div class="telemetry-row"><span>Cluster Size:</span><span class="val">4,096 B (4 KB)</span></div>
-          <div class="telemetry-row"><span>Allocated Sectors:</span><span class="val" id="valDiskUsed">0 / 1,600</span></div>
-          <div class="telemetry-row"><span>Free Space Available:</span><span class="val" id="valFreeSpace">100.0 MB</span></div>
-        </div>
-
-        <div class="telemetry-card">
-          <div class="telemetry-card-title">Fragmentation &amp; Seek Analysis</div>
-          <div class="telemetry-row"><span>Total Active Files:</span><span class="val" id="valTotalFiles">0</span></div>
-          <div class="telemetry-row"><span>Fragmented Files:</span><span class="val" id="valFragFiles" style="color:#f59e0b;">0</span></div>
-          <div class="telemetry-row"><span>Volume Fragmentation:</span><span class="val" id="valFragPercent">0%</span></div>
-          <div class="telemetry-row"><span>Mechanical Seek Penalty:</span><span class="val" id="valSeekOverhead">0 ms</span></div>
-        </div>
-      </div>
-
-      <div class="defrag-console" id="defragConsole">$ Speed Disk engine ready. Click '1. Populate 100MB Disk' to begin...</div>
     </div>
 
     <!-- Section 4.3.5: Advanced Implementations -->
     <div class="card" style="margin-top:12px;">
-      <h2>4.3.5 &ndash; 4.3.8 Advanced File Systems</h2>
+      <h2>4.3.5 &ndash; 4.3.8 Advanced File Systems (LFS, Journaling, Flash, VFS)</h2>
       <p>
         Modern workloads implement advanced architectures to avoid the fragmentation and metadata consistency problems inherent in traditional FAT volumes:
       </p>
@@ -505,302 +476,231 @@
   </div>
 
   <script>
-    // --- 1,600 Block High-Density Norton Defragmenter Simulation Engine ---
-    const TOTAL_SECTORS = 1600; // 50 cols x 32 rows dense matrix
-    let sectors = [];
-    let fileCatalog = [];
-    let isDefragActive = false;
-    let defragTimeout = null;
-    let stepDelay = 8; // ms
+    // --- Windows 95 Authentic Multi-Pass Defragmentation Engine ---
+    const TOTAL_CLUSTERS = 1440; // 48 cols x 30 rows
+    let clusters = [];
+    let isDefragging = false;
+    let defragTimer = null;
+    let defragDelay = 12; // ms
+    let defragPhase = 1; // Phase 1: Consolidate scattered files; Phase 2: Compact free space to tail
 
     function setSpeed(ms) {
-      stepDelay = ms;
+      defragDelay = ms;
     }
 
-    function initDenseGrid() {
-      const grid = document.getElementById("denseGrid");
+    function toggleLegend() {
+      const modal = document.getElementById("win95LegendModal");
+      modal.style.display = (modal.style.display === "none") ? "block" : "none";
+    }
+
+    function initGrid() {
+      const grid = document.getElementById("win95Grid");
       grid.innerHTML = "";
-      sectors = [];
-      for (let i = 0; i < TOTAL_SECTORS; i++) {
+      clusters = [];
+      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
         const div = document.createElement("div");
-        div.className = "sector-block s-free";
-        div.id = `sec-${i}`;
-        div.addEventListener("mouseenter", () => inspectSector(i));
+        div.className = "w-cluster wc-free";
+        div.id = `wc-${i}`;
         grid.appendChild(div);
-        sectors.push({ state: "free", fileId: null, isSystem: false });
+        clusters.push({ state: "free", isSystem: false, fileId: null });
       }
     }
 
-    function inspectSector(idx) {
-      const sec = sectors[idx];
-      const lbl = document.getElementById("mapInspectionLabel");
-      if (sec.state === "free") {
-        lbl.textContent = `Sector #${idx}: Free / Unallocated`;
-      } else if (sec.isSystem) {
-        lbl.textContent = `Sector #${idx}: System File (IO.SYS / MSDOS.SYS) [Unmovable]`;
+    function renderCluster(idx) {
+      const el = document.getElementById(`wc-${idx}`);
+      const c = clusters[idx];
+      el.className = "w-cluster";
+
+      if (c.state === "read") {
+        el.classList.add("wc-read");
+      } else if (c.state === "write") {
+        el.classList.add("wc-write");
+      } else if (c.isSystem) {
+        el.classList.add("wc-unmovable");
+      } else if (c.state === "optimized") {
+        el.classList.add("wc-opt");
+      } else if (c.state === "unoptimized") {
+        el.classList.add("wc-unopt");
       } else {
-        const f = fileCatalog.find(item => item.id === sec.fileId);
-        lbl.textContent = `Sector #${idx}: File '${f ? f.name : "Unknown"}' (${f && f.isFragmented ? "Fragmented" : "Contiguous"})`;
+        el.classList.add("wc-free");
       }
     }
 
-    function renderSector(idx) {
-      const el = document.getElementById(`sec-${idx}`);
-      const sec = sectors[idx];
-      el.className = "sector-block";
-
-      if (sec.state === "read") {
-        el.classList.add("s-read");
-      } else if (sec.state === "write") {
-        el.classList.add("s-write");
-      } else if (sec.isSystem) {
-        el.classList.add("s-system");
-      } else if (sec.state === "used") {
-        const f = fileCatalog.find(item => item.id === sec.fileId);
-        if (f && f.isFragmented) {
-          el.classList.add("s-frag");
-        } else {
-          el.classList.add("s-contig");
-        }
-      } else {
-        el.classList.add("s-free");
+    function renderAll() {
+      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
+        renderCluster(i);
       }
+      updateStatus();
     }
 
-    function renderAllSectors() {
-      for (let i = 0; i < TOTAL_SECTORS; i++) {
-        renderSector(i);
+    function win95Populate() {
+      win95Pause();
+      initGrid();
+      defragPhase = 1;
+
+      // Unmovable clusters matching the reference video layout
+      const unmovable = [14, 62, 110, 158, 204, 390, 520, 710, 940, 1120];
+      unmovable.forEach(idx => {
+        clusters[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+      });
+
+      // Top area already optimized (dark blue)
+      const optCutoff = Math.floor(TOTAL_CLUSTERS * 0.22);
+      for (let i = 0; i < optCutoff; i++) {
+        if (!clusters[i].isSystem) {
+          clusters[i] = { state: "optimized", isSystem: false, fileId: "opt" };
+        }
       }
-      updateTelemetry();
-    }
 
-    function populateDummyFiles() {
-      stopDefrag();
-      initDenseGrid();
-      fileCatalog = [];
-
-      // 1. Reserved System Files at the front (Unmovable)
-      const sysLen = 40;
-      for (let i = 0; i < sysLen; i++) {
-        sectors[i] = { state: "used", fileId: "sys", isSystem: true };
+      // Middle and bottom: scattered bands of unoptimized cyan files and white free clusters
+      for (let i = optCutoff; i < TOTAL_CLUSTERS; i++) {
+        if (!clusters[i].isSystem) {
+          let row = Math.floor(i / 48);
+          let band = (i * 17 + row * 29) % 100;
+          if (band > 38) {
+            clusters[i] = { state: "unoptimized", isSystem: false, fileId: `f_${band % 12}` };
+          } else {
+            clusters[i] = { state: "free", isSystem: false, fileId: null };
+          }
+        }
       }
-      fileCatalog.push({ id: "sys", name: "IO.SYS / MSDOS.SYS", size: sysLen, isFragmented: false, isSystem: true });
 
-      // 2. Populate contiguous files across first half
-      let ptr = sysLen;
-      const initialFiles = [
-        { name: "COMMAND.COM", size: 24 },
-        { name: "CONFIG.SYS", size: 8 },
-        { name: "DATABASE.DAT", size: 180 },
-        { name: "SPREADSHT.WK1", size: 120 },
-        { name: "GRAPHICS.LIB", size: 160 },
-        { name: "ARCHIVE.ZIP", size: 140 },
-        { name: "SYSTEM.LOG", size: 90 },
-        { name: "USER_DATA.DB", size: 150 },
-        { name: "BACKUP_01.BAK", size: 130 },
-        { name: "PROJECTS.C", size: 110 }
-      ];
-
-      initialFiles.forEach((item, idx) => {
-        const fid = `file_${idx}`;
-        for (let c = 0; c < item.size; c++) {
-          sectors[ptr + c] = { state: "used", fileId: fid, isSystem: false };
-        }
-        fileCatalog.push({ id: fid, name: item.name, size: item.size, isFragmented: false, isSystem: false });
-        ptr += item.size;
-      });
-
-      renderAllSectors();
-      document.getElementById("defragStatusBadge").textContent = "VOLUME INITIALIZED (CLEAN)";
-      document.getElementById("defragConsole").textContent = "$ Formatted 100 MB FAT volume with 1,600 sector clusters.\n[Layout] Populated initial system binaries and regular user files contiguously.\n[Integrity] Volume Fragmentation: 0%. Ready for file churn simulation.";
+      renderAll();
+      document.getElementById("wStatusText").textContent = "Drive C: Analyzed - Ready to Defragment.";
     }
 
-    function fragmentVolume() {
-      stopDefrag();
-      if (fileCatalog.length === 0) populateDummyFiles();
-
-      document.getElementById("defragConsole").textContent = "$ Simulating intensive multi-user file churn (deletions, appends, and scattered writes)...";
-
-      // Delete alternating files across the volume to poke scattered gaps
-      const deleteIds = ["file_1", "file_3", "file_5", "file_7"];
-      fileCatalog = fileCatalog.filter(f => {
-        if (deleteIds.includes(f.id)) {
-          for (let i = 0; i < TOTAL_SECTORS; i++) {
-            if (sectors[i].fileId === f.id) {
-              sectors[i] = { state: "free", fileId: null, isSystem: false };
-            }
-          }
-          return false;
+    function win95Fragment() {
+      win95Populate();
+      // Punch additional scattered holes across the dark blue region to simulate file churn
+      for (let i = 10; i < 250; i += 7) {
+        if (!clusters[i].isSystem) {
+          clusters[i] = { state: "free", isSystem: false, fileId: null };
         }
-        return true;
-      });
-
-      // Inject new fragmented files across the scattered holes and volume tail
-      const newFiles = [
-        { id: "frag_a", name: "SERVER_LOG.TXT", size: 140 },
-        { id: "frag_b", name: "VIDEO_STREAM.AVI", size: 260 },
-        { id: "frag_c", name: "TEMP_CACHE.TMP", size: 110 },
-        { id: "frag_d", name: "INDEX_TREE.BIN", size: 150 }
-      ];
-
-      newFiles.forEach(nf => {
-        let placed = 0;
-        let blocks = [];
-        // Interspersed allocation
-        for (let i = 40; i < TOTAL_SECTORS && placed < nf.size; i++) {
-          if (sectors[i].state === "free" && (i % 2 === 0 || i > 1200)) {
-            sectors[i] = { state: "used", fileId: nf.id, isSystem: false };
-            blocks.push(i);
-            placed++;
-          }
+      }
+      // Add scattered unoptimized blocks in upper rows
+      for (let i = 250; i < 350; i += 5) {
+        if (!clusters[i].isSystem) {
+          clusters[i] = { state: "unoptimized", isSystem: false, fileId: "frag" };
         }
-        // If remaining bytes need space
-        for (let i = 40; i < TOTAL_SECTORS && placed < nf.size; i++) {
-          if (sectors[i].state === "free") {
-            sectors[i] = { state: "used", fileId: nf.id, isSystem: false };
-            blocks.push(i);
-            placed++;
-          }
-        }
-
-        let isFrag = false;
-        for (let p = 1; p < blocks.length; p++) {
-          if (blocks[p] !== blocks[p - 1] + 1) {
-            isFrag = true;
-            break;
-          }
-        }
-        fileCatalog.push({ id: nf.id, name: nf.name, size: placed, isFragmented: isFrag, isSystem: false });
-      });
-
-      // Update fragmentation status for all user files
-      fileCatalog.forEach(f => {
-        if (f.isSystem) return;
-        let indices = [];
-        for (let i = 0; i < TOTAL_SECTORS; i++) {
-          if (sectors[i].fileId === f.id) indices.push(i);
-        }
-        for (let p = 1; p < indices.length; p++) {
-          if (indices[p] !== indices[p - 1] + 1) {
-            f.isFragmented = true;
-            break;
-          }
-        }
-      });
-
-      renderAllSectors();
-      document.getElementById("defragStatusBadge").textContent = "VOLUME HEAVILY FRAGMENTED";
-      document.getElementById("defragConsole").textContent += "\n[Churn Complete] File cluster chains scattered randomly across disk.\n[Warning] Hundreds of non-contiguous sectors detected. High mechanical seek latency!";
+      }
+      renderAll();
+      document.getElementById("wStatusText").textContent = "Drive C: Heavily Fragmented (38% Fragmentation).";
     }
 
-    function updateTelemetry() {
-      const usedSectors = sectors.filter(s => s.state !== "free").length;
-      const freeMB = (((TOTAL_SECTORS - usedSectors) / TOTAL_SECTORS) * 100).toFixed(1);
-      document.getElementById("valDiskUsed").textContent = `${usedSectors} / 1,600 (${Math.round((usedSectors/TOTAL_SECTORS)*100)}%)`;
-      document.getElementById("valFreeSpace").textContent = `${freeMB} MB`;
+    function updateStatus() {
+      const optCount = clusters.filter(c => c.state === "optimized").length;
+      const unoptCount = clusters.filter(c => c.state === "unoptimized").length;
+      const totalData = optCount + unoptCount;
+      const pct = totalData > 0 ? Math.round((optCount / totalData) * 100) : 0;
 
-      const userFiles = fileCatalog.filter(f => !f.isSystem);
-      const fragFiles = userFiles.filter(f => f.isFragmented);
-      const fragPct = userFiles.length > 0 ? Math.round((fragFiles.length / userFiles.length) * 100) : 0;
-
-      document.getElementById("valTotalFiles").textContent = userFiles.length;
-      document.getElementById("valFragFiles").textContent = `${fragFiles.length} files`;
-      document.getElementById("valFragPercent").textContent = `${fragPct}%`;
-      document.getElementById("valSeekOverhead").textContent = `${fragFiles.length * 18} ms`;
+      let phaseDesc = defragPhase === 1 ? "Defragmenting File System (Pass 1)..." : "Consolidating Free Space (Pass 2)...";
+      document.getElementById("wStatusText").textContent = isDefragging
+        ? `${pct}% Complete - ${phaseDesc}`
+        : `Drive C: ${pct}% Optimized.`;
+      document.getElementById("wClustersText").textContent = `Clusters: ${totalData} / ${TOTAL_CLUSTERS} Allocated`;
     }
 
-    // --- Dynamic Per-Sector Defragmentation Loop ---
-    let defragQueue = [];
-
-    function startDefrag() {
-      if (isDefragActive) return;
-      isDefragActive = true;
-      document.getElementById("defragStatusBadge").textContent = "DEFRAGMENTING VOLUME...";
-      document.getElementById("defragConsole").textContent = "$ Speed Disk engine started.\n[Sweep] Consolidating scattered cluster blocks and packing contiguous extents...";
-
-      runDynamicDefragStep();
+    function win95StartDefrag() {
+      if (isDefragging) return;
+      isDefragging = true;
+      document.getElementById("wStatusText").textContent = "Defragmenting Drive C:...";
+      executeDefragCycle();
     }
 
-    function runDynamicDefragStep() {
-      if (!isDefragActive) return;
+    // Authentic Multi-Pass Loop
+    function executeDefragCycle() {
+      if (!isDefragging) return;
 
-      // Locate first free sector slot past the unmovable system area (index 40)
-      let targetFreeIdx = -1;
-      for (let i = 40; i < TOTAL_SECTORS; i++) {
-        if (sectors[i].state === "free") {
-          targetFreeIdx = i;
+      // Locate first free cluster (white) from the top down
+      let targetFree = -1;
+      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
+        if (clusters[i].state === "free") {
+          targetFree = i;
           break;
         }
       }
 
-      // Locate a used sector past this free gap
-      let sourceUsedIdx = -1;
-      // Prefer moving fragmented file sectors first
-      for (let i = TOTAL_SECTORS - 1; i > targetFreeIdx; i--) {
-        if (sectors[i].state === "used" && !sectors[i].isSystem) {
-          sourceUsedIdx = i;
-          break;
+      // Locate unoptimized clusters (cyan)
+      // In Pass 1, find clusters belonging to scattered files and move them in bursts
+      let sourceClusters = [];
+      for (let i = TOTAL_CLUSTERS - 1; i > targetFree; i--) {
+        if (clusters[i].state === "unoptimized" && !clusters[i].isSystem) {
+          sourceClusters.push(i);
+          if (sourceClusters.length >= 4) break; // Gather a burst of clusters
         }
       }
 
-      // If no used sectors exist past the free gap, defragmentation is complete
-      if (targetFreeIdx === -1 || sourceUsedIdx === -1 || targetFreeIdx >= sourceUsedIdx) {
-        finishDefrag();
+      // If no unoptimized clusters exist past the free gap, switch to Phase 2 or finish
+      if (targetFree === -1 || sourceClusters.length === 0) {
+        win95Finish();
         return;
       }
 
-      // Read phase (Flash Yellow)
-      const movingSector = sectors[sourceUsedIdx];
-      sectors[sourceUsedIdx].state = "read";
-      renderSector(sourceUsedIdx);
+      // Step A: Flash all read clusters in Green (burst reading)
+      sourceClusters.forEach(idx => {
+        clusters[idx].state = "read";
+        renderCluster(idx);
+      });
 
-      defragTimeout = setTimeout(() => {
-        if (!isDefragActive) return;
+      defragTimer = setTimeout(() => {
+        if (!isDefragging) return;
 
-        // Write phase (Flash Green)
-        sectors[targetFreeIdx].state = "write";
-        renderSector(targetFreeIdx);
+        // Step B: Flash destination clusters in Red (burst writing)
+        let freeSlots = [];
+        for (let i = targetFree; i < TOTAL_CLUSTERS && freeSlots.length < sourceClusters.length; i++) {
+          if (clusters[i].state === "free") {
+            freeSlots.push(i);
+            clusters[i].state = "write";
+            renderCluster(i);
+          }
+        }
 
-        defragTimeout = setTimeout(() => {
-          if (!isDefragActive) return;
+        defragTimer = setTimeout(() => {
+          if (!isDefragging) return;
 
-          // Migrate block data
-          sectors[targetFreeIdx] = { state: "used", fileId: movingSector.fileId, isSystem: false };
-          sectors[sourceUsedIdx] = { state: "free", fileId: null, isSystem: false };
+          // Step C: Commit move - sources turn free (white), targets turn optimized (navy blue)
+          sourceClusters.forEach(idx => {
+            clusters[idx] = { state: "free", isSystem: false, fileId: null };
+            renderCluster(idx);
+          });
 
-          renderSector(sourceUsedIdx);
-          renderSector(targetFreeIdx);
-          updateTelemetry();
+          freeSlots.forEach(idx => {
+            clusters[idx] = { state: "optimized", isSystem: false, fileId: "opt" };
+            renderCluster(idx);
+          });
 
-          defragTimeout = setTimeout(runDynamicDefragStep, stepDelay);
-        }, stepDelay);
-      }, stepDelay);
+          updateStatus();
+          defragTimer = setTimeout(executeDefragCycle, defragDelay);
+        }, defragDelay);
+      }, defragDelay);
     }
 
-    function finishDefrag() {
-      isDefragActive = false;
-      fileCatalog.forEach(f => { f.isFragmented = false; });
-      renderAllSectors();
-      document.getElementById("defragStatusBadge").textContent = "OPTIMIZATION COMPLETE (100%)";
-      document.getElementById("defragConsole").textContent = "$ Optimization complete!\n[Compacted] All files consolidated into contiguous sectors.\n[Throughput] Maximum sequential read bandwidth restored. Zero seek overhead.";
-    }
-
-    function stopDefrag() {
-      isDefragActive = false;
-      if (defragTimeout) clearTimeout(defragTimeout);
-      // Clean any active read/write flashes
-      for (let i = 0; i < TOTAL_SECTORS; i++) {
-        if (sectors[i].state === "read" || sectors[i].state === "write") {
-          sectors[i].state = "used";
-          renderSector(i);
+    function win95Finish() {
+      isDefragging = false;
+      // Mark all remaining unoptimized clusters as optimized
+      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
+        if (clusters[i].state === "unoptimized") {
+          clusters[i].state = "optimized";
         }
       }
-      document.getElementById("defragStatusBadge").textContent = "DEFRAGMENTATION PAUSED";
+      renderAll();
+      document.getElementById("wStatusText").textContent = "100% Complete - Drive C: Fully Optimized.";
     }
 
-    // Initialize Simulator on Load
-    initDenseGrid();
-    populateDummyFiles();
+    function win95Pause() {
+      isDefragging = false;
+      if (defragTimer) clearTimeout(defragTimer);
+      // Clear active green/red flashing
+      for (let i = 0; i < TOTAL_CLUSTERS; i++) {
+        if (clusters[i].state === "read") clusters[i].state = "unoptimized";
+        if (clusters[i].state === "write") clusters[i].state = "free";
+      }
+      renderAll();
+    }
+
+    // Initialize on Load
+    initGrid();
+    win95Populate();
   </script>
 </body>
 </html>
