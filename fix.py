@@ -120,28 +120,28 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     <!-- Module 1 -->
     <div class="card">
       <h2>01. Files &amp; Naming Abstractions</h2>
-      <p>Explore fundamental file abstractions, naming rules, structure types, sequential/random access models, attributes, and common POSIX system calls[cite: 3].</p>
+      <p>Explore fundamental file abstractions, naming rules, structure types, sequential/random access models, attributes, and common POSIX system calls.</p>
       <a href="01-files-abstraction.html">Launch Module &rarr;</a>
     </div>
 
     <!-- Module 2 -->
     <div class="card">
       <h2>02. Directories &amp; Hierarchical Layouts</h2>
-      <p>Examine single-level vs. hierarchical directory structures, absolute and relative path resolution, and directory management system calls[cite: 3].</p>
+      <p>Examine single-level vs. hierarchical directory structures, absolute and relative path resolution, and directory management system calls.</p>
       <a href="02-directories.html">Launch Module &rarr;</a>
     </div>
 
     <!-- Module 3 -->
     <div class="card">
       <h2>03. File-System Implementation</h2>
-      <p>Analyze disk layouts, superblock structures, allocation strategies (contiguous, FAT, i-nodes), shared links, journaling, and virtual file systems (VFS)[cite: 3].</p>
+      <p>Analyze disk layouts, superblock structures, allocation strategies (contiguous, FAT, i-nodes), shared links, journaling, and virtual file systems (VFS).</p>
       <a href="03-filesystem-implementation.html">Launch Module &rarr;</a>
     </div>
 
     <!-- Module 4 -->
     <div class="card">
       <h2>04. Management &amp; Optimization</h2>
-      <p>Study disk-space management, free-space bitmaps, backup policies, consistency checking (`fsck`), caching performance, and disk defragmentation[cite: 3].</p>
+      <p>Study disk-space management, free-space bitmaps, backup policies, consistency checking (fsck), caching performance, and disk defragmentation.</p>
       <a href="04-management-optimization.html">Launch Module &rarr;</a>
     </div>
 
@@ -150,11 +150,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Align week10 file management index with week09 modular course layout
+COMMIT_MSG = """Remove citation annotations from week10 modular index page
 
-Update generate_week10_index.py to structure week10-file-management/
-index.html using the card-based submodule layout established in Week 09,
-categorizing Chapter 4 into discrete interactive learning modules."""
+Update generate_week10_modular_index.py to strip out all inline
+[cite: 3] citation tags from week10-file-management/index.html for a
+cleaner user interface."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -174,12 +174,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote generated modular index page to {target_file}")
+    print(f"Wrote clean modular index page to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging week10 modular index file")
+    run_git_step(["git", "add", target_file], "Staging clean week10 index file")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Week 10 modular index page created, committed, and pushed successfully!")
+    print("--> Week 10 clean index page created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
