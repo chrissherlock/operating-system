@@ -116,7 +116,6 @@
       margin-bottom: 12px;
     }
 
-    /* Floating Bio Sidebar on Right with text wrapping around left */
     .bio-sidebar {
       float: right;
       width: 300px;
@@ -339,16 +338,17 @@
           In previous modules, demand paging allowed processes to run even if only a few of their pages were resident in physical RAM. However, if a process is allocated too few frames relative to its active needs, it will suffer continuous page faults. The CPU spends more time swapping pages between disk and RAM than executing actual instructions—a catastrophic state known as <strong>thrashing</strong>.
         </p>
 
-        <h2>2. The Working Set Model Definition ($w(k, t)$)</h2>
+        <h2>2. The Working Set Model &amp; The Ideal Memory Footprint</h2>
         <p>
-          To prevent thrashing, <a href="https://en.wikipedia.org/wiki/Peter_J._Denning" target="_blank" style="color: var(--accent); text-decoration: underline;">Peter Denning</a> introduced the <strong>Working Set Model</strong>. The working set is the set of pages referenced by a process during the last $k$ virtual memory references (or time window $\tau$).
+          To prevent thrashing, <a href="https://en.wikipedia.org/wiki/Peter_J._Denning" target="_blank" style="color: var(--accent); text-decoration: underline;">Peter Denning</a> introduced the <strong>Working Set Model</strong>. The working set is the set of unique pages actively needed by a process right now due to its locality of reference (referenced during the last $k$ virtual memory references or time window $\tau$).
         </p>
         <div class="theory-callout">
-          <strong>Mathematical Formulation:</strong><br>
-          Let $w(k, t)$ be the size of the working set (number of unique pages referenced in the window of the last $k$ memory references ending at virtual time $t$).<br>
+          <strong>The Kernel's Target Goal:</strong><br>
+          The working set is not just whatever happens to sit in RAM; it is the <strong>ideal memory footprint</strong> that the operating system <em>should</em> keep resident in physical memory. It defines what the process needs to run smoothly without constantly faulting.<br><br>
+          <strong>Mathematical Formulation ($w(k, t)$):</strong><br>
           - As $k$ grows very small, $w(k, t)$ captures only the immediate instruction.<br>
-          - As $k$ grows very large, $w(k, t)$ encompasses the entire program.<br>
-          - The OS aims to load exactly $w(k, t)$ pages into physical RAM before letting the process execute.
+          - As $k$ grows large enough to cover the active execution phase, it hits the optimal window ($\tau$).<br>
+          - The OS strives to reach this target footprint for every active process before letting them execute.
         </div>
 
         <h2>3. Conceptually: A Resource-Allocation Optimization Problem</h2>
@@ -364,14 +364,14 @@
           <strong>Why Calculus Isn't Used in the Kernel:</strong> While this is conceptually an optimization problem, operating systems do not use formal calculus (like derivatives) to solve it in real time. Program execution is discrete and non-differentiable, and computing derivatives on the fly for dozens of threads introduces unacceptable CPU overhead. Instead, kernels rely on lightweight empirical heuristics (like the WSClock algorithm) to approximate working sets dynamically.
         </p>
 
-        <h2>4. Why You Should Care: Thrashing &amp; Load Control</h2>
+        <h2>4. Why You Should Care: System Pressure &amp; Admission Control</h2>
         <p>
-          Understanding the Working Set model is critical for systems architecture and exams because it solves fundamental flaws in reactive replacement policies:
+          Understanding the Working Set model is critical because real-world systems face memory pressure where ideal goals collide with hardware limits:
         </p>
         <ul style="padding-left: 20px; display: block; gap: 6px; margin-bottom: 10px;">
-          <li><strong>The Cure for Thrashing:</strong> Without a working set, allocating too few frames causes continuous page faults where the CPU spends 100% of its cycles waiting on disk I/O rather than executing instructions. The Working Set defines the exact memory floor a process needs to stay stable.</li>
-          <li><strong>Proactive vs. Reactive:</strong> Algorithms like Clock and Aging are <em>reactive</em>—they wait until a page fault already occurs before evicting a frame. The Working Set model is <em>proactive</em>, tracking active footprints over time ($w(k, t)$) to ensure required pages are resident before execution.</li>
-          <li><strong>System Load &amp; Admission Control:</strong> The OS sums the working sets of all active processes ($\sum w$). If the sum exceeds total physical RAM, the OS uses admission control to suspend low-priority processes entirely, preventing system-wide thrashing.</li>
+          <li><strong>The Ideal vs. Reality:</strong> The working set is the kernel's ultimate target goal. However, when total physical RAM is smaller than the sum of all active working sets (\(\sum w > \text{Total RAM}\)), the OS cannot give every process everything it ideally needs.</li>
+          <li><strong>The Cure for Thrashing:</strong> Without honoring working sets, allocating too few frames causes continuous page faults, plunging the CPU into <strong>thrashing</strong> (spending 100% of its time swapping pages to disk).</li>
+          <li><strong>Admission &amp; Load Control:</strong> When system memory pressure makes it impossible to satisfy active working sets, the kernel uses admission control to completely suspend or swap out low-priority processes, preserving enough RAM for the remaining processes to run at full speed.</li>
         </ul>
       </div>
 
