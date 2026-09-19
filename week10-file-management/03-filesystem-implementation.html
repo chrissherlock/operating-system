@@ -701,7 +701,7 @@
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="font-weight:700;">Start Defrag</button>
 
           <!-- Explicit Audio Toggle Button to Unlock Browser Autoplay -->
-          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #0284c7; color: #fff;">🔊 Audio: Off</button>
+          <button class="ctrl-btn" onclick="toggleAudioMute()" id="btnAudioToggle" style="background: #059669; color: #fff;">🔊 Audio: On</button>
 
           <!-- Speed Controls -->
           <div style="margin-left:auto; display:flex; align-items:center; gap:5px; font-size:11px;">
@@ -798,7 +798,7 @@
     let selectedCapacityMB = 500;
     let startTime = 0;
     let elapsedTimer = null;
-    let audioEnabled = false;
+    let audioEnabled = true;
 
     function toggleAudioMute() {
       audioEnabled = !audioEnabled;
