@@ -220,20 +220,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-modern .screen-grid {
       display: grid;
-      grid-template-columns: repeat(50, 1fr);
-      gap: 2px;
+      grid-template-columns: repeat(100, 1fr); /* 100 columns for half-sized blocks */
+      gap: 1px;
       width: 100%;
       max-width: 1000px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
-      border-radius: 1px;
+      border-radius: 0.5px;
     }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
     .theme-modern .c-unopt { background-color: #f59e0b; }
     .theme-modern .c-system { background-color: #dc2626; }
-    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 6px #facc15; }
+    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 4px #facc15; }
     .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
     .theme-modern .ui-status-panel {
       background: #020617;
@@ -324,8 +324,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-win95 .screen-grid {
       display: grid;
-      grid-template-columns: repeat(50, 1fr);
-      gap: 2px;
+      grid-template-columns: repeat(100, 1fr);
+      gap: 1px;
       width: 100%;
       max-width: 1000px;
     }
@@ -403,7 +403,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-dos .screen-grid {
       display: grid;
-      grid-template-columns: repeat(50, 1fr);
+      grid-template-columns: repeat(100, 1fr);
       gap: 1px;
       width: 100%;
       max-width: 950px;
@@ -414,7 +414,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 6px;
       font-weight: bold;
       line-height: 1;
       user-select: none;
@@ -424,7 +424,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .c-unopt { background-color: #0000aa; color: #ff5555; }
     .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
     .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
-    .theme-dos .c-write { background-color: #ffff55 !important; color: #0000aa !important; }
+    .theme-dos .c-write { background-color: #ffff55 !important; color: #000000 !important; }
     .theme-dos .ui-status-panel {
       background: #0000aa;
       border-top: 1px dashed #ffffff;
@@ -439,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (PURE CSS BLOCK FILLS, ZERO PADDING)
+       THEME 4: MS-DOS 6.22 DEFRAG (100x30 HALF-SIZE BLOCKS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -496,7 +496,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     }
     .theme-olddos .screen-grid {
       display: grid;
-      grid-template-columns: repeat(50, 1fr);
+      grid-template-columns: repeat(100, 1fr); /* 100 columns */
       gap: 1px;
       width: 100%;
       max-width: 950px;
@@ -507,44 +507,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 6px; /* Scaled down font for half-size blocks */
       font-weight: bold;
       line-height: 1;
       image-rendering: pixelated;
       user-select: none;
-      padding: 0; /* Zero padding inside cells */
     }
-    /* MS-DOS 6.22 Defrag Pure CSS Block Fills (100% cell coverage) */
-    .theme-olddos .c-free {
-      background-color: #0000aa;
-      background-image: radial-gradient(#55ffff 35%, transparent 35%);
-      background-size: 3px 3px; /* Fills entire cell with stippled dots matching legend */
-    }
-    .theme-olddos .c-opt {
-      background-color: #ffff55; /* Solid Yellow Block filling 100% */
-      background-image: none;
-    }
-    .theme-olddos .c-unopt {
-      background-color: #ffff55; /* Solid Yellow Block */
-      background-image: none;
-    }
-    .theme-olddos .c-system {
-      background-color: #ffff55;
-      color: #aa0000;
-      font-size: 8px;
-      font-weight: 900;
-      background-image: none;
-    }
-    .theme-olddos .c-read {
-      background-color: #ffffff !important;
-      color: #0000aa !important;
-      background-image: none;
-    }
-    .theme-olddos .c-write {
-      background-color: #55ff55 !important;
-      color: #0000aa !important;
-      background-image: none;
-    }
+    /* MS-DOS 6.22 Defrag Palette matching Legend */
+    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
+    .theme-olddos .c-opt { background-color: #0000aa; color: #ffff55; }
+    .theme-olddos .c-unopt { background-color: #0000aa; color: #ffff55; }
+    .theme-olddos .c-system { background-color: #0000aa; color: #ffff55; font-weight: 900; }
+    .theme-olddos .c-read { background-color: #0000aa !important; color: #ffffff !important; }
+    .theme-olddos .c-write { background-color: #0000aa !important; color: #ffff55 !important; }
 
     /* Authentic MS-DOS 6.22 Split Status & Legend Bottom Box */
     .theme-olddos .dos-legend-box {
@@ -589,7 +564,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     /* Matrix Dimensions */
     .screen-grid {
       display: grid;
-      grid-template-columns: repeat(50, 1fr);
+      grid-template-columns: repeat(100, 1fr);
       gap: 2px;
       width: 100%;
       max-width: 1000px;
@@ -694,7 +669,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Single-Screen Matrix Well -->
+        <!-- Single-Screen Matrix Well (100 Columns = 3,000 Blocks) -->
         <div class="grid-wrapper">
           <div class="screen-grid" id="clusterGrid"></div>
         </div>
@@ -724,7 +699,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
               <div>B - Bad</div>
               <div>X - Unmovable</div>
             </div>
-            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 54 clusters</div>
+            <div style="margin-top:auto; font-size:9px; color:#55ffff;" id="dosDriveBlockText">Drive C:  1 block = 27 clusters</div>
           </div>
         </div>
 
@@ -741,7 +716,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
         <!-- Real-Time Status Panel -->
         <div class="ui-status-panel">
-          <span id="txtStatusMsg">500 MB Volume Initialized. 1,500 Blocks on Screen (1:85 Cluster Ratio).</span>
+          <span id="txtStatusMsg">500 MB Volume Initialized. 3,000 Blocks on Screen.</span>
           <span id="txtProgressMetric">Optimization: 0% | Fragmentation: High</span>
         </div>
       </div>
@@ -765,8 +740,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
-    const TOTAL_CELLS = 1500; // 50 cols x 30 rows fits completely on one screen
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (100 Columns = 3,000 Blocks) ---
+    const TOTAL_CELLS = 3000; // 100 cols x 30 rows
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
@@ -844,7 +819,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       el.textContent = "";
 
       if (currentTheme === 'olddos') {
-        // Pure CSS Background Fill Rendering (Zero padding/whitespace bugs)
+        // Authentic MS-DOS 6.22 DEFRAG.EXE CP437 Glyphs
         if (c.state === "read") {
           el.classList.add("c-read");
           el.textContent = "r";
@@ -856,10 +831,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "X";
         } else if (c.state === "optimized") {
           el.classList.add("c-opt");
+          el.textContent = "■";
         } else if (c.state === "unoptimized") {
           el.classList.add("c-unopt");
+          el.textContent = "■";
         } else {
           el.classList.add("c-free");
+          el.textContent = "▒";
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -910,10 +888,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       defragPause();
       initMatrix();
 
-      // System Unmovable files at designated positions (Marked as X in DOS 6.22)
-      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
+      // System Unmovable files distributed across 3,000 blocks
+      const unmovable = [36, 110, 224, 320, 480, 780, 1040, 1420, 1780, 2280, 2760];
       unmovable.forEach(idx => {
-        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+        if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
       // Front 18% optimized
@@ -950,8 +928,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].isSystem) continue;
 
-        let row = Math.floor(i / 50);
-        if (row < 4) {
+        let row = Math.floor(i / 100);
+        if (row < 5) {
           cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
         } else {
           let seed = (i * 31 + row * 43) % 100;
@@ -963,9 +941,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         }
       }
 
-      const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
+      const unmovable = [36, 110, 224, 320, 480, 780, 1040, 1420, 1780, 2280, 2760];
       unmovable.forEach(idx => {
-        cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
+        if (idx < TOTAL_CELLS) cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
       renderAllCells();
@@ -980,7 +958,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const totalData = opt + unopt;
       const pct = totalData > 0 ? Math.round((opt / totalData) * 100) : 0;
 
-      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/1,500`;
+      document.getElementById("txtProgressMetric").textContent = `Optimization: ${pct}% | Clusters: ${totalData}/3,000`;
 
       // Update DOS 6.22 status widget
       const dosPct = document.getElementById("dosPctText");
@@ -1056,7 +1034,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       for (let i = TOTAL_CELLS - 1; i > firstFree; i--) {
         if (cells[i].state === "unoptimized" && !cells[i].isSystem) {
           sourceBlocks.push(i);
-          if (sourceBlocks.length >= 3) break;
+          if (sourceBlocks.length >= 4) break;
         }
       }
 
@@ -1126,11 +1104,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Eliminate cell padding with 100% CSS background block fills
+COMMIT_MSG = """Double grid columns to 100 to make blocks half size
 
-Update week10-file-management/03-filesystem-implementation.html to render
-MS-DOS 6.22 cells using full-area CSS background fills and radial stipples,
-removing internal padding and text spacing bugs."""
+Update week10-file-management/03-filesystem-implementation.html with 100
+columns and 30 rows (3,000 blocks), cutting block dimensions in half and
+matching authentic high-density DOS defrag layouts."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -1152,10 +1130,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging zero-padding CSS fill update")
+    run_git_step(["git", "add", target_file], "Staging half-size block density update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Zero-padding full-cell CSS background fills successfully deployed!")
+    print("--> Half-size block density successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
