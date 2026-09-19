@@ -425,14 +425,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <text x="180" y="228" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">Small k</text>
           <text x="180" y="216" font-size="9" fill="#475569" text-anchor="middle">Immediate instruction only</text>
 
-          <!-- 2. Optimal Window (tau) & Repositioned Target RAM Allocation -->
+          <!-- 2. Optimal Window (tau) & Repositioned Target RAM Allocation to the Left -->
           <line x1="360" y1="135" x2="360" y2="260" stroke="#16a34a" stroke-width="2" stroke-dasharray="4"/>
           <circle cx="360" cy="135" r="6" fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
           <text x="360" y="278" font-size="11" font-weight="700" fill="#15803d" text-anchor="middle">Optimal Window (τ)</text>
 
-          <!-- Shifted label and angled pointer vector clear of plateau line -->
-          <text x="505" y="95" font-size="10.5" font-weight="700" fill="#15803d">Target RAM Allocation w(k, t)</text>
-          <line x1="500" y1="98" x2="372" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+          <!-- Placed in the clear open space to the upper-left of the knee -->
+          <text x="335" y="110" font-size="10.5" font-weight="700" fill="#15803d" text-anchor="end">Target RAM Allocation w(k, t)</text>
+          <line x1="340" y1="114" x2="356" y2="131" stroke="#15803d" stroke-width="1.5" marker-end="url(#arrow-green)"/>
 
           <!-- 3. Large k Zone -->
           <line x1="590" y1="260" x2="590" y2="120" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2"/>
@@ -671,11 +671,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Reposition target RAM allocation label in Fig 3-19 SVG
+COMMIT_MSG = """Relocate target RAM allocation label left of the curve in Fig 3-19
 
-Shift the target RAM allocation text and pointer line in Figure 3-19
-upward and rightward to eliminate visual overlap with the plateau curve
-in 09-working-set.html."""
+Shift the 'Target RAM Allocation w(k, t)' text and arrow annotation to
+the left of the curve inflection point in Figure 3-19. Positioning the
+label in the open upper-left quadrant prevents it from overlapping
+either the rising slope or the horizontal plateau curve in
+09-working-set.html."""
 
 def run_git(cmd, desc):
     print(f"--> {desc}...")
@@ -696,7 +698,7 @@ def sync_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated HTML to {target_path}")
 
-    # Commit tracked modified files using -a -m
+    # Commit all tracked modified files using -a -m
     run_git(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing modified files with -a -m")
     run_git(["git", "push", "origin", "main"], "Pushing main to origin")
     print("--> Complete! Successfully committed and pushed to origin/main.")
