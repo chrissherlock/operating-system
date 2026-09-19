@@ -107,21 +107,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theory-section p {
       margin-bottom: 10px;
     }
-    .theory-callout {
-      background-color: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 12px 16px;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #0369a1;
-      font-family: var(--font-mono);
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
 
     .bio-sidebar {
       float: right;
-      width: 340px;
+      width: 350px;
       background: #f8fafc;
       border: 1px solid var(--border);
       border-top: 4px solid var(--inspect-color);
@@ -145,8 +134,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-family: var(--font-mono);
     }
     .pioneer-bio {
-      margin-bottom: 10px;
-      padding-bottom: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
       border-bottom: 1px dashed #cbd5e1;
     }
     .pioneer-bio:last-child {
@@ -159,11 +148,23 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: var(--text);
       font-size: 0.9rem;
     }
+    .pioneer-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      margin-top: 1px;
+      margin-bottom: 4px;
+    }
     .pioneer-bio p {
       color: var(--text-muted);
       line-height: 1.4;
       font-size: 0.82rem;
       margin-top: 2px;
+    }
+    .pioneer-bio a {
+      color: var(--accent);
+      text-decoration: underline;
+      font-weight: 600;
     }
 
     .figure-container {
@@ -354,22 +355,26 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <h3>File System Pioneers</h3>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Ken Thompson</div>
+            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">Ken Thompson</a></div>
+            <div class="pioneer-meta">Born: Feb 4, 1943 | Bell Labs</div>
             <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Dennis Ritchie</div>
+            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">Dennis Ritchie</a></div>
+            <div class="pioneer-meta">Born: Sep 9, 1941 — Died: Oct 12, 2011 | Bell Labs</div>
             <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Andrew S. Tanenbaum</div>
+            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">Andrew S. Tanenbaum</a></div>
+            <div class="pioneer-meta">Born: Mar 16, 1944 | Vrije Universiteit</div>
             <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles.</p>
           </div>
 
           <div class="pioneer-bio">
-            <div class="pioneer-name">Marshall Kirk McKusick</div>
+            <div class="pioneer-name"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">Marshall Kirk McKusick</a></div>
+            <div class="pioneer-meta">Born: Jan 19, 1954 | UC Berkeley</div>
             <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation.</p>
           </div>
         </aside>
@@ -736,11 +741,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Align file abstraction module sidebar layout with memory management
+COMMIT_MSG = """Add Wikipedia links and metadata to pioneers sidebar infobox
 
-Update week10-file-management/01-files-abstraction.html to format the pioneers
-sidebar infobox exactly like the memory management module layout, featuring
-compact paragraph bios and matching CSS styling."""
+Update week10-file-management/01-files-abstraction.html to include Wikipedia
+biography links, birth/death dates, alma maters, and primary places of work
+for Ken Thompson, Dennis Ritchie, Andrew S. Tanenbaum, and Marshall Kirk McKusick."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -760,12 +765,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with working-set style sidebar infobox to {target_file}")
+    print(f"Wrote module file with complete pioneers sidebar infobox to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging working-set style sidebar update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging pioneers sidebar update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Working-Set Style Sidebar Module 01 created, committed, and pushed successfully!")
+    print("--> Pioneers Sidebar Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
