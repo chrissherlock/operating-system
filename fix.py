@@ -343,9 +343,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
     <!-- Historical Pioneers Infobox Card -->
     <div class="card historical-infobox">
-      <div class="infobox-title">Historical Context: The Architects of Unix File Systems</div>
+      <div class="infobox-title">Historical Context: Architects of File Systems &amp; Operating Systems</div>
       <p style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
-        The file descriptor model, byte-stream abstractions, and i-node metadata structures explored in this module were originally pioneered by <strong>Ken Thompson</strong> and <strong>Dennis Ritchie</strong> at Bell Labs during the creation of Unix in the late 1960s and early 1970s. Their design established the foundational separation between user space and kernel space that governs modern operating systems today.
+        The file descriptor model, byte-stream abstractions, i-node metadata structures, and directory hierarchies explored in this module were shaped by key pioneers in operating systems architecture and computer science education.
       </p>
       <table>
         <thead>
@@ -359,12 +359,22 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <tr>
             <td><strong>Ken Thompson</strong></td>
             <td>Unix, B Language, UTF-8, Early File System Tree</td>
-            <td>Designed the core i-node architecture and hierarchical namespaces.</td>
+            <td>Designed core i-node architecture and hierarchical namespaces.</td>
           </tr>
           <tr>
             <td><strong>Dennis Ritchie</strong></td>
             <td>C Programming Language, Unix Co-Creator</td>
             <td>Engineered portable systems programming standards built on system calls.</td>
+          </tr>
+          <tr>
+            <td><strong>Andrew S. Tanenbaum</strong></td>
+            <td>MINIX, Operating System Textbooks</td>
+            <td>Authored definitive academic architecture literature and educational kernels.</td>
+          </tr>
+          <tr>
+            <td><strong>Marshall Kirk McKusick</strong></td>
+            <td>Berkeley Fast File System (FFS), BSD Unix</td>
+            <td>Optimized storage retrieval performance and cylinder group layout.</td>
           </tr>
         </tbody>
       </table>
@@ -921,11 +931,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add historical infobox for Unix pioneers to module 01
+COMMIT_MSG = """Add Tanenbaum and McKusick to historical infobox in module 01
 
-Update week10-file-management/01-files-abstraction.html to include a
-structured historical infobox card highlighting Ken Thompson and Dennis Ritchie
-at the top of the page."""
+Update week10-file-management/01-files-abstraction.html to expand the
+historical infobox card, adding Andrew S. Tanenbaum and Marshall Kirk McKusick
+alongside Ken Thompson and Dennis Ritchie."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -945,12 +955,12 @@ def execute_pipeline():
 
     with open(target_file, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"Wrote module file with historical infobox to {target_file}")
+    print(f"Wrote module file with complete historical infobox to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging historical infobox update 01-files-abstraction.html")
+    run_git_step(["git", "add", target_file], "Staging complete historical infobox update 01-files-abstraction.html")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Historical Infobox Module 01 created, committed, and pushed successfully!")
+    print("--> Complete Historical Infobox Module 01 created, committed, and pushed successfully!")
 
 if __name__ == "__main__":
     execute_pipeline()
