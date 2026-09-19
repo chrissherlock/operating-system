@@ -848,9 +848,13 @@
         if (b) b.classList.toggle('active', t === theme);
       });
 
-      // Force Slow speed by default for DOS themes
+      // Force Slow speed, fragment disk, and auto-start defrag for DOS themes
       if (theme === 'dos' || theme === 'olddos') {
         setDefragSpeed(150, 'spd-slow');
+        defragHeavyChurn();
+        if (!isRunning) {
+          defragToggleRun();
+        }
       }
 
       const leg = document.getElementById("modernLegend");
