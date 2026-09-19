@@ -140,30 +140,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0284c7;
       color: #ffffff;
     }
-    .figure-container {
-      width: 100%;
-      margin: 10px auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
-    }
-    .callout {
-      background-color: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 12px 16px;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #0369a1;
-      line-height: 1.5;
-      margin-top: 4px;
-      margin-bottom: 4px;
-    }
 
     /* =========================================================
        DEFRAGMENTER SHELL & TRIPLE-THEME CONTAINER STYLING
@@ -172,10 +148,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       width: 100%;
       border-radius: 8px;
       transition: all 0.25s ease;
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
 
     /* THEME 1: MODERN (DEFAULT) */
@@ -191,10 +167,10 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       justify-content: space-between;
       align-items: center;
       border-bottom: 1px solid #334155;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
     }
     .theme-modern .ui-title {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       font-weight: 700;
       color: #38bdf8;
       text-transform: uppercase;
@@ -206,7 +182,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       flex-wrap: wrap;
       background: #020617;
       border: 1px solid #1e293b;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 6px;
       align-items: center;
     }
@@ -214,9 +190,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #1e293b;
       color: #cbd5e1;
       border: 1px solid #334155;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
@@ -228,9 +204,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 8px;
+      padding: 6px;
+      display: flex;
+      justify-content: center;
     }
-    .theme-modern .c-cell { border-radius: 1px; }
+    .theme-modern .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .theme-modern .c-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: 1px;
+    }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
     .theme-modern .c-unopt { background-color: #f59e0b; }
@@ -241,8 +229,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 0.82rem;
+      padding: 8px 12px;
+      font-size: 0.8rem;
       color: #38bdf8;
       display: flex;
       justify-content: space-between;
@@ -314,8 +302,20 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       border-bottom: 2px solid #ffffff;
       background: #000000;
       padding: 3px;
+      display: flex;
+      justify-content: center;
     }
-    .theme-win95 .c-cell { border-radius: 0; }
+    .theme-win95 .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 2px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .theme-win95 .c-cell {
+      aspect-ratio: 1 / 1; /* Crisp square clusters */
+      border-radius: 0;
+    }
     .theme-win95 .c-free { background-color: #ffffff; }
     .theme-win95 .c-opt { background-color: #000080; }
     .theme-win95 .c-unopt { background-color: #5ce1e6; }
@@ -332,7 +332,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       color: #000000;
     }
 
-    /* THEME 3: MS-DOS / NORTON SPEED DISK */
+    /* THEME 3: MS-DOS / NORTON SPEED DISK (TALL RECTANGULAR ASCII CHARACTERS) */
     .theme-dos {
       background-color: #0000aa;
       color: #ffffff;
@@ -365,8 +365,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background-color: #0000aa;
       color: #ffff55;
       border: 1px solid #ffffff;
-      padding: 3px 10px;
-      font-size: 12px;
+      padding: 3px 8px;
+      font-size: 11px;
       font-family: inherit;
       font-weight: bold;
       cursor: pointer;
@@ -377,37 +377,43 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       background: #000055;
       border: 2px solid #55ffff;
       padding: 4px;
+      display: flex;
+      justify-content: center;
     }
-    .theme-dos .c-cell { border-radius: 0; }
-    .theme-dos .c-free { background-color: #000055; outline: 1px dotted #0000aa; }
-    .theme-dos .c-opt { background-color: #ffffff; }
-    .theme-dos .c-unopt { background-color: #ff5555; }
-    .theme-dos .c-system { background-color: #aa0000; }
-    .theme-dos .c-read { background-color: #55ff55 !important; }
-    .theme-dos .c-write { background-color: #ffff55 !important; }
+    .theme-dos .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 1px;
+      width: 100%;
+      max-width: 950px;
+    }
+    /* Authentic 80x25 tall rectangular character ratio */
+    .theme-dos .c-cell {
+      aspect-ratio: 1 / 1.65;
+      border-radius: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: bold;
+      line-height: 1;
+      user-select: none;
+    }
+    .theme-dos .c-free { background-color: #000055; color: #0000aa; }
+    .theme-dos .c-opt { background-color: #0000aa; color: #ffffff; }
+    .theme-dos .c-unopt { background-color: #0000aa; color: #ff5555; }
+    .theme-dos .c-system { background-color: #aa0000; color: #ffffff; }
+    .theme-dos .c-read { background-color: #55ff55 !important; color: #000000 !important; }
+    .theme-dos .c-write { background-color: #ffff55 !important; color: #000000 !important; }
     .theme-dos .ui-status-panel {
       background: #0000aa;
       border-top: 1px dashed #ffffff;
       padding-top: 6px;
       margin-top: 6px;
-      font-size: 12px;
+      font-size: 11px;
       color: #ffff55;
       display: flex;
       justify-content: space-between;
-    }
-
-    /* Single-Screen Matrix Grid (50 Columns x 30 Rows = 1,500 Blocks) */
-    .screen-grid {
-      display: grid;
-      grid-template-columns: repeat(50, 1fr);
-      gap: 2px;
-      width: 100%;
-      height: 270px;
-    }
-    .c-cell {
-      width: 100%;
-      height: 100%;
-      transition: background-color 0.04s ease;
     }
   </style>
 </head>
@@ -471,7 +477,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         <div class="ui-topbar">
           <span class="ui-title" id="shellTitle">FAT32 Volume Optimizer (500 MB Drive)</span>
           <div style="display:flex; gap:6px; align-items:center;">
-            <span style="font-size:11px; color:#94a3b8;" id="themeLabel">Theme:</span>
+            <span style="font-size:11px;" id="themeLabel">Theme:</span>
             <button class="ctrl-btn active" onclick="switchTheme('modern')" id="btn-theme-modern">Modern</button>
             <button class="ctrl-btn" onclick="switchTheme('win95')" id="btn-theme-win95">Windows 95</button>
             <button class="ctrl-btn" onclick="switchTheme('dos')" id="btn-theme-dos">MS-DOS</button>
@@ -485,8 +491,8 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <button class="ctrl-btn" onclick="defragToggleRun()" id="btnStartDefrag" style="background:#059669; color:#fff; font-weight:700;">Start Defrag</button>
           <div style="margin-left:auto; display:flex; align-items:center; gap:6px; font-size:11px;">
             <span>Speed:</span>
-            <button class="ctrl-btn" onclick="setDefragSpeed(90)">Slow (Observable)</button>
-            <button class="ctrl-btn active" onclick="setDefragSpeed(35)" id="spd-norm">Medium</button>
+            <button class="ctrl-btn" onclick="setDefragSpeed(120)">Slow (Observable)</button>
+            <button class="ctrl-btn active" onclick="setDefragSpeed(45)" id="spd-norm">Medium</button>
             <button class="ctrl-btn" onclick="setDefragSpeed(8)">Fast</button>
           </div>
         </div>
@@ -496,9 +502,9 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           <div class="screen-grid" id="clusterGrid"></div>
         </div>
 
-        <!-- Real-Time Telemetry / Status Bar -->
+        <!-- Real-Time Status Panel -->
         <div class="ui-status-panel">
-          <span id="txtStatusMsg">500 MB Volume Initialized. 1,500 Matrix Blocks (1 Block = 85 Clusters / 340 KB).</span>
+          <span id="txtStatusMsg">500 MB Volume Initialized. 1,500 Blocks on Screen (1:85 Cluster Ratio).</span>
           <span id="txtProgressMetric">Optimization: 0% | Fragmentation: High</span>
         </div>
       </div>
@@ -527,7 +533,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     let cells = [];
     let isRunning = false;
     let stepTimer = null;
-    let stepDelay = 35; // Deliberately observable pacing
+    let stepDelay = 45; // Deliberate, observable pacing
     let currentTheme = 'modern';
 
     function switchTheme(theme) {
@@ -569,19 +575,44 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       const el = document.getElementById(`blk-${idx}`);
       const c = cells[idx];
       el.className = "c-cell";
+      el.textContent = "";
 
-      if (c.state === "read") {
-        el.classList.add("c-read");
-      } else if (c.state === "write") {
-        el.classList.add("c-write");
-      } else if (c.isSystem) {
-        el.classList.add("c-system");
-      } else if (c.state === "optimized") {
-        el.classList.add("c-opt");
-      } else if (c.state === "unoptimized") {
-        el.classList.add("c-unopt");
+      if (currentTheme === 'dos') {
+        // Authentic DOS tall character glyphs (CP437)
+        if (c.state === "read") {
+          el.classList.add("c-read");
+          el.textContent = "R";
+        } else if (c.state === "write") {
+          el.classList.add("c-write");
+          el.textContent = "W";
+        } else if (c.isSystem) {
+          el.classList.add("c-system");
+          el.textContent = "X";
+        } else if (c.state === "optimized") {
+          el.classList.add("c-opt");
+          el.textContent = "■";
+        } else if (c.state === "unoptimized") {
+          el.classList.add("c-unopt");
+          el.textContent = "▓";
+        } else {
+          el.classList.add("c-free");
+          el.textContent = "·";
+        }
       } else {
-        el.classList.add("c-free");
+        // Modern & Win95 square block rendering
+        if (c.state === "read") {
+          el.classList.add("c-read");
+        } else if (c.state === "write") {
+          el.classList.add("c-write");
+        } else if (c.isSystem) {
+          el.classList.add("c-system");
+        } else if (c.state === "optimized") {
+          el.classList.add("c-opt");
+        } else if (c.state === "unoptimized") {
+          el.classList.add("c-unopt");
+        } else {
+          el.classList.add("c-free");
+        }
       }
     }
 
@@ -596,21 +627,21 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       defragPause();
       initMatrix();
 
-      // System Unmovable files at designated cylinder positions
+      // System Unmovable files at designated positions
       const unmovable = [18, 55, 112, 160, 240, 390, 520, 710, 890, 1140, 1380];
       unmovable.forEach(idx => {
         cells[idx] = { state: "unmovable", isSystem: true, fileId: "sys" };
       });
 
-      // Front 20% optimized (dark blue in win95 / solid in modern/dos)
-      const optCutoff = Math.floor(TOTAL_CELLS * 0.20);
+      // Front 18% optimized
+      const optCutoff = Math.floor(TOTAL_CELLS * 0.18);
       for (let i = 0; i < optCutoff; i++) {
         if (!cells[i].isSystem) {
           cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
         }
       }
 
-      // Middle & tail: populated contiguously initially
+      // Remaining sectors initialized as contiguous files
       for (let i = optCutoff; i < Math.floor(TOTAL_CELLS * 0.70); i++) {
         if (!cells[i].isSystem) {
           cells[i] = { state: "unoptimized", isSystem: false, fileId: `f_${i % 25}` };
@@ -625,18 +656,16 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       defragPause();
       if (cells.length === 0) initMatrix();
 
-      // Punch hundreds of random holes and inject scattered fragmented files
+      // Generate heavy, realistic fragmentation pattern across the 500MB drive
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].isSystem) continue;
 
         let row = Math.floor(i / 50);
         if (row < 4) {
-          // Keep a small initial slice
           cells[i] = { state: "optimized", isSystem: false, fileId: "opt" };
         } else {
-          // Generate heavy, realistic fragmentation pattern
           let seed = (i * 31 + row * 43) % 100;
-          if (seed > 48) {
+          if (seed > 46) {
             cells[i] = { state: "unoptimized", isSystem: false, fileId: `f_${seed % 15}` };
           } else {
             cells[i] = { state: "free", isSystem: false, fileId: null };
@@ -651,7 +680,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       });
 
       renderAllCells();
-      document.getElementById("txtStatusMsg").textContent = "Drive C: Heavily Fragmented (62% Fragmentation). High seek latency detected!";
+      document.getElementById("txtStatusMsg").textContent = "Drive C: Heavily Fragmented (64% Fragmentation). High seek latency detected!";
     }
 
     function updateStatus() {
@@ -683,7 +712,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
         btn.textContent = "Resume";
         btn.style.background = "#059669";
       }
-      // Clean read/write highlighting
       for (let i = 0; i < TOTAL_CELLS; i++) {
         if (cells[i].state === "read") cells[i].state = "unoptimized";
         if (cells[i].state === "write") cells[i].state = "free";
@@ -706,14 +734,14 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 
       // Locate a scattered run of unoptimized clusters past this free space
       let sourceBlocks = [];
-      for (let i = TOTAL_CLUSTERS = TOTAL_CELLS - 1; i > firstFree; i--) {
+      for (let i = TOTAL_CELLS - 1; i > firstFree; i--) {
         if (cells[i].state === "unoptimized" && !cells[i].isSystem) {
           sourceBlocks.push(i);
           if (sourceBlocks.length >= 3) break; // Observable burst size
         }
       }
 
-      // If no scattered unoptimized blocks remain past the free space, compaction is complete
+      // If no scattered unoptimized blocks remain past free space, compaction is complete
       if (firstFree === -1 || sourceBlocks.length === 0) {
         finishDefrag();
         return;
@@ -779,11 +807,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Add triple-theme 500MB defrag simulator with single-screen visualizer
+COMMIT_MSG = """Update defrag sectors to square cells and tall DOS ASCII character blocks
 
-Update week10-file-management/03-filesystem-implementation.html with a
-500MB FAT volume, heavy fragmentation generator, adjustable pacing, and
-theme toggles for Modern, Windows 95, and MS-DOS Speed Disk interfaces."""
+Update week10-file-management/03-filesystem-implementation.html with square
+clusters for Modern/Win95 and authentic 80x25 tall ASCII CP437 blocks for
+the MS-DOS Norton Speed Disk interface."""
 
 def run_git_step(cmd, desc):
     print(f"--> {desc}...")
@@ -805,10 +833,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging triple-theme defragmenter update")
+    run_git_step(["git", "add", target_file], "Staging updated defragmenter module")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Triple-theme 500MB Defragmenter simulator deployed successfully!")
+    print("--> Module 03 DOS ASCII and Square Defragmenter successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
