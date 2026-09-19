@@ -40,7 +40,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 18px;
+      gap: 24px;
     }
     header { text-align: center; max-width: 900px; }
     h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
@@ -48,37 +48,37 @@
     .main-container {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 32px;
       width: 100%;
-      max-width: 1100px;
+      max-width: 1000px;
     }
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 22px;
+    /* Removed card bounding boxes for continuous document flow */
+    .section-block {
       display: flex;
       flex-direction: column;
       gap: 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-    .card h2 {
-      font-size: 1.25rem;
-      color: var(--accent);
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-      margin-bottom: 6px;
     }
-    .card h3 {
-      font-size: 1.05rem;
-      color: var(--text);
-      margin-top: 10px;
+    .section-block:last-of-type {
+      border-bottom: none;
+    }
+    h2 {
+      font-size: 1.35rem;
+      color: var(--accent);
+      padding-bottom: 4px;
       margin-bottom: 4px;
     }
-    .card h4 {
-      font-size: 0.95rem;
+    h3 {
+      font-size: 1.1rem;
       color: var(--text);
-      margin-top: 6px;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+    h4 {
+      font-size: 0.98rem;
+      color: var(--text);
+      margin-top: 8px;
       margin-bottom: 2px;
     }
     ul, ol {
@@ -97,7 +97,7 @@
     }
     .nav-back {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1000px;
       margin: 0 auto 16px auto;
       padding: 0 4px;
       display: flex;
@@ -147,9 +147,73 @@
       height: auto;
     }
 
-    /* =========================================================
-       LFS INTERACTIVE SIMULATOR STYLING
-       ========================================================= */
+    /* Pioneers Infobox */
+    .pioneers-infobox {
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px;
+      margin: 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pioneers-infobox h4 {
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .pioneers-portraits {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+    .pioneer-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 14px;
+      flex: 1;
+      min-width: 300px;
+    }
+    .pioneer-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .pioneer-card img {
+      width: 90px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #94a3b8;
+      flex-shrink: 0;
+    }
+    .pioneer-info {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.88rem;
+      gap: 3px;
+    }
+    .pioneer-info strong { color: var(--text); font-size: 0.95rem; }
+    .pioneer-info span { color: var(--text-muted); font-size: 0.82rem; }
+    .pioneer-bio {
+      font-size: 0.88rem;
+      color: #334155;
+      line-height: 1.55;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      margin-top: 2px;
+    }
+
+    /* LFS SIMULATOR */
     .lfs-sim-container {
       background: #0f172a;
       border: 1px solid #334155;
@@ -247,8 +311,6 @@
     .blk-free { background: #1e293b; color: #475569; }
     .blk-live { background: #0284c7; color: #fff; }
     .blk-dead { background: #475569; color: #94a3b8; text-decoration: line-through; }
-    .blk-inode { background: #10b981; color: #fff; }
-
     .lfs-status-panel {
       background: #020617;
       border: 1px solid #1e293b;
@@ -260,72 +322,6 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 10px;
-    }
-
-    /* Pioneers Infobox */
-    .pioneers-infobox {
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      border-left: 4px solid var(--accent);
-      border-radius: 6px;
-      padding: 16px;
-      margin: 14px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .pioneers-infobox h4 {
-      color: var(--accent);
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-    .pioneers-portraits {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-top: 6px;
-      margin-bottom: 6px;
-    }
-    .pioneer-card {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      padding: 14px;
-      flex: 1;
-      min-width: 300px;
-    }
-    .pioneer-top {
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-    }
-    .pioneer-card img {
-      width: 90px;
-      height: 110px;
-      object-fit: cover;
-      border-radius: 4px;
-      border: 1px solid #94a3b8;
-      flex-shrink: 0;
-    }
-    .pioneer-info {
-      display: flex;
-      flex-direction: column;
-      font-size: 0.88rem;
-      gap: 3px;
-    }
-    .pioneer-info strong { color: var(--text); font-size: 0.95rem; }
-    .pioneer-info span { color: var(--text-muted); font-size: 0.82rem; }
-    .pioneer-bio {
-      font-size: 0.88rem;
-      color: #334155;
-      line-height: 1.55;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 10px;
-      margin-top: 2px;
     }
 
     /* DEFRAGMENTER SHELL & THEMES */
@@ -461,7 +457,7 @@
   <div class="main-container">
 
     <!-- Section 4.3.1: File-System Layout -->
-    <div class="card">
+    <div class="section-block">
       <h2>4.3.1 File-System Layout</h2>
       <p>
         File systems are stored on non-volatile disks, solid-state drives, or partitions. Physical storage devices divide raw media into fixed-size physical sectors (typically 512 bytes or 4096 bytes). Operating system file systems group these physical sectors into larger logical <strong>blocks</strong> (clusters), typically ranging from 1 KB to 64 KB, to balance metadata overhead against internal fragmentation.
@@ -469,7 +465,7 @@
     </div>
 
     <!-- Section 4.3.2: Allocation Strategies -->
-    <div class="card">
+    <div class="section-block">
       <h2>4.3.2 Implementing Files: Allocation Strategies &amp; Fragmentation</h2>
       <p>
         The central design challenge of a file system is mapping a linear stream of logical file bytes into physical storage blocks. Over time, file churn produces external and internal fragmentation.
@@ -564,7 +560,7 @@
     </div>
 
     <!-- Section 4.3.5: Log-Structured File Systems (LFS) -->
-    <div class="card" style="margin-top:12px;">
+    <div class="section-block">
       <h2>4.3.5 Log-Structured File Systems (LFS)</h2>
       <p>
         Traditional Unix and FAT filesystems distribute file data, inodes, directory entries, and indirect blocks across random locations on disk. As processor and memory speeds outpaced mechanical disk seek times in the early 1990s, random disk head seeks emerged as the primary performance bottleneck. To solve this, <strong>Mendel Rosenblum and John K. Ousterhout</strong> pioneered <strong>Log-Structured File Systems (LFS)</strong> at UC Berkeley, fundamentally redesigning storage architectures by transforming the disk into a continuous sequential log.
@@ -647,7 +643,7 @@
         <figcaption>Figure 4.3.5A: Comparison of random in-place updates versus LFS continuous append logging.</figcaption>
       </figure>
 
-      <!-- ================= INTERACTIVE LFS SIMULATOR WIDGET ================= -->
+      <!-- INTERACTIVE LFS SIMULATOR WIDGET -->
       <div class="lfs-sim-container" id="lfsSimulator">
         <div class="lfs-topbar">
           <span class="lfs-title">Interactive LFS Segment Append &amp; Garbage Collector Simulator</span>
@@ -661,17 +657,13 @@
           <button class="lfs-btn" onclick="lfsResetSim()" style="margin-left: auto;">Reset Simulator</button>
         </div>
 
-        <!-- 4 Segments with 8 Blocks Each -->
-        <div class="lfs-segments-grid" id="lfsSegmentsGrid">
-          <!-- Populated via JavaScript -->
-        </div>
+        <div class="lfs-segments-grid" id="lfsSegmentsGrid"></div>
 
         <div class="lfs-status-panel">
           <span id="lfsStatusMsg">Simulator Ready. Click 'Append New File' to write sequentially to the log tail.</span>
           <span id="lfsMetricMsg">Live Blocks: 0 | Dead Blocks: 0 | Free Blocks: 32</span>
         </div>
       </div>
-      <!-- =================================================================== -->
 
       <h3>2. The Inode Map (Imap) Architecture &amp; Indirection</h3>
       <p>
@@ -753,7 +745,7 @@
     </div>
 
     <!-- Section 4.3.6: Journaling File Systems -->
-    <div class="card">
+    <div class="section-block">
       <h2>4.3.6 Journaling File Systems</h2>
       <p>
         System crashes mid-write often leave traditional filesystems in an inconsistent state, requiring lengthy full-volume integrity scans (such as <code>fsck</code>). <strong>Journaling File Systems</strong> introduce Write-Ahead Logging (WAL) to guarantee crash consistency.
@@ -761,7 +753,7 @@
     </div>
 
     <!-- Section 4.3.7: Flash Storage & Wear-Leveling -->
-    <div class="card">
+    <div class="section-block">
       <h2>4.3.7 Flash Storage &amp; Wear-Leveling Systems</h2>
       <p>
         Solid-state drives built on NAND flash memory replace mechanical platters with electronic memory cells, requiring specialized FTL layers and wear-leveling algorithms.
@@ -769,7 +761,7 @@
     </div>
 
     <!-- Section 4.3.8: Virtual File Systems (VFS) -->
-    <div class="card">
+    <div class="section-block">
       <h2>4.3.8 Virtual File Systems (VFS)</h2>
       <p>
         Modern operating systems implement the Virtual File System (VFS) abstraction layer to support multiple disparate storage formats seamlessly through standard objects.
@@ -783,7 +775,7 @@
     const NUM_SEGMENTS = 4;
     const BLOCKS_PER_SEGMENT = 8;
     let lfsSegments = [];
-    let currentWriteIndex = 0; // Global block pointer across 32 blocks
+    let currentWriteIndex = 0;
 
     function lfsResetSim() {
       lfsSegments = [];
@@ -800,42 +792,33 @@
     }
 
     function lfsWriteNewFile() {
-      // Find next free block globally
       if (currentWriteIndex >= NUM_SEGMENTS * BLOCKS_PER_SEGMENT) {
         document.getElementById("lfsStatusMsg").textContent = "Log is full! Run the Segment Cleaner (GC) to reclaim dead space.";
         return;
       }
-
       let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
       let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
-
       let fileId = `F${Math.floor(Math.random() * 90) + 10}`;
       lfsSegments[segIdx].blocks[blkIdx] = { type: 'live', fileId: fileId };
       currentWriteIndex++;
-
       lfsRenderSim();
       document.getElementById("lfsStatusMsg").textContent = `Appended new file (${fileId}) sequentially to Segment ${segIdx}, Block ${blkIdx}.`;
     }
 
     function lfsUpdateExistingFile() {
-      // Find a live block to turn into a dead block (simulating overwrite)
       let liveBlocks = [];
       lfsSegments.forEach((seg, sIdx) => {
         seg.blocks.forEach((blk, bIdx) => {
           if (blk.type === 'live') liveBlocks.push({ sIdx, bIdx, fileId: blk.fileId });
         });
       });
-
       if (liveBlocks.length === 0) {
         document.getElementById("lfsStatusMsg").textContent = "No live files to overwrite. Click 'Append New File' first.";
         return;
       }
-
-      // Pick one random live block and mark it dead
       let target = liveBlocks[Math.floor(Math.random() * liveBlocks.length)];
       lfsSegments[target.sIdx].blocks[target.bIdx].type = 'dead';
 
-      // Now append the updated version to the current log tail
       if (currentWriteIndex < NUM_SEGMENTS * BLOCKS_PER_SEGMENT) {
         let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
         let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
@@ -845,23 +828,17 @@
       } else {
         document.getElementById("lfsStatusMsg").textContent = `Overwrote file ${target.fileId} (old block dead), but log tail is full! Run Garbage Collection.`;
       }
-
       lfsRenderSim();
     }
 
     function lfsTriggerCleaner() {
-      // Collect all live blocks across all segments
       let liveBlocks = [];
       lfsSegments.forEach(seg => {
         seg.blocks.forEach(blk => {
           if (blk.type === 'live') liveBlocks.push(blk);
         });
       });
-
-      // Reset all segments to free
       lfsResetSim();
-
-      // Rewrite live blocks compactly into the beginning of the log
       liveBlocks.forEach(blk => {
         let segIdx = Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT);
         let blkIdx = currentWriteIndex % BLOCKS_PER_SEGMENT;
@@ -870,7 +847,6 @@
           currentWriteIndex++;
         }
       });
-
       lfsRenderSim();
       document.getElementById("lfsStatusMsg").textContent = `Segment Cleaner (GC) executed! Compacted ${liveBlocks.length} live blocks and discarded all dead holes.`;
     }
@@ -878,7 +854,6 @@
     function lfsRenderSim() {
       const grid = document.getElementById("lfsSegmentsGrid");
       grid.innerHTML = "";
-
       let liveCount = 0;
       let deadCount = 0;
       let freeCount = 0;
@@ -886,7 +861,6 @@
       lfsSegments.forEach((seg, sIdx) => {
         let segDiv = document.createElement("div");
         segDiv.className = "lfs-segment-box";
-
         let activeTag = (Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT) === sIdx) ? ' (Tail)' : '';
         segDiv.innerHTML = `<div class="lfs-seg-header"><span>Segment ${sIdx}${activeTag}</span></div>`;
 
@@ -911,21 +885,18 @@
           }
           blocksDiv.appendChild(bEl);
         });
-
         segDiv.appendChild(blocksDiv);
         grid.appendChild(segDiv);
       });
 
       document.getElementById("lfsMetricMsg").textContent = `Live Blocks: ${liveCount} | Dead Blocks: ${deadCount} | Free Blocks: ${freeCount}`;
-
       let activeSeg = Math.min(Math.floor(currentWriteIndex / BLOCKS_PER_SEGMENT), NUM_SEGMENTS - 1);
       document.getElementById("lfsActiveSegLabel").textContent = `Active Log Tail: Segment ${activeSeg}`;
     }
 
-    // Initialize LFS Simulator on Load
     lfsResetSim();
 
-    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine (100 Columns = 3,000 Blocks) ---
+    // --- Quad-Theme Multi-Capacity FAT Defragmenter Engine ---
     const TOTAL_CELLS = 3000;
     let cells = [];
     let isRunning = false;
