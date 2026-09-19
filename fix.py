@@ -18,7 +18,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
-    /* Embed authentic IBM PC CP437 bitmap font */
+    /* Embed authentic IBM PC CP437 bitmap font with forced non-antialiased rendering */
     @font-face {
       font-family: 'PerfectDOS';
       src: url('https://cdn.jsdelivr.net/gh/IdreesInc/Monocraft@main/web/Monocraft.woff2') format('woff2');
@@ -162,31 +162,6 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       gap: 12px;
     }
 
-    /* MODERN THEME LEGEND */
-    .modern-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      background: #020617;
-      border: 1px solid #1e293b;
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 0.72rem; /* Scaled down for clean layout */
-      color: #cbd5e1;
-      align-items: center;
-    }
-    .modern-legend-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    .modern-swatch {
-      width: 12px;
-      height: 12px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-
     /* THEME 1: MODERN (DEFAULT) */
     .theme-modern {
       background: #0f172a;
@@ -246,19 +221,19 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-modern .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 2px;
+      gap: 1px;
       width: 100%;
       max-width: 1000px;
     }
     .theme-modern .c-cell {
       aspect-ratio: 1 / 1;
-      border-radius: 1px;
+      border-radius: 0.5px;
     }
     .theme-modern .c-free { background-color: #1e293b; }
     .theme-modern .c-opt { background-color: #0284c7; }
     .theme-modern .c-unopt { background-color: #f59e0b; }
     .theme-modern .c-system { background-color: #dc2626; }
-    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 6px #facc15; }
+    .theme-modern .c-read { background-color: #facc15 !important; box-shadow: 0 0 4px #facc15; }
     .theme-modern .c-write { background-color: #34d399 !important; box-shadow: 0 0 6px #34d399; }
     .theme-modern .ui-status-panel {
       background: #020617;
@@ -464,7 +439,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-dos .dos-legend-box { display: none; }
 
     /* =========================================================
-       THEME 4: MS-DOS 6.22 DEFRAG (STRICT PIXELATED FONT RENDERING)
+       THEME 4: MS-DOS 6.22 DEFRAG (PIXELATED, TIGHT PADDING, DOS COLORS)
        ========================================================= */
     .theme-olddos {
       background-color: #0000aa;
@@ -531,7 +506,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     .theme-olddos .screen-grid {
       display: grid;
       grid-template-columns: repeat(100, 1fr);
-      gap: 1px;
+      gap: 1px; /* Strict 1px gap separating cells */
       width: 100%;
       max-width: 950px;
     }
@@ -545,11 +520,12 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       font-weight: bold;
       line-height: 1;
       user-select: none;
-      padding: 0;
-      margin: 0;
+      padding: 0; /* Zero internal padding */
+      margin: 0;  /* Zero margins */
+      image-rendering: pixelated;
     }
-    /* MS-DOS 6.22 Defrag Palette */
-    .theme-olddos .c-free { background-color: #0000aa; color: #55ffff; }
+    /* MS-DOS 6.22 Defrag Palette: Yellow background with blue dot/glyph for used blocks, solid cyan/teal for unused */
+    .theme-olddos .c-free { background-color: #005577; color: #005577; }
     .theme-olddos .c-opt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-unopt { background-color: #ffff55; color: #0000aa; }
     .theme-olddos .c-system { background-color: #ffff55; color: #aa0000; font-weight: 900; }
@@ -872,7 +848,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
           el.textContent = "■";
         } else {
           el.classList.add("c-free");
-          el.textContent = "▒";
+          // c-free uses solid retro background color (no character glyph needed)
         }
       } else if (currentTheme === 'dos') {
         if (c.state === "read") {
@@ -1139,11 +1115,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-COMMIT_MSG = """Force pixelated rendering and crisp edges for authentic MS-DOS fonts
+COMMIT_MSG = """Fix MS-DOS 6.22 unused blocks with solid retro color fill
 
-Update week10-file-management/03-filesystem-implementation.html with strict
-image-rendering: pixelated and disabled font smoothing rules so MS-DOS
-glyphs and UI elements render with authentic sharp, non-antialiased pixels.
+Update week10-file-management/03-filesystem-implementation.html to render
+unused blocks with a solid retro teal fill instead of stippling, preventing
+moiré interference while ensuring zero cell padding.
 """
 
 def run_git_step(cmd, desc):
@@ -1166,10 +1142,10 @@ def deploy_module():
         f.write(HTML_CONTENT)
     print(f"Wrote updated module file 03-filesystem-implementation.html to {target_file}")
 
-    run_git_step(["git", "add", target_file], "Staging pixelated non-antialiased font update")
+    run_git_step(["git", "add", target_file], "Staging solid retro unused blocks update")
     run_git_step(["git", "commit", "-a", "-m", COMMIT_MSG], "Committing changes")
     run_git_step(["git", "push", "origin", "main"], "Pushing main to origin")
-    print("--> Pixelated non-antialiased rendering successfully deployed!")
+    print("--> Solid retro unused blocks successfully deployed!")
 
 if __name__ == "__main__":
     deploy_module()
