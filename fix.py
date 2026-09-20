@@ -3,40 +3,1594 @@ import os
 import subprocess
 import sys
 
-def stage_and_commit_fix():
-    filename = "fix.py"
-    if not os.path.exists(filename):
-        print(f"Notice: {filename} does not exist in working directory. Searching for alternate fix scripts...")
-        # Search for any file matching fix*.py
-        import glob
-        candidates = glob.glob("fix*.py")
-        if candidates:
-            filename = candidates[0]
-            print(f"--> Found candidate script: {filename}")
-        else:
-            print(f"Error: No fix script found to commit.", file=sys.stderr)
-            sys.exit(1)
+COMPLETE_MODULE1_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.1 Hardware, Coherence &amp; OS Models — COSC240</title>
+  <!-- MathJax Configuration for LaTeX Rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.6;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .chapter-tag {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .lead-text {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-top: 6px;
+    }
+    .content-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .content-section h2 {
+      font-size: 1.4rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .content-section h3 {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-top: 8px;
+    }
+    p, li {
+      color: #334155;
+      font-size: 0.96rem;
+    }
+    ul, ol {
+      margin-left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .code-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.45;
+      white-space: pre;
+    }
+    table.spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 10px 0;
+    }
+    table.spec-table th, table.spec-table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    table.spec-table th {
+      background: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      padding: 14px 18px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.92rem;
+      color: #0369a1;
+    }
 
-    print(f"--> Staging {filename}...")
-    subprocess.run(["git", "add", filename], check=True)
+    /* Guided Walkthrough Panels */
+    .walkthrough-box {
+      background: #f8fafc;
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .walkthrough-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #bae6fd;
+      padding-bottom: 8px;
+    }
+    .walkthrough-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0369a1;
+    }
+    .step-badge {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #0284c7;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 9999px;
+    }
+    .instruction-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #0284c7;
+      padding: 14px 16px;
+      border-radius: 0 6px 6px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .instruction-card .action-req {
+      font-weight: bold;
+      color: #0369a1;
+      font-size: 0.92rem;
+    }
+    .instruction-card .action-exp {
+      font-size: 0.88rem;
+      color: #475569;
+    }
+    .walkthrough-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn-step {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-step:hover { background: #0369a1; }
+    .btn-reset {
+      background: #64748b;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+    }
+    .btn-reset:hover { background: #475569; }
+    .status-panel {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+      padding: 12px;
+      border-radius: 6px;
+      height: 115px;
+      overflow-y: auto;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
 
-    status_res = subprocess.run(["git", "diff", "--cached", "--quiet"])
-    if status_res.returncode == 0:
-        print(f"--> {filename} is already staged/committed. No changes to commit.")
-        return
+  <div class="wrapper">
+    <div class="nav-header">
+      <a href="../index.html" class="nav-btn">&larr; Week 11 Portal Index</a>
+      <a href="02-multiprocessor-scheduling.html" class="nav-btn">8.1.4 Scheduling &rarr;</a>
+    </div>
+
+    <header>
+      <span class="chapter-tag">Section 8.1</span>
+      <h1>Hardware, Coherence &amp; OS Models</h1>
+      <p class="lead-text">
+        Multiprocessor architectures, UMA versus NUMA topologies, bus-snooping coherence protocols, operating system concurrency models, and hardware atomics.
+      </p>
+    </header>
+
+    <!-- SECTION 8.1.1: HARDWARE & COHERENCE -->
+    <section class="content-section">
+      <h2>8.1.1 Multiprocessor Hardware &amp; Cache Coherence</h2>
+      <p>
+        Modern multiprocessing systems organize multiple CPU cores around shared physical memory. Depending on how memory is interconnected, architectures fall into two primary hardware categories:
+      </p>
+      <ul>
+        <li><strong>UMA (Uniform Memory Access):</strong> All processors share a common system bus connected to a centralized memory bank. Every CPU core experiences identical memory latency. However, as core counts scale beyond 8–16 cores, the shared bus saturates completely.</li>
+        <li><strong>NUMA (Non-Uniform Memory Access):</strong> Physical memory is partitioned and distributed locally across processor nodes connected via a high-speed interconnect fabric (e.g., AMD Infinity Fabric or Intel UPI). Accessing local node memory is fast (~20 ns), whereas accessing remote node memory incurs cross-node interconnect traversal latency (~80 ns).</li>
+      </ul>
+      <p>
+        <strong>The Cache Coherence Problem:</strong> Because CPU execution cores operate orders of magnitude faster than main memory, each core relies on high-speed private caches (L1 and L2). If CPU 0 modifies a variable in its private cache, CPU 1's private cache immediately becomes stale. To preserve memory consistency without routing every access back to slow main RAM, hardware controllers monitor the shared memory bus using cache coherence protocols.
+      </p>
+
+      <!-- GUIDED WALKTHROUGH 3: MESI PROTOCOL -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: MESI Cache Coherence Lifecycle</span>
+          <span id="mesi-step-badge" class="step-badge">Stage 1 of 4</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> This walkthrough animates how snooping hardware tracks state transitions across the 4 MESI states (Modified, Exclusive, Shared, Invalid) and forces cache-to-cache interventions when dirty lines are referenced.
+        </p>
+
+        <div class="instruction-card">
+          <div id="mesi-act-text" class="action-req">Action Required: Click 'Execute Step 1: CPU 0 Reads X' below.</div>
+          <div id="mesi-exp-text" class="action-exp">Initially, neither CPU cache holds Variable X (both are in the Invalid state). When CPU 0 reads X, it emits a BusRd broadcast. Because no other cache holds the line, it is loaded from RAM directly into CPU 0's cache in the <strong>Exclusive (E)</strong> state.</div>
+        </div>
+
+        <!-- Inline Interactive SVG Snooping Bus Diagram -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="mesi-snoop-svg" viewBox="0 0 740 290" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- CPU 0 Core & Cache -->
+            <rect id="svg-c0-box" x="40" y="20" width="280" height="95" fill="#f8fafc" stroke="#0284c7" stroke-width="2" rx="6"/>
+            <text x="180" y="38" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">CPU Core 0</text>
+
+            <rect id="svg-c0-tag" x="60" y="50" width="100" height="28" fill="#64748b" rx="4"/>
+            <text id="svg-c0-state-txt" x="110" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">State: I</text>
+
+            <rect id="svg-c0-data" x="180" y="50" width="120" height="28" fill="#e2e8f0" stroke="#cbd5e1" rx="4"/>
+            <text id="svg-c0-val-txt" x="240" y="68" text-anchor="middle" font-weight="bold" fill="#475569">Var X: --</text>
+            <text x="180" y="102" text-anchor="middle" font-size="9" fill="#64748b">Private L1/L2 Cache Array</text>
+
+            <!-- CPU 1 Core & Cache -->
+            <rect id="svg-c1-box" x="420" y="20" width="280" height="95" fill="#f8fafc" stroke="#64748b" stroke-width="2" rx="6"/>
+            <text x="560" y="38" text-anchor="middle" font-weight="bold" fill="#475569" font-size="12">CPU Core 1</text>
+
+            <rect id="svg-c1-tag" x="440" y="50" width="100" height="28" fill="#64748b" rx="4"/>
+            <text id="svg-c1-state-txt" x="490" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">State: I</text>
+
+            <rect id="svg-c1-data" x="560" y="50" width="120" height="28" fill="#e2e8f0" stroke="#cbd5e1" rx="4"/>
+            <text id="svg-c1-val-txt" x="620" y="68" text-anchor="middle" font-weight="bold" fill="#475569">Var X: --</text>
+            <text x="560" y="102" text-anchor="middle" font-size="9" fill="#64748b">Private L1/L2 Cache Array</text>
+
+            <!-- Snooping Taps from Caches to Bus -->
+            <line id="svg-tap-c0" x1="180" y1="115" x2="180" y2="160" stroke="#cbd5e1" stroke-width="3"/>
+            <circle id="svg-snoop-c0" cx="180" cy="160" r="5" fill="#94a3b8"/>
+
+            <line id="svg-tap-c1" x1="560" y1="115" x2="560" y2="160" stroke="#cbd5e1" stroke-width="3"/>
+            <circle id="svg-snoop-c1" cx="560" cy="160" r="5" fill="#94a3b8"/>
+
+            <!-- Shared Memory Bus Bar -->
+            <rect id="svg-bus-bar" x="30" y="155" width="680" height="12" fill="#0284c7" rx="3"/>
+            <text id="svg-bus-text" x="370" y="150" text-anchor="middle" font-size="10" font-weight="bold" fill="#0284c7">Shared System Memory Bus (Snoop Line Idle)</text>
+
+            <!-- Tap from Bus to Main RAM -->
+            <line id="svg-tap-ram" x1="370" y1="167" x2="370" y2="210" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Main RAM Bank -->
+            <rect id="svg-ram-box" x="250" y="210" width="240" height="60" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" rx="6"/>
+            <text x="370" y="232" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">Shared Main Memory (DRAM)</text>
+            <text id="svg-ram-val-txt" x="370" y="254" text-anchor="middle" font-weight="bold" fill="#0284c7" font-size="11">Address 0x1000 [Var X] = 42 (Clean)</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>CPU 0 Cache: <strong id="c0-summary-state" style="color:#64748b;">Invalid (I)</strong></div>
+          <div>CPU 1 Cache: <strong id="c1-summary-state" style="color:#64748b;">Invalid (I)</strong></div>
+          <div>Bus Activity: <span id="bus-activity-txt" style="font-weight:bold; color:#0284c7;">Idle</span></div>
+          <div>RAM State: <span id="ram-clean-txt" style="font-weight:bold; color:#10b981;">Clean (X = 42)</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-mesi-step" class="btn-step" onclick="stepMesiWalkthrough()">Execute Step 1: CPU 0 Reads X</button>
+          <button class="btn-reset" onclick="resetMesiWalkthrough()">Reset Protocol Walkthrough</button>
+        </div>
+
+        <div id="mesi-log" class="status-panel">-- Main Memory initialized with Variable X = 42. Both caches are empty (Invalid) --</div>
+      </div>
+    </section>
+
+    <!-- SECTION 8.1.2: MULTIPROCESSOR OS TYPES -->
+    <section class="content-section">
+      <h2>8.1.2 Multiprocessor Operating System Models</h2>
+      <p>
+        Structuring an operating system to manage multiple concurrent execution cores requires fundamental architectural decisions regarding kernel data structure placement, reentrancy, and synchronization boundaries. Computer architects have historically organized multiprocessor operating systems into three distinct models:
+      </p>
+
+      <h3>1. Each CPU Has Its Own Operating System (Static Partitioning)</h3>
+      <p>
+        Partitions physical memory into $N$ disjoint regions for $N$ processors. Each core executes an independent, private copy of the operating system kernel with its own run queue, process table, and buffer cache, eliminating kernel locking contention but preventing load balancing across cores.
+      </p>
+
+      <h3>2. Master-Slave Multiprocessors (Asymmetric Multiprocessing - ASMP)</h3>
+      <p>
+        Dedicates a single processor (the master, CPU 0) to executing the kernel, device drivers, and I/O interrupts. All other processors (slaves) execute user-space applications exclusively, creating a severe bottleneck when slave cores scale and flood the master with system call traps.
+      </p>
+
+      <h3>3. Symmetric Multiprocessing (SMP)</h3>
+      <p>
+        A single unified operating system image resides in shared physical memory. Every core can execute kernel code, service hardware interrupts, and schedule threads concurrently. Modern SMP kernels use fine-grained subsystem locking (per-core run queues, lockless RCU lists) to achieve true parallel performance.
+      </p>
+
+      <!-- GUIDED WALKTHROUGH 4: OS ARCHITECTURES -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Multiprocessor OS Concurrency Models</span>
+          <span id="os-step-badge" class="step-badge">Model 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> This walkthrough visually contrasts Partitioned Silos, Master-Slave bottlenecks, and Symmetric Multiprocessing (SMP) reentrancy.
+        </p>
+
+        <div class="instruction-card">
+          <div id="os-act-text" class="action-req">Action Required: Click 'Inspect Model 1: Partitioned Silos' below.</div>
+          <div id="os-exp-text" class="action-exp">Observe 4 CPUs running independent operating system copies. Notice that CPU 0 is severely backlogged with 4 runnable processes, while CPUs 1, 2, and 3 are completely idle because run queues cannot cross partition boundaries.</div>
+        </div>
+
+        <!-- Inline Interactive SVG OS Model Diagram -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="os-models-svg" viewBox="0 0 740 310" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- CPU Core Boxes (Top Row) -->
+            <rect id="os-cpu0-box" x="30" y="20" width="150" height="75" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="5"/>
+            <text x="105" y="40" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">CPU 0</text>
+            <text id="os-cpu0-role" x="105" y="58" text-anchor="middle" font-size="10" font-weight="bold" fill="#0284c7">Independent OS</text>
+            <text id="os-cpu0-work" x="105" y="76" text-anchor="middle" font-size="9" fill="#475569">Queue: 4 Tasks</text>
+
+            <rect id="os-cpu1-box" x="205" y="20" width="150" height="75" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="280" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 1</text>
+            <text id="os-cpu1-role" x="280" y="58" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">Independent OS</text>
+            <text id="os-cpu1-work" x="280" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Queue: [Idle]</text>
+
+            <rect id="os-cpu2-box" x="380" y="20" width="150" height="75" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="455" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 2</text>
+            <text id="os-cpu2-role" x="455" y="58" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">Independent OS</text>
+            <text id="os-cpu2-work" x="455" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Queue: [Idle]</text>
+
+            <rect id="os-cpu3-box" x="555" y="20" width="150" height="75" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="630" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 3</text>
+            <text id="os-cpu3-role" x="630" y="58" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">Independent OS</text>
+            <text id="os-cpu3-work" x="630" y="76" text-anchor="middle" font-size="9" fill="#94a3b8">Queue: [Idle]</text>
+
+            <!-- Trap / Dispatch Bus Lines -->
+            <line id="os-wire-0" x1="105" y1="95" x2="105" y2="155" stroke="#0284c7" stroke-width="3"/>
+            <line id="os-wire-1" x1="280" y1="95" x2="280" y2="155" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="os-wire-2" x1="455" y1="95" x2="455" y2="155" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="os-wire-3" x1="630" y1="95" x2="630" y2="155" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Kernel Memory Architecture (Bottom Region) -->
+            <rect id="os-kernel-pane" x="30" y="155" width="675" height="135" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" rx="6"/>
+
+            <g id="os-layout-partitioned">
+              <rect x="45" y="170" width="140" height="105" fill="#ffffff" stroke="#0284c7" stroke-dasharray="4,4" rx="4"/>
+              <text x="115" y="195" text-anchor="middle" font-weight="bold" fill="#0369a1">Private RAM 0</text>
+              <text x="115" y="215" text-anchor="middle" font-size="9" fill="#64748b">Private Kernel Code</text>
+              <text x="115" y="235" text-anchor="middle" font-size="9" fill="#64748b">Private Run Queue</text>
+              <text x="115" y="255" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">Severe Backlog (4)</text>
+
+              <rect x="210" y="170" width="140" height="105" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="4,4" rx="4"/>
+              <text x="280" y="195" text-anchor="middle" font-weight="bold" fill="#475569">Private RAM 1</text>
+              <text x="280" y="215" text-anchor="middle" font-size="9" fill="#64748b">Private Kernel Code</text>
+              <text x="280" y="235" text-anchor="middle" font-size="9" fill="#64748b">Private Run Queue</text>
+              <text x="280" y="255" text-anchor="middle" font-size="9" fill="#10b981" font-weight="bold">Starving (Idle)</text>
+
+              <rect x="385" y="170" width="140" height="105" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="4,4" rx="4"/>
+              <text x="455" y="195" text-anchor="middle" font-weight="bold" fill="#475569">Private RAM 2</text>
+              <text x="455" y="215" text-anchor="middle" font-size="9" fill="#64748b">Private Kernel Code</text>
+              <text x="455" y="235" text-anchor="middle" font-size="9" fill="#64748b">Private Run Queue</text>
+              <text x="455" y="255" text-anchor="middle" font-size="9" fill="#10b981" font-weight="bold">Starving (Idle)</text>
+
+              <rect x="550" y="170" width="140" height="105" fill="#ffffff" stroke="#94a3b8" stroke-dasharray="4,4" rx="4"/>
+              <text x="620" y="195" text-anchor="middle" font-weight="bold" fill="#475569">Private RAM 3</text>
+              <text x="620" y="215" text-anchor="middle" font-size="9" fill="#64748b">Private Kernel Code</text>
+              <text x="620" y="235" text-anchor="middle" font-size="9" fill="#64748b">Private Run Queue</text>
+              <text x="620" y="255" text-anchor="middle" font-size="9" fill="#10b981" font-weight="bold">Starving (Idle)</text>
+            </g>
+
+            <g id="os-layout-masterslave" style="display:none;">
+              <rect x="50" y="170" width="220" height="105" fill="#fef2f2" stroke="#ef4444" rx="4"/>
+              <text x="160" y="195" text-anchor="middle" font-weight="bold" fill="#991b1b">Master Kernel Space (CPU 0)</text>
+              <text x="160" y="215" text-anchor="middle" font-size="9" fill="#b91c1c">Single Process Table &amp; Drivers</text>
+              <text x="160" y="235" text-anchor="middle" font-size="9" fill="#b91c1c">Master Trapped Queue (3 Pending)</text>
+              <text x="160" y="255" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">Master Core Bottleneck (100%)</text>
+
+              <rect x="300" y="170" width="380" height="105" fill="#ffffff" stroke="#94a3b8" rx="4"/>
+              <text x="490" y="195" text-anchor="middle" font-weight="bold" fill="#334155">Slave User Memory (CPUs 1, 2, 3)</text>
+              <text x="490" y="220" text-anchor="middle" font-size="10" fill="#64748b">Slave CPUs execute user space code only (Ring 3).</text>
+              <text x="490" y="245" text-anchor="middle" font-size="10" fill="#ef4444" font-weight="bold">Trapped: All 3 slave cores stalled awaiting Master I/O!</text>
+            </g>
+
+            <g id="os-layout-smp" style="display:none;">
+              <rect x="45" y="170" width="645" height="105" fill="#f0fdf4" stroke="#16a34a" rx="4"/>
+              <text x="367" y="193" text-anchor="middle" font-weight="bold" fill="#166534" font-size="12">Unified Symmetric Multiprocessing (SMP) Shared Address Space</text>
+
+              <rect x="60" y="208" width="135" height="55" fill="#ffffff" stroke="#16a34a" rx="3"/>
+              <text x="127" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#15803d">Per-Core Run Queue 0</text>
+              <text x="127" y="248" text-anchor="middle" font-size="9" fill="#16a34a">Running Thread A</text>
+
+              <rect x="215" y="208" width="135" height="55" fill="#ffffff" stroke="#16a34a" rx="3"/>
+              <text x="282" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#15803d">VFS Inode Mutex</text>
+              <text x="282" y="248" text-anchor="middle" font-size="9" fill="#16a34a">Core 1: Lookup /etc</text>
+
+              <rect x="370" y="208" width="135" height="55" fill="#ffffff" stroke="#16a34a" rx="3"/>
+              <text x="437" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#15803d">Network NIC Spinlock</text>
+              <text x="437" y="248" text-anchor="middle" font-size="9" fill="#16a34a">Core 2: Packet RX</text>
+
+              <rect x="525" y="208" width="145" height="55" fill="#ffffff" stroke="#16a34a" rx="3"/>
+              <text x="597" y="228" text-anchor="middle" font-size="9" font-weight="bold" fill="#15803d">Per-Core Run Queue 3</text>
+              <text x="597" y="248" text-anchor="middle" font-size="9" fill="#16a34a">Running Thread B</text>
+            </g>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Active Architecture: <strong id="os-arch-name" style="color:#0284c7;">Partitioned OS Silos</strong></div>
+          <div>Kernel Reentrancy: <span id="os-reentrant-status" style="font-weight:bold; color:#ef4444;">None (Separate Kernels)</span></div>
+          <div>Synchronization: <span id="os-sync-status" style="font-weight:bold; color:#10b981;">No Locks Required</span></div>
+          <div>Load Balance: <span id="os-balance-status" style="font-weight:bold; color:#ef4444;">Severe Imbalance</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-os-step" class="btn-step" onclick="stepOsWalkthrough()">Inspect Model 2: Master-Slave</button>
+          <button class="btn-reset" onclick="resetOsWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="os-walkthrough-log" class="status-panel">-- Partitioned OS model active. CPU 0 is overloaded while peer cores sit idle. Click button above to step --</div>
+      </div>
+    </section>
+
+    <!-- SECTION 8.1.3: SYNCHRONIZATION & SPINLOCKS -->
+    <section class="content-section">
+      <h2>8.1.3 Multiprocessor Synchronization &amp; Cache Contention</h2>
+      <p>
+        On a uniprocessor system, mutual exclusion can be achieved simply by disabling hardware interrupts to prevent timer preemption. On a multiprocessor, disabling interrupts on Core 0 has zero effect on Core 1, which continues executing instructions concurrently.
+      </p>
+
+      <h3>1. Hardware Atomic Primitives</h3>
+      <p>
+        If an operating system attempts to implement a mutual exclusion lock using standard, non-atomic software read and write instructions, a race condition occurs whenever two cores attempt to claim the lock simultaneously:
+      </p>
+
+      <!-- Token-Highlighted Code Listing: Software Race Failure (clang-format style) -->
+      <div class="code-box">
+<span style="color:#64748b;">// NON-ATOMIC SOFTWARE FAILURE: Race window between read and write</span>
+<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Naive_Acquire</span>(<span style="color:#f43f5e;">volatile int</span> *lock)
+{
+    <span style="color:#f43f5e;">if</span> (*lock == <span style="color:#fbbf24;">0</span>) {
+        <span style="color:#64748b;">// Core 0 and Core 1 can both read 0 simultaneously</span>
+        *lock = <span style="color:#fbbf24;">1</span>;
+        <span style="color:#f43f5e;">return</span> <span style="color:#34d399;">1</span>; <span style="color:#64748b;">// Both cores believe they acquired the lock</span>
+    }
+    <span style="color:#f43f5e;">return</span> <span style="color:#fbbf24;">0</span>;
+}
+      </div>
+
+      <p>
+        To eliminate this vulnerability, processor architectures provide <strong>Atomic Read-Modify-Write (RMW) Instructions</strong>. These instructions guarantee that reading the old value and writing the new value occur as an indivisible, single-cycle operation across the entire memory hierarchy:
+      </p>
+
+      <!-- Token-Highlighted Code Listing: Hardware Atomic Primitives (clang-format style) -->
+      <div class="code-box">
+<span style="color:#64748b;">// 1. ATOMIC TEST-AND-SET (x86-64: LOCK XCHG)</span>
+<span style="color:#64748b;">// Atomically writes 1 to *lock and returns the previous value in a single bus transaction</span>
+<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Atomic_TestAndSet</span>(<span style="color:#f43f5e;">volatile int</span> *lock)
+{
+    <span style="color:#f43f5e;">int</span> old_val;
+
+    __asm__ <span style="color:#f43f5e;">volatile</span>(<span style="color:#a5b4fc;">"lock xchgl %0, %1"</span>
+                     : <span style="color:#a5b4fc;">"=r"</span>(old_val), <span style="color:#a5b4fc;">"+m"</span>(*lock)
+                     : <span style="color:#a5b4fc;">"0"</span>(<span style="color:#fbbf24;">1</span>)
+                     : <span style="color:#a5b4fc;">"memory"</span>);
+
+    <span style="color:#f43f5e;">return</span> old_val; <span style="color:#64748b;">// Returns 0 on success, 1 on busy</span>
+}
+
+<span style="color:#64748b;">// 2. ATOMIC COMPARE-AND-SWAP (x86-64: LOCK CMPXCHG)</span>
+<span style="color:#64748b;">// Updates *addr to new_val ONLY IF it currently holds expected_val</span>
+<span style="color:#f43f5e;">bool</span> <span style="color:#38bdf8;">Atomic_CompareAndSwap</span>(<span style="color:#f43f5e;">volatile int</span> *addr, <span style="color:#f43f5e;">int</span> expected_val, <span style="color:#f43f5e;">int</span> new_val)
+{
+    <span style="color:#f43f5e;">unsigned char</span> success;
+
+    __asm__ <span style="color:#f43f5e;">volatile</span>(<span style="color:#a5b4fc;">"lock cmpxchgl %3, %1;\n\t"</span>
+                     <span style="color:#a5b4fc;">"sete %0"</span>
+                     : <span style="color:#a5b4fc;">"=q"</span>(success), <span style="color:#a5b4fc;">"+m"</span>(*addr), <span style="color:#a5b4fc;">"+a"</span>(expected_val)
+                     : <span style="color:#a5b4fc;">"r"</span>(new_val)
+                     : <span style="color:#a5b4fc;">"memory"</span>);
+
+    <span style="color:#f43f5e;">return</span> (<span style="color:#f43f5e;">bool</span>)success;
+}
+      </div>
+
+      <!-- GUIDED WALKTHROUGH 6: ATOMIC PRIMITIVES -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Software Race Conditions vs. Hardware Atomics</span>
+          <span id="atom-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> This walkthrough visually demonstrates the race window between CPU cores. Observe why ordinary load-and-store instructions fail to prevent simultaneous lock acquisition, and how hardware atomic serialization enforces mutual exclusion.
+        </p>
+
+        <div class="instruction-card">
+          <div id="atom-act-text" class="action-req">Action Required: Click 'Simulate Stage 1: Non-Atomic Software Race' below.</div>
+          <div id="atom-exp-text" class="action-exp">Watch Core 0 and Core 1 attempt to acquire a lock using standard read-then-write code. Notice that both cores read <code>0</code> before either can write <code>1</code>, causing both to claim the lock simultaneously.</div>
+        </div>
+
+        <!-- Inline Interactive SVG Pipeline -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="atom-pipeline-svg" viewBox="0 0 740 260" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- Core 0 (Left) -->
+            <rect id="atom-c0-box" x="30" y="20" width="220" height="120" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="140" y="42" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">Core 0 Execution Pipeline</text>
+            <rect id="atom-c0-inst" x="45" y="55" width="190" height="32" fill="#ffffff" stroke="#cbd5e1" rx="3"/>
+            <text id="atom-c0-inst-txt" x="140" y="75" text-anchor="middle" font-weight="bold" fill="#334155">Instruction: IDLE</text>
+            <text id="atom-c0-reg-txt" x="140" y="115" text-anchor="middle" font-size="10" fill="#64748b">Register EAX: -- | Result: --</text>
+
+            <!-- Core 1 (Right) -->
+            <rect id="atom-c1-box" x="490" y="20" width="220" height="120" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="600" y="42" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">Core 1 Execution Pipeline</text>
+            <rect id="atom-c1-inst" x="505" y="55" width="190" height="32" fill="#ffffff" stroke="#cbd5e1" rx="3"/>
+            <text id="atom-c1-inst-txt" x="600" y="75" text-anchor="middle" font-weight="bold" fill="#334155">Instruction: IDLE</text>
+            <text id="atom-c1-reg-txt" x="600" y="115" text-anchor="middle" font-size="10" fill="#64748b">Register EAX: -- | Result: --</text>
+
+            <!-- Memory Bus / Interconnect Wire -->
+            <line id="atom-wire-c0" x1="140" y1="140" x2="140" y2="175" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="atom-wire-c1" x1="600" y1="140" x2="600" y2="175" stroke="#cbd5e1" stroke-width="3"/>
+            <line x1="140" y1="175" x2="600" y2="175" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="atom-wire-mem" x1="370" y1="175" x2="370" y2="195" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Lock Signal Indicator -->
+            <circle id="atom-lock-led" cx="370" cy="175" r="7" fill="#94a3b8"/>
+            <text id="atom-lock-label" x="370" y="165" text-anchor="middle" font-size="9" font-weight="bold" fill="#64748b">LOCK# Signal Inactive</text>
+
+            <!-- Shared Memory Cell (Bottom) -->
+            <rect id="atom-mem-box" x="250" y="195" width="240" height="50" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" rx="5"/>
+            <text x="370" y="215" text-anchor="middle" font-weight="bold" fill="#334155">Memory Address 0x9000 (*lock)</text>
+            <text id="atom-mem-val-txt" x="370" y="233" text-anchor="middle" font-weight="bold" fill="#0284c7" font-size="11">Current Value: 0 (Unlocked)</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Execution Mode: <strong id="atom-mode-txt" style="color:#ef4444;">Non-Atomic Software</strong></div>
+          <div>Core 0 Outcome: <span id="atom-c0-outcome" style="font-weight:bold; color:#64748b;">Awaiting Run</span></div>
+          <div>Core 1 Outcome: <span id="atom-c1-outcome" style="font-weight:bold; color:#64748b;">Awaiting Run</span></div>
+          <div>Mutual Exclusion: <span id="atom-mutex-status" style="font-weight:bold; color:#64748b;">Pending</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-atom-step" class="btn-step" onclick="stepAtomWalkthrough()">Simulate Stage 1: Non-Atomic Software Race</button>
+          <button class="btn-reset" onclick="resetAtomWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="atom-walkthrough-log" class="status-panel">-- Select a simulation stage above to evaluate atomicity across cores --</div>
+      </div>
+
+      <h3>2. The Cache-Line Bouncing Hazard</h3>
+      <p>
+        While spinlocks avoid the expensive latency of a context switch for short critical sections, naive spinlock implementations cause severe hardware degradation through <strong>cache-line bouncing</strong>.
+      </p>
+
+      <!-- Token-Highlighted Code Listing: Naive Spin-Loop (clang-format style) -->
+      <div class="code-box">
+<span style="color:#64748b;">// NAIVE SPINLOCK: Blindly issues atomic writes on every iteration</span>
+<span style="color:#f43f5e;">void</span> <span style="color:#38bdf8;">Naive_Spinlock_Acquire</span>(<span style="color:#f43f5e;">volatile int</span> *lock)
+{
+    <span style="color:#64748b;">// CRITICAL FLAW: TestAndSet is an atomic write instruction.</span>
+    <span style="color:#64748b;">// It forces the cache line to the Modified state on EVERY check!</span>
+    <span style="color:#f43f5e;">while</span> (Atomic_TestAndSet(lock) == <span style="color:#fbbf24;">1</span>) {
+        <span style="color:#64748b;">// Spins continuously, spamming BusUpgr invalidations across the bus</span>
+    }
+}
+      </div>
+
+      <div class="callout">
+        <strong>The Invalidation Storm Mechanics:</strong> When Core 0 holds the lock, its private cache holds the lock variable in the <strong>Modified (M)</strong> state. When Cores 1, 2, and 3 simultaneously execute <code>Atomic_TestAndSet()</code>, each core's cache controller must obtain the line in the Modified state, broadcasting a <code>BusUpgr</code> or <code>BusRdX</code> invalidation across the bus. The cache line bounces furiously between cores on every clock cycle, saturating memory bandwidth.
+      </div>
+
+      <h3>3. Optimization: Test-and-Test-and-Set (TTAS)</h3>
+      <p>
+        To prevent memory bus saturation, lock designers utilize <strong>Test-and-Test-and-Set (TTAS)</strong>. Instead of blindly issuing atomic write instructions on every iteration, a spinning CPU first inspects the lock using ordinary, non-atomic memory read instructions:
+      </p>
+
+      <!-- Token-Highlighted Code Listing: TTAS Spin-Loop (clang-format style) -->
+      <div class="code-box">
+<span style="color:#64748b;">// TEST-AND-TEST-AND-SET (TTAS) SPINLOCK: Silent local cache spinning</span>
+<span style="color:#f43f5e;">void</span> <span style="color:#38bdf8;">TTAS_Spinlock_Acquire</span>(<span style="color:#f43f5e;">volatile int</span> *lock)
+{
+    <span style="color:#f43f5e;">for</span> (;;) {
+        <span style="color:#64748b;">// Inner Test Phase: Read-only check. Spins locally in the Shared (S) state.</span>
+        <span style="color:#64748b;">// Generates ZERO bus traffic while the lock remains held by another core!</span>
+        <span style="color:#f43f5e;">while</span> (*lock == <span style="color:#fbbf24;">1</span>) {
+            __asm__ <span style="color:#f43f5e;">volatile</span>(<span style="color:#a5b4fc;">"pause"</span> ::: <span style="color:#a5b4fc;">"memory"</span>);
+        }
+
+        <span style="color:#64748b;">// Outer Test-and-Set Phase: Only issued when the lock is observed to be 0</span>
+        <span style="color:#f43f5e;">if</span> (Atomic_TestAndSet(lock) == <span style="color:#fbbf24;">0</span>) {
+            <span style="color:#f43f5e;">return</span>; <span style="color:#64748b;">// Successfully acquired exclusive ownership</span>
+        }
+    }
+}
+
+<span style="color:#64748b;">// RELEASE: Writing 0 invalidates peer cache lines and relinquishes ownership</span>
+<span style="color:#f43f5e;">void</span> <span style="color:#38bdf8;">TTAS_Spinlock_Release</span>(<span style="color:#f43f5e;">volatile int</span> *lock)
+{
+    *lock = <span style="color:#fbbf24;">0</span>;
+}
+      </div>
+
+      <!-- GUIDED WALKTHROUGH 5: SPINLOCK CONTENTION -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Spinlocks &amp; Cache-Line Bouncing</span>
+          <span id="sync-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> A spinlock is designed for low latency, but naive implementations can cripple multiprocessor performance through cache thrashing. This walkthrough demonstrates the physical reality of cache coherence during synchronization.
+        </p>
+
+        <div class="instruction-card">
+          <div id="sync-act-text" class="action-req">Action Required: Click 'Simulate Stage 1: Naive Spinlock Bouncing Storm' below.</div>
+          <div id="sync-exp-text" class="action-exp">CPU 0 holds the lock while executing a critical section. Watch CPUs 1, 2, and 3 simultaneously execute naive atomic <code>TestAndSet</code> writes. Notice how the lock cache line bounces constantly between Modified and Invalid across cores.</div>
+        </div>
+
+        <!-- Inline Interactive SVG Spinlock Diagram -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="sync-bounce-svg" viewBox="0 0 740 300" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- CPU 0: Lock Holder -->
+            <rect id="sync-c0-box" x="30" y="20" width="150" height="90" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" rx="5"/>
+            <text x="105" y="40" text-anchor="middle" font-weight="bold" fill="#15803d" font-size="12">CPU 0 (Holder)</text>
+            <rect id="sync-c0-tag" x="45" y="52" width="120" height="24" fill="#16a34a" rx="3"/>
+            <text id="sync-c0-state-txt" x="105" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Inside Lock (M)</text>
+            <text x="105" y="96" text-anchor="middle" font-size="9" fill="#15803d">Critical Section Active</text>
+
+            <!-- CPU 1: Contender -->
+            <rect id="sync-c1-box" x="205" y="20" width="150" height="90" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="280" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 1 (Contender)</text>
+            <rect id="sync-c1-tag" x="220" y="52" width="120" height="24" fill="#64748b" rx="3"/>
+            <text id="sync-c1-state-txt" x="280" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Cache: I</text>
+            <text id="sync-c1-op-txt" x="280" y="96" text-anchor="middle" font-size="9" fill="#64748b">Awaiting Run</text>
+
+            <!-- CPU 2: Contender -->
+            <rect id="sync-c2-box" x="380" y="20" width="150" height="90" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="455" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 2 (Contender)</text>
+            <rect id="sync-c2-tag" x="395" y="52" width="120" height="24" fill="#64748b" rx="3"/>
+            <text id="sync-c2-state-txt" x="455" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Cache: I</text>
+            <text id="sync-c2-op-txt" x="455" y="96" text-anchor="middle" font-size="9" fill="#64748b">Awaiting Run</text>
+
+            <!-- CPU 3: Contender -->
+            <rect id="sync-c3-box" x="555" y="20" width="150" height="90" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="630" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 3 (Contender)</text>
+            <rect id="sync-c3-tag" x="570" y="52" width="120" height="24" fill="#64748b" rx="3"/>
+            <text id="sync-c3-state-txt" x="630" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Cache: I</text>
+            <text id="sync-c3-op-txt" x="630" y="96" text-anchor="middle" font-size="9" fill="#64748b">Awaiting Run</text>
+
+            <!-- Snooping Taps to Bus -->
+            <line id="sync-tap-0" x1="105" y1="110" x2="105" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="sync-tap-1" x1="280" y1="110" x2="280" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="sync-tap-2" x1="455" y1="110" x2="455" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="sync-tap-3" x1="630" y1="110" x2="630" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Shared Memory Bus Bar -->
+            <rect id="sync-bus-bar" x="30" y="165" width="675" height="16" fill="#0284c7" rx="3"/>
+            <text id="sync-bus-txt" x="367" y="155" text-anchor="middle" font-size="10" font-weight="bold" fill="#0284c7">Shared Memory Bus: Idle</text>
+
+            <!-- Memory / Lock Status Panel (Bottom) -->
+            <rect x="30" y="200" width="675" height="85" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" rx="5"/>
+            <text x="50" y="225" font-size="11" font-weight="bold" fill="#334155">Lock Variable (Mutex Memory Line):</text>
+            <text id="sync-lock-status-txt" x="300" y="225" font-size="11" font-weight="bold" fill="#ef4444">Address 0x9000 = 1 [LOCKED by CPU 0]</text>
+
+            <text x="50" y="250" font-size="10" fill="#475569">Bus Arbitration Metric:</text>
+            <rect x="200" y="240" width="300" height="14" fill="#e2e8f0" rx="3"/>
+            <rect id="sync-bus-meter" x="200" y="240" width="0" height="14" fill="#10b981" rx="3"/>
+            <text id="sync-bus-pct" x="510" y="252" font-size="10" font-weight="bold" fill="#334155">0% Traffic</text>
+
+            <text id="sync-takeaway-txt" x="50" y="275" font-size="10" font-style="italic" fill="#64748b">Select a simulation stage above to observe cache coherence during lock contention.</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Lock Owner: <strong id="sync-owner-lbl" style="color:#16a34a;">CPU 0</strong></div>
+          <div>Spin Strategy: <strong id="sync-strat-lbl" style="color:#0284c7;">Awaiting Simulation</strong></div>
+          <div>Cache Line State: <span id="sync-line-lbl" style="font-weight:bold;">--</span></div>
+          <div>Bus Impact: <span id="sync-impact-lbl" style="font-weight:bold;">--</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-sync-step" class="btn-step" onclick="stepSyncWalkthrough()">Simulate Stage 1: Naive Spinlock Bouncing Storm</button>
+          <button class="btn-reset" onclick="resetSyncWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="sync-walkthrough-log" class="status-panel">-- Synchronization walkthrough ready. Click button above to begin --</div>
+      </div>
+    </section>
+
+    <div class="nav-header" style="border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="../index.html" class="nav-btn">&larr; Week 11 Portal Index</a>
+      <a href="02-multiprocessor-scheduling.html" class="nav-btn">8.1.4 Scheduling &rarr;</a>
+    </div>
+
+  </div>
+
+  <script>
+    // =======================================================
+    // 3. MESI CACHE COHERENCE SCRIPT
+    // =======================================================
+    let mesiStep = 1;
+
+    function resetMesiSvg() {
+      document.getElementById('svg-c0-tag').setAttribute('fill', '#64748b');
+      document.getElementById('svg-c0-state-txt').textContent = 'State: I';
+      document.getElementById('svg-c0-val-txt').textContent = 'Var X: --';
+      document.getElementById('svg-c0-box').setAttribute('stroke', '#0284c7');
+      document.getElementById('c0-summary-state').textContent = 'Invalid (I)';
+      document.getElementById('c0-summary-state').style.color = '#64748b';
+
+      document.getElementById('svg-c1-tag').setAttribute('fill', '#64748b');
+      document.getElementById('svg-c1-state-txt').textContent = 'State: I';
+      document.getElementById('svg-c1-val-txt').textContent = 'Var X: --';
+      document.getElementById('svg-c1-box').setAttribute('stroke', '#64748b');
+      document.getElementById('c1-summary-state').textContent = 'Invalid (I)';
+      document.getElementById('c1-summary-state').style.color = '#64748b';
+
+      document.getElementById('svg-tap-c0').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('svg-snoop-c0').setAttribute('fill', '#94a3b8');
+      document.getElementById('svg-tap-c1').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('svg-snoop-c1').setAttribute('fill', '#94a3b8');
+      document.getElementById('svg-tap-ram').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('svg-bus-bar').setAttribute('fill', '#0284c7');
+      document.getElementById('svg-bus-text').textContent = 'Shared System Memory Bus (Snoop Line Idle)';
+      document.getElementById('svg-bus-text').setAttribute('fill', '#0284c7');
+
+      document.getElementById('svg-ram-val-txt').textContent = 'Address 0x1000 [Var X] = 42 (Clean)';
+      document.getElementById('svg-ram-box').setAttribute('fill', '#e0f2fe');
+      document.getElementById('ram-clean-txt').textContent = 'Clean (X = 42)';
+      document.getElementById('ram-clean-txt').style.color = '#10b981';
+      document.getElementById('bus-activity-txt').textContent = 'Idle';
+    }
+
+    function appendMesiLog(msg) {
+      const el = document.getElementById('mesi-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function stepMesiWalkthrough() {
+      const btn = document.getElementById('btn-mesi-step');
+      const badge = document.getElementById('mesi-step-badge');
+      const act = document.getElementById('mesi-act-text');
+      const exp = document.getElementById('mesi-exp-text');
+
+      if (mesiStep === 1) {
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 1: CPU 0 Read Miss & Exclusive Allocation...';
+
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#3b82f6');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#3b82f6');
+        document.getElementById('svg-tap-ram').setAttribute('stroke', '#3b82f6');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#3b82f6');
+        document.getElementById('svg-bus-text').textContent = 'BusRd Broadcast: CPU 0 requesting Var X from RAM';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#3b82f6');
+
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#94a3b8');
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#3b82f6');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: E';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 42';
+        document.getElementById('c0-summary-state').textContent = 'Exclusive (E)';
+        document.getElementById('c0-summary-state').style.color = '#3b82f6';
+        document.getElementById('bus-activity-txt').textContent = 'BusRd Handshake';
+
+        appendMesiLog('1. CPU 0 checks its L1 cache: Tag miss on Variable X (currently Invalid).');
+        appendMesiLog('2. Memory Controller asserts BusRd on the shared bus.');
+        appendMesiLog('3. CPU 1 snoops BusRd: its cache line is Invalid, so it remains silent.');
+        appendMesiLog('4. Main RAM delivers X = 42. Since no peer cache claimed the line, CPU 0 adopts the Exclusive (E) state.');
+
+        mesiStep = 2;
+        badge.textContent = 'Stage 2 of 4';
+        act.textContent = 'Action Required: Click \'Execute Step 2: CPU 1 Reads X (Shared)\' below.';
+        exp.innerHTML = 'Now watch what happens when CPU 1 also reads Variable X. CPU 0 will snoop CPU 1\'s BusRd request on the shared wire, causing both caches to transition to <strong>Shared (S)</strong>.';
+        btn.textContent = 'Execute Step 2: CPU 1 Reads X (Shared)';
+      } else if (mesiStep === 2) {
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 2: CPU 1 Read Miss & Bus Snooping Intervention...';
+
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#10b981');
+        document.getElementById('svg-snoop-c1').setAttribute('fill', '#10b981');
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#10b981');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#10b981');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#10b981');
+        document.getElementById('svg-bus-text').textContent = 'BusRd Snooped: CPU 0 asserts SHARED line on bus';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#10b981');
+
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 42';
+        document.getElementById('c0-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c0-summary-state').style.color = '#10b981';
+
+        document.getElementById('svg-c1-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c1-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c1-val-txt').textContent = 'Var X: 42';
+        document.getElementById('svg-c1-box').setAttribute('stroke', '#10b981');
+        document.getElementById('c1-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c1-summary-state').style.color = '#10b981';
+
+        document.getElementById('bus-activity-txt').textContent = 'BusRd + Shared Flag';
+
+        appendMesiLog('1. CPU 1 triggers a read miss on Variable X and broadcasts BusRd.');
+        appendMesiLog('2. CPU 0 snoops BusRd: It detects that it currently owns the line in Exclusive mode.');
+        appendMesiLog('3. CPU 0 asserts the dedicated hardware "Shared" line on the memory bus.');
+        appendMesiLog('4. Both caches downgrade/adopt the Shared (S) state. Main RAM provides the data payload.');
+
+        mesiStep = 3;
+        badge.textContent = 'Stage 3 of 4';
+        act.textContent = 'Action Required: Click \'Execute Step 3: CPU 0 Writes X = 99 (Invalidate Peer)\' below.';
+        exp.innerHTML = 'CPU 0 now executes a write: <code>X = 99</code>. Because other caches hold a copy (State S), CPU 0 must broadcast an invalidation message (<code>BusUpgr</code>) to force CPU 1\'s copy into the <strong>Invalid (I)</strong> state.';
+        btn.textContent = 'Execute Step 3: CPU 0 Writes X = 99 (Invalidate Peer)';
+      } else if (mesiStep === 3) {
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 3: Write Invalidation & Transition to Modified...';
+
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#ef4444');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#ef4444');
+        document.getElementById('svg-snoop-c1').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-bus-text').textContent = 'BusUpgr Invalidation Broadcast: CPU 0 claims sole ownership';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#ef4444');
+
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: M';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 99';
+        document.getElementById('svg-c0-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('c0-summary-state').textContent = 'Modified (M - Dirty)';
+        document.getElementById('c0-summary-state').style.color = '#ef4444';
+
+        document.getElementById('svg-c1-tag').setAttribute('fill', '#64748b');
+        document.getElementById('svg-c1-state-txt').textContent = 'State: I';
+        document.getElementById('svg-c1-val-txt').textContent = 'Var X: --';
+        document.getElementById('svg-c1-box').setAttribute('stroke', '#64748b');
+        document.getElementById('c1-summary-state').textContent = 'Invalid (I)';
+        document.getElementById('c1-summary-state').style.color = '#64748b';
+
+        document.getElementById('ram-clean-txt').textContent = 'Stale (RAM has 42, CPU 0 has 99)';
+        document.getElementById('ram-clean-txt').style.color = '#ef4444';
+        document.getElementById('bus-activity-txt').textContent = 'BusUpgr Invalidation';
+
+        appendMesiLog('1. CPU 0 executes a store instruction: X = 99.');
+        appendMesiLog('2. Hardware sees line in Shared state: write permission must be obtained.');
+        appendMesiLog('3. CPU 0 asserts BusUpgr across the bus.');
+        appendMesiLog('4. CPU 1 snoops BusUpgr and immediately invalidates its local copy (S -> I).');
+        appendMesiLog('5. CPU 0 mutates its local cache and transitions to Modified (M). Main memory is now stale!');
+
+        mesiStep = 4;
+        badge.textContent = 'Stage 4 of 4';
+        act.textContent = 'Action Required: Click \'Execute Step 4: CPU 1 Reads Stale X (Dirty Flush)\' below.';
+        exp.innerHTML = 'CPU 1 tries to read Variable X again (Invalid miss). Observe how CPU 0 snoops the bus, halts RAM from responding, and flushes its dirty line (99) to preserve consistency.';
+        btn.textContent = 'Execute Step 4: CPU 1 Reads Stale X (Dirty Flush)';
+      } else if (mesiStep === 4) {
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 4: Cache Intervention & Dirty Line Writeback...';
+
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#f59e0b');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#f59e0b');
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#f59e0b');
+        document.getElementById('svg-snoop-c1').setAttribute('fill', '#f59e0b');
+        document.getElementById('svg-tap-ram').setAttribute('stroke', '#f59e0b');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#f59e0b');
+        document.getElementById('svg-bus-text').textContent = 'Cache Intervention: CPU 0 flushes dirty line (99) to RAM and CPU 1';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#f59e0b');
+
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 99';
+        document.getElementById('svg-c0-box').setAttribute('stroke', '#10b981');
+        document.getElementById('c0-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c0-summary-state').style.color = '#10b981';
+
+        document.getElementById('svg-c1-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c1-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c1-val-txt').textContent = 'Var X: 99';
+        document.getElementById('svg-c1-box').setAttribute('stroke', '#10b981');
+        document.getElementById('c1-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c1-summary-state').style.color = '#10b981';
+
+        document.getElementById('svg-ram-val-txt').textContent = 'Address 0x1000 [Var X] = 99 (Clean / Flushed)';
+        document.getElementById('ram-clean-txt').textContent = 'Clean (Flushed X = 99)';
+        document.getElementById('ram-clean-txt').style.color = '#10b981';
+        document.getElementById('bus-activity-txt').textContent = 'Intervention Flush';
+
+        appendMesiLog('1. CPU 1 experiences a Read Miss (Invalid) and issues BusRd.');
+        appendMesiLog('2. CPU 0 snoops BusRd and detects that it owns the line in the Modified (M) state.');
+        appendMesiLog('3. CPU 0 asserts a bus stall signal to halt DRAM, ensuring stale RAM data (42) is NOT returned.');
+        appendMesiLog('4. CPU 0 directly supplies the dirty value (99) to the bus, which both writes through to DRAM and satisfies CPU 1.');
+        appendMesiLog('5. Both CPU 0 and CPU 1 transition to Shared (S). Coherence is guaranteed!');
+
+        mesiStep = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough\' to review from Stage 1.';
+        exp.innerHTML = 'You traced the complete hardware lifecycle of the MESI protocol: <strong>Invalid &rarr; Exclusive &rarr; Shared &rarr; Modified &rarr; Cache Intervention Flush</strong>.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
+      }
+    }
+
+    function resetMesiWalkthrough() {
+      mesiStep = 1;
+      resetMesiSvg();
+      document.getElementById('mesi-step-badge').textContent = 'Stage 1 of 4';
+      document.getElementById('mesi-act-text').textContent = 'Action Required: Click \'Execute Step 1: CPU 0 Reads X\' below.';
+      document.getElementById('mesi-exp-text').innerHTML = 'Initially, neither CPU cache holds Variable X (both are in the Invalid state). When CPU 0 reads X, it emits a BusRd broadcast. Because no other cache holds the line, it is loaded from RAM directly into CPU 0\'s cache in the <strong>Exclusive (E)</strong> state.';
+      document.getElementById('btn-mesi-step').textContent = 'Execute Step 1: CPU 0 Reads X';
+      document.getElementById('mesi-log').innerHTML = '-- Reset protocol state. Variable X = 42 in RAM --';
+    }
+
+    // =======================================================
+    // 4. MULTIPROCESSOR OS MODELS SCRIPT
+    // =======================================================
+    let osStage = 1;
+
+    function appendOsLog(msg) {
+      const el = document.getElementById('os-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function resetOsVisualElements() {
+      document.getElementById('os-layout-partitioned').style.display = 'none';
+      document.getElementById('os-layout-masterslave').style.display = 'none';
+      document.getElementById('os-layout-smp').style.display = 'none';
+
+      ['0', '1', '2', '3'].forEach(id => {
+        const wire = document.getElementById(`os-wire-${id}`);
+        wire.setAttribute('stroke', '#cbd5e1');
+        wire.setAttribute('stroke-width', '3');
+
+        const box = document.getElementById(`os-cpu${id}-box`);
+        box.setAttribute('fill', '#f8fafc');
+        box.setAttribute('stroke', '#cbd5e1');
+      });
+    }
+
+    function stepOsWalkthrough() {
+      const btn = document.getElementById('btn-os-step');
+      const badge = document.getElementById('os-step-badge');
+      const act = document.getElementById('os-act-text');
+      const exp = document.getElementById('os-exp-text');
+
+      const archName = document.getElementById('os-arch-name');
+      const reentrant = document.getElementById('os-reentrant-status');
+      const syncStatus = document.getElementById('os-sync-status');
+      const balanceStatus = document.getElementById('os-balance-status');
+
+      if (osStage === 1) {
+        resetOsVisualElements();
+        document.getElementById('os-layout-masterslave').style.display = 'block';
+
+        const c0 = document.getElementById('os-cpu0-box');
+        c0.setAttribute('fill', '#fee2e2');
+        c0.setAttribute('stroke', '#ef4444');
+        document.getElementById('os-cpu0-role').textContent = 'Master (OS Kernel)';
+        document.getElementById('os-cpu0-work').textContent = 'CPU 100% (Saturated)';
+
+        ['1', '2', '3'].forEach(id => {
+          const box = document.getElementById(`os-cpu${id}-box`);
+          box.setAttribute('fill', '#fef2f2');
+          box.setAttribute('stroke', '#f87171');
+          document.getElementById(`os-cpu${id}-role`).textContent = 'Slave (User Only)';
+          document.getElementById(`os-cpu${id}-work`).textContent = 'Blocked on Syscall';
+
+          const wire = document.getElementById(`os-wire-${id}`);
+          wire.setAttribute('stroke', '#ef4444');
+          wire.setAttribute('stroke-width', '3');
+        });
+        document.getElementById('os-wire-0').setAttribute('stroke', '#ef4444');
+        document.getElementById('os-wire-0').setAttribute('stroke-width', '4');
+
+        archName.textContent = 'Master-Slave (ASMP)';
+        archName.style.color = '#ef4444';
+        reentrant.textContent = 'No (Single Master Core)';
+        reentrant.style.color = '#ef4444';
+        syncStatus.textContent = 'Simple (No Kernel Locks)';
+        syncStatus.style.color = '#10b981';
+        balanceStatus.textContent = 'Master Bottleneck';
+        balanceStatus.style.color = '#ef4444';
+
+        document.getElementById('os-walkthrough-log').innerHTML = '--> Model 2: Master-Slave Multiprocessor (ASMP) Active...';
+        appendOsLog('1. CPU 0 is designated as Master; CPUs 1, 2, 3 are user-space Slaves.');
+        appendOsLog('2. Slave cores execute applications. When they invoke read(), fork(), or open(), they trap to the Master.');
+        appendOsLog('3. Master core must sequentially service every interrupt and system call across all slaves.');
+        appendOsLog('4. Scalability Bottleneck: Slaves 1, 2, and 3 stall waiting for CPU 0.');
+
+        osStage = 2;
+        badge.textContent = 'Model 2 of 3';
+        act.textContent = 'Action Required: Click \'Inspect Model 3: Symmetric Multiprocessing (SMP)\' below.';
+        exp.innerHTML = 'Now observe modern <strong>Symmetric Multiprocessing (SMP)</strong>. A single shared kernel runs across all cores. Watch how fine-grained subsystem locking allows all 4 cores to execute kernel routines simultaneously.';
+        btn.textContent = 'Inspect Model 3: Symmetric Multiprocessing (SMP)';
+      } else if (osStage === 2) {
+        resetOsVisualElements();
+        document.getElementById('os-layout-smp').style.display = 'block';
+
+        ['0', '1', '2', '3'].forEach(id => {
+          const box = document.getElementById(`os-cpu${id}-box`);
+          box.setAttribute('fill', '#dcfce7');
+          box.setAttribute('stroke', '#16a34a');
+          document.getElementById(`os-cpu${id}-role`).textContent = 'SMP Core (Reentrant)';
+
+          const wire = document.getElementById(`os-wire-${id}`);
+          wire.setAttribute('stroke', '#16a34a');
+          wire.setAttribute('stroke-width', '3');
+        });
+
+        document.getElementById('os-cpu0-work').textContent = 'Kernel: Scheduler';
+        document.getElementById('os-cpu1-work').textContent = 'Kernel: VFS Inode';
+        document.getElementById('os-cpu2-work').textContent = 'Kernel: Network ISR';
+        document.getElementById('os-cpu3-work').textContent = 'User: Computing';
+
+        archName.textContent = 'Symmetric Multiprocessing (SMP)';
+        archName.style.color = '#16a34a';
+        reentrant.textContent = 'Fully Reentrant (All Cores)';
+        reentrant.style.color = '#16a34a';
+        syncStatus.textContent = 'Fine-Grained Locks / RCU';
+        syncStatus.style.color = '#0284c7';
+        balanceStatus.textContent = 'Dynamic Load Balancing';
+        balanceStatus.style.color = '#16a34a';
+
+        document.getElementById('os-walkthrough-log').innerHTML = '--> Model 3: Symmetric Multiprocessing (SMP) Active...';
+        appendOsLog('1. One shared operating system image resides in memory; all cores have symmetric supervisor privileges.');
+        appendOsLog('2. Fine-grained Locking: CPU 0 runs scheduling logic while CPU 1 traverses file inodes in parallel.');
+        appendOsLog('3. CPU 2 services a hardware network packet interrupt while CPU 3 computes a user thread.');
+        appendOsLog('4. True parallel concurrency achieved!');
+
+        osStage = 3;
+        badge.textContent = 'Model 3 of 3';
+        act.textContent = 'Action Required: Click \'Restart Walkthrough from Model 1\' below.';
+        exp.innerHTML = 'Walkthrough complete! You evaluated independent partitioned OS silos, master-slave serialization bottlenecks, and fine-grained SMP kernel concurrency.';
+        btn.textContent = 'Restart Walkthrough from Model 1';
+      } else if (osStage === 3) {
+        resetOsWalkthrough();
+      }
+    }
+
+    function resetOsWalkthrough() {
+      osStage = 1;
+      resetOsVisualElements();
+      document.getElementById('os-layout-partitioned').style.display = 'block';
+
+      const c0 = document.getElementById('os-cpu0-box');
+      c0.setAttribute('fill', '#f0f9ff');
+      c0.setAttribute('stroke', '#0284c7');
+      document.getElementById('os-cpu0-role').textContent = 'Independent OS';
+      document.getElementById('os-cpu0-work').textContent = 'Queue: 4 Tasks';
+      document.getElementById('os-wire-0').setAttribute('stroke', '#0284c7');
+
+      ['1', '2', '3'].forEach(id => {
+        document.getElementById(`os-cpu${id}-role`).textContent = 'Independent OS';
+        document.getElementById(`os-cpu${id}-work`).textContent = 'Queue: [Idle]';
+      });
+
+      document.getElementById('os-step-badge').textContent = 'Model 1 of 3';
+      document.getElementById('os-act-text').textContent = 'Action Required: Click \'Inspect Model 2: Master-Slave\' below.';
+      document.getElementById('os-exp-text').innerHTML = 'Observe 4 CPUs running independent operating system copies. Notice that CPU 0 is severely backlogged with 4 runnable processes, while CPUs 1, 2, and 3 are completely idle because run queues cannot cross partition boundaries.';
+
+      const archName = document.getElementById('os-arch-name');
+      archName.textContent = 'Partitioned OS Silos';
+      archName.style.color = '#0284c7';
+      const reentrant = document.getElementById('os-reentrant-status');
+      reentrant.textContent = 'None (Separate Kernels)';
+      reentrant.style.color = '#ef4444';
+      const syncStatus = document.getElementById('os-sync-status');
+      syncStatus.textContent = 'No Locks Required';
+      syncStatus.style.color = '#10b981';
+      const balanceStatus = document.getElementById('os-balance-status');
+      balanceStatus.textContent = 'Severe Imbalance';
+      balanceStatus.style.color = '#ef4444';
+
+      document.getElementById('btn-os-step').textContent = 'Inspect Model 2: Master-Slave';
+      document.getElementById('os-walkthrough-log').innerHTML = '-- Walkthrough reset. Partitioned OS model active --';
+    }
+
+    // =======================================================
+    // 5. ATOMIC & SPINLOCK CONTENTION WALKTHROUGH SCRIPT
+    // =======================================================
+    let atomStage = 1;
+    let syncStage = 1;
+
+    function appendAtomLog(msg) {
+      const el = document.getElementById('atom-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function resetAtomSvgElements() {
+      document.getElementById('atom-c0-box').setAttribute('fill', '#f8fafc');
+      document.getElementById('atom-c0-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c0-inst').setAttribute('fill', '#ffffff');
+      document.getElementById('atom-c0-inst').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c0-inst-txt').textContent = 'Instruction: IDLE';
+      document.getElementById('atom-c0-reg-txt').textContent = 'Register EAX: -- | Result: --';
+
+      document.getElementById('atom-c1-box').setAttribute('fill', '#f8fafc');
+      document.getElementById('atom-c1-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c1-inst').setAttribute('fill', '#ffffff');
+      document.getElementById('atom-c1-inst').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c1-inst-txt').textContent = 'Instruction: IDLE';
+      document.getElementById('atom-c1-reg-txt').textContent = 'Register EAX: -- | Result: --';
+
+      document.getElementById('atom-wire-c0').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-wire-c1').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-wire-mem').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-lock-led').setAttribute('fill', '#94a3b8');
+      document.getElementById('atom-lock-label').textContent = 'LOCK# Signal Inactive';
+      document.getElementById('atom-lock-label').setAttribute('fill', '#64748b');
+
+      document.getElementById('atom-mem-box').setAttribute('fill', '#f1f5f9');
+      document.getElementById('atom-mem-box').setAttribute('stroke', '#94a3b8');
+      document.getElementById('atom-mem-val-txt').textContent = 'Current Value: 0 (Unlocked)';
+      document.getElementById('atom-mem-val-txt').setAttribute('fill', '#0284c7');
+    }
+
+    function stepAtomWalkthrough() {
+      const btn = document.getElementById('btn-atom-step');
+      const badge = document.getElementById('atom-step-badge');
+      const act = document.getElementById('atom-act-text');
+      const exp = document.getElementById('atom-exp-text');
+
+      const modeTxt = document.getElementById('atom-mode-txt');
+      const c0Out = document.getElementById('atom-c0-outcome');
+      const c1Out = document.getElementById('atom-c1-outcome');
+      const mutexStat = document.getElementById('atom-mutex-status');
+
+      if (atomStage === 1) {
+        resetAtomSvgElements();
+        document.getElementById('atom-walkthrough-log').innerHTML = '--> Stage 1: Simulating Non-Atomic Software Race Window...';
+
+        document.getElementById('atom-c0-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('atom-c0-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-c0-inst').setAttribute('fill', '#fecaca');
+        document.getElementById('atom-c0-inst-txt').textContent = 'MOV EAX, [*lock]; MOV [*lock], 1';
+        document.getElementById('atom-c0-reg-txt').textContent = 'Read: EAX = 0 | Entered Critical Section!';
+
+        document.getElementById('atom-c1-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('atom-c1-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-c1-inst').setAttribute('fill', '#fecaca');
+        document.getElementById('atom-c1-inst-txt').textContent = 'MOV EAX, [*lock]; MOV [*lock], 1';
+        document.getElementById('atom-c1-reg-txt').textContent = 'Read: EAX = 0 | Entered Critical Section!';
+
+        document.getElementById('atom-wire-c0').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-wire-c1').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-wire-mem').setAttribute('stroke', '#ef4444');
+
+        document.getElementById('atom-mem-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('atom-mem-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-mem-val-txt').textContent = 'Current Value: 1 (Both Cores Mutated)';
+        document.getElementById('atom-mem-val-txt').setAttribute('fill', '#ef4444');
+
+        modeTxt.textContent = 'Non-Atomic Software (MOV)';
+        modeTxt.style.color = '#ef4444';
+        c0Out.textContent = 'Lock Claimed (False Winner)';
+        c0Out.style.color = '#ef4444';
+        c1Out.textContent = 'Lock Claimed (False Winner)';
+        c1Out.style.color = '#ef4444';
+        mutexStat.textContent = 'VIOLATED (Catastrophic Race)';
+        mutexStat.style.color = '#ef4444';
+
+        appendAtomLog('1. Core 0 and Core 1 simultaneously read 0 across the bus.');
+        appendAtomLog('2. Both cores write 1 and enter the critical section concurrently.');
+        appendAtomLog('Catastrophic Failure: Mutual exclusion violated!');
+
+        atomStage = 2;
+        badge.textContent = 'Stage 2 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 2: Atomic Test-and-Set Serialization\' below.';
+        exp.innerHTML = 'Now observe <code>LOCK XCHG</code> (Atomic Test-and-Set) asserting a hardware bus lock so only one core wins.';
+        btn.textContent = 'Simulate Stage 2: Atomic Test-and-Set Serialization';
+      } else if (atomStage === 2) {
+        resetAtomSvgElements();
+        document.getElementById('atom-walkthrough-log').innerHTML = '--> Stage 2: Hardware Atomic Test-and-Set Serialization (LOCK XCHG)...';
+
+        document.getElementById('atom-c0-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('atom-c0-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-c0-inst').setAttribute('fill', '#dcfce7');
+        document.getElementById('atom-c0-inst-txt').textContent = 'LOCK XCHG EAX, [*lock]';
+        document.getElementById('atom-c0-reg-txt').textContent = 'Returned: EAX = 0 | Lock ACQUIRED';
+
+        document.getElementById('atom-c1-box').setAttribute('fill', '#f0f9ff');
+        document.getElementById('atom-c1-box').setAttribute('stroke', '#0284c7');
+        document.getElementById('atom-c1-inst').setAttribute('fill', '#e0f2fe');
+        document.getElementById('atom-c1-inst-txt').textContent = 'LOCK XCHG EAX, [*lock]';
+        document.getElementById('atom-c1-reg-txt').textContent = 'Returned: EAX = 1 | Lock BUSY (Spin)';
+
+        document.getElementById('atom-wire-c0').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-wire-c1').setAttribute('stroke', '#0284c7');
+        document.getElementById('atom-wire-mem').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-lock-led').setAttribute('fill', '#16a34a');
+        document.getElementById('atom-lock-label').textContent = 'LOCK# Bus Signal Asserted (Indivisible)';
+        document.getElementById('atom-lock-label').setAttribute('fill', '#16a34a');
+
+        document.getElementById('atom-mem-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('atom-mem-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-mem-val-txt').textContent = 'Current Value: 1 [Locked by Core 0]';
+        document.getElementById('atom-mem-val-txt').setAttribute('fill', '#16a34a');
+
+        modeTxt.textContent = 'Hardware Atomic (LOCK XCHG)';
+        modeTxt.style.color = '#16a34a';
+        c0Out.textContent = 'Acquired (Old Val: 0)';
+        c0Out.style.color = '#16a34a';
+        c1Out.textContent = 'Rejected (Old Val: 1)';
+        c1Out.style.color = '#0284c7';
+        mutexStat.textContent = 'PRESERVED (Strictly 1 Winner)';
+        mutexStat.style.color = '#16a34a';
+
+        appendAtomLog('1. Hardware asserts LOCK# signal: Core 0 reads and writes in an indivisible transaction.');
+        appendAtomLog('2. Core 1\'s bus cycle is stalled by hardware until Core 0 finishes.');
+        appendAtomLog('Result: Core 0 safely enters critical section; Core 1 spins.');
+
+        atomStage = 3;
+        badge.textContent = 'Stage 3 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 3: Atomic Compare-and-Swap (CAS)\' below.';
+        exp.innerHTML = 'Observe <strong>Compare-and-Swap (CAS)</strong> rejecting updates when expected values do not match.';
+        btn.textContent = 'Simulate Stage 3: Atomic Compare-and-Swap (CAS)';
+      } else if (atomStage === 3) {
+        resetAtomSvgElements();
+        document.getElementById('atom-walkthrough-log').innerHTML = '--> Stage 3: Atomic Compare-and-Swap (LOCK CMPXCHG)...';
+
+        document.getElementById('atom-c0-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('atom-c0-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-c0-inst-txt').textContent = 'Inside Critical Section';
+        document.getElementById('atom-c0-reg-txt').textContent = 'Owner of Lock 0x9000';
+
+        document.getElementById('atom-c1-box').setAttribute('fill', '#f8fafc');
+        document.getElementById('atom-c1-box').setAttribute('stroke', '#64748b');
+        document.getElementById('atom-c1-inst').setAttribute('fill', '#f1f5f9');
+        document.getElementById('atom-c1-inst-txt').textContent = 'CAS(addr, expected=0, new=1)';
+        document.getElementById('atom-c1-reg-txt').textContent = 'ZF=0 (Failed: Actual value is 1)';
+
+        document.getElementById('atom-lock-led').setAttribute('fill', '#0284c7');
+        document.getElementById('atom-lock-label').textContent = 'LOCK CMPXCHG: Comparison Mismatch';
+        document.getElementById('atom-lock-label').setAttribute('fill', '#0284c7');
+
+        modeTxt.textContent = 'Atomic CAS (LOCK CMPXCHG)';
+        modeTxt.style.color = '#0284c7';
+        c0Out.textContent = 'Holding Lock';
+        c0Out.style.color = '#16a34a';
+        c1Out.textContent = 'CAS Failed (No Mutation)';
+        c1Out.style.color = '#64748b';
+        mutexStat.textContent = 'PRESERVED (Lockless Safety)';
+        mutexStat.style.color = '#16a34a';
+
+        appendAtomLog('1. Hardware compares memory value (1) with expected value (0).');
+        appendAtomLog('2. Comparison fails: Hardware aborts write and clears Zero Flag (ZF = 0).');
+        appendAtomLog('Takeaway: Atomic CAS is the cornerstone of lockless data structures.');
+
+        atomStage = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough from Stage 1\' to review.';
+        exp.innerHTML = 'You evaluated software race condition failures, atomic test-and-set serialization, and compare-and-swap verification.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
+      }
+    }
+
+    function resetAtomWalkthrough() {
+      atomStage = 1;
+      resetAtomSvgElements();
+      document.getElementById('atom-step-badge').textContent = 'Stage 1 of 3';
+      document.getElementById('atom-act-text').textContent = 'Action Required: Click \'Simulate Stage 1: Non-Atomic Software Race\' below.';
+      document.getElementById('atom-exp-text').innerHTML = 'Watch Core 0 and Core 1 attempt to acquire a lock using standard read-then-write code. Notice that both cores read <code>0</code> before either can write <code>1</code>, causing both to claim the lock simultaneously.';
+      document.getElementById('atom-mode-txt').textContent = 'Non-Atomic Software';
+      document.getElementById('atom-mode-txt').style.color = '#ef4444';
+      document.getElementById('atom-c0-outcome').textContent = 'Awaiting Run';
+      document.getElementById('atom-c0-outcome').style.color = '#64748b';
+      document.getElementById('atom-c1-outcome').textContent = 'Awaiting Run';
+      document.getElementById('atom-c1-outcome').style.color = '#64748b';
+      document.getElementById('atom-mutex-status').textContent = 'Pending';
+      document.getElementById('atom-mutex-status').style.color = '#64748b';
+      document.getElementById('btn-atom-step').textContent = 'Simulate Stage 1: Non-Atomic Software Race';
+      document.getElementById('atom-walkthrough-log').innerHTML = '-- Walkthrough reset. Ready to evaluate atomic hardware mechanisms --';
+    }
+
+    // =======================================================
+    // 6. SPINLOCK BOUNCING WALKTHROUGH SCRIPT
+    // =======================================================
+    function appendSyncLog(msg) {
+      const el = document.getElementById('sync-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function resetSyncSvgElements() {
+      ['0', '1', '2', '3'].forEach(id => {
+        const tap = document.getElementById(`sync-tap-${id}`);
+        tap.setAttribute('stroke', '#cbd5e1');
+        tap.setAttribute('stroke-width', '3');
+      });
+
+      ['1', '2', '3'].forEach(id => {
+        const box = document.getElementById(`sync-c${id}-box`);
+        box.setAttribute('fill', '#f8fafc');
+        box.setAttribute('stroke', '#cbd5e1');
+        document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#64748b');
+        document.getElementById(`sync-c${id}-state-txt`).textContent = 'Cache: I';
+      });
+
+      document.getElementById('sync-bus-bar').setAttribute('fill', '#0284c7');
+      document.getElementById('sync-bus-meter').setAttribute('width', '0');
+      document.getElementById('sync-bus-meter').setAttribute('fill', '#10b981');
+      document.getElementById('sync-bus-pct').textContent = '0% Traffic';
+    }
+
+    function stepSyncWalkthrough() {
+      const btn = document.getElementById('btn-sync-step');
+      const badge = document.getElementById('sync-step-badge');
+      const act = document.getElementById('sync-act-text');
+      const exp = document.getElementById('sync-exp-text');
+
+      const ownerLbl = document.getElementById('sync-owner-lbl');
+      const stratLbl = document.getElementById('sync-strat-lbl');
+      const lineLbl = document.getElementById('sync-line-lbl');
+      const impactLbl = document.getElementById('sync-impact-lbl');
+
+      if (syncStage === 1) {
+        resetSyncSvgElements();
+        document.getElementById('sync-walkthrough-log').innerHTML = '--> Stage 1: Naive Test-and-Set Spinlock Bouncing Storm...';
+
+        ['1', '2', '3'].forEach(id => {
+          const box = document.getElementById(`sync-c${id}-box`);
+          box.setAttribute('fill', '#fee2e2');
+          box.setAttribute('stroke', '#ef4444');
+          document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#ef4444');
+          document.getElementById(`sync-c${id}-state-txt`).textContent = 'Atomic Write (M)';
+          document.getElementById(`sync-c${id}-op-txt`).textContent = 'TestAndSet(&lock)';
+
+          const tap = document.getElementById(`sync-tap-${id}`);
+          tap.setAttribute('stroke', '#ef4444');
+          tap.setAttribute('stroke-width', '4');
+        });
+
+        document.getElementById('sync-bus-bar').setAttribute('fill', '#ef4444');
+        document.getElementById('sync-bus-txt').textContent = 'Bus Saturated: Invalidation Broadcast Storm (BusUpgr / BusRdX)';
+        document.getElementById('sync-bus-txt').setAttribute('fill', '#ef4444');
+        document.getElementById('sync-bus-meter').setAttribute('width', '300');
+        document.getElementById('sync-bus-meter').setAttribute('fill', '#ef4444');
+        document.getElementById('sync-bus-pct').textContent = '100% Saturated';
+        document.getElementById('sync-takeaway-txt').textContent = 'Danger: Constant atomic writes force exclusive cache line ownership back and forth.';
+
+        stratLbl.textContent = 'Naive Test-and-Set';
+        stratLbl.style.color = '#ef4444';
+        lineLbl.textContent = 'Rapid Invalidation (Bouncing)';
+        lineLbl.style.color = '#ef4444';
+        impactLbl.textContent = 'Severe Bus Saturation (100%)';
+        impactLbl.style.color = '#ef4444';
+
+        appendSyncLog('1. CPU 0 holds the lock and executes inside critical section.');
+        appendSyncLog('2. CPUs 1, 2, and 3 spin executing atomic TestAndSet writes.');
+        appendSyncLog('3. Cache Bouncing Storm: Bus hits 100% capacity!');
+
+        syncStage = 2;
+        badge.textContent = 'Stage 2 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 2: Test-and-Test-and-Set (TTAS)\' below.';
+        exp.innerHTML = 'Switch contender spinlocks to <strong>Test-and-Test-and-Set (TTAS)</strong>. Contenders spin using normal read instructions on local cache lines in the <strong>Shared (S)</strong> state. Watch bus traffic drop to zero.';
+        btn.textContent = 'Simulate Stage 2: Test-and-Test-and-Set (TTAS)';
+      } else if (syncStage === 2) {
+        resetSyncSvgElements();
+        document.getElementById('sync-walkthrough-log').innerHTML = '--> Stage 2: Test-and-Test-and-Set (TTAS) Local Shared Spinning...';
+
+        ['1', '2', '3'].forEach(id => {
+          const box = document.getElementById(`sync-c${id}-box`);
+          box.setAttribute('fill', '#f0f9ff');
+          box.setAttribute('stroke', '#0284c7');
+          document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#10b981');
+          document.getElementById(`sync-c${id}-state-txt`).textContent = 'Cache: Shared (S)';
+          document.getElementById(`sync-c${id}-op-txt`).textContent = 'Local Read (*lock == 1)';
+        });
+
+        document.getElementById('sync-bus-bar').setAttribute('fill', '#10b981');
+        document.getElementById('sync-bus-txt').textContent = 'Shared Memory Bus: Idle (0% Traffic - Local L1 Hits)';
+        document.getElementById('sync-bus-txt').setAttribute('fill', '#10b981');
+        document.getElementById('sync-bus-meter').setAttribute('width', '15');
+        document.getElementById('sync-bus-meter').setAttribute('fill', '#10b981');
+        document.getElementById('sync-bus-pct').textContent = '5% (Normal App Traffic)';
+        document.getElementById('sync-takeaway-txt').textContent = 'Success: Contenders spin on local L1 cache hits in Shared state.';
+
+        stratLbl.textContent = 'Test-and-Test-and-Set (TTAS)';
+        stratLbl.style.color = '#10b981';
+        lineLbl.textContent = 'Shared (S) in All Contender L1s';
+        lineLbl.style.color = '#10b981';
+        impactLbl.textContent = 'Zero Bus Contention (Quiet)';
+        impactLbl.style.color = '#10b981';
+
+        appendSyncLog('1. Contenders switch to TTAS: spin reading local cache.');
+        appendSyncLog('2. Memory Bus Traffic drops from 100% to near 0%!');
+
+        syncStage = 3;
+        badge.textContent = 'Stage 3 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 3: Lock Release & Handoff\' below.';
+        exp.innerHTML = 'Watch what happens when CPU 0 releases the lock by writing <code>*lock = 0</code>. Observe the single invalidation broadcast and how CPU 1 claims the lock.';
+        btn.textContent = 'Simulate Stage 3: Lock Release & Handoff';
+      } else if (syncStage === 3) {
+        resetSyncSvgElements();
+        document.getElementById('sync-walkthrough-log').innerHTML = '--> Stage 3: Lock Release & Controlled Handoff...';
+
+        document.getElementById('sync-c0-box').setAttribute('fill', '#f8fafc');
+        document.getElementById('sync-c0-box').setAttribute('stroke', '#cbd5e1');
+        document.getElementById('sync-c0-tag').setAttribute('fill', '#64748b');
+        document.getElementById('sync-c0-state-txt').textContent = 'Released (0)';
+
+        document.getElementById('sync-c1-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('sync-c1-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('sync-c1-tag').setAttribute('fill', '#16a34a');
+        document.getElementById('sync-c1-state-txt').textContent = 'Owner (M)';
+        document.getElementById('sync-c1-op-txt').textContent = 'CAS Succeeded!';
+        document.getElementById('sync-tap-1').setAttribute('stroke', '#16a34a');
+
+        ['2', '3'].forEach(id => {
+          document.getElementById(`sync-c${id}-box`).setAttribute('fill', '#f0f9ff');
+          document.getElementById(`sync-c${id}-box`).setAttribute('stroke', '#0284c7');
+          document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#10b981');
+          document.getElementById(`sync-c${id}-state-txt`).textContent = 'Cache: Shared (S)';
+          document.getElementById(`sync-c${id}-op-txt`).textContent = 'Spinning on 1';
+        });
+
+        document.getElementById('sync-lock-status-txt').textContent = 'Address 0x9000 = 1 [ACQUIRED by CPU 1]';
+        document.getElementById('sync-lock-status-txt').setAttribute('fill', '#16a34a');
+        document.getElementById('sync-bus-txt').textContent = 'Shared Memory Bus: Release & Re-acquisition Broadcast (Single Burst)';
+        document.getElementById('sync-bus-txt').setAttribute('fill', '#0284c7');
+        document.getElementById('sync-bus-meter').setAttribute('width', '60');
+        document.getElementById('sync-bus-meter').setAttribute('fill', '#0284c7');
+        document.getElementById('sync-bus-pct').textContent = '20% (Controlled Burst)';
+        document.getElementById('sync-takeaway-txt').textContent = 'Takeaway: TTAS confines bus traffic to lock transitions.';
+
+        ownerLbl.textContent = 'CPU 1 (New Holder)';
+        ownerLbl.style.color = '#16a34a';
+        stratLbl.textContent = 'TTAS + Atomic Exchange';
+        lineLbl.textContent = 'CPU 1: Modified, Peers: Shared';
+        lineLbl.style.color = '#0284c7';
+        impactLbl.textContent = 'Brief Burst, Then Quiet';
+        impactLbl.style.color = '#10b981';
+
+        appendSyncLog('1. CPU 0 releases lock (*lock = 0).');
+        appendSyncLog('2. Single invalidation broadcast invalidates Shared lines in contenders.');
+        appendSyncLog('3. CPU 1 wins atomic arbitration, acquiring the lock.');
+
+        syncStage = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough\' to review.';
+        exp.innerHTML = 'You evaluated naive spinlock cache bouncing, TTAS local cache spinning, and single-burst lock handoff.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
+      }
+    }
+
+    function resetSyncWalkthrough() {
+      syncStage = 1;
+      resetSyncSvgElements();
+
+      document.getElementById('sync-c0-box').setAttribute('fill', '#f0fdf4');
+      document.getElementById('sync-c0-box').setAttribute('stroke', '#16a34a');
+      document.getElementById('sync-c0-tag').setAttribute('fill', '#16a34a');
+      document.getElementById('sync-c0-state-txt').textContent = 'Inside Lock (M)';
+
+      ['1', '2', '3'].forEach(id => {
+        document.getElementById(`sync-c${id}-op-txt`).textContent = 'Awaiting Run';
+      });
+
+      document.getElementById('sync-lock-status-txt').textContent = 'Address 0x9000 = 1 [LOCKED by CPU 0]';
+      document.getElementById('sync-lock-status-txt').setAttribute('fill', '#ef4444');
+
+      document.getElementById('sync-step-badge').textContent = 'Stage 1 of 3';
+      document.getElementById('sync-act-text').textContent = 'Action Required: Click \'Simulate Stage 1: Naive Spinlock Bouncing Storm\' below.';
+      document.getElementById('sync-exp-text').innerHTML = 'CPU 0 holds the lock while executing a critical section. Watch CPUs 1, 2, and 3 simultaneously execute naive atomic <code>TestAndSet</code> writes. Notice how the cache line bounces constantly between Modified and Invalid across cores.';
+
+      document.getElementById('sync-owner-lbl').textContent = 'CPU 0';
+      document.getElementById('sync-owner-lbl').style.color = '#16a34a';
+      document.getElementById('sync-strat-lbl').textContent = 'Awaiting Simulation';
+      document.getElementById('sync-strat-lbl').style.color = '#0284c7';
+      document.getElementById('sync-line-lbl').textContent = '--';
+      document.getElementById('sync-line-lbl').style.color = '#334155';
+      document.getElementById('sync-impact-lbl').textContent = '--';
+      document.getElementById('sync-impact-lbl').style.color = '#334155';
+
+      document.getElementById('btn-sync-step').textContent = 'Simulate Stage 1: Naive Spinlock Bouncing Storm';
+      document.getElementById('sync-walkthrough-log').innerHTML = '-- Synchronization walkthrough reset. Ready to begin --';
+    }
+  </script>
+</body>
+</html>
+"""
+
+def execute_complete_rebuild():
+    target_path = os.path.join("week11-multiprocessors", "01-multiprocessor-hardware.html")
+    print(f"--> Overwriting {target_path} cleanly from scratch...")
+    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+
+    with open(target_path, "w", encoding="utf-8") as f:
+        f.write(COMPLETE_MODULE1_HTML)
+    print("--> 01-multiprocessor-hardware.html rebuilt successfully!")
+
+    print("--> Staging file...")
+    subprocess.run(["git", "add", target_path], check=True)
 
     commit_msg = (
-        "Track and commit repository utility fix script\n\n"
-        f"Include {filename} in git version control tracking to preserve helper code\n"
-        "used during curriculum verification and refactoring."
+        "Redo entire 01-multiprocessor-hardware.html page cleanly from scratch\n\n"
+        "Rebuild the complete Week 11 Hardware and Coherence module with clean layout,\n"
+        "token-highlighted clang-format code blocks, and fully integrated SVG walkthroughs."
     )
 
-    print("--> Committing changes...")
+    print("--> Committing clean rebuild...")
     subprocess.run(["git", "commit", "-m", commit_msg], check=True)
 
     print("--> Pushing changes to origin main...")
     subprocess.run(["git", "push", "origin", "main"], check=True)
-    print(f"--> Successfully committed and pushed {filename}!")
+    print("--> Section 8.1 successfully deployed!")
 
 if __name__ == "__main__":
-    stage_and_commit_fix()
+    execute_complete_rebuild()
