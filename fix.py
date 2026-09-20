@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Style all navigation index links across the repository
+# fix.py: Align week index header link styling with pagination buttons
 # =====================================================================
-import os
-import re
-import subprocess
+os_import = __import__('os')
+re_import = __import__('re')
+subprocess_import = __import__('subprocess')
 
 WEEK_TITLE_MAP = {
     "week01-operating-system-concepts": "Week 1: Operating System Concepts",
@@ -20,49 +20,52 @@ WEEK_TITLE_MAP = {
     "week12-security": "Week 12: Security"
 }
 
-def style_all_navigation_links():
+def align_navigation_pill_styling():
     repo_root = "."
     modified_files = []
 
-    styled_anchor_template = '<a href="index.html" style="color: inherit; text-decoration: none;">'
+    # Styled pill template matching pagination buttons
+    pill_template = '<a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">'
 
-    for root, dirs, files in os.walk(repo_root):
-        dir_name = os.path.basename(root)
+    for root, dirs, files in os_import.walk(repo_root):
+        dir_name = os_import.path.basename(root)
         week_title = WEEK_TITLE_MAP.get(dir_name)
         if not week_title:
             continue
 
         for file in files:
             if file.endswith(".html") and file != "index.html":
-                file_path = os.path.join(root, file)
+                file_path = os_import.path.join(root, file)
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 updated = False
                 new_content = content
 
-                # Replace any unstyled <a href="index.html"> tags in nav/header areas with styled ones
-                # Also catch existing style variations and standardize them
-                # First, fix existing malformed or unstyled anchor tags pointing to index.html
-                unstyled_patterns = [
-                    r'<a\s+href="index\.html"\s*>',
-                    r'<a\s+href="\./index\.html"\s*>',
-                    r'<a\s+href="index\.html"\s+style="[^"]*">',
+                # Replace any existing index.html anchor tag in nav/header with the pill-styled version
+                # Or wrap the week title if unstyled
+                old_anchor_patterns = [
+                    rf'<a\s+href="index\.html"\s+style="[^"]*">\s*{re_import.escape(week_title)}\s*</a>',
+                    rf'<a\s+href="index\.html"\s*>\s*{re_import.escape(week_title)}\s*</a>',
+                    rf'<a\s+href="\./index\.html"\s*>\s*{re_import.escape(week_title)}\s*</a>'
                 ]
 
-                for pat in unstyled_patterns:
-                    if re.search(pat, new_content):
-                        new_content = re.sub(pat, styled_anchor_template, new_content)
+                replaced = False
+                for pat in old_anchor_patterns:
+                    if re_import.search(pat, new_content):
+                        new_content = re_import.sub(pat, f'{pill_template}&larr; {week_title}</a>', new_content)
                         updated = True
+                        replaced = True
+                        break
 
-                # If the week title is present in the nav/header but not wrapped in an anchor at all, wrap it
-                if week_title in new_content and 'href="index.html"' not in new_content:
+                if not replaced and week_title in new_content:
+                    # Target header/nav block
                     header_pattern = r'(<header[^>]*>.*?</header>|<nav[^>]*>.*?</nav>|<div[^>]*class="[^"]*nav[^"]*"[^>]*>.*?</div>)'
-                    header_match = re.search(header_pattern, new_content, flags=re.DOTALL | re.IGNORECASE)
+                    header_match = re_import.search(header_pattern, new_content, flags=re_import.DOTALL | re_import.IGNORECASE)
                     if header_match:
                         h_block = header_match.group(1)
                         if week_title in h_block:
-                            new_h_block = h_block.replace(week_title, f'{styled_anchor_template}{week_title}</a>')
+                            new_h_block = h_block.replace(week_title, f'{pill_template}&larr; {week_title}</a>')
                             new_content = new_content.replace(h_block, new_h_block)
                             updated = True
 
@@ -70,23 +73,23 @@ def style_all_navigation_links():
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(new_content)
                     modified_files.append(file_path)
-                    print(f"--> Styled navigation index link in: {file_path}")
+                    print(f"--> Aligned navigation header pill styling in: {file_path}")
 
     if modified_files:
         try:
-            subprocess.run(["git", "add", "fix.py"] + modified_files, check=True)
+            subprocess_import.run(["git", "add", "fix.py"] + modified_files, check=True)
             commit_msg = (
-                "Style navigation index links with inherit color and no decoration\n\n"
-                "Update all week module HTML files to ensure navigation links pointing\n"
-                "to index.html inherit parent typography styles and suppress underlines."
+                "Align week index navigation header styling with pagination buttons\n\n"
+                "Update module HTML files across all week directories so the center week\n"
+                "index link matches the styled pill format of the previous/next buttons."
             )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for styled navigation links!")
+            subprocess_import.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess_import.run(["git", "push", "origin", "main"], check=True)
+            print("--> Git sync completed successfully for pill-styled navigation headers!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> All module navigation links are already styled correctly.")
+        print("--> All week index navigation headers are already styled as pills.")
 
 if __name__ == "__main__":
-    style_all_navigation_links()
+    align_navigation_pill_styling()
