@@ -264,16 +264,7 @@
       </p>
     </header>
 
-        <!-- WIKIPEDIA ASIDE BOX -->
-        <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 20px 0; font-size: 0.92rem; color: #0369a1;">
-          <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Context &amp; Further Reading</h4>
-          <p style="margin-bottom: 6px; color: #334155; font-size: 0.9rem;">
-            Explore the evolution of shared-memory architectures on Wikipedia:
-          </p>
-          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
-            <li><a href="https://en.wikipedia.org/wiki/Symmetric_multiprocessing" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Symmetric Multiprocessing (SMP)</a> &mdash; Historical development from early mainframes (Burroughs D825) to commercial Open Systems (Sequent).</li>
-          </ul>
-        </aside>
+        
 
     <!-- SECTION 8.1.1: HARDWARE & COHERENCE -->
     <section class="content-section">
@@ -389,6 +380,18 @@
       <p>
         A single unified operating system image resides in shared physical memory. Every core can execute kernel code, service hardware interrupts, and schedule threads concurrently. Modern SMP kernels use fine-grained subsystem locking (per-core run queues, lockless RCU lists) to achieve true parallel performance.
       </p>
+
+      
+        <!-- WIKIPEDIA ASIDE BOX -->
+        <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
+          <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Symmetric Multiprocessing (SMP)</h4>
+          <p style="margin-bottom: 8px; color: #334155; font-size: 0.9rem; line-height: 1.5;">
+            Symmetric Multiprocessing (SMP) evolved from early mainframe architectures such as the Burroughs D825 (1962) into commercial open-systems hardware pioneered by Sequent Computer Systems in the 1980s. Unlike asynchronous master-slave models where one CPU monopolizes kernel execution, SMP allows any processor to execute kernel code, service hardware interrupts, and schedule threads concurrently across a unified shared physical memory space.
+          </p>
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+            <li><a href="https://en.wikipedia.org/wiki/Symmetric_multiprocessing" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Symmetric Multiprocessing on Wikipedia</a></li>
+          </ul>
+        </aside>
 
       <!-- GUIDED WALKTHROUGH 4: OS ARCHITECTURES -->
       <div class="walkthrough-box">

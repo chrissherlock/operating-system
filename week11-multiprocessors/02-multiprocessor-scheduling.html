@@ -281,16 +281,7 @@
       </p>
     </header>
 
-        <!-- WIKIPEDIA ASIDE BOX -->
-        <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 20px 0; font-size: 0.92rem; color: #0369a1;">
-          <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Context &amp; Further Reading</h4>
-          <p style="margin-bottom: 6px; color: #334155; font-size: 0.9rem;">
-            Explore parallel scheduling research on Wikipedia:
-          </p>
-          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
-            <li><a href="https://en.wikipedia.org/wiki/Gang_scheduling" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Gang Scheduling</a> &mdash; Coordinated multi-core thread scheduling pioneered by John Ousterhout (1982).</li>
-          </ul>
-        </aside>
+        
 
         <!-- SECTION 1: TIMESHARING VS SPACESHARING & AFFINITY -->
     <section class="content-section">
@@ -368,6 +359,18 @@
           <strong>Hard Affinity:</strong> The application or administrator explicitly binds a thread to a specific set of cores using system calls (e.g., Linux <code>sched_setaffinity()</code> or Windows <code>SetThreadAffinityMask()</code>). The scheduler is forbidden from migrating the thread, guaranteeing deterministic cache locality at the cost of potential core underutilization.
         </li>
       </ul>
+
+      
+        <!-- WIKIPEDIA ASIDE BOX -->
+        <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
+          <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Gang Scheduling</h4>
+          <p style="margin-bottom: 8px; color: #334155; font-size: 0.9rem; line-height: 1.5;">
+            Gang scheduling was pioneered by John Ousterhout in 1982 to address the coordination failure of independent thread schedulers on parallel hardware. By scheduling related threads across multiple cores simultaneously (a two-dimensional matrix of Cores $\times$ Time Quanta), gang scheduling prevents preemption delays and blocking when cooperating threads communicate.
+          </p>
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+            <li><a href="https://en.wikipedia.org/wiki/Gang_scheduling" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Gang Scheduling on Wikipedia</a></li>
+          </ul>
+        </aside>
 
       <!-- GUIDED WALKTHROUGH: CACHE WARMTH & AFFINITY -->
       <div class="walkthrough-box">
