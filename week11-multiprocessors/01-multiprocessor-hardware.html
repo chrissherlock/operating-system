@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>8.1 Multiprocessors: Hardware, Cache Coherence &amp; OS Models — COSC240</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -165,106 +174,110 @@
       color: #0369a1;
     }
 
-    /* Interactive Simulator Styling */
-    .sim-container {
+    /* Guided Walkthrough Panels */
+    .walkthrough-box {
       background: #f8fafc;
-      border: 2px solid #cbd5e1;
+      border: 2px solid #0284c7;
       border-radius: 8px;
       padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-    .sim-header {
+    .walkthrough-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-bottom: 1px solid #bae6fd;
+      padding-bottom: 8px;
     }
-    .sim-title {
-      font-size: 1.1rem;
+    .walkthrough-title {
+      font-size: 1.15rem;
       font-weight: 700;
-      color: var(--text);
+      color: #0369a1;
     }
-    .sim-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
+    .step-badge {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #0284c7;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 9999px;
     }
-    .cpu-box {
+    .instruction-card {
       background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #0284c7;
+      padding: 14px 16px;
+      border-radius: 0 6px 6px 0;
       display: flex;
       flex-direction: column;
+      gap: 6px;
+    }
+    .instruction-card .action-req {
+      font-weight: bold;
+      color: #0369a1;
+      font-size: 0.92rem;
+    }
+    .instruction-card .action-exp {
+      font-size: 0.88rem;
+      color: #475569;
+    }
+    .walkthrough-controls {
+      display: flex;
       gap: 10px;
-    }
-    .cpu-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      font-family: var(--font-mono);
-      display: flex;
-      justify-content: space-between;
-    }
-    .cache-line {
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: #f1f5f9;
-      padding: 8px 10px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
+    }
+    .btn-step {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
       font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-step:hover { background: #0369a1; }
+    .btn-reset {
+      background: #64748b;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+    }
+    .btn-reset:hover { background: #475569; }
+    .status-panel {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+      padding: 12px;
+      border-radius: 6px;
+      height: 110px;
+      overflow-y: auto;
+      line-height: 1.5;
     }
     .state-badge {
       font-weight: 700;
       padding: 2px 8px;
       border-radius: 4px;
       color: #ffffff;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
     }
     .state-M { background-color: #ef4444; }
     .state-E { background-color: #3b82f6; }
     .state-S { background-color: #10b981; }
     .state-I { background-color: #64748b; }
-    .btn-group {
-      display: flex;
-      gap: 6px;
-    }
-    .btn-sim {
-      flex: 1;
-      background: #0284c7;
-      color: #ffffff;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-    .btn-sim:hover { background: #0369a1; }
-    .bus-log {
-      background: var(--code-bg);
-      color: var(--code-text);
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      padding: 12px;
-      border-radius: 6px;
-      height: 110px;
-      overflow-y: auto;
-    }
   </style>
-  <!-- MathJax Configuration for LaTeX Rendering -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
-      }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
@@ -286,7 +299,7 @@
     <section class="content-section">
       <h2>8.1.1 Multiprocessor Hardware</h2>
       <p>
-        A multiprocessor is a single computer system containing two or more physical CPUs (or CPU cores) that communicate directly by sharing a unified physical memory address space. Any CPU can write a memory address, and any other CPU can subsequently read that address.
+        A multiprocessor is a computer system containing two or more physical CPUs (or CPU cores) that communicate directly by sharing a unified physical memory address space. Any CPU can write a memory address, and any other CPU can subsequently read that address.
       </p>
 
       <h3>1. Uniform Memory Access (UMA) Architecture</h3>
@@ -365,6 +378,33 @@
         <span class="diagram-caption">Figure 8-1: UMA Bus Architecture (left) vs. Full Crossbar Switch Fabric (right).</span>
       </div>
 
+      <!-- GUIDED WALKTHROUGH 1: BUS VS CROSSBAR -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Bus Serialization vs. Crossbar Matrix</span>
+          <span id="bus-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <div class="instruction-card">
+          <div id="bus-instruction-act" class="action-req">Action Required: Click 'Run Stage 1: Shared Bus Serialization' below.</div>
+          <div id="bus-instruction-exp" class="action-exp">We will simulate 4 CPU cores (CPU 0, 1, 2, 3) asserting simultaneous read requests across a shared single-bus UMA architecture. Watch how the single-bus arbiter forces complete serialization.</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div id="box-cpu0" style="background:#ffffff; border:1px solid var(--border); padding:10px; border-radius:4px; text-align:center;">CPU 0 &rarr; Target: <strong>M0</strong></div>
+          <div id="box-cpu1" style="background:#ffffff; border:1px solid var(--border); padding:10px; border-radius:4px; text-align:center;">CPU 1 &rarr; Target: <strong>M1</strong></div>
+          <div id="box-cpu2" style="background:#ffffff; border:1px solid var(--border); padding:10px; border-radius:4px; text-align:center;">CPU 2 &rarr; Target: <strong>M2</strong></div>
+          <div id="box-cpu3" style="background:#ffffff; border:1px solid var(--border); padding:10px; border-radius:4px; text-align:center;">CPU 3 &rarr; Target: <strong>M3</strong></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-bus-action" class="btn-step" onclick="stepBusWalkthrough()">Run Stage 1: Shared Bus Serialization</button>
+          <button class="btn-reset" onclick="resetBusWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="bus-walkthrough-log" class="status-panel">-- Ready. Follow the Action Required instruction above to begin --</div>
+      </div>
+
       <h3>2. Non-Uniform Memory Access (NUMA) Architecture</h3>
       <p>
         To scale beyond dozens of cores without exponential switch costs, modern systems employ <strong>Non-Uniform Memory Access (NUMA)</strong>. In a NUMA machine:
@@ -377,107 +417,34 @@
       <div class="callout">
         <strong>The NUMA Factor:</strong> The ratio of remote memory access latency to local memory access latency is called the <em>NUMA factor</em>. Operating system schedulers and memory allocators must be NUMA-aware to allocate pages and schedule execution within the same NUMA node whenever possible.
       </div>
-    </section>
-    <!-- INTERACTIVE SIMULATOR: BUS VS CROSSBAR -->
-    <section class="content-section">
-      <div class="sim-container">
-        <div class="sim-header">
-          <span class="sim-title">Interactive Interconnect: Shared Bus vs. Crossbar Switch</span>
-          <div class="sim-controls" style="display:flex; gap:8px;">
-            <button class="btn-sim" onclick="executeBusCycle()">Simulate Shared Bus</button>
-            <button class="btn-sim" onclick="executeCrossbarCycle()">Simulate Crossbar Switch</button>
-            <button class="btn-sim" style="background:#64748b;" onclick="resetInterconnectSim()">Reset Targets</button>
-          </div>
-        </div>
-        <p style="font-size: 0.88rem; color: #475569;">
-          Configure target memory modules ($M_0$–$M_3$) for each CPU to compare bus serialization against crossbar matrix parallelism:
-        </p>
 
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-          <div class="cpu-box">
-            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 0 Target:</span>
-            <select id="target-cpu0" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
-              <option value="0" selected>Module M0</option>
-              <option value="1">Module M1</option>
-              <option value="2">Module M2</option>
-              <option value="3">Module M3</option>
-            </select>
-          </div>
-          <div class="cpu-box">
-            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 1 Target:</span>
-            <select id="target-cpu1" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
-              <option value="0">Module M0</option>
-              <option value="1" selected>Module M1</option>
-              <option value="2">Module M2</option>
-              <option value="3">Module M3</option>
-            </select>
-          </div>
-          <div class="cpu-box">
-            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 2 Target:</span>
-            <select id="target-cpu2" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
-              <option value="0">Module M0</option>
-              <option value="1">Module M1</option>
-              <option value="2" selected>Module M2</option>
-              <option value="3">Module M3</option>
-            </select>
-          </div>
-          <div class="cpu-box">
-            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 3 Target:</span>
-            <select id="target-cpu3" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
-              <option value="0">Module M0</option>
-              <option value="1">Module M1</option>
-              <option value="2">Module M2</option>
-              <option value="3" selected>Module M3</option>
-            </select>
-          </div>
+      <!-- GUIDED WALKTHROUGH 2: NUMA LATENCY -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: The NUMA Latency Penalty</span>
+          <span id="numa-step-badge" class="step-badge">Stage 1 of 2</span>
         </div>
 
-        <div id="interconnect-log" class="bus-log">-- Select memory targets and test interconnect throughput --</div>
+        <div class="instruction-card">
+          <div id="numa-instruction-act" class="action-req">Action Required: Click 'Execute Stage 1: Local RAM Hit' below.</div>
+          <div id="numa-instruction-exp" class="action-exp">Observe Core 0 reading data located in Node 0 RAM (`0x0000_0000`). Notice that this reference routes through the local on-chip integrated memory controller with zero interconnect traversal.</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Source: <strong>Core 0 (Node 0)</strong></div>
+          <div>Target Address: <span id="numa-addr-text">0x0000_0000 (Node 0 RAM)</span></div>
+          <div>Latency: <span id="numa-lat-val" style="font-weight:bold; color:#0284c7;">Awaiting Run</span></div>
+          <div>Penalty Ratio: <span id="numa-fac-val" style="font-weight:bold;">--</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-numa-action" class="btn-step" onclick="stepNumaWalkthrough()">Execute Stage 1: Local RAM Hit</button>
+          <button class="btn-reset" onclick="resetNumaWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="numa-walkthrough-log" class="status-panel">-- Ready. Follow the Action Required instruction to trace local vs. remote memory references --</div>
       </div>
     </section>
-
-    <!-- INTERACTIVE SIMULATOR: NUMA LATENCY -->
-    <section class="content-section">
-      <div class="sim-container">
-        <div class="sim-header">
-          <span class="sim-title">Interactive NUMA Latency &amp; Distance Calculator</span>
-          <button class="btn-sim" style="flex:0; width:140px;" onclick="dispatchNumaAccess()">Dispatch Access</button>
-        </div>
-        <p style="font-size: 0.88rem; color: #475569;">
-          Select the requesting core and target memory node to trace point-to-point interconnect hops and evaluate the NUMA factor:
-        </p>
-
-        <div style="display:flex; gap:16px; flex-wrap:wrap; background:#ffffff; padding:16px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono); font-size:0.85rem;">
-          <div>
-            Requesting Core:
-            <select id="numa-src" style="padding:4px 8px; margin-left:6px; border-radius:4px; border:1px solid var(--border);">
-              <option value="0">Core 0 (Node 0)</option>
-              <option value="1">Core 1 (Node 1)</option>
-              <option value="2">Core 2 (Node 2)</option>
-              <option value="3">Core 3 (Node 3)</option>
-            </select>
-          </div>
-          <div>
-            Target Memory Location:
-            <select id="numa-dest" style="padding:4px 8px; margin-left:6px; border-radius:4px; border:1px solid var(--border);">
-              <option value="0">Node 0 RAM (0x0000 - 0x3FFF)</option>
-              <option value="1">Node 1 RAM (0x4000 - 0x7FFF)</option>
-              <option value="2">Node 2 RAM (0x8000 - 0xBFFF)</option>
-              <option value="3">Node 3 RAM (0xC000 - 0xFFFF)</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="numa-result-display" style="background:#ffffff; padding:12px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono); font-size:0.85rem;">
-          Status: <span id="numa-hops" style="font-weight:bold; color:#0284c7;">Awaiting access</span> &bull;
-          Physical Access Latency: <span id="numa-latency" style="font-weight:bold;">--</span> &bull;
-          Effective NUMA Factor: <span id="numa-factor" style="font-weight:bold;">--</span>
-        </div>
-
-        <div id="numa-log" class="bus-log">-- Select source core and target address block --</div>
-      </div>
-    </section>
-
 
     <!-- SECTION: CACHE COHERENCE & MESI -->
     <section class="content-section">
@@ -485,16 +452,6 @@
       <p>
         When multiple CPUs maintain local caches of shared RAM, an inconsistent state arises if CPU A modifies variable $X$ in its local cache while CPU B holds an older copy in its cache. Hardware maintains consistency using <strong>Cache Coherence Protocols</strong>.
       </p>
-
-      <h3>Snooping vs. Directory-Based Coherence</h3>
-      <ul>
-        <li>
-          <strong>Bus Snooping (UMA):</strong> Every cache controller monitors (snoops) the shared memory bus. When a write occurs, all other caches observing the bus either invalidate or update their copies.
-        </li>
-        <li>
-          <strong>Directory-Based Protocols (NUMA):</strong> Without a broadcast bus, directories track which nodes hold copies of every memory line. Messages are routed point-to-point only to nodes holding cached replicas.
-        </li>
-      </ul>
 
       <h3>The 4-State MESI Protocol</h3>
       <table class="spec-table">
@@ -534,52 +491,46 @@
         </tbody>
       </table>
 
-      <!-- INTERACTIVE SIMULATOR: MESI PROTOCOL -->
-      <div class="sim-container">
-        <div class="sim-header">
-          <span class="sim-title">Interactive MESI Coherence Simulator</span>
-          <button class="btn-sim" style="flex:0; width:90px;" onclick="resetMesiSim()">Reset</button>
+      <!-- GUIDED WALKTHROUGH 3: MESI PROTOCOL -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: MESI Cache Coherence Lifecycle</span>
+          <span id="mesi-step-badge" class="step-badge">Stage 1 of 4</span>
         </div>
-        <p style="font-size: 0.88rem; color: #475569;">
-          Observe transitions on Variable X across two distinct CPU caches sharing a snooped memory bus:
-        </p>
 
-        <div class="sim-grid">
-          <div class="cpu-box">
-            <div class="cpu-title">
-              <span>CPU 0 Core</span>
-              <span id="cpu0-status" class="state-badge state-I">State: I</span>
+        <div class="instruction-card">
+          <div id="mesi-instruction-act" class="action-req">Action Required: Click 'Execute Step 1: CPU 0 Reads X' below.</div>
+          <div id="mesi-instruction-exp" class="action-exp">Initially, neither CPU cache holds Variable X (both are in the Invalid state). When CPU 0 reads X, it emits a BusRd broadcast. Because no other cache holds the line, it is loaded from RAM directly into CPU 0's cache in the <strong>Exclusive (E)</strong> state.</div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div id="box-c0-cache" style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:14px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-family:var(--font-mono); font-size:0.85rem;">
+              <span>CPU 0 Cache</span>
+              <span id="badge-c0" class="state-badge state-I">State: I</span>
             </div>
-            <div class="cache-line">
-              <span>Variable X:</span>
-              <span id="cpu0-val" style="font-weight: bold;">--</span>
-            </div>
-            <div class="btn-group">
-              <button class="btn-sim" onclick="performCpuRead(0)">Read X</button>
-              <button class="btn-sim" onclick="performCpuWrite(0)">Write X</button>
+            <div style="font-family:var(--font-mono); font-size:0.85rem; background:#f1f5f9; padding:6px; border-radius:4px;">
+              Variable X: <span id="val-c0" style="font-weight:bold;">--</span>
             </div>
           </div>
 
-          <div class="cpu-box">
-            <div class="cpu-title">
-              <span>CPU 1 Core</span>
-              <span id="cpu1-status" class="state-badge state-I">State: I</span>
+          <div id="box-c1-cache" style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:14px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-family:var(--font-mono); font-size:0.85rem;">
+              <span>CPU 1 Cache</span>
+              <span id="badge-c1" class="state-badge state-I">State: I</span>
             </div>
-            <div class="cache-line">
-              <span>Variable X:</span>
-              <span id="cpu1-val" style="font-weight: bold;">--</span>
-            </div>
-            <div class="btn-group">
-              <button class="btn-sim" onclick="performCpuRead(1)">Read X</button>
-              <button class="btn-sim" onclick="performCpuWrite(1)">Write X</button>
+            <div style="font-family:var(--font-mono); font-size:0.85rem; background:#f1f5f9; padding:6px; border-radius:4px;">
+              Variable X: <span id="val-c1" style="font-weight:bold;">--</span>
             </div>
           </div>
         </div>
 
-        <div>
-          <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">Bus Transaction Broadcast Log:</span>
-          <div id="bus-log" class="bus-log">-- Memory Bus Idle. Main Memory X = 42 --</div>
+        <div class="walkthrough-controls">
+          <button id="btn-mesi-action" class="btn-step" onclick="stepMesiWalkthrough()">Execute Step 1: CPU 0 Reads X</button>
+          <button class="btn-reset" onclick="resetMesiWalkthrough()">Reset Protocol Walkthrough</button>
         </div>
+
+        <div id="mesi-walkthrough-log" class="status-panel">-- Main Memory initialized with Variable X = 42. Both caches are empty (Invalid) --</div>
       </div>
     </section>
 
@@ -662,195 +613,250 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
   </div>
 
   <script>
-    // State machine implementation for MESI simulator
-    const mesiState = {
-      val: 42,
-      cpus: [
-        { state: 'I', val: null },
-        { state: 'I', val: null }
-      ]
-    };
+    // ==========================================
+    // WALKTHROUGH 1: BUS VS CROSSBAR CONTROLLER
+    // ==========================================
+    let busStage = 1;
 
-    function appendBusLog(message) {
-      const logElement = document.getElementById('bus-log');
-      const timeStr = new Date().toLocaleTimeString().split(' ')[0];
-      logElement.innerHTML += `<br>[${timeStr}] ${message}`;
-      logElement.scrollTop = logElement.scrollHeight;
-    }
-
-    function syncSimUi() {
-      for (let i = 0; i < 2; i++) {
-        const badge = document.getElementById(`cpu${i}-status`);
-        const valElem = document.getElementById(`cpu${i}-val`);
-        const st = mesiState.cpus[i].state;
-
-        badge.className = `state-badge state-${st}`;
-        badge.innerText = `State: ${st}`;
-
-        if (st === 'I') {
-          valElem.innerText = '--';
-        } else {
-          valElem.innerText = mesiState.cpus[i].val;
-        }
-      }
-    }
-
-    function performCpuRead(cpuId) {
-      const otherId = 1 - cpuId;
-      const curState = mesiState.cpus[cpuId].state;
-
-      if (curState !== 'I') {
-        appendBusLog(`CPU ${cpuId}: Read Hit (State ${curState}). No bus traffic.`);
-        return;
-      }
-
-      // Read Miss
-      appendBusLog(`CPU ${cpuId}: Read Miss (I). Emitting BusRd...`);
-      if (mesiState.cpus[otherId].state === 'M') {
-        appendBusLog(`Bus: CPU ${otherId} snooped BusRd in Modified state! Flushing dirty data to RAM.`);
-        mesiState.val = mesiState.cpus[otherId].val;
-        mesiState.cpus[otherId].state = 'S';
-        mesiState.cpus[cpuId].state = 'S';
-        mesiState.cpus[cpuId].val = mesiState.val;
-      } else if (mesiState.cpus[otherId].state === 'E' || mesiState.cpus[otherId].state === 'S') {
-        appendBusLog(`Bus: CPU ${otherId} holds copy. Line transitions to Shared (S).`);
-        mesiState.cpus[otherId].state = 'S';
-        mesiState.cpus[cpuId].state = 'S';
-        mesiState.cpus[cpuId].val = mesiState.val;
-      } else {
-        appendBusLog(`Bus: No other cache holds line. Supplied by RAM. State Exclusive (E).`);
-        mesiState.cpus[cpuId].state = 'E';
-        mesiState.cpus[cpuId].val = mesiState.val;
-      }
-      syncSimUi();
-    }
-
-    function performCpuWrite(cpuId) {
-      const otherId = 1 - cpuId;
-      const curState = mesiState.cpus[cpuId].state;
-      const nextVal = Math.floor(Math.random() * 90) + 10;
-
-      if (curState === 'M') {
-        appendBusLog(`CPU ${cpuId}: Write Hit (Already Modified). Updating value to ${nextVal}.`);
-        mesiState.cpus[cpuId].val = nextVal;
-      } else if (curState === 'E') {
-        appendBusLog(`CPU ${cpuId}: Write Hit (Exclusive). Silent transition to Modified (M). Val=${nextVal}.`);
-        mesiState.cpus[cpuId].state = 'M';
-        mesiState.cpus[cpuId].val = nextVal;
-      } else {
-        // State S or I
-        appendBusLog(`CPU ${cpuId}: Write Miss / Invalidation request. Emitting BusRdX.`);
-        if (mesiState.cpus[otherId].state !== 'I') {
-          appendBusLog(`Bus: CPU ${otherId} snooped BusRdX. Invalidation forced (State -> I).`);
-          mesiState.cpus[otherId].state = 'I';
-          mesiState.cpus[otherId].val = null;
-        }
-        mesiState.cpus[cpuId].state = 'M';
-        mesiState.cpus[cpuId].val = nextVal;
-      }
-      syncSimUi();
-    }
-
-    function resetMesiSim() {
-      mesiState.val = 42;
-      mesiState.cpus[0] = { state: 'I', val: null };
-      mesiState.cpus[1] = { state: 'I', val: null };
-      document.getElementById('bus-log').innerHTML = '-- Memory Bus Reset. Main Memory X = 42 --';
-      syncSimUi();
-    }
-  </script>
-
-  <script>
-    // Interconnect simulation
-    function appendInterconnectLog(msg) {
-      const el = document.getElementById('interconnect-log');
+    function appendBusLog(msg) {
+      const el = document.getElementById('bus-walkthrough-log');
       el.innerHTML += '<br>' + msg;
       el.scrollTop = el.scrollHeight;
     }
 
-    function executeBusCycle() {
-      const targets = [
-        document.getElementById('target-cpu0').value,
-        document.getElementById('target-cpu1').value,
-        document.getElementById('target-cpu2').value,
-        document.getElementById('target-cpu3').value
-      ];
-      document.getElementById('interconnect-log').innerHTML = '--> Simulating Shared Bus Arbitration...';
-      appendInterconnectLog('All 4 CPUs assert bus request simultaneously.');
-      appendInterconnectLog('Bus Arbiter selects CPU 0. Transferring to M' + targets[0] + ' (100% bus utilization).');
-      appendInterconnectLog('CPUs 1, 2, 3 stalled in wait state. Total time: 4 cycles serialized.');
+    function stepBusWalkthrough() {
+      const btn = document.getElementById('btn-bus-action');
+      const badge = document.getElementById('bus-step-badge');
+      const req = document.getElementById('bus-instruction-act');
+      const exp = document.getElementById('bus-instruction-exp');
+
+      if (busStage === 1) {
+        // Run Shared Bus
+        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 1: Shared Single Bus Arbitration...';
+        appendBusLog('All 4 CPUs assert simultaneous read requests across the shared bus.');
+        appendBusLog('Cycle 1: Arbiter grants CPU 0 &rarr; M0. CPUs 1, 2, 3 stalled.');
+        appendBusLog('Cycle 2: Arbiter grants CPU 1 &rarr; M1. CPUs 2, 3 stalled.');
+        appendBusLog('Cycle 3: Arbiter grants CPU 2 &rarr; M2. CPU 3 stalled.');
+        appendBusLog('Cycle 4: Arbiter grants CPU 3 &rarr; M3. All requests complete.');
+        appendBusLog('Result: Total time = 4 full clock cycles due to bus serialization.');
+
+        busStage = 2;
+        badge.innerText = 'Stage 2 of 3';
+        req.innerText = 'Action Required: Click \'Run Stage 2: Crossbar Parallel Switch\' below.';
+        exp.innerText = 'Now observe the exact same 4 concurrent read requests executing over an n x m Crossbar Switch matrix. Notice how independent crosspoints allow all 4 transfers to complete in a single cycle.';
+        btn.innerText = 'Run Stage 2: Crossbar Parallel Switch';
+      } else if (busStage === 2) {
+        // Run Crossbar Non-conflicting
+        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 2: Crossbar Matrix Parallel Access...';
+        appendBusLog('Crossbar Switch connects (CPU0 &rarr; M0), (CPU1 &rarr; M1), (CPU2 &rarr; M2), (CPU3 &rarr; M3).');
+        appendBusLog('Crosspoints (0,0), (1,1), (2,2), (3,3) close simultaneously.');
+        appendBusLog('Result: Zero bus contention! All 4 transfers complete concurrently in Cycle 1 (4x throughput).');
+
+        busStage = 3;
+        badge.innerText = 'Stage 3 of 3';
+        req.innerText = 'Action Required: Click \'Run Stage 3: Crossbar Port Contention\' below.';
+        exp.innerText = 'What happens when two CPUs target the same memory bank? Observe CPU 0 and CPU 1 both requesting Module M0 simultaneously.';
+        btn.innerText = 'Run Stage 3: Crossbar Port Contention';
+      } else if (busStage === 3) {
+        // Run Crossbar Port Conflict
+        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 3: Port Contention on Crossbar...';
+        appendBusLog('CPU 0 and CPU 1 both target Module M0. CPUs 2 and 3 target M2 and M3.');
+        appendBusLog('Cycle 1: Non-conflicting transfers (CPU2 &rarr; M2) and (CPU3 &rarr; M3) succeed immediately.');
+        appendBusLog('Cycle 1: M0 port arbiter grants CPU 0; CPU 1 is stalled.');
+        appendBusLog('Cycle 2: CPU 1 completes access to M0.');
+        appendBusLog('Lesson: A crossbar eliminates bus contention, but port contention still serializes access to the same memory module.');
+
+        busStage = 1;
+        badge.innerText = 'Complete (Ready to Restart)';
+        req.innerText = 'Walkthrough Complete. Click \'Restart Walkthrough\' to begin again.';
+        exp.innerText = 'You have compared single-bus serialization, crossbar matrix parallelism, and crosspoint port contention.';
+        btn.innerText = 'Restart Walkthrough from Stage 1';
+      }
     }
 
-    function executeCrossbarCycle() {
-      const targets = [
-        document.getElementById('target-cpu0').value,
-        document.getElementById('target-cpu1').value,
-        document.getElementById('target-cpu2').value,
-        document.getElementById('target-cpu3').value
-      ];
-      document.getElementById('interconnect-log').innerHTML = '--> Simulating Crossbar Matrix Switch...';
+    function resetBusWalkthrough() {
+      busStage = 1;
+      document.getElementById('bus-step-badge').innerText = 'Stage 1 of 3';
+      document.getElementById('bus-instruction-act').innerText = 'Action Required: Click \'Run Stage 1: Shared Bus Serialization\' below.';
+      document.getElementById('bus-instruction-exp').innerText = 'We will simulate 4 CPU cores (CPU 0, 1, 2, 3) asserting simultaneous read requests across a shared single-bus UMA architecture. Watch how the single-bus arbiter forces complete serialization.';
+      document.getElementById('btn-bus-action').innerText = 'Run Stage 1: Shared Bus Serialization';
+      document.getElementById('bus-walkthrough-log').innerHTML = '-- Walkthrough reset. Click Run Stage 1 to start --';
+    }
 
-      const moduleAccessors = {};
-      targets.forEach((mod, cpu) => {
-        if (!moduleAccessors[mod]) moduleAccessors[mod] = [];
-        moduleAccessors[mod].push(cpu);
-      });
+    // ==========================================
+    // WALKTHROUGH 2: NUMA LATENCY CONTROLLER
+    // ==========================================
+    let numaStage = 1;
 
-      let completedInOne = 0;
-      let conflicts = 0;
+    function appendNumaLog(msg) {
+      const el = document.getElementById('numa-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
 
-      for (const [mod, cpus] of Object.entries(moduleAccessors)) {
-        if (cpus.length === 1) {
-          appendInterconnectLog(`Crosspoint Matrix: CPU ${cpus[0]} -> M${mod} connected concurrently (Cycle 1).`);
-          completedInOne++;
-        } else {
-          appendInterconnectLog(`Port Conflict at M${mod}: CPUs [${cpus.join(', ')}] targeted same bank. CPU ${cpus[0]} granted; remaining queued.`);
-          conflicts++;
-        }
-      }
+    function stepNumaWalkthrough() {
+      const btn = document.getElementById('btn-numa-action');
+      const badge = document.getElementById('numa-step-badge');
+      const req = document.getElementById('numa-instruction-act');
+      const exp = document.getElementById('numa-instruction-exp');
+      const addrText = document.getElementById('numa-addr-text');
+      const latVal = document.getElementById('numa-lat-val');
+      const facVal = document.getElementById('numa-fac-val');
 
-      if (conflicts === 0) {
-        appendInterconnectLog('Ideal Parallelism: All 4 transfers completed in exactly 1 clock cycle!');
+      if (numaStage === 1) {
+        document.getElementById('numa-walkthrough-log').innerHTML = '--> Executing Stage 1: Local Node Access...';
+        addrText.innerText = '0x0000_1000 (Node 0 Local RAM)';
+        latVal.innerText = '65 ns';
+        latVal.style.color = '#10b981';
+        facVal.innerText = '1.00x (Baseline)';
+        appendNumaLog('Core 0 references local address 0x0000_1000.');
+        appendNumaLog('Integrated memory controller directly services the request from Node 0 RAM.');
+        appendNumaLog('Latency: 65 ns (Fastest possible access, zero interconnect hops).');
+
+        numaStage = 2;
+        badge.innerText = 'Stage 2 of 2';
+        req.innerText = 'Action Required: Click \'Execute Stage 2: Remote Interconnect Access\' below.';
+        exp.innerText = 'Now observe Core 0 referencing memory on a remote node (Node 1 RAM at 0x0000_5000). The request must be routed over high-speed point-to-point interconnect links.';
+        btn.innerText = 'Execute Stage 2: Remote Interconnect Access';
       } else {
-        appendInterconnectLog(`Result: ${completedInOne} transfers completed immediately. Conflicted ports resolved over 2 cycles.`);
+        document.getElementById('numa-walkthrough-log').innerHTML = '--> Executing Stage 2: Remote Node Traversal...';
+        addrText.innerText = '0x0000_5000 (Node 1 Remote RAM)';
+        latVal.innerText = '150 ns';
+        latVal.style.color = '#ef4444';
+        facVal.innerText = '2.31x (NUMA Penalty)';
+        appendNumaLog('Core 0 references address 0x0000_5000 belonging to Node 1.');
+        appendNumaLog('Request cannot be satisfied locally. Routed across point-to-point interconnect (UPI/Infinity Fabric).');
+        appendNumaLog('Node 1 Memory Controller reads physical RAM and returns data across the wire.');
+        appendNumaLog('Latency: 150 ns. NUMA Factor: 2.31x slowdown relative to local RAM!');
+
+        numaStage = 1;
+        badge.innerText = 'Complete (Ready to Restart)';
+        req.innerText = 'Walkthrough Complete. Click \'Restart Walkthrough\' to begin again.';
+        exp.innerText = 'You observed the difference between local memory access and remote interconnect hops.';
+        btn.innerText = 'Restart Walkthrough from Stage 1';
       }
     }
 
-    function resetInterconnectSim() {
-      document.getElementById('target-cpu0').value = "0";
-      document.getElementById('target-cpu1').value = "1";
-      document.getElementById('target-cpu2').value = "2";
-      document.getElementById('target-cpu3').value = "3";
-      document.getElementById('interconnect-log').innerHTML = '-- Reset memory targets to distinct modules --';
+    function resetNumaWalkthrough() {
+      numaStage = 1;
+      document.getElementById('numa-step-badge').innerText = 'Stage 1 of 2';
+      document.getElementById('numa-instruction-act').innerText = 'Action Required: Click \'Execute Stage 1: Local RAM Hit\' below.';
+      document.getElementById('numa-instruction-exp').innerText = 'Observe Core 0 reading data located in Node 0 RAM (`0x0000_0000`). Notice that this reference routes through the local on-chip integrated memory controller with zero interconnect traversal.';
+      document.getElementById('numa-addr-text').innerText = '0x0000_0000 (Node 0 RAM)';
+      document.getElementById('numa-lat-val').innerText = 'Awaiting Run';
+      document.getElementById('numa-lat-val').style.color = '#0284c7';
+      document.getElementById('numa-fac-val').innerText = '--';
+      document.getElementById('btn-numa-action').innerText = 'Execute Stage 1: Local RAM Hit';
+      document.getElementById('numa-walkthrough-log').innerHTML = '-- Walkthrough reset --';
     }
 
-    // NUMA Latency calculation
-    function dispatchNumaAccess() {
-      const srcNode = parseInt(document.getElementById('numa-src').value);
-      const destNode = parseInt(document.getElementById('numa-dest').value);
-      const logEl = document.getElementById('numa-log');
+    // ==========================================
+    // WALKTHROUGH 3: MESI CACHE COHERENCE CONTROLLER
+    // ==========================================
+    let mesiStep = 1;
 
-      // Model 4-node ring interconnect
-      const rawDistance = Math.abs(srcNode - destNode);
-      const hops = rawDistance === 3 ? 1 : rawDistance; // Ring wrap
+    function appendMesiLog(msg) {
+      const el = document.getElementById('mesi-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
 
-      let latency = 65; // Base local memory latency (ns)
-      if (hops === 1) latency = 150;
-      else if (hops === 2) latency = 235;
+    function stepMesiWalkthrough() {
+      const btn = document.getElementById('btn-mesi-action');
+      const badge = document.getElementById('mesi-step-badge');
+      const req = document.getElementById('mesi-instruction-act');
+      const exp = document.getElementById('mesi-instruction-exp');
 
-      const numaFactor = (latency / 65).toFixed(2);
+      if (mesiStep === 1) {
+        // Step 1: CPU 0 reads X (Exclusive)
+        document.getElementById('mesi-walkthrough-log').innerHTML = '--> Executing Step 1: CPU 0 Read Miss...';
+        appendMesiLog('CPU 0 emits BusRd for Variable X.');
+        appendMesiLog('CPU 1 snoops BusRd: It holds no copy (Invalid). No collision.');
+        appendMesiLog('Main RAM supplies X = 42. CPU 0 caches X in Exclusive (E) state.');
 
-      document.getElementById('numa-hops').innerText = hops === 0 ? 'Local RAM Hit (0 Hops)' : `${hops} Interconnect Hop(s)`;
-      document.getElementById('numa-latency').innerText = `${latency} ns`;
-      document.getElementById('numa-factor').innerText = `${numaFactor}x baseline`;
+        document.getElementById('badge-c0').className = 'state-badge state-E';
+        document.getElementById('badge-c0').innerText = 'State: E';
+        document.getElementById('val-c0').innerText = '42';
 
-      logEl.innerHTML = `--> Core ${srcNode} dispatched read to Node ${destNode} address space...`;
-      if (hops === 0) {
-        logEl.innerHTML += `<br>Direct local access via integrated memory controller. Latency: ${latency} ns.`;
-      } else {
-        logEl.innerHTML += `<br>Remote reference routed across ${hops} point-to-point link(s). Latency penalty: ${latency} ns (${numaFactor}x slowdown).`;
+        mesiStep = 2;
+        badge.innerText = 'Stage 2 of 4';
+        req.innerText = 'Action Required: Click \'Execute Step 2: CPU 1 Reads X\' below.';
+        exp.innerText = 'Now CPU 1 attempts to read Variable X. CPU 0 will snoop this request on the bus. Because CPU 0 holds an Exclusive copy, it responds and both caches transition to the <strong>Shared (S)</strong> state.';
+        btn.innerText = 'Execute Step 2: CPU 1 Reads X';
+      } else if (mesiStep === 2) {
+        // Step 2: CPU 1 reads X (Shared)
+        document.getElementById('mesi-walkthrough-log').innerHTML = '--> Executing Step 2: CPU 1 Read Miss & Snooping...';
+        appendMesiLog('CPU 1 emits BusRd for Variable X.');
+        appendMesiLog('CPU 0 snoops BusRd in Exclusive state. It signals on the bus that it shares the line.');
+        appendMesiLog('CPU 0 transitions: Exclusive (E) &rarr; Shared (S).');
+        appendMesiLog('CPU 1 loads line from bus into Shared (S) state. Both hold X = 42.');
+
+        document.getElementById('badge-c0').className = 'state-badge state-S';
+        document.getElementById('badge-c0').innerText = 'State: S';
+        document.getElementById('badge-c1').className = 'state-badge state-S';
+        document.getElementById('badge-c1').innerText = 'State: S';
+        document.getElementById('val-c1').innerText = '42';
+
+        mesiStep = 3;
+        badge.innerText = 'Stage 3 of 4';
+        req.innerText = 'Action Required: Click \'Execute Step 3: CPU 0 Writes X = 99\' below.';
+        exp.innerText = 'CPU 0 now writes a new value (99). Because other caches share this line, CPU 0 must issue an invalidation broadcast (BusUpgr / BusRdX) to invalidate CPU 1\'s stale copy.';
+        btn.innerText = 'Execute Step 3: CPU 0 Writes X = 99';
+      } else if (mesiStep === 3) {
+        // Step 3: CPU 0 writes X (Modified)
+        document.getElementById('mesi-walkthrough-log').innerHTML = '--> Executing Step 3: Write Request & Invalidation...';
+        appendMesiLog('CPU 0 executes: X = 99. Line is Shared, so write permission is required.');
+        appendMesiLog('CPU 0 emits BusUpgr broadcast requesting invalidation of all peer copies.');
+        appendMesiLog('CPU 1 snoops BusUpgr and transitions: Shared (S) &rarr; Invalid (I).');
+        appendMesiLog('CPU 0 transitions: Shared (S) &rarr; Modified (M). CPU 0 now exclusively holds the dirty value (99).');
+
+        document.getElementById('badge-c0').className = 'state-badge state-M';
+        document.getElementById('badge-c0').innerText = 'State: M';
+        document.getElementById('val-c0').innerText = '99';
+        document.getElementById('badge-c1').className = 'state-badge state-I';
+        document.getElementById('badge-c1').innerText = 'State: I';
+        document.getElementById('val-c1').innerText = '--';
+
+        mesiStep = 4;
+        badge.innerText = 'Stage 4 of 4';
+        req.innerText = 'Action Required: Click \'Execute Step 4: CPU 1 Reads Stale X\' below.';
+        exp.innerText = 'CPU 1 now tries to read X again. Since its cache line is Invalid, it triggers a read miss. CPU 0 snoops this request while in the Modified state and intervenes to write back the dirty value to memory first.';
+        btn.innerText = 'Execute Step 4: CPU 1 Reads Stale X';
+      } else if (mesiStep === 4) {
+        // Step 4: CPU 1 reads, CPU 0 flushes
+        document.getElementById('mesi-walkthrough-log').innerHTML = '--> Executing Step 4: Cache Intervention & Dirty Flush...';
+        appendMesiLog('CPU 1 encounters Read Miss (Invalid). Emits BusRd.');
+        appendMesiLog('CPU 0 snoops BusRd while in Modified state! It halts the bus and flushes dirty value (99) to RAM.');
+        appendMesiLog('CPU 0 transitions: Modified (M) &rarr; Shared (S).');
+        appendMesiLog('CPU 1 reads flushed line (99) into Shared (S) state. Coherence preserved!');
+
+        document.getElementById('badge-c0').className = 'state-badge state-S';
+        document.getElementById('badge-c0').innerText = 'State: S';
+        document.getElementById('badge-c1').className = 'state-badge state-S';
+        document.getElementById('badge-c1').innerText = 'State: S';
+        document.getElementById('val-c1').innerText = '99';
+
+        mesiStep = 1;
+        badge.innerText = 'Complete (Ready to Restart)';
+        req.innerText = 'Walkthrough Complete. Click \'Restart Walkthrough\' to begin again.';
+        exp.innerText = 'You walked through the entire MESI lifecycle: Invalid &rarr; Exclusive &rarr; Shared &rarr; Modified &rarr; Flush to Shared.';
+        btn.innerText = 'Restart Walkthrough from Stage 1';
       }
-      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function resetMesiWalkthrough() {
+      mesiStep = 1;
+      document.getElementById('mesi-step-badge').innerText = 'Stage 1 of 4';
+      document.getElementById('mesi-instruction-act').innerText = 'Action Required: Click \'Execute Step 1: CPU 0 Reads X\' below.';
+      document.getElementById('mesi-instruction-exp').innerText = 'Initially, neither CPU cache holds Variable X (both are in the Invalid state). When CPU 0 reads X, it emits a BusRd broadcast. Because no other cache holds the line, it is loaded from RAM directly into CPU 0\'s cache in the Exclusive (E) state.';
+      document.getElementById('badge-c0').className = 'state-badge state-I';
+      document.getElementById('badge-c0').innerText = 'State: I';
+      document.getElementById('val-c0').innerText = '--';
+      document.getElementById('badge-c1').className = 'state-badge state-I';
+      document.getElementById('badge-c1').innerText = 'State: I';
+      document.getElementById('val-c1').innerText = '--';
+      document.getElementById('btn-mesi-action').innerText = 'Execute Step 1: CPU 0 Reads X';
+      document.getElementById('mesi-walkthrough-log').innerHTML = '-- Reset protocol state. Variable X = 42 in RAM --';
     }
   </script>
 </body>
