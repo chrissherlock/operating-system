@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # =====================================================================
-# update_tanenbaum_wikimedia_credit.py: Update Tanenbaum photo credit
+# link_tanenbaum_image_to_commons.py: Make Tanenbaum portrait clickable
 # =====================================================================
 import os
 import subprocess
 import sys
 
-WIKI_ASIDE_TANENBAUM_WIKIMEDIA = r"""
-        <!-- WIKIPEDIA ASIDE BOX WITH WIKIMEDIA ATTRIBUTION -->
+WIKI_ASIDE_TANENBAUM_CLICKABLE_IMG = r"""
+        <!-- WIKIPEDIA ASIDE BOX WITH CLICKABLE PORTRAIT -->
         <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
           <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Operating System Foundations</h4>
 
           <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px;">
             <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
-              <div style="width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
+              <a href="https://commons.wikimedia.org/wiki/File:Andrew_S._Tanenbaum_2012.jpg" target="_blank" rel="noopener" style="display: block; width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;" title="View Andrew S. Tanenbaum 2012.jpg on Wikimedia Commons">
                 <img src="../images/tanenbaum.jpg" alt="Andrew S. Tanenbaum Portrait" style="width: 100%; height: 100%; object-fit: cover;">
-              </div>
+              </a>
               <span style="font-size: 0.72rem; color: #64748b; text-align: center; line-height: 1.2;">Photo: Wikimedia Commons<br>contributors (2012)</span>
             </div>
 
@@ -30,7 +30,7 @@ WIKI_ASIDE_TANENBAUM_WIKIMEDIA = r"""
           </div>
         </aside>"""
 
-def update_wikimedia_credit():
+def update_clickable_image():
     portal_path = os.path.join("week01-operating-system-concepts", "index.html")
     modified = []
 
@@ -44,7 +44,7 @@ def update_wikimedia_credit():
 
         target = "<!-- SECTION 1.2: HISTORY OF OPERATING SYSTEMS -->"
         if target in content:
-            content = content.replace(target, WIKI_ASIDE_TANENBAUM_WIKIMEDIA + "\n\n    " + target, 1)
+            content = content.replace(target, WIKI_ASIDE_TANENBAUM_CLICKABLE_IMG + "\n\n    " + target, 1)
             with open(portal_path, "w", encoding="utf-8") as f:
                 f.write(content)
             modified.append(portal_path)
@@ -61,15 +61,15 @@ def update_wikimedia_credit():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Update Andrew S. Tanenbaum photo attribution with Wikimedia Commons metadata\n\n"
-            "Revise photo attribution caption beneath Tanenbaum portrait in\n"
-            "week01-operating-system-concepts/index.html to reference Wikimedia Commons contributors (2012 image)."
+            "Link Tanenbaum portrait directly to Wikimedia Commons file page\n\n"
+            "Make Andrew S. Tanenbaum portrait image clickable in the research aside box\n"
+            "of week01-operating-system-concepts/index.html, linking directly to Wikimedia Commons."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Tanenbaum Wikimedia attribution successfully deployed!")
+    print("--> Clickable Tanenbaum portrait link successfully deployed!")
 
 if __name__ == "__main__":
-    update_wikimedia_credit()
+    update_clickable_image()
