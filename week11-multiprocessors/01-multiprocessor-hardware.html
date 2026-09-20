@@ -378,17 +378,85 @@
         <span class="diagram-caption">Figure 8-1: UMA Bus Architecture (left) vs. Full Crossbar Switch Fabric (right).</span>
       </div>
 
-      <!-- GUIDED WALKTHROUGH 1: BUS VS CROSSBAR -->
+            <!-- GUIDED WALKTHROUGH 1: DYNAMIC CROSSBAR SWITCH -->
       <div class="walkthrough-box">
         <div class="walkthrough-header">
-          <span class="walkthrough-title">Guided Walkthrough: Bus Serialization vs. Crossbar Matrix</span>
+          <span class="walkthrough-title">Guided Walkthrough: Crossbar Switch in Action</span>
           <span id="bus-step-badge" class="step-badge">Stage 1 of 3</span>
         </div>
 
         <div class="instruction-card">
-          <div id="bus-instruction-act" class="action-req">Action Required: Click 'Run Stage 1: Shared Bus Serialization' below.</div>
-          <div id="bus-instruction-exp" class="action-exp">We will simulate 4 CPU cores (CPU 0, 1, 2, 3) asserting simultaneous read requests across a shared single-bus UMA architecture. Watch how the single-bus arbiter forces complete serialization.</div>
+          <div id="bus-instruction-act" class="action-req">Action Required: Click 'Run Stage 1: Single Shared Bus Bottleneck' below.</div>
+          <div id="bus-instruction-exp" class="action-exp">We will simulate CPUs 0, 1, 2, and 3 issuing simultaneous read requests. First, observe how a shared single-bus system must serialize each access over 4 distinct clock cycles.</div>
         </div>
+
+        <!-- Inline Interactive SVG Matrix -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="crossbar-matrix-svg" viewBox="0 0 680 320" style="width:100%; max-width:660px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- Background grid definition -->
+            <!-- CPU Nodes (Left) -->
+            <rect id="node-cpu0" x="20" y="35" width="70" height="30" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="55" y="54" text-anchor="middle" font-weight="bold" fill="#0369a1">CPU 0</text>
+            <rect id="node-cpu1" x="20" y="100" width="70" height="30" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="55" y="119" text-anchor="middle" font-weight="bold" fill="#0369a1">CPU 1</text>
+            <rect id="node-cpu2" x="20" y="165" width="70" height="30" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="55" y="184" text-anchor="middle" font-weight="bold" fill="#0369a1">CPU 2</text>
+            <rect id="node-cpu3" x="20" y="230" width="70" height="30" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="55" y="249" text-anchor="middle" font-weight="bold" fill="#0369a1">CPU 3</text>
+
+            <!-- Horizontal Rows (Wires from CPUs) -->
+            <line id="row-0" x1="90" y1="50" x2="600" y2="50" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="row-1" x1="90" y1="115" x2="600" y2="115" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="row-2" x1="90" y1="180" x2="600" y2="180" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="row-3" x1="90" y1="245" x2="600" y2="245" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Vertical Columns (Wires to Memory Banks) -->
+            <line id="col-0" x1="190" y1="25" x2="190" y2="265" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="col-1" x1="310" y1="25" x2="310" y2="265" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="col-2" x1="430" y1="25" x2="430" y2="265" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="col-3" x1="550" y1="25" x2="550" y2="265" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Crosspoint Junction Dots (Row r, Col c) -->
+            <!-- Row 0 -->
+            <circle id="xp-0-0" cx="190" cy="50" r="5" fill="#94a3b8"/>
+            <circle id="xp-0-1" cx="310" cy="50" r="5" fill="#94a3b8"/>
+            <circle id="xp-0-2" cx="430" cy="50" r="5" fill="#94a3b8"/>
+            <circle id="xp-0-3" cx="550" cy="50" r="5" fill="#94a3b8"/>
+            <!-- Row 1 -->
+            <circle id="xp-1-0" cx="190" cy="115" r="5" fill="#94a3b8"/>
+            <circle id="xp-1-1" cx="310" cy="115" r="5" fill="#94a3b8"/>
+            <circle id="xp-1-2" cx="430" cy="115" r="5" fill="#94a3b8"/>
+            <circle id="xp-1-3" cx="550" cy="115" r="5" fill="#94a3b8"/>
+            <!-- Row 2 -->
+            <circle id="xp-2-0" cx="190" cy="180" r="5" fill="#94a3b8"/>
+            <circle id="xp-2-1" cx="310" cy="180" r="5" fill="#94a3b8"/>
+            <circle id="xp-2-2" cx="430" cy="180" r="5" fill="#94a3b8"/>
+            <circle id="xp-2-3" cx="550" cy="180" r="5" fill="#94a3b8"/>
+            <!-- Row 3 -->
+            <circle id="xp-3-0" cx="190" cy="245" r="5" fill="#94a3b8"/>
+            <circle id="xp-3-1" cx="310" cy="245" r="5" fill="#94a3b8"/>
+            <circle id="xp-3-2" cx="430" cy="245" r="5" fill="#94a3b8"/>
+            <circle id="xp-3-3" cx="550" cy="245" r="5" fill="#94a3b8"/>
+
+            <!-- Memory Modules (Bottom) -->
+            <rect id="node-m0" x="155" y="275" width="70" height="32" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="190" y="295" text-anchor="middle" font-weight="bold" fill="#0369a1">M0 (RAM)</text>
+            <rect id="node-m1" x="275" y="275" width="70" height="32" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="310" y="295" text-anchor="middle" font-weight="bold" fill="#0369a1">M1 (RAM)</text>
+            <rect id="node-m2" x="395" y="275" width="70" height="32" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="430" y="295" text-anchor="middle" font-weight="bold" fill="#0369a1">M2 (RAM)</text>
+            <rect id="node-m3" x="515" y="275" width="70" height="32" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" rx="4"/>
+            <text x="550" y="295" text-anchor="middle" font-weight="bold" fill="#0369a1">M3 (RAM)</text>
+          </svg>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-bus-action" class="btn-step" onclick="stepBusWalkthrough()">Run Stage 1: Single Shared Bus Bottleneck</button>
+          <button class="btn-reset" onclick="resetBusWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="bus-walkthrough-log" class="status-panel">-- Follow the instructions above to start the crossbar animation --</div>
+      </div>
 
         <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-family:var(--font-mono); font-size:0.85rem;">
           <div id="box-cpu0" style="background:#ffffff; border:1px solid var(--border); padding:10px; border-radius:4px; text-align:center;">CPU 0 &rarr; Target: <strong>M0</strong></div>
@@ -613,10 +681,41 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
   </div>
 
   <script>
-    // ==========================================
-    // WALKTHROUGH 1: BUS VS CROSSBAR CONTROLLER
-    // ==========================================
+    
+    // Crossbar Switch Matrix Visualization Logic
     let busStage = 1;
+
+    function resetSvgMatrix() {
+      for (let r = 0; r < 4; r++) {
+        document.getElementById(`row-${r}`).setAttribute('stroke', '#cbd5e1');
+        document.getElementById(`row-${r}`).setAttribute('stroke-width', '3');
+        document.getElementById(`node-cpu${r}`).setAttribute('fill', '#f0f9ff');
+        document.getElementById(`node-cpu${r}`).setAttribute('stroke', '#0284c7');
+        for (let c = 0; c < 4; c++) {
+          const dot = document.getElementById(`xp-${r}-${c}`);
+          dot.setAttribute('fill', '#94a3b8');
+          dot.setAttribute('r', '5');
+        }
+      }
+      for (let c = 0; c < 4; c++) {
+        document.getElementById(`col-${c}`).setAttribute('stroke', '#cbd5e1');
+        document.getElementById(`col-${c}`).setAttribute('stroke-width', '3');
+        document.getElementById(`node-m${c}`).setAttribute('fill', '#e0f2fe');
+        document.getElementById(`node-m${c}`).setAttribute('stroke', '#0284c7');
+      }
+    }
+
+    function activateCrosspoint(r, c, color = '#10b981', radius = '8') {
+      document.getElementById(`row-${r}`).setAttribute('stroke', color);
+      document.getElementById(`row-${r}`).setAttribute('stroke-width', '4');
+      document.getElementById(`col-${c}`).setAttribute('stroke', color);
+      document.getElementById(`col-${c}`).setAttribute('stroke-width', '4');
+      const dot = document.getElementById(`xp-${r}-${c}`);
+      dot.setAttribute('fill', color);
+      dot.setAttribute('r', radius);
+      document.getElementById(`node-cpu${r}`).setAttribute('fill', color === '#ef4444' ? '#fee2e2' : '#dcfce7');
+      document.getElementById(`node-m${c}`).setAttribute('fill', color === '#ef4444' ? '#fee2e2' : '#dcfce7');
+    }
 
     function appendBusLog(msg) {
       const el = document.getElementById('bus-walkthrough-log');
@@ -631,56 +730,68 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
       const exp = document.getElementById('bus-instruction-exp');
 
       if (busStage === 1) {
-        // Run Shared Bus
-        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 1: Shared Single Bus Arbitration...';
-        appendBusLog('All 4 CPUs assert simultaneous read requests across the shared bus.');
-        appendBusLog('Cycle 1: Arbiter grants CPU 0 &rarr; M0. CPUs 1, 2, 3 stalled.');
-        appendBusLog('Cycle 2: Arbiter grants CPU 1 &rarr; M1. CPUs 2, 3 stalled.');
-        appendBusLog('Cycle 3: Arbiter grants CPU 2 &rarr; M2. CPU 3 stalled.');
-        appendBusLog('Cycle 4: Arbiter grants CPU 3 &rarr; M3. All requests complete.');
-        appendBusLog('Result: Total time = 4 full clock cycles due to bus serialization.');
+        resetSvgMatrix();
+        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 1: Single Shared Bus Serialization...';
+        // Highlight only CPU 0 active on the wire, others stalled
+        activateCrosspoint(0, 0, '#f59e0b', '7');
+        appendBusLog('Cycle 1: Arbiter grants CPU 0 &rarr; M0. Bus at 100% capacity.');
+        appendBusLog('Cycle 1: CPUs 1, 2, and 3 are stalled waiting for the shared wire.');
+        appendBusLog('Cycles 2-4: CPU 1, then CPU 2, then CPU 3 sequentially take turns.');
+        appendBusLog('Result: 4 clock cycles required due to single-bus serialization.');
 
         busStage = 2;
         badge.innerText = 'Stage 2 of 3';
-        req.innerText = 'Action Required: Click \'Run Stage 2: Crossbar Parallel Switch\' below.';
-        exp.innerText = 'Now observe the exact same 4 concurrent read requests executing over an n x m Crossbar Switch matrix. Notice how independent crosspoints allow all 4 transfers to complete in a single cycle.';
-        btn.innerText = 'Run Stage 2: Crossbar Parallel Switch';
+        req.innerText = 'Action Required: Click \'Run Stage 2: Crossbar Parallel Routing\' below.';
+        exp.innerText = 'Now observe what happens on an active crossbar switch. Because each CPU connects to an independent memory module (M0, M1, M2, M3), four separate crosspoints close simultaneously without bus arbitration.';
+        btn.innerText = 'Run Stage 2: Crossbar Parallel Routing';
       } else if (busStage === 2) {
-        // Run Crossbar Non-conflicting
-        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 2: Crossbar Matrix Parallel Access...';
-        appendBusLog('Crossbar Switch connects (CPU0 &rarr; M0), (CPU1 &rarr; M1), (CPU2 &rarr; M2), (CPU3 &rarr; M3).');
-        appendBusLog('Crosspoints (0,0), (1,1), (2,2), (3,3) close simultaneously.');
-        appendBusLog('Result: Zero bus contention! All 4 transfers complete concurrently in Cycle 1 (4x throughput).');
+        resetSvgMatrix();
+        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 2: Concurrent Crossbar Matrix Switching...';
+        // Activate (0,0), (1,1), (2,2), (3,3) in parallel
+        activateCrosspoint(0, 0, '#10b981', '8');
+        activateCrosspoint(1, 1, '#10b981', '8');
+        activateCrosspoint(2, 2, '#10b981', '8');
+        activateCrosspoint(3, 3, '#10b981', '8');
+
+        appendBusLog('Simultaneous crosspoints closed: (0,0), (1,1), (2,2), (3,3).');
+        appendBusLog('CPU 0 &rarr; M0, CPU 1 &rarr; M1, CPU 2 &rarr; M2, and CPU 3 &rarr; M3 all transmit in parallel.');
+        appendBusLog('Result: All 4 transfers finish in Cycle 1 (4x bandwidth speedup over single bus).');
 
         busStage = 3;
         badge.innerText = 'Stage 3 of 3';
-        req.innerText = 'Action Required: Click \'Run Stage 3: Crossbar Port Contention\' below.';
-        exp.innerText = 'What happens when two CPUs target the same memory bank? Observe CPU 0 and CPU 1 both requesting Module M0 simultaneously.';
-        btn.innerText = 'Run Stage 3: Crossbar Port Contention';
+        req.innerText = 'Action Required: Click \'Run Stage 3: Memory Port Contention\' below.';
+        exp.innerText = 'What happens when two CPUs request the same memory bank? Observe CPU 0 and CPU 1 both attempting to access Module M0 simultaneously.';
+        btn.innerText = 'Run Stage 3: Memory Port Contention';
       } else if (busStage === 3) {
-        // Run Crossbar Port Conflict
-        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 3: Port Contention on Crossbar...';
-        appendBusLog('CPU 0 and CPU 1 both target Module M0. CPUs 2 and 3 target M2 and M3.');
-        appendBusLog('Cycle 1: Non-conflicting transfers (CPU2 &rarr; M2) and (CPU3 &rarr; M3) succeed immediately.');
-        appendBusLog('Cycle 1: M0 port arbiter grants CPU 0; CPU 1 is stalled.');
-        appendBusLog('Cycle 2: CPU 1 completes access to M0.');
-        appendBusLog('Lesson: A crossbar eliminates bus contention, but port contention still serializes access to the same memory module.');
+        resetSvgMatrix();
+        document.getElementById('bus-walkthrough-log').innerHTML = '--> Executing Stage 3: Memory Port Contention...';
+        // Port conflict on column 0: CPU 0 granted, CPU 1 stalled
+        activateCrosspoint(0, 0, '#10b981', '8');
+        activateCrosspoint(1, 0, '#ef4444', '8'); // Red collision dot
+        activateCrosspoint(2, 2, '#10b981', '8');
+        activateCrosspoint(3, 3, '#10b981', '8');
+
+        appendBusLog('Conflict Detected: CPU 0 and CPU 1 both request Module M0.');
+        appendBusLog('Independent ports: CPU 2 &rarr; M2 and CPU 3 &rarr; M3 complete concurrently in Cycle 1.');
+        appendBusLog('Contended port: M0 arbiter grants CPU 0 in Cycle 1; CPU 1 (red dot) must wait until Cycle 2.');
+        appendBusLog('Takeaway: Crossbar switches eliminate bus collisions, but port contention still serializes access to identical targets.');
 
         busStage = 1;
         badge.innerText = 'Complete (Ready to Restart)';
-        req.innerText = 'Walkthrough Complete. Click \'Restart Walkthrough\' to begin again.';
-        exp.innerText = 'You have compared single-bus serialization, crossbar matrix parallelism, and crosspoint port contention.';
+        req.innerText = 'Walkthrough Complete. Click \'Restart Walkthrough\' to review.';
+        exp.innerText = 'You observed single-bus serialization, conflict-free crossbar concurrency, and targeted memory port contention.';
         btn.innerText = 'Restart Walkthrough from Stage 1';
       }
     }
 
     function resetBusWalkthrough() {
       busStage = 1;
+      resetSvgMatrix();
       document.getElementById('bus-step-badge').innerText = 'Stage 1 of 3';
-      document.getElementById('bus-instruction-act').innerText = 'Action Required: Click \'Run Stage 1: Shared Bus Serialization\' below.';
-      document.getElementById('bus-instruction-exp').innerText = 'We will simulate 4 CPU cores (CPU 0, 1, 2, 3) asserting simultaneous read requests across a shared single-bus UMA architecture. Watch how the single-bus arbiter forces complete serialization.';
-      document.getElementById('btn-bus-action').innerText = 'Run Stage 1: Shared Bus Serialization';
-      document.getElementById('bus-walkthrough-log').innerHTML = '-- Walkthrough reset. Click Run Stage 1 to start --';
+      document.getElementById('bus-instruction-act').innerText = 'Action Required: Click \'Run Stage 1: Single Shared Bus Bottleneck\' below.';
+      document.getElementById('bus-instruction-exp').innerText = 'We will simulate CPUs 0, 1, 2, and 3 issuing simultaneous read requests. First, observe how a shared single-bus system must serialize each access over 4 distinct clock cycles.';
+      document.getElementById('btn-bus-action').innerText = 'Run Stage 1: Single Shared Bus Bottleneck';
+      document.getElementById('bus-walkthrough-log').innerHTML = '-- Walkthrough reset. Follow the Action Required instruction to start --';
     }
 
     // ==========================================
