@@ -4,6 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>What Is an Operating System &amp; History -- COSC240</title>
+  <style id="module-nav-styles">
+    .module-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      gap: 12px;
+      box-sizing: border-box;
+    }
+    .module-nav-bar.bottom {
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+    .module-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: #0284c7;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .module-nav-btn:hover {
+      background-color: #0284c7;
+      color: #ffffff;
+    }
+    .module-nav-placeholder {
+      visibility: hidden;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+  </style>
   <style>
     :root {
       --bg: #f8fafc;
@@ -26,88 +66,118 @@
       align-items: center;
       gap: 18px;
     }
-    .nav-back { width: 100%; max-width: 1100px; margin: 0 auto; display: flex; }
-    .nav-back a {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600;
-      font-family: var(--font-mono); text-decoration: none; color: #0284c7;
-      background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 6px;
+    main {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
-    .nav-back a:hover { background-color: #0284c7; color: #ffffff; }
-    main { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 24px; }
-    header { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 30px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 8px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .content-section { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; gap: 16px; }
-    .content-section h2 { font-size: 1.3rem; color: #0369a1; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-    h3 { font-size: 1.1rem; color: #1e293b; margin-top: 10px; }
-    p { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
-    ul { margin-left: 20px; color: var(--text-muted); line-height: 1.6; }
-    li { margin-bottom: 6px; }
-    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 10px; }
-    .image-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-    .image-card img { max-width: 100%; height: 130px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
-    .image-card span { font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); line-height: 1.4; }
-    .image-card a { color: var(--accent); text-decoration: underline; }
-    .aside-box { background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin-top: 10px; }
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    article.module-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    h2 {
+      font-size: 1.3rem;
+      color: #0369a1;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 18px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: #1e293b;
+      margin-top: 14px;
+    }
+    p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    ul {
+      margin-left: 20px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+    .image-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+    .image-card img {
+      max-width: 100%;
+      height: 130px;
+      object-fit: contain;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    .image-card span {
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .image-card a {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    .aside-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 10px;
+    }
   </style>
-
-<style id="module-nav-styles">
-  .module-nav-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto 16px auto;
-    gap: 12px;
-    box-sizing: border-box;
-  }
-  .module-nav-bar.bottom {
-    margin-top: 24px;
-    margin-bottom: 24px;
-  }
-  .module-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    text-decoration: none;
-    color: #0284c7;
-    background-color: #f0f9ff;
-    border: 1px solid #bae6fd;
-    padding: 7px 13px;
-    border-radius: 6px;
-    transition: all 0.15s ease;
-  }
-  .module-nav-btn:hover {
-    background-color: #0284c7;
-    color: #ffffff;
-  }
-  .module-nav-placeholder {
-    visibility: hidden;
-    padding: 7px 13px;
-    font-size: 0.85rem;
-  }
-</style>
-
 </head>
 <body>
-  
 
   <nav class="module-nav-bar">
-  <span class="module-nav-placeholder">&larr; Previous</span>
-  <a href="index.html" class="module-nav-btn">Week Index</a>
-  <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
-</nav>
-<main>
+    <span class="module-nav-placeholder">&larr; Previous</span>
+    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
+  </nav>
+
+  <main>
     <header>
       <h1>01. What Is an Operating System &amp; History</h1>
       <p class="subtitle">Tanenbaum Chapter 1.1 &amp; 1.2: Foundational Paradigms and the Five Computing Generations.</p>
     </header>
 
-    <section class="content-section">
+    <article class="module-body">
       <h2>Foundational Paradigms (Tanenbaum Chapter 1.1)</h2>
       <p>
         To understand what an operating system is, we must examine it from two complementary perspectives: the <strong>extended machine</strong> (top-down abstraction layer) and the <strong>resource manager</strong> (bottom-up hardware multiplexer).
@@ -122,9 +192,7 @@
       <p>
         Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
       </p>
-    </section>
 
-    <section class="content-section">
       <h2>Historical Evolution &amp; Computing Generations (Tanenbaum Chapter 1.2)</h2>
       <p>
         The history of operating systems is intimately tied to the evolution of computer hardware across five distinct technological generations.
@@ -162,13 +230,10 @@
 
       <h3>Generation 2: Transistors &amp; Batch Systems (1955–1965)</h3>
       <p>
-The invention of the transistor at Bell Labs introduced solid-state electronics, replacing fragile and heat-generating vacuum tubes with reliable semiconductor components. This dramatic improvement allowed computers to operate continuously without frequent catastrophic hardware failures, enabling commercial manufacture and widespread adoption across large enterprises and scientific research labs.
+        The invention of the transistor at Bell Labs introduced solid-state electronics, replacing fragile and heat-generating vacuum tubes with reliable semiconductor components. This dramatic improvement allowed computers to operate continuously without frequent catastrophic hardware failures, enabling commercial manufacture and widespread adoption across large enterprises and scientific research labs.
       </p>
       <p>
-To bridge the immense speed disparity between rapid CPU instruction execution and slow mechanical I/O devices (like card readers and line printers), this era birthed <strong>batch systems</strong> controlled by early primitive monitor programs such as <strong>GM-NAA I/O</strong>, <strong>FMS (Fortran Monitor System)</strong>, and <strong>IBSYS</strong>. Jobs were written to punched cards, collected into physical batches by human operators, transferred to magnetic tape offline via secondary satellite computers, and fed sequentially into the main mainframe under control of the resident monitor program. This automated job sequencing and system control effectively formed the earliest ancestor of modern operating systems.
-      </p>
-      <p>
-To bridge the immense speed disparity between rapid CPU instruction execution and slow mechanical I/O devices (like card readers and line printers), this era birthed <strong>batch systems</strong> and early primitive monitor programs (such as IBSYS and FMS). Jobs were written to punched cards, collected into physical batches by human operators, transferred to magnetic tape offline via secondary satellite computers, and fed sequentially into the main mainframe. This architecture minimized idle CPU waiting time and automated job sequencing.
+        To bridge the immense speed disparity between rapid CPU instruction execution and slow mechanical I/O devices (like card readers and line printers), this era birthed <strong>batch systems</strong> controlled by early primitive monitor programs such as <strong>GM-NAA I/O</strong>, <strong>FMS (Fortran Monitor System)</strong>, and <strong>IBSYS</strong>. Jobs were written to punched cards, collected into physical batches by human operators, transferred to magnetic tape offline via secondary satellite computers, and fed sequentially into the main mainframe under control of the resident monitor program. This automated job sequencing and system control effectively formed the earliest ancestor of modern operating systems.
       </p>
       <div class="image-grid">
         <div class="image-card">
@@ -181,7 +246,7 @@ To bridge the immense speed disparity between rapid CPU instruction execution an
             <small>Author: Wikimedia Commons contributors</small>
           </span>
         </div>
-                        <div class="image-card">
+        <div class="image-card">
           <img src="../images/punched-card-program-deck.jpg" alt="Punched Cards">
           <span>
             <strong>Punched Card Deck</strong><br>
@@ -195,10 +260,7 @@ To bridge the immense speed disparity between rapid CPU instruction execution an
 
       <h3>Generation 3: ICs, Multiprogramming, &amp; Time-Sharing (1965–1980)</h3>
       <p>
-        Integrated circuits (ICs) revolutionized computer architecture, providing smaller, faster, and more reliable solid-state circuitry. The introduction of hardware architecture families like the <strong>IBM System/360</strong> allowed enterprises to run both commercial and scientific workloads on compatible hardware platforms.
-      </p>
-      <p>
-        This generation birthed true modern operating systems. To eliminate massive CPU idle times caused by slow mechanical I/O, systems like <strong>OS/360</strong> introduced <strong>multiprogramming</strong>—partitioning memory to hold multiple jobs simultaneously so the CPU could switch tasks when one job awaited data. Simultaneously, interactive <strong>time-sharing</strong> systems such as <strong>CTSS</strong> and <strong>MULTICS</strong> emerged, enabling multiple remote users to interact with the computer concurrently through dedicated terminals.
+        Integrated circuits (ICs) revolutionized computer architecture. The IBM System/360 introduced hardware architecture families capable of running both commercial and scientific workloads. To eliminate CPU idle time during slow I/O operations, <strong>multiprogramming</strong> was developed, alongside <strong>time-sharing</strong> systems enabling multiple interactive users.
       </p>
       <div class="image-grid">
         <div class="image-card">
@@ -230,32 +292,11 @@ To bridge the immense speed disparity between rapid CPU instruction execution an
       <p>
         Key milestones and architectural shifts during Generation 4 include:
       </p>
-      <ul style="margin-left: 20px; color: var(--text-muted); line-height: 1.6;">
+      <ul>
         <li><strong>Graphical User Interfaces (GUIs):</strong> Pioneered at Xerox PARC and popularized by Apple Macintosh and Microsoft Windows, operating systems integrated visual window managers, icons, menus, and pointer (WIMP) paradigms, eliminating raw command-line dependency for everyday users.</li>
         <li><strong>Networking &amp; Distributed Architectures:</strong> Local Area Networks (LANs) and TCP/IP protocol stacks were integrated directly into operating system kernels, transforming isolated personal computers into interconnected nodes capable of shared file systems, printing, and client-server communication.</li>
         <li><strong>Protected Memory &amp; Preemptive Multitasking:</strong> Early single-tasking microcomputer OSs (like early MS-DOS) evolved into robust 32-bit and 64-bit architectures (such as Windows NT, modern macOS, and Linux) featuring hardware-enforced memory protection, virtual memory paging, and preemptive task scheduling.</li>
       </ul>
-      <div class="image-grid" style="margin-top: 16px;">
-        <div class="image-card">
-          <img src="../images/macintosh-128k.png" alt="Macintosh 128k">
-          <span>
-            <strong>Macintosh 128k</strong><br>
-            Early personal computer with graphical desktop interface.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Macintosh_128k" target="_blank" rel="noopener">Wikipedia: Macintosh 128k</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Macintosh_128k_transparency.png&oldid=1086425807" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/windows-95-first-run.png" alt="Windows 95 First Run">
-          <span>
-            <strong>Windows 95</strong><br>
-            Desktop operating system environment.<br>
-            <small><a href="https://en.wikipedia.org/wiki/File:Windows_95_at_first_run.png" target="_blank" rel="noopener">Wikipedia File: Windows 95 at first run</a></small><br>
-            <small>Source: Wikipedia contributors</small>
-          </span>
-        </div>
-      </div>
 
       <h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>
       <p>
@@ -264,7 +305,7 @@ To bridge the immense speed disparity between rapid CPU instruction execution an
       <p>
         Key architectural paradigms defining Generation 5 include:
       </p>
-      <ul style="margin-left: 20px; color: var(--text-muted); line-height: 1.6;">
+      <ul>
         <li><strong>Mobile &amp; Power-Aware Operating Systems:</strong> Platforms like Android and iOS introduced aggressive power management frameworks, thermal throttling, context-aware sensor integration, strict application sandboxing, and wireless cellular/Wi-Fi stack management to maximize battery longevity and user responsiveness.</li>
         <li><strong>Cloud Computing &amp; Hypervisors:</strong> Hyperscale cloud infrastructures rely on robust Type-1 hypervisors (such as KVM, Xen, and VMware ESXi) to virtualize compute, storage, and networking layers, allowing cloud providers to dynamically provision and migrate virtual machines across elastic server clusters.</li>
         <li><strong>Containerization &amp; Orchestration:</strong> Operating system-level virtualization through container runtimes (such as Docker) and orchestrators (such as Kubernetes) enables lightweight, isolated application packaging that shares a common host kernel, optimizing resource utilization and microservices deployment.</li>
@@ -277,9 +318,7 @@ To bridge the immense speed disparity between rapid CPU instruction execution an
           Andrew S. Tanenbaum created MINIX in 1987 as an educational operating system to illustrate microkernel design principles. MINIX served as the primary inspiration and initial development environment for Linus Torvalds when he began writing the Linux kernel in 1991.
         </p>
       </div>
-    </section>
 
-    <section class="content-section">
       <h2>Operating System Ecosystem &amp; Architecture Families</h2>
       <p>
         The operating system landscape spans diverse paradigms. Below is the complete visual index of all 15 system brand marks and logos organized by architectural family.
@@ -376,18 +415,14 @@ To bridge the immense speed disparity between rapid CPU instruction execution an
         </div>
 
       </div>
-    </section>
-  
-    <div style="display: flex; justify-content: flex-end; margin-top: 10px; margin-bottom: 20px;">
-      <a href="02-hardware-review.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 600; font-family: var(--font-mono); text-decoration: none; color: #0284c7; background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 8px 14px; border-radius: 6px;">
-        Next Article: 02. Computer Hardware Review &rarr;
-      </a>
-    </div>
-<nav class="module-nav-bar bottom">
-  <span class="module-nav-placeholder">&larr; Previous</span>
-  <a href="index.html" class="module-nav-btn">Week Index</a>
-  <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
-</nav>
-</main>
+    </article>
+  </main>
+
+  <nav class="module-nav-bar bottom">
+    <span class="module-nav-placeholder">&larr; Previous</span>
+    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
+  </nav>
+
 </body>
 </html>

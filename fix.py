@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Restore Module 1 CSS design system in 02-hardware-review.html
+# fix.py: Remove card enclosures from Module 1 and git sync
 # =====================================================================
 import os
 import subprocess
 
-def restore_module_styling():
+def update_module_one_layout():
     target_dir = "week01-operating-system-concepts"
-    file_name = "02-hardware-review.html"
+    file_name = "01-what-is-an-os-and-history.html"
     file_path = os.path.join(target_dir, file_name)
 
     html_content = """<!DOCTYPE html>
@@ -15,7 +15,7 @@ def restore_module_styling():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>02. Computer Hardware Review -- COSC240</title>
+  <title>What Is an Operating System &amp; History -- COSC240</title>
   <style id="module-nav-styles">
     .module-nav-bar {
       display: flex;
@@ -49,6 +49,11 @@ def restore_module_styling():
     .module-nav-btn:hover {
       background-color: #0284c7;
       color: #ffffff;
+    }
+    .module-nav-placeholder {
+      visibility: hidden;
+      padding: 6px 12px;
+      font-size: 0.85rem;
     }
   </style>
   <style>
@@ -117,7 +122,7 @@ def restore_module_styling():
       line-height: 1.6;
       font-size: 0.95rem;
     }
-    ul, ol {
+    ul {
       margin-left: 20px;
       color: var(--text-muted);
       line-height: 1.6;
@@ -125,20 +130,40 @@ def restore_module_styling():
     li {
       margin-bottom: 6px;
     }
-    code {
-      font-family: var(--font-mono);
-      font-size: 0.88rem;
-      background-color: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: #0369a1;
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
     }
-    .diagram-container {
+    .image-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
       display: flex;
-      justify-content: center;
-      margin: 24px 0;
-      width: 100%;
-      overflow-x: auto;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+    .image-card img {
+      max-width: 100%;
+      height: 130px;
+      object-fit: contain;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    .image-card span {
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .image-card a {
+      color: var(--accent);
+      text-decoration: underline;
     }
     .aside-box {
       background: #f8fafc;
@@ -148,304 +173,267 @@ def restore_module_styling():
       border-radius: 0 6px 6px 0;
       margin-top: 10px;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-      font-size: 0.92rem;
-      background: #ffffff;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 10px 14px;
-      text-align: left;
-    }
-    th {
-      background-color: #f1f5f9;
-      color: #1e293b;
-      font-weight: 600;
-    }
   </style>
 </head>
 <body>
 
   <nav class="module-nav-bar">
-    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>
-    <a href="index.html" class="module-nav-btn">Chapter 1 Index</a>
-    <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>
+    <span class="module-nav-placeholder">&larr; Previous</span>
+    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
   </nav>
 
   <main>
     <header>
-      <h1>02. Computer Hardware Review</h1>
-      <p class="subtitle">Tanenbaum Chapter 1.3: Processors, Memory Hierarchy, Disks, I/O Devices, Buses, and Booting.</p>
+      <h1>01. What Is an Operating System &amp; History</h1>
+      <p class="subtitle">Tanenbaum Chapter 1.1 &amp; 1.2: Foundational Paradigms and the Five Computing Generations.</p>
     </header>
 
     <article class="module-body">
-      <h2>1. Processors (CPUs) &amp; Execution Mechanics</h2>
+      <h2>Foundational Paradigms (Tanenbaum Chapter 1.1)</h2>
       <p>
-        The Central Processing Unit (CPU) is the computational brain of the computer, executing instructions fetched from main memory. The CPU follows the classical <strong>fetch-decode-execute cycle</strong>:
+        To understand what an operating system is, we must examine it from two complementary perspectives: the <strong>extended machine</strong> (top-down abstraction layer) and the <strong>resource manager</strong> (bottom-up hardware multiplexer).
+      </p>
+
+      <h3>1. The Extended Machine (Virtualization)</h3>
+      <p>
+        Raw hardware architecture—consisting of disk controllers, volatile RAM registers, interrupt vectors, and bus timings—is notoriously complex and difficult to program directly. An operating system hides this raw complexity by providing a clean, elegant, and abstract set of instructions and abstractions (such as files, sockets, and virtual address spaces), presenting programmers with a virtual machine far superior to the physical hardware.
+      </p>
+
+      <h3>2. The Resource Manager (Multiplexing)</h3>
+      <p>
+        Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
+      </p>
+
+      <h2>Historical Evolution &amp; Computing Generations (Tanenbaum Chapter 1.2)</h2>
+      <p>
+        The history of operating systems is intimately tied to the evolution of computer hardware across five distinct technological generations.
+      </p>
+
+      <h3>Generation 1: Vacuum Tubes (1945–1955)</h3>
+      <p>
+        Early digital computers built with vacuum tubes were massive, room-sized installations characterized by immense power consumption, high component failure rates, and vacuum tubes burning out frequently during execution. Programming was performed entirely in absolute machine language (binary or decimal instruction sets) or by manually configuring external plugboards and switches.
+      </p>
+      <p>
+        There were no operating systems in this era; every user interaction required total manual control. A single programmer/operator team had exclusive, scheduled access to the entire physical hardware complex for a designated block of time. Common tasks—such as loading routines, input/output conversions, and debugging—were laboriously performed by hand without assembly languages, compilers, or standard runtime libraries.
+      </p>
+      <div class="image-grid">
+        <div class="image-card">
+          <img src="../images/vacuumtube.jpg" alt="Vacuum Tubes">
+          <span>
+            <strong>Vacuum Tube</strong><br>
+            Thermionic valve switching components (Philips 12AX7WA).<br>
+            <small><a href="https://en.wikipedia.org/wiki/Vacuum_tube" target="_blank" rel="noopener">Wikipedia: Vacuum Tube</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Philips_12AX7WA_tube.jpg&oldid=632557730" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: Wikimedia Commons contributors</small>
+          </span>
+        </div>
+        <div class="image-card">
+          <img src="../images/plugboard.jpg" alt="Plugboard">
+          <span>
+            <strong>Plugboard Wiring</strong><br>
+            Manual machine programming interfaces (IBM 402).<br>
+            <small><a href="https://en.wikipedia.org/wiki/Plugboard" target="_blank" rel="noopener">Wikipedia: Plugboard</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:IBM402plugboard.Shrigley.wireside.jpg&oldid=1052177723" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: Wikimedia Commons contributors</small>
+          </span>
+        </div>
+      </div>
+
+      <h3>Generation 2: Transistors &amp; Batch Systems (1955–1965)</h3>
+      <p>
+        The invention of the transistor at Bell Labs introduced solid-state electronics, replacing fragile and heat-generating vacuum tubes with reliable semiconductor components. This dramatic improvement allowed computers to operate continuously without frequent catastrophic hardware failures, enabling commercial manufacture and widespread adoption across large enterprises and scientific research labs.
+      </p>
+      <p>
+        To bridge the immense speed disparity between rapid CPU instruction execution and slow mechanical I/O devices (like card readers and line printers), this era birthed <strong>batch systems</strong> controlled by early primitive monitor programs such as <strong>GM-NAA I/O</strong>, <strong>FMS (Fortran Monitor System)</strong>, and <strong>IBSYS</strong>. Jobs were written to punched cards, collected into physical batches by human operators, transferred to magnetic tape offline via secondary satellite computers, and fed sequentially into the main mainframe under control of the resident monitor program. This automated job sequencing and system control effectively formed the earliest ancestor of modern operating systems.
+      </p>
+      <div class="image-grid">
+        <div class="image-card">
+          <img src="../images/replica-first-transistor.jpg" alt="Transistor Replica">
+          <span>
+            <strong>First Transistor</strong><br>
+            Solid-state semiconductor switching (Replica).<br>
+            <small><a href="https://en.wikipedia.org/wiki/Transistor" target="_blank" rel="noopener">Wikipedia: Transistor</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:A_replica_of_the_first_working_transistor_02.jpg&oldid=778754993" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: Wikimedia Commons contributors</small>
+          </span>
+        </div>
+        <div class="image-card">
+          <img src="../images/punched-card-program-deck.jpg" alt="Punched Cards">
+          <span>
+            <strong>Punched Card Deck</strong><br>
+            Batch job submission media.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Punched_card" target="_blank" rel="noopener">Wikipedia: Punched Card</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:VLSI_VL82C486_Single_Chip_486_System_Controller_HV.jpg&oldid=1172847417" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: Wikimedia Commons contributors (CC BY-SA 3.0)</small>
+          </span>
+        </div>
+      </div>
+
+      <h3>Generation 3: ICs, Multiprogramming, &amp; Time-Sharing (1965–1980)</h3>
+      <p>
+        Integrated circuits (ICs) revolutionized computer architecture. The IBM System/360 introduced hardware architecture families capable of running both commercial and scientific workloads. To eliminate CPU idle time during slow I/O operations, <strong>multiprogramming</strong> was developed, alongside <strong>time-sharing</strong> systems enabling multiple interactive users.
+      </p>
+      <div class="image-grid">
+        <div class="image-card">
+          <img src="../images/integrated-circuit.jpg" alt="Integrated Circuit">
+          <span>
+            <strong>Integrated Circuit</strong><br>
+            Microchip scaling on silicon substrates.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Integrated_circuit" target="_blank" rel="noopener">Wikipedia: Integrated Circuit</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:VLSI_VL82C486_Single_Chip_486_System_Controller_HV.jpg&oldid=1172847417" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: Wikimedia Commons contributors (CC BY-SA 3.0)</small>
+          </span>
+        </div>
+        <div class="image-card">
+          <img src="../images/system360.jpg" alt="IBM System/360">
+          <span>
+            <strong>IBM System/360</strong><br>
+            Mainframe architecture family (VW-Werk Wolfsburg, 1973).<br>
+            <small><a href="https://en.wikipedia.org/wiki/IBM_System/360" target="_blank" rel="noopener">Wikipedia: IBM System/360</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Bundesarchiv_B_145_Bild-F038812-0014,_Wolfsburg,_VW_Autowerk.jpg&oldid=838121012" target="_blank" rel="noopener">Bundesarchiv Record (B 145 Bild-F038812-0014)</a></small><br>
+            <small>Author: Schaack, Lothar / Bundesarchiv (CC BY-SA 3.0)</small>
+          </span>
+        </div>
+      </div>
+
+      <h3>Generation 4: Personal Computers &amp; Networks (1980–Present)</h3>
+      <p>
+        The advent of Large-Scale Integration (LSI) and Very Large-Scale Integration (VLSI) semiconductor chips made microprocessors economically viable, triggering the personal computer revolution. Operating systems shifted dramatically away from centralized multi-user mainframes toward responsive, single-user desktop environments designed for accessibility and local productivity.
+      </p>
+      <p>
+        Key milestones and architectural shifts during Generation 4 include:
       </p>
       <ul>
-        <li><strong>Fetch:</strong> Retrieve the instruction at the memory address currently designated by the Program Counter (PC).</li>
-        <li><strong>Decode:</strong> Interpret the operation code (opcode) to determine the instruction type and identify the required operands.</li>
-        <li><strong>Execute:</strong> Carry out the operation within the Arithmetic Logic Unit (ALU), manipulate data registers, and adjust processor state flags.</li>
+        <li><strong>Graphical User Interfaces (GUIs):</strong> Pioneered at Xerox PARC and popularized by Apple Macintosh and Microsoft Windows, operating systems integrated visual window managers, icons, menus, and pointer (WIMP) paradigms, eliminating raw command-line dependency for everyday users.</li>
+        <li><strong>Networking &amp; Distributed Architectures:</strong> Local Area Networks (LANs) and TCP/IP protocol stacks were integrated directly into operating system kernels, transforming isolated personal computers into interconnected nodes capable of shared file systems, printing, and client-server communication.</li>
+        <li><strong>Protected Memory &amp; Preemptive Multitasking:</strong> Early single-tasking microcomputer OSs (like early MS-DOS) evolved into robust 32-bit and 64-bit architectures (such as Windows NT, modern macOS, and Linux) featuring hardware-enforced memory protection, virtual memory paging, and preemptive task scheduling.</li>
       </ul>
 
-      <h3>Key Processor Registers</h3>
+      <h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>
       <p>
-        CPUs contain internal high-speed storage registers that operate at core clock speeds with zero wait states:
+        The contemporary computing era has shifted dramatically away from stationary desktop environments toward highly distributed, heterogeneous, and mobile ecosystems. Modern operating systems must span an immense spectrum of hardware scales—ranging from miniature battery-powered wearable sensors and smartphones to massive hyperscale cloud datacenters comprising millions of server cores.
+      </p>
+      <p>
+        Key architectural paradigms defining Generation 5 include:
       </p>
       <ul>
-        <li><strong>General-Purpose Registers:</strong> Hold local variables, arithmetic operands, and temporary intermediate results.</li>
-        <li><strong>Program Counter (PC):</strong> Stores the memory address of the next machine instruction to be fetched.</li>
-        <li><strong>Stack Pointer (SP):</strong> Points to the top of the current call stack frame in memory, tracking local variables, parameters, and return addresses.</li>
-        <li><strong>Program Status Word (PSW):</strong> Contains condition code bits (carry, overflow, zero, sign), CPU priority level, mode bits (user vs. kernel mode), and interrupt enablement flags.</li>
-      </ul>
-
-      <h3>Pipelining, Superscalar, &amp; Multicore Architectures</h3>
-      <p>
-        Modern processors maximize instruction throughput through concurrency:
-      </p>
-      <ul>
-        <li><strong>Pipelining:</strong> Deconstructs instruction processing into sequential stages (e.g., Fetch, Decode, Execute, Writeback), allowing an instruction to be decoded while the previous one is executed and the next one is fetched.</li>
-        <li><strong>Superscalar Execution:</strong> Features multiple parallel execution units (multiple ALUs, floating-point units). If consecutive instructions are independent, both are issued and executed simultaneously.</li>
-        <li><strong>Multithreading &amp; Hyperthreading:</strong> Duplicates architectural state (registers, PC, PSW) on a single physical core, allowing near-instantaneous thread context switching when one thread stalls on memory access.</li>
-        <li><strong>Multicore Processors:</strong> Embed multiple complete, independent CPU cores onto a single silicon die, each with dedicated L1/L2 caches and shared L3 caches.</li>
-      </ul>
-
-      <h2>2. Privilege Modes &amp; Hardware Protection</h2>
-      <p>
-        To prevent rogue or faulty user software from crashing the operating system or corrupting other programs, CPU hardware enforces distinct privilege execution levels:
-      </p>
-      <ul>
-        <li><strong>Kernel Mode (Supervisor Mode):</strong> Complete, unrestricted access to the entire physical address space, all machine instructions (including direct device I/O, MMU modifications, and timer interrupts), and system configuration tables. The operating system kernel runs exclusively in kernel mode.</li>
-        <li><strong>User Mode:</strong> A restricted subset of instructions is available. Direct memory access to kernel space, modification of control registers, and raw I/O instructions are strictly prohibited and trap to the OS kernel.</li>
+        <li><strong>Mobile &amp; Power-Aware Operating Systems:</strong> Platforms like Android and iOS introduced aggressive power management frameworks, thermal throttling, context-aware sensor integration, strict application sandboxing, and wireless cellular/Wi-Fi stack management to maximize battery longevity and user responsiveness.</li>
+        <li><strong>Cloud Computing &amp; Hypervisors:</strong> Hyperscale cloud infrastructures rely on robust Type-1 hypervisors (such as KVM, Xen, and VMware ESXi) to virtualize compute, storage, and networking layers, allowing cloud providers to dynamically provision and migrate virtual machines across elastic server clusters.</li>
+        <li><strong>Containerization &amp; Orchestration:</strong> Operating system-level virtualization through container runtimes (such as Docker) and orchestrators (such as Kubernetes) enables lightweight, isolated application packaging that shares a common host kernel, optimizing resource utilization and microservices deployment.</li>
+        <li><strong>Ubiquitous &amp; IoT Computing:</strong> Billions of smart devices, industrial sensors, and embedded appliances run specialized lightweight real-time operating systems (RTOS) and micro-kernels (such as FreeRTOS or Zephyr) that integrate seamlessly into ambient networks with minimal memory and power footprints.</li>
       </ul>
 
       <div class="aside-box">
-        <strong>The TRAP Instruction &amp; System Calls</strong>
-        <p style="margin-top: 6px;">
-          When an application requires operating system services (such as reading a file from disk), it executes a specialized <code>TRAP</code> instruction (or <code>syscall</code> / <code>sysenter</code>). This hardware instruction switches the CPU from user mode to kernel mode and branches unconditionally to a predefined vector in the kernel's Interrupt Descriptor Table (IDT), allowing controlled privileged execution.
+        <strong>Research Aside: Andrew S. Tanenbaum &amp; MINIX</strong>
+        <p style="margin-top: 6px; font-size: 0.88rem;">
+          Andrew S. Tanenbaum created MINIX in 1987 as an educational operating system to illustrate microkernel design principles. MINIX served as the primary inspiration and initial development environment for Linus Torvalds when he began writing the Linux kernel in 1991.
         </p>
       </div>
 
-      <div class="diagram-container">
-        <svg viewBox="0 0 740 260" width="100%" height="auto" style="max-width: 740px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="20" width="700" height="100" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6,4" />
-          <text x="35" y="45" fill="#64748b" font-size="11" font-weight="bold">USER SPACE (User Mode / Ring 3)</text>
-          <rect x="20" y="140" width="700" height="100" rx="8" fill="#f0f9ff" stroke="#bae6fd" stroke-width="2" />
-          <text x="35" y="165" fill="#0369a1" font-size="11" font-weight="bold">KERNEL SPACE (Kernel Mode / Ring 0)</text>
+      <h2>Operating System Ecosystem &amp; Architecture Families</h2>
+      <p>
+        The operating system landscape spans diverse paradigms. Below is the complete visual index of all 15 system brand marks and logos organized by architectural family.
+      </p>
 
-          <rect x="60" y="55" width="190" height="50" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
-          <text x="155" y="78" fill="#0f172a" font-size="12" font-weight="bold" text-anchor="middle">User Application</text>
-          <text x="155" y="94" fill="#64748b" font-size="10" text-anchor="middle">Calls open() / read()</text>
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
 
-          <rect x="290" y="85" width="160" height="50" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="1.5" />
-          <text x="370" y="107" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">TRAP / SYSCALL</text>
-          <text x="370" y="123" fill="#e0f2fe" font-size="10" text-anchor="middle">Mode Bit: User &rarr; Kernel</text>
+        <!-- Family 1 -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Commercial Desktop &amp; Mobile Systems</div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/windows.svg" alt="Windows" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Microsoft_Windows" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Windows</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/apple.svg" alt="Apple" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/MacOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Apple macOS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/chrome.svg" alt="ChromeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/ChromeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">ChromeOS</a>
+            </div>
+          </div>
+        </div>
 
-          <rect x="490" y="170" width="190" height="55" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
-          <text x="585" y="193" fill="#0369a1" font-size="12" font-weight="bold" text-anchor="middle">Syscall Dispatcher</text>
-          <text x="585" y="210" fill="#475569" font-size="10" text-anchor="middle">Execute Kernel Routine (IDT)</text>
+        <!-- Family 2 -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Open-Source &amp; Unix-Like Kernels</div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/tux.svg" alt="Linux" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Linux" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Linux (Tux)</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/freebsd.svg" alt="FreeBSD" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/FreeBSD" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeBSD</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/android.svg" alt="Android" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Android_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Android</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/minix.png" alt="MINIX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/MINIX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">MINIX</a>
+            </div>
+          </div>
+        </div>
 
-          <path d="M 250,80 L 285,100" fill="none" stroke="#0284c7" stroke-width="2" />
-          <path d="M 450,115 L 485,185" fill="none" stroke="#0284c7" stroke-width="2" />
-          <path d="M 490,205 C 360,240 240,160 160,110" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4" />
-          <text x="330" y="220" fill="#64748b" font-size="10" text-anchor="middle">IRET / SYSRET (Kernel &rarr; User)</text>
-        </svg>
+        <!-- Family 3 -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Real-Time Operating Systems (RTOS)</div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/free-rtos.png" alt="FreeRTOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/FreeRTOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeRTOS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/qnx.svg" alt="QNX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/QNX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">QNX RTOS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/vxworks.svg" alt="VxWorks" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/VxWorks" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">VxWorks</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Family 4 -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Historical &amp; Enterprise Systems</div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/os2.svg" alt="OS/2" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/OS/2" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">IBM OS/2</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/solaris.svg" alt="Solaris" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Solaris_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Solaris</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/openvms.svg" alt="OpenVMS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/OpenVMS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">OpenVMS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/multics.svg" alt="Multics" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Multics" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Multics</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/beos.svg" alt="BeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/BeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">BeOS</a>
+            </div>
+          </div>
+        </div>
+
       </div>
-
-      <h2>3. The Memory Hierarchy</h2>
-      <p>
-        System memory is organized as a hierarchy balancing access latency, total capacity, and cost per bit:
-      </p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Level</th>
-            <th>Technology</th>
-            <th>Typical Latency</th>
-            <th>Typical Capacity</th>
-            <th>Management</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Registers</strong></td>
-            <td>Flip-flops (CPU die)</td>
-            <td>&lt; 1 ns</td>
-            <td>&lt; 2 KB</td>
-            <td>Compiler / Machine Code</td>
-          </tr>
-          <tr>
-            <td><strong>Cache (L1/L2/L3)</strong></td>
-            <td>Static RAM (SRAM)</td>
-            <td>1 – 15 ns</td>
-            <td>64 KB – 64 MB</td>
-            <td>Hardware Cache Controller</td>
-          </tr>
-          <tr>
-            <td><strong>Main Memory</strong></td>
-            <td>Dynamic RAM (DRAM)</td>
-            <td>50 – 100 ns</td>
-            <td>16 GB – 128 GB</td>
-            <td>Operating System</td>
-          </tr>
-          <tr>
-            <td><strong>Solid-State Drive</strong></td>
-            <td>NAND Flash (NVMe)</td>
-            <td>10 – 50 &mu;s</td>
-            <td>512 GB – 4 TB</td>
-            <td>Operating System / File System</td>
-          </tr>
-          <tr>
-            <td><strong>Magnetic Disk</strong></td>
-            <td>Rotational platters</td>
-            <td>5 – 10 ms</td>
-            <td>1 TB – 20 TB</td>
-            <td>Operating System / File System</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="diagram-container">
-        <svg viewBox="0 0 960 430" width="100%" height="auto" style="max-width: 960px; min-width: 650px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="arrowSpeed" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
-              <path d="M0,8 L4,0 L8,8 Z" fill="#0284c7" />
-            </marker>
-            <marker id="arrowCapacity" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
-              <path d="M0,0 L4,8 L8,0 Z" fill="#334155" />
-            </marker>
-          </defs>
-
-          <line x1="45" y1="390" x2="45" y2="35" stroke="#0284c7" stroke-width="3" marker-end="url(#arrowSpeed)" />
-          <text x="35" y="215" fill="#0284c7" font-size="11" font-weight="700" transform="rotate(-90 35 215)" text-anchor="middle">FASTER ACCESS &amp; HIGHER COST / BIT</text>
-
-          <g transform="translate(70, 25)">
-            <rect x="180" y="0" width="280" height="52" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
-            <text x="320" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">CPU Registers</text>
-            <text x="320" y="42" fill="#e0f2fe" font-size="11" font-weight="600" text-anchor="middle">&lt; 2 KB | &lt; 1 ns</text>
-            <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Internal registers on CPU core</text>
-          </g>
-
-          <g transform="translate(70, 97)">
-            <rect x="140" y="0" width="320" height="52" rx="6" fill="#0369a1" stroke="#075985" stroke-width="2" />
-            <text x="300" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">L1 / L2 / L3 Caches (SRAM)</text>
-            <text x="300" y="42" fill="#e0f2fe" font-size="11" font-weight="600" text-anchor="middle">64 KB – 64 MB | 1 – 15 ns</text>
-            <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">On-die static RAM cache</text>
-          </g>
-
-          <g transform="translate(70, 169)">
-            <rect x="100" y="0" width="360" height="52" rx="6" fill="#075985" stroke="#0c4a6e" stroke-width="2" />
-            <text x="280" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Main Memory (DRAM)</text>
-            <text x="280" y="42" fill="#e0f2fe" font-size="11" font-weight="600" text-anchor="middle">16 GB – 128 GB | 50 – 100 ns</text>
-            <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Primary volatile system RAM</text>
-          </g>
-
-          <g transform="translate(70, 241)">
-            <rect x="60" y="0" width="400" height="52" rx="6" fill="#1e293b" stroke="#334155" stroke-width="2" />
-            <text x="260" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Solid-State Drives (NVMe / SSD)</text>
-            <text x="260" y="42" fill="#e2e8f0" font-size="11" font-weight="600" text-anchor="middle">512 GB – 4 TB | 10 – 50 μs</text>
-            <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Non-volatile NAND flash storage</text>
-          </g>
-
-          <g transform="translate(70, 313)">
-            <rect x="20" y="0" width="440" height="52" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="2" />
-            <text x="240" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Magnetic Hard Disks (HDD)</text>
-            <text x="240" y="42" fill="#cbd5e1" font-size="11" font-weight="600" text-anchor="middle">1 TB – 20 TB | 5 – 10 ms</text>
-            <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Secondary rotational storage</text>
-          </g>
-
-          <line x1="895" y1="35" x2="895" y2="390" stroke="#334155" stroke-width="3" marker-end="url(#arrowCapacity)" />
-          <text x="912" y="215" fill="#334155" font-size="11" font-weight="700" transform="rotate(90 912 215)" text-anchor="middle">LARGER STORAGE CAPACITY &amp; PERSISTENCE</text>
-        </svg>
-      </div>
-
-      <h3>Virtual Memory &amp; The MMU</h3>
-      <p>
-        Operating systems decouple program addresses from physical memory chips using <strong>virtual memory</strong>. The processor contains a dedicated hardware component known as the <strong>Memory Management Unit (MMU)</strong>. The MMU dynamically maps virtual addresses generated by application code into physical RAM addresses using page tables, enforcing memory boundaries and protecting isolated processes.
-      </p>
-
-      <h2>4. Disks, I/O Devices, &amp; Controller Hardware</h2>
-      <p>
-        I/O devices generally consist of two distinct parts: a physical component (the mechanical drive, screen, or cable) and an electronic component called the <strong>device controller</strong>.
-      </p>
-      <ul>
-        <li><strong>Device Controllers:</strong> The electronic chip or circuit board that accepts commands from the OS and manages low-level electrical signals to the physical peripheral.</li>
-        <li><strong>Memory-Mapped I/O &amp; I/O Ports:</strong> The operating system communicates with device controllers by writing to and reading from designated controller registers mapped into memory addresses or separate I/O port spaces.</li>
-      </ul>
-
-      <h3>Three Fundamental I/O Approaches</h3>
-      <ul>
-        <li><strong>Programmed I/O (Busy Waiting):</strong> The CPU polls the device controller in a tight loop until the requested operation completes, wasting CPU cycles.</li>
-        <li><strong>Interrupt-Driven I/O:</strong> The CPU starts the transfer, moves on to execute other work, and receives a hardware interrupt signal from the controller when the transfer completes.</li>
-        <li><strong>Direct Memory Access (DMA):</strong> A dedicated DMA controller chip orchestrates the bulk transfer of data directly between peripheral controllers and main memory without continuous CPU intervention, interrupting the processor only after an entire data block has been transferred.</li>
-      </ul>
-
-      <div class="diagram-container">
-        <svg viewBox="0 0 740 280" width="100%" height="auto" style="max-width: 740px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
-          <rect x="40" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
-          <text x="110" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">CPU Core</text>
-          <text x="110" y="82" fill="#64748b" font-size="10" text-anchor="middle">1. Sets up DMA transfer</text>
-
-          <rect x="300" y="30" width="160" height="70" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
-          <text x="380" y="62" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">DMA Controller</text>
-          <text x="380" y="82" fill="#e0f2fe" font-size="10" text-anchor="middle">2. Manages direct bus flow</text>
-
-          <rect x="560" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
-          <text x="630" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">Main Memory</text>
-          <text x="630" y="82" fill="#64748b" font-size="10" text-anchor="middle">Direct Buffer Destination</text>
-
-          <rect x="40" y="145" width="660" height="24" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
-          <text x="370" y="161" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">SYSTEM &amp; MEMORY BUS (PCIe / DMI / Memory Channels)</text>
-
-          <rect x="300" y="200" width="160" height="60" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
-          <text x="380" y="226" fill="#1e293b" font-size="12" font-weight="bold" text-anchor="middle">Device Controller</text>
-          <text x="380" y="244" fill="#64748b" font-size="10" text-anchor="middle">(NVMe / Disk / NIC)</text>
-
-          <line x1="110" y1="100" x2="110" y2="145" stroke="#0284c7" stroke-width="2" />
-          <line x1="380" y1="100" x2="380" y2="145" stroke="#0284c7" stroke-width="2" />
-          <line x1="630" y1="100" x2="630" y2="145" stroke="#0284c7" stroke-width="2" />
-          <line x1="380" y1="169" x2="380" y2="200" stroke="#64748b" stroke-width="2" />
-
-          <path d="M 460,230 C 580,230 630,190 630,105" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6,3" />
-          <text x="595" y="245" fill="#0284c7" font-size="10" font-weight="bold">Direct Memory Stream (Bypasses CPU)</text>
-        </svg>
-      </div>
-
-      <h2>5. Buses &amp; The Boot Process</h2>
-      <p>
-        Modern computers utilize a hierarchy of specialized <strong>buses</strong> (PCIe, DMI, USB, DDR memory channels) connecting processors, memory, and controllers. Fast buses connect the CPU to high-speed caches and RAM, while secondary buses link standard peripherals.
-      </p>
-
-      <h3>How the Computer Boots Up</h3>
-      <ol>
-        <li>When power is supplied, the CPU initializes its registers and executes boot firmware stored in non-volatile ROM/flash (the <strong>BIOS</strong> or modern <strong>UEFI</strong>).</li>
-        <li>The firmware checks physical RAM, scans buses, and detects attached peripheral devices (Power-On Self-Test / POST).</li>
-        <li>The firmware identifies the designated boot device and reads the first sector (Master Boot Record) or loads the EFI bootloader binary from the EFI System Partition (ESP).</li>
-        <li>The bootloader (such as GRUB) copies the operating system kernel and initial RAM filesystem into main memory.</li>
-        <li>The bootloader transfers execution to the kernel entry point. The OS kernel initializes hardware drivers, activates protected virtual memory, and spawns the initial user-space environment (such as <code>init</code> or <code>systemd</code>).</li>
-      </ol>
     </article>
   </main>
 
   <nav class="module-nav-bar bottom">
-    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>
-    <a href="index.html" class="module-nav-btn">Chapter 1 Index</a>
-    <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>
+    <span class="module-nav-placeholder">&larr; Previous</span>
+    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
   </nav>
 
 </body>
@@ -454,14 +442,15 @@ def restore_module_styling():
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"--> Successfully updated {file_path} with restored styling.")
+    print(f"--> Successfully updated {file_path} layout.")
 
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Restore Module 1 CSS design system and theme palette in 02-hardware-review.html\n\n"
-            "Reinstate #f8fafc background, variables, boxed header, and aside styling in\n"
-            "week01-operating-system-concepts/02-hardware-review.html while keeping prose unboxed."
+            "Remove card enclosures from main text in 01-what-is-an-os-and-history.html\n\n"
+            "Refactor week01-operating-system-concepts/01-what-is-an-os-and-history.html\n"
+            "to flow as unboxed standard prose, matching the styling updates made to\n"
+            "Module 2 while preserving image grids and navigation bars."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -470,4 +459,4 @@ def restore_module_styling():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    restore_module_styling()
+    update_module_one_layout()
