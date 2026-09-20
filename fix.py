@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Widen DMA diagram canvas and fix text label clipping
+# fix.py: Shift DMA stream text label down to clear the dashed line
 # =====================================================================
 import os
 import re
 import subprocess
 
 REFINED_DMA_SVG = """
-        <svg viewBox="0 0 880 290" width="100%" height="auto" style="max-width: 880px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 880 305" width="100%" height="auto" style="max-width: 880px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <marker id="dmaArrow" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
               <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
@@ -46,12 +46,15 @@ REFINED_DMA_SVG = """
 
           <!-- Bulk Data Flow Curve - Enters side port of Main Memory at (750, 65) -->
           <path d="M 490,240 C 650,240 780,210 780,110 C 780,65 765,65 756,65" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#dmaArrow)" />
-          <text x="640" y="232" fill="#0284c7" font-size="10" font-weight="bold" text-anchor="middle">Direct Memory Stream</text>
-          <text x="640" y="246" fill="#0369a1" font-size="9" text-anchor="middle">(Bypasses CPU)</text>
+
+          <!-- Label cleanly positioned underneath the dashed path with zero overlap -->
+          <rect x="535" y="252" width="210" height="34" rx="4" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1" />
+          <text x="640" y="267" fill="#0284c7" font-size="10" font-weight="bold" text-anchor="middle">Direct Memory Stream</text>
+          <text x="640" y="280" fill="#0369a1" font-size="9" text-anchor="middle">(Bypasses CPU)</text>
         </svg>
 """
 
-def fix_dma_clipping():
+def adjust_dma_label_offset():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -60,10 +63,10 @@ def fix_dma_clipping():
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    pattern = r'<svg viewBox="0 0 7[46]0 2[89]0".*?</svg>'
+    pattern = r'<svg viewBox="0 0 880 290".*?</svg>'
     if re.search(pattern, content, flags=re.DOTALL):
         content = re.sub(pattern, REFINED_DMA_SVG.strip(), content, flags=re.DOTALL)
-        print("--> Updated DMA diagram with widened canvas and unclipt text.")
+        print("--> Repositioned DMA label underneath the dashed path.")
     else:
         fallback_pattern = r'(<h3>Three Fundamental I/O Approaches</h3>.*?<div class="diagram-container">)\s*<svg.*?</svg>'
         if re.search(fallback_pattern, content, flags=re.DOTALL):
@@ -78,9 +81,9 @@ def fix_dma_clipping():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Fix text clipping on DMA stream label in Module 2 architecture SVG\n\n"
-            "Expand SVG viewBox width to 880 and adjust text anchor coordinates in\n"
-            "week01-operating-system-concepts/02-hardware-review.html to prevent cutoff."
+            "Shift DMA stream label down to prevent overlap with dashed data path\n\n"
+            "Update week01-operating-system-concepts/02-hardware-review.html to lower\n"
+            "the Direct Memory Stream text block beneath the trajectory of the curve."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -89,4 +92,4 @@ def fix_dma_clipping():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    fix_dma_clipping()
+    adjust_dma_label_offset()
