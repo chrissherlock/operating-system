@@ -821,13 +821,15 @@
         If an operating system attempts to implement a mutual exclusion lock using standard, non-atomic software read and write instructions, a race condition occurs whenever two cores attempt to claim the lock simultaneously:
       </p>
 
-      <!-- Token-Highlighted Code Listing: Software Race Failure -->
+            <!-- Token-Highlighted Code Listing: Software Race Failure (clang-format style) -->
       <div class="code-box">
 <span style="color:#64748b;">// NON-ATOMIC SOFTWARE FAILURE: Race window between read and write</span>
-<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Naive_Acquire</span>(<span style="color:#f43f5e;">volatile int</span> *lock) {
-    <span style="color:#f43f5e;">if</span> (*lock == <span style="color:#fbbf24;">0</span>) {           <span style="color:#64748b;">// Core 0 and Core 1 both read 0 simultaneously!</span>
-        *lock = <span style="color:#fbbf24;">1</span>;               <span style="color:#64748b;">// Both write 1 and believe they own the lock</span>
-        <span style="color:#f43f5e;">return</span> <span style="color:#34d399;">1</span>;               <span style="color:#64748b;">// Mutual exclusion violated: both enter critical section!</span>
+<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Naive_Acquire</span>(<span style="color:#f43f5e;">volatile int</span> *lock)
+{
+    <span style="color:#f43f5e;">if</span> (*lock == <span style="color:#fbbf24;">0</span>) {
+        <span style="color:#64748b;">// Core 0 and Core 1 can both read 0 simultaneously</span>
+        *lock = <span style="color:#fbbf24;">1</span>;
+        <span style="color:#f43f5e;">return</span> <span style="color:#34d399;">1</span>; <span style="color:#64748b;">// Both cores believe they acquired the lock</span>
     }
     <span style="color:#f43f5e;">return</span> <span style="color:#fbbf24;">0</span>;
 }
@@ -837,32 +839,34 @@
         To eliminate this vulnerability, processor architectures provide <strong>Atomic Read-Modify-Write (RMW) Instructions</strong>. These instructions guarantee that reading the old value and writing the new value occur as an indivisible, single-cycle operation across the entire memory hierarchy. Hardware guarantees this either by asserting the physical bus <code>LOCK#</code> signal or by maintaining exclusive ownership of the cache line via the cache coherence protocol:
       </p>
 
-      <!-- Token-Highlighted Code Listing: Hardware Atomic Primitives -->
+            <!-- Token-Highlighted Code Listing: Hardware Atomic Primitives (clang-format style) -->
       <div class="code-box">
-<span style="color:#64748b;">// 1. ATOMIC TEST-AND-SET (x86-64: LOCK BTS or XCHG)</span>
-<span style="color:#64748b;">// Atomically swaps 1 into *lock and returns the old value in a single bus transaction</span>
-<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Atomic_TestAndSet</span>(<span style="color:#f43f5e;">volatile int</span> *lock) {
+<span style="color:#64748b;">// 1. ATOMIC TEST-AND-SET (x86-64: LOCK XCHG)</span>
+<span style="color:#64748b;">// Atomically writes 1 to *lock and returns the previous value in a single bus transaction</span>
+<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Atomic_TestAndSet</span>(<span style="color:#f43f5e;">volatile int</span> *lock)
+{
     <span style="color:#f43f5e;">int</span> old_val;
-    __asm__ <span style="color:#f43f5e;">volatile</span> (
-        <span style="color:#a5b4fc;">"lock xchgl %0, %1"</span>
-        : <span style="color:#a5b4fc;">"=r"</span> (old_val), <span style="color:#a5b4fc;">"+m"</span> (*lock)
-        : <span style="color:#a5b4fc;">"0"</span> (<span style="color:#fbbf24;">1</span>)
-        : <span style="color:#a5b4fc;">"memory"</span>
-    );
-    <span style="color:#f43f5e;">return</span> old_val; <span style="color:#64748b;">// Returns 0 on successful lock acquisition, 1 on busy</span>
+
+    __asm__ <span style="color:#f43f5e;">volatile</span>(<span style="color:#a5b4fc;">"lock xchgl %0, %1"</span>
+                     : <span style="color:#a5b4fc;">"=r"</span>(old_val), <span style="color:#a5b4fc;">"+m"</span>(*lock)
+                     : <span style="color:#a5b4fc;">"0"</span>(<span style="color:#fbbf24;">1</span>)
+                     : <span style="color:#a5b4fc;">"memory"</span>);
+
+    <span style="color:#f43f5e;">return</span> old_val; <span style="color:#64748b;">// Returns 0 on success, 1 on busy</span>
 }
 
-<span style="color:#64748b;">// 2. ATOMIC COMPARE-AND-SWAP / CAS (x86-64: LOCK CMPXCHG)</span>
+<span style="color:#64748b;">// 2. ATOMIC COMPARE-AND-SWAP (x86-64: LOCK CMPXCHG)</span>
 <span style="color:#64748b;">// Updates *addr to new_val ONLY IF it currently holds expected_val</span>
-<span style="color:#f43f5e;">bool</span> <span style="color:#38bdf8;">Atomic_CompareAndSwap</span>(<span style="color:#f43f5e;">volatile int</span> *addr, <span style="color:#f43f5e;">int</span> expected_val, <span style="color:#f43f5e;">int</span> new_val) {
+<span style="color:#f43f5e;">bool</span> <span style="color:#38bdf8;">Atomic_CompareAndSwap</span>(<span style="color:#f43f5e;">volatile int</span> *addr, <span style="color:#f43f5e;">int</span> expected_val, <span style="color:#f43f5e;">int</span> new_val)
+{
     <span style="color:#f43f5e;">unsigned char</span> success;
-    __asm__ <span style="color:#f43f5e;">volatile</span> (
-        <span style="color:#a5b4fc;">"lock cmpxchgl %3, %1;\n\t"</span>
-        <span style="color:#a5b4fc;">"sete %0"</span>
-        : <span style="color:#a5b4fc;">"=q"</span> (success), <span style="color:#a5b4fc;">"+m"</span> (*addr), <span style="color:#a5b4fc;">"+a"</span> (expected_val)
-        : <span style="color:#a5b4fc;">"r"</span> (new_val)
-        : <span style="color:#a5b4fc;">"memory"</span>
-    );
+
+    __asm__ <span style="color:#f43f5e;">volatile</span>(<span style="color:#a5b4fc;">"lock cmpxchgl %3, %1;\n\t"</span>
+                     <span style="color:#a5b4fc;">"sete %0"</span>
+                     : <span style="color:#a5b4fc;">"=q"</span>(success), <span style="color:#a5b4fc;">"+m"</span>(*addr), <span style="color:#a5b4fc;">"+a"</span>(expected_val)
+                     : <span style="color:#a5b4fc;">"r"</span>(new_val)
+                     : <span style="color:#a5b4fc;">"memory"</span>);
+
     <span style="color:#f43f5e;">return</span> (<span style="color:#f43f5e;">bool</span>)success;
 }
       </div>
