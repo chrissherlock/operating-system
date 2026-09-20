@@ -281,11 +281,8 @@
       </p>
     </header>
 
-    <!-- SECTION 8.2.4: REMOTE PROCEDURE CALL -->
-    <section class="content-section">
-      <h2>8.2.4 Remote Procedure Call (RPC) Semantics &amp; Fault Modes</h2>
         <!-- WIKIPEDIA ASIDE BOX -->
-        <aside style="border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.92rem; color: #0369a1;">
+        <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 20px 0; font-size: 0.92rem; color: #0369a1;">
           <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Context &amp; Further Reading</h4>
           <p style="margin-bottom: 6px; color: #334155; font-size: 0.9rem;">
             Explore distributed programming paradigms on Wikipedia:
@@ -295,6 +292,11 @@
             <li><a href="https://en.wikipedia.org/wiki/Distributed_shared_memory" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Distributed Shared Memory (DSM)</a> &mdash; Page-based memory emulation pioneered by Kai Li (Ivy system, 1986).</li>
           </ul>
         </aside>
+
+    <!-- SECTION 8.2.4: REMOTE PROCEDURE CALL -->
+    <section class="content-section">
+      <h2>8.2.4 Remote Procedure Call (RPC) Semantics &amp; Fault Modes</h2>
+        
       <p>
         Pioneered by Birrell and Nelson (1984), <strong>Remote Procedure Call (RPC)</strong> allows programs running on one multicomputer node to invoke subroutines executing on another node transparently. While local function calls pass arguments via CPU registers or stack frames within a shared address space, RPCs must cross an unreliable network where messages can be dropped, delayed, duplicated, or reordered.
       </p>
