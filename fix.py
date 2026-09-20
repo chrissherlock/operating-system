@@ -1,29 +1,42 @@
 #!/usr/bin/env python3
+import os
 import subprocess
 import sys
 
-def commit_everything():
-    print("--> Checking git status...")
-    status_res = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True, check=True)
-    if not status_res.stdout.strip():
-        print("--> Working directory is already completely clean.")
+def stage_and_commit_fix():
+    filename = "fix.py"
+    if not os.path.exists(filename):
+        print(f"Notice: {filename} does not exist in working directory. Searching for alternate fix scripts...")
+        # Search for any file matching fix*.py
+        import glob
+        candidates = glob.glob("fix*.py")
+        if candidates:
+            filename = candidates[0]
+            print(f"--> Found candidate script: {filename}")
+        else:
+            print(f"Error: No fix script found to commit.", file=sys.stderr)
+            sys.exit(1)
+
+    print(f"--> Staging {filename}...")
+    subprocess.run(["git", "add", filename], check=True)
+
+    status_res = subprocess.run(["git", "diff", "--cached", "--quiet"])
+    if status_res.returncode == 0:
+        print(f"--> {filename} is already staged/committed. No changes to commit.")
         return
 
-    print("--> Staging all modified and untracked files...")
-    subprocess.run(["git", "add", "-A"], check=True)
-
     commit_msg = (
-        "Commit and push all remaining working directory changes\n\n"
-        "Stage and commit all leftover modified files across the repository\n"
-        "to ensure a completely clean working tree."
+        "Track and commit repository utility fix script\n\n"
+        f"Include {filename} in git version control tracking to preserve helper code\n"
+        "used during curriculum verification and refactoring."
     )
 
     print("--> Committing changes...")
     subprocess.run(["git", "commit", "-m", commit_msg], check=True)
 
-    print("--> Pushing to origin main...")
+    print("--> Pushing changes to origin main...")
     subprocess.run(["git", "push", "origin", "main"], check=True)
-    print("--> All working directory changes successfully committed and pushed!")
+    print(f"--> Successfully committed and pushed {filename}!")
 
 if __name__ == "__main__":
-    commit_everything()
+    stage_and_commit_fix()
