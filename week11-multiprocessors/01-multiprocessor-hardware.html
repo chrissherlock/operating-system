@@ -559,38 +559,73 @@
         </tbody>
       </table>
 
-      <!-- WALKTHROUGH 3: MESI PROTOCOL -->
+            <!-- WALKTHROUGH 3: MESI PROTOCOL -->
       <div class="walkthrough-box">
         <div class="walkthrough-header">
           <span class="walkthrough-title">Guided Walkthrough: MESI Cache Coherence Lifecycle</span>
           <span id="mesi-step-badge" class="step-badge">Stage 1 of 4</span>
         </div>
 
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> Because modern CPU execution cores operate orders of magnitude faster than main memory, each core relies on high-speed private caches (L1 and L2). However, private caches introduce the <em>Cache Coherence Problem</em>: if CPU 0 modifies a variable in its private cache, CPU 1's private cache immediately becomes stale. To preserve memory consistency without routing every access back to slow main RAM, hardware controllers monitor the shared memory bus using the <strong>MESI Protocol</strong> (Modified, Exclusive, Shared, Invalid). This walkthrough animates how snooping hardware tracks state transitions and forces cache-to-cache interventions when dirty lines are referenced.
+        </p>
+
         <div class="instruction-card">
           <div id="mesi-act-text" class="action-req">Action Required: Click 'Execute Step 1: CPU 0 Reads X' below.</div>
           <div id="mesi-exp-text" class="action-exp">Initially, neither CPU cache holds Variable X (both are in the Invalid state). When CPU 0 reads X, it emits a BusRd broadcast. Because no other cache holds the line, it is loaded from RAM directly into CPU 0's cache in the <strong>Exclusive (E)</strong> state.</div>
         </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-          <div id="box-c0-cache" style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:14px; display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; font-family:var(--font-mono); font-size:0.85rem;">
-              <span>CPU 0 Cache</span>
-              <span id="badge-c0" class="state-badge state-I">State: I</span>
-            </div>
-            <div style="font-family:var(--font-mono); font-size:0.85rem; background:#f1f5f9; padding:6px; border-radius:4px;">
-              Variable X: <span id="val-c0" style="font-weight:bold;">--</span>
-            </div>
-          </div>
+        <!-- Inline Interactive SVG Snooping Bus Diagram -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="mesi-snoop-svg" viewBox="0 0 740 290" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- CPU 0 Core & Cache -->
+            <rect id="svg-c0-box" x="40" y="20" width="280" height="95" fill="#f8fafc" stroke="#0284c7" stroke-width="2" rx="6"/>
+            <text x="180" y="38" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">CPU Core 0</text>
 
-          <div id="box-c1-cache" style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:14px; display:flex; flex-direction:column; gap:6px;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold; font-family:var(--font-mono); font-size:0.85rem;">
-              <span>CPU 1 Cache</span>
-              <span id="badge-c1" class="state-badge state-I">State: I</span>
-            </div>
-            <div style="font-family:var(--font-mono); font-size:0.85rem; background:#f1f5f9; padding:6px; border-radius:4px;">
-              Variable X: <span id="val-c1" style="font-weight:bold;">--</span>
-            </div>
-          </div>
+            <rect id="svg-c0-tag" x="60" y="50" width="100" height="28" fill="#64748b" rx="4"/>
+            <text id="svg-c0-state-txt" x="110" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">State: I</text>
+
+            <rect id="svg-c0-data" x="180" y="50" width="120" height="28" fill="#e2e8f0" stroke="#cbd5e1" rx="4"/>
+            <text id="svg-c0-val-txt" x="240" y="68" text-anchor="middle" font-weight="bold" fill="#475569">Var X: --</text>
+            <text x="180" y="102" text-anchor="middle" font-size="9" fill="#64748b">Private L1/L2 Cache Array</text>
+
+            <!-- CPU 1 Core & Cache -->
+            <rect id="svg-c1-box" x="420" y="20" width="280" height="95" fill="#f8fafc" stroke="#64748b" stroke-width="2" rx="6"/>
+            <text x="560" y="38" text-anchor="middle" font-weight="bold" fill="#475569" font-size="12">CPU Core 1</text>
+
+            <rect id="svg-c1-tag" x="440" y="50" width="100" height="28" fill="#64748b" rx="4"/>
+            <text id="svg-c1-state-txt" x="490" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">State: I</text>
+
+            <rect id="svg-c1-data" x="560" y="50" width="120" height="28" fill="#e2e8f0" stroke="#cbd5e1" rx="4"/>
+            <text id="svg-c1-val-txt" x="620" y="68" text-anchor="middle" font-weight="bold" fill="#475569">Var X: --</text>
+            <text x="560" y="102" text-anchor="middle" font-size="9" fill="#64748b">Private L1/L2 Cache Array</text>
+
+            <!-- Snooping Taps from Caches to Bus -->
+            <line id="svg-tap-c0" x1="180" y1="115" x2="180" y2="160" stroke="#cbd5e1" stroke-width="3"/>
+            <circle id="svg-snoop-c0" cx="180" cy="160" r="5" fill="#94a3b8"/>
+
+            <line id="svg-tap-c1" x1="560" y1="115" x2="560" y2="160" stroke="#cbd5e1" stroke-width="3"/>
+            <circle id="svg-snoop-c1" cx="560" cy="160" r="5" fill="#94a3b8"/>
+
+            <!-- Shared Memory Bus Bar -->
+            <rect id="svg-bus-bar" x="30" y="155" width="680" height="12" fill="#0284c7" rx="3"/>
+            <text id="svg-bus-text" x="370" y="150" text-anchor="middle" font-size="10" font-weight="bold" fill="#0284c7">Shared System Memory Bus (Snoop Line Idle)</text>
+
+            <!-- Tap from Bus to Main RAM -->
+            <line id="svg-tap-ram" x1="370" y1="167" x2="370" y2="210" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Main RAM Bank -->
+            <rect id="svg-ram-box" x="250" y="210" width="240" height="60" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" rx="6"/>
+            <text x="370" y="232" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">Shared Main Memory (DRAM)</text>
+            <text id="svg-ram-val-txt" x="370" y="254" text-anchor="middle" font-weight="bold" fill="#0284c7" font-size="11">Address 0x1000 [Var X] = 42 (Clean)</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>CPU 0 Cache: <strong id="c0-summary-state" style="color:#64748b;">Invalid (I)</strong></div>
+          <div>CPU 1 Cache: <strong id="c1-summary-state" style="color:#64748b;">Invalid (I)</strong></div>
+          <div>Bus Activity: <span id="bus-activity-txt" style="font-weight:bold; color:#0284c7;">Idle</span></div>
+          <div>RAM State: <span id="ram-clean-txt" style="font-weight:bold; color:#10b981;">Clean (X = 42)</span></div>
         </div>
 
         <div class="walkthrough-controls">
@@ -953,10 +988,46 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
     // =======================================================
     
 
+    
     // =======================================================
-    // 3. MESI CACHE COHERENCE (WALKTHROUGH CONTROLLER)
+    // 3. MESI CACHE COHERENCE (PEDAGOGICAL WALKTHROUGH SCRIPT)
     // =======================================================
     let mesiStep = 1;
+
+    function resetMesiSvg() {
+      // Tags & Data for CPU 0
+      document.getElementById('svg-c0-tag').setAttribute('fill', '#64748b');
+      document.getElementById('svg-c0-state-txt').textContent = 'State: I';
+      document.getElementById('svg-c0-val-txt').textContent = 'Var X: --';
+      document.getElementById('svg-c0-box').setAttribute('stroke', '#0284c7');
+      document.getElementById('c0-summary-state').textContent = 'Invalid (I)';
+      document.getElementById('c0-summary-state').style.color = '#64748b';
+
+      // Tags & Data for CPU 1
+      document.getElementById('svg-c1-tag').setAttribute('fill', '#64748b');
+      document.getElementById('svg-c1-state-txt').textContent = 'State: I';
+      document.getElementById('svg-c1-val-txt').textContent = 'Var X: --';
+      document.getElementById('svg-c1-box').setAttribute('stroke', '#64748b');
+      document.getElementById('c1-summary-state').textContent = 'Invalid (I)';
+      document.getElementById('c1-summary-state').style.color = '#64748b';
+
+      // Bus and Taps
+      document.getElementById('svg-tap-c0').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('svg-snoop-c0').setAttribute('fill', '#94a3b8');
+      document.getElementById('svg-tap-c1').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('svg-snoop-c1').setAttribute('fill', '#94a3b8');
+      document.getElementById('svg-tap-ram').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('svg-bus-bar').setAttribute('fill', '#0284c7');
+      document.getElementById('svg-bus-text').textContent = 'Shared System Memory Bus (Snoop Line Idle)';
+      document.getElementById('svg-bus-text').setAttribute('fill', '#0284c7');
+
+      // RAM
+      document.getElementById('svg-ram-val-txt').textContent = 'Address 0x1000 [Var X] = 42 (Clean)';
+      document.getElementById('svg-ram-box').setAttribute('fill', '#e0f2fe');
+      document.getElementById('ram-clean-txt').textContent = 'Clean (X = 42)';
+      document.getElementById('ram-clean-txt').style.color = '#10b981';
+      document.getElementById('bus-activity-txt').textContent = 'Idle';
+    }
 
     function appendMesiLog(msg) {
       const el = document.getElementById('mesi-log');
@@ -971,92 +1042,184 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
       const exp = document.getElementById('mesi-exp-text');
 
       if (mesiStep === 1) {
-        document.getElementById('mesi-log').innerHTML = '--> Executing Step 1: CPU 0 Read Miss...';
-        appendMesiLog('CPU 0 emits BusRd for Variable X.');
-        appendMesiLog('CPU 1 snoops BusRd: It holds no copy (Invalid). No collision.');
-        appendMesiLog('Main RAM supplies X = 42. CPU 0 caches X in Exclusive (E) state.');
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 1: CPU 0 Read Miss & Exclusive Allocation...';
 
-        document.getElementById('badge-c0').className = 'state-badge state-E';
-        document.getElementById('badge-c0').innerText = 'State: E';
-        document.getElementById('val-c0').innerText = '42';
+        // Animate bus read: CPU 0 -> Bus -> RAM
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#3b82f6');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#3b82f6');
+        document.getElementById('svg-tap-ram').setAttribute('stroke', '#3b82f6');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#3b82f6');
+        document.getElementById('svg-bus-text').textContent = 'BusRd Broadcast: CPU 0 requesting Var X from RAM';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#3b82f6');
+
+        // CPU 1 snoops but ignores (Invalid)
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#94a3b8');
+
+        // CPU 0 transitions to Exclusive (E)
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#3b82f6');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: E';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 42';
+        document.getElementById('c0-summary-state').textContent = 'Exclusive (E)';
+        document.getElementById('c0-summary-state').style.color = '#3b82f6';
+        document.getElementById('bus-activity-txt').textContent = 'BusRd Handshake';
+
+        appendMesiLog('1. CPU 0 checks its L1 cache: Tag miss on Variable X (currently Invalid).');
+        appendMesiLog('2. Memory Controller asserts BusRd on the shared bus.');
+        appendMesiLog('3. CPU 1 snoops BusRd: its cache line is Invalid, so it remains silent.');
+        appendMesiLog('4. Main RAM delivers X = 42. Since no peer cache claimed the line, CPU 0 adopts the Exclusive (E) state.');
+        appendMesiLog('Pedagogical Insight: In the Exclusive state, CPU 0 knows it can modify this line in the future without bus invalidation traffic!');
 
         mesiStep = 2;
-        badge.innerText = 'Stage 2 of 4';
-        act.innerText = 'Action Required: Click \'Execute Step 2: CPU 1 Reads X\' below.';
-        exp.innerText = 'Now CPU 1 attempts to read Variable X. CPU 0 will snoop this request on the bus. Because CPU 0 holds an Exclusive copy, it responds and both caches transition to the <strong>Shared (S)</strong> state.';
-        btn.innerText = 'Execute Step 2: CPU 1 Reads X';
+        badge.textContent = 'Stage 2 of 4';
+        act.textContent = 'Action Required: Click \'Execute Step 2: CPU 1 Reads X (Shared)\' below.';
+        exp.innerHTML = 'Now watch what happens when CPU 1 also reads Variable X. CPU 0 will snoop CPU 1\'s BusRd request on the shared wire. Because CPU 0 holds an Exclusive copy, it signals that it shares the data, causing both caches to transition to <strong>Shared (S)</strong>.';
+        btn.textContent = 'Execute Step 2: CPU 1 Reads X (Shared)';
       } else if (mesiStep === 2) {
-        document.getElementById('mesi-log').innerHTML = '--> Executing Step 2: CPU 1 Read Miss & Snooping...';
-        appendMesiLog('CPU 1 emits BusRd for Variable X.');
-        appendMesiLog('CPU 0 snoops BusRd in Exclusive state. It signals on the bus that it shares the line.');
-        appendMesiLog('CPU 0 transitions: Exclusive (E) &rarr; Shared (S).');
-        appendMesiLog('CPU 1 loads line from bus into Shared (S) state. Both hold X = 42.');
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 2: CPU 1 Read Miss & Bus Snooping Intervention...';
 
-        document.getElementById('badge-c0').className = 'state-badge state-S';
-        document.getElementById('badge-c0').innerText = 'State: S';
-        document.getElementById('badge-c1').className = 'state-badge state-S';
-        document.getElementById('badge-c1').innerText = 'State: S';
-        document.getElementById('val-c1').innerText = '42';
+        // Animate bus read by CPU 1 with CPU 0 snooping
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#10b981');
+        document.getElementById('svg-snoop-c1').setAttribute('fill', '#10b981');
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#10b981');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#10b981');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#10b981');
+        document.getElementById('svg-bus-text').textContent = 'BusRd Snooped: CPU 0 asserts SHARED line on bus';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#10b981');
+
+        // Both caches become Shared (S)
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 42';
+        document.getElementById('c0-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c0-summary-state').style.color = '#10b981';
+
+        document.getElementById('svg-c1-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c1-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c1-val-txt').textContent = 'Var X: 42';
+        document.getElementById('svg-c1-box').setAttribute('stroke', '#10b981');
+        document.getElementById('c1-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c1-summary-state').style.color = '#10b981';
+
+        document.getElementById('bus-activity-txt').textContent = 'BusRd + Shared Flag';
+
+        appendMesiLog('1. CPU 1 triggers a read miss on Variable X and broadcasts BusRd.');
+        appendMesiLog('2. CPU 0 snoops BusRd: It detects that it currently owns the line in Exclusive mode.');
+        appendMesiLog('3. CPU 0 asserts the dedicated hardware "Shared" line on the memory bus.');
+        appendMesiLog('4. Both caches downgrade/adopt the Shared (S) state. Main RAM provides the data payload.');
+        appendMesiLog('Pedagogical Insight: The Shared state signifies clean data present across multiple caches. Neither core may write without notifying the bus.');
 
         mesiStep = 3;
-        badge.innerText = 'Stage 3 of 4';
-        act.innerText = 'Action Required: Click \'Execute Step 3: CPU 0 Writes X = 99\' below.';
-        exp.innerText = 'CPU 0 now writes a new value (99). Because other caches share this line, CPU 0 must issue an invalidation broadcast (BusUpgr / BusRdX) to invalidate CPU 1\'s stale copy.';
-        btn.innerText = 'Execute Step 3: CPU 0 Writes X = 99';
+        badge.textContent = 'Stage 3 of 4';
+        act.textContent = 'Action Required: Click \'Execute Step 3: CPU 0 Writes X = 99 (Invalidate Peer)\' below.';
+        exp.innerHTML = 'CPU 0 now executes a write: <code>X = 99</code>. Because other caches hold a copy (State S), CPU 0 cannot silently modify its line. It must broadcast an invalidation message (<code>BusUpgr</code>) to force CPU 1\'s copy into the <strong>Invalid (I)</strong> state.';
+        btn.textContent = 'Execute Step 3: CPU 0 Writes X = 99 (Invalidate Peer)';
       } else if (mesiStep === 3) {
-        document.getElementById('mesi-log').innerHTML = '--> Executing Step 3: Write Request & Invalidation...';
-        appendMesiLog('CPU 0 executes: X = 99. Line is Shared, so write permission is required.');
-        appendMesiLog('CPU 0 emits BusUpgr broadcast requesting invalidation of all peer copies.');
-        appendMesiLog('CPU 1 snoops BusUpgr and transitions: Shared (S) &rarr; Invalid (I).');
-        appendMesiLog('CPU 0 transitions: Shared (S) &rarr; Modified (M). CPU 0 now exclusively holds the dirty value (99).');
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 3: Write Invalidation & Transition to Modified...';
 
-        document.getElementById('badge-c0').className = 'state-badge state-M';
-        document.getElementById('badge-c0').innerText = 'State: M';
-        document.getElementById('val-c0').innerText = '99';
-        document.getElementById('badge-c1').className = 'state-badge state-I';
-        document.getElementById('badge-c1').innerText = 'State: I';
-        document.getElementById('val-c1').innerText = '--';
+        // Animate BusUpgr Invalidation from CPU 0 striking CPU 1
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#ef4444');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#ef4444');
+        document.getElementById('svg-snoop-c1').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-bus-text').textContent = 'BusUpgr Invalidation Broadcast: CPU 0 claims sole ownership';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#ef4444');
+
+        // CPU 0 becomes Modified (M)
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#ef4444');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: M';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 99';
+        document.getElementById('svg-c0-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('c0-summary-state').textContent = 'Modified (M - Dirty)';
+        document.getElementById('c0-summary-state').style.color = '#ef4444';
+
+        // CPU 1 invalidated (I)
+        document.getElementById('svg-c1-tag').setAttribute('fill', '#64748b');
+        document.getElementById('svg-c1-state-txt').textContent = 'State: I';
+        document.getElementById('svg-c1-val-txt').textContent = 'Var X: --';
+        document.getElementById('svg-c1-box').setAttribute('stroke', '#64748b');
+        document.getElementById('c1-summary-state').textContent = 'Invalid (I)';
+        document.getElementById('c1-summary-state').style.color = '#64748b';
+
+        // RAM is now stale relative to CPU 0's cache
+        document.getElementById('ram-clean-txt').textContent = 'Stale (RAM has 42, CPU 0 has 99)';
+        document.getElementById('ram-clean-txt').style.color = '#ef4444';
+        document.getElementById('bus-activity-txt').textContent = 'BusUpgr Invalidation';
+
+        appendMesiLog('1. CPU 0 executes a store instruction: X = 99.');
+        appendMesiLog('2. Hardware sees line in Shared state: write permission must be obtained.');
+        appendMesiLog('3. CPU 0 asserts BusUpgr (Bus Upgrade / Invalidation request) across the bus.');
+        appendMesiLog('4. CPU 1 snoops BusUpgr and immediately invalidates its local copy (S -> I).');
+        appendMesiLog('5. CPU 0 mutates its local cache and transitions to Modified (M). Main memory is now stale!');
+        appendMesiLog('Pedagogical Insight: Write-invalidation avoids saturating bus bandwidth compared to write-broadcast (update) protocols.');
 
         mesiStep = 4;
-        badge.innerText = 'Stage 4 of 4';
-        act.innerText = 'Action Required: Click \'Execute Step 4: CPU 1 Reads Stale X\' below.';
-        exp.innerText = 'CPU 1 now tries to read X again. Since its cache line is Invalid, it triggers a read miss. CPU 0 snoops this request while in the Modified state and intervenes to write back the dirty value to memory first.';
-        btn.innerText = 'Execute Step 4: CPU 1 Reads Stale X';
+        badge.textContent = 'Stage 4 of 4';
+        act.textContent = 'Action Required: Click \'Execute Step 4: CPU 1 Reads Stale X (Dirty Flush)\' below.';
+        exp.innerHTML = 'CPU 1 now tries to read Variable X again. Since its local line is Invalid, it triggers a read miss. But Main RAM holds an outdated value (42)! Observe how CPU 0 snoops the bus, halts RAM from responding, and flushes its dirty line (99) to preserve consistency.';
+        btn.textContent = 'Execute Step 4: CPU 1 Reads Stale X (Dirty Flush)';
       } else if (mesiStep === 4) {
-        document.getElementById('mesi-log').innerHTML = '--> Executing Step 4: Cache Intervention & Dirty Flush...';
-        appendMesiLog('CPU 1 encounters Read Miss (Invalid). Emits BusRd.');
-        appendMesiLog('CPU 0 snoops BusRd while in Modified state! It halts the bus and flushes dirty value (99) to RAM.');
-        appendMesiLog('CPU 0 transitions: Modified (M) &rarr; Shared (S).');
-        appendMesiLog('CPU 1 reads flushed line (99) into Shared (S) state. Coherence preserved!');
+        resetMesiSvg();
+        document.getElementById('mesi-log').innerHTML = '--> Executing Step 4: Cache Intervention & Dirty Line Writeback...';
 
-        document.getElementById('badge-c0').className = 'state-badge state-S';
-        document.getElementById('badge-c0').innerText = 'State: S';
-        document.getElementById('badge-c1').className = 'state-badge state-S';
-        document.getElementById('badge-c1').innerText = 'State: S';
-        document.getElementById('val-c1').innerText = '99';
+        // Animate dirty flush from CPU 0 through bus to CPU 1 and RAM
+        document.getElementById('svg-tap-c0').setAttribute('stroke', '#f59e0b');
+        document.getElementById('svg-snoop-c0').setAttribute('fill', '#f59e0b');
+        document.getElementById('svg-tap-c1').setAttribute('stroke', '#f59e0b');
+        document.getElementById('svg-snoop-c1').setAttribute('fill', '#f59e0b');
+        document.getElementById('svg-tap-ram').setAttribute('stroke', '#f59e0b');
+        document.getElementById('svg-bus-bar').setAttribute('fill', '#f59e0b');
+        document.getElementById('svg-bus-text').textContent = 'Cache Intervention: CPU 0 flushes dirty line (99) to RAM and CPU 1';
+        document.getElementById('svg-bus-text').setAttribute('fill', '#f59e0b');
+
+        // Both caches return to Shared (S) with fresh value 99
+        document.getElementById('svg-c0-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c0-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c0-val-txt').textContent = 'Var X: 99';
+        document.getElementById('svg-c0-box').setAttribute('stroke', '#10b981');
+        document.getElementById('c0-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c0-summary-state').style.color = '#10b981';
+
+        document.getElementById('svg-c1-tag').setAttribute('fill', '#10b981');
+        document.getElementById('svg-c1-state-txt').textContent = 'State: S';
+        document.getElementById('svg-c1-val-txt').textContent = 'Var X: 99';
+        document.getElementById('svg-c1-box').setAttribute('stroke', '#10b981');
+        document.getElementById('c1-summary-state').textContent = 'Shared (S)';
+        document.getElementById('c1-summary-state').style.color = '#10b981';
+
+        // RAM updated
+        document.getElementById('svg-ram-val-txt').textContent = 'Address 0x1000 [Var X] = 99 (Clean / Flushed)';
+        document.getElementById('ram-clean-txt').textContent = 'Clean (Flushed X = 99)';
+        document.getElementById('ram-clean-txt').style.color = '#10b981';
+        document.getElementById('bus-activity-txt').textContent = 'Intervention Flush';
+
+        appendMesiLog('1. CPU 1 experiences a Read Miss (Invalid) and issues BusRd.');
+        appendMesiLog('2. CPU 0 snoops BusRd and detects that it owns the line in the Modified (M) state.');
+        appendMesiLog('3. CPU 0 asserts a bus stall signal to halt DRAM, ensuring stale RAM data (42) is NOT returned.');
+        appendMesiLog('4. CPU 0 directly supplies the dirty value (99) to the bus, which both writes through to DRAM and satisfies CPU 1.');
+        appendMesiLog('5. Both CPU 0 and CPU 1 transition to Shared (S). Coherence is guaranteed!');
 
         mesiStep = 1;
-        badge.innerText = 'Complete (Ready to Restart)';
-        act.innerText = 'Walkthrough Complete. Click \'Restart Walkthrough\' to begin again.';
-        exp.innerText = 'You walked through the entire MESI lifecycle: Invalid &rarr; Exclusive &rarr; Shared &rarr; Modified &rarr; Flush to Shared.';
-        btn.innerText = 'Restart Walkthrough from Stage 1';
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough\' to review from Stage 1.';
+        exp.innerHTML = 'You traced the complete hardware lifecycle of the MESI protocol: <strong>Invalid &rarr; Exclusive &rarr; Shared &rarr; Modified &rarr; Cache Intervention Flush</strong>.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
       }
     }
 
     function resetMesiWalkthrough() {
       mesiStep = 1;
-      document.getElementById('mesi-step-badge').innerText = 'Stage 1 of 4';
-      document.getElementById('mesi-act-text').innerText = 'Action Required: Click \'Execute Step 1: CPU 0 Reads X\' below.';
-      document.getElementById('mesi-exp-text').innerText = 'Initially, neither CPU cache holds Variable X (both are in the Invalid state). When CPU 0 reads X, it emits a BusRd broadcast. Because no other cache holds the line, it is loaded from RAM directly into CPU 0\'s cache in the Exclusive (E) state.';
-      document.getElementById('badge-c0').className = 'state-badge state-I';
-      document.getElementById('badge-c0').innerText = 'State: I';
-      document.getElementById('val-c0').innerText = '--';
-      document.getElementById('badge-c1').className = 'state-badge state-I';
-      document.getElementById('badge-c1').innerText = 'State: I';
-      document.getElementById('val-c1').innerText = '--';
-      document.getElementById('btn-mesi-step').innerText = 'Execute Step 1: CPU 0 Reads X';
+      resetMesiSvg();
+      document.getElementById('mesi-step-badge').textContent = 'Stage 1 of 4';
+      document.getElementById('mesi-act-text').textContent = 'Action Required: Click \'Execute Step 1: CPU 0 Reads X\' below.';
+      document.getElementById('mesi-exp-text').innerHTML = 'Initially, neither CPU cache holds Variable X (both are in the Invalid state). When CPU 0 reads X, it emits a BusRd broadcast. Because no other cache holds the line, it is loaded from RAM directly into CPU 0\'s cache in the <strong>Exclusive (E)</strong> state.';
+      document.getElementById('btn-mesi-step').textContent = 'Execute Step 1: CPU 0 Reads X';
       document.getElementById('mesi-log').innerHTML = '-- Reset protocol state. Variable X = 42 in RAM --';
     }
+
   </script>
 </body>
 </html>
