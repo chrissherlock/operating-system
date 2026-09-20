@@ -1,34 +1,36 @@
 #!/usr/bin/env python3
 # =====================================================================
-# update_wiki_link_position.py: Move Wikipedia link below text
+# reflow_gang_aside_layout.py: Align wiki link under paragraph beside image
 # =====================================================================
 import os
 import subprocess
 import sys
 
-WIKI_ASIDE_GANG_REORDERED = r"""
-        <!-- WIKIPEDIA ASIDE BOX WITH REORDERED WIKI LINK -->
+WIKI_ASIDE_GANG_REFLOWED = r"""
+        <!-- WIKIPEDIA ASIDE BOX WITH REFLOWED LAYOUT -->
         <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
           <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Gang Scheduling</h4>
 
-          <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px;">
+          <div style="display: flex; gap: 16px; align-items: flex-start;">
             <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
               <div style="width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
                 <img src="../images/ousterhout.png" alt="John Ousterhout Portrait" style="width: 100%; height: 100%; object-fit: cover;">
               </div>
               <span style="font-size: 0.72rem; color: #64748b; text-align: center; line-height: 1.2;">Photo by Christopher Michel</span>
             </div>
-            <p style="color: #334155; font-size: 0.9rem; line-height: 1.5; margin: 0;">
-              <strong>Gang scheduling</strong> was pioneered by <strong>John Ousterhout</strong> in 1982 to address the coordination failure of independent thread schedulers on parallel hardware. By scheduling related threads across multiple cores simultaneously (a <strong>two-dimensional matrix of Cores $\times$ Time Quanta</strong>), gang scheduling prevents preemption delays and blocking when cooperating threads communicate.
-            </p>
-          </div>
 
-          <div style="border-top: 1px solid #bae6fd; padding-top: 8px; margin-top: 8px;">
-            <a href="https://en.wikipedia.org/wiki/Gang_scheduling" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">Read more on Wikipedia: Gang Scheduling &rarr;</a>
+            <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
+              <p style="color: #334155; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                <strong>Gang scheduling</strong> was pioneered by <strong>John Ousterhout</strong> in 1982 to address the coordination failure of independent thread schedulers on parallel hardware. By scheduling related threads across multiple cores simultaneously (a <strong>two-dimensional matrix of Cores $\times$ Time Quanta</strong>), gang scheduling prevents preemption delays and blocking when cooperating threads communicate.
+              </p>
+              <div>
+                <a href="https://en.wikipedia.org/wiki/Gang_scheduling" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">Read more on Wikipedia: Gang Scheduling &rarr;</a>
+              </div>
+            </div>
           </div>
         </aside>"""
 
-def update_link_placement():
+def reflow_aside_layout():
     mod2 = os.path.join("week11-multiprocessors", "02-multiprocessor-scheduling.html")
     modified = []
 
@@ -42,7 +44,7 @@ def update_link_placement():
 
         target = "<!-- GUIDED WALKTHROUGH"
         if target in content:
-            content = content.replace(target, WIKI_ASIDE_GANG_REORDERED + "\n\n      " + target, 1)
+            content = content.replace(target, WIKI_ASIDE_GANG_REFLOWED + "\n\n      " + target, 1)
             with open(mod2, "w", encoding="utf-8") as f:
                 f.write(content)
             modified.append(mod2)
@@ -59,15 +61,15 @@ def update_link_placement():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Move Wikipedia reference link below text in Gang Scheduling aside box\n\n"
-            "Reorder HTML elements in 02-multiprocessor-scheduling.html so the Wikipedia\n"
-            "reference link appears at the bottom of the research aside box."
+            "Reflow Gang Scheduling aside flex layout to place wiki link under paragraph\n\n"
+            "Align text and Wikipedia reference link alongside John Ousterhout portrait in\n"
+            "02-multiprocessor-scheduling.html with the link positioned directly below the text."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Wikipedia reference link successfully repositioned below text in Gang Aside!")
+    print("--> Gang Scheduling aside layout reflowed successfully!")
 
 if __name__ == "__main__":
-    update_link_placement()
+    reflow_aside_layout()
