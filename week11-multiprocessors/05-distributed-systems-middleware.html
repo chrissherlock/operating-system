@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.3 Distributed Systems &amp; Middleware Architectures — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.6;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .chapter-tag {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .lead-text {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-top: 6px;
+    }
+    .content-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .content-section h2 {
+      font-size: 1.4rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .content-section h3 {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-top: 8px;
+    }
+    p, li {
+      color: #334155;
+      font-size: 0.96rem;
+    }
+    ul, ol {
+      margin-left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .diagram-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .diagram-svg {
+      width: 100%;
+      max-width: 840px;
+      height: auto;
+    }
+    .diagram-caption {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .code-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+    table.spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 10px 0;
+    }
+    table.spec-table th, table.spec-table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    table.spec-table th {
+      background: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      padding: 14px 18px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.92rem;
+      color: #0369a1;
+    }
+
+    /* Simulator styling */
+    .sim-card {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-action {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-action:hover { background: #0369a1; }
+    .status-panel {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 12px;
+      border-radius: 6px;
+      height: 120px;
+      overflow-y: auto;
+    }
+    .tuple-pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 50px;
+      background: #ffffff;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .tuple-badge {
+      background: #e0f2fe;
+      border: 1px solid #0284c7;
+      color: #0369a1;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="nav-header">
+      <a href="04-rpc-dsm-load-balancing.html" class="nav-btn">&larr; 8.2.4-8.2.7 RPC &amp; DSM</a>
+      <a href="index.html" class="nav-btn">Week 11 Overview &rarr;</a>
+    </div>
+
+    <header>
+      <span class="chapter-tag">Section 8.3</span>
+      <h1>Distributed Systems &amp; Middleware Architectures</h1>
+      <p class="lead-text">
+        Network services, document middleware, stateful distributed file systems, remote object invocations, and generative coordination tuple spaces.
+      </p>
+    </header>
+
+    <!-- SECTION 8.3.1 & 8.3.2: NETWORK SERVICES AND PROTOCOLS -->
+    <section class="content-section">
+      <h2>8.3.1 &amp; 8.3.2 Network Hardware, Services &amp; Layering</h2>
+      <p>
+        A distributed system consists of autonomous computing nodes communicating over a shared network fabric that presents itself to users as a single coherent system. The operating system kernel abstracts physical networking hardware (Ethernet switches, fiber transceivers, network interface controllers) into layered software protocol stacks.
+      </p>
+
+      <h3>Layered Network Model</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Primary Protocol Example</th>
+            <th>Responsibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Application Layer</strong></td>
+            <td>HTTP, NFSv4, SSH</td>
+            <td>Provides user-facing application semantics and distributed services.</td>
+          </tr>
+          <tr>
+            <td><strong>Middleware Layer</strong></td>
+            <td>RPC, gRPC, CORBA, Linda</td>
+            <td>Provides transparency: hides location, migration, and failure boundaries.</td>
+          </tr>
+          <tr>
+            <td><strong>Transport Layer</strong></td>
+            <td>TCP (stream), UDP (datagram)</td>
+            <td>End-to-end reliability, sequence ordering, flow control, and port multiplexing.</td>
+          </tr>
+          <tr>
+            <td><strong>Network Layer</strong></td>
+            <td>IP (IPv4, IPv6)</td>
+            <td>Host addressing, routing packets across multiple autonomous hops.</td>
+          </tr>
+          <tr>
+            <td><strong>Data Link &amp; Physical</strong></td>
+            <td>Ethernet (802.3), Wi-Fi (802.11)</td>
+            <td>Frame framing, hardware MAC addressing, and physical signal transmission.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION 8.3.3: DOCUMENT-BASED MIDDLEWARE -->
+    <section class="content-section">
+      <h2>8.3.3 Document-Based Middleware &amp; The Web</h2>
+      <p>
+        The World Wide Web constitutes the most widespread distributed document system. Operating systems interface with Web middleware through standard socket libraries, organizing data around Uniform Resource Identifiers (URIs) and the HyperText Transfer Protocol (HTTP).
+      </p>
+
+      <h3>HTTP Protocol Evolution</h3>
+      <ul>
+        <li>
+          <strong>HTTP/1.0:</strong> Non-persistent TCP connections. Each document asset (HTML, image, stylesheet) established a separate three-way TCP handshake, incurring significant connection setup latency.
+        </li>
+        <li>
+          <strong>HTTP/1.1:</strong> Persistent connections and request pipelining. Multiple requests can be sent over a single TCP stream. However, it suffers from <em>Head-of-Line (HoL) Blocking</em>: if the first requested asset blocks on the server, all subsequent responses in the pipeline must wait.
+        </li>
+        <li>
+          <strong>HTTP/2:</strong> Binary frame multiplexing over a single TCP stream. Streams are interleaved concurrently, eliminating application-level HoL blocking.
+        </li>
+        <li>
+          <strong>HTTP/3 (QUIC):</strong> Transports streams over UDP instead of TCP. Eliminates transport-level HoL blocking: packet loss on one stream does not delay independent concurrent streams.
+        </li>
+      </ul>
+    </section>
+
+    <!-- SECTION 8.3.4: FILE-SYSTEM BASED MIDDLEWARE (NFS) -->
+    <section class="content-section">
+      <h2>8.3.4 File-System-Based Middleware: NFS &amp; AFS</h2>
+      <p>
+        A distributed file system provides client transparent access to files physically stored on a remote server. The Virtual File System (VFS) interface abstracts whether a file resides on local ext4 storage or a remote server.
+      </p>
+
+      <h3>NFSv3 (Stateless) vs. NFSv4 (Stateful Leases)</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Architecture Dimension</th>
+            <th>NFSv3</th>
+            <th>NFSv4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Server State</strong></td>
+            <td>Stateless: Server stores zero client session state across calls.</td>
+            <td>Stateful: Server maintains client open/close state, file locks, and leases.</td>
+          </tr>
+          <tr>
+            <td><strong>RPC Round-Trips</strong></td>
+            <td>Chatty: <code>LOOKUP</code>, <code>OPEN</code>, <code>READ</code> require separate RPCs.</td>
+            <td>Compound RPCs: Multiple operations combined into one network exchange.</td>
+          </tr>
+          <tr>
+            <td><strong>Caching &amp; Consistency</strong></td>
+            <td>Attribute timeouts (typically 3–30s); stale data hazards.</td>
+            <td>Server-issued <em>File Delegations</em>; server notifies client on conflicting writes.</td>
+          </tr>
+          <tr>
+            <td><strong>Crash Recovery</strong></td>
+            <td>Trivial: Clients simply retransmit idempotent requests.</td>
+            <td>Lease reclamation grace periods upon server reboot.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- SVG NFS RPC COMPARISON -->
+      <div class="diagram-container">
+        <svg class="diagram-svg" viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="220" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+
+          <!-- NFSv3 Sequential -->
+          <text x="200" y="24" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">NFSv3: Sequential Chatty RPCs</text>
+          <line x1="80" y1="50" x2="80" y2="190" stroke="#0284c7" stroke-width="2"/><text x="80" y="42" font-size="9" font-weight="bold" fill="#0369a1" text-anchor="middle">Client</text>
+          <line x1="320" y1="50" x2="320" y2="190" stroke="#0284c7" stroke-width="2"/><text x="320" y="42" font-size="9" font-weight="bold" fill="#0369a1" text-anchor="middle">Server</text>
+
+          <line x1="80" y1="65" x2="320" y2="80" stroke="#0284c7" stroke-width="1.5"/><text x="200" y="70" font-size="8" fill="#0369a1" text-anchor="middle">1. LOOKUP(path)</text>
+          <line x1="320" y1="85" x2="80" y2="100" stroke="#94a3b8" stroke-width="1.5"/><text x="200" y="90" font-size="8" fill="#64748b" text-anchor="middle">Reply(file handle)</text>
+
+          <line x1="80" y1="110" x2="320" y2="125" stroke="#0284c7" stroke-width="1.5"/><text x="200" y="115" font-size="8" fill="#0369a1" text-anchor="middle">2. ACCESS(permissions)</text>
+          <line x1="320" y1="130" x2="80" y2="145" stroke="#94a3b8" stroke-width="1.5"/><text x="200" y="135" font-size="8" fill="#64748b" text-anchor="middle">Reply(allowed)</text>
+
+          <line x1="80" y1="155" x2="320" y2="170" stroke="#0284c7" stroke-width="1.5"/><text x="200" y="160" font-size="8" fill="#0369a1" text-anchor="middle">3. READ(offset, len)</text>
+          <line x1="320" y1="175" x2="80" y2="190" stroke="#94a3b8" stroke-width="1.5"/><text x="200" y="180" font-size="8" fill="#64748b" text-anchor="middle">Reply(data)</text>
+
+          <!-- Divider -->
+          <line x1="400" y1="20" x2="400" y2="200" stroke="#e2e8f0" stroke-width="2"/>
+
+          <!-- NFSv4 Compound -->
+          <text x="600" y="24" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">NFSv4: Single Compound RPC</text>
+          <line x1="480" y1="50" x2="480" y2="190" stroke="#16a34a" stroke-width="2"/><text x="480" y="42" font-size="9" font-weight="bold" fill="#15803d" text-anchor="middle">Client</text>
+          <line x1="720" y1="50" x2="720" y2="190" stroke="#16a34a" stroke-width="2"/><text x="720" y="42" font-size="9" font-weight="bold" fill="#15803d" text-anchor="middle">Server</text>
+
+          <line x1="480" y1="75" x2="720" y2="110" stroke="#16a34a" stroke-width="2.5"/>
+          <text x="600" y="85" font-size="9" font-weight="bold" fill="#15803d" text-anchor="middle">COMPOUND [LOOKUP + OPEN + READ]</text>
+
+          <line x1="720" y1="130" x2="480" y2="165" stroke="#94a3b8" stroke-width="2.5"/>
+          <text x="600" y="155" font-size="9" font-weight="bold" fill="#475569" text-anchor="middle">COMPOUND_REPLY [Handle + Lease + Data]</text>
+
+          <text x="600" y="195" font-size="9" fill="#16a34a" text-anchor="middle">1 Round-Trip Latency vs. 3 Round-Trips!</text>
+        </svg>
+        <span class="diagram-caption">Figure 8-5: NFSv3 Sequential Chatty RPCs vs. NFSv4 Batched Compound RPC.</span>
+      </div>
+
+      <!-- INTERACTIVE SIMULATOR: COMPOUND RPC -->
+      <div class="sim-card">
+        <div class="sim-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="sim-title">Interactive NFS Round-Trip Latency Simulator</span>
+          <div class="sim-controls">
+            <button class="btn-action" onclick="runNfsv3Simulation()">Execute NFSv3 (Sequential)</button>
+            <button class="btn-action" onclick="runNfsv4Simulation()">Execute NFSv4 (Compound)</button>
+          </div>
+        </div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Simulate opening and reading a file over a high-latency WAN connection (Round-Trip Time RTT = 40 ms):
+        </p>
+
+        <div id="nfs-display" style="background:#ffffff; padding:14px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono); font-size:0.85rem;">
+          Simulation status: <span id="nfs-status" style="font-weight:bold; color:#0284c7;">Idle</span> &bull;
+          Elapsed Time: <span id="nfs-time" style="font-weight:bold;">0 ms</span> &bull;
+          Packets Exchanged: <span id="nfs-packets" style="font-weight:bold;">0</span>
+        </div>
+
+        <div id="nfs-log" class="status-panel">-- Select an NFS protocol version to observe wire latency --</div>
+      </div>
+    </section>
+
+    <!-- SECTION 8.3.5 & 8.3.6: OBJECT & COORDINATION MIDDLEWARE -->
+    <section class="content-section">
+      <h2>8.3.5 &amp; 8.3.6 Object-Based &amp; Coordination-Based Middleware</h2>
+
+      <h3>Object-Based Middleware</h3>
+      <p>
+        Extends object-oriented programming across networks. A local client holds a <em>proxy object</em> (stub) that exposes identical method signatures to a local interface. Method calls trigger remote object invocations across a network broker (e.g., Java RMI, CORBA).
+      </p>
+
+      <h3>Coordination-Based Middleware: Linda Tuple Spaces</h3>
+      <p>
+        Pioneered by David Gelernter (1985), the <strong>Linda Tuple Space</strong> provides a completely different coordination paradigm based on <em>Generative Communication</em>. Processes coordinate by depositing and extracting structured data records called <strong>tuples</strong> into a shared, distributed, globally associative memory space.
+      </p>
+
+      <h3>Decoupling Dimensions</h3>
+      <ul>
+        <li>
+          <strong>Space Decoupling:</strong> Communicating processes do not know each other's network addresses, process IDs, or physical locations. Tuples are addressed associatively by matching field types and contents.
+        </li>
+        <li>
+          <strong>Time Decoupling:</strong> Communicating processes do not need to execute at the same time. A producer can deposit a tuple and terminate; hours later, a consumer can start up and retrieve it.
+        </li>
+      </ul>
+
+      <h3>The Four Linda Primitives</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Primitive</th>
+            <th>Operation Type</th>
+            <th>Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>out(t)</code></td>
+            <td>Deposit</td>
+            <td>Evaluates tuple $t$ and deposits it into the shared tuple space.</td>
+          </tr>
+          <tr>
+            <td><code>in(s)</code></td>
+            <td>Consume &amp; Remove</td>
+            <td>Searches space for a tuple matching template $s$. Removes it. Blocks if no match exists.</td>
+          </tr>
+          <tr>
+            <td><code>rd(s)</code></td>
+            <td>Read Non-Destructively</td>
+            <td>Searches space for a tuple matching template $s$. Returns copy. Blocks if no match exists.</td>
+          </tr>
+          <tr>
+            <td><code>eval(t)</code></td>
+            <td>Fork / Compute</td>
+            <td>Spawns active thread to evaluate fields in $t$ concurrently; converts to passive tuple on exit.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- INTERACTIVE SIMULATOR: LINDA TUPLE SPACE -->
+      <div class="sim-card">
+        <div class="sim-title">Interactive Linda Tuple Space Sandbox</div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Deposit, inspect, and extract associative data tuples from a simulated distributed tuple pool:
+        </p>
+
+        <div class="sim-controls">
+          <button class="btn-action" onclick="depositTuple('job', 101, 'ready')">out("job", 101, "ready")</button>
+          <button class="btn-action" onclick="depositTuple('job', 102, 'ready')">out("job", 102, "ready")</button>
+          <button class="btn-action" onclick="readTuple('job', '?id', 'ready')">rd("job", ?id, "ready")</button>
+          <button class="btn-action" onclick="takeTuple('job', '?id', 'ready')">in("job", ?id, "ready")</button>
+          <button class="btn-action" onclick="resetTupleSpace()">Clear Space</button>
+        </div>
+
+        <div style="font-size:0.8rem; font-weight:700; color:#475569; margin-top:4px;">Active Shared Tuple Space:</div>
+        <div id="tuple-container" class="tuple-pool">
+          <span class="tuple-badge">("config", "max_threads", 8)</span>
+          <span class="tuple-badge">("worker", 0, "online")</span>
+        </div>
+
+        <div id="tuple-log" class="status-panel">-- Tuple space initialized with baseline metadata --</div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // NFS Simulator Script
+    function appendNfsLog(msg) {
+      const el = document.getElementById('nfs-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function runNfsv3Simulation() {
+      const RTT = 40;
+      document.getElementById('nfs-status').innerText = 'Executing NFSv3...';
+      document.getElementById('nfs-status').style.color = '#0284c7';
+      document.getElementById('nfs-log').innerHTML = '--> Starting NFSv3 Execution (Sequential RPCs, RTT = 40 ms)...';
+
+      setTimeout(() => {
+        document.getElementById('nfs-time').innerText = '40 ms';
+        document.getElementById('nfs-packets').innerText = '2';
+        appendNfsLog('RPC 1 (40ms): LOOKUP("data/file.txt") completed. Obtained file handle.');
+      }, 400);
+
+      setTimeout(() => {
+        document.getElementById('nfs-time').innerText = '80 ms';
+        document.getElementById('nfs-packets').innerText = '4';
+        appendNfsLog('RPC 2 (80ms): ACCESS(file_handle, READ) completed. Permissions verified.');
+      }, 800);
+
+      setTimeout(() => {
+        document.getElementById('nfs-time').innerText = '120 ms';
+        document.getElementById('nfs-packets').innerText = '6';
+        appendNfsLog('RPC 3 (120ms): READ(file_handle, offset=0, len=4096) completed. Payload received.');
+        document.getElementById('nfs-status').innerText = 'Complete (120 ms)';
+        document.getElementById('nfs-status').style.color = '#ef4444';
+      }, 1200);
+    }
+
+    function runNfsv4Simulation() {
+      document.getElementById('nfs-status').innerText = 'Executing NFSv4...';
+      document.getElementById('nfs-status').style.color = '#16a34a';
+      document.getElementById('nfs-log').innerHTML = '--> Starting NFSv4 Execution (Compound RPC, RTT = 40 ms)...';
+
+      setTimeout(() => {
+        document.getElementById('nfs-time').innerText = '40 ms';
+        document.getElementById('nfs-packets').innerText = '2';
+        appendNfsLog('COMPOUND RPC (40ms): Transmitted [LOOKUP + OPEN + READ] in 1 packet exchange.');
+        appendNfsLog('Server returned compound reply with file handle, stateful lease token, and data payload.');
+        document.getElementById('nfs-status').innerText = 'Complete (40 ms, 3x faster!)';
+        document.getElementById('nfs-status').style.color = '#16a34a';
+      }, 400);
+    }
+
+    // Linda Tuple Space Script
+    let tuplePool = [
+      ['"config"', '"max_threads"', 8],
+      ['"worker"', 0, '"online"']
+    ];
+
+    function appendTupleLog(msg) {
+      const el = document.getElementById('tuple-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function syncTupleUi() {
+      const container = document.getElementById('tuple-container');
+      container.innerHTML = '';
+      if (tuplePool.length === 0) {
+        container.innerHTML = '<span style="color:#94a3b8; font-style:italic;">[Tuple space empty]</span>';
+        return;
+      }
+      tuplePool.forEach(t => {
+        const badge = document.createElement('span');
+        badge.className = 'tuple-badge';
+        badge.innerText = `(${t.join(', ')})`;
+        container.appendChild(badge);
+      });
+    }
+
+    function depositTuple(tag, id, status) {
+      const newTuple = [`"${tag}"`, id, `"${status}"`];
+      tuplePool.push(newTuple);
+      appendTupleLog(`out(): Deposited tuple (${newTuple.join(', ')}). Space size: ${tuplePool.length}`);
+      syncTupleUi();
+    }
+
+    function readTuple(tag, templateId, status) {
+      const match = tuplePool.find(t => t[0] === `"${tag}"` && t[2] === `"${status}"`);
+      if (match) {
+        appendTupleLog(`rd(): Found associative match: (${match.join(', ')}). Tuple left in space.`);
+      } else {
+        appendTupleLog(`rd(): No match found for template ("${tag}", ?id, "${status}"). Would block.`);
+      }
+    }
+
+    function takeTuple(tag, templateId, status) {
+      const index = tuplePool.findIndex(t => t[0] === `"${tag}"` && t[2] === `"${status}"`);
+      if (index !== -1) {
+        const removed = tuplePool.splice(index, 1)[0];
+        appendTupleLog(`in(): Consumed and removed tuple: (${removed.join(', ')}). Space size: ${tuplePool.length}`);
+        syncTupleUi();
+      } else {
+        appendTupleLog(`in(): No match found for template ("${tag}", ?id, "${status}"). Caller blocked.`);
+      }
+    }
+
+    function resetTupleSpace() {
+      tuplePool = [];
+      appendTupleLog('-- Tuple space cleared --');
+      syncTupleUi();
+    }
+  </script>
+</body>
+</html>
