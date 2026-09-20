@@ -1,91 +1,85 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Sweep all repository HTML pages and unify navigation bars
+# fix.py: Force injection of home pill link into 01-what-is-an-os-and-history.html
 # =====================================================================
 import os
 import re
 import subprocess
 
-WEEK_TITLE_MAP = {
-    "week01-operating-system-concepts": "Week 1: Operating System Concepts",
-    "week02-processes": "Week 2: Processes & Threads",
-    "week03-process-scheduling": "Week 3: Process Scheduling",
-    "week04-concurrency-and-mutual-exclusion": "Week 4: Concurrency & Mutual Exclusion",
-    "week05-io-and-disk-scheduling": "Week 5: I/O & Disk Scheduling",
-    "week06-synchronisation-and-deadlock": "Week 6: Synchronisation & Deadlock",
-    "week09-memory-management": "Week 9: Memory Management",
-    "week10-file-management": "Week 10: File Management",
-    "week11-multiprocessor-scheduling-and-distributed-computing": "Week 11: Multiprocessors & Distributed Computing",
-    "week11-multiprocessors": "Week 11: Multiprocessors",
-    "week12-security": "Week 12: Security"
-}
+def force_fix_history_page():
+    file_path = os.path.join("week01-operating-system-concepts", "01-what-is-an-os-and-history.html")
+    if not os.path.exists(file_path):
+        print(f"Error: {file_path} not found.")
+        return
 
-def execute_repository_sweep():
-    repo_root = "."
-    modified_files = []
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    week_title = "Week 1: Operating System Concepts"
     pill_template = '<a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">'
+    styled_link = f'{pill_template}&#127968; {week_title}</a>'
 
-    for root, dirs, files in os.walk(repo_root):
-        dir_name = os.path.basename(root)
-        week_title = WEEK_TITLE_MAP.get(dir_name)
-        if not week_title:
-            continue
+    updated = False
+    new_content = content
 
-        for file in files:
-            if file.endswith(".html") and file != "index.html":
-                file_path = os.path.join(root, file)
-                with open(file_path, "r", encoding="utf-8") as f:
-                    content = f.read()
+    # 1. Search for any existing nav or header tag
+    nav_match = re.search(r'(<nav[^>]*>)(.*?)(</nav>)', new_content, flags=re.DOTALL | re.IGNORECASE)
+    if nav_match:
+        nav_open, nav_body, nav_close = nav_match.groups()
+        # If there's already an anchor or span inside, let's replace the middle contents or wrap it
+        # Let's see if we can find a span or div or just replace the inner body of nav with [Prev] [Home Pill] [Next]
+        # Or let's target any existing center element in nav
+        print(f"--> Found <nav> block in {file_path}.")
 
-                updated = False
-                new_content = content
+        # Check if previous/next buttons are present
+        btn_match = re.findall(r'(<a[^>]*class="[^"]*nav-btn[^"]*"[^>]*>.*?</a>)', nav_body, flags=re.DOTALL | re.IGNORECASE)
+        if len(btn_match) >= 1:
+            # Construct a clean standardized nav bar with Previous, Home Pill, and Next
+            # Let's extract prev and next buttons if possible
+            prev_btn = btn_match[0] if "larr" in btn_match[0] or "Prev" in btn_match[0] or "03" in btn_match[0] else ""
+            next_btn = btn_match[1] if len(btn_match) > 1 else (btn_match[0] if btn_match[0] != prev_btn else "")
 
-                patterns_to_replace = [
-                    rf'<a\s+href="index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠|&#127968;)?\s*{re.escape(week_title)}\s*</a>',
-                    rf'<a\s+href="\./index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠|&#127968;)?\s*{re.escape(week_title)}\s*</a>',
-                    rf'<span>\s*{re.escape(week_title)}\s*</span>',
-                    rf'<div>\s*{re.escape(week_title)}\s*</div>'
-                ]
+            # If we couldn't reliably distinguish, let's just replace the center text/span between buttons
+            new_nav_body = f'\n    {prev_btn}\n    {styled_link}\n    {next_btn}\n  '
+            new_content = new_content.replace(nav_match.group(0), f'{nav_open}{new_nav_body}{nav_close}')
+            updated = True
+        else:
+            # Just inject styled link into nav
+            new_content = new_content.replace(nav_match.group(0), f'{nav_open}\n    {styled_link}\n  {nav_close}')
+            updated = True
+    else:
+        # Fallback: search for header tag
+        header_match = re.search(r'(<header[^>]*>)(.*?)(</header>)', new_content, flags=re.DOTALL | re.IGNORECASE)
+        if header_match:
+            h_open, h_body, h_close = header_match.groups()
+            new_content = new_content.replace(header_match.group(0), f'{h_open}\n    {styled_link}\n  {h_close}')
+            updated = True
+        else:
+            # Last resort: prepend right after body tag opening
+            body_match = re.search(r'(<body[^>]*>)', new_content, flags=re.IGNORECASE)
+            if body_match:
+                new_content = new_content.replace(body_match.group(1), f'{body_match.group(1)}\n  <nav style="display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #f8fafc; border-bottom: 1px solid #cbd5e1;">\n    <div></div>\n    {styled_link}\n    <div></div>\n  </nav>')
+                updated = True
 
-                replaced = False
-                for pat in patterns_to_replace:
-                    if re.search(pat, new_content):
-                        new_content = re.sub(pat, f'{pill_template}&#127968; {week_title}</a>', new_content)
-                        updated = True
-                        replaced = True
-                        break
+    if updated:
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(new_content)
+        print(f"--> Successfully injected home pill navigation header into {file_path}")
 
-                if not replaced and week_title in new_content:
-                    header_pattern = r'(<header[^>]*>.*?</header>|<nav[^>]*>.*?</nav>|<div[^>]*class="[^"]*nav[^"]*"[^>]*>.*?</div>)'
-                    header_match = re.search(header_pattern, new_content, flags=re.DOTALL | re.IGNORECASE)
-                    if header_match:
-                        h_block = header_match.group(1)
-                        if week_title in h_block:
-                            new_h_block = h_block.replace(week_title, f'{pill_template}&#127968; {week_title}</a>')
-                            new_content = new_content.replace(h_block, new_h_block)
-                            updated = True
-
-                if updated:
-                    with open(file_path, "w", encoding="utf-8") as f:
-                        f.write(new_content)
-                    modified_files.append(file_path)
-                    print(f"--> Unified navigation header on: {file_path}")
-
-    if modified_files:
         try:
-            subprocess.run(["git", "add", "fix.py"] + modified_files, check=True)
+            subprocess.run(["git", "add", "fix.py", file_path], check=True)
             commit_msg = (
-                "Unify navigation headers with home symbol pill links across all pages\n\n"
-                "Scan all repository week modules and standardize navigation headers\n"
-                "to display the home symbol (🏠) pill button linking to index.html."
+                "Fix navigation header in week01/01-what-is-an-os-and-history.html\n\n"
+                "Locate navigation container in 01-what-is-an-os-and-history.html and "
+                "force-inject the styled home symbol pill button linking to index.html."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully across all pages!")
+            print("--> Git sync completed successfully for 01-what-is-an-os-and-history.html!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> All pages already synchronized with unified home symbol navigation.")
+        print("--> Error: Could not find any structural nav/header container in 01-what-is-an-os-and-history.html.")
 
 if __name__ == "__main__":
-    execute_repository_sweep()
+    force_fix_history_page()
