@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # =====================================================================
-# restore_all_fifteen_logos.py: Restore all 15 logos in intro page
+# restore_complete_intro_content.py: Restore full intro text and logos
 # =====================================================================
 import os
 import subprocess
 import sys
 
-FULL_LOGOS_INTRO_HTML = r"""<!DOCTYPE html>
+COMPLETE_INTRO_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>What Is an Operating System &amp; History — COSC240</title>
   <style>
     :root {
@@ -65,6 +66,16 @@ FULL_LOGOS_INTRO_HTML = r"""<!DOCTYPE html>
     .image-card img { max-width: 100%; height: 140px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
     .image-card span { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted); }
   </style>
+  <!-- MathJax Configuration -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <div class="nav-back">
@@ -80,14 +91,20 @@ FULL_LOGOS_INTRO_HTML = r"""<!DOCTYPE html>
     <section class="content-section">
       <h2>Foundational Paradigms</h2>
       <p>
-        An operating system serves two primary functions: acting as an <strong>extended machine</strong> (providing clean abstractions over raw hardware) and as a <strong>resource manager</strong> (multiplexing processor time, memory space, and I/O devices among competing applications).
+        To understand what an operating system is, we must examine it from two complementary perspectives: the <strong>extended machine</strong> (top-down abstraction layer) and the <strong>resource manager</strong> (bottom-up hardware multiplexer).
+      </p>
+      <p>
+        <strong>1. The Extended Machine:</strong> Raw hardware architecture (such as disk controllers, bus timings, and volatile RAM registers) is notoriously complex and difficult to program directly. An operating system hides this raw complexity by providing a clean, elegant, and abstract set of instructions and abstractions (such as files, sockets, and virtual address spaces), presenting programmers with a virtual machine far superior to the physical hardware.
+      </p>
+      <p>
+        <strong>2. The Resource Manager:</strong> Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
       </p>
     </section>
 
     <section class="content-section">
-      <h2>Historical Evolution &amp; Generations</h2>
+      <h2>Historical Evolution &amp; Computing Generations</h2>
       <p>
-        The history of operating systems spans five distinct technological generations, transitioning from manual vacuum tube wiring to cloud-native distributed nodes.
+        The history of operating systems is intimately tied to the evolution of computer hardware across five distinct technological generations.
       </p>
 
       <div class="image-grid">
@@ -97,15 +114,15 @@ FULL_LOGOS_INTRO_HTML = r"""<!DOCTYPE html>
         </div>
         <div class="image-card">
           <img src="../../images/plugboard.jpg" alt="Plugboard">
-          <span>Plugboard Programming</span>
+          <span>Plugboard Wiring &amp; Absolute Machine Language</span>
         </div>
         <div class="image-card">
           <img src="../../images/replica-first-transistor.jpg" alt="Transistor Replica">
-          <span>Generation 2: Transistors (1955–1965)</span>
+          <span>Generation 2: Transistors &amp; Batch Systems (1955–1965)</span>
         </div>
         <div class="image-card">
           <img src="../../images/punched-card-program-deck.jpg" alt="Punched Cards">
-          <span>Batch Program Decks</span>
+          <span>Punched Card Program Decks</span>
         </div>
       </div>
     </section>
@@ -221,13 +238,13 @@ FULL_LOGOS_INTRO_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def restore_all_logos():
+def execute_full_restoration():
     intro_dir = os.path.join("week01-operating-system-concepts", "intro")
     os.makedirs(intro_dir, exist_ok=True)
     intro_path = os.path.join(intro_dir, "index.html")
 
     with open(intro_path, "w", encoding="utf-8") as f:
-        f.write(FULL_LOGOS_INTRO_HTML)
+        f.write(COMPLETE_INTRO_HTML)
 
     modified = [intro_path]
     fix_path = "fix.py"
@@ -238,15 +255,15 @@ def restore_all_logos():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Restore all 15 operating system logos in intro page family grid\n\n"
-            "Update week01-operating-system-concepts/intro/index.html to include all 15 ecosystem logos\n"
-            "(Windows, Apple, ChromeOS, Linux, FreeBSD, Android, MINIX, FreeRTOS, QNX, VxWorks, OS/2, Solaris, OpenVMS, Multics, BeOS)."
+            "Restore complete intro page text, generations, and all 15 logos\n\n"
+            "Update week01-operating-system-concepts/intro/index.html to include full Tanenbaum Chapter 1.1/1.2 text,\n"
+            "historical generation images, and all 15 OS ecosystem family grid icons."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> All 15 logos successfully restored and deployed!")
+    print("--> Complete intro page content and logos successfully restored!")
 
 if __name__ == "__main__":
-    restore_all_logos()
+    execute_full_restoration()
