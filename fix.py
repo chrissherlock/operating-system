@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Strip card containers from main text and git sync
+# fix.py: Restore Module 1 CSS design system in 02-hardware-review.html
 # =====================================================================
 import os
 import subprocess
 
-def overhaul_page_layout():
+def restore_module_styling():
     target_dir = "week01-operating-system-concepts"
     file_name = "02-hardware-review.html"
     file_path = os.path.join(target_dir, file_name)
@@ -22,14 +22,14 @@ def overhaul_page_layout():
       justify-content: space-between;
       align-items: center;
       width: 100%;
-      max-width: 1000px;
-      margin: 0 auto 20px auto;
+      max-width: 1100px;
+      margin: 0 auto;
       gap: 12px;
       box-sizing: border-box;
     }
     .module-nav-bar.bottom {
-      margin-top: 36px;
-      margin-bottom: 36px;
+      margin-top: 24px;
+      margin-bottom: 24px;
     }
     .module-nav-btn {
       display: inline-flex;
@@ -37,12 +37,12 @@ def overhaul_page_layout():
       gap: 6px;
       font-size: 0.85rem;
       font-weight: 600;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--font-mono);
       text-decoration: none;
       color: #0284c7;
       background-color: #f0f9ff;
       border: 1px solid #bae6fd;
-      padding: 7px 13px;
+      padding: 6px 12px;
       border-radius: 6px;
       transition: all 0.15s ease;
     }
@@ -50,20 +50,16 @@ def overhaul_page_layout():
       background-color: #0284c7;
       color: #ffffff;
     }
-    .module-nav-placeholder {
-      visibility: hidden;
-      padding: 7px 13px;
-      font-size: 0.85rem;
-    }
   </style>
   <style>
     :root {
-      --bg: #ffffff;
-      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
       --accent: #0284c7;
       --accent-hover: #0369a1;
       --text: #0f172a;
-      --text-muted: #334155;
+      --text-muted: #475569;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -71,61 +67,63 @@ def overhaul_page_layout():
       background-color: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 32px 20px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      line-height: 1.65;
+      gap: 18px;
     }
     main {
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
       display: flex;
       flex-direction: column;
-      gap: 28px;
+      gap: 24px;
     }
     header {
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 20px;
-      margin-bottom: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
     }
     h1 {
-      font-size: 2.1rem;
-      color: var(--text);
-      margin-bottom: 6px;
-      letter-spacing: -0.02em;
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 8px;
     }
     p.subtitle {
-      color: #64748b;
-      font-size: 1.05rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    article.module-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
     h2 {
-      font-size: 1.45rem;
-      color: #0f172a;
-      margin-top: 20px;
-      margin-bottom: 8px;
-      border-bottom: 1px solid var(--border);
+      font-size: 1.3rem;
+      color: #0369a1;
+      border-bottom: 1px solid #e2e8f0;
       padding-bottom: 8px;
-      letter-spacing: -0.01em;
+      margin-top: 18px;
     }
     h3 {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       color: #1e293b;
       margin-top: 14px;
-      margin-bottom: 6px;
     }
     p {
       color: var(--text-muted);
-      font-size: 1rem;
-      margin-bottom: 12px;
+      line-height: 1.6;
+      font-size: 0.95rem;
     }
     ul, ol {
-      margin-left: 24px;
+      margin-left: 20px;
       color: var(--text-muted);
-      margin-bottom: 16px;
+      line-height: 1.6;
     }
     li {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     code {
       font-family: var(--font-mono);
@@ -138,22 +136,24 @@ def overhaul_page_layout():
     .diagram-container {
       display: flex;
       justify-content: center;
-      margin: 28px 0;
+      margin: 24px 0;
       width: 100%;
       overflow-x: auto;
     }
-    .aside-note {
+    .aside-box {
       background: #f8fafc;
+      border: 1px solid var(--border);
       border-left: 4px solid var(--accent);
-      padding: 16px 20px;
+      padding: 16px;
       border-radius: 0 6px 6px 0;
-      margin: 18px 0;
+      margin-top: 10px;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 20px 0;
+      margin: 16px 0;
       font-size: 0.92rem;
+      background: #ffffff;
     }
     th, td {
       border: 1px solid var(--border);
@@ -161,8 +161,8 @@ def overhaul_page_layout():
       text-align: left;
     }
     th {
-      background-color: #f8fafc;
-      color: #0f172a;
+      background-color: #f1f5f9;
+      color: #1e293b;
       font-weight: 600;
     }
   </style>
@@ -170,8 +170,8 @@ def overhaul_page_layout():
 <body>
 
   <nav class="module-nav-bar">
-    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an Operating System &amp; History</a>
-    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>
+    <a href="index.html" class="module-nav-btn">Chapter 1 Index</a>
     <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>
   </nav>
 
@@ -181,26 +181,26 @@ def overhaul_page_layout():
       <p class="subtitle">Tanenbaum Chapter 1.3: Processors, Memory Hierarchy, Disks, I/O Devices, Buses, and Booting.</p>
     </header>
 
-    <article>
+    <article class="module-body">
       <h2>1. Processors (CPUs) &amp; Execution Mechanics</h2>
       <p>
-        The Central Processing Unit (CPU) is the computational engine of the computer, executing instructions fetched from main memory. The operation of the CPU follows the classical <strong>fetch-decode-execute cycle</strong>:
+        The Central Processing Unit (CPU) is the computational brain of the computer, executing instructions fetched from main memory. The CPU follows the classical <strong>fetch-decode-execute cycle</strong>:
       </p>
       <ul>
-        <li><strong>Fetch:</strong> The CPU retrieves the instruction at the physical memory address currently held in the Program Counter (PC).</li>
-        <li><strong>Decode:</strong> The instruction decoder interprets the operation code (opcode) to determine the operation type and identify required source and destination operands.</li>
-        <li><strong>Execute:</strong> The Arithmetic Logic Unit (ALU) performs the computation, manipulates internal registers, and updates status flags.</li>
+        <li><strong>Fetch:</strong> Retrieve the instruction at the memory address currently designated by the Program Counter (PC).</li>
+        <li><strong>Decode:</strong> Interpret the operation code (opcode) to determine the instruction type and identify the required operands.</li>
+        <li><strong>Execute:</strong> Carry out the operation within the Arithmetic Logic Unit (ALU), manipulate data registers, and adjust processor state flags.</li>
       </ul>
 
       <h3>Key Processor Registers</h3>
       <p>
-        Processors contain internal registers that operate at CPU clock speeds with zero wait states:
+        CPUs contain internal high-speed storage registers that operate at core clock speeds with zero wait states:
       </p>
       <ul>
-        <li><strong>General-Purpose Registers:</strong> Hold active variables, parameters, and intermediate computational results.</li>
-        <li><strong>Program Counter (PC):</strong> Holds the memory address of the next machine instruction to be fetched and executed.</li>
-        <li><strong>Stack Pointer (SP):</strong> Points to the top of the active call stack, tracking execution frames, return addresses, and local variables.</li>
-        <li><strong>Program Status Word (PSW):</strong> Contains CPU status flags (carry, zero, sign, overflow), the current privilege level mode bit, and interrupt mask flags.</li>
+        <li><strong>General-Purpose Registers:</strong> Hold local variables, arithmetic operands, and temporary intermediate results.</li>
+        <li><strong>Program Counter (PC):</strong> Stores the memory address of the next machine instruction to be fetched.</li>
+        <li><strong>Stack Pointer (SP):</strong> Points to the top of the current call stack frame in memory, tracking local variables, parameters, and return addresses.</li>
+        <li><strong>Program Status Word (PSW):</strong> Contains condition code bits (carry, overflow, zero, sign), CPU priority level, mode bits (user vs. kernel mode), and interrupt enablement flags.</li>
       </ul>
 
       <h3>Pipelining, Superscalar, &amp; Multicore Architectures</h3>
@@ -208,25 +208,25 @@ def overhaul_page_layout():
         Modern processors maximize instruction throughput through concurrency:
       </p>
       <ul>
-        <li><strong>Pipelining:</strong> Splits execution into sequential stages (Fetch, Decode, Execute, Writeback), allowing consecutive instructions to execute across overlapping stages simultaneously.</li>
-        <li><strong>Superscalar Design:</strong> Employs multiple parallel execution pipelines to dispatch and complete multiple independent instructions per clock cycle.</li>
-        <li><strong>Multithreading &amp; Hyperthreading:</strong> Duplicates register state and execution contexts on a single CPU core, enabling zero-cycle thread switching whenever a thread stalls on memory latency.</li>
-        <li><strong>Multicore Processors:</strong> Places multiple independent physical execution cores onto a single silicon die, each with dedicated L1/L2 caches and shared L3 caches.</li>
+        <li><strong>Pipelining:</strong> Deconstructs instruction processing into sequential stages (e.g., Fetch, Decode, Execute, Writeback), allowing an instruction to be decoded while the previous one is executed and the next one is fetched.</li>
+        <li><strong>Superscalar Execution:</strong> Features multiple parallel execution units (multiple ALUs, floating-point units). If consecutive instructions are independent, both are issued and executed simultaneously.</li>
+        <li><strong>Multithreading &amp; Hyperthreading:</strong> Duplicates architectural state (registers, PC, PSW) on a single physical core, allowing near-instantaneous thread context switching when one thread stalls on memory access.</li>
+        <li><strong>Multicore Processors:</strong> Embed multiple complete, independent CPU cores onto a single silicon die, each with dedicated L1/L2 caches and shared L3 caches.</li>
       </ul>
 
       <h2>2. Privilege Modes &amp; Hardware Protection</h2>
       <p>
-        To prevent unprivileged application code from destabilizing the operating system or corrupting concurrent processes, CPU hardware enforces distinct privilege levels:
+        To prevent rogue or faulty user software from crashing the operating system or corrupting other programs, CPU hardware enforces distinct privilege execution levels:
       </p>
       <ul>
-        <li><strong>Kernel Mode (Supervisor Mode):</strong> Full, unrestricted access to the entire physical address space, all machine instructions (including direct device I/O and MMU page table manipulation), and system control registers. The operating system kernel executes in kernel mode.</li>
-        <li><strong>User Mode:</strong> Applications run with restricted capabilities. Direct device I/O, control register modifications, and access to kernel address spaces are prohibited by hardware.</li>
+        <li><strong>Kernel Mode (Supervisor Mode):</strong> Complete, unrestricted access to the entire physical address space, all machine instructions (including direct device I/O, MMU modifications, and timer interrupts), and system configuration tables. The operating system kernel runs exclusively in kernel mode.</li>
+        <li><strong>User Mode:</strong> A restricted subset of instructions is available. Direct memory access to kernel space, modification of control registers, and raw I/O instructions are strictly prohibited and trap to the OS kernel.</li>
       </ul>
 
-      <div class="aside-note">
+      <div class="aside-box">
         <strong>The TRAP Instruction &amp; System Calls</strong>
         <p style="margin-top: 6px;">
-          When an application requires operating system services (such as file reads or process creation), it executes a <code>TRAP</code> instruction (or <code>syscall</code> / <code>sysenter</code>). This hardware instruction automatically switches the processor from user mode to kernel mode and vectors execution to a predefined handler in the kernel's Interrupt Descriptor Table (IDT).
+          When an application requires operating system services (such as reading a file from disk), it executes a specialized <code>TRAP</code> instruction (or <code>syscall</code> / <code>sysenter</code>). This hardware instruction switches the CPU from user mode to kernel mode and branches unconditionally to a predefined vector in the kernel's Interrupt Descriptor Table (IDT), allowing controlled privileged execution.
         </p>
       </div>
 
@@ -239,7 +239,7 @@ def overhaul_page_layout():
 
           <rect x="60" y="55" width="190" height="50" rx="6" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
           <text x="155" y="78" fill="#0f172a" font-size="12" font-weight="bold" text-anchor="middle">User Application</text>
-          <text x="155" y="94" fill="#64748b" font-size="10" text-anchor="middle">Issues open() / read()</text>
+          <text x="155" y="94" fill="#64748b" font-size="10" text-anchor="middle">Calls open() / read()</text>
 
           <rect x="290" y="85" width="160" height="50" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="1.5" />
           <text x="370" y="107" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">TRAP / SYSCALL</text>
@@ -247,7 +247,7 @@ def overhaul_page_layout():
 
           <rect x="490" y="170" width="190" height="55" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
           <text x="585" y="193" fill="#0369a1" font-size="12" font-weight="bold" text-anchor="middle">Syscall Dispatcher</text>
-          <text x="585" y="210" fill="#475569" font-size="10" text-anchor="middle">Execute Kernel Handler (IDT)</text>
+          <text x="585" y="210" fill="#475569" font-size="10" text-anchor="middle">Execute Kernel Routine (IDT)</text>
 
           <path d="M 250,80 L 285,100" fill="none" stroke="#0284c7" stroke-width="2" />
           <path d="M 450,115 L 485,185" fill="none" stroke="#0284c7" stroke-width="2" />
@@ -258,29 +258,29 @@ def overhaul_page_layout():
 
       <h2>3. The Memory Hierarchy</h2>
       <p>
-        Memory systems are organized into a strict latency and capacity hierarchy. The operating system coordinates with hardware MMUs and caches to keep frequently referenced data at the fastest tiers:
+        System memory is organized as a hierarchy balancing access latency, total capacity, and cost per bit:
       </p>
 
       <table>
         <thead>
           <tr>
-            <th>Hierarchy Level</th>
+            <th>Level</th>
             <th>Technology</th>
             <th>Typical Latency</th>
             <th>Typical Capacity</th>
-            <th>Managed By</th>
+            <th>Management</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>CPU Registers</strong></td>
-            <td>Flip-flops (on-die)</td>
+            <td><strong>Registers</strong></td>
+            <td>Flip-flops (CPU die)</td>
             <td>&lt; 1 ns</td>
             <td>&lt; 2 KB</td>
             <td>Compiler / Machine Code</td>
           </tr>
           <tr>
-            <td><strong>L1 / L2 / L3 Caches</strong></td>
+            <td><strong>Cache (L1/L2/L3)</strong></td>
             <td>Static RAM (SRAM)</td>
             <td>1 – 15 ns</td>
             <td>64 KB – 64 MB</td>
@@ -291,18 +291,18 @@ def overhaul_page_layout():
             <td>Dynamic RAM (DRAM)</td>
             <td>50 – 100 ns</td>
             <td>16 GB – 128 GB</td>
-            <td>Operating System (Virtual Memory)</td>
+            <td>Operating System</td>
           </tr>
           <tr>
-            <td><strong>Solid-State Drives (SSD)</strong></td>
+            <td><strong>Solid-State Drive</strong></td>
             <td>NAND Flash (NVMe)</td>
             <td>10 – 50 &mu;s</td>
             <td>512 GB – 4 TB</td>
             <td>Operating System / File System</td>
           </tr>
           <tr>
-            <td><strong>Magnetic Disks (HDD)</strong></td>
-            <td>Rotational Magnetic Platters</td>
+            <td><strong>Magnetic Disk</strong></td>
+            <td>Rotational platters</td>
             <td>5 – 10 ms</td>
             <td>1 TB – 20 TB</td>
             <td>Operating System / File System</td>
@@ -321,61 +321,54 @@ def overhaul_page_layout():
             </marker>
           </defs>
 
-          <!-- Left Axis: Speed & Cost -->
           <line x1="45" y1="390" x2="45" y2="35" stroke="#0284c7" stroke-width="3" marker-end="url(#arrowSpeed)" />
           <text x="35" y="215" fill="#0284c7" font-size="11" font-weight="700" transform="rotate(-90 35 215)" text-anchor="middle">FASTER ACCESS &amp; HIGHER COST / BIT</text>
 
-          <!-- Tier 1: CPU Registers -->
           <g transform="translate(70, 25)">
             <rect x="180" y="0" width="280" height="52" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
             <text x="320" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">CPU Registers</text>
             <text x="320" y="42" fill="#e0f2fe" font-size="11" font-weight="600" text-anchor="middle">&lt; 2 KB | &lt; 1 ns</text>
             <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
+            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Internal registers on CPU core</text>
           </g>
 
-          <!-- Tier 2: Cache Memory -->
           <g transform="translate(70, 97)">
             <rect x="140" y="0" width="320" height="52" rx="6" fill="#0369a1" stroke="#075985" stroke-width="2" />
             <text x="300" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">L1 / L2 / L3 Caches (SRAM)</text>
             <text x="300" y="42" fill="#e0f2fe" font-size="11" font-weight="600" text-anchor="middle">64 KB – 64 MB | 1 – 15 ns</text>
             <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
+            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">On-die static RAM cache</text>
           </g>
 
-          <!-- Tier 3: Main Memory -->
           <g transform="translate(70, 169)">
             <rect x="100" y="0" width="360" height="52" rx="6" fill="#075985" stroke="#0c4a6e" stroke-width="2" />
             <text x="280" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Main Memory (DRAM)</text>
             <text x="280" y="42" fill="#e0f2fe" font-size="11" font-weight="600" text-anchor="middle">16 GB – 128 GB | 50 – 100 ns</text>
             <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
+            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Primary volatile system RAM</text>
           </g>
 
-          <!-- Tier 4: Solid-State Drives -->
           <g transform="translate(70, 241)">
             <rect x="60" y="0" width="400" height="52" rx="6" fill="#1e293b" stroke="#334155" stroke-width="2" />
             <text x="260" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Solid-State Drives (NVMe / SSD)</text>
             <text x="260" y="42" fill="#e2e8f0" font-size="11" font-weight="600" text-anchor="middle">512 GB – 4 TB | 10 – 50 μs</text>
             <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
+            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Non-volatile NAND flash storage</text>
           </g>
 
-          <!-- Tier 5: Magnetic Disks -->
           <g transform="translate(70, 313)">
             <rect x="20" y="0" width="440" height="52" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="2" />
             <text x="240" y="24" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Magnetic Hard Disks (HDD)</text>
             <text x="240" y="42" fill="#cbd5e1" font-size="11" font-weight="600" text-anchor="middle">1 TB – 20 TB | 5 – 10 ms</text>
             <line x1="470" y1="26" x2="520" y2="26" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />
-            <rect x="530" y="7" width="280" height="38" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" />
+            <rect x="530" y="7" width="280" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text x="545" y="31" fill="#0f172a" font-size="12" font-weight="700">Secondary rotational storage</text>
           </g>
 
-          <!-- Right Axis: Capacity & Persistence -->
           <line x1="895" y1="35" x2="895" y2="390" stroke="#334155" stroke-width="3" marker-end="url(#arrowCapacity)" />
           <text x="912" y="215" fill="#334155" font-size="11" font-weight="700" transform="rotate(90 912 215)" text-anchor="middle">LARGER STORAGE CAPACITY &amp; PERSISTENCE</text>
         </svg>
@@ -383,34 +376,38 @@ def overhaul_page_layout():
 
       <h3>Virtual Memory &amp; The MMU</h3>
       <p>
-        The CPU incorporates a dedicated hardware component known as the <strong>Memory Management Unit (MMU)</strong>. The MMU dynamically translates program virtual memory addresses into physical RAM addresses using page tables. This decouples user programs from physical memory layouts, prevents rogue programs from accessing unauthorized address spaces, and enables virtual memory paging to disk.
+        Operating systems decouple program addresses from physical memory chips using <strong>virtual memory</strong>. The processor contains a dedicated hardware component known as the <strong>Memory Management Unit (MMU)</strong>. The MMU dynamically maps virtual addresses generated by application code into physical RAM addresses using page tables, enforcing memory boundaries and protecting isolated processes.
       </p>
 
       <h2>4. Disks, I/O Devices, &amp; Controller Hardware</h2>
       <p>
-        I/O devices consist of two distinct elements: the physical peripheral (e.g., the disk platter, SSD NAND flash array, monitor, keyboard) and the <strong>device controller</strong> (the electronic circuitry interfacing the device to the system bus).
+        I/O devices generally consist of two distinct parts: a physical component (the mechanical drive, screen, or cable) and an electronic component called the <strong>device controller</strong>.
       </p>
-
-      <h3>Three Fundamental I/O Strategies</h3>
       <ul>
-        <li><strong>Programmed I/O (Polling / Busy Waiting):</strong> The CPU repeatedly checks a device controller status register in a tight loop until the operation completes. Polling ties up the CPU and wastes clock cycles.</li>
-        <li><strong>Interrupt-Driven I/O:</strong> The CPU issues a command to the device controller and continues executing other tasks. When the device finishes, the controller raises an electrical interrupt line, triggering the kernel's interrupt service routine.</li>
-        <li><strong>Direct Memory Access (DMA):</strong> A dedicated DMA controller orchestrates high-speed bulk data transfers directly between device controllers and main memory without continuous CPU intervention, raising an interrupt only after the full block is transferred.</li>
+        <li><strong>Device Controllers:</strong> The electronic chip or circuit board that accepts commands from the OS and manages low-level electrical signals to the physical peripheral.</li>
+        <li><strong>Memory-Mapped I/O &amp; I/O Ports:</strong> The operating system communicates with device controllers by writing to and reading from designated controller registers mapped into memory addresses or separate I/O port spaces.</li>
+      </ul>
+
+      <h3>Three Fundamental I/O Approaches</h3>
+      <ul>
+        <li><strong>Programmed I/O (Busy Waiting):</strong> The CPU polls the device controller in a tight loop until the requested operation completes, wasting CPU cycles.</li>
+        <li><strong>Interrupt-Driven I/O:</strong> The CPU starts the transfer, moves on to execute other work, and receives a hardware interrupt signal from the controller when the transfer completes.</li>
+        <li><strong>Direct Memory Access (DMA):</strong> A dedicated DMA controller chip orchestrates the bulk transfer of data directly between peripheral controllers and main memory without continuous CPU intervention, interrupting the processor only after an entire data block has been transferred.</li>
       </ul>
 
       <div class="diagram-container">
         <svg viewBox="0 0 740 280" width="100%" height="auto" style="max-width: 740px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <rect x="40" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
           <text x="110" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">CPU Core</text>
-          <text x="110" y="82" fill="#64748b" font-size="10" text-anchor="middle">1. Programs DMA transfer</text>
+          <text x="110" y="82" fill="#64748b" font-size="10" text-anchor="middle">1. Sets up DMA transfer</text>
 
           <rect x="300" y="30" width="160" height="70" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
           <text x="380" y="62" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">DMA Controller</text>
-          <text x="380" y="82" fill="#e0f2fe" font-size="10" text-anchor="middle">2. Arbitrates bus cycles</text>
+          <text x="380" y="82" fill="#e0f2fe" font-size="10" text-anchor="middle">2. Manages direct bus flow</text>
 
           <rect x="560" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
           <text x="630" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">Main Memory</text>
-          <text x="630" y="82" fill="#64748b" font-size="10" text-anchor="middle">Buffer Source / Target</text>
+          <text x="630" y="82" fill="#64748b" font-size="10" text-anchor="middle">Direct Buffer Destination</text>
 
           <rect x="40" y="145" width="660" height="24" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
           <text x="370" y="161" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">SYSTEM &amp; MEMORY BUS (PCIe / DMI / Memory Channels)</text>
@@ -429,25 +426,25 @@ def overhaul_page_layout():
         </svg>
       </div>
 
-      <h2>5. Buses &amp; The Boot Sequence</h2>
+      <h2>5. Buses &amp; The Boot Process</h2>
       <p>
-        Modern computers use a hierarchy of physical <strong>buses</strong> (PCIe, DMI, USB, and memory channels) operating at different clock speeds. The high-speed memory bus connects the CPU directly to RAM, while expansion buses connect peripherals to controllers.
+        Modern computers utilize a hierarchy of specialized <strong>buses</strong> (PCIe, DMI, USB, DDR memory channels) connecting processors, memory, and controllers. Fast buses connect the CPU to high-speed caches and RAM, while secondary buses link standard peripherals.
       </p>
 
-      <h3>The System Boot Sequence</h3>
+      <h3>How the Computer Boots Up</h3>
       <ol>
-        <li><strong>Power-On &amp; Reset:</strong> When power is supplied, the CPU initializes its registers and executes firmware stored in non-volatile ROM/Flash memory (the <strong>BIOS</strong> or <strong>UEFI</strong>).</li>
-        <li><strong>Hardware Probing (POST):</strong> Firmware executes the Power-On Self-Test (POST), checks available RAM, scans internal buses, and inventories attached controllers and peripherals.</li>
-        <li><strong>Bootloader Loading:</strong> Firmware inspects configured boot media to locate the Master Boot Record (MBR) or EFI System Partition (ESP), reading the primary bootloader (e.g., GRUB) into RAM.</li>
-        <li><strong>Kernel Relocation:</strong> The bootloader loads the operating system kernel and initial ramdisk image into memory, configures basic page tables, and transfers execution control to the kernel entry point.</li>
-        <li><strong>Kernel Initialization:</strong> The operating system kernel takes full control, initializes device drivers, configures interrupts, initializes the scheduler and virtual memory, and launches the first user-space initialization daemon (such as <code>systemd</code> or <code>init</code>).</li>
+        <li>When power is supplied, the CPU initializes its registers and executes boot firmware stored in non-volatile ROM/flash (the <strong>BIOS</strong> or modern <strong>UEFI</strong>).</li>
+        <li>The firmware checks physical RAM, scans buses, and detects attached peripheral devices (Power-On Self-Test / POST).</li>
+        <li>The firmware identifies the designated boot device and reads the first sector (Master Boot Record) or loads the EFI bootloader binary from the EFI System Partition (ESP).</li>
+        <li>The bootloader (such as GRUB) copies the operating system kernel and initial RAM filesystem into main memory.</li>
+        <li>The bootloader transfers execution to the kernel entry point. The OS kernel initializes hardware drivers, activates protected virtual memory, and spawns the initial user-space environment (such as <code>init</code> or <code>systemd</code>).</li>
       </ol>
     </article>
   </main>
 
   <nav class="module-nav-bar bottom">
-    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an Operating System &amp; History</a>
-    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>
+    <a href="index.html" class="module-nav-btn">Chapter 1 Index</a>
     <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>
   </nav>
 
@@ -457,15 +454,14 @@ def overhaul_page_layout():
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"--> Successfully updated {file_path} without card enclosures.")
+    print(f"--> Successfully updated {file_path} with restored styling.")
 
-    # Git sync
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Remove card enclosures from main text in 02-hardware-review.html\n\n"
-            "Update week01-operating-system-concepts/02-hardware-review.html to flow as\n"
-            "standard document prose without card boxes around core section text."
+            "Restore Module 1 CSS design system and theme palette in 02-hardware-review.html\n\n"
+            "Reinstate #f8fafc background, variables, boxed header, and aside styling in\n"
+            "week01-operating-system-concepts/02-hardware-review.html while keeping prose unboxed."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -474,4 +470,4 @@ def overhaul_page_layout():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    overhaul_page_layout()
+    restore_module_styling()
