@@ -806,46 +806,144 @@
     </section>
 
 
-    <!-- SECTION 8.1.3: SYNCHRONIZATION & SPINLOCKS -->
+        <!-- SECTION 8.1.3: SYNCHRONIZATION & SPINLOCKS -->
     <section class="content-section">
       <h2>8.1.3 Multiprocessor Synchronization &amp; Cache Contention</h2>
       <p>
-        On a uniprocessor, an operating system can achieve mutual exclusion in kernel mode by temporarily disabling hardware interrupts. On a multiprocessor, disabling interrupts on CPU 0 has zero effect on CPU 1, which can continue executing and mutate shared memory.
+        On a single-core uniprocessor system, an operating system kernel achieves mutual exclusion across short critical sections simply by disabling hardware interrupts. Because only one thread of execution exists, disabling interrupts prevents the timer tick from preemption, ensuring atomicity.
+      </p>
+      <p>
+        On a multiprocessor, disabling interrupts on CPU 0 has <strong>zero effect on CPU 1, 2, or 3</strong>. Sibling cores continue fetching instructions, accessing shared data structures, and causing race conditions. Multiprocessors require dedicated hardware-level atomic synchronization primitives.
       </p>
 
-      <h3>Hardware Atomic Primitives</h3>
+      <h3>1. Hardware Atomic Primitives</h3>
       <p>
-        Hardware addresses this by providing instructions that assert bus lock signals or use cache-coherence locks to ensure atomicity across all cores:
+        Modern CPU architectures provide atomic read-modify-write instructions that guarantee atomicity either by asserting a hardware bus lock signal (locking the memory bus) or through the cache coherence protocol (holding exclusive ownership of the cache line):
       </p>
+      <ul>
+        <li><strong>Test-and-Set:</strong> Atomically writes 1 to a memory address and returns its previous value. If it returns 0, the lock was acquired; if it returns 1, the lock was already held.</li>
+        <li><strong>Compare-and-Swap (CAS):</strong> Compares the value at an address with an expected value, updating it to a new value only if they match. Returns true on success.</li>
+        <li><strong>Load-Linked / Store-Conditional (LL/SC):</strong> Used on RISC architectures (ARM, RISC-V). Load-linked loads a value; store-conditional writes a new value only if no other core has written to that address in the interim.</li>
+      </ul>
+
       <div class="code-box">
-// Test-and-Set hardware primitive (atomic exchange)
-int TestAndSet(int *lock) {
-    int old_val = *lock;
-    *lock = 1;
-    return old_val; // Returns 0 on success, 1 on busy
+// Atomic Test-and-Set spinlock implementation (x86: LOCK BTS / XCHG)
+void Spinlock_Acquire(volatile int *lock) {
+    while (TestAndSet(lock) == 1) {
+        // Spin in tight loop (busy waiting)
+    }
 }
 
-// Compare-and-Swap (CAS) hardware primitive
-bool CompareAndSwap(int *addr, int expected, int new_val) {
-    if (*addr == expected) {
-        *addr = new_val;
-        return true;
-    }
-    return false;
+void Spinlock_Release(volatile int *lock) {
+    *lock = 0; // Release ownership
 }
       </div>
 
-      <h3>Spinlocks &amp; Cache-Line Bouncing</h3>
+      <h3>2. The Cache-Line Bouncing Hazard</h3>
       <p>
-        When a CPU attempts to acquire a lock held by another core, it can either sleep (context switch) or spin in a tight loop. Because context switches can cost thousands of cycles, short critical sections use <strong>spinlocks</strong>.
+        While spinlocks avoid the expensive latency of a context switch (~1,000–5,000 CPU cycles) for short critical sections, naive spinlocks cause severe hardware degradation:
       </p>
       <div class="callout">
-        <strong>The Cache Bouncing Storm:</strong> A naive spinlock that loops continuously executing <code>TestAndSet(&amp;lock)</code> issues writes on every iteration. This forces the cache line holding the lock into the <em>Modified</em> state on that core, invalidating the line across every other core on the bus. When multiple CPUs spin simultaneously, the lock cache line bounces furiously between caches, saturating the memory bus.
+        <strong>The Invalidation Storm:</strong> When multiple CPUs execute <code>TestAndSet(&amp;lock)</code> in a tight while-loop, every execution is an <em>atomic write operation</em>. To execute an atomic write, the CPU's cache controller must obtain the cache line in the <strong>Modified (M)</strong> state, broadcasting a <code>BusUpgr</code> or <code>BusRdX</code> invalidation across the memory bus. When 4 cores spin simultaneously, the cache line bounces continuously between CPU caches, saturating the bus and starving normal data accesses.
       </div>
+
+      <h3>3. Optimization: Test-and-Test-and-Set (TTAS)</h3>
       <p>
-        <strong>Mitigation: Test-and-Test-and-Set:</strong> The CPU spins by reading local cache lines in the <em>Shared</em> state using normal read instructions. Only when the lock is observed to be released (0) does the core issue an atomic write to acquire it.
+        To prevent memory bus saturation, lock designers utilize <strong>Test-and-Test-and-Set (TTAS)</strong>. Instead of blindly issuing atomic writes on every iteration, a spinning CPU first reads the lock using ordinary memory read instructions:
       </p>
+      <ul>
+        <li>While the lock is held (1), the core spins reading its local cache line in the <strong>Shared (S)</strong> state. Normal reads produce <em>zero bus traffic</em>!</li>
+        <li>Only when the lock holder releases the lock (writing 0) is the shared cache line invalidated.</li>
+        <li>The spinning cores then execute an atomic <code>TestAndSet</code> to claim the freed lock.</li>
+      </ul>
+
+      <!-- GUIDED WALKTHROUGH 5: SPINLOCK CONTENTION & CACHE BOUNCING -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Spinlocks &amp; Cache-Line Bouncing</span>
+          <span id="sync-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> A spinlock is designed for low latency, but naive implementations can cripple multiprocessor performance through cache thrashing. This walkthrough demonstrates the physical reality of cache coherence during synchronization: observe how naive atomic spinning bounces cache lines across the bus, and how Test-and-Test-and-Set (TTAS) restores bus efficiency by spinning locally on shared cache lines.
+        </p>
+
+        <div class="instruction-card">
+          <div id="sync-act-text" class="action-req">Action Required: Click 'Simulate Stage 1: Naive Spinlock Bouncing Storm' below.</div>
+          <div id="sync-exp-text" class="action-exp">CPU 0 holds the lock while executing a critical section. Watch CPUs 1, 2, and 3 simultaneously execute naive atomic <code>TestAndSet</code> writes. Notice how the lock cache line is forced to bounce constantly between Modified and Invalid across cores, saturating the bus.</div>
+        </div>
+
+        <!-- Inline Interactive SVG Spinlock Diagram -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="sync-bounce-svg" viewBox="0 0 740 300" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- CPU 0: Lock Holder -->
+            <rect id="sync-c0-box" x="30" y="20" width="150" height="90" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" rx="5"/>
+            <text x="105" y="40" text-anchor="middle" font-weight="bold" fill="#15803d" font-size="12">CPU 0 (Holder)</text>
+            <rect id="sync-c0-tag" x="45" y="52" width="120" height="24" fill="#16a34a" rx="3"/>
+            <text id="sync-c0-state-txt" x="105" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Inside Lock (M)</text>
+            <text x="105" y="96" text-anchor="middle" font-size="9" fill="#15803d">Critical Section Active</text>
+
+            <!-- CPU 1: Contender -->
+            <rect id="sync-c1-box" x="205" y="20" width="150" height="90" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="280" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 1 (Contender)</text>
+            <rect id="sync-c1-tag" x="220" y="52" width="120" height="24" fill="#64748b" rx="3"/>
+            <text id="sync-c1-state-txt" x="280" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Cache: I</text>
+            <text id="sync-c1-op-txt" x="280" y="96" text-anchor="middle" font-size="9" fill="#64748b">Awaiting Run</text>
+
+            <!-- CPU 2: Contender -->
+            <rect id="sync-c2-box" x="380" y="20" width="150" height="90" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="455" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 2 (Contender)</text>
+            <rect id="sync-c2-tag" x="395" y="52" width="120" height="24" fill="#64748b" rx="3"/>
+            <text id="sync-c2-state-txt" x="455" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Cache: I</text>
+            <text id="sync-c2-op-txt" x="455" y="96" text-anchor="middle" font-size="9" fill="#64748b">Awaiting Run</text>
+
+            <!-- CPU 3: Contender -->
+            <rect id="sync-c3-box" x="555" y="20" width="150" height="90" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="5"/>
+            <text x="630" y="40" text-anchor="middle" font-weight="bold" fill="#334155" font-size="12">CPU 3 (Contender)</text>
+            <rect id="sync-c3-tag" x="570" y="52" width="120" height="24" fill="#64748b" rx="3"/>
+            <text id="sync-c3-state-txt" x="630" y="68" text-anchor="middle" font-weight="bold" fill="#ffffff">Cache: I</text>
+            <text id="sync-c3-op-txt" x="630" y="96" text-anchor="middle" font-size="9" fill="#64748b">Awaiting Run</text>
+
+            <!-- Snooping Taps to Bus -->
+            <line id="sync-tap-0" x1="105" y1="110" x2="105" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="sync-tap-1" x1="280" y1="110" x2="280" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="sync-tap-2" x1="455" y1="110" x2="455" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="sync-tap-3" x1="630" y1="110" x2="630" y2="165" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Shared Memory Bus Bar -->
+            <rect id="sync-bus-bar" x="30" y="165" width="675" height="16" fill="#0284c7" rx="3"/>
+            <text id="sync-bus-txt" x="367" y="155" text-anchor="middle" font-size="10" font-weight="bold" fill="#0284c7">Shared Memory Bus: Idle</text>
+
+            <!-- Memory / Lock Status Panel (Bottom) -->
+            <rect x="30" y="200" width="675" height="85" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" rx="5"/>
+            <text x="50" y="225" font-size="11" font-weight="bold" fill="#334155">Lock Variable (Mutex Memory Line):</text>
+            <text id="sync-lock-status-txt" x="300" y="225" font-size="11" font-weight="bold" fill="#ef4444">Address 0x9000 = 1 [LOCKED by CPU 0]</text>
+
+            <text x="50" y="250" font-size="10" fill="#475569">Bus Arbitration Metric:</text>
+            <rect x="200" y="240" width="300" height="14" fill="#e2e8f0" rx="3"/>
+            <rect id="sync-bus-meter" x="200" y="240" width="0" height="14" fill="#10b981" rx="3"/>
+            <text id="sync-bus-pct" x="510" y="252" font-size="10" font-weight="bold" fill="#334155">0% Traffic</text>
+
+            <text id="sync-takeaway-txt" x="50" y="275" font-size="10" font-style="italic" fill="#64748b">Select a simulation stage above to observe cache coherence during lock contention.</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Lock Owner: <strong id="sync-owner-lbl" style="color:#16a34a;">CPU 0</strong></div>
+          <div>Spin Strategy: <strong id="sync-strat-lbl" style="color:#0284c7;">Awaiting Simulation</strong></div>
+          <div>Cache Line State: <span id="sync-line-lbl" style="font-weight:bold;">--</span></div>
+          <div>Bus Impact: <span id="sync-impact-lbl" style="font-weight:bold;">--</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-sync-step" class="btn-step" onclick="stepSyncWalkthrough()">Simulate Stage 1: Naive Spinlock Bouncing Storm</button>
+          <button class="btn-reset" onclick="resetSyncWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="sync-walkthrough-log" class="status-panel">-- Synchronization walkthrough ready. Click button above to begin --</div>
+      </div>
     </section>
+
 
   </div>
 
@@ -1529,6 +1627,232 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
 
       document.getElementById('btn-os-step').textContent = 'Inspect Model 2: Master-Slave';
       document.getElementById('os-walkthrough-log').innerHTML = '-- Walkthrough reset. Partitioned OS model active --';
+    }
+
+  
+    // =======================================================
+    // 5. SPINLOCK CONTENTION & CACHE BOUNCING WALKTHROUGH
+    // =======================================================
+    let syncStage = 1;
+
+    function appendSyncLog(msg) {
+      const el = document.getElementById('sync-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function resetSyncSvgElements() {
+      // Reset taps
+      ['0', '1', '2', '3'].forEach(id => {
+        const tap = document.getElementById(`sync-tap-${id}`);
+        tap.setAttribute('stroke', '#cbd5e1');
+        tap.setAttribute('stroke-width', '3');
+      });
+
+      // Reset contender core boxes
+      ['1', '2', '3'].forEach(id => {
+        const box = document.getElementById(`sync-c${id}-box`);
+        box.setAttribute('fill', '#f8fafc');
+        box.setAttribute('stroke', '#cbd5e1');
+        document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#64748b');
+        document.getElementById(`sync-c${id}-state-txt`).textContent = 'Cache: I';
+      });
+
+      document.getElementById('sync-bus-bar').setAttribute('fill', '#0284c7');
+      document.getElementById('sync-bus-meter').setAttribute('width', '0');
+      document.getElementById('sync-bus-meter').setAttribute('fill', '#10b981');
+      document.getElementById('sync-bus-pct').textContent = '0% Traffic';
+    }
+
+    function stepSyncWalkthrough() {
+      const btn = document.getElementById('btn-sync-step');
+      const badge = document.getElementById('sync-step-badge');
+      const act = document.getElementById('sync-act-text');
+      const exp = document.getElementById('sync-exp-text');
+
+      const ownerLbl = document.getElementById('sync-owner-lbl');
+      const stratLbl = document.getElementById('sync-strat-lbl');
+      const lineLbl = document.getElementById('sync-line-lbl');
+      const impactLbl = document.getElementById('sync-impact-lbl');
+
+      if (syncStage === 1) {
+        // Stage 1: Naive Test-and-Set Invalidation Storm
+        resetSyncSvgElements();
+        document.getElementById('sync-walkthrough-log').innerHTML = '--> Stage 1: Naive Test-and-Set Spinlock Bouncing Storm...';
+
+        // Light up contender cores in angry red
+        ['1', '2', '3'].forEach(id => {
+          const box = document.getElementById(`sync-c${id}-box`);
+          box.setAttribute('fill', '#fee2e2');
+          box.setAttribute('stroke', '#ef4444');
+          document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#ef4444');
+          document.getElementById(`sync-c${id}-state-txt`).textContent = 'Atomic Write (M)';
+          document.getElementById(`sync-c${id}-op-txt`).textContent = 'TestAndSet(&lock)';
+
+          const tap = document.getElementById(`sync-tap-${id}`);
+          tap.setAttribute('stroke', '#ef4444');
+          tap.setAttribute('stroke-width', '4');
+        });
+
+        // Bus saturated
+        document.getElementById('sync-bus-bar').setAttribute('fill', '#ef4444');
+        document.getElementById('sync-bus-txt').textContent = 'Bus Saturated: Invalidation Broadcast Storm (BusUpgr / BusRdX)';
+        document.getElementById('sync-bus-txt').setAttribute('fill', '#ef4444');
+        document.getElementById('sync-bus-meter').setAttribute('width', '300');
+        document.getElementById('sync-bus-meter').setAttribute('fill', '#ef4444');
+        document.getElementById('sync-bus-pct').textContent = '100% Saturated';
+        document.getElementById('sync-takeaway-txt').textContent = 'Danger: Constant atomic writes force exclusive cache line ownership back and forth, starving memory bandwidth.';
+
+        stratLbl.textContent = 'Naive Test-and-Set';
+        stratLbl.style.color = '#ef4444';
+        lineLbl.textContent = 'Rapid Invalidation (Bouncing)';
+        lineLbl.style.color = '#ef4444';
+        impactLbl.textContent = 'Severe Bus Saturation (100%)';
+        impactLbl.style.color = '#ef4444';
+
+        appendSyncLog('1. CPU 0 holds the lock (Address 0x9000 = 1) and executes inside the critical section.');
+        appendSyncLog('2. CPUs 1, 2, and 3 spin in a while-loop executing atomic TestAndSet writes.');
+        appendSyncLog('3. Because TestAndSet is a write, each core demands exclusive Modified (M) ownership.');
+        appendSyncLog('4. Cache Bouncing Storm: The lock line bounces between caches on every iteration. The memory bus hits 100% capacity, stalling regular data access across all cores!');
+
+        syncStage = 2;
+        badge.textContent = 'Stage 2 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 2: Test-and-Test-and-Set (TTAS)\' below.';
+        exp.innerHTML = 'Now switch the contender spinlocks to <strong>Test-and-Test-and-Set (TTAS)</strong>. Instead of issuing atomic writes, contenders spin using normal read instructions on their local cache lines in the <strong>Shared (S)</strong> state. Watch the bus traffic drop to zero.';
+        btn.textContent = 'Simulate Stage 2: Test-and-Test-and-Set (TTAS)';
+      } else if (syncStage === 2) {
+        // Stage 2: TTAS Local Cache Spinning
+        resetSyncSvgElements();
+        document.getElementById('sync-walkthrough-log').innerHTML = '--> Stage 2: Test-and-Test-and-Set (TTAS) Local Shared Spinning...';
+
+        // Light up contender cores in calm green/blue (Shared state)
+        ['1', '2', '3'].forEach(id => {
+          const box = document.getElementById(`sync-c${id}-box`);
+          box.setAttribute('fill', '#f0f9ff');
+          box.setAttribute('stroke', '#0284c7');
+          document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#10b981');
+          document.getElementById(`sync-c${id}-state-txt`).textContent = 'Cache: Shared (S)';
+          document.getElementById(`sync-c${id}-op-txt`).textContent = 'Local Read (*lock == 1)';
+        });
+
+        // Bus returns to quiet
+        document.getElementById('sync-bus-bar').setAttribute('fill', '#10b981');
+        document.getElementById('sync-bus-txt').textContent = 'Shared Memory Bus: Idle (0% Traffic - Local L1 Hits)';
+        document.getElementById('sync-bus-txt').setAttribute('fill', '#10b981');
+        document.getElementById('sync-bus-meter').setAttribute('width', '15');
+        document.getElementById('sync-bus-meter').setAttribute('fill', '#10b981');
+        document.getElementById('sync-bus-pct').textContent = '5% (Normal App Traffic)';
+        document.getElementById('sync-takeaway-txt').textContent = 'Success: Contenders spin on local L1 cache hits in the Shared state. Zero bus invalidation cycles wasted.';
+
+        stratLbl.textContent = 'Test-and-Test-and-Set (TTAS)';
+        stratLbl.style.color = '#10b981';
+        lineLbl.textContent = 'Shared (S) in All Contender L1s';
+        lineLbl.style.color = '#10b981';
+        impactLbl.textContent = 'Zero Bus Contention (Quiet)';
+        impactLbl.style.color = '#10b981';
+
+        appendSyncLog('1. Contenders switch to TTAS: while (*lock == 1) spin with ordinary read instructions.');
+        appendSyncLog('2. Coherence protocol distributes the lock variable in the Shared (S) state to all cores.');
+        appendSyncLog('3. Spinning reads are satisfied directly from each core\'s private L1 cache.');
+        appendSyncLog('4. Memory Bus Traffic drops from 100% to near 0%, freeing memory bandwidth for productive computing!');
+
+        syncStage = 3;
+        badge.textContent = 'Stage 3 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 3: Lock Release & Handoff\' below.';
+        exp.innerHTML = 'Watch what happens when CPU 0 finishes its critical section and releases the lock by writing <code>*lock = 0</code>. Observe the controlled single invalidation broadcast and how CPU 1 successfully claims the lock.';
+        btn.textContent = 'Simulate Stage 3: Lock Release & Handoff';
+      } else if (syncStage === 3) {
+        // Stage 3: Lock Release and Handoff
+        resetSyncSvgElements();
+        document.getElementById('sync-walkthrough-log').innerHTML = '--> Stage 3: Lock Release & Controlled Handoff...';
+
+        // CPU 0 released
+        document.getElementById('sync-c0-box').setAttribute('fill', '#f8fafc');
+        document.getElementById('sync-c0-box').setAttribute('stroke', '#cbd5e1');
+        document.getElementById('sync-c0-tag').setAttribute('fill', '#64748b');
+        document.getElementById('sync-c0-state-txt').textContent = 'Released (0)';
+
+        // CPU 1 wins lock
+        document.getElementById('sync-c1-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('sync-c1-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('sync-c1-tag').setAttribute('fill', '#16a34a');
+        document.getElementById('sync-c1-state-txt').textContent = 'Owner (M)';
+        document.getElementById('sync-c1-op-txt').textContent = 'CAS Succeeded!';
+        document.getElementById('sync-tap-1').setAttribute('stroke', '#16a34a');
+
+        // CPU 2 and 3 observe lock taken again, resume local spinning
+        ['2', '3'].forEach(id => {
+          document.getElementById(`sync-c${id}-box`).setAttribute('fill', '#f0f9ff');
+          document.getElementById(`sync-c${id}-box`).setAttribute('stroke', '#0284c7');
+          document.getElementById(`sync-c${id}-tag`).setAttribute('fill', '#10b981');
+          document.getElementById(`sync-c${id}-state-txt`).textContent = 'Cache: Shared (S)';
+          document.getElementById(`sync-c${id}-op-txt`).textContent = 'Spinning on 1';
+        });
+
+        document.getElementById('sync-lock-status-txt').textContent = 'Address 0x9000 = 1 [ACQUIRED by CPU 1]';
+        document.getElementById('sync-lock-status-txt').setAttribute('fill', '#16a34a');
+        document.getElementById('sync-bus-txt').textContent = 'Shared Memory Bus: Release & Re-acquisition Broadcast (Single Burst)';
+        document.getElementById('sync-bus-txt').setAttribute('fill', '#0284c7');
+        document.getElementById('sync-bus-meter').setAttribute('width', '60');
+        document.getElementById('sync-bus-meter').setAttribute('fill', '#0284c7');
+        document.getElementById('sync-bus-pct').textContent = '20% (Controlled Burst)';
+        document.getElementById('sync-takeaway-txt').textContent = 'Takeaway: TTAS confines bus traffic to lock transitions rather than continuous spinning cycles.';
+
+        ownerLbl.textContent = 'CPU 1 (New Holder)';
+        ownerLbl.style.color = '#16a34a';
+        stratLbl.textContent = 'TTAS + Atomic Exchange';
+        lineLbl.textContent = 'CPU 1: Modified, Peers: Shared';
+        lineLbl.style.color = '#0284c7';
+        impactLbl.textContent = 'Brief Burst, Then Quiet';
+        impactLbl.style.color = '#10b981';
+
+        appendSyncLog('1. CPU 0 executes Spinlock_Release: writes *lock = 0.');
+        appendSyncLog('2. A single invalidation broadcast invalidates the Shared line in contender caches.');
+        appendSyncLog('3. Contenders detect the release: CPUs 1, 2, and 3 break their read-loops and issue atomic TestAndSet.');
+        appendSyncLog('4. CPU 1 wins the atomic arbitration, acquiring the lock and transitioning its line to Modified (M).');
+        appendSyncLog('5. CPUs 2 and 3 detect lock is busy (1) again, reload the line into Shared (S), and resume silent local spinning!');
+
+        syncStage = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough from Stage 1\' to review.';
+        exp.innerHTML = 'You evaluated naive spinlock cache bouncing, TTAS local cache spinning, and the single-burst lock handoff mechanism.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
+      }
+    }
+
+    function resetSyncWalkthrough() {
+      syncStage = 1;
+      resetSyncSvgElements();
+
+      // Reset CPU 0 to holder
+      document.getElementById('sync-c0-box').setAttribute('fill', '#f0fdf4');
+      document.getElementById('sync-c0-box').setAttribute('stroke', '#16a34a');
+      document.getElementById('sync-c0-tag').setAttribute('fill', '#16a34a');
+      document.getElementById('sync-c0-state-txt').textContent = 'Inside Lock (M)';
+
+      // Reset contenders
+      ['1', '2', '3'].forEach(id => {
+        document.getElementById(`sync-c${id}-op-txt`).textContent = 'Awaiting Run';
+      });
+
+      document.getElementById('sync-lock-status-txt').textContent = 'Address 0x9000 = 1 [LOCKED by CPU 0]';
+      document.getElementById('sync-lock-status-txt').setAttribute('fill', '#ef4444');
+
+      document.getElementById('sync-step-badge').textContent = 'Stage 1 of 3';
+      document.getElementById('sync-act-text').textContent = 'Action Required: Click \'Simulate Stage 1: Naive Spinlock Bouncing Storm\' below.';
+      document.getElementById('sync-exp-text').innerHTML = 'CPU 0 holds the lock while executing a critical section. Watch CPUs 1, 2, and 3 simultaneously execute naive atomic <code>TestAndSet</code> writes. Notice how the lock cache line is forced to bounce constantly between Modified and Invalid across cores, saturating the bus.';
+
+      document.getElementById('sync-owner-lbl').textContent = 'CPU 0';
+      document.getElementById('sync-owner-lbl').style.color = '#16a34a';
+      document.getElementById('sync-strat-lbl').textContent = 'Awaiting Simulation';
+      document.getElementById('sync-strat-lbl').style.color = '#0284c7';
+      document.getElementById('sync-line-lbl').textContent = '--';
+      document.getElementById('sync-line-lbl').style.color = '#334155';
+      document.getElementById('sync-impact-lbl').textContent = '--';
+      document.getElementById('sync-impact-lbl').style.color = '#334155';
+
+      document.getElementById('btn-sync-step').textContent = 'Simulate Stage 1: Naive Spinlock Bouncing Storm';
+      document.getElementById('sync-walkthrough-log').innerHTML = '-- Synchronization walkthrough reset. Ready to begin --';
     }
 
   </script>
