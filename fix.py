@@ -1,85 +1,163 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Force exact heading correction and nav sync in 03-os-concepts.html
+# fix.py: Expand 03-os-concepts.html with comprehensive OS core concepts
 # =====================================================================
 import os
-import re
 import subprocess
 
-def run_fix():
+EXPANDED_OS_CONCEPTS_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. Operating System Concepts | Week 1: Operating System Concepts</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+    }
+    h2 {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 36px;
+    }
+    .concept-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #0284c7;
+      border-radius: 0 6px 6px 0;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    code {
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      color: #0369a1;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Navigation Bar -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="02-hardware-review.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Hardware Review</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <a href="04-os-structure.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. OS Structure &rarr;</a>
+    </nav>
+
+    <h2>03. Operating System Concepts</h2>
+    <p>At the heart of every computer system lies a collection of powerful architectural abstractions designed to turn raw hardware into a programmable, secure, and intuitive environment. Drawing from Tanenbaum's foundational taxonomy, this module examines the core conceptual pillars that define modern operating systems.</p>
+
+    <div class="concept-card">
+      <h3 style="margin-top: 0; color: #0284c7;">1. The Process Abstraction</h3>
+      <p>The fundamental concept in any modern operating system is the <strong>process</strong>—an abstraction of a running program. A process is not merely the machine code on disk; it is an active execution entity encompassing:</p>
+      <ul>
+        <li><strong>Program Counter (PC):</strong> Tracks the current instruction being executed.</li>
+        <li><strong>Registers:</strong> Hold temporary working variables and architectural state.</li>
+        <li><strong>Memory Map:</strong> Encompasses the text segment (code), data segment (variables), heap (dynamic allocation), and stack (function frames).</li>
+        <li><strong>Open File Descriptors:</strong> References to active I/O streams and network sockets.</li>
+      </ul>
+      <p>The operating system maintains a <em>Process Control Block (PCB)</em> for every active process, allowing the CPU to multiplex between independent programs seamlessly.</p>
+    </div>
+
+    <div class="concept-card">
+      <h3 style="margin-top: 0; color: #0284c7;">2. Address Spaces &amp; Virtual Memory</h3>
+      <p>To prevent concurrent programs from corrupting one another's memory, operating systems introduce the <strong>address space</strong>. Each process is presented with its own private, contiguous virtual memory range. The Memory Management Unit (MMU) translates these virtual addresses into physical RAM locations on the fly, providing memory isolation, protection rings, and support for swapping.</p>
+    </div>
+
+    <div class="concept-card">
+      <h3 style="margin-top: 0; color: #0284c7;">3. Files &amp; Hierarchical Directories</h3>
+      <p>Operating systems abstract messy disk sectors, tracks, and cylinders into logical units known as <strong>files</strong>. Files provide persistent storage managed through hierarchical directory trees. Key concepts include:</p>
+      <ul>
+        <li><strong>Mounting:</strong> Integrating separate physical file systems into a single unified directory hierarchy.</li>
+        <li><strong>File Descriptors:</strong> Integers returned by system calls (e.g., <code>open</code>) used by applications to read and write data streams without knowing underlying device geometry.</li>
+      </ul>
+    </div>
+
+    <div class="concept-card">
+      <h3 style="margin-top: 0; color: #0284c7;">4. Input/Output (I/O) Subsystems</h3>
+      <p>The I/O subsystem abstracts diverse hardware peripherals—from keyboards to NVMe storage arrays—behind standardized device drivers and system calls. Kernels utilize interrupt handlers, device buffers, and asynchronous completion queues to decouple slow peripheral operations from fast CPU instruction cycles.</p>
+    </div>
+
+    <div class="concept-card">
+      <h3 style="margin-top: 0; color: #0284c7;">5. Protection &amp; Security</h3>
+      <p>Multi-user and networked operating systems enforce strict access controls to safeguard data. Mechanisms include:</p>
+      <ul>
+        <li><strong>User and Group Identifiers (UID/GID):</strong> Associates processes with specific security principals.</li>
+        <li><strong>Access Control Lists (ACLs) &amp; Permission Bits:</strong> Dictate whether read, write, or execute privileges are granted.</li>
+        <li><strong>Privilege Rings:</strong> Hardware-enforced separation between unprivileged user mode and supervisor (kernel) mode.</li>
+      </ul>
+    </div>
+
+    <div class="concept-card">
+      <h3 style="margin-top: 0; color: #0284c7;">6. The Command Interpreter (The Shell)</h3>
+      <p>The shell is not part of the kernel, but it is the primary user interface for interacting with operating system services. When a user enters a command, the shell parses the input, issues <code>fork()</code> to create a child process, executes <code>exec()</code> to load the binary program, and manages input/output redirection and piping.</p>
+    </div>
+
+    <!-- Navigation Bar Bottom -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="02-hardware-review.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Hardware Review</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <a href="04-os-structure.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. OS Structure &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+def apply_content_update():
     file_path = os.path.join("week01-operating-system-concepts", "03-os-concepts.html")
-    if not os.path.exists(file_path):
-        print(f"Error: {file_path} not found.")
-        return
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(EXPANDED_OS_CONCEPTS_HTML.strip())
 
-    week_title = "Week 1: Operating System Concepts"
-    pill_template = '<a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">'
-    home_pill = f'{pill_template}&#127968; {week_title}</a>'
+    print(f"--> Successfully expanded {file_path}")
 
-    correct_nav = f'''<nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
-    <a href="02-hardware-review.html" class="module-nav-btn">&larr; Previous: 02. Hardware Review</a>
-    {home_pill}
-    <a href="04-os-structure.html" class="module-nav-btn">Next: 04. OS Structure &rarr;</a>
-  </nav>'''
-
-    modified = content
-
-    # Direct string replacements for common bad variations
-    bad_snippets = [
-        "<h2>04. Operating System Concepts</h2>",
-        "<h2>4. Operating System Concepts</h2>",
-        "<h1>04. Operating System Concepts</h1>",
-        "<h1>4. Operating System Concepts</h1>",
-        "<h2>04. OS Concepts</h2>",
-        "<h2>3. Operating System Concepts</h2>" # just in case
-    ]
-    for bad in bad_snippets:
-        if bad in modified:
-            modified = modified.replace(bad, "<h2>03. Operating System Concepts</h2>")
-
-    # Regex fallback to catch any variations in tag attributes or spacing
-    modified = re.sub(
-        r'<h[123][^>]*>\s*(?:0?4|[4])\.\s*Operating System Concepts\s*</h[123]>',
-        '<h2>03. Operating System Concepts</h2>',
-        modified,
-        flags=re.IGNORECASE
-    )
-
-    # Force update the navigation bar block
-    if '<nav class="module-nav-bar">' in modified:
-        start_idx = modified.find('<nav class="module-nav-bar">')
-        end_idx = modified.find('</nav>', start_idx) + 6
-        modified = modified[:start_idx] + correct_nav + modified[end_idx:]
-    else:
-        body_match = re.search(r'(<body[^>]*>)', modified, flags=re.IGNORECASE)
-        if body_match:
-            modified = modified.replace(body_match.group(1), f'{body_match.group(1)}\n  {correct_nav}')
-
-    if modified != content:
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(modified)
-        print(f"--> Successfully forced correction in {file_path}")
-
-        try:
-            subprocess.run(["git", "add", "fix.py", file_path], check=True)
-            commit_msg = (
-                "Force heading correction to 03. Operating System Concepts in 03-os-concepts.html\n\n"
-                "Replace incorrect 04/4 numbering in 03-os-concepts.html heading with 03\n"
-                "and update navigation bar."
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully!")
-        except Exception as e:
-            print(f"Git execution note: {e}")
-    else:
-        print("--> Warning: Exact heading match not replaced. Debugging file headings:")
-        found_headings = re.findall(r'<h[123][^>]*>.*?</h[123]>', modified, flags=re.DOTALL)
-        for h in found_headings[:5]:
-            print(f"   Found heading: {h}")
+    try:
+        subprocess.run(["git", "add", "fix.py", file_path], check=True)
+        commit_msg = (
+            "Expand 03-os-concepts.html with comprehensive Tanenbaum core concepts\n\n"
+            "Update week01/03-os-concepts.html with detailed sections on processes,\n"
+            "address spaces, file systems, I/O, protection, and the shell."
+        )
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        print("--> Git sync completed successfully for 03-os-concepts.html expansion!")
+    except Exception as e:
+        print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    run_fix()
+    apply_content_update()
