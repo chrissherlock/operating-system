@@ -455,6 +455,16 @@
     <!-- SECTION 2: GANG SCHEDULING WALKTHROUGH -->
     <section class="content-section">
       <h2>Two-Dimensional Gang Scheduling</h2>
+        <!-- WIKIPEDIA ASIDE BOX -->
+        <aside style="border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.92rem; color: #0369a1;">
+          <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Context &amp; Further Reading</h4>
+          <p style="margin-bottom: 6px; color: #334155; font-size: 0.9rem;">
+            Explore parallel scheduling research on Wikipedia:
+          </p>
+          <ul style="margin-left: 20px; display: flex; flex-direction: column; gap: 4px;">
+            <li><a href="https://en.wikipedia.org/wiki/Gang_scheduling" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Gang Scheduling</a> &mdash; Coordinated multi-core thread scheduling pioneered by John Ousterhout (1982).</li>
+          </ul>
+        </aside>
       <p>
         When parallel applications consist of multiple cooperating threads that synchronize frequently using spinlocks, barriers, or message passing, independent thread timesharing causes severe performance collapse due to <strong>desynchronization delays</strong>.
       </p>
