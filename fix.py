@@ -1,12 +1,41 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add explicit next-step previews and dynamic button labels
+# fix.py: Add dedicated Next Step explanation pane to Module 2
 # =====================================================================
 import os
 import re
 import subprocess
 
-REVISED_SCRIPT_LOGIC = """
+THREE_PANE_DASHBOARD_HTML = """
+        <!-- Three-Pane Pedagogical Dashboard -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 20px;">
+          <!-- Current Action Pane -->
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">Current State: What Is Happening</div>
+            <div id="desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
+              The user program needs to read 512 bytes from a file. It calls <code>read(fd, buffer, 512)</code> in standard C library space.
+            </div>
+          </div>
+
+          <!-- Rationale Pane -->
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Why The System Does This</div>
+            <div id="desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
+              User-level isolation ensures no application can directly manipulate physical hardware sectors or issue raw disk commands without operating system supervision.
+            </div>
+          </div>
+
+          <!-- Dedicated Next Step Pane -->
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0369a1; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Next Step: What To Expect</div>
+            <div id="desc-next" style="font-size: 0.9rem; color: #0c4a6e; line-height: 1.55; margin-top: 8px;">
+              The C runtime wrapper will place system call arguments into CPU registers (e.g., RAX = 0 for sys_read) and issue the <code>SYSCALL</code> / <code>TRAP</code> assembly instruction.
+            </div>
+          </div>
+        </div>
+"""
+
+REVISED_SCRIPT = """
       <script>
         (function() {
           const steps = [
@@ -16,14 +45,14 @@ REVISED_SCRIPT_LOGIC = """
               modeColor: "#dc2626",
               pc: "0x00401140 (App Code)",
               stack: "User Stack (RSP)",
-              stepNum: "Step 1 of 6: Application Invocations",
+              stepNum: "Step 1 of 6: Application Invocation",
               activeNode: "node-user-app",
               activeEdges: [],
-              btnNextText: "Next: Invoke SYSCALL Instruction &rarr;",
+              btnNextText: "Next Step &rarr;",
               btnPrevText: "&larr; Prev",
-              upcoming: "Up next: C library stub sets registers and issues the hardware TRAP instruction.",
-              what: "The user program needs to read 512 bytes from a file. It calls <code>read(fd, buffer, 512)</code> in standard C library space.",
-              why: "User-level isolation ensures no user program can directly read or write physical hardware sectors without operating system intervention."
+              what: "The user program needs to read 512 bytes from a file. It calls <code>read(fd, buffer, 512)</code> in standard user space.",
+              why: "User-level isolation ensures no application can directly manipulate physical hardware sectors without operating system supervision.",
+              nextStep: "The C runtime wrapper will stage system call arguments into CPU registers (e.g., RAX = 0 for sys_read) and issue the <code>SYSCALL</code> / <code>TRAP</code> assembly instruction."
             },
             {
               mode: "USER (Ring 3)",
@@ -34,11 +63,11 @@ REVISED_SCRIPT_LOGIC = """
               stepNum: "Step 2 of 6: Preparing System Call &amp; TRAP",
               activeNode: "node-trap-trigger",
               activeEdges: ["edge-1"],
-              btnNextText: "Next: CPU Hardware Mode Switch &rarr;",
-              btnPrevText: "&larr; Prev: App Invocation",
-              upcoming: "Up next: CPU hardware catches the TRAP, flips the privilege bit to 0, and switches stacks.",
-              what: "The C library wrapper places the system call identifier for read (e.g., RAX = 0 on x86-64) into registers and issues the <code>SYSCALL</code> or <code>TRAP</code> machine instruction.",
-              why: "A special hardware instruction is mandatory because user mode software cannot arbitrarily change its own privilege register without an immediate hardware fault."
+              btnNextText: "Next Step &rarr;",
+              btnPrevText: "&larr; Prev",
+              what: "The library stub populates the register parameters and executes the <code>SYSCALL</code> / <code>TRAP</code> instruction to trigger a hardware trap.",
+              why: "User code cannot change the CPU mode bit on its own. It must execute a designated hardware instruction to request kernel entry.",
+              nextStep: "The CPU microcode will intercept the TRAP, switch the CPU Mode Bit from 1 to 0 (Kernel Mode), swap the user stack pointer to the kernel stack, and jump to the IDT."
             },
             {
               mode: "KERNEL (Ring 0)",
@@ -49,11 +78,11 @@ REVISED_SCRIPT_LOGIC = """
               stepNum: "Step 3 of 6: Hardware Mode Switch &amp; Context Save",
               activeNode: "node-cpu-hw",
               activeEdges: ["edge-2"],
-              btnNextText: "Next: Vector to IDT Syscall Dispatcher &rarr;",
-              btnPrevText: "&larr; Prev: SYSCALL Trigger",
-              upcoming: "Up next: Execution jumps to the kernel Interrupt Descriptor Table (IDT) to look up the syscall routine.",
-              what: "The CPU microcode immediately flips the mode bit in the Program Status Word from 1 to 0, saves the user Program Counter and Stack Pointer onto the process's secure kernel stack, and vectors to the kernel entry point.",
-              why: "The hardware automatically saves the return location on a kernel-protected stack so user code cannot tamper with return addresses while in supervisor mode."
+              btnNextText: "Next Step &rarr;",
+              btnPrevText: "&larr; Prev",
+              what: "The CPU switches into Ring 0, saves the user Program Counter and Stack Pointer onto the kernel stack, and transfers control to the kernel vector.",
+              why: "Saving user execution state on a kernel-protected stack guarantees that unprivileged code cannot alter return addresses while running supervisor routines.",
+              nextStep: "The kernel Interrupt Descriptor Table (IDT) dispatcher will inspect RAX and index into <code>sys_call_table</code> to locate the file read handler."
             },
             {
               mode: "KERNEL (Ring 0)",
@@ -64,11 +93,11 @@ REVISED_SCRIPT_LOGIC = """
               stepNum: "Step 4 of 6: Kernel IDT Dispatching",
               activeNode: "node-kernel-idt",
               activeEdges: ["edge-3"],
-              btnNextText: "Next: Execute Privileged Storage Driver &rarr;",
-              btnPrevText: "&larr; Prev: Hardware Switch",
-              upcoming: "Up next: Kernel routes to the device driver to send read commands to the storage controller.",
-              what: "The kernel checks the system call number in RAX against its syscall dispatch table, verifies that user buffer pointers are valid, and routes to the Virtual File System (VFS).",
-              why: "All parameter boundaries must be thoroughly vetted in kernel space to prevent user programs from passing invalid kernel memory addresses to trick the OS."
+              btnNextText: "Next Step &rarr;",
+              btnPrevText: "&larr; Prev",
+              what: "The kernel verifies pointer boundaries to confirm that the destination buffer is writable, then invokes the Virtual File System (VFS) read handler.",
+              why: "Kernel verification ensures malicious or buggy user pointers cannot trick supervisor routines into overwriting protected memory.",
+              nextStep: "The filesystem driver will program the storage controller registers and initiate a DMA or interrupt-driven block read from the disk drive."
             },
             {
               mode: "KERNEL (Ring 0)",
@@ -79,11 +108,11 @@ REVISED_SCRIPT_LOGIC = """
               stepNum: "Step 5 of 6: Privileged Driver Execution",
               activeNode: "node-kernel-driver",
               activeEdges: ["edge-4"],
-              btnNextText: "Next: Return to User Mode (SYSRET) &rarr;",
-              btnPrevText: "&larr; Prev: IDT Dispatcher",
-              upcoming: "Up next: Kernel finishes I/O and executes SYSRET to drop privileges back to user space.",
-              what: "The storage device driver issues privileged commands directly to the NVMe or SATA controller (or initiates a DMA transfer) to read the requested sectors.",
-              why: "Only kernel mode code possesses the hardware privileges required to communicate over system buses with peripheral device controllers."
+              btnNextText: "Next Step &rarr;",
+              btnPrevText: "&larr; Prev",
+              what: "The device driver issues privileged hardware commands to the storage controller across the system bus, reading data into memory.",
+              why: "Only kernel mode code has the hardware authorization to communicate with device controllers across system buses without triggering an exception.",
+              nextStep: "The kernel will store the byte count result into RAX and execute <code>SYSRET</code> or <code>IRET</code> to drop privileges back to user space."
             },
             {
               mode: "USER (Ring 3)",
@@ -95,10 +124,10 @@ REVISED_SCRIPT_LOGIC = """
               activeNode: "node-user-app",
               activeEdges: ["edge-5"],
               btnNextText: "Restart Walkthrough &#8634;",
-              btnPrevText: "&larr; Prev: Driver Execution",
-              upcoming: "Lifecycle complete. Click Restart to replay the sequence from Step 1.",
-              what: "The kernel places the read byte count into RAX, executes <code>SYSRET</code> (or <code>IRET</code>), restoring the CPU mode bit to 1, restoring the user stack pointer, and resuming application execution.",
-              why: "Execution control is safely returned to unprivileged mode with zero exposure of internal kernel memory or device control structures."
+              btnPrevText: "&larr; Prev",
+              what: "The kernel executes <code>SYSRET</code>. The CPU restores the user mode bit to 1, reloads the user stack pointer, and returns execution to the application.",
+              why: "Dropping privileges back to Ring 3 ensures normal applications never remain in supervisor mode after their requested work is complete.",
+              nextStep: "Lifecycle complete. Clicking restart will reset the simulator back to Step 1."
             }
           ];
 
@@ -115,11 +144,10 @@ REVISED_SCRIPT_LOGIC = """
             document.getElementById("status-step-num").innerHTML = data.stepNum;
             document.getElementById("desc-what").innerHTML = data.what;
             document.getElementById("desc-why").innerHTML = data.why;
+            document.getElementById("desc-next").innerHTML = data.nextStep;
 
-            // Update interactive button text and preview ticker
             const nextBtn = document.getElementById("step-next-btn");
             const prevBtn = document.getElementById("step-prev-btn");
-            const upcomingEl = document.getElementById("step-upcoming-preview");
 
             if (nextBtn) nextBtn.innerHTML = data.btnNextText;
             if (prevBtn) {
@@ -127,9 +155,7 @@ REVISED_SCRIPT_LOGIC = """
               prevBtn.style.opacity = currentIndex === 0 ? "0.5" : "1.0";
               prevBtn.style.cursor = currentIndex === 0 ? "not-allowed" : "pointer";
             }
-            if (upcomingEl) upcomingEl.innerHTML = data.upcoming;
 
-            // Reset all nodes
             const allNodes = ["node-user-app", "node-trap-trigger", "node-cpu-hw", "node-kernel-idt", "node-kernel-driver"];
             allNodes.forEach(id => {
               const el = document.getElementById(id);
@@ -140,7 +166,6 @@ REVISED_SCRIPT_LOGIC = """
               }
             });
 
-            // Reset all edges
             const allEdges = ["edge-1", "edge-2", "edge-3", "edge-4", "edge-5"];
             allEdges.forEach(id => {
               const el = document.getElementById(id);
@@ -150,7 +175,6 @@ REVISED_SCRIPT_LOGIC = """
               }
             });
 
-            // Highlight active node
             const activeNodeEl = document.getElementById(data.activeNode);
             if (activeNodeEl) {
               activeNodeEl.setAttribute("stroke", data.modeColor === "#0284c7" ? "#0284c7" : "#dc2626");
@@ -158,7 +182,6 @@ REVISED_SCRIPT_LOGIC = """
               activeNodeEl.setAttribute("fill", data.modeColor === "#0284c7" ? "#f0f9ff" : "#fef2f2");
             }
 
-            // Highlight active edges
             data.activeEdges.forEach(id => {
               const edgeEl = document.getElementById(id);
               if (edgeEl) {
@@ -194,7 +217,7 @@ REVISED_SCRIPT_LOGIC = """
       </script>
 """
 
-def inject_upcoming_preview_and_script():
+def replace_with_three_pane_dashboard():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -203,24 +226,35 @@ def inject_upcoming_preview_and_script():
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # 1. Add upcoming action ticker beneath instructions box if not present
-    if 'id="step-upcoming-preview"' not in content:
-        ticker_html = """        <div style="display: flex; align-items: center; gap: 8px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 0.82rem;">
-          <span style="font-weight: 700; color: #0369a1; text-transform: uppercase;">Upcoming Action:</span>
-          <span id="step-upcoming-preview" style="color: #0c4a6e;">Up next: C library stub sets registers and issues the hardware TRAP instruction.</span>
-        </div>"""
-        target_pos = content.find('<!-- Hardware State Bar -->')
-        if target_pos != -1:
-            content = content[:target_pos] + ticker_html + "\n\n        " + content[target_pos:]
-            print("--> Added dynamic upcoming action ticker.")
+    # 1. Remove obsolete single-line upcoming action ticker if present
+    content = re.sub(
+        r'<div style="display: flex; align-items: center; gap: 8px; background: #e0f2fe;.*?</div>\s*',
+        '',
+        content,
+        flags=re.DOTALL
+    )
 
-    # 2. Replace simulator script block with revised logic
+    # 2. Replace old two-column explanation cards with the new 3-pane dashboard
+    old_explanation_cards = re.search(
+        r'<!-- Dynamic Pedagogical Explanation Cards -->.*?</div>\s*</div>\s*</div>',
+        content,
+        flags=re.DOTALL
+    )
+    if old_explanation_cards:
+        content = content.replace(old_explanation_cards.group(0), THREE_PANE_DASHBOARD_HTML.strip() + "\n      </div>")
+        print("--> Replaced two-column explanation cards with 3-pane dashboard.")
+    else:
+        # Fallback: search by ID desc-what container
+        pattern_fallback = r'<div style="display: grid; grid-template-columns: 1fr 1fr;.*?</div>\s*</div>\s*</div>'
+        if re.search(pattern_fallback, content, flags=re.DOTALL):
+            content = re.sub(pattern_fallback, THREE_PANE_DASHBOARD_HTML.strip() + "\n      </div>", content, flags=re.DOTALL)
+            print("--> Replaced explanation cards via fallback pattern.")
+
+    # 3. Replace script logic to populate desc-next
     script_pattern = r"<script>\s*\(function\(\)\s*\{\s*const steps = \[.*?\];\s*let currentIndex = 0;.*?</script>"
     if re.search(script_pattern, content, flags=re.DOTALL):
-        content = re.sub(script_pattern, REVISED_SCRIPT_LOGIC.strip(), content, flags=re.DOTALL)
-        print("--> Updated interactive script logic with dynamic next step names.")
-    else:
-        print("--> Script pattern match not found; check script boundaries.")
+        content = re.sub(script_pattern, REVISED_SCRIPT.strip(), content, flags=re.DOTALL)
+        print("--> Injected updated script supporting desc-next pane.")
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
@@ -228,9 +262,9 @@ def inject_upcoming_preview_and_script():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Add dynamic next-action previews and descriptive button labels to simulator\n\n"
-            "Update week01-operating-system-concepts/02-hardware-review.html so the next\n"
-            "step button explicitly names the upcoming hardware event before clicking."
+            "Add dedicated Next Step explanation pane to Module 2 interactive widget\n\n"
+            "Update week01-operating-system-concepts/02-hardware-review.html to replace\n"
+            "the ticker with a persistent three-pane dashboard detailing the next step."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -239,4 +273,4 @@ def inject_upcoming_preview_and_script():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    inject_upcoming_preview_and_script()
+    replace_with_three_pane_dashboard()
