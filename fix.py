@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Ensure every module HTML file across all weeks links to index.html
+# fix.py: Style all navigation index links across the repository
 # =====================================================================
 import os
 import re
@@ -20,9 +20,11 @@ WEEK_TITLE_MAP = {
     "week12-security": "Week 12: Security"
 }
 
-def ensure_all_navigation_links():
+def style_all_navigation_links():
     repo_root = "."
     modified_files = []
+
+    styled_anchor_template = '<a href="index.html" style="color: inherit; text-decoration: none;">'
 
     for root, dirs, files in os.walk(repo_root):
         dir_name = os.path.basename(root)
@@ -39,65 +41,52 @@ def ensure_all_navigation_links():
                 updated = False
                 new_content = content
 
-                # Check if an index link already exists in the navigation context
-                if 'href="index.html"' in new_content or f"href='./index.html'" in new_content:
-                    # Check if the week title is present; if so, verify if it's inside an <a> tag
-                    if week_title in new_content:
-                        # If the exact string appears outside an <a> tag, wrap it
-                        # Simple heuristic: replace plain week title with hyperlinked version if not already wrapped
-                        linked_str = f'<a href="index.html" style="color: inherit; text-decoration: none;">{week_title}</a>'
-                        if linked_str not in new_content:
-                            new_content = new_content.replace(week_title, linked_str)
-                            updated = True
-                else:
-                    # No index link found at all; search for navigation header block or breadcrumb and inject link
-                    nav_pattern = r'(<nav[^>]*>.*?</nav>)'
-                    match = re.search(nav_pattern, new_content, flags=re.DOTALL)
-                    if match:
-                        nav_block = match.group(1)
-                        if week_title in nav_block:
-                            linked_nav = nav_block.replace(
-                                week_title,
-                                f'<a href="index.html" style="color: inherit; text-decoration: none;">{week_title}</a>'
-                            )
-                            new_content = new_content.replace(nav_block, linked_nav)
-                            updated = True
-                        else:
-                            # Inject week title link into nav if title wasn't found verbatim
-                            linked_nav = re.sub(r'(<span>|<div>)([^<]*)(</span>|</div>)', rf'\1<a href="index.html" style="color: inherit; text-decoration: none;">{week_title}</a>\3', nav_block, count=1)
-                            if linked_nav != nav_block:
-                                new_content = new_content.replace(nav_block, linked_nav)
-                                updated = True
-                    else:
-                        # Fallback: if no <nav> tag, replace week title anywhere in header/body top
-                        if week_title in new_content:
-                            new_content = new_content.replace(
-                                week_title,
-                                f'<a href="index.html" style="color: inherit; text-decoration: none;">{week_title}</a>'
-                            )
+                # Replace any unstyled <a href="index.html"> tags in nav/header areas with styled ones
+                # Also catch existing style variations and standardize them
+                # First, fix existing malformed or unstyled anchor tags pointing to index.html
+                unstyled_patterns = [
+                    r'<a\s+href="index\.html"\s*>',
+                    r'<a\s+href="\./index\.html"\s*>',
+                    r'<a\s+href="index\.html"\s+style="[^"]*">',
+                ]
+
+                for pat in unstyled_patterns:
+                    if re.search(pat, new_content):
+                        new_content = re.sub(pat, styled_anchor_template, new_content)
+                        updated = True
+
+                # If the week title is present in the nav/header but not wrapped in an anchor at all, wrap it
+                if week_title in new_content and 'href="index.html"' not in new_content:
+                    header_pattern = r'(<header[^>]*>.*?</header>|<nav[^>]*>.*?</nav>|<div[^>]*class="[^"]*nav[^"]*"[^>]*>.*?</div>)'
+                    header_match = re.search(header_pattern, new_content, flags=re.DOTALL | re.IGNORECASE)
+                    if header_match:
+                        h_block = header_match.group(1)
+                        if week_title in h_block:
+                            new_h_block = h_block.replace(week_title, f'{styled_anchor_template}{week_title}</a>')
+                            new_content = new_content.replace(h_block, new_h_block)
                             updated = True
 
                 if updated:
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(new_content)
                     modified_files.append(file_path)
-                    print(f"--> Ensured navigation header links to index.html in: {file_path}")
+                    print(f"--> Styled navigation index link in: {file_path}")
 
     if modified_files:
         try:
             subprocess.run(["git", "add", "fix.py"] + modified_files, check=True)
             commit_msg = (
-                "Ensure all module navigation headers link to index.html across repository\n\n"
-                "Walk all week directories and wrap unlinked navigation header titles\n"
-                "in anchor tags pointing to index.html in every module HTML file."
+                "Style navigation index links with inherit color and no decoration\n\n"
+                "Update all week module HTML files to ensure navigation links pointing\n"
+                "to index.html inherit parent typography styles and suppress underlines."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for all navigation links!")
+            print("--> Git sync completed successfully for styled navigation links!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> All module navigation headers are already correctly linked to index.html.")
+        print("--> All module navigation links are already styled correctly.")
 
 if __name__ == "__main__":
-    ensure_all_navigation_links()
+    style_all_navigation_links()
