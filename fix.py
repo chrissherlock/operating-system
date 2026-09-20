@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# execute_chapter_refactoring.py: Restructure Chapter 1 & Intro pages
+# update_chapter_index_clean.py: Clean up Chapter 1 index cards & numbers
 # =====================================================================
 import os
 import subprocess
 import sys
 
-CHAPTER_1_INDEX_HTML = r"""<!DOCTYPE html>
+CHAPTER_1_INDEX_CLEAN_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -47,39 +47,31 @@ CHAPTER_1_INDEX_HTML = r"""<!DOCTYPE html>
     <h2>Curriculum Modules &amp; Sections</h2>
     <div class="section-grid">
       <a href="intro/index.html" class="card" style="background: #e0f2fe; border-color: #bae6fd;">
-        <h3>Intro: What is an OS &amp; History</h3>
-        <p>Detailed overview of OS as Resource Manager, Extended Machine, and the Five Generations of Computing.</p>
+        <h3>What Is an Operating System &amp; History</h3>
+        <p>Detailed overview of the operating system as a resource manager, extended machine, and the five generations of computing.</p>
       </a>
       <div class="card">
-        <h3>1.1 What Is an Operating System?</h3>
-        <p>The operating system as an extended machine and a resource manager.</p>
+        <h3>Computer Hardware Review</h3>
+        <p>Processors, memory hierarchy, disks, I/O devices, and system buses.</p>
       </div>
       <div class="card">
-        <h3>1.2 History of Operating Systems</h3>
-        <p>Vacuum tubes, transistors, ICs, personal computers, and mobile/cloud eras.</p>
-      </div>
-      <div class="card">
-        <h3>1.3 Computer Hardware Review</h3>
-        <p>Processors, memory hierarchy, disks, I/O devices, and buses.</p>
-      </div>
-      <div class="card">
-        <h3>1.4 The Operating System Zoo</h3>
+        <h3>The Operating System Zoo</h3>
         <p>Mainframe, server, multiprocessor, personal computer, and real-time operating systems.</p>
       </div>
       <div class="card">
-        <h3>1.5 Operating System Concepts</h3>
+        <h3>Operating System Concepts</h3>
         <p>Processes, address spaces, files, input/output, protection, and the shell.</p>
       </div>
       <div class="card">
-        <h3>1.6 System Calls</h3>
+        <h3>System Calls</h3>
         <p>API mechanics, trap instructions, and system call execution flow.</p>
       </div>
       <div class="card">
-        <h3>1.7 Operating System Structure</h3>
+        <h3>Operating System Structure</h3>
         <p>Monolithic, layered, microkernel, client-server, and virtual machine architectures.</p>
       </div>
       <div class="card">
-        <h3>1.8 The World According to C</h3>
+        <h3>The World According to C</h3>
         <p>Overview of the C programming language in low-level systems engineering.</p>
       </div>
     </div>
@@ -88,49 +80,31 @@ CHAPTER_1_INDEX_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def execute_refactoring():
-    base_dir = "week01-operating-system-concepts"
-    intro_dir = os.path.join(base_dir, "intro")
-    os.makedirs(intro_dir, exist_ok=True)
+def update_index_clean():
+    portal_path = os.path.join("week01-operating-system-concepts", "index.html")
+    os.makedirs("week01-operating-system-concepts", exist_ok=True)
 
-    old_index = os.path.join(base_dir, "index.html")
-    intro_index = os.path.join(intro_dir, "index.html")
+    with open(portal_path, "w", encoding="utf-8") as f:
+        f.write(CHAPTER_1_INDEX_CLEAN_HTML)
 
-    # If old index exists and hasn't been moved yet, move it to intro/index.html
-    if os.path.exists(old_index):
-        with open(old_index, "r", encoding="utf-8") as f:
-            content = f.read()
-        # If it doesn't look like our new chapter 1 index, move it
-        if "Chapter 1: Introduction" not in content:
-            with open(intro_index, "w", encoding="utf-8") as f:
-                f.write(content)
-
-    # Write the new Chapter 1 master index at week01-operating-system-concepts/index.html
-    with open(old_index, "w", encoding="utf-8") as f:
-        f.write(CHAPTER_1_INDEX_HTML)
-
-    modified = [old_index]
-    if os.path.exists(intro_index):
-        modified.append(intro_index)
-
+    modified = [portal_path]
     fix_path = "fix.py"
     if os.path.exists(fix_path):
         modified.append(fix_path)
 
-    print(f"--> Staging refactored files: {modified}")
+    print(f"--> Staging modified files: {modified}")
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Restructure Week 1 into Tanenbaum Chapter 1 index and dedicated intro page\n\n"
-            "Create week01-operating-system-concepts/index.html as the master curriculum portal\n"
-            "for all Chapter 1 sections (1.1-1.8) and move foundational OS definitions and history\n"
-            "into week01-operating-system-concepts/intro/index.html."
+            "Remove section numbers and intro cards from Chapter 1 index portal\n\n"
+            "Update week01-operating-system-concepts/index.html to remove section cards 1.1 and 1.2\n"
+            "and strip numerical section prefixes from remaining Chapter 1 modules."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Chapter 1 restructuring successfully deployed!")
+    print("--> Chapter 1 index successfully cleaned and deployed!")
 
 if __name__ == "__main__":
-    execute_refactoring()
+    update_index_clean()
