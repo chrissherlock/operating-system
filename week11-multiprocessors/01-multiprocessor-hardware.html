@@ -296,20 +296,35 @@
         Pioneered academically by <strong>Anant Agarwal</strong> and his research team with the <strong>Stanford DASH (Directory Architecture for Shared Memory)</strong> project in the early 1990s, directory-based protocols eliminate broadcast snooping. Instead, a centralized or distributed <em>directory</em> maintains the sharing status of every memory block. When a core requests a cache line, it queries the directory managing that specific physical address block, which then directs point-to-point invalidation messages solely to the nodes actively caching that line.
       </p>
 
-      <!-- NUMA & DASH RESEARCH ASIDE -->
-      <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
-        <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Non-Uniform Memory Access (NUMA) &amp; DASH</h4>
-        <p style="margin-bottom: 10px; color: #334155; font-size: 0.9rem; line-height: 1.5;">
-          <strong>Non-Uniform Memory Access (NUMA)</strong> revolutionized enterprise scalability by replacing centralized UMA buses with distributed memory nodes. The foundational breakthroughs in cache-coherent NUMA (ccNUMA) were established by <strong>Anant Agarwal</strong> and the <strong>Stanford DASH project team</strong> in the early 1990s. DASH proved that directory-based cache coherence could eliminate snooping bus bottlenecks, paving the way for modern multi-socket enterprise servers and cloud data center architectures.
-        </p>
-        <div style="border-top: 1px solid #bae6fd; padding-top: 8px; margin-top: 8px;">
-          <a href="https://en.wikipedia.org/wiki/Non-uniform_memory_access" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">Read more on Wikipedia: Non-Uniform Memory Access &rarr;</a>
-        </div>
-      </aside>
+      
 
       <p>
         <strong>The Cache Coherence Problem:</strong> Because CPU execution cores operate orders of magnitude faster than main memory, each core relies on high-speed private caches (L1 and L2). If CPU 0 modifies a variable in its private cache, CPU 1's private cache immediately becomes stale. To preserve memory consistency without routing every access back to slow main RAM, hardware controllers monitor memory lines using coherence protocols.
       </p>
+
+      
+        <!-- NUMA & DASH RESEARCH ASIDE WITH PORTRAIT AND ATTRIBUTION -->
+        <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
+          <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Non-Uniform Memory Access (NUMA) &amp; DASH</h4>
+
+          <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
+              <div style="width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
+                <img src="../images/argawal.jpeg" alt="Anant Agarwal Portrait" style="width: 100%; height: 100%; object-fit: cover;">
+              </div>
+              <span style="font-size: 0.72rem; color: #64748b; text-align: center; line-height: 1.2;">Photo by New America<br>(2015 Conference)</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
+              <p style="color: #334155; font-size: 0.9rem; line-height: 1.5; margin: 0;">
+                <strong>Non-Uniform Memory Access (NUMA)</strong> revolutionized enterprise scalability by replacing centralized UMA buses with distributed memory nodes. The foundational breakthroughs in cache-coherent NUMA (ccNUMA) were established by <a href="https://en.wikipedia.org/wiki/Anant_Agarwal" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 600;">Anant Agarwal</a> and the <strong>Stanford DASH project team</strong> in the early 1990s. DASH proved that directory-based cache coherence could eliminate snooping bus bottlenecks, paving the way for modern multi-socket enterprise servers and cloud data center architectures.
+              </p>
+              <div>
+                <a href="https://en.wikipedia.org/wiki/Non-uniform_memory_access" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">Read more on Wikipedia: Non-Uniform Memory Access &rarr;</a>
+              </div>
+            </div>
+          </div>
+        </aside>
 
       <!-- GUIDED WALKTHROUGH 3: MESI PROTOCOL -->
       <div class="walkthrough-box">
