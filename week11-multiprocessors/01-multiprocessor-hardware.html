@@ -951,69 +951,7 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
     }
 
     // =======================================================
-    let numaStage = 1;
-
-    function appendNumaLog(msg) {
-      const el = document.getElementById('numa-log');
-      el.innerHTML += '<br>' + msg;
-      el.scrollTop = el.scrollHeight;
-    }
-
-    function stepNumaWalkthrough() {
-      const btn = document.getElementById('btn-numa-step');
-      const badge = document.getElementById('numa-step-badge');
-      const act = document.getElementById('numa-act-text');
-      const exp = document.getElementById('numa-exp-text');
-      const addrText = document.getElementById('numa-addr-text');
-      const latVal = document.getElementById('numa-lat-val');
-      const facVal = document.getElementById('numa-fac-val');
-
-      if (numaStage === 1) {
-        document.getElementById('numa-log').innerHTML = '--> Executing Stage 1: Local Node Access...';
-        addrText.innerText = '0x0000_1000 (Node 0 Local RAM)';
-        latVal.innerText = '65 ns';
-        latVal.style.color = '#10b981';
-        facVal.innerText = '1.00x (Baseline)';
-        appendNumaLog('Core 0 references local address 0x0000_1000.');
-        appendNumaLog('Integrated memory controller directly services the request from Node 0 RAM.');
-        appendNumaLog('Latency: 65 ns (Fastest possible access, zero interconnect hops).');
-
-        numaStage = 2;
-        badge.innerText = 'Stage 2 of 2';
-        act.innerText = 'Action Required: Click \'Execute Stage 2: Remote Interconnect Access\' below.';
-        exp.innerText = 'Now observe Core 0 referencing memory on a remote node (Node 1 RAM at 0x0000_5000). The request must be routed over high-speed point-to-point interconnect links.';
-        btn.innerText = 'Execute Stage 2: Remote Interconnect Access';
-      } else {
-        document.getElementById('numa-log').innerHTML = '--> Executing Stage 2: Remote Node Traversal...';
-        addrText.innerText = '0x0000_5000 (Node 1 Remote RAM)';
-        latVal.innerText = '150 ns';
-        latVal.style.color = '#ef4444';
-        facVal.innerText = '2.31x (NUMA Penalty)';
-        appendNumaLog('Core 0 references address 0x0000_5000 belonging to Node 1.');
-        appendNumaLog('Request cannot be satisfied locally. Routed across point-to-point interconnect (UPI/Infinity Fabric).');
-        appendNumaLog('Node 1 Memory Controller reads physical RAM and returns data across the wire.');
-        appendNumaLog('Latency: 150 ns. NUMA Factor: 2.31x slowdown relative to local RAM!');
-
-        numaStage = 1;
-        badge.innerText = 'Complete (Ready to Restart)';
-        act.innerText = 'Walkthrough Complete. Click \'Restart Walkthrough\' to begin again.';
-        exp.innerText = 'You observed the difference between local memory access and remote interconnect hops.';
-        btn.innerText = 'Restart Walkthrough from Stage 1';
-      }
-    }
-
-    function resetNumaWalkthrough() {
-      numaStage = 1;
-      document.getElementById('numa-step-badge').innerText = 'Stage 1 of 2';
-      document.getElementById('numa-act-text').innerText = 'Action Required: Click \'Execute Stage 1: Local RAM Hit\' below.';
-      document.getElementById('numa-exp-text').innerText = 'Observe Core 0 reading data located in Node 0 RAM (`0x0000_0000`). Notice that this reference routes through the local on-chip integrated memory controller with zero interconnect traversal.';
-      document.getElementById('numa-addr-text').innerText = '0x0000_0000 (Node 0 RAM)';
-      document.getElementById('numa-lat-val').innerText = 'Awaiting Run';
-      document.getElementById('numa-lat-val').style.color = '#0284c7';
-      document.getElementById('numa-fac-val').innerText = '--';
-      document.getElementById('btn-numa-step').innerText = 'Execute Stage 1: Local RAM Hit';
-      document.getElementById('numa-log').innerHTML = '-- Walkthrough reset --';
-    }
+    
 
     // =======================================================
     // 3. MESI CACHE COHERENCE (WALKTHROUGH CONTROLLER)
