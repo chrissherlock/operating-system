@@ -1,232 +1,56 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Place next step buttons under simulator guide with adjacent explanation
+# fix.py: Reroute DMA curve to eliminate overlap with the memory bus line
 # =====================================================================
 import os
 import re
 import subprocess
 
-RESTRUCTURED_SIMULATOR_TOP = """
-        <!-- Simulator Title Header -->
-        <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
-          <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">Guided Walkthrough: The Dual-Mode TRAP &amp; Syscall Lifecycle</h3>
-          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Step through how hardware enforces isolation when an application requests privileged OS services.</p>
-        </div>
+REFINED_DMA_SVG = """
+        <svg viewBox="0 0 760 290" width="100%" height="auto" style="max-width: 760px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="dmaArrow" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
+            </marker>
+          </defs>
 
-        <!-- Instructions Guide -->
-        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
-          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Use This Simulator</div>
-          <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
-            <li><strong>Step Through the Lifecycle:</strong> Use the controls below to step through each execution phase in sequence.</li>
-            <li><strong>Observe the Hardware State Bar:</strong> Notice the <strong>CPU Mode</strong> color switch between red (User Mode) and blue (Kernel Mode), and watch the <strong>Program Counter (PC)</strong> move between user addresses and kernel routines.</li>
-            <li><strong>Follow Active Nodes &amp; Buses:</strong> The highlighted vector path shows which hardware unit has execution priority at each step.</li>
-          </ol>
-        </div>
+          <!-- CPU Box -->
+          <rect x="30" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
+          <text x="100" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">CPU Core</text>
+          <text x="100" y="82" fill="#64748b" font-size="10" text-anchor="middle">1. Sets up DMA transfer</text>
 
-        <!-- Action Controls & Inline Next Step Explanation -->
-        <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
-          <!-- Buttons Stack -->
-          <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
-            <button id="step-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
-            <div style="display: flex; gap: 8px;">
-              <button id="step-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
-              <button id="step-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
-            </div>
-          </div>
+          <!-- DMA Controller Box -->
+          <rect x="290" y="30" width="170" height="70" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
+          <text x="375" y="62" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">DMA Controller</text>
+          <text x="375" y="82" fill="#e0f2fe" font-size="10" text-anchor="middle">2. Manages direct bus flow</text>
 
-          <!-- Inline Next Step Explanation Pane -->
-          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center;">
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Upcoming Action When You Click Next:</div>
-            <div id="inline-next-desc" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">
-              The C runtime wrapper will stage system call arguments into CPU registers (e.g., RAX = 0 for sys_read) and issue the <code>SYSCALL</code> / <code>TRAP</code> assembly instruction.
-            </div>
-          </div>
-        </div>
+          <!-- RAM Box -->
+          <rect x="560" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
+          <text x="630" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">Main Memory</text>
+          <text x="630" y="82" fill="#64748b" font-size="10" text-anchor="middle">Buffer Destination</text>
+
+          <!-- System Bus Bar -->
+          <rect x="30" y="145" width="670" height="24" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
+          <text x="365" y="161" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">SYSTEM &amp; MEMORY BUS (PCIe / DMI / Memory Channels)</text>
+
+          <!-- Device Controller -->
+          <rect x="290" y="210" width="170" height="60" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+          <text x="375" y="236" fill="#1e293b" font-size="12" font-weight="bold" text-anchor="middle">Device Controller</text>
+          <text x="375" y="254" fill="#64748b" font-size="10" text-anchor="middle">(NVMe / Disk / NIC)</text>
+
+          <!-- Vertical Interconnect Bus Drops -->
+          <line x1="100" y1="100" x2="100" y2="145" stroke="#0284c7" stroke-width="2" />
+          <line x1="375" y1="100" x2="375" y2="145" stroke="#0284c7" stroke-width="2" />
+          <line x1="630" y1="100" x2="630" y2="145" stroke="#0284c7" stroke-width="2" />
+          <line x1="375" y1="169" x2="375" y2="210" stroke="#64748b" stroke-width="2" />
+
+          <!-- Bulk Data Flow Curve - Routed to enter side port of Main Memory at (700, 65) -->
+          <path d="M 460,240 C 620,240 735,210 735,110 C 735,65 715,65 706,65" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#dmaArrow)" />
+          <text x="590" y="260" fill="#0284c7" font-size="10" font-weight="bold">Direct Memory Stream (Bypasses CPU)</text>
+        </svg>
 """
 
-REVISED_SCRIPT_LOGIC = """
-      <script>
-        (function() {
-          const steps = [
-            {
-              mode: "USER (Ring 3)",
-              modeBit: "1 (Unprivileged)",
-              modeColor: "#dc2626",
-              pc: "0x00401140 (App Code)",
-              stack: "User Stack (RSP)",
-              stepNum: "Step 1 of 6: Application Invocation",
-              activeNode: "node-user-app",
-              activeEdges: [],
-              btnNextText: "Next Step &rarr;",
-              btnPrevText: "&larr; Prev",
-              what: "The user program needs to read 512 bytes from a file. It calls <code>read(fd, buffer, 512)</code> in standard user space.",
-              why: "User-level isolation ensures no application can directly manipulate physical hardware sectors without operating system supervision.",
-              nextStep: "The C runtime wrapper will stage system call arguments into CPU registers (e.g., RAX = 0 for sys_read) and issue the <code>SYSCALL</code> / <code>TRAP</code> assembly instruction."
-            },
-            {
-              mode: "USER (Ring 3)",
-              modeBit: "1 (Unprivileged)",
-              modeColor: "#dc2626",
-              pc: "0x004085A0 (Syscall Wrapper)",
-              stack: "User Stack (RSP)",
-              stepNum: "Step 2 of 6: Preparing System Call &amp; TRAP",
-              activeNode: "node-trap-trigger",
-              activeEdges: ["edge-1"],
-              btnNextText: "Next Step &rarr;",
-              btnPrevText: "&larr; Prev",
-              what: "The library stub populates the register parameters and executes the <code>SYSCALL</code> / <code>TRAP</code> instruction to trigger a hardware trap.",
-              why: "User code cannot change the CPU mode bit on its own. It must execute a designated hardware instruction to request kernel entry.",
-              nextStep: "The CPU microcode will intercept the TRAP, switch the CPU Mode Bit from 1 to 0 (Kernel Mode), swap the user stack pointer to the kernel stack, and jump to the IDT."
-            },
-            {
-              mode: "KERNEL (Ring 0)",
-              modeBit: "0 (Privileged Mode)",
-              modeColor: "#0284c7",
-              pc: "0xFFFFFFFF81A00000 (Hardware Switch)",
-              stack: "Switched to Kernel Stack (SS:RSP)",
-              stepNum: "Step 3 of 6: Hardware Mode Switch &amp; Context Save",
-              activeNode: "node-cpu-hw",
-              activeEdges: ["edge-2"],
-              btnNextText: "Next Step &rarr;",
-              btnPrevText: "&larr; Prev",
-              what: "The CPU switches into Ring 0, saves the user Program Counter and Stack Pointer onto the kernel stack, and transfers control to the kernel vector.",
-              why: "Saving user execution state on a kernel-protected stack guarantees that unprivileged code cannot alter return addresses while running supervisor routines.",
-              nextStep: "The kernel Interrupt Descriptor Table (IDT) dispatcher will inspect RAX and index into <code>sys_call_table</code> to locate the file read handler."
-            },
-            {
-              mode: "KERNEL (Ring 0)",
-              modeBit: "0 (Privileged Mode)",
-              modeColor: "#0284c7",
-              pc: "0xFFFFFFFF81B23040 (Syscall Dispatcher)",
-              stack: "Kernel Stack (SS:RSP)",
-              stepNum: "Step 4 of 6: Kernel IDT Dispatching",
-              activeNode: "node-kernel-idt",
-              activeEdges: ["edge-3"],
-              btnNextText: "Next Step &rarr;",
-              btnPrevText: "&larr; Prev",
-              what: "The kernel verifies pointer boundaries to confirm that the destination buffer is writable, then invokes the Virtual File System (VFS) read handler.",
-              why: "Kernel verification ensures malicious or buggy user pointers cannot trick supervisor routines into overwriting protected memory.",
-              nextStep: "The filesystem driver will program the storage controller registers and initiate a DMA or interrupt-driven block read from the disk drive."
-            },
-            {
-              mode: "KERNEL (Ring 0)",
-              modeBit: "0 (Privileged Mode)",
-              modeColor: "#0284c7",
-              pc: "0xFFFFFFFF81C84100 (Disk Driver)",
-              stack: "Kernel Stack (SS:RSP)",
-              stepNum: "Step 5 of 6: Privileged Driver Execution",
-              activeNode: "node-kernel-driver",
-              activeEdges: ["edge-4"],
-              btnNextText: "Next Step &rarr;",
-              btnPrevText: "&larr; Prev",
-              what: "The device driver issues privileged hardware commands to the storage controller across the system bus, reading data into memory.",
-              why: "Only kernel mode code has the hardware authorization to communicate with device controllers across system buses without triggering an exception.",
-              nextStep: "The kernel will store the byte count result into RAX and execute <code>SYSRET</code> or <code>IRET</code> to drop privileges back to user space."
-            },
-            {
-              mode: "USER (Ring 3)",
-              modeBit: "1 (Unprivileged)",
-              modeColor: "#dc2626",
-              pc: "0x00401148 (Resumed App Code)",
-              stack: "Restored User Stack (RSP)",
-              stepNum: "Step 6 of 6: Return to User Space (SYSRET / IRET)",
-              activeNode: "node-user-app",
-              activeEdges: ["edge-5"],
-              btnNextText: "Restart Walkthrough &#8634;",
-              btnPrevText: "&larr; Prev",
-              what: "The kernel executes <code>SYSRET</code>. The CPU restores the user mode bit to 1, reloads the user stack pointer, and returns execution to the application.",
-              why: "Dropping privileges back to Ring 3 ensures normal applications never remain in supervisor mode after their requested work is complete.",
-              nextStep: "Lifecycle complete. Clicking restart will reset the simulator back to Step 1."
-            }
-          ];
-
-          let currentIndex = 0;
-
-          function renderTraceState() {
-            const data = steps[currentIndex];
-            document.getElementById("status-cpu-mode").textContent = data.mode;
-            document.getElementById("status-cpu-mode").style.color = data.modeColor;
-            document.getElementById("status-mode-bit").textContent = data.modeBit;
-            document.getElementById("status-mode-bit").style.color = data.modeColor;
-            document.getElementById("status-pc-reg").textContent = data.pc;
-            document.getElementById("status-stack").textContent = data.stack;
-            document.getElementById("status-step-num").innerHTML = data.stepNum;
-            document.getElementById("desc-what").innerHTML = data.what;
-            document.getElementById("desc-why").innerHTML = data.why;
-            document.getElementById("inline-next-desc").innerHTML = data.nextStep;
-
-            const nextBtn = document.getElementById("step-next-btn");
-            const prevBtn = document.getElementById("step-prev-btn");
-
-            if (nextBtn) nextBtn.innerHTML = data.btnNextText;
-            if (prevBtn) {
-              prevBtn.innerHTML = data.btnPrevText;
-              prevBtn.style.opacity = currentIndex === 0 ? "0.5" : "1.0";
-              prevBtn.style.cursor = currentIndex === 0 ? "not-allowed" : "pointer";
-            }
-
-            const allNodes = ["node-user-app", "node-trap-trigger", "node-cpu-hw", "node-kernel-idt", "node-kernel-driver"];
-            allNodes.forEach(id => {
-              const el = document.getElementById(id);
-              if (el) {
-                el.setAttribute("stroke", "#cbd5e1");
-                el.setAttribute("stroke-width", "1.5");
-                el.setAttribute("fill", "#ffffff");
-              }
-            });
-
-            const allEdges = ["edge-1", "edge-2", "edge-3", "edge-4", "edge-5"];
-            allEdges.forEach(id => {
-              const el = document.getElementById(id);
-              if (el) {
-                el.setAttribute("stroke", "#cbd5e1");
-                el.setAttribute("stroke-width", "2");
-              }
-            });
-
-            const activeNodeEl = document.getElementById(data.activeNode);
-            if (activeNodeEl) {
-              activeNodeEl.setAttribute("stroke", data.modeColor === "#0284c7" ? "#0284c7" : "#dc2626");
-              activeNodeEl.setAttribute("stroke-width", "2.5");
-              activeNodeEl.setAttribute("fill", data.modeColor === "#0284c7" ? "#f0f9ff" : "#fef2f2");
-            }
-
-            data.activeEdges.forEach(id => {
-              const edgeEl = document.getElementById(id);
-              if (edgeEl) {
-                edgeEl.setAttribute("stroke", "#0284c7");
-                edgeEl.setAttribute("stroke-width", "3");
-              }
-            });
-          }
-
-          document.getElementById("step-next-btn").addEventListener("click", function() {
-            if (currentIndex < steps.length - 1) {
-              currentIndex++;
-            } else {
-              currentIndex = 0;
-            }
-            renderTraceState();
-          });
-
-          document.getElementById("step-prev-btn").addEventListener("click", function() {
-            if (currentIndex > 0) {
-              currentIndex--;
-              renderTraceState();
-            }
-          });
-
-          document.getElementById("step-reset-btn").addEventListener("click", function() {
-            currentIndex = 0;
-            renderTraceState();
-          });
-
-          renderTraceState();
-        })();
-      </script>
-"""
-
-def reposition_controls():
+def adjust_dma_diagram_path():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -235,43 +59,19 @@ def reposition_controls():
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Match everything from the start of #interactive-trap-simulator to the start of the Hardware State Bar
-    pattern_top = r'<div id="interactive-trap-simulator"[^>]*>.*?<!-- Hardware State Bar -->'
-    if re.search(pattern_top, content, flags=re.DOTALL):
-        replacement = f'<div id="interactive-trap-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">' + "\n" + RESTRUCTURED_SIMULATOR_TOP + "\n        <!-- Hardware State Bar -->"
-        content = re.sub(pattern_top, replacement, content, flags=re.DOTALL)
-        print("--> Repositioned simulator buttons and explanation under the how-to guide.")
-
-    # Update bottom dashboard to two cards (What Is Happening, Why The System Does This) since Next is now inline above
-    two_pane_dashboard = """        <!-- Two-Pane Pedagogical Dashboard -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px;">
-          <!-- Current Action Pane -->
-          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">Current State: What Is Happening</div>
-            <div id="desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
-              The user program needs to read 512 bytes from a file. It calls <code>read(fd, buffer, 512)</code> in standard user space.
-            </div>
-          </div>
-
-          <!-- Rationale Pane -->
-          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Why The System Does This</div>
-            <div id="desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
-              User-level isolation ensures no application can directly manipulate physical hardware sectors without operating system supervision.
-            </div>
-          </div>
-        </div>"""
-
-    pattern_bottom = r'<!-- Three-Pane Pedagogical Dashboard -->.*?</div>\s*</div>\s*</div>'
-    if re.search(pattern_bottom, content, flags=re.DOTALL):
-        content = re.sub(pattern_bottom, two_pane_dashboard + "\n      </div>", content, flags=re.DOTALL)
-        print("--> Updated bottom dashboard to clean 2-card layout.")
-
-    # Update script logic
-    script_pattern = r"<script>\s*\(function\(\)\s*\{\s*const steps = \[.*?\];\s*let currentIndex = 0;.*?</script>"
-    if re.search(script_pattern, content, flags=re.DOTALL):
-        content = re.sub(script_pattern, REVISED_SCRIPT_LOGIC.strip(), content, flags=re.DOTALL)
-        print("--> Updated script logic to target #inline-next-desc.")
+    # Locate DMA diagram SVG pattern and substitute
+    dma_pattern = r'<svg viewBox="0 0 740 280".*?</svg>'
+    if re.search(dma_pattern, content, flags=re.DOTALL):
+        content = re.sub(dma_pattern, REFINED_DMA_SVG.strip(), content, flags=re.DOTALL)
+        print("--> Updated DMA diagram path to prevent line overlap.")
+    else:
+        # Fallback if viewBox already varied
+        fallback_pattern = r'(<h3>Three Fundamental I/O Approaches</h3>.*?<div class="diagram-container">)\s*<svg.*?</svg>'
+        if re.search(fallback_pattern, content, flags=re.DOTALL):
+            content = re.sub(fallback_pattern, f"\\1\n{REFINED_DMA_SVG.strip()}", content, flags=re.DOTALL)
+            print("--> Replaced DMA diagram via fallback pattern.")
+        else:
+            print("--> DMA SVG container not found.")
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
@@ -279,9 +79,9 @@ def reposition_controls():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Relocate simulator controls beneath instructions with adjacent next step guide\n\n"
-            "Move navigation buttons below the usage guide in 02-hardware-review.html\n"
-            "with an inline pane detailing the upcoming step right next to the controls."
+            "Reroute DMA data stream curve in Module 2 to prevent bus line overlap\n\n"
+            "Adjust coordinates of dashed DMA memory path in 02-hardware-review.html\n"
+            "to land on the memory side port instead of overwriting the bus drop line."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -290,4 +90,4 @@ def reposition_controls():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    reposition_controls()
+    adjust_dma_diagram_path()

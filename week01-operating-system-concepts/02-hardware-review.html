@@ -985,33 +985,46 @@
       </ul>
 
       <div class="diagram-container">
-        <svg viewBox="0 0 740 280" width="100%" height="auto" style="max-width: 740px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
-          <rect x="40" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
-          <text x="110" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">CPU Core</text>
-          <text x="110" y="82" fill="#64748b" font-size="10" text-anchor="middle">1. Sets up DMA transfer</text>
+        <svg viewBox="0 0 760 290" width="100%" height="auto" style="max-width: 760px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="dmaArrow" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
+            </marker>
+          </defs>
 
-          <rect x="300" y="30" width="160" height="70" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
-          <text x="380" y="62" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">DMA Controller</text>
-          <text x="380" y="82" fill="#e0f2fe" font-size="10" text-anchor="middle">2. Manages direct bus flow</text>
+          <!-- CPU Box -->
+          <rect x="30" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
+          <text x="100" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">CPU Core</text>
+          <text x="100" y="82" fill="#64748b" font-size="10" text-anchor="middle">1. Sets up DMA transfer</text>
 
+          <!-- DMA Controller Box -->
+          <rect x="290" y="30" width="170" height="70" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="2" />
+          <text x="375" y="62" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">DMA Controller</text>
+          <text x="375" y="82" fill="#e0f2fe" font-size="10" text-anchor="middle">2. Manages direct bus flow</text>
+
+          <!-- RAM Box -->
           <rect x="560" y="30" width="140" height="70" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="2" />
           <text x="630" y="62" fill="#0284c7" font-size="14" font-weight="bold" text-anchor="middle">Main Memory</text>
-          <text x="630" y="82" fill="#64748b" font-size="10" text-anchor="middle">Direct Buffer Destination</text>
+          <text x="630" y="82" fill="#64748b" font-size="10" text-anchor="middle">Buffer Destination</text>
 
-          <rect x="40" y="145" width="660" height="24" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
-          <text x="370" y="161" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">SYSTEM &amp; MEMORY BUS (PCIe / DMI / Memory Channels)</text>
+          <!-- System Bus Bar -->
+          <rect x="30" y="145" width="670" height="24" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
+          <text x="365" y="161" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">SYSTEM &amp; MEMORY BUS (PCIe / DMI / Memory Channels)</text>
 
-          <rect x="300" y="200" width="160" height="60" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
-          <text x="380" y="226" fill="#1e293b" font-size="12" font-weight="bold" text-anchor="middle">Device Controller</text>
-          <text x="380" y="244" fill="#64748b" font-size="10" text-anchor="middle">(NVMe / Disk / NIC)</text>
+          <!-- Device Controller -->
+          <rect x="290" y="210" width="170" height="60" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+          <text x="375" y="236" fill="#1e293b" font-size="12" font-weight="bold" text-anchor="middle">Device Controller</text>
+          <text x="375" y="254" fill="#64748b" font-size="10" text-anchor="middle">(NVMe / Disk / NIC)</text>
 
-          <line x1="110" y1="100" x2="110" y2="145" stroke="#0284c7" stroke-width="2" />
-          <line x1="380" y1="100" x2="380" y2="145" stroke="#0284c7" stroke-width="2" />
+          <!-- Vertical Interconnect Bus Drops -->
+          <line x1="100" y1="100" x2="100" y2="145" stroke="#0284c7" stroke-width="2" />
+          <line x1="375" y1="100" x2="375" y2="145" stroke="#0284c7" stroke-width="2" />
           <line x1="630" y1="100" x2="630" y2="145" stroke="#0284c7" stroke-width="2" />
-          <line x1="380" y1="169" x2="380" y2="200" stroke="#64748b" stroke-width="2" />
+          <line x1="375" y1="169" x2="375" y2="210" stroke="#64748b" stroke-width="2" />
 
-          <path d="M 460,230 C 580,230 630,190 630,105" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6,3" />
-          <text x="595" y="245" fill="#0284c7" font-size="10" font-weight="bold">Direct Memory Stream (Bypasses CPU)</text>
+          <!-- Bulk Data Flow Curve - Routed to enter side port of Main Memory at (700, 65) -->
+          <path d="M 460,240 C 620,240 735,210 735,110 C 735,65 715,65 706,65" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#dmaArrow)" />
+          <text x="590" y="260" fill="#0284c7" font-size="10" font-weight="bold">Direct Memory Stream (Bypasses CPU)</text>
         </svg>
       </div>
 
