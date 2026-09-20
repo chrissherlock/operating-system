@@ -16,6 +16,16 @@
     p.description { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
     .notice { background: #f8fafc; border: 1px dashed var(--border); border-radius: 6px; padding: 16px; text-align: center; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted); }
   </style>
+  <!-- MathJax Configuration for LaTeX Rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <div class="nav-back">

@@ -327,6 +327,16 @@
     .active-state .sm-text { fill: #ffffff; }
     .active-state .sm-subtext { fill: #e0f2fe; }
   </style>
+  <!-- MathJax Configuration for LaTeX Rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
