@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # =====================================================================
-# create_week1_intro_module.py: Generate Week 1 OS Concepts & History Module
+# create_week1_portal_index.py: Generate Week 1 OS Concepts Portal Index
 # =====================================================================
 import os
 import subprocess
 import sys
 
-WEEK1_MODULE_HTML = r"""<!DOCTYPE html>
+WEEK1_INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>1.1 &ndash; 1.2 OS Concepts &amp; History — COSC240</title>
+  <title>Week 1: Operating System Concepts &amp; History — COSC240</title>
   <!-- MathJax Configuration for LaTeX Rendering -->
   <script>
     window.MathJax = {
@@ -233,15 +233,15 @@ WEEK1_MODULE_HTML = r"""<!DOCTYPE html>
 
   <div class="wrapper">
     <div class="nav-header">
-      <a href="../index.html" class="nav-btn">&larr; Week 1 Portal Index</a>
-      <a href="02-hardware-review.html" class="nav-btn">1.3 Hardware Review &rarr;</a>
+      <a href="../index.html" class="nav-btn">&larr; COSC240 Course Portal</a>
+      <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">Week 1 Portal</span>
     </div>
 
     <header>
       <span class="chapter-tag">Chapter 1 &bull; Sections 1.1 &amp; 1.2</span>
-      <h1>What Is An Operating System &amp; History</h1>
+      <h1>Operating System Concepts &amp; History</h1>
       <p class="lead-text">
-        An introduction to operating system abstractions, the dual role of the OS as an extended machine and resource manager, and the chronological evolution of computing generations.
+        Exploring operating system abstractions, the dual role of the OS as an extended machine and resource manager, and the chronological evolution of computing generations.
       </p>
     </header>
 
@@ -405,8 +405,8 @@ WEEK1_MODULE_HTML = r"""<!DOCTYPE html>
     </section>
 
     <div class="nav-header" style="border-top: 1px solid var(--border); padding-top: 16px;">
-      <a href="../index.html" class="nav-btn">&larr; Week 1 Portal Index</a>
-      <a href="02-hardware-review.html" class="nav-btn">1.3 Hardware Review &rarr;</a>
+      <a href="../index.html" class="nav-btn">&larr; COSC240 Course Portal</a>
+      <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);">Week 1 Portal</span>
     </div>
 
   </div>
@@ -488,7 +488,6 @@ WEEK1_MODULE_HTML = r"""<!DOCTYPE html>
       document.getElementById('gen-os-lbl').textContent = data.os;
       document.getElementById('gen-step-badge').textContent = `Generation ${data.num} of 5`;
 
-      // Update node circle highlights
       ['gen1', 'gen2', 'gen3', 'gen4', 'gen5'].forEach((id, i) => {
         const circle = document.querySelector(`#node-${id} circle`);
         const txt = document.querySelector(`#node-${id} text`);
@@ -555,17 +554,16 @@ WEEK1_MODULE_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def generate_week1_module():
-    target_dir = "week01-intro"
+def generate_portal_index():
+    target_dir = "week01-operating-system-concepts"
     os.makedirs(target_dir, exist_ok=True)
-    target_path = os.path.join(target_dir, "01-os-concepts-history.html")
+    target_path = os.path.join(target_dir, "index.html")
 
     print(f"--> Generating {target_path}...")
     with open(target_path, "w", encoding="utf-8") as f:
-        f.write(WEEK1_MODULE_HTML)
-    print("--> Week 1 module generated successfully!")
+        f.write(WEEK1_INDEX_HTML)
+    print("--> Week 1 portal index generated successfully!")
 
-    # Synchronize fix.py
     fix_path = "fix.py"
     modified = [target_path]
     if os.path.exists(fix_path):
@@ -575,15 +573,15 @@ def generate_week1_module():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Create Week 1 introductory OS concepts and history module (Tanenbaum Ch 1.1-1.2)\n\n"
-            "Add week01-intro/01-os-concepts-history.html covering operating system definitions\n"
-            "(Extended Machine & Resource Manager) and the five historical generations of computing."
+            "Create Week 1 operating-system-concepts index.html portal page\n\n"
+            "Add week01-operating-system-concepts/index.html covering Tanenbaum Chapter 1.1-1.2\n"
+            "OS concepts, extended machine abstractions, resource manager multiplexing, and computing history."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Week 1 module successfully committed and pushed to origin main!")
+    print("--> Week 1 portal index successfully committed and pushed to origin main!")
 
 if __name__ == "__main__":
-    generate_week1_module()
+    generate_portal_index()
