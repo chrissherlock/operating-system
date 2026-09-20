@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 # =====================================================================
-# generate_fully_attributed_page.py: Restore exact attributions, URLs & descriptions
+# generate_fully_attributed_page.py: Complete page with all card attributions
 # =====================================================================
 import os
 import subprocess
 import sys
 
-COMPLETE_ATTRIBUTED_HTML = r"""<!DOCTYPE html>
+COMPLETE_ATTRIBUTED_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>What Is an Operating System &amp; History — COSC240</title>
+  <title>What Is an Operating System &amp; History -- COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
       --accent: #0284c7;
+      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -103,7 +104,7 @@ COMPLETE_ATTRIBUTED_HTML = r"""<!DOCTYPE html>
             <strong>Vacuum Tube</strong><br>
             Thermionic valve switching components.<br>
             <small><a href="https://en.wikipedia.org/wiki/Vacuum_tube" target="_blank" rel="noopener">Wikipedia: Vacuum Tube</a></small><br>
-            <small>Source: Wikimedia Commons</small>
+            <small>Source: Wikimedia Commons contributors</small>
           </span>
         </div>
         <div class="image-card">
@@ -112,7 +113,7 @@ COMPLETE_ATTRIBUTED_HTML = r"""<!DOCTYPE html>
             <strong>Plugboard Wiring</strong><br>
             Manual machine programming interfaces.<br>
             <small><a href="https://en.wikipedia.org/wiki/Plugboard" target="_blank" rel="noopener">Wikipedia: Plugboard</a></small><br>
-            <small>Source: Wikimedia Commons</small>
+            <small>Source: Wikimedia Commons contributors</small>
           </span>
         </div>
       </div>
@@ -128,7 +129,7 @@ COMPLETE_ATTRIBUTED_HTML = r"""<!DOCTYPE html>
             <strong>First Transistor</strong><br>
             Solid-state semiconductor switching.<br>
             <small><a href="https://en.wikipedia.org/wiki/Transistor" target="_blank" rel="noopener">Wikipedia: Transistor</a></small><br>
-            <small>Source: Wikimedia Commons</small>
+            <small>Source: Wikimedia Commons contributors</small>
           </span>
         </div>
         <div class="image-card">
@@ -137,7 +138,7 @@ COMPLETE_ATTRIBUTED_HTML = r"""<!DOCTYPE html>
             <strong>Punched Card Deck</strong><br>
             Batch job submission media.<br>
             <small><a href="https://en.wikipedia.org/wiki/Punched_card" target="_blank" rel="noopener">Wikipedia: Punched Card</a></small><br>
-            <small>Source: Wikimedia Commons</small>
+            <small>Source: Wikimedia Commons contributors</small>
           </span>
         </div>
       </div>
@@ -307,9 +308,9 @@ def execute_full_deployment():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Restore exact attributions, permanent URLs, and descriptions to Gen 1-3 image cards\n\n"
-            "Update week01-operating-system-concepts/01-what-is-an-os-and-history.html with full bibliographic\n"
-            "permanent URLs and Wikipedia article links for all historical hardware image cards."
+            "Restore full descriptions, wiki links, and attributions to all Generation 1-3 cards\n\n"
+            "Ensure week01-operating-system-concepts/01-what-is-an-os-and-history.html contains\n"
+            "rigorous descriptions, Wikipedia topic links, and precise bibliographic URLs for every image card."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
