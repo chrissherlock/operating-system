@@ -812,27 +812,124 @@
         On a multiprocessor, disabling interrupts on CPU 0 has <strong>zero effect on CPU 1, 2, or 3</strong>. Sibling cores continue fetching instructions, accessing shared data structures, and causing race conditions. Multiprocessors require dedicated hardware-level atomic synchronization primitives.
       </p>
 
+            <!-- SUBSECTION: HARDWARE ATOMIC PRIMITIVES -->
       <h3>1. Hardware Atomic Primitives</h3>
       <p>
-        Modern CPU architectures provide atomic read-modify-write instructions that guarantee atomicity either by asserting a hardware bus lock signal (locking the memory bus) or through the cache coherence protocol (holding exclusive ownership of the cache line):
+        On a single-core uniprocessor, mutual exclusion can be achieved simply by disabling hardware interrupts to prevent timer preemption. On a multiprocessor, disabling interrupts on Core 0 has zero effect on Core 1, which continues executing instructions and mutating memory concurrently.
       </p>
-      <ul>
-        <li><strong>Test-and-Set:</strong> Atomically writes 1 to a memory address and returns its previous value. If it returns 0, the lock was acquired; if it returns 1, the lock was already held.</li>
-        <li><strong>Compare-and-Swap (CAS):</strong> Compares the value at an address with an expected value, updating it to a new value only if they match. Returns true on success.</li>
-        <li><strong>Load-Linked / Store-Conditional (LL/SC):</strong> Used on RISC architectures (ARM, RISC-V). Load-linked loads a value; store-conditional writes a new value only if no other core has written to that address in the interim.</li>
-      </ul>
+      <p>
+        If an operating system attempts to implement a mutual exclusion lock using standard, non-atomic software read and write instructions, a race condition occurs whenever two cores attempt to claim the lock simultaneously:
+      </p>
 
+      <!-- Token-Highlighted Code Listing: Software Race Failure -->
       <div class="code-box">
-// Atomic Test-and-Set spinlock implementation (x86: LOCK BTS / XCHG)
-void Spinlock_Acquire(volatile int *lock) {
-    while (TestAndSet(lock) == 1) {
-        // Spin in tight loop (busy waiting)
+<span style="color:#64748b;">// NON-ATOMIC SOFTWARE FAILURE: Race window between read and write</span>
+<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Naive_Acquire</span>(<span style="color:#f43f5e;">volatile int</span> *lock) {
+    <span style="color:#f43f5e;">if</span> (*lock == <span style="color:#fbbf24;">0</span>) {           <span style="color:#64748b;">// Core 0 and Core 1 both read 0 simultaneously!</span>
+        *lock = <span style="color:#fbbf24;">1</span>;               <span style="color:#64748b;">// Both write 1 and believe they own the lock</span>
+        <span style="color:#f43f5e;">return</span> <span style="color:#34d399;">1</span>;               <span style="color:#64748b;">// Mutual exclusion violated: both enter critical section!</span>
     }
+    <span style="color:#f43f5e;">return</span> <span style="color:#fbbf24;">0</span>;
+}
+      </div>
+
+      <p>
+        To eliminate this vulnerability, processor architectures provide <strong>Atomic Read-Modify-Write (RMW) Instructions</strong>. These instructions guarantee that reading the old value and writing the new value occur as an indivisible, single-cycle operation across the entire memory hierarchy. Hardware guarantees this either by asserting the physical bus <code>LOCK#</code> signal or by maintaining exclusive ownership of the cache line via the cache coherence protocol:
+      </p>
+
+      <!-- Token-Highlighted Code Listing: Hardware Atomic Primitives -->
+      <div class="code-box">
+<span style="color:#64748b;">// 1. ATOMIC TEST-AND-SET (x86-64: LOCK BTS or XCHG)</span>
+<span style="color:#64748b;">// Atomically swaps 1 into *lock and returns the old value in a single bus transaction</span>
+<span style="color:#f43f5e;">int</span> <span style="color:#38bdf8;">Atomic_TestAndSet</span>(<span style="color:#f43f5e;">volatile int</span> *lock) {
+    <span style="color:#f43f5e;">int</span> old_val;
+    __asm__ <span style="color:#f43f5e;">volatile</span> (
+        <span style="color:#a5b4fc;">"lock xchgl %0, %1"</span>
+        : <span style="color:#a5b4fc;">"=r"</span> (old_val), <span style="color:#a5b4fc;">"+m"</span> (*lock)
+        : <span style="color:#a5b4fc;">"0"</span> (<span style="color:#fbbf24;">1</span>)
+        : <span style="color:#a5b4fc;">"memory"</span>
+    );
+    <span style="color:#f43f5e;">return</span> old_val; <span style="color:#64748b;">// Returns 0 on successful lock acquisition, 1 on busy</span>
 }
 
-void Spinlock_Release(volatile int *lock) {
-    *lock = 0; // Release ownership
+<span style="color:#64748b;">// 2. ATOMIC COMPARE-AND-SWAP / CAS (x86-64: LOCK CMPXCHG)</span>
+<span style="color:#64748b;">// Updates *addr to new_val ONLY IF it currently holds expected_val</span>
+<span style="color:#f43f5e;">bool</span> <span style="color:#38bdf8;">Atomic_CompareAndSwap</span>(<span style="color:#f43f5e;">volatile int</span> *addr, <span style="color:#f43f5e;">int</span> expected_val, <span style="color:#f43f5e;">int</span> new_val) {
+    <span style="color:#f43f5e;">unsigned char</span> success;
+    __asm__ <span style="color:#f43f5e;">volatile</span> (
+        <span style="color:#a5b4fc;">"lock cmpxchgl %3, %1;\n\t"</span>
+        <span style="color:#a5b4fc;">"sete %0"</span>
+        : <span style="color:#a5b4fc;">"=q"</span> (success), <span style="color:#a5b4fc;">"+m"</span> (*addr), <span style="color:#a5b4fc;">"+a"</span> (expected_val)
+        : <span style="color:#a5b4fc;">"r"</span> (new_val)
+        : <span style="color:#a5b4fc;">"memory"</span>
+    );
+    <span style="color:#f43f5e;">return</span> (<span style="color:#f43f5e;">bool</span>)success;
 }
+      </div>
+
+      <!-- GUIDED WALKTHROUGH: ATOMIC PRIMITIVES VS SOFTWARE RACE -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Software Race Conditions vs. Hardware Atomics</span>
+          <span id="atom-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> This walkthrough visually demonstrates the race window between CPU cores. Observe why ordinary load-and-store instructions fail to prevent simultaneous lock acquisition, how hardware atomic serialization enforces mutual exclusion, and how Compare-and-Swap (CAS) verifies state before updating.
+        </p>
+
+        <div class="instruction-card">
+          <div id="atom-act-text" class="action-req">Action Required: Click 'Simulate Stage 1: Non-Atomic Software Race' below.</div>
+          <div id="atom-exp-text" class="action-exp">Watch Core 0 and Core 1 attempt to acquire a lock using standard read-then-write code. Notice that both cores read <code>0</code> before either can write <code>1</code>, causing both to claim the lock simultaneously.</div>
+        </div>
+
+        <!-- Inline Interactive SVG Pipeline -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="atom-pipeline-svg" viewBox="0 0 740 260" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- Core 0 (Left) -->
+            <rect id="atom-c0-box" x="30" y="20" width="220" height="120" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="140" y="42" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">Core 0 Execution Pipeline</text>
+            <rect id="atom-c0-inst" x="45" y="55" width="190" height="32" fill="#ffffff" stroke="#cbd5e1" rx="3"/>
+            <text id="atom-c0-inst-txt" x="140" y="75" text-anchor="middle" font-weight="bold" fill="#334155">Instruction: IDLE</text>
+            <text id="atom-c0-reg-txt" x="140" y="115" text-anchor="middle" font-size="10" fill="#64748b">Register EAX: -- | Result: --</text>
+
+            <!-- Core 1 (Right) -->
+            <rect id="atom-c1-box" x="490" y="20" width="220" height="120" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="600" y="42" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">Core 1 Execution Pipeline</text>
+            <rect id="atom-c1-inst" x="505" y="55" width="190" height="32" fill="#ffffff" stroke="#cbd5e1" rx="3"/>
+            <text id="atom-c1-inst-txt" x="600" y="75" text-anchor="middle" font-weight="bold" fill="#334155">Instruction: IDLE</text>
+            <text id="atom-c1-reg-txt" x="600" y="115" text-anchor="middle" font-size="10" fill="#64748b">Register EAX: -- | Result: --</text>
+
+            <!-- Memory Bus / Interconnect Wire -->
+            <line id="atom-wire-c0" x1="140" y1="140" x2="140" y2="175" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="atom-wire-c1" x1="600" y1="140" x2="600" y2="175" stroke="#cbd5e1" stroke-width="3"/>
+            <line x1="140" y1="175" x2="600" y2="175" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="atom-wire-mem" x1="370" y1="175" x2="370" y2="195" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Lock Signal Indicator -->
+            <circle id="atom-lock-led" cx="370" cy="175" r="7" fill="#94a3b8"/>
+            <text id="atom-lock-label" x="370" y="165" text-anchor="middle" font-size="9" font-weight="bold" fill="#64748b">LOCK# Signal Inactive</text>
+
+            <!-- Shared Memory Cell (Bottom) -->
+            <rect id="atom-mem-box" x="250" y="195" width="240" height="50" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" rx="5"/>
+            <text x="370" y="215" text-anchor="middle" font-weight="bold" fill="#334155">Memory Address 0x9000 (*lock)</text>
+            <text id="atom-mem-val-txt" x="370" y="233" text-anchor="middle" font-weight="bold" fill="#0284c7" font-size="11">Current Value: 0 (Unlocked)</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Execution Mode: <strong id="atom-mode-txt" style="color:#ef4444;">Non-Atomic Software</strong></div>
+          <div>Core 0 Outcome: <span id="atom-c0-outcome" style="font-weight:bold; color:#64748b;">Awaiting Run</span></div>
+          <div>Core 1 Outcome: <span id="atom-c1-outcome" style="font-weight:bold; color:#64748b;">Awaiting Run</span></div>
+          <div>Mutual Exclusion: <span id="atom-mutex-status" style="font-weight:bold; color:#64748b;">Pending</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-atom-step" class="btn-step" onclick="stepAtomWalkthrough()">Simulate Stage 1: Non-Atomic Software Race</button>
+          <button class="btn-reset" onclick="resetAtomWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="atom-walkthrough-log" class="status-panel">-- Select a simulation stage above to evaluate atomicity across cores --</div>
       </div>
 
       <h3>2. The Cache-Line Bouncing Hazard</h3>
@@ -1849,6 +1946,224 @@ void Spinlock_Release(volatile int *lock) {
 
       document.getElementById('btn-sync-step').textContent = 'Simulate Stage 1: Naive Spinlock Bouncing Storm';
       document.getElementById('sync-walkthrough-log').innerHTML = '-- Synchronization walkthrough reset. Ready to begin --';
+    }
+
+  
+    // =======================================================
+    // 6. HARDWARE ATOMIC PRIMITIVES WALKTHROUGH CONTROLLER
+    // =======================================================
+    let atomStage = 1;
+
+    function appendAtomLog(msg) {
+      const el = document.getElementById('atom-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function resetAtomSvgElements() {
+      // Core 0
+      document.getElementById('atom-c0-box').setAttribute('fill', '#f8fafc');
+      document.getElementById('atom-c0-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c0-inst').setAttribute('fill', '#ffffff');
+      document.getElementById('atom-c0-inst').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c0-inst-txt').textContent = 'Instruction: IDLE';
+      document.getElementById('atom-c0-reg-txt').textContent = 'Register EAX: -- | Result: --';
+
+      // Core 1
+      document.getElementById('atom-c1-box').setAttribute('fill', '#f8fafc');
+      document.getElementById('atom-c1-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c1-inst').setAttribute('fill', '#ffffff');
+      document.getElementById('atom-c1-inst').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-c1-inst-txt').textContent = 'Instruction: IDLE';
+      document.getElementById('atom-c1-reg-txt').textContent = 'Register EAX: -- | Result: --';
+
+      // Wires & Lock LED
+      document.getElementById('atom-wire-c0').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-wire-c1').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-wire-mem').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('atom-lock-led').setAttribute('fill', '#94a3b8');
+      document.getElementById('atom-lock-label').textContent = 'LOCK# Signal Inactive';
+      document.getElementById('atom-lock-label').setAttribute('fill', '#64748b');
+
+      // Memory
+      document.getElementById('atom-mem-box').setAttribute('fill', '#f1f5f9');
+      document.getElementById('atom-mem-box').setAttribute('stroke', '#94a3b8');
+      document.getElementById('atom-mem-val-txt').textContent = 'Current Value: 0 (Unlocked)';
+      document.getElementById('atom-mem-val-txt').setAttribute('fill', '#0284c7');
+    }
+
+    function stepAtomWalkthrough() {
+      const btn = document.getElementById('btn-atom-step');
+      const badge = document.getElementById('atom-step-badge');
+      const act = document.getElementById('atom-act-text');
+      const exp = document.getElementById('atom-exp-text');
+
+      const modeTxt = document.getElementById('atom-mode-txt');
+      const c0Out = document.getElementById('atom-c0-outcome');
+      const c1Out = document.getElementById('atom-c1-outcome');
+      const mutexStat = document.getElementById('atom-mutex-status');
+
+      if (atomStage === 1) {
+        // Stage 1: Software Race Failure
+        resetAtomSvgElements();
+        document.getElementById('atom-walkthrough-log').innerHTML = '--> Stage 1: Simulating Non-Atomic Software Race Window...';
+
+        // Both cores turn red (failed mutual exclusion)
+        document.getElementById('atom-c0-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('atom-c0-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-c0-inst').setAttribute('fill', '#fecaca');
+        document.getElementById('atom-c0-inst-txt').textContent = 'MOV EAX, [*lock]; MOV [*lock], 1';
+        document.getElementById('atom-c0-reg-txt').textContent = 'Read: EAX = 0 | Entered Critical Section!';
+
+        document.getElementById('atom-c1-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('atom-c1-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-c1-inst').setAttribute('fill', '#fecaca');
+        document.getElementById('atom-c1-inst-txt').textContent = 'MOV EAX, [*lock]; MOV [*lock], 1';
+        document.getElementById('atom-c1-reg-txt').textContent = 'Read: EAX = 0 | Entered Critical Section!';
+
+        document.getElementById('atom-wire-c0').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-wire-c1').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-wire-mem').setAttribute('stroke', '#ef4444');
+
+        document.getElementById('atom-mem-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('atom-mem-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('atom-mem-val-txt').textContent = 'Current Value: 1 (Both Cores Mutated)';
+        document.getElementById('atom-mem-val-txt').setAttribute('fill', '#ef4444');
+
+        modeTxt.textContent = 'Non-Atomic Software (MOV)';
+        modeTxt.style.color = '#ef4444';
+        c0Out.textContent = 'Lock Claimed (False Winner)';
+        c0Out.style.color = '#ef4444';
+        c1Out.textContent = 'Lock Claimed (False Winner)';
+        c1Out.style.color = '#ef4444';
+        mutexStat.textContent = 'VIOLATED (Catastrophic Race)';
+        mutexStat.style.color = '#ef4444';
+
+        appendAtomLog('1. Time T0: Core 0 executes "MOV EAX, [*lock]". Reads value 0 into EAX.');
+        appendAtomLog('2. Time T0: Core 1 executes "MOV EAX, [*lock]" simultaneously across the bus. Also reads value 0.');
+        appendAtomLog('3. Time T1: Core 0 observes EAX == 0, writes *lock = 1, and enters critical section.');
+        appendAtomLog('4. Time T1: Core 1 observes EAX == 0, writes *lock = 1, and ALSO enters critical section.');
+        appendAtomLog('Catastrophic Failure: Mutual exclusion failed completely! Both cores corrupted shared data.');
+
+        atomStage = 2;
+        badge.textContent = 'Stage 2 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 2: Atomic Test-and-Set Serialization\' below.';
+        exp.innerHTML = 'Now observe what happens when both cores execute the hardware instruction <code>LOCK XCHG</code> (Atomic Test-and-Set). Watch the hardware bus lock serialize access so only one core can win.';
+        btn.textContent = 'Simulate Stage 2: Atomic Test-and-Set Serialization';
+      } else if (atomStage === 2) {
+        // Stage 2: Atomic Test-and-Set
+        resetAtomSvgElements();
+        document.getElementById('atom-walkthrough-log').innerHTML = '--> Stage 2: Hardware Atomic Test-and-Set Serialization (LOCK XCHG)...';
+
+        // Core 0 wins (Green)
+        document.getElementById('atom-c0-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('atom-c0-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-c0-inst').setAttribute('fill', '#dcfce7');
+        document.getElementById('atom-c0-inst-txt').textContent = 'LOCK XCHG EAX, [*lock]';
+        document.getElementById('atom-c0-reg-txt').textContent = 'Returned: EAX = 0 | Lock ACQUIRED';
+
+        // Core 1 serialized and loses (Blue/Neutral)
+        document.getElementById('atom-c1-box').setAttribute('fill', '#f0f9ff');
+        document.getElementById('atom-c1-box').setAttribute('stroke', '#0284c7');
+        document.getElementById('atom-c1-inst').setAttribute('fill', '#e0f2fe');
+        document.getElementById('atom-c1-inst-txt').textContent = 'LOCK XCHG EAX, [*lock]';
+        document.getElementById('atom-c1-reg-txt').textContent = 'Returned: EAX = 1 | Lock BUSY (Spin)';
+
+        // Lock asserted
+        document.getElementById('atom-wire-c0').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-wire-c1').setAttribute('stroke', '#0284c7');
+        document.getElementById('atom-wire-mem').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-lock-led').setAttribute('fill', '#16a34a');
+        document.getElementById('atom-lock-label').textContent = 'LOCK# Bus Signal Asserted (Indivisible)';
+        document.getElementById('atom-lock-label').setAttribute('fill', '#16a34a');
+
+        document.getElementById('atom-mem-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('atom-mem-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-mem-val-txt').textContent = 'Current Value: 1 [Locked by Core 0]';
+        document.getElementById('atom-mem-val-txt').setAttribute('fill', '#16a34a');
+
+        modeTxt.textContent = 'Hardware Atomic (LOCK XCHG)';
+        modeTxt.style.color = '#16a34a';
+        c0Out.textContent = 'Acquired (Old Val: 0)';
+        c0Out.style.color = '#16a34a';
+        c1Out.textContent = 'Rejected (Old Val: 1)';
+        c1Out.style.color = '#0284c7';
+        mutexStat.textContent = 'PRESERVED (Strictly 1 Winner)';
+        mutexStat.style.color = '#16a34a';
+
+        appendAtomLog('1. Both cores dispatch "LOCK XCHG". Core 0 wins hardware bus arbitration.');
+        appendAtomLog('2. Hardware asserts LOCK# signal: Core 0 reads memory (0) and writes 1 in an indivisible transaction.');
+        appendAtomLog('3. Core 1\'s bus cycle is stalled by hardware until Core 0\'s transaction finishes.');
+        appendAtomLog('4. Core 1 executes: It reads the updated value (1) and writes 1. Its register receives 1 (busy).');
+        appendAtomLog('Result: Core 0 safely enters the critical section; Core 1 correctly detects lock contention and spins.');
+
+        atomStage = 3;
+        badge.textContent = 'Stage 3 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 3: Atomic Compare-and-Swap (CAS)\' below.';
+        exp.innerHTML = 'Observe <strong>Compare-and-Swap (CAS)</strong>: Core 1 attempts an atomic update specifying an expected value of <code>0</code>. Because the memory is already <code>1</code>, the atomic swap is rejected without modifying memory.';
+        btn.textContent = 'Simulate Stage 3: Atomic Compare-and-Swap (CAS)';
+      } else if (atomStage === 3) {
+        // Stage 3: Compare-and-Swap (CAS)
+        resetAtomSvgElements();
+        document.getElementById('atom-walkthrough-log').innerHTML = '--> Stage 3: Atomic Compare-and-Swap (LOCK CMPXCHG)...';
+
+        document.getElementById('atom-c0-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('atom-c0-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('atom-c0-inst-txt').textContent = 'Inside Critical Section';
+        document.getElementById('atom-c0-reg-txt').textContent = 'Owner of Lock 0x9000';
+
+        document.getElementById('atom-c1-box').setAttribute('fill', '#f8fafc');
+        document.getElementById('atom-c1-box').setAttribute('stroke', '#64748b');
+        document.getElementById('atom-c1-inst').setAttribute('fill', '#f1f5f9');
+        document.getElementById('atom-c1-inst-txt').textContent = 'CAS(addr, expected=0, new=1)';
+        document.getElementById('atom-c1-reg-txt').textContent = 'ZF=0 (Failed: Actual value is 1)';
+
+        document.getElementById('atom-lock-led').setAttribute('fill', '#0284c7');
+        document.getElementById('atom-lock-label').textContent = 'LOCK CMPXCHG: Comparison Mismatch';
+        document.getElementById('atom-lock-label').setAttribute('fill', '#0284c7');
+
+        modeTxt.textContent = 'Atomic CAS (LOCK CMPXCHG)';
+        modeTxt.style.color = '#0284c7';
+        c0Out.textContent = 'Holding Lock';
+        c0Out.style.color = '#16a34a';
+        c1Out.textContent = 'CAS Failed (No Mutation)';
+        c1Out.style.color = '#64748b';
+        mutexStat.textContent = 'PRESERVED (Lockless Safety)';
+        mutexStat.style.color = '#16a34a';
+
+        appendAtomLog('1. Core 1 executes: CompareAndSwap(&lock, expected=0, new=1).');
+        appendAtomLog('2. Hardware compares memory value (1) with expected register value (0).');
+        appendAtomLog('3. Comparison fails (1 != 0): Hardware aborts the write and clears the CPU Zero Flag (ZF = 0).');
+        appendAtomLog('4. Memory remains intact. Core 1 receives boolean false and knows to retry.');
+        appendAtomLog('Takeaway: Atomic CAS forms the foundational building block for all non-blocking lockless data structures.');
+
+        atomStage = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough from Stage 1\' to review.';
+        exp.innerHTML = 'You evaluated software race condition failures, indivisible hardware atomic serialization (Test-and-Set), and conditional memory updates (Compare-and-Swap).';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
+      }
+    }
+
+    function resetAtomWalkthrough() {
+      atomStage = 1;
+      resetAtomSvgElements();
+
+      document.getElementById('atom-step-badge').textContent = 'Stage 1 of 3';
+      document.getElementById('atom-act-text').textContent = 'Action Required: Click \'Simulate Stage 1: Non-Atomic Software Race\' below.';
+      document.getElementById('atom-exp-text').innerHTML = 'Watch Core 0 and Core 1 attempt to acquire a lock using standard read-then-write code. Notice that both cores read <code>0</code> before either can write <code>1</code>, causing both to claim the lock simultaneously.';
+
+      document.getElementById('atom-mode-txt').textContent = 'Non-Atomic Software';
+      document.getElementById('atom-mode-txt').style.color = '#ef4444';
+      document.getElementById('atom-c0-outcome').textContent = 'Awaiting Run';
+      document.getElementById('atom-c0-outcome').style.color = '#64748b';
+      document.getElementById('atom-c1-outcome').textContent = 'Awaiting Run';
+      document.getElementById('atom-c1-outcome').style.color = '#64748b';
+      document.getElementById('atom-mutex-status').textContent = 'Pending';
+      document.getElementById('atom-mutex-status').style.color = '#64748b';
+
+      document.getElementById('btn-atom-step').textContent = 'Simulate Stage 1: Non-Atomic Software Race';
+      document.getElementById('atom-walkthrough-log').innerHTML = '-- Walkthrough reset. Ready to evaluate atomic hardware mechanisms --';
     }
 
   </script>
