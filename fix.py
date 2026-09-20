@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Replace week index label with home icon in navigation header
+# fix.py: Sweep all repository HTML pages and unify navigation bars
 # =====================================================================
 import os
 import re
@@ -20,11 +20,9 @@ WEEK_TITLE_MAP = {
     "week12-security": "Week 12: Security"
 }
 
-def update_header_with_home_icon():
+def execute_repository_sweep():
     repo_root = "."
     modified_files = []
-
-    # Styled pill template featuring a home symbol (🏠)
     pill_template = '<a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">'
 
     for root, dirs, files in os.walk(repo_root):
@@ -42,11 +40,11 @@ def update_header_with_home_icon():
                 updated = False
                 new_content = content
 
-                # Match existing styled or unstyled navigation index links
                 patterns_to_replace = [
-                    rf'<a\s+href="index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠)?\s*{re.escape(week_title)}\s*</a>',
-                    rf'<a\s+href="\./index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠)?\s*{re.escape(week_title)}\s*</a>',
-                    rf'<span>\s*{re.escape(week_title)}\s*</span>'
+                    rf'<a\s+href="index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠|&#127968;)?\s*{re.escape(week_title)}\s*</a>',
+                    rf'<a\s+href="\./index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠|&#127968;)?\s*{re.escape(week_title)}\s*</a>',
+                    rf'<span>\s*{re.escape(week_title)}\s*</span>',
+                    rf'<div>\s*{re.escape(week_title)}\s*</div>'
                 ]
 
                 replaced = False
@@ -71,23 +69,23 @@ def update_header_with_home_icon():
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(new_content)
                     modified_files.append(file_path)
-                    print(f"--> Updated navigation header with home symbol in: {file_path}")
+                    print(f"--> Unified navigation header on: {file_path}")
 
     if modified_files:
         try:
             subprocess.run(["git", "add", "fix.py"] + modified_files, check=True)
             commit_msg = (
-                "Replace week index text label with home icon in navigation header\n\n"
-                "Update all week module HTML files to display a home symbol (🏠) alongside\n"
-                "the week title within the styled navigation pill link."
+                "Unify navigation headers with home symbol pill links across all pages\n\n"
+                "Scan all repository week modules and standardize navigation headers\n"
+                "to display the home symbol (🏠) pill button linking to index.html."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for home icon navigation headers!")
+            print("--> Git sync completed successfully across all pages!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> All week index navigation headers already use the home symbol.")
+        print("--> All pages already synchronized with unified home symbol navigation.")
 
 if __name__ == "__main__":
-    update_header_with_home_icon()
+    execute_repository_sweep()
