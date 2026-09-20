@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Force injection of home pill link into 01-what-is-an-os-and-history.html
+# fix.py: Fix navigation header in 02-hardware-review.html
 # =====================================================================
 import os
 import re
 import subprocess
 
-def force_fix_history_page():
-    file_path = os.path.join("week01-operating-system-concepts", "01-what-is-an-os-and-history.html")
+def fix_hardware_review_page():
+    file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
         return
@@ -22,29 +22,22 @@ def force_fix_history_page():
     updated = False
     new_content = content
 
-    # 1. Search for any existing nav or header tag
+    # 1. Search for existing nav block
     nav_match = re.search(r'(<nav[^>]*>)(.*?)(</nav>)', new_content, flags=re.DOTALL | re.IGNORECASE)
     if nav_match:
         nav_open, nav_body, nav_close = nav_match.groups()
-        # If there's already an anchor or span inside, let's replace the middle contents or wrap it
-        # Let's see if we can find a span or div or just replace the inner body of nav with [Prev] [Home Pill] [Next]
-        # Or let's target any existing center element in nav
         print(f"--> Found <nav> block in {file_path}.")
 
-        # Check if previous/next buttons are present
+        # Check for previous/next pagination buttons within nav
         btn_match = re.findall(r'(<a[^>]*class="[^"]*nav-btn[^"]*"[^>]*>.*?</a>)', nav_body, flags=re.DOTALL | re.IGNORECASE)
         if len(btn_match) >= 1:
-            # Construct a clean standardized nav bar with Previous, Home Pill, and Next
-            # Let's extract prev and next buttons if possible
-            prev_btn = btn_match[0] if "larr" in btn_match[0] or "Prev" in btn_match[0] or "03" in btn_match[0] else ""
+            prev_btn = btn_match[0] if "larr" in btn_match[0] or "Prev" in btn_match[0] or "01" in btn_match[0] else ""
             next_btn = btn_match[1] if len(btn_match) > 1 else (btn_match[0] if btn_match[0] != prev_btn else "")
 
-            # If we couldn't reliably distinguish, let's just replace the center text/span between buttons
             new_nav_body = f'\n    {prev_btn}\n    {styled_link}\n    {next_btn}\n  '
             new_content = new_content.replace(nav_match.group(0), f'{nav_open}{new_nav_body}{nav_close}')
             updated = True
         else:
-            # Just inject styled link into nav
             new_content = new_content.replace(nav_match.group(0), f'{nav_open}\n    {styled_link}\n  {nav_close}')
             updated = True
     else:
@@ -69,17 +62,17 @@ def force_fix_history_page():
         try:
             subprocess.run(["git", "add", "fix.py", file_path], check=True)
             commit_msg = (
-                "Fix navigation header in week01/01-what-is-an-os-and-history.html\n\n"
-                "Locate navigation container in 01-what-is-an-os-and-history.html and "
-                "force-inject the styled home symbol pill button linking to index.html."
+                "Fix navigation header in week01/02-hardware-review.html\n\n"
+                "Target 02-hardware-review.html specifically and inject the styled\n"
+                "home symbol pill button linking back to index.html."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for 01-what-is-an-os-and-history.html!")
+            print("--> Git sync completed successfully for 02-hardware-review.html!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> Error: Could not find any structural nav/header container in 01-what-is-an-os-and-history.html.")
+        print("--> Error: Could not find any structural nav/header container in 02-hardware-review.html.")
 
 if __name__ == "__main__":
-    force_fix_history_page()
+    fix_hardware_review_page()
