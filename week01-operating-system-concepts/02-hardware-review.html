@@ -539,6 +539,17 @@
           </div>
         </div>
 
+        
+        <!-- Instructions & Learner Guide -->
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 20px;">
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Use This Simulator</div>
+          <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
+            <li><strong>Step Through the Lifecycle:</strong> Click <code>Next Step &rarr;</code> to step sequentially through each phase of the system call. Click <code>&larr; Prev</code> to review previous states, or <code>Reset</code> to return to the beginning.</li>
+            <li><strong>Observe the Hardware State Bar:</strong> Notice how the <strong>CPU Mode</strong> changes color between red (User Mode / Ring 3) and blue (Kernel Mode / Ring 0), and how the <strong>Program Counter (PC)</strong> shifts between user space addresses and high kernel memory.</li>
+            <li><strong>Track Data and Privilege Flow:</strong> The highlighted vector path and active nodes below show exactly which hardware component is executing instructions at each stage.</li>
+          </ol>
+        </div>
+
         <!-- Hardware State Bar -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; font-family: var(--font-mono); font-size: 0.8rem;">
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
