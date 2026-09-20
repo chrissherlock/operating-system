@@ -187,7 +187,7 @@
     <div class="concept-box">
       <strong>Quantifying Performance: Effective Access Time ($EAT$)</strong><br>
       To solve this, hardware engineers introduced the <strong>Translation Lookaside Buffer (TLB)</strong>—a small, ultra-fast associative hardware cache holding recent virtual-to-physical mappings. The Effective Access Time is modeled as:
-      $$EAT = (h \times t_{tlb}) + (1 - h) \times (t_{tlb} + t_{ram\_table} + t_{ram\_data})$$
+      $$EAT = h 	imes (t_{tlb} + t_{ram\_data}) + (1 - h) 	imes (t_{tlb} + t_{ram\_table} + t_{ram\_data})$$
       Where $h$ is the TLB hit rate, $t_{tlb}$ is the TLB lookup latency (e.g., 1 ns), $t_{ram\_table}$ is the time to fetch a PTE from RAM, and $t_{ram\_data}$ is the payload fetch time. When $h \ge 99\%$, $EAT$ remains remarkably close to unpaged memory speeds!
     </div>
 

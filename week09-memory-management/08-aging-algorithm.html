@@ -342,7 +342,7 @@
         </ul>
         <div class="theory-callout">
           <strong>Tanenbaum's Aging Principle (Fig. 3-17):</strong><br>
-          An 8-bit history register records access over the last 8 clock ticks. For example, a register value of `10001000` (136 decimal) means the page was referenced 8 ticks ago and 4 ticks ago. A value of `00000001` (1 decimal) means it was only referenced 1 tick ago. Aging provides an exceptional approximation of true LRU.
+          An 8-bit history register records access over the last 8 clock ticks. For example, a register value of `10001000` (136 decimal) means the page was referenced 8 ticks ago and 4 ticks ago. A value of `10000000` (128 decimal) indicates a reference at the most recent interval (shifted into the MSB), while `00000001` (1 decimal) indicates a reference at the oldest tracked interval. Aging provides an exceptional approximation of true LRU.
         </div>
       </div>
     </div>
