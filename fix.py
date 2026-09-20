@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Remove card enclosures from Module 1 and git sync
+# fix.py: Fully restore all expanded content and unboxed styling in Module 1
 # =====================================================================
 import os
 import subprocess
 
-def update_module_one_layout():
-    target_dir = "week01-operating-system-concepts"
-    file_name = "01-what-is-an-os-and-history.html"
-    file_path = os.path.join(target_dir, file_name)
+def restore_full_module_one():
+    file_path = os.path.join("week01-operating-system-concepts", "01-what-is-an-os-and-history.html")
 
     html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>What Is an Operating System &amp; History -- COSC240</title>
+  <title>01. What Is an Operating System &amp; History -- COSC240</title>
   <style id="module-nav-styles">
     .module-nav-bar {
       display: flex;
@@ -122,7 +120,7 @@ def update_module_one_layout():
       line-height: 1.6;
       font-size: 0.95rem;
     }
-    ul {
+    ul, ol {
       margin-left: 20px;
       color: var(--text-muted);
       line-height: 1.6;
@@ -179,7 +177,7 @@ def update_module_one_layout():
 
   <nav class="module-nav-bar">
     <span class="module-nav-placeholder">&larr; Previous</span>
-    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="index.html" class="module-nav-btn">Chapter 1 Index</a>
     <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
   </nav>
 
@@ -202,8 +200,12 @@ def update_module_one_layout():
 
       <h3>2. The Resource Manager (Multiplexing)</h3>
       <p>
-        Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
+        Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users. Multiplexing occurs in two ways:
       </p>
+      <ul>
+        <li><strong>Time Multiplexing:</strong> Different programs or users take turns using the resource sequentially (e.g., CPU scheduling or print spooling).</li>
+        <li><strong>Space Multiplexing:</strong> Instead of taking turns, customers share physical slices of the resource simultaneously (e.g., allocating chunks of physical memory or disk blocks).</li>
+      </ul>
 
       <h2>Historical Evolution &amp; Computing Generations (Tanenbaum Chapter 1.2)</h2>
       <p>
@@ -272,7 +274,10 @@ def update_module_one_layout():
 
       <h3>Generation 3: ICs, Multiprogramming, &amp; Time-Sharing (1965–1980)</h3>
       <p>
-        Integrated circuits (ICs) revolutionized computer architecture. The IBM System/360 introduced hardware architecture families capable of running both commercial and scientific workloads. To eliminate CPU idle time during slow I/O operations, <strong>multiprogramming</strong> was developed, alongside <strong>time-sharing</strong> systems enabling multiple interactive users.
+        The invention of the integrated circuit (IC) allowed dozens to hundreds of transistors to be etched onto a single silicon chip, dramatically reducing cost while increasing computational power. A major breakthrough was the introduction of the <strong>IBM System/360</strong> in 1964, which unified scientific and commercial architectures under a single instruction set architecture (ISA) and gave birth to the massive <strong>OS/360</strong> operating system.
+      </p>
+      <p>
+        To prevent expensive processors from idling while waiting for slow mechanical I/O operations to complete, this era pioneered <strong>multiprogramming</strong>—partitioning memory into several pieces so that when one job blocked waiting for I/O, the CPU immediately switched to another job. Furthermore, the development of interactive <strong>time-sharing</strong> systems (such as MIT's <strong>CTSS</strong> and the ambitious <strong>MULTICS</strong> project) enabled dozens of users to log in simultaneously via remote terminals, receiving fast conversational responses.
       </p>
       <div class="image-grid">
         <div class="image-card">
@@ -299,16 +304,39 @@ def update_module_one_layout():
 
       <h3>Generation 4: Personal Computers &amp; Networks (1980–Present)</h3>
       <p>
-        The advent of Large-Scale Integration (LSI) and Very Large-Scale Integration (VLSI) semiconductor chips made microprocessors economically viable, triggering the personal computer revolution. Operating systems shifted dramatically away from centralized multi-user mainframes toward responsive, single-user desktop environments designed for accessibility and local productivity.
+        Large-Scale Integration (LSI) and Very Large-Scale Integration (VLSI) made microprocessors economically accessible, sparking the personal computer revolution. Operating systems shifted dramatically away from centralized multi-user mainframes toward responsive, single-user desktop environments designed for accessibility and personal productivity.
       </p>
       <p>
         Key milestones and architectural shifts during Generation 4 include:
       </p>
       <ul>
-        <li><strong>Graphical User Interfaces (GUIs):</strong> Pioneered at Xerox PARC and popularized by Apple Macintosh and Microsoft Windows, operating systems integrated visual window managers, icons, menus, and pointer (WIMP) paradigms, eliminating raw command-line dependency for everyday users.</li>
-        <li><strong>Networking &amp; Distributed Architectures:</strong> Local Area Networks (LANs) and TCP/IP protocol stacks were integrated directly into operating system kernels, transforming isolated personal computers into interconnected nodes capable of shared file systems, printing, and client-server communication.</li>
-        <li><strong>Protected Memory &amp; Preemptive Multitasking:</strong> Early single-tasking microcomputer OSs (like early MS-DOS) evolved into robust 32-bit and 64-bit architectures (such as Windows NT, modern macOS, and Linux) featuring hardware-enforced memory protection, virtual memory paging, and preemptive task scheduling.</li>
+        <li><strong>Graphical User Interfaces (GUIs):</strong> Pioneered at Xerox PARC and popularized by the Apple Macintosh (1984) and Microsoft Windows (culminating in Windows 95), operating systems integrated visual window managers, icons, menus, and pointer (WIMP) paradigms, eliminating raw command-line dependency for everyday users.</li>
+        <li><strong>Networking &amp; Distributed Architectures:</strong> Local Area Networks (LANs) and TCP/IP protocol stacks were integrated directly into operating system kernels, transforming isolated computers into interconnected nodes capable of network file systems and client-server workflows.</li>
+        <li><strong>Protected Memory &amp; Preemptive Multitasking:</strong> Early single-tasking microcomputer OSs (like MS-DOS) gave way to robust 32-bit and 64-bit architectures (such as Windows NT, modern macOS, and Linux) featuring hardware-enforced memory protection, virtual memory paging, and preemptive task scheduling.</li>
       </ul>
+
+      <div class="image-grid">
+        <div class="image-card">
+          <img src="../images/macintosh-128k.png" alt="Apple Macintosh 128k">
+          <span>
+            <strong>Macintosh 128k (1984)</strong><br>
+            Mass-market personal computer GUI environment.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Macintosh_128K" target="_blank" rel="noopener">Wikipedia: Macintosh 128K</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Macintosh_128k_transparency.png&oldid=857211029" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: AllAboutApple / Wikimedia Commons (CC BY-SA 2.5)</small>
+          </span>
+        </div>
+        <div class="image-card">
+          <img src="../images/windows-95-first-run.png" alt="Windows 95 Desktop">
+          <span>
+            <strong>Windows 95 Desktop</strong><br>
+            32-bit consumer desktop with Start menu and taskbar.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Windows_95" target="_blank" rel="noopener">Wikipedia: Windows 95</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Windows_95_first_run.png&oldid=1073862215" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Attribution: Microsoft Windows 95 OS</small>
+          </span>
+        </div>
+      </div>
 
       <h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>
       <p>
@@ -432,7 +460,7 @@ def update_module_one_layout():
 
   <nav class="module-nav-bar bottom">
     <span class="module-nav-placeholder">&larr; Previous</span>
-    <a href="index.html" class="module-nav-btn">Week Index</a>
+    <a href="index.html" class="module-nav-btn">Chapter 1 Index</a>
     <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
   </nav>
 
@@ -442,15 +470,15 @@ def update_module_one_layout():
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"--> Successfully updated {file_path} layout.")
+
+    print(f"--> Successfully wrote complete expanded contents to {file_path}")
 
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Remove card enclosures from main text in 01-what-is-an-os-and-history.html\n\n"
-            "Refactor week01-operating-system-concepts/01-what-is-an-os-and-history.html\n"
-            "to flow as unboxed standard prose, matching the styling updates made to\n"
-            "Module 2 while preserving image grids and navigation bars."
+            "Restore expanded generation details and image cards in Module 1\n\n"
+            "Reinstate complete text expansions for Generations 1 through 5, all image\n"
+            "cards (Generations 1-4), and the ecosystem index without card wrappers."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -459,4 +487,4 @@ def update_module_one_layout():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_module_one_layout()
+    restore_full_module_one()
