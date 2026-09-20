@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# update_os_logos_family_grid.py: Organize OS logos into family rows
+# fix_os_logos_paths.py: Correct image paths for OS logos family grid
 # =====================================================================
 import os
 import subprocess
 import sys
 
-FAMILY_GRID_HTML = r"""
+FAMILY_GRID_HTML_FIXED = r"""
     <!-- OPERATING SYSTEM LOGOS FAMILY GRID SECTION -->
     <section class="content-section">
       <h2>Operating System Ecosystem &amp; Architecture Families</h2>
@@ -24,17 +24,17 @@ FAMILY_GRID_HTML = r"""
           <div style="display: flex; gap: 14px; flex-wrap: wrap;">
             <!-- Windows -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/windows.svg" alt="Windows Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/windows.svg" alt="Windows Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Windows</span>
             </div>
             <!-- Apple -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/apple.svg" alt="Apple Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/apple.svg" alt="Apple Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Apple macOS</span>
             </div>
             <!-- ChromeOS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/chrome.svg" alt="ChromeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/chrome.svg" alt="ChromeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">ChromeOS</span>
             </div>
           </div>
@@ -48,22 +48,22 @@ FAMILY_GRID_HTML = r"""
           <div style="display: flex; gap: 14px; flex-wrap: wrap;">
             <!-- Linux Tux -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/tux.svg" alt="Linux Tux Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/tux.svg" alt="Linux Tux Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Linux (Tux)</span>
             </div>
             <!-- FreeBSD -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/freebsd.svg" alt="FreeBSD Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/freebsd.svg" alt="FreeBSD Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">FreeBSD</span>
             </div>
             <!-- Android -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/android.svg" alt="Android Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/android.svg" alt="Android Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Android</span>
             </div>
             <!-- MINIX -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/minix.png" alt="MINIX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/minix.png" alt="MINIX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">MINIX</span>
             </div>
           </div>
@@ -77,17 +77,17 @@ FAMILY_GRID_HTML = r"""
           <div style="display: flex; gap: 14px; flex-wrap: wrap;">
             <!-- FreeRTOS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/free-rtos.png" alt="FreeRTOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/free-rtos.png" alt="FreeRTOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">FreeRTOS</span>
             </div>
             <!-- QNX -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/qnx.svg" alt="QNX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/qnx.svg" alt="QNX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">QNX RTOS</span>
             </div>
             <!-- VxWorks -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/vxworks.svg" alt="VxWorks Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/vxworks.svg" alt="VxWorks Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">VxWorks</span>
             </div>
           </div>
@@ -101,27 +101,27 @@ FAMILY_GRID_HTML = r"""
           <div style="display: flex; gap: 14px; flex-wrap: wrap;">
             <!-- OS/2 -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/os2.svg" alt="IBM OS/2 Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/os2.svg" alt="IBM OS/2 Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">IBM OS/2</span>
             </div>
             <!-- Solaris -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/solaris.svg" alt="Solaris Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/solaris.svg" alt="Solaris Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Solaris</span>
             </div>
             <!-- OpenVMS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/openvms.svg" alt="OpenVMS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/openvms.svg" alt="OpenVMS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">OpenVMS</span>
             </div>
             <!-- Multics -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/multics.svg" alt="Multics Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/multics.svg" alt="Multics Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Multics</span>
             </div>
             <!-- BeOS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/beos.svg" alt="BeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <img src="images/logos/beos.svg" alt="BeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
               <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">BeOS</span>
             </div>
           </div>
@@ -130,7 +130,7 @@ FAMILY_GRID_HTML = r"""
       </div>
     </section>"""
 
-def update_family_grid():
+def fix_paths():
     portal_path = os.path.join("week01-operating-system-concepts", "index.html")
     modified = []
 
@@ -138,15 +138,10 @@ def update_family_grid():
         with open(portal_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Remove old carousel section if present
-        if "OPERATING SYSTEM LOGOS CAROUSEL SECTION" in content:
-            parts = content.split("    <!-- OPERATING SYSTEM LOGOS CAROUSEL SECTION -->")
+        if "OPERATING SYSTEM LOGOS FAMILY GRID SECTION" in content:
+            parts = content.split("    <!-- OPERATING SYSTEM LOGOS FAMILY GRID SECTION -->")
             trailer = parts[1].split("</section>", 1)[1]
-            content = parts[0] + trailer
-
-        target = "    <div class=\"nav-header\" style=\"border-top: 1px solid var(--border); padding-top: 16px;\">"
-        if target in content and "OPERATING SYSTEM LOGOS FAMILY GRID SECTION" not in content:
-            content = content.replace(target, FAMILY_GRID_HTML + "\n\n    " + target, 1)
+            content = parts[0] + FAMILY_GRID_HTML_FIXED + "\n\n    " + trailer.strip()
             with open(portal_path, "w", encoding="utf-8") as f:
                 f.write(content)
             modified.append(portal_path)
@@ -163,15 +158,15 @@ def update_family_grid():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Replace OS logos carousel with categorized family grid in Week 1 portal index\n\n"
-            "Update week01-operating-system-concepts/index.html to replace the carousel with\n"
-            "a structured, family-ordered row of operating system icons (Commercial, Open-Source, RTOS, Historical)."
+            "Fix relative image paths for OS logos family grid in Week 1 portal index\n\n"
+            "Update week01-operating-system-concepts/index.html logo sources from ../images/logos/\n"
+            "to images/logos/ so icons resolve and render correctly."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> OS logos family grid successfully deployed to Week 1 portal index!")
+    print("--> OS logos family grid path fix successfully deployed!")
 
 if __name__ == "__main__":
-    update_family_grid()
+    fix_paths()
