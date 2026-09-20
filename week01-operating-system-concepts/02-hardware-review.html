@@ -546,9 +546,9 @@
         <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
           <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Experience This Walkthrough</div>
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
-            <li><strong>Follow the Narrative Arc:</strong> Read each step as a chapter in the lifecycle of a disk read operation (<code>report.txt</code>).</li>
-            <li><strong>Watch the Hardware Board:</strong> Notice when the CPU mode bit flips between unprivileged user code and privileged kernel supervision.</li>
-            <li><strong>Compare Operating Systems:</strong> Toggle between <code>Linux / Unix</code> and <code>Windows NT</code> at any time to see how both OS designs navigate the same underlying hardware constraints.</li>
+            <li><strong>Follow the Narrative Arc:</strong> Read each step as a chapter in the lifecycle of reading a 512-byte block from <code>report.txt</code>.</li>
+            <li><strong>Watch the Hardware Board:</strong> Notice when the CPU mode bit flips between unprivileged user code (Ring 3) and privileged kernel supervision (Ring 0).</li>
+            <li><strong>Compare Operating Systems:</strong> Toggle between <code>Linux / Unix</code> and <code>Windows NT</code> at any step to see how both OS designs navigate the same silicon boundaries.</li>
           </ol>
         </div>
 
@@ -564,9 +564,7 @@
 
           <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center;">
             <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Next in the Story:</div>
-            <div id="inline-next-desc" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">
-              The program hits the hardware wall: it cannot talk to the disk drive directly, so it stages arguments into CPU registers to request OS assistance.
-            </div>
+            <div id="inline-next-desc" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">Loading chapter details...</div>
           </div>
         </div>
 
@@ -682,9 +680,9 @@
                 node4Sub: "sys_call_table[__NR_read]",
                 node5Title: "VFS &amp; NVMe Driver",
                 node5Sub: "Reads Blocks from Disk",
-                what: "Our story begins inside a user text editor running peacefully in User Space. The user hits 'Open File', and the application wants 512 bytes from <code>report.txt</code>. It calls the standard C function <code>read(fd, buffer, 512)</code>. Right now, the CPU is running in User Mode (Mode Bit = 1). The application cannot send electricity to the physical SSD pins or command the storage controller directly; doing so would immediately trigger a fatal General Protection Fault.",
-                why: "Imagine if any running program could send raw signals across the PCIe bus: a buggy text editor could wipe your entire operating system or spy on another user's banking session. The hardware enforces a sandbox (Ring 3) where applications can compute, but cannot touch real physical reality without permission.",
-                nextStep: "The text editor surrenders execution to the C standard library wrapper, which will stage the formal request into CPU registers."
+                what: "Our Unix story begins inside a text editor running in User Space. The user opens <code>report.txt</code>, and the program needs 512 bytes from disk. It calls <code>read(fd, buffer, 512)</code>. The CPU is running in User Mode (Mode Bit = 1). The application cannot send voltage pulses across the storage bus or touch physical disk sectors directly; doing so would trigger an immediate General Protection Fault.",
+                why: "If any running application could manipulate the storage bus directly, a buggy program could corrupt files belonging to other users or read password hashes straight off the disk platters. The CPU hardware enforces a strict sandbox (Ring 3) to protect system integrity.",
+                nextStep: "The text editor calls the C standard library (glibc) wrapper, which will stage the request into CPU registers."
               },
               {
                 mode: "USER (Ring 3)",
@@ -705,8 +703,8 @@
                 node4Sub: "sys_call_table[0]",
                 node5Title: "VFS &amp; NVMe Driver",
                 node5Sub: "Reads Blocks from Disk",
-                what: "Execution steps into the C runtime library (glibc). The library sets up the rendezvous. It writes <code>0</code> into the <code>RAX</code> register—the universal Linux catalog number for <code>sys_read</code>. It places the file descriptor into <code>RDI</code>, the buffer address into <code>RSI</code>, and the byte count (512) into <code>RDX</code>. With all arguments staged, it executes the special machine instruction: <code>SYSCALL</code>.",
-                why: "An unprivileged program cannot just flip its own mode bit from 1 to 0; the CPU hardware rejects any software attempt to elevate its own rank. The <code>SYSCALL</code> instruction is a controlled hardware gateway—a specialized architectural emergency brake designed into the silicon.",
+                what: "Execution steps into the C runtime library (glibc). The stub sets up the call parameters: it loads <code>0</code> into <code>RAX</code> (the Linux syscall number for <code>sys_read</code>), the file descriptor into <code>RDI</code>, the buffer pointer into <code>RSI</code>, and <code>512</code> into <code>RDX</code>. Finally, it executes the machine instruction: <code>SYSCALL</code>.",
+                why: "An unprivileged program cannot modify its own privilege level; the CPU hardware rejects any software instruction attempting to clear the mode bit. The <code>SYSCALL</code> instruction acts as a controlled gateway—an intentional architectural escape hatch into the supervisor.",
                 nextStep: "The CPU silicon intercepts the SYSCALL instruction, drops privileges to Ring 0, swaps stacks, and jumps into supervisor space."
               },
               {
@@ -728,8 +726,8 @@
                 node4Sub: "Validates Registers",
                 node5Title: "VFS &amp; NVMe Driver",
                 node5Sub: "Reads Blocks from Disk",
-                what: "At this exact microsecond, the CPU hardware takes total control. The CPU microcode instantly forces the Mode Bit in the processor flags from <code>1</code> to <code>0</code>. It saves the application's Program Counter and user Stack Pointer onto the process's private kernel stack. Then, the processor forces the Program Counter to jump directly to the kernel's hardened entry point registered in the CPU's Model-Specific Register (<code>MSR_LSTAR</code>).",
-                why: "Why does the CPU automatically switch stacks to a secret kernel memory area? Because if the kernel used the user's stack, a malicious thread in another CPU core could rewrite return addresses while the kernel was running in Ring 0, hijacking the entire machine!",
+                what: "The CPU microcode takes control. It forces the Mode Bit in the processor flags from <code>1</code> to <code>0</code>, saves the user Program Counter and Stack Pointer onto the process's private kernel stack, and branches to the kernel entry point stored in the CPU's Model-Specific Register (<code>MSR_LSTAR</code>).",
+                why: "The CPU switches to a private kernel stack because user-space memory is untrusted. If the kernel used the user's stack, a malicious concurrent thread could rewrite return addresses while the kernel was running in Ring 0, hijacking the supervisor.",
                 nextStep: "The kernel entry routine inspects the catalog number in RAX and vectors to the Virtual File System handler."
               },
               {
@@ -751,8 +749,8 @@
                 node4Sub: "Verifies Buffer Pointers",
                 node5Title: "VFS &amp; NVMe Driver",
                 node5Sub: "Dispatches Disk Command",
-                what: "The kernel's syscall dispatcher looks at the <code>RAX</code> register. Seeing <code>0</code>, it knows the user wants <code>sys_read</code>. But before touching any files, the kernel acts with deep suspicion: it checks the destination buffer address in <code>RSI</code>. It verifies that this memory really belongs to the user application, and is not a clever trick pointing to secret kernel memory.",
-                why: "This prevents the notorious 'confused deputy' attack. If the kernel blindly filled any memory address the user supplied, an unprivileged user could pass the memory address of the OS password table and trick the kernel into overwriting it with file data!",
+                what: "The kernel dispatcher reads <code>RAX = 0</code> and locates <code>sys_read</code> in <code>sys_call_table</code>. Before touching any storage devices, it validates the buffer address in <code>RSI</code> to ensure the entire destination range resides inside unprivileged user memory and is writable.",
+                why: "This prevents 'confused deputy' exploits: if the kernel blindly accepted any memory pointer without checking, a malicious program could pass a pointer to the kernel's own page tables and trick the kernel into overwriting its own security structures with file data.",
                 nextStep: "With pointers verified, the kernel invokes the physical storage driver to talk directly to the NVMe controller."
               },
               {
@@ -774,8 +772,8 @@
                 node4Sub: "VFS &rarr; Block Layer",
                 node5Title: "NVMe Device Driver",
                 node5Sub: "Issues DMA Command",
-                what: "The kernel Virtual File System (VFS) resolves the file path to physical drive blocks. The NVMe device driver issues raw commands across the PCIe bus to the controller chip. The NVMe drive fires up Direct Memory Access (DMA) and writes the 512 bytes directly from flash storage into the application's buffer. The driver receives a completion interrupt and signals that the data is safely in memory.",
-                why: "Only here, deep inside Ring 0, are the processor's I/O instructions unlocked. Because the operating system wrote the driver, it guarantees that only authorized sectors belonging to <code>report.txt</code> are read, leaving all other files untouched.",
+                what: "The Virtual File System (VFS) maps the file offset to logical block addresses. The NVMe device driver programs controller registers across the PCIe bus. The NVMe drive uses Direct Memory Access (DMA) to stream the 512 bytes straight into RAM, firing a hardware completion interrupt when finished.",
+                why: "Only in Ring 0 are hardware I/O ports and device memory maps accessible. Because device drivers run inside the kernel, the OS ensures programs only access disk sectors allocated to their own authorized open files.",
                 nextStep: "The kernel finishes the operation, puts the byte count into RAX, and prepares to drop privileges back to the application."
               },
               {
@@ -797,8 +795,8 @@
                 node4Sub: "sys_read Complete",
                 node5Title: "NVMe Device Driver",
                 node5Sub: "I/O Transfer Finished",
-                what: "The kernel writes <code>512</code> into <code>RAX</code> (telling the user that 512 bytes were successfully read). It executes the <code>SYSRET</code> instruction. In a single clock cycle, the CPU restores the Mode Bit back to <code>1</code> (User Mode), restores the original user stack pointer, and jumps execution back to the text editor. The application wakes up, reads the buffer, and renders your document on screen.",
-                why: "The circle is complete. The system returns to steady-state unprivileged execution. The application got its data, but at no moment was it ever allowed to break out of its sandbox or usurp processor authority.",
+                what: "The kernel places <code>512</code> into <code>RAX</code> (indicating bytes read) and issues the <code>SYSRET</code> instruction. In a single clock cycle, the CPU restores Mode Bit = 1, reloads the user stack pointer, and returns execution to the application. The text editor resumes and displays the file contents.",
+                why: "The system returns to steady-state unprivileged execution. The application received its file data without ever being granted supervisor authority or breaking out of its hardware sandbox.",
                 nextStep: "The journey is complete. Click Replay to step through the story again from the beginning."
               }
             ],
@@ -807,24 +805,24 @@
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
-                pc: "0x00007FF710001200 (Notepad / Word)",
+                pc: "0x00007FF710001200 (Notepad.exe)",
                 stack: "User Stack (RSP = 0x00000080...)",
-                stepNum: "Chapter 1 of 6: The Win32 Application Asks for Help",
+                stepNum: "Chapter 1 of 6: The Win32 Application Requests Help",
                 activeNode: "node-user-app",
                 activeEdges: [],
                 btnNextText: "Next: Enter Windows Subsystem DLLs &rarr;",
                 btnPrevText: "&larr; Prev",
-                node1Title: "Win32 App (Notepad)",
+                node1Title: "Notepad (PID 1024)",
                 node1Sub: "ReadFile(hFile, buf, 512)",
                 node2Title: "kernel32 &rarr; ntdll",
-                node2Sub: "Stages SSN in EAX",
+                node2Sub: "Prepares Syscall",
                 node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
                 node5Title: "I/O Manager &amp; Drivers",
                 node5Sub: "Allocates IRP &rarr; NTFS",
-                what: "Our Windows story begins inside Notepad running in User Space. The user opens <code>report.txt</code>. The application does not call the kernel directly; instead, it calls the friendly Win32 API function: <code>ReadFile()</code> exported by <code>kernel32.dll</code>. Notepad is running strictly in Ring 3 (Mode Bit = 1). If Notepad tried to talk directly to the storage disk or manipulate page tables, the CPU would throw an immediate hardware exception.",
-                why: "Microsoft intentionally decouples software from raw system calls. Unlike Unix where syscall numbers are stable, Windows syscall numbers change with almost every Windows build and security patch! Win32 subsystem DLLs buffer applications from the shifting kernel underneath.",
-                nextStep: "kernel32.dll hands the request down to ntdll.dll, the keeper of the raw Windows system service numbers."
+                what: "Our Windows story begins inside Notepad running in User Space. The user opens <code>report.txt</code>. Notepad does not make raw system calls directly; instead, it calls the standard Win32 API function <code>ReadFile()</code> in <code>kernel32.dll</code> / <code>kernelbase.dll</code>. Notepad runs in Ring 3 (Mode Bit = 1). If it attempted to issue raw device controller commands, the CPU would throw an immediate hardware exception.",
+                why: "Microsoft intentionally isolates user applications behind subsystem DLLs. While Unix syscall numbers remain stable across releases, Windows system service numbers change between builds and security updates! The Win32 subsystem shields applications from changes in the underlying kernel.",
+                nextStep: "kernel32.dll forwards the request to ntdll.dll, the native gatekeeper of Windows system calls."
               },
               {
                 mode: "USER (Ring 3)",
@@ -832,21 +830,21 @@
                 modeColor: "#dc2626",
                 pc: "0x00007FFA300124A0 (ntdll.dll!NtReadFile)",
                 stack: "User Stack (RSP = 0x00000080...)",
-                stepNum: "Chapter 2 of 6: ntdll.dll and the Secret System Service Number",
+                stepNum: "Chapter 2 of 6: The Secret System Service Number (SSN)",
                 activeNode: "node-trap-trigger",
                 activeEdges: ["edge-1"],
                 btnNextText: "Next: Hardware Mode Switch &rarr;",
                 btnPrevText: "&larr; Prev: Win32 Invocation",
-                node1Title: "Win32 App (Notepad)",
+                node1Title: "Notepad (PID 1024)",
                 node1Sub: "Waiting on ReadFile()",
-                node2Title: "ntdll.dll Stub",
+                node2Title: "ntdll.dll Native Stub",
                 node2Sub: "EAX = 0x06 (NtReadFile) &rarr; syscall",
                 node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
                 node5Title: "I/O Manager &amp; Drivers",
                 node5Sub: "Allocates IRP &rarr; NTFS",
-                what: "Inside <code>ntdll.dll</code>, the lowest user-mode library in Windows, sits the native stub for <code>NtReadFile</code>. This tiny stub moves the secret System Service Number (SSN, e.g. <code>0x06</code>) into the <code>EAX</code> register, stages the 64-bit parameters, and executes the CPU instruction: <code>syscall</code>.",
-                why: "<code>ntdll.dll</code> is the only code in Windows that knows the true syscall numbers for the current OS version. By locking this knowledge inside <code>ntdll.dll</code>, Windows ensures your 15-year-old application runs without recompilation on Windows 11.",
+                what: "<code>kernelbase.dll</code> passes the request down to <code>ntdll.dll</code>, the lowest user-mode DLL in the Windows architecture. Inside <code>ntdll.dll</code>, a tiny assembly stub moves the System Service Number for <code>NtReadFile</code> (e.g., <code>0x06</code>) into the <code>EAX</code> register, aligns parameters in RCX/RDX/R8/R9, and issues the CPU instruction: <code>syscall</code>.",
+                why: "Because <code>ntdll.dll</code> is updated alongside the kernel with each Windows update, it is the only user-mode binary that knows the correct System Service Numbers for the active kernel build. This design allows decades-old Windows binaries to continue working on modern versions of Windows without recompilation.",
                 nextStep: "The CPU catches the syscall instruction, switches to Ring 0, swaps stacks, and jumps to KiSystemCall64 in ntoskrnl.exe."
               },
               {
@@ -855,21 +853,21 @@
                 modeColor: "#0284c7",
                 pc: "0xFFFFF80020400000 (ntoskrnl.exe!KiSystemCall64)",
                 stack: "Kernel Stack (KTHREAD.InitialStack)",
-                stepNum: "Chapter 3 of 6: Crossing into ntoskrnl.exe (The Hardware Switch)",
+                stepNum: "Chapter 3 of 6: Crossing the Threshold into ntoskrnl.exe",
                 activeNode: "node-cpu-hw",
                 activeEdges: ["edge-2"],
                 btnNextText: "Next: Lookup in SSDT &rarr;",
                 btnPrevText: "&larr; Prev: ntdll Syscall",
-                node1Title: "Win32 App (Notepad)",
+                node1Title: "Notepad (PID 1024)",
                 node1Sub: "Suspended (State Saved)",
-                node2Title: "ntdll.dll Stub",
+                node2Title: "ntdll.dll Native Stub",
                 node2Sub: "Trapped into Hardware",
                 node4Title: "KiSystemCall64",
                 node4Sub: "Kernel Dispatcher",
                 node5Title: "I/O Manager &amp; Drivers",
                 node5Sub: "Allocates IRP &rarr; NTFS",
-                what: "The CPU microcode catches the trap. It flips the hardware Mode Bit to <code>0</code> (Kernel Mode). The processor loads the privileged stack pointer stored in the thread's <code>KTHREAD</code> structure and branches directly to the entry point stored in the CPU's <code>MSR_LSTAR</code> register: <code>KiSystemCall64</code> inside the main Windows executive kernel (<code>ntoskrnl.exe</code>).",
-                why: "Windows must execute this stack swap in hardware before touching a single line of C code. Running kernel code on an unverified user stack would allow user-space malware to hijack kernel control flow.",
+                what: "The CPU hardware catches the trap. It sets Mode Bit = 0, loads the privileged kernel stack pointer from the active thread's <code>KTHREAD</code> structure, and branches directly to the entry point stored in the CPU's <code>MSR_LSTAR</code> register: <code>KiSystemCall64</code> inside the main Windows kernel executable (<code>ntoskrnl.exe</code>).",
+                why: "Switching to an isolated kernel stack in silicon ensures that user-mode code cannot tamper with execution context while running in supervisor mode. The processor hardware enforces this boundary before executing any kernel instructions.",
                 nextStep: "KiSystemCall64 extracts the SSN index from EAX and routes to the System Service Descriptor Table (SSDT)."
               },
               {
@@ -878,21 +876,21 @@
                 modeColor: "#0284c7",
                 pc: "0xFFFFF80020521080 (ntoskrnl.exe SSDT)",
                 stack: "Kernel Stack (KTHREAD)",
-                stepNum: "Chapter 4 of 6: The SSDT Dispatch &amp; Parameter Probing",
+                stepNum: "Chapter 4 of 6: The SSDT Dispatch &amp; Memory Validation",
                 activeNode: "node-kernel-idt",
                 activeEdges: ["edge-3"],
                 btnNextText: "Next: Dispatch I/O Packet &rarr;",
                 btnPrevText: "&larr; Prev: KiSystemCall64",
-                node1Title: "Win32 App (Notepad)",
+                node1Title: "Notepad (PID 1024)",
                 node1Sub: "Suspended (State Saved)",
-                node2Title: "ntdll.dll Stub",
+                node2Title: "ntdll.dll Native Stub",
                 node2Sub: "Trapped into Hardware",
                 node4Title: "SSDT Dispatcher",
                 node4Sub: "ProbeForWrite() Check",
                 node5Title: "I/O Manager &amp; Drivers",
                 node5Sub: "Allocates IRP &rarr; NTFS",
-                what: "<code>KiSystemCall64</code> indexes into the System Service Descriptor Table (SSDT) using the number in <code>EAX</code> to find <code>NtReadFile</code>. The kernel immediately calls <code>ProbeForWrite()</code> on the destination buffer. It ensures that the memory buffer truly belongs to user space and that memory protection flags permit writing.",
-                why: "The kernel must rigorously protect itself against buffer overflow attacks and malicious kernel memory probes. If the destination pointer overlaps supervisor space, the call is terminated immediately with <code>STATUS_ACCESS_VIOLATION</code>.",
+                what: "<code>KiSystemCall64</code> indexes into the System Service Descriptor Table (SSDT) using the value in <code>EAX</code> to locate <code>NtReadFile</code>. The kernel calls <code>ProbeForWrite()</code> on the destination buffer to confirm that the memory belongs entirely to user space and has write permissions.",
+                why: "The kernel must rigorously validate memory boundaries. If an unprivileged application could pass a pointer to kernel memory, it could trick supervisor routines into overwriting security descriptors or page tables, compromising system security.",
                 nextStep: "The Windows I/O Manager wraps the read request into an I/O Request Packet (IRP) and sends it down the driver stack."
               },
               {
@@ -901,35 +899,35 @@
                 modeColor: "#0284c7",
                 pc: "0xFFFFF80020684100 (ntfs.sys &rarr; stornvme.sys)",
                 stack: "Kernel Stack (KTHREAD)",
-                stepNum: "Chapter 5 of 6: The IRP Journey Down the Driver Stack",
+                stepNum: "Chapter 5 of 6: The IRP Travels the Driver Stack",
                 activeNode: "node-kernel-driver",
                 activeEdges: ["edge-4"],
                 btnNextText: "Next: Return to User Mode &rarr;",
                 btnPrevText: "&larr; Prev: SSDT Dispatch",
-                node1Title: "Win32 App (Notepad)",
+                node1Title: "Notepad (PID 1024)",
                 node1Sub: "Waiting on IRP Completion",
-                node2Title: "ntdll.dll Stub",
+                node2Title: "ntdll.dll Native Stub",
                 node2Sub: "Waiting for Bytes",
                 node4Title: "I/O Manager",
                 node4Sub: "Dispatches IRP",
                 node5Title: "ntfs.sys &amp; stornvme.sys",
                 node5Sub: "Executes DMA Transfer",
-                what: "Here is the architectural genius of Windows: the I/O Manager creates a self-contained packet called an <strong>IRP (I/O Request Packet)</strong>. It passes this packet down a layered stack: from <code>ntfs.sys</code> (which looks up file clusters), down to <code>classpnp.sys</code>, down to <code>stornvme.sys</code>. The storage driver programs the NVMe controller registers, DMA transfers 512 bytes into RAM, and completes the IRP with <code>STATUS_SUCCESS</code>.",
-                why: "Windows uses packet-driven I/O so that operations can be asynchronous, stacked, filtered (e.g. by antivirus drivers), and redirected without the filesystem knowing what kind of physical storage controller is connected.",
+                what: "The Windows I/O Manager creates a discrete data structure called an <strong>IRP (I/O Request Packet)</strong> and sends it down the storage driver stack: from <code>ntfs.sys</code> (which maps clusters), down through <code>classpnp.sys</code>, to <code>stornvme.sys</code>. The NVMe driver configures controller registers, and DMA transfers 512 bytes directly into RAM. The driver completes the IRP with <code>STATUS_SUCCESS</code>.",
+                why: "Windows relies on packet-driven I/O so requests can be processed asynchronously, queued, filtered by antivirus filter drivers, or redirected over networks without the caller needing to know the physical storage device type.",
                 nextStep: "The kernel finishes execution, puts the status code into EAX, and executes sysret to return to user mode."
               },
               {
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
-                pc: "0x00007FF710001208 (Notepad Resumes)",
+                pc: "0x00007FF710001208 (Notepad.exe)",
                 stack: "Restored User Stack (RSP = 0x00000080...)",
                 stepNum: "Chapter 6 of 6: Returning to User Space &amp; Subsystem Translation",
                 activeNode: "node-user-app",
                 activeEdges: ["edge-5"],
                 btnNextText: "Replay the Journey &#8634;",
                 btnPrevText: "&larr; Prev: IRP Processing",
-                node1Title: "Win32 App (Notepad)",
+                node1Title: "Notepad (PID 1024)",
                 node1Sub: "ReadFile() returned TRUE!",
                 node2Title: "kernel32 / ntdll",
                 node2Sub: "Converts NTSTATUS &rarr; BOOL",
@@ -937,8 +935,8 @@
                 node4Sub: "sysret drops privilege",
                 node5Title: "Driver Stack",
                 node5Sub: "IRP Completed",
-                what: "The kernel executes <code>sysret</code>. The CPU switches the Mode Bit back to <code>1</code> (User Mode), restores Notepad's stack pointer, and resumes execution in <code>ntdll.dll</code>. <code>ntdll.dll</code> passes the result back to <code>kernel32.dll</code>, which translates the raw <code>STATUS_SUCCESS</code> code into a standard Win32 <code>TRUE</code> boolean. Notepad receives its 512 bytes and displays your text.",
-                why: "The boundary has been crossed and safely restored. Applications enjoy seamless file access while the hardware and kernel maintain absolute, unbroken protection over physical hardware.",
+                what: "The kernel executes <code>sysret</code>. The CPU restores Mode Bit = 1, reloads Notepad's stack pointer, and returns execution to <code>ntdll.dll</code>. The return status (<code>STATUS_SUCCESS</code>) flows back to <code>kernel32.dll</code>, which translates it into a Win32 <code>TRUE</code> boolean. Notepad receives its 512 bytes and displays the file.",
+                why: "Privilege is safely dropped back to User Mode. The Win32 subsystem translates internal NT kernel status codes into standard Windows API return values, preserving consistency and stability for desktop applications.",
                 nextStep: "The journey is complete. Click Replay to step through the story again from the beginning."
               }
             ]
@@ -960,7 +958,7 @@
             document.getElementById("desc-why").innerHTML = data.why;
             document.getElementById("inline-next-desc").innerHTML = data.nextStep;
 
-            // Update SVG node text
+            // Update SVG node labels dynamically
             document.getElementById("trap-node1-title").textContent = data.node1Title;
             document.getElementById("trap-node1-sub").textContent = data.node1Sub;
             document.getElementById("trap-node2-title").textContent = data.node2Title;
