@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add multi-OS toggle to boot sequence simulator in Module 2
+# fix.py: Widen boot sequence SVG cards and fix text overflow
 # =====================================================================
 import os
 import re
 import subprocess
 
-MULTI_OS_BOOT_HTML = """
+REFINED_MULTI_OS_BOOT_HTML = """
       <div id="interactive-boot-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <!-- Simulator Header -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
@@ -78,68 +78,68 @@ MULTI_OS_BOOT_HTML = """
           </div>
         </div>
 
-        <!-- Boot Sequence Interactive SVG -->
+        <!-- Boot Sequence Interactive SVG (Widened to 980 for Comfortable Text Placement) -->
         <div style="display: flex; justify-content: center; margin-bottom: 20px; overflow-x: auto;">
-          <svg id="boot-anim-svg" viewBox="0 0 860 300" width="100%" height="auto" style="max-width: 860px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+          <svg id="boot-anim-svg" viewBox="0 0 980 300" width="100%" height="auto" style="max-width: 980px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
             <!-- Main System Interconnect Bus -->
-            <rect x="30" y="130" width="800" height="22" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
-            <text x="430" y="145" fill="#475569" font-size="10" font-weight="700" text-anchor="middle">SYSTEM INTERCONNECT BUS (Memory Channels &amp; Peripheral Buses)</text>
+            <rect x="25" y="130" width="930" height="22" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
+            <text x="490" y="145" fill="#475569" font-size="10.5" font-weight="700" text-anchor="middle">SYSTEM INTERCONNECT BUS (Memory Channels &amp; Peripheral Buses)</text>
 
-            <!-- Node 1: Power & Hardware Reset -->
-            <g id="boot-node-power" transform="translate(30, 30)">
-              <rect x="0" y="0" width="140" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text x="70" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">1. Power &amp; Reset</text>
-              <text id="node-1-sub" x="70" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Voltages Stabilize</text>
-              <text id="node-1-detail" x="70" y="56" fill="#0284c7" font-size="9" text-anchor="middle">PC &larr; Reset Vector</text>
+            <!-- Node 1: Power & Hardware Reset (x: 25, w: 170) -->
+            <g id="boot-node-power" transform="translate(25, 30)">
+              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">1. Power &amp; Reset</text>
+              <text id="node-1-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Voltages Stabilize</text>
+              <text id="node-1-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">PC &larr; Reset Vector</text>
             </g>
 
-            <!-- Node 2: Firmware (BIOS/UEFI) -->
-            <g id="boot-node-firmware" transform="translate(195, 30)">
-              <rect x="0" y="0" width="145" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-2-title" x="72" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">2. Firmware (POST)</text>
-              <text id="node-2-sub" x="72" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Checks RAM &amp; Disks</text>
-              <text id="node-2-detail" x="72" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Reads Boot Priority</text>
+            <!-- Node 2: Firmware (BIOS/UEFI) (x: 215, w: 170) -->
+            <g id="boot-node-firmware" transform="translate(215, 30)">
+              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text id="node-2-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">2. Firmware (POST)</text>
+              <text id="node-2-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Checks RAM &amp; Disks</text>
+              <text id="node-2-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Reads Boot Priority</text>
             </g>
 
-            <!-- Node 3: Bootloader Storage -->
-            <g id="boot-node-storage" transform="translate(365, 30)">
-              <rect x="0" y="0" width="145" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-3-title" x="72" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">3. Boot Manager</text>
-              <text id="node-3-sub" x="72" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">ESP Partition</text>
-              <text id="node-3-detail" x="72" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Loads Bootloader</text>
+            <!-- Node 3: Bootloader Storage (x: 405, w: 170) -->
+            <g id="boot-node-storage" transform="translate(405, 30)">
+              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text id="node-3-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">3. Boot Manager</text>
+              <text id="node-3-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">ESP Partition</text>
+              <text id="node-3-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Loads Bootloader</text>
             </g>
 
-            <!-- Node 4: Kernel Relocation in RAM -->
-            <g id="boot-node-ram" transform="translate(535, 30)">
-              <rect x="0" y="0" width="145" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-4-title" x="72" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">4. Kernel Load</text>
-              <text id="node-4-sub" x="72" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">RAM Memory Setup</text>
-              <text id="node-4-detail" x="72" y="56" fill="#0284c7" font-size="9" text-anchor="middle">MMU Paging Activated</text>
+            <!-- Node 4: Kernel Relocation in RAM (x: 595, w: 170) -->
+            <g id="boot-node-ram" transform="translate(595, 30)">
+              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text id="node-4-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">4. Kernel Load</text>
+              <text id="node-4-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">RAM Memory Setup</text>
+              <text id="node-4-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">MMU Paging Activated</text>
             </g>
 
-            <!-- Node 5: Userspace Hand-off -->
-            <g id="boot-node-kernel" transform="translate(705, 30)">
-              <rect x="0" y="0" width="125" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-5-title" x="62" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">5. Userspace Init</text>
-              <text id="node-5-sub" x="62" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Initial System PID</text>
-              <text id="node-5-detail" x="62" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Drops to User Mode</text>
+            <!-- Node 5: Userspace Hand-off (x: 785, w: 170) -->
+            <g id="boot-node-kernel" transform="translate(785, 30)">
+              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text id="node-5-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">5. Userspace Init</text>
+              <text id="node-5-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Initial System PID</text>
+              <text id="node-5-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Drops to User Mode</text>
             </g>
 
-            <!-- Bus Interconnect Vertical Lines -->
-            <line id="boot-line-1" x1="100" y1="95" x2="100" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-2" x1="267" y1="95" x2="267" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-3" x1="437" y1="95" x2="437" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-4" x1="607" y1="95" x2="607" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-5" x1="767" y1="95" x2="767" y2="130" stroke="#cbd5e1" stroke-width="2" />
+            <!-- Bus Interconnect Vertical Lines (Centered on cards) -->
+            <line id="boot-line-1" x1="110" y1="95" x2="110" y2="130" stroke="#cbd5e1" stroke-width="2" />
+            <line id="boot-line-2" x1="300" y1="95" x2="300" y2="130" stroke="#cbd5e1" stroke-width="2" />
+            <line id="boot-line-3" x1="490" y1="95" x2="490" y2="130" stroke="#cbd5e1" stroke-width="2" />
+            <line id="boot-line-4" x1="680" y1="95" x2="680" y2="130" stroke="#cbd5e1" stroke-width="2" />
+            <line id="boot-line-5" x1="870" y1="95" x2="870" y2="130" stroke="#cbd5e1" stroke-width="2" />
 
             <!-- Dynamic Data Flow Representation Box in Lower Half -->
-            <g transform="translate(30, 180)">
-              <rect x="0" y="0" width="800" height="95" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
-              <text x="20" y="26" fill="#0369a1" font-size="11" font-weight="700">ACTIVE BUS INTERCONNECT &amp; SYSTEM MAPPING</text>
-              <text id="boot-flow-label" x="20" y="52" fill="#0f172a" font-size="11" font-family="var(--font-mono)">
+            <g transform="translate(25, 180)">
+              <rect x="0" y="0" width="930" height="95" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
+              <text x="24" y="26" fill="#0369a1" font-size="11" font-weight="700">ACTIVE BUS INTERCONNECT &amp; SYSTEM MAPPING</text>
+              <text id="boot-flow-label" x="24" y="52" fill="#0f172a" font-size="11" font-family="var(--font-mono)">
                 Hardware resets registers &rarr; CPU fetches first instruction from mapped ROM/Flash.
               </text>
-              <text id="boot-flow-sublabel" x="20" y="74" fill="#64748b" font-size="10" font-family="var(--font-mono)">
+              <text id="boot-flow-sublabel" x="24" y="74" fill="#64748b" font-size="10" font-family="var(--font-mono)">
                 No RAM is initialized yet. Execution proceeds directly from non-volatile firmware storage.
               </text>
             </g>
@@ -171,7 +171,7 @@ MULTI_OS_BOOT_HTML = """
           const osBootData = {
             linux: [
               {
-                phase: "Stage 1 of 5: Power-On &amp; Reset Vector",
+                phase: "Stage 1 of 5: Power-On & Reset Vector",
                 target: "Motherboard ROM / SPI Flash",
                 pc: "0xFFFFFFF0 (x86 Reset Vector)",
                 mode: "Real Mode / Flat Protected",
@@ -181,12 +181,12 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The UEFI / BIOS firmware will execute the POST, initialize DRAM memory channels, and scan NVRAM for boot drive entries.",
-                flowTitle: "CPU RESET ASSERTION &rarr; Direct Flash ROM Instruction Fetch",
+                flowTitle: "CPU RESET ASSERTION -> Direct Flash ROM Instruction Fetch",
                 flowSub: "No DRAM memory is initialized yet. The CPU fetches its first jump instruction directly from mapped flash storage.",
                 node3Title: "3. GRUB / Systemd-boot",
                 node3Sub: "ESP (/EFI/BOOT)",
                 node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz &amp; initramfs",
+                node4Title: "4. vmlinuz & initramfs",
                 node4Sub: "Staged into RAM",
                 node4Detail: "startup_64 entry",
                 node5Title: "5. systemd / init",
@@ -196,7 +196,7 @@ MULTI_OS_BOOT_HTML = """
                 why: "DRAM is volatile and empty at power-on. The CPU requires a hardwired non-volatile address to begin instruction fetching without software dependencies."
               },
               {
-                phase: "Stage 2 of 5: Hardware Self-Test &amp; Bus Discovery",
+                phase: "Stage 2 of 5: Hardware Self-Test & Bus Discovery",
                 target: "UEFI / BIOS Firmware Runtime",
                 pc: "Firmware Entry Vector",
                 mode: "Privileged Firmware Context",
@@ -206,12 +206,12 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The firmware will read the Linux EFI bootloader (GRUB or systemd-boot) from the EFI System Partition (ESP).",
-                flowTitle: "POST &amp; BUS DISCOVERY &rarr; Memory Training &amp; NVRAM Lookup",
+                flowTitle: "POST & BUS DISCOVERY -> Memory Training & NVRAM Lookup",
                 flowSub: "Firmware verifies RAM chips, probes PCIe/NVMe storage controllers, and loads boot variables.",
                 node3Title: "3. GRUB / Systemd-boot",
                 node3Sub: "ESP (/EFI/BOOT)",
                 node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz &amp; initramfs",
+                node4Title: "4. vmlinuz & initramfs",
                 node4Sub: "Staged into RAM",
                 node4Detail: "startup_64 entry",
                 node5Title: "5. systemd / init",
@@ -231,12 +231,12 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The bootloader will stage the compressed kernel image (vmlinuz) and initial ramdisk (initramfs) into physical memory.",
-                flowTitle: "BOOTLOADER STAGING &rarr; Reading Kernel Images into RAM",
+                flowTitle: "BOOTLOADER STAGING -> Reading Kernel Images into RAM",
                 flowSub: "GRUB displays boot menu, parses grub.cfg, and reads vmlinuz and initramfs from the filesystem.",
                 node3Title: "3. GRUB / Systemd-boot",
                 node3Sub: "ESP (/EFI/BOOT)",
                 node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz &amp; initramfs",
+                node4Title: "4. vmlinuz & initramfs",
                 node4Sub: "Staged into RAM",
                 node4Detail: "startup_64 entry",
                 node5Title: "5. systemd / init",
@@ -246,7 +246,7 @@ MULTI_OS_BOOT_HTML = """
                 why: "UEFI firmware lacks deep knowledge of Linux file systems. A dedicated bootloader bridges firmware and the Linux kernel."
               },
               {
-                phase: "Stage 4 of 5: Kernel Decompression &amp; Subsystem Init",
+                phase: "Stage 4 of 5: Kernel Decompression & Subsystem Init",
                 target: "Linux Kernel (startup_64 in RAM)",
                 pc: "0xFFFFFFFF81000000 (Kernel Virtual Base)",
                 mode: "Kernel Mode (Ring 0 / Long Mode)",
@@ -256,12 +256,12 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The Linux kernel will mount the root filesystem, activate virtual memory paging, and spawn /sbin/init or systemd.",
-                flowTitle: "KERNEL EXTRACTION &rarr; Hardware Takeover &amp; MMU Page Table Setup",
+                flowTitle: "KERNEL EXTRACTION -> Hardware Takeover & MMU Page Table Setup",
                 flowSub: "Kernel initializes 4-level page tables, sets up IDT vectors, and loads built-in hardware drivers.",
                 node3Title: "3. GRUB / Systemd-boot",
                 node3Sub: "ESP (/EFI/BOOT)",
                 node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz &amp; initramfs",
+                node4Title: "4. vmlinuz & initramfs",
                 node4Sub: "Staged into RAM",
                 node4Detail: "startup_64 entry",
                 node5Title: "5. systemd / init",
@@ -281,12 +281,12 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Restart Walkthrough &#8634;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
-                flowTitle: "USERSPACE HAND-OFF &rarr; Execution of PID 1 in Ring 3",
+                flowTitle: "USERSPACE HAND-OFF -> Execution of PID 1 in Ring 3",
                 flowSub: "Kernel drops privileges, switches mode bit to 1, and systemd spawns login managers and daemons.",
                 node3Title: "3. GRUB / Systemd-boot",
                 node3Sub: "ESP (/EFI/BOOT)",
                 node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz &amp; initramfs",
+                node4Title: "4. vmlinuz & initramfs",
                 node4Sub: "Staged into RAM",
                 node4Detail: "startup_64 entry",
                 node5Title: "5. systemd / init",
@@ -298,7 +298,7 @@ MULTI_OS_BOOT_HTML = """
             ],
             windows: [
               {
-                phase: "Stage 1 of 5: Power-On &amp; Reset Vector",
+                phase: "Stage 1 of 5: Power-On & Reset Vector",
                 target: "Motherboard ROM / SPI Flash",
                 pc: "0xFFFFFFF0 (x86 Reset Vector)",
                 mode: "Real Mode / Flat Protected",
@@ -308,22 +308,22 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "UEFI firmware will execute POST, train memory, and read the Windows Boot Manager entry in NVRAM.",
-                flowTitle: "CPU RESET ASSERTION &rarr; Direct Flash ROM Instruction Fetch",
+                flowTitle: "CPU RESET ASSERTION -> Direct Flash ROM Instruction Fetch",
                 flowSub: "Motherboard power circuitry stabilizes. CPU fetches first instruction from flash ROM.",
                 node3Title: "3. bootmgfw.efi",
-                node3Sub: "Windows Boot Manager",
+                node3Sub: "Boot Manager (ESP)",
                 node3Detail: "Reads BCD Store",
-                node4Title: "4. winload.efi &amp; ntoskrnl",
+                node4Title: "4. winload & ntoskrnl",
                 node4Sub: "Staged into RAM",
                 node4Detail: "KiSystemStartup",
-                node5Title: "5. smss.exe &amp; csrss",
-                node5Sub: "Session Manager Subsystem",
+                node5Title: "5. smss & csrss",
+                node5Sub: "Session Manager",
                 node5Detail: "Spawns winlogon",
                 what: "Voltages stabilize and the motherboard asserts the reset line. The CPU clears its registers and vectors to <code>0xFFFFFFF0</code> to begin execution in UEFI firmware.",
                 why: "Main memory is volatile. The CPU requires a dedicated hardware address mapped to non-volatile flash ROM to execute instructions on power-on."
               },
               {
-                phase: "Stage 2 of 5: Hardware Self-Test &amp; Bus Discovery",
+                phase: "Stage 2 of 5: Hardware Self-Test & Bus Discovery",
                 target: "UEFI Firmware Runtime",
                 pc: "Firmware Entry Vector",
                 mode: "Privileged Firmware Context",
@@ -333,23 +333,23 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "Firmware will locate the Windows Boot Manager (bootmgfw.efi) in the EFI System Partition.",
-                flowTitle: "POST &amp; BUS DISCOVERY &rarr; Memory Training &amp; BCD Entry Resolution",
+                flowTitle: "POST & BUS DISCOVERY -> Memory Training & BCD Entry Resolution",
                 flowSub: "Firmware trains memory controllers, initializes PCIe storage buses, and selects Windows boot entry.",
                 node3Title: "3. bootmgfw.efi",
-                node3Sub: "Windows Boot Manager",
+                node3Sub: "Boot Manager (ESP)",
                 node3Detail: "Reads BCD Store",
-                node4Title: "4. winload.efi &amp; ntoskrnl",
+                node4Title: "4. winload & ntoskrnl",
                 node4Sub: "Staged into RAM",
                 node4Detail: "KiSystemStartup",
-                node5Title: "5. smss.exe &amp; csrss",
-                node5Sub: "Session Manager Subsystem",
+                node5Title: "5. smss & csrss",
+                node5Sub: "Session Manager",
                 node5Detail: "Spawns winlogon",
                 what: "UEFI firmware executes the Power-On Self-Test (POST), checks physical RAM, initializes NVMe/SATA storage controllers, and inspects NVRAM to find the Windows Boot Manager entry.",
                 why: "Hardware initialization ensures DRAM timings and device buses are operating reliably before passing control to the Windows operating system loader."
               },
               {
-                phase: "Stage 3 of 5: Windows Boot Manager &amp; OS Loader",
-                target: "ESP: \\\\EFI\\\\Microsoft\\\\Boot\\\\bootmgfw.efi",
+                phase: "Stage 3 of 5: Windows Boot Manager & OS Loader",
+                target: "ESP: \\EFI\\Microsoft\\Boot\\bootmgfw.efi",
                 pc: "UEFI Executable Entry",
                 mode: "64-bit UEFI Protected Environment",
                 media: "EFI System Partition (FAT32)",
@@ -358,22 +358,22 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "winload.efi will read ntoskrnl.exe, hal.dll, and boot-start drivers into physical RAM.",
-                flowTitle: "WINDOWS BOOT MANAGER &rarr; Reading BCD &amp; Invoking winload.efi",
+                flowTitle: "WINDOWS BOOT MANAGER -> Reading BCD & Invoking winload.efi",
                 flowSub: "bootmgfw.efi reads the BCD registry hive, locates the Windows partition, and launches winload.efi.",
                 node3Title: "3. bootmgfw.efi",
-                node3Sub: "Windows Boot Manager",
+                node3Sub: "Boot Manager (ESP)",
                 node3Detail: "Reads BCD Store",
-                node4Title: "4. winload.efi &amp; ntoskrnl",
+                node4Title: "4. winload & ntoskrnl",
                 node4Sub: "Staged into RAM",
                 node4Detail: "KiSystemStartup",
-                node5Title: "5. smss.exe &amp; csrss",
-                node5Sub: "Session Manager Subsystem",
+                node5Title: "5. smss & csrss",
+                node5Sub: "Session Manager",
                 node5Detail: "Spawns winlogon",
                 what: "UEFI runs <code>bootmgfw.efi</code>, which reads the Boot Configuration Data (BCD) store. It identifies the Windows OS partition and launches the Windows OS Loader (<code>winload.efi</code>).",
                 why: "The Windows Boot Manager isolates the firmware interface from the Windows kernel and allows multi-boot selection or recovery mode options."
               },
               {
-                phase: "Stage 4 of 5: Kernel Staging &amp; Subsystem Init (ntoskrnl.exe)",
+                phase: "Stage 4 of 5: Kernel Staging & Subsystem Init (ntoskrnl.exe)",
                 target: "Windows NT Kernel (ntoskrnl.exe)",
                 pc: "KiSystemStartup Entry Point",
                 mode: "Kernel Mode (Ring 0 / 64-bit)",
@@ -383,23 +383,23 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The NT kernel will initialize the Object Manager, mount NTFS, and spawn the Session Manager (smss.exe).",
-                flowTitle: "KERNEL INITIALIZATION &rarr; ntoskrnl.exe &amp; hal.dll Hardware Takeover",
+                flowTitle: "KERNEL INITIALIZATION -> ntoskrnl.exe & hal.dll Hardware Takeover",
                 flowSub: "winload.efi enables paging, exits UEFI services, and transfers control to KiSystemStartup.",
                 node3Title: "3. bootmgfw.efi",
-                node3Sub: "Windows Boot Manager",
+                node3Sub: "Boot Manager (ESP)",
                 node3Detail: "Reads BCD Store",
-                node4Title: "4. winload.efi &amp; ntoskrnl",
+                node4Title: "4. winload & ntoskrnl",
                 node4Sub: "Staged into RAM",
                 node4Detail: "KiSystemStartup",
-                node5Title: "5. smss.exe &amp; csrss",
-                node5Sub: "Session Manager Subsystem",
+                node5Title: "5. smss & csrss",
+                node5Sub: "Session Manager",
                 node5Detail: "Spawns winlogon",
                 what: "<code>winload.efi</code> loads <code>ntoskrnl.exe</code>, the Hardware Abstraction Layer (<code>hal.dll</code>), and boot drivers. It sets up page tables, calls <code>ExitBootServices()</code>, and branches to <code>KiSystemStartup</code>.",
                 why: "The Windows NT kernel takes complete control of the processor and establishes virtual memory translation, permanently discarding firmware runtimes."
               },
               {
-                phase: "Stage 5 of 5: Userspace Hand-off (smss.exe &amp; csrss.exe)",
-                target: "\\\\SystemRoot\\\\System32\\\\smss.exe",
+                phase: "Stage 5 of 5: Userspace Hand-off (smss.exe & csrss.exe)",
+                target: "\\SystemRoot\\System32\\smss.exe",
                 pc: "Userspace Process Entry",
                 mode: "User Mode (Ring 3)",
                 media: "Windows System Drive (NTFS)",
@@ -408,16 +408,16 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Restart Walkthrough &#8634;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
-                flowTitle: "USERSPACE HAND-OFF &rarr; Spawning smss.exe &amp; Windows Subsystem",
+                flowTitle: "USERSPACE HAND-OFF -> Spawning smss.exe & Windows Subsystem",
                 flowSub: "smss.exe starts csrss.exe (Win32), wininit.exe, and winlogon.exe to present the user login screen.",
                 node3Title: "3. bootmgfw.efi",
-                node3Sub: "Windows Boot Manager",
+                node3Sub: "Boot Manager (ESP)",
                 node3Detail: "Reads BCD Store",
-                node4Title: "4. winload.efi &amp; ntoskrnl",
+                node4Title: "4. winload & ntoskrnl",
                 node4Sub: "Staged into RAM",
                 node4Detail: "KiSystemStartup",
-                node5Title: "5. smss.exe &amp; csrss",
-                node5Sub: "Session Manager Subsystem",
+                node5Title: "5. smss & csrss",
+                node5Sub: "Session Manager",
                 node5Detail: "Spawns winlogon",
                 what: "The kernel executes the Session Manager Subsystem (<code>smss.exe</code>) in user mode (Ring 3). <code>smss.exe</code> creates environment variables, starts the Client/Server Runtime (<code>csrss.exe</code>), and launches <code>winlogon.exe</code>.",
                 why: "The system reaches normal desktop state. All applications execute in isolated Ring 3 environments with mediated access through Win32/NT system calls."
@@ -425,7 +425,7 @@ MULTI_OS_BOOT_HTML = """
             ],
             macos: [
               {
-                phase: "Stage 1 of 5: Power-On &amp; Reset Vector",
+                phase: "Stage 1 of 5: Power-On & Reset Vector",
                 target: "Apple Silicon Boot ROM / Flash",
                 pc: "Hardware Reset Vector",
                 mode: "Secure Boot Secure World / EL3",
@@ -435,7 +435,7 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The Boot ROM will verify the cryptographic signature of the low-level bootloader (LLB / iBoot).",
-                flowTitle: "HARDWARE RESET ASSERTION &rarr; On-Chip Boot ROM Execution",
+                flowTitle: "HARDWARE RESET ASSERTION -> On-Chip Boot ROM Execution",
                 flowSub: "Apple Silicon chip powers on. Hardware starts execution from unchangeable internal Mask ROM.",
                 node3Title: "3. iBoot / boot.efi",
                 node3Sub: "Stage 2 Bootloader",
@@ -444,13 +444,13 @@ MULTI_OS_BOOT_HTML = """
                 node4Sub: "mach_kernel in RAM",
                 node4Detail: "i386_init / arm_init",
                 node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master Daemon",
+                node5Sub: "Userspace Master",
                 node5Detail: "Spawns WindowServer",
                 what: "On power-on, the processor initializes and begins execution directly from immutable on-die Mask ROM (on Apple Silicon) or UEFI firmware (on Intel Macs).",
                 why: "Establishing an unbroken cryptographic hardware Root of Trust requires the earliest instructions to reside in read-only silicon that cannot be tampered with."
               },
               {
-                phase: "Stage 2 of 5: Hardware Self-Test &amp; Low-Level Boot",
+                phase: "Stage 2 of 5: Hardware Self-Test & Low-Level Boot",
                 target: "Low-Level Bootloader (LLB / iBoot Stage 1)",
                 pc: "Firmware Stage Entry",
                 mode: "Privileged Firmware Context",
@@ -460,7 +460,7 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "iBoot will initialize the memory controller, verify APFS seals, and locate the macOS boot kernelcache.",
-                flowTitle: "POST &amp; MEMORY TRAINING &rarr; Hardware Signature Verification",
+                flowTitle: "POST & MEMORY TRAINING -> Hardware Signature Verification",
                 flowSub: "iBoot calibrates unified memory, verifies hardware security certificates, and scans storage.",
                 node3Title: "3. iBoot / boot.efi",
                 node3Sub: "Stage 2 Bootloader",
@@ -469,7 +469,7 @@ MULTI_OS_BOOT_HTML = """
                 node4Sub: "mach_kernel in RAM",
                 node4Detail: "i386_init / arm_init",
                 node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master Daemon",
+                node5Sub: "Userspace Master",
                 node5Detail: "Spawns WindowServer",
                 what: "The low-level firmware tests hardware components, initializes the unified memory architecture (UMA), interrogates attached NVMe storage, and validates cryptographic signatures.",
                 why: "macOS enforces strict secure boot verification at every hand-off stage before granting access to unified memory or storage buses."
@@ -485,7 +485,7 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The bootloader will stage the authenticated kernelcache (XNU kernel, Mach, BSD, and I/O Kit) into memory.",
-                flowTitle: "BOOTLOADER STAGING &rarr; Reading Sealed Kernel Collection into RAM",
+                flowTitle: "BOOTLOADER STAGING -> Reading Sealed Kernel Collection into RAM",
                 flowSub: "iBoot loads boot.efi, verifies the Sealed System Volume (SSV) hash, and prepares DeviceTree.",
                 node3Title: "3. iBoot / boot.efi",
                 node3Sub: "Stage 2 Bootloader",
@@ -494,7 +494,7 @@ MULTI_OS_BOOT_HTML = """
                 node4Sub: "mach_kernel in RAM",
                 node4Detail: "i386_init / arm_init",
                 node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master Daemon",
+                node5Sub: "Userspace Master",
                 node5Detail: "Spawns WindowServer",
                 what: "The Stage 2 bootloader loads the Sealed System Volume cryptographic manifests, validates the macOS kernelcache (or boot collection), and stages it into system RAM alongside the Device Tree.",
                 why: "macOS runs from an immutable, cryptographically signed snapshot of the system volume, preventing unauthorized modification."
@@ -510,7 +510,7 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "The XNU kernel will mount the read-only APFS system volume and spawn launchd as process ID 1.",
-                flowTitle: "KERNEL TAKEOVER &rarr; Mach VM, BSD Subsystems, &amp; I/O Kit Drivers",
+                flowTitle: "KERNEL TAKEOVER -> Mach VM, BSD Subsystems, & I/O Kit Drivers",
                 flowSub: "Kernel enables MMU translation, starts task scheduling, and attaches C++ I/O Kit device drivers.",
                 node3Title: "3. iBoot / boot.efi",
                 node3Sub: "Stage 2 Bootloader",
@@ -519,7 +519,7 @@ MULTI_OS_BOOT_HTML = """
                 node4Sub: "mach_kernel in RAM",
                 node4Detail: "i386_init / arm_init",
                 node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master Daemon",
+                node5Sub: "Userspace Master",
                 node5Detail: "Spawns WindowServer",
                 what: "Execution transfers to the XNU kernel. The Mach microkernel core activates virtual memory and threads, BSD layer sets up POSIX interfaces, and I/O Kit loads object-oriented device drivers.",
                 why: "XNU combines Mach memory virtualization with BSD POSIX APIs to manage the complete unified hardware complex securely."
@@ -535,7 +535,7 @@ MULTI_OS_BOOT_HTML = """
                 btnNextText: "Restart Walkthrough &#8634;",
                 btnPrevText: "&larr; Prev",
                 inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
-                flowTitle: "USERSPACE HAND-OFF &rarr; launchd Daemon &amp; WindowServer",
+                flowTitle: "USERSPACE HAND-OFF -> launchd Daemon & WindowServer",
                 flowSub: "Kernel drops to User Mode, launchd manages daemons, and WindowServer presents the login screen.",
                 node3Title: "3. iBoot / boot.efi",
                 node3Sub: "Stage 2 Bootloader",
@@ -544,7 +544,7 @@ MULTI_OS_BOOT_HTML = """
                 node4Sub: "mach_kernel in RAM",
                 node4Detail: "i386_init / arm_init",
                 node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master Daemon",
+                node5Sub: "Userspace Master",
                 node5Detail: "Spawns WindowServer",
                 what: "The kernel executes <code>/sbin/launchd</code> as PID 1 in user space (Ring 3 / EL0). <code>launchd</code> reads LaunchDaemons property lists, initializes system services, and starts <code>WindowServer</code>.",
                 why: "The system reaches full graphical multi-user operation. User applications run unprivileged and access system services via POSIX and Mach system calls."
@@ -570,7 +570,7 @@ MULTI_OS_BOOT_HTML = """
             document.getElementById("boot-flow-label").textContent = data.flowTitle;
             document.getElementById("boot-flow-sublabel").textContent = data.flowSub;
 
-            // Update dynamic SVG node labels
+            // Update SVG labels cleanly
             document.getElementById("node-3-title").textContent = data.node3Title;
             document.getElementById("node-3-sub").textContent = data.node3Sub;
             document.getElementById("node-3-detail").textContent = data.node3Detail;
@@ -684,7 +684,7 @@ MULTI_OS_BOOT_HTML = """
       </script>
 """
 
-def update_boot_simulator_with_os_toggle():
+def update_boot_simulator_card_widths():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -696,11 +696,9 @@ def update_boot_simulator_with_os_toggle():
     pattern = r'<div id="interactive-boot-simulator".*?</script>'
     match = re.search(pattern, content, flags=re.DOTALL)
     if match:
-        # Use substring slicing or a lambda to prevent Python regex template parser
-        # from interpreting backslashes in Windows file paths as regex escapes
         start, end = match.span()
-        content = content[:start] + MULTI_OS_BOOT_HTML.strip() + content[end:]
-        print("--> Injected multi-OS toggle into boot sequence simulator.")
+        content = content[:start] + REFINED_MULTI_OS_BOOT_HTML.strip() + content[end:]
+        print("--> Replaced boot simulator with widened SVG cards and clean text formatting.")
     else:
         print("--> Interactive boot simulator container not found.")
 
@@ -710,9 +708,9 @@ def update_boot_simulator_with_os_toggle():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Add multi-OS toggle (Linux, Windows, macOS) to boot sequence simulator\n\n"
-            "Allow learners to switch between Linux, Windows, and macOS boot pipelines\n"
-            "in week01-operating-system-concepts/02-hardware-review.html at any stage."
+            "Widen boot sequence SVG cards and fix text overflow on long OS titles\n\n"
+            "Expand boot simulator SVG canvas width to 980, widen individual node\n"
+            "rectangles to 170px, and resolve HTML entity escaping in Module 2."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -721,4 +719,4 @@ def update_boot_simulator_with_os_toggle():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_boot_simulator_with_os_toggle()
+    update_boot_simulator_card_widths()
