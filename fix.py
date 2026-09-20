@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Replace text virtual address box with clean architectural SVG
+# fix.py: Shift bottom physical address boxes down in translation SVG
 # =====================================================================
 import os
 import re
 import subprocess
 
-ADDRESS_SPLIT_SVG = """
+REFINED_ADDRESS_SPLIT_SVG = """
       <div class="diagram-container" style="margin: 24px 0;">
-        <svg viewBox="0 0 880 230" width="100%" height="auto" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 880 260" width="100%" height="auto" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <marker id="arrowBlue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
               <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
@@ -43,31 +43,31 @@ ADDRESS_SPLIT_SVG = """
           <rect x="180" y="112" width="180" height="34" rx="4" fill="#0284c7" stroke="#0369a1" stroke-width="1.5" />
           <text x="270" y="133" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">Page Table Lookup</text>
 
-          <!-- Translated PFN emerging down -->
-          <path d="M 270,146 L 270,166" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrowGreen)" />
+          <!-- Translated PFN emerging down to shifted physical box -->
+          <path d="M 270,146 L 270,188" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrowGreen)" />
 
           <!-- Unmodified Offset Pass-Through Line -->
-          <path d="M 680,82 L 680,166" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowGray)" />
-          <text x="692" y="130" fill="#64748b" font-size="9.5" font-style="italic">Passes through unchanged</text>
+          <path d="M 680,82 L 680,188" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowGray)" />
+          <text x="692" y="138" fill="#64748b" font-size="9.5" font-style="italic">Passes through unchanged</text>
 
-          <!-- Bottom Label -->
-          <text x="40" y="162" fill="#0f172a" font-size="12" font-weight="700">PHYSICAL ADDRESS (Issued to DRAM Memory Bus)</text>
+          <!-- Bottom Label (Shifted Down) -->
+          <text x="40" y="180" fill="#0f172a" font-size="12" font-weight="700">PHYSICAL ADDRESS (Issued to DRAM Memory Bus)</text>
 
-          <!-- Physical Address Split Boxes -->
+          <!-- Physical Address Split Boxes (Shifted Down to y=194) -->
           <!-- PFN Box -->
-          <rect x="40" y="172" width="460" height="46" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-          <text x="270" y="194" fill="#059669" font-size="12" font-weight="700" text-anchor="middle">Physical Frame Number (PFN)</text>
-          <text x="270" y="209" fill="#065f46" font-size="9.5" text-anchor="middle">Base address of 4 KiB frame in physical DRAM</text>
+          <rect x="40" y="194" width="460" height="46" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+          <text x="270" y="216" fill="#059669" font-size="12" font-weight="700" text-anchor="middle">Physical Frame Number (PFN)</text>
+          <text x="270" y="231" fill="#065f46" font-size="9.5" text-anchor="middle">Base address of 4 KiB frame in physical DRAM</text>
 
           <!-- Offset Box (Bottom) -->
-          <rect x="520" y="172" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-          <text x="680" y="194" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
-          <text x="680" y="209" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] &bull; Unmodified intra-frame byte offset</text>
+          <rect x="520" y="194" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+          <text x="680" y="216" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
+          <text x="680" y="231" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] &bull; Unmodified intra-frame byte offset</text>
         </svg>
       </div>
 """
 
-def substitute_address_text_block():
+def adjust_address_svg_spacing():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -76,26 +76,23 @@ def substitute_address_text_block():
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Pattern targeting the preformatted / styled text box containing the address layout
-    text_pattern = r'<div style="background:\s*#0f172a;[^>]*>.*?Virtual Address:.*?Physical Address:.*?</div>'
-    match = re.search(text_pattern, content, flags=re.DOTALL)
+    pattern = r'<div class="diagram-container"[^>]*>\s*<svg viewBox="0 0 880 230".*?</svg>\s*</div>'
+    match = re.search(pattern, content, flags=re.DOTALL)
 
     if match:
         start, end = match.span()
-        content = content[:start] + ADDRESS_SPLIT_SVG.strip() + content[end:]
-        print("--> Replaced preformatted virtual address text with clean SVG vector diagram.")
+        content = content[:start] + REFINED_ADDRESS_SPLIT_SVG.strip() + content[end:]
+        print("--> Shifted physical address boxes down and expanded SVG height.")
     else:
-        # Fallback search if style attribute varied
-        fallback_pattern = r'Virtual Address:\s*\[\s*Virtual Page Number.*?Physical Address:\s*\[\s*Physical Frame Number.*?</div>'
+        # Fallback if viewBox or class formatting differed
+        fallback_pattern = r'<svg viewBox="0 0 880 2[3-9]0"[^>]*>.*?VIRTUAL ADDRESS.*?PHYSICAL ADDRESS.*?</svg>'
         fallback_match = re.search(fallback_pattern, content, flags=re.DOTALL)
         if fallback_match:
-            # Expand to surrounding div
-            div_start = content.rfind("<div", 0, fallback_match.start())
-            div_end = content.find("</div>", fallback_match.end()) + 6
-            content = content[:div_start] + ADDRESS_SPLIT_SVG.strip() + content[div_end:]
-            print("--> Replaced virtual address block via fallback pattern.")
+            start, end = fallback_match.span()
+            content = content[:start] + REFINED_ADDRESS_SPLIT_SVG.strip() + content[end:]
+            print("--> Shifted physical address boxes via fallback pattern.")
         else:
-            print("--> Could not locate virtual address text block.")
+            print("--> Address split SVG not found.")
             return
 
     with open(file_path, "w", encoding="utf-8") as f:
@@ -104,9 +101,9 @@ def substitute_address_text_block():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Replace preformatted virtual address block with clean vector SVG\n\n"
-            "Convert text mapping of VPN/PFN and 12-bit offset in Section 3 of\n"
-            "week01-operating-system-concepts/02-hardware-review.html to an SVG diagram."
+            "Shift physical address boxes downward in address translation SVG\n\n"
+            "Increase vertical spacing and expand viewBox height to 260 in Module 2\n"
+            "to prevent overlap between translation arrows and physical address boxes."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -115,4 +112,4 @@ def substitute_address_text_block():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    substitute_address_text_block()
+    adjust_address_svg_spacing()
