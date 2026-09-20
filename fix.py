@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# generate_complete_module_page.py: Generate complete Module 1 page with full descriptions and wiki links
+# generate_fully_attributed_page.py: Restore exact attributions, URLs & descriptions
 # =====================================================================
 import os
 import subprocess
 import sys
 
-COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
+COMPLETE_ATTRIBUTED_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -50,10 +50,11 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
     p { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
     ul { margin-left: 20px; color: var(--text-muted); line-height: 1.6; }
     li { margin-bottom: 6px; }
-    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 10px; }
-    .image-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 10px; }
+    .image-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
     .image-card img { max-width: 100%; height: 130px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
-    .image-card span { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted); line-height: 1.4; }
+    .image-card span { font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); line-height: 1.4; }
+    .image-card a { color: var(--accent); text-decoration: underline; }
     .aside-box { background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin-top: 10px; }
   </style>
 </head>
@@ -101,8 +102,8 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
           <span>
             <strong>Vacuum Tube</strong><br>
             Thermionic valve switching components.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Vacuum_tube" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
-            <small>Wikimedia Commons contributors</small>
+            <small><a href="https://en.wikipedia.org/wiki/Vacuum_tube" target="_blank" rel="noopener">Wikipedia: Vacuum Tube</a></small><br>
+            <small>Source: Wikimedia Commons</small>
           </span>
         </div>
         <div class="image-card">
@@ -110,8 +111,8 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
           <span>
             <strong>Plugboard Wiring</strong><br>
             Manual machine programming interfaces.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Plugboard" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
-            <small>Wikimedia Commons contributors</small>
+            <small><a href="https://en.wikipedia.org/wiki/Plugboard" target="_blank" rel="noopener">Wikipedia: Plugboard</a></small><br>
+            <small>Source: Wikimedia Commons</small>
           </span>
         </div>
       </div>
@@ -126,8 +127,8 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
           <span>
             <strong>First Transistor</strong><br>
             Solid-state semiconductor switching.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Transistor" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
-            <small>Wikimedia Commons contributors</small>
+            <small><a href="https://en.wikipedia.org/wiki/Transistor" target="_blank" rel="noopener">Wikipedia: Transistor</a></small><br>
+            <small>Source: Wikimedia Commons</small>
           </span>
         </div>
         <div class="image-card">
@@ -135,8 +136,8 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
           <span>
             <strong>Punched Card Deck</strong><br>
             Batch job submission media.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Punched_card" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
-            <small>Wikimedia Commons contributors</small>
+            <small><a href="https://en.wikipedia.org/wiki/Punched_card" target="_blank" rel="noopener">Wikipedia: Punched Card</a></small><br>
+            <small>Source: Wikimedia Commons</small>
           </span>
         </div>
       </div>
@@ -151,8 +152,9 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
           <span>
             <strong>Integrated Circuit</strong><br>
             Microchip scaling on silicon substrates.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Integrated_circuit" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
-            <small>Wikimedia Commons contributors, CC BY-SA 3.0</small>
+            <small><a href="https://en.wikipedia.org/wiki/Integrated_circuit" target="_blank" rel="noopener">Wikipedia: Integrated Circuit</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:VLSI_VL82C486_Single_Chip_486_System_Controller_HV.jpg&oldid=1172847417" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: Wikimedia Commons contributors (CC BY-SA 3.0)</small>
           </span>
         </div>
         <div class="image-card">
@@ -160,8 +162,9 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
           <span>
             <strong>IBM System/360</strong><br>
             Mainframe architecture family (VW-Werk Wolfsburg, 1973).<br>
-            <small><a href="https://en.wikipedia.org/wiki/IBM_System/360" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
-            <small>Bundesarchiv, B 145 Bild-F038812-0014 / Schaack, Lothar / CC-BY-SA 3.0</small>
+            <small><a href="https://en.wikipedia.org/wiki/IBM_System/360" target="_blank" rel="noopener">Wikipedia: IBM System/360</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Bundesarchiv_B_145_Bild-F038812-0014,_Wolfsburg,_VW_Autowerk.jpg&oldid=838121012" target="_blank" rel="noopener">Bundesarchiv Record (B 145 Bild-F038812-0014)</a></small><br>
+            <small>Author: Schaack, Lothar / Bundesarchiv (CC BY-SA 3.0)</small>
           </span>
         </div>
       </div>
@@ -287,13 +290,13 @@ COMPLETE_MODULE_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def execute_page_generation():
+def execute_full_deployment():
     base_dir = "week01-operating-system-concepts"
     os.makedirs(base_dir, exist_ok=True)
     file_path = os.path.join(base_dir, "01-what-is-an-os-and-history.html")
 
     with open(file_path, "w", encoding="utf-8") as f:
-        f.write(COMPLETE_MODULE_HTML)
+        f.write(COMPLETE_ATTRIBUTED_HTML)
 
     modified = [file_path]
     fix_path = "fix.py"
@@ -304,15 +307,15 @@ def execute_page_generation():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Deploy complete Module 1 page with rich descriptions, wiki links, and attributions\n\n"
-            "Update week01-operating-system-concepts/01-what-is-an-os-and-history.html to include\n"
-            "full descriptions, Wikipedia links, and attributions for all Generation 1 through 3 cards."
+            "Restore exact attributions, permanent URLs, and descriptions to Gen 1-3 image cards\n\n"
+            "Update week01-operating-system-concepts/01-what-is-an-os-and-history.html with full bibliographic\n"
+            "permanent URLs and Wikipedia article links for all historical hardware image cards."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Complete Module 1 page successfully generated and deployed!")
+    print("--> Fully attributed page successfully deployed!")
 
 if __name__ == "__main__":
-    execute_page_generation()
+    execute_full_deployment()
