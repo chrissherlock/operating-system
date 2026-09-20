@@ -378,6 +378,106 @@
         <strong>The NUMA Factor:</strong> The ratio of remote memory access latency to local memory access latency is called the <em>NUMA factor</em>. Operating system schedulers and memory allocators must be NUMA-aware to allocate pages and schedule execution within the same NUMA node whenever possible.
       </div>
     </section>
+    <!-- INTERACTIVE SIMULATOR: BUS VS CROSSBAR -->
+    <section class="content-section">
+      <div class="sim-container">
+        <div class="sim-header">
+          <span class="sim-title">Interactive Interconnect: Shared Bus vs. Crossbar Switch</span>
+          <div class="sim-controls" style="display:flex; gap:8px;">
+            <button class="btn-sim" onclick="executeBusCycle()">Simulate Shared Bus</button>
+            <button class="btn-sim" onclick="executeCrossbarCycle()">Simulate Crossbar Switch</button>
+            <button class="btn-sim" style="background:#64748b;" onclick="resetInterconnectSim()">Reset Targets</button>
+          </div>
+        </div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Configure target memory modules ($M_0$–$M_3$) for each CPU to compare bus serialization against crossbar matrix parallelism:
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+          <div class="cpu-box">
+            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 0 Target:</span>
+            <select id="target-cpu0" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
+              <option value="0" selected>Module M0</option>
+              <option value="1">Module M1</option>
+              <option value="2">Module M2</option>
+              <option value="3">Module M3</option>
+            </select>
+          </div>
+          <div class="cpu-box">
+            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 1 Target:</span>
+            <select id="target-cpu1" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
+              <option value="0">Module M0</option>
+              <option value="1" selected>Module M1</option>
+              <option value="2">Module M2</option>
+              <option value="3">Module M3</option>
+            </select>
+          </div>
+          <div class="cpu-box">
+            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 2 Target:</span>
+            <select id="target-cpu2" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
+              <option value="0">Module M0</option>
+              <option value="1">Module M1</option>
+              <option value="2" selected>Module M2</option>
+              <option value="3">Module M3</option>
+            </select>
+          </div>
+          <div class="cpu-box">
+            <span style="font-weight:bold; font-size:0.85rem; font-family:var(--font-mono);">CPU 3 Target:</span>
+            <select id="target-cpu3" style="padding:6px; font-family:var(--font-mono); border-radius:4px; border:1px solid var(--border);">
+              <option value="0">Module M0</option>
+              <option value="1">Module M1</option>
+              <option value="2">Module M2</option>
+              <option value="3" selected>Module M3</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="interconnect-log" class="bus-log">-- Select memory targets and test interconnect throughput --</div>
+      </div>
+    </section>
+
+    <!-- INTERACTIVE SIMULATOR: NUMA LATENCY -->
+    <section class="content-section">
+      <div class="sim-container">
+        <div class="sim-header">
+          <span class="sim-title">Interactive NUMA Latency &amp; Distance Calculator</span>
+          <button class="btn-sim" style="flex:0; width:140px;" onclick="dispatchNumaAccess()">Dispatch Access</button>
+        </div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Select the requesting core and target memory node to trace point-to-point interconnect hops and evaluate the NUMA factor:
+        </p>
+
+        <div style="display:flex; gap:16px; flex-wrap:wrap; background:#ffffff; padding:16px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>
+            Requesting Core:
+            <select id="numa-src" style="padding:4px 8px; margin-left:6px; border-radius:4px; border:1px solid var(--border);">
+              <option value="0">Core 0 (Node 0)</option>
+              <option value="1">Core 1 (Node 1)</option>
+              <option value="2">Core 2 (Node 2)</option>
+              <option value="3">Core 3 (Node 3)</option>
+            </select>
+          </div>
+          <div>
+            Target Memory Location:
+            <select id="numa-dest" style="padding:4px 8px; margin-left:6px; border-radius:4px; border:1px solid var(--border);">
+              <option value="0">Node 0 RAM (0x0000 - 0x3FFF)</option>
+              <option value="1">Node 1 RAM (0x4000 - 0x7FFF)</option>
+              <option value="2">Node 2 RAM (0x8000 - 0xBFFF)</option>
+              <option value="3">Node 3 RAM (0xC000 - 0xFFFF)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="numa-result-display" style="background:#ffffff; padding:12px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono); font-size:0.85rem;">
+          Status: <span id="numa-hops" style="font-weight:bold; color:#0284c7;">Awaiting access</span> &bull;
+          Physical Access Latency: <span id="numa-latency" style="font-weight:bold;">--</span> &bull;
+          Effective NUMA Factor: <span id="numa-factor" style="font-weight:bold;">--</span>
+        </div>
+
+        <div id="numa-log" class="bus-log">-- Select source core and target address block --</div>
+      </div>
+    </section>
+
 
     <!-- SECTION: CACHE COHERENCE & MESI -->
     <section class="content-section">
@@ -657,6 +757,100 @@ bool CompareAndSwap(int *addr, int expected, int new_val) {
       mesiState.cpus[1] = { state: 'I', val: null };
       document.getElementById('bus-log').innerHTML = '-- Memory Bus Reset. Main Memory X = 42 --';
       syncSimUi();
+    }
+  </script>
+
+  <script>
+    // Interconnect simulation
+    function appendInterconnectLog(msg) {
+      const el = document.getElementById('interconnect-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function executeBusCycle() {
+      const targets = [
+        document.getElementById('target-cpu0').value,
+        document.getElementById('target-cpu1').value,
+        document.getElementById('target-cpu2').value,
+        document.getElementById('target-cpu3').value
+      ];
+      document.getElementById('interconnect-log').innerHTML = '--> Simulating Shared Bus Arbitration...';
+      appendInterconnectLog('All 4 CPUs assert bus request simultaneously.');
+      appendInterconnectLog('Bus Arbiter selects CPU 0. Transferring to M' + targets[0] + ' (100% bus utilization).');
+      appendInterconnectLog('CPUs 1, 2, 3 stalled in wait state. Total time: 4 cycles serialized.');
+    }
+
+    function executeCrossbarCycle() {
+      const targets = [
+        document.getElementById('target-cpu0').value,
+        document.getElementById('target-cpu1').value,
+        document.getElementById('target-cpu2').value,
+        document.getElementById('target-cpu3').value
+      ];
+      document.getElementById('interconnect-log').innerHTML = '--> Simulating Crossbar Matrix Switch...';
+
+      const moduleAccessors = {};
+      targets.forEach((mod, cpu) => {
+        if (!moduleAccessors[mod]) moduleAccessors[mod] = [];
+        moduleAccessors[mod].push(cpu);
+      });
+
+      let completedInOne = 0;
+      let conflicts = 0;
+
+      for (const [mod, cpus] of Object.entries(moduleAccessors)) {
+        if (cpus.length === 1) {
+          appendInterconnectLog(`Crosspoint Matrix: CPU ${cpus[0]} -> M${mod} connected concurrently (Cycle 1).`);
+          completedInOne++;
+        } else {
+          appendInterconnectLog(`Port Conflict at M${mod}: CPUs [${cpus.join(', ')}] targeted same bank. CPU ${cpus[0]} granted; remaining queued.`);
+          conflicts++;
+        }
+      }
+
+      if (conflicts === 0) {
+        appendInterconnectLog('Ideal Parallelism: All 4 transfers completed in exactly 1 clock cycle!');
+      } else {
+        appendInterconnectLog(`Result: ${completedInOne} transfers completed immediately. Conflicted ports resolved over 2 cycles.`);
+      }
+    }
+
+    function resetInterconnectSim() {
+      document.getElementById('target-cpu0').value = "0";
+      document.getElementById('target-cpu1').value = "1";
+      document.getElementById('target-cpu2').value = "2";
+      document.getElementById('target-cpu3').value = "3";
+      document.getElementById('interconnect-log').innerHTML = '-- Reset memory targets to distinct modules --';
+    }
+
+    // NUMA Latency calculation
+    function dispatchNumaAccess() {
+      const srcNode = parseInt(document.getElementById('numa-src').value);
+      const destNode = parseInt(document.getElementById('numa-dest').value);
+      const logEl = document.getElementById('numa-log');
+
+      // Model 4-node ring interconnect
+      const rawDistance = Math.abs(srcNode - destNode);
+      const hops = rawDistance === 3 ? 1 : rawDistance; // Ring wrap
+
+      let latency = 65; // Base local memory latency (ns)
+      if (hops === 1) latency = 150;
+      else if (hops === 2) latency = 235;
+
+      const numaFactor = (latency / 65).toFixed(2);
+
+      document.getElementById('numa-hops').innerText = hops === 0 ? 'Local RAM Hit (0 Hops)' : `${hops} Interconnect Hop(s)`;
+      document.getElementById('numa-latency').innerText = `${latency} ns`;
+      document.getElementById('numa-factor').innerText = `${numaFactor}x baseline`;
+
+      logEl.innerHTML = `--> Core ${srcNode} dispatched read to Node ${destNode} address space...`;
+      if (hops === 0) {
+        logEl.innerHTML += `<br>Direct local access via integrated memory controller. Latency: ${latency} ns.`;
+      } else {
+        logEl.innerHTML += `<br>Remote reference routed across ${hops} point-to-point link(s). Latency penalty: ${latency} ns (${numaFactor}x slowdown).`;
+      }
+      logEl.scrollTop = logEl.scrollHeight;
     }
   </script>
 </body>
