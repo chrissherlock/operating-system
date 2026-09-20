@@ -1,55 +1,136 @@
 #!/usr/bin/env python3
 # =====================================================================
-# add_transistor_batch_images.py: Add transistor and punched card images
+# update_os_logos_family_grid.py: Organize OS logos into family rows
 # =====================================================================
 import os
 import subprocess
 import sys
 
-GENERATION_2_WITH_IMAGES = r"""
-      <h3>2. The Second Generation (1955–1965): Transistors and Batch Systems</h3>
+FAMILY_GRID_HTML = r"""
+    <!-- OPERATING SYSTEM LOGOS FAMILY GRID SECTION -->
+    <section class="content-section">
+      <h2>Operating System Ecosystem &amp; Architecture Families</h2>
       <p>
-        The invention of the <strong>transistor</strong> in the 1950s made computers reliable enough to manufacture and sell commercially. This era introduced <strong>batch systems</strong> to eliminate human operator idle time. Users wrote programs on punch cards, carried their card decks to the computer center, and handed them to operators.
+        The operating system landscape spans diverse paradigms. Below is a structured visual index of system brand marks and logos organized by architectural family.
       </p>
 
-      <!-- Visual Gallery for Transistors and Batch Systems -->
-      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 0;">
-        <!-- Transistor Card -->
-        <div style="flex: 1; min-width: 280px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; display: flex; gap: 14px; align-items: flex-start;">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
-            <div style="width: 100px; height: 130px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
-              <img src="../images/replica-first-transistor.jpg" alt="Replica of the First Working Transistor" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <span style="font-size: 0.7rem; color: #64748b; text-align: center; line-height: 1.2;">
-              <a href="https://commons.wikimedia.org/wiki/File:A_replica_of_the_first_working_transistor_02.jpg" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Photo: Wikimedia Commons<br>contributors (2023)</a>
-            </span>
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- Family 1: Commercial Desktop & Mobile -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Commercial Desktop &amp; Mobile Systems
           </div>
-          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
-            <strong>Transistors:</strong> Solid-state semiconductor devices that replaced fragile vacuum tubes, enabling smaller, faster, and dramatically more reliable computing hardware.
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <!-- Windows -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/windows.svg" alt="Windows Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Windows</span>
+            </div>
+            <!-- Apple -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/apple.svg" alt="Apple Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Apple macOS</span>
+            </div>
+            <!-- ChromeOS -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/chrome.svg" alt="ChromeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">ChromeOS</span>
+            </div>
           </div>
         </div>
 
-        <!-- Punched Card Program Deck Card -->
-        <div style="flex: 1; min-width: 280px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; display: flex; gap: 14px; align-items: flex-start;">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
-            <div style="width: 100px; height: 130px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
-              <img src="../images/punched-card-program-deck.jpg" alt="Punched Card Program Deck" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <span style="font-size: 0.7rem; color: #64748b; text-align: center; line-height: 1.2;">
-              <a href="https://commons.wikimedia.org/wiki/File:Punched_card_program_deck.agr.jpg" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Photo: Wikimedia Commons<br>contributors (2026)</a>
-            </span>
+        <!-- Family 2: Open-Source & Unix-Like -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Open-Source &amp; Unix-Like Kernels
           </div>
-          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
-            <strong>Batch Systems &amp; Card Decks:</strong> Programs and data were encoded onto punched cards and grouped into batches to be processed sequentially by batch monitor systems.
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <!-- Linux Tux -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/tux.svg" alt="Linux Tux Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Linux (Tux)</span>
+            </div>
+            <!-- FreeBSD -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/freebsd.svg" alt="FreeBSD Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">FreeBSD</span>
+            </div>
+            <!-- Android -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/android.svg" alt="Android Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Android</span>
+            </div>
+            <!-- MINIX -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/minix.png" alt="MINIX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">MINIX</span>
+            </div>
           </div>
         </div>
+
+        <!-- Family 3: Real-Time Operating Systems (RTOS) -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Real-Time Operating Systems (RTOS)
+          </div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <!-- FreeRTOS -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/free-rtos.png" alt="FreeRTOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">FreeRTOS</span>
+            </div>
+            <!-- QNX -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/qnx.svg" alt="QNX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">QNX RTOS</span>
+            </div>
+            <!-- VxWorks -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/vxworks.svg" alt="VxWorks Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">VxWorks</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Family 4: Historical & Enterprise Architectures -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Historical &amp; Enterprise Systems
+          </div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <!-- OS/2 -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/os2.svg" alt="IBM OS/2 Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">IBM OS/2</span>
+            </div>
+            <!-- Solaris -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/solaris.svg" alt="Solaris Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Solaris</span>
+            </div>
+            <!-- OpenVMS -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/openvms.svg" alt="OpenVMS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">OpenVMS</span>
+            </div>
+            <!-- Multics -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/multics.svg" alt="Multics Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Multics</span>
+            </div>
+            <!-- BeOS -->
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../images/logos/beos.svg" alt="BeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">BeOS</span>
+            </div>
+          </div>
+        </div>
+
       </div>
+    </section>"""
 
-      <p>
-        Operators grouped similar jobs (e.g., all FORTRAN jobs) into a batch, loaded them onto magnetic tape, and ran them sequentially using early batch monitors like IBSYS.
-      </p>"""
-
-def update_gen2_images():
+def update_family_grid():
     portal_path = os.path.join("week01-operating-system-concepts", "index.html")
     modified = []
 
@@ -57,11 +138,15 @@ def update_gen2_images():
         with open(portal_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        target_header = "<h3>2. The Second Generation (1955–1965): Transistors and Batch Systems</h3>"
-        if target_header in content:
-            parts = content.split(target_header)
-            trailer = parts[1].split("<h3>3. The Third Generation")[1]
-            content = parts[0] + GENERATION_2_WITH_IMAGES + "\n\n      <h3>3. The Third Generation" + trailer
+        # Remove old carousel section if present
+        if "OPERATING SYSTEM LOGOS CAROUSEL SECTION" in content:
+            parts = content.split("    <!-- OPERATING SYSTEM LOGOS CAROUSEL SECTION -->")
+            trailer = parts[1].split("</section>", 1)[1]
+            content = parts[0] + trailer
+
+        target = "    <div class=\"nav-header\" style=\"border-top: 1px solid var(--border); padding-top: 16px;\">"
+        if target in content and "OPERATING SYSTEM LOGOS FAMILY GRID SECTION" not in content:
+            content = content.replace(target, FAMILY_GRID_HTML + "\n\n    " + target, 1)
             with open(portal_path, "w", encoding="utf-8") as f:
                 f.write(content)
             modified.append(portal_path)
@@ -78,15 +163,15 @@ def update_gen2_images():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Add replica transistor and punched card program deck images with Wikimedia attributions\n\n"
-            "Update week01-operating-system-concepts/index.html to include images/replica-first-transistor.jpg\n"
-            "and images/punched-card-program-deck.jpg in the Second Generation section with full Wikimedia Commons attributions."
+            "Replace OS logos carousel with categorized family grid in Week 1 portal index\n\n"
+            "Update week01-operating-system-concepts/index.html to replace the carousel with\n"
+            "a structured, family-ordered row of operating system icons (Commercial, Open-Source, RTOS, Historical)."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Transistor and batch system images successfully deployed!")
+    print("--> OS logos family grid successfully deployed to Week 1 portal index!")
 
 if __name__ == "__main__":
-    update_gen2_images()
+    update_family_grid()
