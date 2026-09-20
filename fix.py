@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# remove_os_zoo_card.py: Remove Operating System Zoo card from index
+# remove_world_according_to_c_card.py: Remove C section card from index
 # =====================================================================
 import os
 import subprocess
 import sys
 
-UPDATED_CARD_LAYOUT_HTML = r"""<!DOCTYPE html>
+UPDATED_INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -164,12 +164,6 @@ UPDATED_CARD_LAYOUT_HTML = r"""<!DOCTYPE html>
       <p>Compare architectural designs: monolithic systems, layered systems, microclients, client-server models, virtual machines, and exokernels.</p>
     </div>
 
-    <!-- The World According to C -->
-    <div class="card">
-      <h2>The World According to C</h2>
-      <p>Review the role of the C programming language and POSIX standards in systems programming, compilation models, and header file management.</p>
-    </div>
-
   </div>
 </body>
 </html>
@@ -181,7 +175,7 @@ def execute_removal():
     portal_path = os.path.join(portal_dir, "index.html")
 
     with open(portal_path, "w", encoding="utf-8") as f:
-        f.write(UPDATED_CARD_LAYOUT_HTML)
+        f.write(UPDATED_INDEX_HTML)
 
     modified = [portal_path]
     fix_path = "fix.py"
@@ -192,15 +186,15 @@ def execute_removal():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Remove Operating System Zoo card from Chapter 1 index portal\n\n"
+            "Remove The World According to C card from Chapter 1 index portal\n\n"
             "Update week01-operating-system-concepts/index.html to remove the card corresponding\n"
-            "to The Operating System Zoo section."
+            "to The World According to C section."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Operating System Zoo card successfully removed and deployed!")
+    print("--> The World According to C card successfully removed and deployed!")
 
 if __name__ == "__main__":
     execute_removal()
