@@ -50,14 +50,58 @@
     .image-card a { color: var(--accent); text-decoration: underline; }
     .aside-box { background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin-top: 10px; }
   </style>
+
+<style id="module-nav-styles">
+  .module-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 16px auto;
+    gap: 12px;
+    box-sizing: border-box;
+  }
+  .module-nav-bar.bottom {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+  .module-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    text-decoration: none;
+    color: #0284c7;
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 7px 13px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .module-nav-btn:hover {
+    background-color: #0284c7;
+    color: #ffffff;
+  }
+  .module-nav-placeholder {
+    visibility: hidden;
+    padding: 7px 13px;
+    font-size: 0.85rem;
+  }
+</style>
+
 </head>
 <body>
-  <div class="nav-back" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 0 auto;">
-    <a href="index.html">&larr; Back to Chapter 1 Index</a>
-    <a href="02-hardware-review.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; font-family: var(--font-mono); text-decoration: none; color: #0284c7; background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 6px;">Next Article: 02. Computer Hardware Review &rarr;</a>
-  </div>
+  
 
-  <main>
+  <nav class="module-nav-bar">
+  <span class="module-nav-placeholder">&larr; Previous</span>
+  <a href="index.html" class="module-nav-btn">Week Index</a>
+  <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
+</nav>
+<main>
     <header>
       <h1>01. What Is an Operating System &amp; History</h1>
       <p class="subtitle">Tanenbaum Chapter 1.1 &amp; 1.2: Foundational Paradigms and the Five Computing Generations.</p>
@@ -339,6 +383,11 @@ To bridge the immense speed disparity between rapid CPU instruction execution an
         Next Article: 02. Computer Hardware Review &rarr;
       </a>
     </div>
+<nav class="module-nav-bar bottom">
+  <span class="module-nav-placeholder">&larr; Previous</span>
+  <a href="index.html" class="module-nav-btn">Week Index</a>
+  <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Computer Hardware Review &rarr;</a>
+</nav>
 </main>
 </body>
 </html>

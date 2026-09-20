@@ -237,8 +237,55 @@
     };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style id="module-nav-styles">
+  .module-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 16px auto;
+    gap: 12px;
+    box-sizing: border-box;
+  }
+  .module-nav-bar.bottom {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+  .module-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    text-decoration: none;
+    color: #0284c7;
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 7px 13px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+  }
+  .module-nav-btn:hover {
+    background-color: #0284c7;
+    color: #ffffff;
+  }
+  .module-nav-placeholder {
+    visibility: hidden;
+    padding: 7px 13px;
+    font-size: 0.85rem;
+  }
+</style>
+
 </head>
 <body>
+<nav class="module-nav-bar">
+  <a href="04-rpc-dsm-load-balancing.html" class="module-nav-btn">&larr; Previous: RPC, Distributed Shared Memory &amp; Load Balancing</a>
+  <a href="index.html" class="module-nav-btn">Week Index</a>
+  <span class="module-nav-placeholder">Next &rarr;</span>
+</nav>
 
   <div class="wrapper">
     <div class="nav-header">
@@ -619,5 +666,10 @@
       syncTupleUi();
     }
   </script>
+<nav class="module-nav-bar bottom">
+  <a href="04-rpc-dsm-load-balancing.html" class="module-nav-btn">&larr; Previous: RPC, Distributed Shared Memory &amp; Load Balancing</a>
+  <a href="index.html" class="module-nav-btn">Week Index</a>
+  <span class="module-nav-placeholder">Next &rarr;</span>
+</nav>
 </body>
 </html>
