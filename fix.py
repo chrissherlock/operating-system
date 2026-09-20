@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix_os_logos_explicit_parent_path.py: Force ../images/logos/ paths
+# add_wikipedia_links_to_os_labels.py: Add Wikipedia links to OS labels
 # =====================================================================
 import os
 import subprocess
 import sys
 
-FAMILY_GRID_HTML_EXPLICIT = r"""
+FAMILY_GRID_WITH_LINKS = r"""
     <!-- OPERATING SYSTEM LOGOS FAMILY GRID SECTION -->
     <section class="content-section">
       <h2>Operating System Ecosystem &amp; Architecture Families</h2>
@@ -25,17 +25,17 @@ FAMILY_GRID_HTML_EXPLICIT = r"""
             <!-- Windows -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/windows.svg" alt="Windows Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Windows</span>
+              <a href="https://en.wikipedia.org/wiki/Microsoft_Windows" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">Windows</a>
             </div>
             <!-- Apple -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/apple.svg" alt="Apple Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Apple macOS</span>
+              <a href="https://en.wikipedia.org/wiki/MacOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">Apple macOS</a>
             </div>
             <!-- ChromeOS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/chrome.svg" alt="ChromeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">ChromeOS</span>
+              <a href="https://en.wikipedia.org/wiki/ChromeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">ChromeOS</a>
             </div>
           </div>
         </div>
@@ -49,22 +49,22 @@ FAMILY_GRID_HTML_EXPLICIT = r"""
             <!-- Linux Tux -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/tux.svg" alt="Linux Tux Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Linux (Tux)</span>
+              <a href="https://en.wikipedia.org/wiki/Linux" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">Linux (Tux)</a>
             </div>
             <!-- FreeBSD -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/freebsd.svg" alt="FreeBSD Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">FreeBSD</span>
+              <a href="https://en.wikipedia.org/wiki/FreeBSD" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">FreeBSD</a>
             </div>
             <!-- Android -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/android.svg" alt="Android Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Android</span>
+              <a href="https://en.wikipedia.org/wiki/Android_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">Android</a>
             </div>
             <!-- MINIX -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/minix.png" alt="MINIX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">MINIX</span>
+              <a href="https://en.wikipedia.org/wiki/MINIX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">MINIX</a>
             </div>
           </div>
         </div>
@@ -78,17 +78,17 @@ FAMILY_GRID_HTML_EXPLICIT = r"""
             <!-- FreeRTOS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/free-rtos.png" alt="FreeRTOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">FreeRTOS</span>
+              <a href="https://en.wikipedia.org/wiki/FreeRTOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">FreeRTOS</a>
             </div>
             <!-- QNX -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/qnx.svg" alt="QNX Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">QNX RTOS</span>
+              <a href="https://en.wikipedia.org/wiki/QNX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">QNX RTOS</a>
             </div>
             <!-- VxWorks -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/vxworks.svg" alt="VxWorks Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">VxWorks</span>
+              <a href="https://en.wikipedia.org/wiki/VxWorks" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">VxWorks</a>
             </div>
           </div>
         </div>
@@ -102,27 +102,27 @@ FAMILY_GRID_HTML_EXPLICIT = r"""
             <!-- OS/2 -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/os2.svg" alt="IBM OS/2 Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">IBM OS/2</span>
+              <a href="https://en.wikipedia.org/wiki/OS/2" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">IBM OS/2</a>
             </div>
             <!-- Solaris -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/solaris.svg" alt="Solaris Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Solaris</span>
+              <a href="https://en.wikipedia.org/wiki/Solaris_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">Solaris</a>
             </div>
             <!-- OpenVMS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/openvms.svg" alt="OpenVMS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">OpenVMS</span>
+              <a href="https://en.wikipedia.org/wiki/OpenVMS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">OpenVMS</a>
             </div>
             <!-- Multics -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/multics.svg" alt="Multics Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">Multics</span>
+              <a href="https://en.wikipedia.org/wiki/Multics" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">Multics</a>
             </div>
             <!-- BeOS -->
             <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
               <img src="../images/logos/beos.svg" alt="BeOS Logo" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <span style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #334155; text-align: center;">BeOS</span>
+              <a href="https://en.wikipedia.org/wiki/BeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline; text-align: center;">BeOS</a>
             </div>
           </div>
         </div>
@@ -130,50 +130,43 @@ FAMILY_GRID_HTML_EXPLICIT = r"""
       </div>
     </section>"""
 
-def force_explicit_paths():
-    portal_path = "week01-operating-system-concepts/index.html"
-    os.makedirs("week01-operating-system-concepts", exist_ok=True)
+def add_wikipedia_links():
+    portal_path = os.path.join("week01-operating-system-concepts", "index.html")
+    modified = []
 
-    # Read existing content or create base if missing
     if os.path.exists(portal_path):
         with open(portal_path, "r", encoding="utf-8") as f:
             content = f.read()
-    else:
-        content = "<!DOCTYPE html><html><head><title>Week 1</title></head><body><div class=\"nav-header\" style=\"border-top: 1px solid var(--border); padding-top: 16px;\"></div></body></html>"
 
-    # Remove any existing family grid section
-    if "OPERATING SYSTEM LOGOS FAMILY GRID SECTION" in content:
-        parts = content.split("    <!-- OPERATING SYSTEM LOGOS FAMILY GRID SECTION -->")
-        trailer = parts[1].split("</section>", 1)[1]
-        content = parts[0] + trailer
+        if "OPERATING SYSTEM LOGOS FAMILY GRID SECTION" in content:
+            parts = content.split("    <!-- OPERATING SYSTEM LOGOS FAMILY GRID SECTION -->")
+            trailer = parts[1].split("</section>", 1)[1]
+            content = parts[0] + FAMILY_GRID_WITH_LINKS + "\n\n    " + trailer.strip()
+            with open(portal_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            modified.append(portal_path)
 
-    target = "    <div class=\"nav-header\" style=\"border-top: 1px solid var(--border); padding-top: 16px;\">"
-    if target in content:
-        content = content.replace(target, FAMILY_GRID_HTML_EXPLICIT + "\n\n    " + target, 1)
-    else:
-        content += "\n\n" + FAMILY_GRID_HTML_EXPLICIT
-
-    with open(portal_path, "w", encoding="utf-8") as f:
-        f.write(content)
-
-    modified = [portal_path]
     fix_path = "fix.py"
     if os.path.exists(fix_path):
         modified.append(fix_path)
+
+    if not modified:
+        print("--> No files modified.")
+        return
 
     print(f"--> Staging modified files: {modified}")
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Fix OS logo image paths to explicitly use ../images/logos/ in Week 1 portal index\n\n"
-            "Update week01-operating-system-concepts/index.html to ensure all logo image tags\n"
-            "correctly reference ../images/logos/ instead of relative local paths."
+            "Add Wikipedia hyperlinks to operating system labels in Week 1 portal index\n\n"
+            "Update week01-operating-system-concepts/index.html to turn system text labels\n"
+            "beneath each logo into direct Wikipedia links for each respective operating system."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Explicit ../images/logos/ paths successfully deployed!")
+    print("--> Wikipedia links successfully deployed to OS labels!")
 
 if __name__ == "__main__":
-    force_explicit_paths()
+    add_wikipedia_links()
