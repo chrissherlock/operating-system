@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Correct heading to 03 and update nav in 03-os-concepts.html
+# fix.py: Force exact heading correction and nav sync in 03-os-concepts.html
 # =====================================================================
 import os
 import re
 import subprocess
 
-def fix_03_os_concepts():
+def run_fix():
     file_path = os.path.join("week01-operating-system-concepts", "03-os-concepts.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -25,42 +25,61 @@ def fix_03_os_concepts():
     <a href="04-os-structure.html" class="module-nav-btn">Next: 04. OS Structure &rarr;</a>
   </nav>'''
 
-    new_content = content
+    modified = content
 
-    # 1. Correct heading to 03. Operating System Concepts
-    heading_pattern = r'<h2>\s*(?:\d+\.\s*)?([^<]+)(</h2>)'
-    if re.search(heading_pattern, new_content):
-        new_content = re.sub(heading_pattern, r'<h2>03. Operating System Concepts\2', new_content, count=1)
+    # Direct string replacements for common bad variations
+    bad_snippets = [
+        "<h2>04. Operating System Concepts</h2>",
+        "<h2>4. Operating System Concepts</h2>",
+        "<h1>04. Operating System Concepts</h1>",
+        "<h1>4. Operating System Concepts</h1>",
+        "<h2>04. OS Concepts</h2>",
+        "<h2>3. Operating System Concepts</h2>" # just in case
+    ]
+    for bad in bad_snippets:
+        if bad in modified:
+            modified = modified.replace(bad, "<h2>03. Operating System Concepts</h2>")
 
-    # 2. Update navigation bar
-    if '<nav class="module-nav-bar">' in new_content:
-        start_idx = new_content.find('<nav class="module-nav-bar">')
-        end_idx = new_content.find('</nav>', start_idx) + 6
-        new_content = new_content[:start_idx] + correct_nav + new_content[end_idx:]
+    # Regex fallback to catch any variations in tag attributes or spacing
+    modified = re.sub(
+        r'<h[123][^>]*>\s*(?:0?4|[4])\.\s*Operating System Concepts\s*</h[123]>',
+        '<h2>03. Operating System Concepts</h2>',
+        modified,
+        flags=re.IGNORECASE
+    )
+
+    # Force update the navigation bar block
+    if '<nav class="module-nav-bar">' in modified:
+        start_idx = modified.find('<nav class="module-nav-bar">')
+        end_idx = modified.find('</nav>', start_idx) + 6
+        modified = modified[:start_idx] + correct_nav + modified[end_idx:]
     else:
-        body_match = re.search(r'(<body[^>]*>)', new_content, flags=re.IGNORECASE)
+        body_match = re.search(r'(<body[^>]*>)', modified, flags=re.IGNORECASE)
         if body_match:
-            new_content = new_content.replace(body_match.group(1), f'{body_match.group(1)}\n  {correct_nav}')
+            modified = modified.replace(body_match.group(1), f'{body_match.group(1)}\n  {correct_nav}')
 
-    if new_content != content:
+    if modified != content:
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(new_content)
-        print(f"--> Successfully corrected {file_path}")
+            f.write(modified)
+        print(f"--> Successfully forced correction in {file_path}")
 
         try:
             subprocess.run(["git", "add", "fix.py", file_path], check=True)
             commit_msg = (
-                "Fix heading and navigation in week01/03-os-concepts.html\n\n"
-                "Correct the primary heading in 03-os-concepts.html to read 03.\n"
-                "Operating System Concepts and update the pagination navigation."
+                "Force heading correction to 03. Operating System Concepts in 03-os-concepts.html\n\n"
+                "Replace incorrect 04/4 numbering in 03-os-concepts.html heading with 03\n"
+                "and update navigation bar."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for 03-os-concepts.html!")
+            print("--> Git sync completed successfully!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> 03-os-concepts.html heading and nav were already correct.")
+        print("--> Warning: Exact heading match not replaced. Debugging file headings:")
+        found_headings = re.findall(r'<h[123][^>]*>.*?</h[123]>', modified, flags=re.DOTALL)
+        for h in found_headings[:5]:
+            print(f"   Found heading: {h}")
 
 if __name__ == "__main__":
-    fix_03_os_concepts()
+    run_fix()
