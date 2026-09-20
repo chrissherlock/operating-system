@@ -4,88 +4,83 @@ import re
 import subprocess
 import sys
 
-def modify_aging_file():
-    path = os.path.join("week09-memory-management", "08-aging-algorithm.html")
-    if not os.path.exists(path):
-        print(f"Error: Could not find {path}", file=sys.stderr)
+def modify_root_index():
+    target_file = "index.html"
+    if not os.path.exists(target_file):
+        print(f"Error: Could not find {target_file} in current directory.", file=sys.stderr)
         return False
 
-    print(f"--> Reading {path}...")
-    with open(path, "r", encoding="utf-8") as f:
+    print(f"--> Reading {target_file}...")
+    with open(target_file, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Regex targeting the exact snippet identified by inspection
-    pattern = r"ticks ago and 4 ticks ago\.\s*A value of `00000001`\s*\(1 decimal\)\s*means it was only referenced 1 tick ago\."
-    replacement = "ticks ago and 4 ticks ago. A value of `10000000` (128 decimal) indicates a reference at the most recent interval (shifted into the MSB), while `00000001` (1 decimal) indicates a reference at the oldest tracked interval."
+    # 1. Clean up the duplicate text in Week 9 description if present
+    duplicate_pattern = r"page replacement algorithms \(Clock / Second-Chance\),\s*and\s*page replacement algorithms \(Clock / Second-Chance\),\s*and"
+    if re.search(duplicate_pattern, content):
+        content = re.sub(duplicate_pattern, "page replacement algorithms (Clock / Second-Chance), and", content)
+        print("--> Fixed duplicated text in memory management description.")
 
-    new_content, count = re.subn(pattern, replacement, content)
-    if count == 0:
-        print("Warning: Aging snippet pattern did not match.", file=sys.stderr)
-        return False
+    # 2. Update Week 11 Card: activate link and update description/tags
+    # Match Week 11 section/card block
+    week11_pattern = r'(<a[^>]*href=["\'](?:#|week11[^"\']*)["\'][^>]*>[\s\S]*?Week 11[\s\S]*?</a>|<div[^>]*class=["\'][^"\']*card[^"\']*["\'][^>]*>[\s\S]*?Week 11[\s\S]*?</div>)'
 
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(new_content)
-    print(f"--> Updated aging bit interpretation in {path} ({count} replacement).")
-    return True
+    # Replacement card matching the dashboard's design language
+    new_week11_card = r"""<a href="week11-multiprocessors/index.html" class="module-card">
+        <span class="module-tag">Week 11 &bull; Chapter 8</span>
+        <h3 class="module-title">Multiprocessor Systems &amp; Distributed Computing</h3>
+        <p class="module-desc">
+          Multiprocessor hardware models (UMA, NUMA), cache coherence protocols (MESI), and multiprocessor OS types (Symmetric Multiprocessing). Explores gang scheduling, multicomputer interconnect topologies, Remote Procedure Calls (RPC), Distributed Shared Memory (DSM), and distributed middleware architectures.
+        </p>
+        <div class="topics-list">
+          <span class="topic-pill">SMP &bull; UMA/NUMA</span>
+          <span class="topic-pill">MESI Coherence</span>
+          <span class="topic-pill">Gang Scheduling</span>
+          <span class="topic-pill">RPC &bull; DSM</span>
+          <span class="topic-pill">Distributed Middleware</span>
+        </div>
+      </a>"""
 
-def modify_emat_file():
-    path = os.path.join("week09-memory-management", "02b-paging-hardware-dilemma.html")
-    if not os.path.exists(path):
-        print(f"Error: Could not find {path}", file=sys.stderr)
-        return False
+    # If the file uses <a> tags with class module-card or similar, replace or update
+    match = re.search(r'(<a[^>]*href=[^>]*>[\s\S]*?Week 11[\s\S]*?</a>)', content)
+    if match:
+        content = content[:match.start()] + new_week11_card + content[match.end():]
+        print("--> Replaced existing Week 11 card link.")
+    else:
+        # Check if it was an inactive div
+        match_div = re.search(r'(<div[^>]*>[\s\S]*?Week 11[\s\S]*?</div>\s*</div>)', content)
+        if match_div:
+            content = content[:match_div.start()] + new_week11_card + content[match_div.end():]
+            print("--> Activated Week 11 card from container block.")
+        else:
+            print("Notice: Standard Week 11 card pattern not directly matched; checking generic week11 marker...")
+            content = re.sub(r'href=["\']#["\'](?=[^>]*Week 11)', 'href="week11-multiprocessors/index.html"', content)
 
-    print(f"--> Reading {path}...")
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    # Regex targeting the LaTeX display equation identified by inspection
-    pattern = r"\$\$EAT\s*=\s*\(h\s*\\times\s*t_\{tlb\}\)\s*\+\s*\(1\s*-\s*h\)\s*\\times\s*\(t_\{tlb\}\s*\+\s*t_\{ram\\_table\}\s*\+\s*t_\{ram\\_data\}\)\$\$"
-    replacement = r"$$EAT = h \times (t_{tlb} + t_{ram\_data}) + (1 - h) \times (t_{tlb} + t_{ram\_table} + t_{ram\_data})$$"
-
-    new_content, count = re.subn(pattern, replacement, content)
-    if count == 0:
-        # Fallback to a broader regex match on the EAT formula line
-        broad_pattern = r"\$\$EAT\s*=.*?t_\{ram\\_data\}\)\$\$"
-        new_content, count = re.subn(broad_pattern, replacement, content)
-
-    if count == 0:
-        print("Warning: EAT LaTeX formula pattern did not match.", file=sys.stderr)
-        return False
-
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(new_content)
-    print(f"--> Updated EAT equation in {path} ({count} replacement).")
+    with open(target_file, "w", encoding="utf-8") as f:
+        f.write(content)
+    print("--> Successfully updated root index.html!")
     return True
 
 def run_git_deployment():
-    aging_path = os.path.join("week09-memory-management", "08-aging-algorithm.html")
-    emat_path = os.path.join("week09-memory-management", "02b-paging-hardware-dilemma.html")
-
-    print("--> Staging modified HTML files...")
-    subprocess.run(["git", "add", aging_path, emat_path], check=True)
+    target_file = "index.html"
+    print("--> Staging index.html...")
+    subprocess.run(["git", "add", target_file], check=True)
 
     status_res = subprocess.run(["git", "diff", "--cached", "--quiet"])
     if status_res.returncode == 0:
-        print("--> No staged changes detected. Exiting without commit.")
+        print("--> No staged changes detected in index.html. Exiting.")
         return
 
     print("--> Committing changes...")
     commit_msg = (
-        "Fix aging bit interpretation and EAT hit latency equation in week 9\n\n"
-        "Update 08-aging-algorithm.html so MSB indicates the most recent tick,\n"
-        "and update the EAT formula in 02b-paging-hardware-dilemma.html to include\n"
-        "data access latency on a TLB hit."
+        "Update root dashboard index to activate Week 11 and fix typo\n\n"
+        "Update index.html to link Week 11 to week11-multiprocessors/index.html with\n"
+        "Chapter 8 multiprocessor topics, and clean up duplicate text in the\n"
+        "memory management description."
     )
-
     subprocess.run(["git", "commit", "-m", commit_msg], check=True)
     subprocess.run(["git", "push", "origin", "main"], check=True)
-    print("--> Changes committed and pushed successfully!")
+    print("--> Deployment of root dashboard complete!")
 
 if __name__ == "__main__":
-    ok_aging = modify_aging_file()
-    ok_emat = modify_emat_file()
-    if ok_aging or ok_emat:
+    if modify_root_index():
         run_git_deployment()
-    else:
-        print("--> No modifications applied. Aborting git operations.", file=sys.stderr)
-        sys.exit(1)
