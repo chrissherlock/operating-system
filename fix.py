@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # =====================================================================
-# add_gen4_images.py: Add Macintosh and Windows 95 cards to Generation 4
+# expand_generation_five.py: Expand Generation 5 historical description
 # =====================================================================
 import os
 import subprocess
 
-def execute_image_addition():
+def execute_gen5_expansion():
     file_path = os.path.join("week01-operating-system-concepts", "01-what-is-an-os-and-history.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -14,46 +14,39 @@ def execute_image_addition():
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    target_marker = "</ul>"
-    pos = content.find(target_marker)
+    header_str = "<h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>"
+    pos = content.find(header_str)
     if pos != -1:
-        insert_pos = pos + len(target_marker)
+        end_pos = content.find("</p>", pos) + 4
 
-        image_grid_block = """
-      <div class="image-grid" style="margin-top: 16px;">
-        <div class="image-card">
-          <img src="../images/macintosh-128k.png" alt="Macintosh 128k">
-          <span>
-            <strong>Macintosh 128k</strong><br>
-            Early personal computer with graphical desktop interface.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Macintosh_128k" target="_blank" rel="noopener">Wikipedia: Macintosh 128k</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Macintosh_128k_transparency.png&oldid=1086425807" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/windows-95-first-run.png" alt="Windows 95 First Run">
-          <span>
-            <strong>Windows 95</strong><br>
-            Desktop operating system environment.<br>
-            <small><a href="https://en.wikipedia.org/wiki/File:Windows_95_at_first_run.png" target="_blank" rel="noopener">Wikipedia File: Windows 95 at first run</a></small><br>
-            <small>Source: Wikipedia contributors</small>
-          </span>
-        </div>
-      </div>"""
+        new_block = (
+            "<h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>\n"
+            "      <p>\n"
+            "        The contemporary computing era has shifted dramatically away from stationary desktop environments toward highly distributed, heterogeneous, and mobile ecosystems. Modern operating systems must span an immense spectrum of hardware scales—ranging from miniature battery-powered wearable sensors and smartphones to massive hyperscale cloud datacenters comprising millions of server cores.\n"
+            "      </p>\n"
+            "      <p>\n"
+            "        Key architectural paradigms defining Generation 5 include:\n"
+            "      </p>\n"
+            "      <ul style=\"margin-left: 20px; color: var(--text-muted); line-height: 1.6;\">\n"
+            "        <li><strong>Mobile &amp; Power-Aware Operating Systems:</strong> Platforms like Android and iOS introduced aggressive power management frameworks, thermal throttling, context-aware sensor integration, strict application sandboxing, and wireless cellular/Wi-Fi stack management to maximize battery longevity and user responsiveness.</li>\n"
+            "        <li><strong>Cloud Computing &amp; Hypervisors:</strong> Hyperscale cloud infrastructures rely on robust Type-1 hypervisors (such as KVM, Xen, and VMware ESXi) to virtualize compute, storage, and networking layers, allowing cloud providers to dynamically provision and migrate virtual machines across elastic server clusters.</li>\n"
+            "        <li><strong>Containerization &amp; Orchestration:</strong> Operating system-level virtualization through container runtimes (such as Docker) and orchestrators (such as Kubernetes) enables lightweight, isolated application packaging that shares a common host kernel, optimizing resource utilization and microservices deployment.</li>\n"
+            "        <li><strong>Ubiquitous &amp; IoT Computing:</strong> Billions of smart devices, industrial sensors, and embedded appliances run specialized lightweight real-time operating systems (RTOS) and micro-kernels (such as FreeRTOS or Zephyr) that integrate seamlessly into ambient networks with minimal memory and power footprints.</li>\n"
+            "      </ul>"
+        )
 
-        content = content[:insert_pos] + image_grid_block + content[insert_pos:]
+        content = content[:pos] + new_block + content[end_pos:]
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print("--> Generation 4 image cards successfully added.")
+        print("--> Generation 5 description successfully expanded.")
 
     try:
         subprocess.run(["git", "add", file_path], check=True)
-        subprocess.run(["git", "commit", "-m", "Add Macintosh 128k and Windows 95 image cards to Generation 4 in Module 1"], check=True)
+        subprocess.run(["git", "commit", "-m", "Expand Generation 5 mobile, cloud, and ubiquitous computing historical description in Module 1"], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
         print("--> Git sync completed successfully!")
     except Exception as e:
         print(f"Git note: {e}")
 
 if __name__ == "__main__":
-    execute_image_addition()
+    execute_gen5_expansion()
