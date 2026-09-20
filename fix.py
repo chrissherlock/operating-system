@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# restore_intro_page.py: Recreate intro page with correct image paths
+# restore_all_fifteen_logos.py: Restore all 15 logos in intro page
 # =====================================================================
 import os
 import subprocess
 import sys
 
-INTRO_INDEX_HTML = r"""<!DOCTYPE html>
+FULL_LOGOS_INTRO_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -111,36 +111,109 @@ INTRO_INDEX_HTML = r"""<!DOCTYPE html>
     </section>
 
     <section class="content-section">
-      <h2>Operating System Ecosystem Logos</h2>
+      <h2>Operating System Ecosystem &amp; Architecture Families</h2>
       <p>
-        Major operating system brand marks across commercial, open-source, RTOS, and historical architectures.
+        The operating system landscape spans diverse paradigms. Below is the complete visual index of all 15 system brand marks and logos organized by architectural family.
       </p>
 
-      <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px;">
-        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-          <img src="../../images/logos/windows.svg" alt="Windows" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-          <a href="https://en.wikipedia.org/wiki/Microsoft_Windows" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Windows</a>
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- Family 1: Commercial Desktop & Mobile -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Commercial Desktop &amp; Mobile Systems
+          </div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/windows.svg" alt="Windows" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Microsoft_Windows" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Windows</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/apple.svg" alt="Apple" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/MacOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Apple macOS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/chrome.svg" alt="ChromeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/ChromeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">ChromeOS</a>
+            </div>
+          </div>
         </div>
-        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-          <img src="../../images/logos/apple.svg" alt="Apple" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-          <a href="https://en.wikipedia.org/wiki/MacOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Apple macOS</a>
+
+        <!-- Family 2: Open-Source & Unix-Like -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Open-Source &amp; Unix-Like Kernels
+          </div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/tux.svg" alt="Linux" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Linux" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Linux (Tux)</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/freebsd.svg" alt="FreeBSD" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/FreeBSD" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeBSD</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/android.svg" alt="Android" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Android_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Android</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/minix.png" alt="MINIX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/MINIX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">MINIX</a>
+            </div>
+          </div>
         </div>
-        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-          <img src="../../images/logos/tux.svg" alt="Linux" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-          <a href="https://en.wikipedia.org/wiki/Linux" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Linux (Tux)</a>
+
+        <!-- Family 3: Real-Time Operating Systems (RTOS) -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Real-Time Operating Systems (RTOS)
+          </div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/free-rtos.png" alt="FreeRTOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/FreeRTOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeRTOS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/qnx.svg" alt="QNX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/QNX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">QNX RTOS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/vxworks.svg" alt="VxWorks" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/VxWorks" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">VxWorks</a>
+            </div>
+          </div>
         </div>
-        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-          <img src="../../images/logos/freebsd.svg" alt="FreeBSD" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-          <a href="https://en.wikipedia.org/wiki/FreeBSD" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeBSD</a>
+
+        <!-- Family 4: Historical & Enterprise Systems -->
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">
+            Historical &amp; Enterprise Systems
+          </div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/os2.svg" alt="OS/2" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/OS/2" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">IBM OS/2</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/solaris.svg" alt="Solaris" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Solaris_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Solaris</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/openvms.svg" alt="OpenVMS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/OpenVMS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">OpenVMS</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/multics.svg" alt="Multics" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/Multics" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Multics</a>
+            </div>
+            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+              <img src="../../images/logos/beos.svg" alt="BeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+              <a href="https://en.wikipedia.org/wiki/BeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">BeOS</a>
+            </div>
+          </div>
         </div>
-        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-          <img src="../../images/logos/android.svg" alt="Android" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-          <a href="https://en.wikipedia.org/wiki/Android_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Android</a>
-        </div>
-        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-          <img src="../../images/logos/os2.svg" alt="OS/2" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-          <a href="https://en.wikipedia.org/wiki/OS/2" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">IBM OS/2</a>
-        </div>
+
       </div>
     </section>
   </main>
@@ -148,13 +221,13 @@ INTRO_INDEX_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def execute_restoration():
+def restore_all_logos():
     intro_dir = os.path.join("week01-operating-system-concepts", "intro")
     os.makedirs(intro_dir, exist_ok=True)
     intro_path = os.path.join(intro_dir, "index.html")
 
     with open(intro_path, "w", encoding="utf-8") as f:
-        f.write(INTRO_INDEX_HTML)
+        f.write(FULL_LOGOS_INTRO_HTML)
 
     modified = [intro_path]
     fix_path = "fix.py"
@@ -165,15 +238,15 @@ def execute_restoration():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Restore intro page with correct relative image paths\n\n"
-            "Update week01-operating-system-concepts/intro/index.html to reference images\n"
-            "using ../../images/ prefixes so generation photos and logos render properly."
+            "Restore all 15 operating system logos in intro page family grid\n\n"
+            "Update week01-operating-system-concepts/intro/index.html to include all 15 ecosystem logos\n"
+            "(Windows, Apple, ChromeOS, Linux, FreeBSD, Android, MINIX, FreeRTOS, QNX, VxWorks, OS/2, Solaris, OpenVMS, Multics, BeOS)."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Intro page successfully restored and deployed!")
+    print("--> All 15 logos successfully restored and deployed!")
 
 if __name__ == "__main__":
-    execute_restoration()
+    restore_all_logos()
