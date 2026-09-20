@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>8.2.4–8.2.7 RPC, DSM &amp; Load Balancing — COSC240</title>
+  <!-- MathJax Configuration for LaTeX Rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -122,7 +132,7 @@
     }
     .diagram-svg {
       width: 100%;
-      max-width: 840px;
+      max-width: 820px;
       height: auto;
     }
     .diagram-caption {
@@ -134,7 +144,7 @@
       background: var(--code-bg);
       color: var(--code-text);
       font-family: var(--font-mono);
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       padding: 16px;
       border-radius: 6px;
       overflow-x: auto;
@@ -165,95 +175,105 @@
       color: #0369a1;
     }
 
-    /* Simulator styling */
-    .sim-card {
+    /* Guided Walkthrough Panels */
+    .walkthrough-box {
       background: #f8fafc;
-      border: 2px solid #cbd5e1;
+      border: 2px solid #0284c7;
       border-radius: 8px;
       padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-    .sim-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text);
+    .walkthrough-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #bae6fd;
+      padding-bottom: 8px;
     }
-    .sim-controls {
+    .walkthrough-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0369a1;
+    }
+    .step-badge {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: #0284c7;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 9999px;
+    }
+    .instruction-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #0284c7;
+      padding: 14px 16px;
+      border-radius: 0 6px 6px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .instruction-card .action-req {
+      font-weight: bold;
+      color: #0369a1;
+      font-size: 0.92rem;
+    }
+    .instruction-card .action-exp {
+      font-size: 0.88rem;
+      color: #475569;
+    }
+    .walkthrough-controls {
       display: flex;
       gap: 10px;
-      flex-wrap: wrap;
       align-items: center;
     }
-    .btn-action {
+    .btn-step {
       background: #0284c7;
       color: #ffffff;
       border: none;
-      padding: 8px 14px;
-      border-radius: 5px;
-      font-size: 0.82rem;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
       font-weight: 600;
       font-family: var(--font-mono);
       cursor: pointer;
       transition: background 0.15s ease;
     }
-    .btn-action:hover { background: #0369a1; }
+    .btn-step:hover { background: #0369a1; }
+    .btn-reset {
+      background: #64748b;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+    }
+    .btn-reset:hover { background: #475569; }
     .status-panel {
       background: var(--code-bg);
       color: var(--code-text);
       font-family: var(--font-mono);
-      font-size: 0.82rem;
+      font-size: 0.83rem;
       padding: 12px;
       border-radius: 6px;
-      height: 120px;
+      height: 115px;
       overflow-y: auto;
-    }
-    .node-cluster {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-    .node-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-      text-align: center;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-    }
-    .node-bar {
-      height: 12px;
-      background: #e2e8f0;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-top: 6px;
-    }
-    .node-fill {
-      height: 100%;
-      background: #0284c7;
-      width: 0%;
-      transition: width 0.3s ease, background-color 0.3s ease;
+      line-height: 1.5;
     }
   </style>
-  <!-- MathJax Configuration for LaTeX Rendering -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
-      }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
   <div class="wrapper">
     <div class="nav-header">
       <a href="03-multicomputers-interconnects.html" class="nav-btn">&larr; 8.2 Topologies &amp; Messaging</a>
-      <a href="05-distributed-systems-middleware.html" class="nav-btn">8.3 Distributed Systems &rarr;</a>
+      <a href="05-distributed-middleware.html" class="nav-btn">8.3 Distributed Systems &rarr;</a>
     </div>
 
     <header>
@@ -264,135 +284,182 @@
       </p>
     </header>
 
-    <!-- SECTION 8.2.4: RPC DETAILS & SEMANTICS -->
+    <!-- SECTION 8.2.4: REMOTE PROCEDURE CALL -->
     <section class="content-section">
-      <h2>8.2.4 Remote Procedure Call Semantics &amp; Fault Modes</h2>
+      <h2>8.2.4 Remote Procedure Call (RPC) Semantics &amp; Fault Modes</h2>
       <p>
-        While standard procedure calls execute within a single address space with uniform pointers and guaranteed returns, Remote Procedure Calls operate over unreliable networks where messages can be dropped, duplicated, or reordered.
+        Pioneered by Birrell and Nelson (1984), <strong>Remote Procedure Call (RPC)</strong> allows programs running on one multicomputer node to invoke subroutines executing on another node transparently. While local function calls pass arguments via CPU registers or stack frames within a shared address space, RPCs must cross an unreliable network where messages can be dropped, delayed, duplicated, or reordered.
       </p>
 
-      <h3>Handling Client-Server Failures</h3>
+      <h3>1. The 5 Fault Modes of RPC</h3>
       <table class="spec-table">
         <thead>
           <tr>
-            <th>Failure Condition</th>
+            <th>Failure Mode</th>
             <th>Impact</th>
-            <th>Resolution Strategy</th>
+            <th>Recovery Strategy</th>
           </tr>
         </thead>
         <tbody>
           <tr>
+            <td><strong>Client Cannot Locate Server</strong></td>
+            <td>Binding fails; server endpoint down or unregistered.</td>
+            <td>Return explicit error code or raise language runtime exception.</td>
+          </tr>
+          <tr>
             <td><strong>Lost Request Message</strong></td>
-            <td>Client hangs indefinitely waiting for a reply that will never arrive.</td>
-            <td>Client sets retransmission timer; resends request upon expiration.</td>
+            <td>Server never receives the call; client blocks indefinitely.</td>
+            <td>Client starts a retransmission timer; resends request upon timeout.</td>
           </tr>
           <tr>
             <td><strong>Lost Reply Message</strong></td>
-            <td>Server executed the operation, but the client never received confirmation.</td>
-            <td>Requires <em>Idempotency</em> analysis. Non-idempotent operations must use sequence numbers to avoid re-execution.</td>
+            <td>Server executed the routine, but client never received result.</td>
+            <td>Client retransmits. Server must detect duplicates via sequence numbers.</td>
           </tr>
           <tr>
             <td><strong>Server Crash After Execution</strong></td>
-            <td>Server executes transaction, crashes before network transmission of ack.</td>
-            <td>Client cannot distinguish between pre-execution and post-execution crashes without persistent transaction logs.</td>
+            <td>Server completed call but rebooted before sending reply.</td>
+            <td>Distinguish between <em>At-Least-Once</em> and <em>At-Most-Once</em> semantics.</td>
           </tr>
           <tr>
             <td><strong>Client Crash (Orphan Tasks)</strong></td>
-            <td>Server continues computing on behalf of a client that is no longer running.</td>
-            <td>Orphan elimination algorithms: Extermination, Reincarnation (epoch numbers), or Gentle Expiration.</td>
+            <td>Server continues computing for a client that no longer exists.</td>
+            <td>Orphan elimination: extermination, reincarnation epochs, or timeouts.</td>
           </tr>
         </tbody>
       </table>
 
-      <h3>Invocation Semantics</h3>
+      <h3>2. Invocation Semantics &amp; Idempotency</h3>
       <ul>
         <li>
-          <strong>At-Least-Once Semantics:</strong> Client retransmits requests until an acknowledgment returns. Guarantees that the call runs at least once, but may execute multiple times if replies are delayed or dropped. Safe only for <em>idempotent</em> operations (e.g., reading a specific file block, setting a balance to a fixed number).
+          <strong>At-Least-Once Semantics:</strong> The client retransmits requests until an acknowledgment arrives. Guarantees that the procedure executes at least once, but may execute multiple times if replies are dropped. This is safe <em>only for idempotent operations</em> (e.g., reading block 4 of a file, or overwriting a balance with an exact value: $X = 500$).
         </li>
         <li>
-          <strong>At-Most-Once Semantics:</strong> Server tracks sequence IDs and filters duplicate requests. Guarantees that the operation runs either once or not at all if the server crashed. Essential for non-idempotent requests (e.g., transferring funds or appending to a ledger).
-        </li>
-        <li>
-          <strong>Exactly-Once Semantics:</strong> The theoretical ideal where an operation occurs precisely once despite network partitions and node crashes. In practice, achieving this across arbitrary failure modes requires distributed two-phase commit protocols and persistent transaction logging.
+          <strong>At-Most-Once Semantics:</strong> The server tracks request sequence IDs and suppresses duplicate executions. Guarantees the routine executes either exactly once or not at all if the server crashes permanently. Required for non-idempotent operations (e.g., transferring funds: $\text{balance} = \text{balance} + 100$).
         </li>
       </ul>
-    </section>
 
-    <!-- INTERACTIVE SIMULATOR: RPC STEPPER -->
-    <section class="content-section">
-      <div class="sim-card">
-        <div class="sim-header" style="display:flex; justify-content:space-between; align-items:center;">
-          <span class="sim-title">Interactive RPC Transaction Walkthrough</span>
-          <div class="sim-controls">
-            <button class="btn-action" onclick="advanceRpcStep()">Step Next Stage</button>
-            <button class="btn-action" onclick="resetRpcSim()">Reset Pipeline</button>
-          </div>
+      <!-- WALKTHROUGH 1: RPC PIPELINE -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: The Complete RPC Lifecycle</span>
+          <span id="rpc-step-badge" class="step-badge">Stage 1 of 5</span>
         </div>
-        <p style="font-size: 0.88rem; color: #475569;">
-          Step through an RPC invocation of <code>compute_hash(data_block)</code> across client and server nodes:
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> This walkthrough visually tracks an RPC invocation of <code>compute_hash(data_block)</code> from the client application stack down to network serialization, across the wire, and through server worker execution.
         </p>
 
-        <div id="rpc-stage-display" style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:16px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono); font-size:0.82rem;">
-          <div id="st-client-app" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">1. Client App</div>
-          <div>&rarr;</div>
-          <div id="st-client-stub" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">2. Client Stub (Marshal)</div>
-          <div>&rarr;</div>
-          <div id="st-network" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">3. Network Wire</div>
-          <div>&rarr;</div>
-          <div id="st-server-stub" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">4. Server Stub (Unmarshal)</div>
-          <div>&rarr;</div>
-          <div id="st-server-exec" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">5. Server Exec</div>
+        <div class="instruction-card">
+          <div id="rpc-act-text" class="action-req">Action Required: Click 'Execute Stage 1: Client Application Call' below.</div>
+          <div id="rpc-exp-text" class="action-exp">The client application makes a standard local function call to <code>compute_hash()</code>. The call traps directly into the auto-generated <strong>Client Stub</strong>.</div>
         </div>
 
-        <div id="rpc-log" class="status-panel">-- Click 'Step Next Stage' to start the RPC trace --</div>
+        <!-- Inline Interactive SVG RPC Pipeline -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="rpc-pipeline-svg" viewBox="0 0 740 260" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- Client Node (Left) -->
+            <rect id="rpc-client-box" x="20" y="20" width="220" height="220" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="6"/>
+            <text x="130" y="42" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="12">Client Machine (Node 0)</text>
+
+            <rect id="rpc-client-app" x="35" y="55" width="190" height="40" fill="#ffffff" stroke="#0284c7" rx="4"/>
+            <text x="130" y="75" text-anchor="middle" font-weight="bold" fill="#0369a1">Client Application</text>
+            <text x="130" y="88" text-anchor="middle" font-size="9" fill="#64748b">compute_hash(data)</text>
+
+            <line x1="130" y1="95" x2="130" y2="115" stroke="#cbd5e1" stroke-width="3"/>
+
+            <rect id="rpc-client-stub" x="35" y="115" width="190" height="50" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+            <text x="130" y="135" text-anchor="middle" font-weight="bold" fill="#334155">Client Stub</text>
+            <text id="rpc-stub-txt" x="130" y="152" text-anchor="middle" font-size="9" fill="#64748b">Awaiting invocation</text>
+
+            <line x1="130" y1="165" x2="130" y2="185" stroke="#cbd5e1" stroke-width="3"/>
+
+            <rect id="rpc-client-os" x="35" y="185" width="190" height="40" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+            <text x="130" y="205" text-anchor="middle" font-weight="bold" fill="#334155">Kernel Transport</text>
+            <text x="130" y="218" text-anchor="middle" font-size="9" fill="#64748b">Socket / NIC</text>
+
+            <!-- Network Wire Interconnect -->
+            <rect id="rpc-net-box" x="280" y="100" width="180" height="60" fill="#f8fafc" stroke="#94a3b8" rx="4"/>
+            <text x="370" y="125" text-anchor="middle" font-weight="bold" fill="#475569">Network Fabric</text>
+            <text id="rpc-net-status" x="370" y="145" text-anchor="middle" font-size="9" fill="#94a3b8">Wire Idle</text>
+
+            <line id="rpc-wire-left" x1="225" y1="205" x2="280" y2="130" stroke="#cbd5e1" stroke-width="3"/>
+            <line id="rpc-wire-right" x1="460" y1="130" x2="515" y2="205" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Server Node (Right) -->
+            <rect id="rpc-server-box" x="500" y="20" width="220" height="220" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="610" y="42" text-anchor="middle" font-weight="bold" fill="#475569" font-size="12">Server Machine (Node 1)</text>
+
+            <rect id="rpc-server-app" x="515" y="55" width="190" height="40" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+            <text x="610" y="75" text-anchor="middle" font-weight="bold" fill="#475569">Server Implementation</text>
+            <text id="rpc-exec-txt" x="610" y="88" text-anchor="middle" font-size="9" fill="#94a3b8">compute_hash() worker</text>
+
+            <line x1="610" y1="95" x2="610" y2="115" stroke="#cbd5e1" stroke-width="3"/>
+
+            <rect id="rpc-server-stub" x="515" y="115" width="190" height="50" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+            <text x="610" y="135" text-anchor="middle" font-weight="bold" fill="#334155">Server Stub (Skeleton)</text>
+            <text id="rpc-sstub-txt" x="610" y="152" text-anchor="middle" font-size="9" fill="#64748b">Awaiting packet</text>
+
+            <line x1="610" y1="165" x2="610" y2="185" stroke="#cbd5e1" stroke-width="3"/>
+
+            <rect id="rpc-server-os" x="515" y="185" width="190" height="40" fill="#f8fafc" stroke="#cbd5e1" rx="4"/>
+            <text x="610" y="205" text-anchor="middle" font-weight="bold" fill="#334155">Kernel Transport</text>
+            <text x="610" y="218" text-anchor="middle" font-size="9" fill="#64748b">Socket / NIC</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Pipeline Stage: <strong id="rpc-stage-name" style="color:#0284c7;">Client Call</strong></div>
+          <div>Parameter Marshaling: <span id="rpc-marshal-status" style="font-weight:bold;">Pending</span></div>
+          <div>Network Wire State: <span id="rpc-wire-status" style="font-weight:bold; color:#64748b;">Idle</span></div>
+          <div>Server Execution: <span id="rpc-exec-status" style="font-weight:bold; color:#64748b;">Waiting</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-rpc-step" class="btn-step" onclick="stepRpcWalkthrough()">Execute Stage 1: Client Application Call</button>
+          <button class="btn-reset" onclick="resetRpcWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="rpc-walkthrough-log" class="status-panel">-- Follow the instructions above to trace the complete RPC execution path --</div>
       </div>
     </section>
 
-    <!-- SECTION 8.2.5: DSM CONSISTENCY & FALSE SHARING -->
+    <!-- SECTION 8.2.5: DISTRIBUTED SHARED MEMORY -->
     <section class="content-section">
-      <h2>8.2.5 Distributed Shared Memory: Consistency Models</h2>
+      <h2>8.2.5 Distributed Shared Memory (DSM) &amp; Memory Consistency</h2>
       <p>
-        Building scalable Distributed Shared Memory requires balancing the illusion of strict memory consistency against network message volume.
+        Multicomputers lack shared physical memory. <strong>Distributed Shared Memory (DSM)</strong> emulates a single shared address space across independent multicomputer nodes using virtual memory page tables and network messaging.
       </p>
 
-      <h3>1. Sequential Consistency</h3>
+      <h3>1. Page-Based DSM Architecture</h3>
       <p>
-        Defined by Leslie Lamport (1979): A multiprocessor system is sequentially consistent if the result of any execution is the same as if the operations of all processors were executed in some sequential order, and the operations of each individual processor appear in this sequence in the order specified by its program. Every write must be visible to all subsequent reads across all nodes immediately, requiring synchronous invalidation round-trips that saturate network bandwidth.
-      </p>
-
-      <h3>2. Release Consistency</h3>
-      <p>
-        Rather than synchronizing memory on every individual read and write, <strong>Release Consistency</strong> divides memory accesses into ordinary reads/writes and synchronization operations:
+        Pioneered by Kai Li (Ivy, 1986), page-based DSM partitions the virtual address space into standard page-sized chunks (e.g., 4 KB):
       </p>
       <ul>
-        <li><strong>Acquire:</strong> Informs the system that a critical section is beginning. Memory updates made by other nodes are pulled and validated locally.</li>
-        <li><strong>Ordinary Accesses:</strong> Reads and writes occur to local page copies without broadcasting network invalidations.</li>
-        <li><strong>Release:</strong> Signals completion of the critical section. All local dirty modifications are propagated out to other nodes holding copies.</li>
+        <li><strong>Read Replication:</strong> When Node 0 reads a page physically stored on Node 1, a page fault triggers. The DSM runtime requests the page over the network, maps it as <em>Read-Only</em> on Node 0, and allows concurrent reads across multiple nodes.</li>
+        <li><strong>Write Invalidation &amp; Ownership:</strong> When Node 0 writes to a shared page, a write fault triggers. The DSM runtime sends invalidation messages to all nodes holding read-only copies. Node 0 becomes the sole owner, mapping the page as <em>Read/Write</em>.</li>
+        <li><strong>False Sharing:</strong> If two unrelated variables reside on the exact same 4 KB page and are written concurrently by different nodes, the page bounces continuously across the network, destroying performance.</li>
       </ul>
+
+      <h3>2. Sequential vs. Release Consistency</h3>
+      <p>
+        To eliminate false sharing and network thrashing, DSM systems replace <strong>Sequential Consistency</strong> (which demands that all writes be immediately visible globally) with <strong>Release Consistency</strong>:
+      </p>
       <div class="callout">
-        <strong>Performance Impact:</strong> Release consistency batches multiple writes together, exchanging updates only at synchronization boundaries. This drastically reduces network message frequency compared to sequential consistency.
+        <strong>Release Consistency Invariant:</strong> Ordinary reads and writes to local page copies are not broadcast across the network immediately. Updates are batched and propagated only when a thread executes an explicit synchronization primitive:
+        <ul>
+          <li><code>Acquire()</code>: Local copies are validated and updated from remote nodes before entering a critical section.</li>
+          <li><code>Release()</code>: Dirty modifications made within the critical section are flushed out to peer nodes.</li>
+        </ul>
       </div>
     </section>
 
-    <!-- SECTION 8.2.6 & 8.2.7: LOAD BALANCING -->
+    <!-- SECTION 8.2.6 & 8.2.7: LOAD BALANCING WALKTHROUGH -->
     <section class="content-section">
-      <h2>8.2.6 &amp; 8.2.7 Distributed Scheduling &amp; Load Balancing</h2>
+      <h2>8.2.6 &amp; 8.2.7 Distributed Scheduling &amp; Dynamic Load Balancing</h2>
       <p>
-        In a multicomputer, arrival rates across independent nodes fluctuate over time. Dynamic load balancing transfers runnable tasks from heavily loaded machines to lightly loaded machines.
+        In a multicomputer, arrival rates across independent nodes fluctuate over time. Dynamic load balancing transfers runnable tasks from heavily loaded machines to lightly loaded machines to minimize average turnaround time.
       </p>
-
-      <h3>Algorithm Taxonomies</h3>
-      <ul>
-        <li>
-          <strong>Transfer Policy:</strong> Determines whether a node is in a suitable state to offload a task (e.g., local run queue length exceeds threshold $T_{\text{high}}$) or receive a task (run queue falls below $T_{\text{low}}$).
-        </li>
-        <li>
-          <strong>Location Policy:</strong> Identifies which peer node should be chosen as the partner for task migration.
-        </li>
-        <li>
-          <strong>Information Policy:</strong> Dictates how load metrics are collected across nodes (periodic broadcast vs. demand-driven polling).
-        </li>
-      </ul>
 
       <h3>Sender-Initiated vs. Receiver-Initiated Probing</h3>
       <table class="spec-table">
@@ -406,188 +473,439 @@
         <tbody>
           <tr>
             <td><strong>Initiator</strong></td>
-            <td>Overloaded node with excess tasks.</td>
+            <td>Heavily loaded node with excess tasks.</td>
             <td>Underloaded or idle node seeking work.</td>
           </tr>
           <tr>
             <td><strong>Low System Load</strong></td>
-            <td><strong>Highly efficient:</strong> First probe quickly finds an idle node.</td>
-            <td><strong>Inefficient:</strong> Many idle nodes probe few busy nodes.</td>
+            <td><strong>Optimal:</strong> Probing node immediately finds an idle target.</td>
+            <td><strong>Wasteful:</strong> Many idle nodes flood network seeking rare busy nodes.</td>
           </tr>
           <tr>
             <td><strong>High System Load</strong></td>
-            <td><strong>Probe Storms:</strong> Busy nodes flood the network seeking non-existent idle targets.</td>
-            <td><strong>Highly efficient:</strong> Idle node immediately finds a heavily loaded partner to offload.</td>
-          </tr>
-          <tr>
-            <td><strong>Migration Cost</strong></td>
-            <td>Preemptive or newly spawned tasks can be moved before starting.</td>
-            <td>Usually requires migrating already-executing tasks, incurring context and memory transfer costs.</td>
+            <td><strong>Probe Storms:</strong> Busy nodes spam probes, finding zero idle targets.</td>
+            <td><strong>Optimal:</strong> Idle node immediately finds a heavily loaded node to offload.</td>
           </tr>
         </tbody>
       </table>
 
-      <!-- INTERACTIVE SIMULATOR: LOAD BALANCING -->
-      <div class="sim-card">
-        <div class="sim-title">Dynamic Cluster Load Balancing Sandbox</div>
-        <p style="font-size: 0.88rem; color: #475569;">
-          Observe task distribution and migration across a 4-node cluster using Sender-Initiated versus Receiver-Initiated policies:
+      <!-- WALKTHROUGH 2: LOAD BALANCING CLUSTER -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Dynamic Cluster Load Balancing</span>
+          <span id="lb-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> This walkthrough models task migration across a 4-node cluster. Observe how burst arrivals create extreme load imbalances, how Sender-Initiated push offloads work, and how Receiver-Initiated work stealing maintains equilibrium under high load.
         </p>
 
-        <div class="node-cluster">
-          <div class="node-card">
-            Node 0<br>
-            <span id="n0-count" style="font-weight:bold;">0 tasks</span>
-            <div class="node-bar"><div id="n0-bar" class="node-fill"></div></div>
-          </div>
-          <div class="node-card">
-            Node 1<br>
-            <span id="n1-count" style="font-weight:bold;">0 tasks</span>
-            <div class="node-bar"><div id="n1-bar" class="node-fill"></div></div>
-          </div>
-          <div class="node-card">
-            Node 2<br>
-            <span id="n2-count" style="font-weight:bold;">0 tasks</span>
-            <div class="node-bar"><div id="n2-bar" class="node-fill"></div></div>
-          </div>
-          <div class="node-card">
-            Node 3<br>
-            <span id="n3-count" style="font-weight:bold;">0 tasks</span>
-            <div class="node-bar"><div id="n3-bar" class="node-fill"></div></div>
-          </div>
+        <div class="instruction-card">
+          <div id="lb-act-text" class="action-req">Action Required: Click 'Simulate Stage 1: Burst Arrival on Node 0' below.</div>
+          <div id="lb-exp-text" class="action-exp">Inject a burst of 8 tasks onto Node 0 while Nodes 1, 2, and 3 have near-zero tasks. Watch the cluster queue imbalance develop.</div>
         </div>
 
-        <div class="sim-controls">
-          <button class="btn-action" onclick="injectBurstLoad()">Inject Burst on Node 0</button>
-          <button class="btn-action" onclick="runSenderBalancing()">Run Sender-Initiated Push</button>
-          <button class="btn-action" onclick="runReceiverBalancing()">Run Receiver-Initiated Steal</button>
-          <button class="btn-action" onclick="resetCluster()">Reset Cluster</button>
+        <!-- Inline Interactive SVG Cluster Diagram -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="lb-cluster-svg" viewBox="0 0 740 240" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- Node 0 -->
+            <rect id="node-box-0" x="30" y="30" width="150" height="150" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="105" y="55" text-anchor="middle" font-weight="bold" fill="#0f172a" font-size="12">Node 0</text>
+            <rect id="bar-bg-0" x="50" y="80" width="110" height="18" fill="#e2e8f0" rx="3"/>
+            <rect id="bar-fill-0" x="50" y="80" width="10" height="18" fill="#0284c7" rx="3"/>
+            <text id="queue-txt-0" x="105" y="125" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="11">Queue: 1 Task</text>
+            <text id="status-txt-0" x="105" y="155" text-anchor="middle" font-size="9" fill="#64748b">Normal Load</text>
+
+            <!-- Node 1 -->
+            <rect id="node-box-1" x="205" y="30" width="150" height="150" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="280" y="55" text-anchor="middle" font-weight="bold" fill="#0f172a" font-size="12">Node 1</text>
+            <rect id="bar-bg-1" x="225" y="80" width="110" height="18" fill="#e2e8f0" rx="3"/>
+            <rect id="bar-fill-1" x="225" y="80" width="10" height="18" fill="#0284c7" rx="3"/>
+            <text id="queue-txt-1" x="280" y="125" text-anchor="middle" font-weight="bold" fill="#0369a1" font-size="11">Queue: 1 Task</text>
+            <text id="status-txt-1" x="280" y="155" text-anchor="middle" font-size="9" fill="#64748b">Normal Load</text>
+
+            <!-- Node 2 -->
+            <rect id="node-box-2" x="380" y="30" width="150" height="150" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="455" y="55" text-anchor="middle" font-weight="bold" fill="#0f172a" font-size="12">Node 2</text>
+            <rect id="bar-bg-2" x="400" y="80" width="110" height="18" fill="#e2e8f0" rx="3"/>
+            <rect id="bar-fill-2" x="400" y="80" width="0" height="18" fill="#0284c7" rx="3"/>
+            <text id="queue-txt-2" x="455" y="125" text-anchor="middle" font-weight="bold" fill="#64748b" font-size="11">Queue: 0 Tasks</text>
+            <text id="status-txt-2" x="455" y="155" text-anchor="middle" font-size="9" fill="#10b981">Underloaded (Idle)</text>
+
+            <!-- Node 3 -->
+            <rect id="node-box-3" x="555" y="30" width="150" height="150" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="630" y="55" text-anchor="middle" font-weight="bold" fill="#0f172a" font-size="12">Node 3</text>
+            <rect id="bar-bg-3" x="575" y="80" width="110" height="18" fill="#e2e8f0" rx="3"/>
+            <rect id="bar-fill-3" x="575" y="80" width="0" height="18" fill="#0284c7" rx="3"/>
+            <text id="queue-txt-3" x="630" y="125" text-anchor="middle" font-weight="bold" fill="#64748b" font-size="11">Queue: 0 Tasks</text>
+            <text id="status-txt-3" x="630" y="155" text-anchor="middle" font-size="9" fill="#10b981">Underloaded (Idle)</text>
+
+            <!-- Network Bus Connecting Nodes -->
+            <line x1="105" y1="180" x2="105" y2="210" stroke="#94a3b8" stroke-width="2"/>
+            <line x1="280" y1="180" x2="280" y2="210" stroke="#94a3b8" stroke-width="2"/>
+            <line x1="455" y1="180" x2="455" y2="210" stroke="#94a3b8" stroke-width="2"/>
+            <line x1="630" y1="180" x2="630" y2="210" stroke="#94a3b8" stroke-width="2"/>
+            <line id="lb-net-line" x1="105" y1="210" x2="630" y2="210" stroke="#94a3b8" stroke-width="3"/>
+          </svg>
         </div>
 
-        <div id="lb-log" class="status-panel">-- Cluster idle. Inject burst load to begin --</div>
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Cluster Balance: <strong id="lb-cluster-status" style="color:#0284c7;">Stable Baseline</strong></div>
+          <div>Active Policy: <span id="lb-policy-status" style="font-weight:bold;">Awaiting Run</span></div>
+          <div>Migration Volume: <span id="lb-mig-count" style="font-weight:bold;">0 Tasks Moved</span></div>
+          <div>Cluster Efficiency: <span id="lb-eff-txt" style="font-weight:bold; color:#10b981;">Nominal</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-lb-step" class="btn-step" onclick="stepLbWalkthrough()">Simulate Stage 1: Burst Arrival on Node 0</button>
+          <button class="btn-reset" onclick="resetLbWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="lb-walkthrough-log" class="status-panel">-- Cluster ready. Follow instructions above to observe load balancing in action --</div>
       </div>
     </section>
+
+    <!-- NAVIGATION FOOTER -->
+    <div class="nav-header" style="border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="03-multicomputers-interconnects.html" class="nav-btn">&larr; 8.2 Topologies &amp; Messaging</a>
+      <a href="05-distributed-middleware.html" class="nav-btn">8.3 Distributed Systems &rarr;</a>
+    </div>
 
   </div>
 
   <script>
-    // RPC Stepper Script
-    let rpcStep = 0;
-    const rpcStages = [
-      'st-client-app',
-      'st-client-stub',
-      'st-network',
-      'st-server-stub',
-      'st-server-exec'
-    ];
+    // =======================================================
+    // 1. RPC LIFECYCLE WALKTHROUGH CONTROLLER
+    // =======================================================
+    let rpcStage = 1;
 
     function appendRpcLog(msg) {
-      const el = document.getElementById('rpc-log');
+      const el = document.getElementById('rpc-walkthrough-log');
       el.innerHTML += '<br>' + msg;
       el.scrollTop = el.scrollHeight;
     }
 
-    function syncRpcDisplay() {
-      rpcStages.forEach((id, idx) => {
-        const elem = document.getElementById(id);
-        if (idx === rpcStep) {
-          elem.style.borderColor = '#0284c7';
-          elem.style.backgroundColor = '#e0f2fe';
-          elem.style.fontWeight = 'bold';
-        } else {
-          elem.style.borderColor = '#cbd5e1';
-          elem.style.backgroundColor = '#ffffff';
-          elem.style.fontWeight = 'normal';
-        }
-      });
+    function resetRpcSvg() {
+      document.getElementById('rpc-client-app').setAttribute('fill', '#ffffff');
+      document.getElementById('rpc-client-stub').setAttribute('fill', '#f8fafc');
+      document.getElementById('rpc-stub-txt').textContent = 'Awaiting invocation';
+      document.getElementById('rpc-client-os').setAttribute('fill', '#f8fafc');
+
+      document.getElementById('rpc-net-box').setAttribute('fill', '#f8fafc');
+      document.getElementById('rpc-net-box').setAttribute('stroke', '#94a3b8');
+      document.getElementById('rpc-net-status').textContent = 'Wire Idle';
+      document.getElementById('rpc-wire-left').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('rpc-wire-right').setAttribute('stroke', '#cbd5e1');
+
+      document.getElementById('rpc-server-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('rpc-server-os').setAttribute('fill', '#f8fafc');
+      document.getElementById('rpc-server-stub').setAttribute('fill', '#f8fafc');
+      document.getElementById('rpc-sstub-txt').textContent = 'Awaiting packet';
+      document.getElementById('rpc-server-app').setAttribute('fill', '#f8fafc');
+      document.getElementById('rpc-exec-txt').textContent = 'compute_hash() worker';
     }
 
-    function advanceRpcStep() {
-      rpcStep = (rpcStep + 1) % 6;
-      if (rpcStep === 1) {
-        document.getElementById('rpc-log').innerHTML = '--> Step 1: Client Application invokes compute_hash(data_block) via normal call.';
-      } else if (rpcStep === 2) {
-        appendRpcLog('--> Step 2: Client Stub marshals parameters into network message buffer.');
-      } else if (rpcStep === 3) {
-        appendRpcLog('--> Step 3: Kernel transport sends packet over network wire to server endpoint.');
-      } else if (rpcStep === 4) {
-        appendRpcLog('--> Step 4: Server Stub receives packet, unmarshals arguments, creates stack frame.');
-      } else if (rpcStep === 5) {
-        appendRpcLog('--> Step 5: Server Worker executes compute_hash(). Returns hash result to stub.');
-      } else if (rpcStep === 0) {
-        appendRpcLog('--> RPC Round-Trip Complete! Result unmarshaled and returned to Client App.');
+    function stepRpcWalkthrough() {
+      const btn = document.getElementById('btn-rpc-step');
+      const badge = document.getElementById('rpc-step-badge');
+      const act = document.getElementById('rpc-act-text');
+      const exp = document.getElementById('rpc-exp-text');
+
+      const stageName = document.getElementById('rpc-stage-name');
+      const marshalStatus = document.getElementById('rpc-marshal-status');
+      const wireStatus = document.getElementById('rpc-wire-status');
+      const execStatus = document.getElementById('rpc-exec-status');
+
+      if (rpcStage === 1) {
+        resetRpcSvg();
+        document.getElementById('rpc-walkthrough-log').innerHTML = '--> Stage 1: Client Application Invocation...';
+
+        document.getElementById('rpc-client-app').setAttribute('fill', '#dbeafe');
+        document.getElementById('rpc-client-stub').setAttribute('fill', '#e0f2fe');
+        document.getElementById('rpc-stub-txt').textContent = 'Marshaling parameters...';
+
+        stageName.textContent = '1. Stub Marshaling';
+        marshalStatus.textContent = 'Active (Serializing args into packet)';
+        marshalStatus.style.color = '#0284c7';
+        wireStatus.textContent = 'Idle';
+        execStatus.textContent = 'Waiting';
+
+        appendRpcLog('1. Client application calls compute_hash(data_block) as if it were a normal local function.');
+        appendRpcLog('2. Call enters auto-generated Client Stub.');
+        appendRpcLog('3. Marshaling: Client stub serializes arguments and target function ID into a standardized network packet.');
+
+        rpcStage = 2;
+        badge.textContent = 'Stage 2 of 5';
+        act.textContent = 'Action Required: Click \'Execute Stage 2: Network Packet Transit\' below.';
+        exp.innerHTML = 'The client kernel sends the marshaled request packet across the network fabric to Node 1. The client sets a retransmission timer.';
+        btn.textContent = 'Execute Stage 2: Network Packet Transit';
+      } else if (rpcStage === 2) {
+        resetRpcSvg();
+        document.getElementById('rpc-walkthrough-log').innerHTML = '--> Stage 2: Network Transit to Server...';
+
+        document.getElementById('rpc-client-os').setAttribute('fill', '#dbeafe');
+        document.getElementById('rpc-net-box').setAttribute('fill', '#e0f2fe');
+        document.getElementById('rpc-net-box').setAttribute('stroke', '#0284c7');
+        document.getElementById('rpc-net-status').textContent = 'Packet in transit (Request ID: 1042)';
+        document.getElementById('rpc-wire-left').setAttribute('stroke', '#0284c7');
+        document.getElementById('rpc-wire-right').setAttribute('stroke', '#0284c7');
+
+        stageName.textContent = '2. Wire Transit';
+        marshalStatus.textContent = 'Complete (Serialized)';
+        wireStatus.textContent = 'Transmitting (RTT timer started)';
+        wireStatus.style.color = '#0284c7';
+        execStatus.textContent = 'Waiting';
+
+        appendRpcLog('1. Client OS transport sends packet over UDP/TCP socket to Node 1 port 8080.');
+        appendRpcLog('2. Client runtime arms retransmission timer to guard against dropped messages.');
+        appendRpcLog('3. Packet traverses switches and arrives at Node 1 NIC.');
+
+        rpcStage = 3;
+        badge.textContent = 'Stage 3 of 5';
+        act.textContent = 'Action Required: Click \'Execute Stage 3: Server Stub & Execution\' below.';
+        exp.innerHTML = 'The server stub unmarshals parameters, constructs an execution stack frame, and calls the actual implementation of <code>compute_hash()</code>.';
+        btn.textContent = 'Execute Stage 3: Server Stub & Execution';
+      } else if (rpcStage === 3) {
+        resetRpcSvg();
+        document.getElementById('rpc-walkthrough-log').innerHTML = '--> Stage 3: Server Unmarshaling & Execution...';
+
+        document.getElementById('rpc-server-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('rpc-server-os').setAttribute('fill', '#dcfce7');
+        document.getElementById('rpc-server-stub').setAttribute('fill', '#dcfce7');
+        document.getElementById('rpc-sstub-txt').textContent = 'Unmarshaling complete';
+        document.getElementById('rpc-server-app').setAttribute('fill', '#dcfce7');
+        document.getElementById('rpc-exec-txt').textContent = 'RUNNING: compute_hash()';
+
+        stageName.textContent = '3. Server Worker Execution';
+        marshalStatus.textContent = 'Unmarshaled on Server';
+        wireStatus.textContent = 'Idle (Server busy)';
+        execStatus.textContent = 'Executing in Thread Pool';
+        execStatus.style.color = '#16a34a';
+
+        appendRpcLog('1. Server kernel delivers incoming datagram to Server Stub (Skeleton).');
+        appendRpcLog('2. Unmarshaling: Server stub deserializes raw byte stream into stack arguments.');
+        appendRpcLog('3. Server worker thread executes the real compute_hash() function.');
+        appendRpcLog('4. Return value (SHA-256 hash digest) generated and returned to server stub.');
+
+        rpcStage = 4;
+        badge.textContent = 'Stage 4 of 5';
+        act.textContent = 'Action Required: Click \'Execute Stage 4: Reply Packet Transit\' below.';
+        exp.innerHTML = 'The server stub marshals the return value and transmits the reply packet back across the wire to the waiting client.';
+        btn.textContent = 'Execute Stage 4: Reply Packet Transit';
+      } else if (rpcStage === 4) {
+        resetRpcSvg();
+        document.getElementById('rpc-walkthrough-log').innerHTML = '--> Stage 4: Reply Transit to Client...';
+
+        document.getElementById('rpc-server-os').setAttribute('fill', '#dbeafe');
+        document.getElementById('rpc-net-box').setAttribute('fill', '#dcfce7');
+        document.getElementById('rpc-net-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('rpc-net-status').textContent = 'Reply in transit [Result: Hash = 0x9A4F]';
+        document.getElementById('rpc-wire-left').setAttribute('stroke', '#16a34a');
+        document.getElementById('rpc-wire-right').setAttribute('stroke', '#16a34a');
+
+        stageName.textContent = '4. Reply Return';
+        marshalStatus.textContent = 'Reply Marshaled';
+        wireStatus.textContent = 'Reply Transmitting';
+        wireStatus.style.color = '#16a34a';
+        execStatus.textContent = 'Completed on Server';
+
+        appendRpcLog('1. Server stub packages return value into reply message buffer.');
+        appendRpcLog('2. Reply packet sent across network back to client endpoint.');
+        appendRpcLog('3. Client NIC receives packet and disarms the retransmission timer.');
+
+        rpcStage = 5;
+        badge.textContent = 'Stage 5 of 5';
+        act.textContent = 'Action Required: Click \'Execute Stage 5: Unmarshal & Return to App\' below.';
+        exp.innerHTML = 'The client stub unmarshals the return value, puts it in the return register, and returns control to the client application code.';
+        btn.textContent = 'Execute Stage 5: Unmarshal & Return to App';
+      } else if (rpcStage === 5) {
+        resetRpcSvg();
+        document.getElementById('rpc-walkthrough-log').innerHTML = '--> Stage 5: RPC Complete & Return to Client...';
+
+        document.getElementById('rpc-client-app').setAttribute('fill', '#dcfce7');
+        document.getElementById('rpc-client-stub').setAttribute('fill', '#dcfce7');
+        document.getElementById('rpc-stub-txt').textContent = 'Returned: 0x9A4F...';
+
+        stageName.textContent = '5. Complete (Return Handed Off)';
+        marshalStatus.textContent = 'Unmarshaled to Client Stack';
+        marshalStatus.style.color = '#16a34a';
+        wireStatus.textContent = 'Idle';
+        execStatus.textContent = 'Finished';
+
+        appendRpcLog('1. Client stub unpacks return hash digest from network message buffer.');
+        appendRpcLog('2. Client stub returns control to client application as a standard C/Rust call return.');
+        appendRpcLog('3. Transparent Execution Achieved: Client app code never called any socket or network functions directly!');
+
+        rpcStage = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough from Stage 1\' to review.';
+        exp.innerHTML = 'You walked through the entire RPC lifecycle: client call &rarr; stub marshaling &rarr; wire transit &rarr; server execution &rarr; reply unmarshaling.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
       }
-      syncRpcDisplay();
     }
 
-    function resetRpcSim() {
-      rpcStep = 0;
-      syncRpcDisplay();
-      document.getElementById('rpc-log').innerHTML = '-- RPC pipeline reset --';
+    function resetRpcWalkthrough() {
+      rpcStage = 1;
+      resetRpcSvg();
+
+      document.getElementById('rpc-step-badge').textContent = 'Stage 1 of 5';
+      document.getElementById('rpc-act-text').textContent = 'Action Required: Click \'Execute Stage 1: Client Application Call\' below.';
+      document.getElementById('rpc-exp-text').innerHTML = 'The client application makes a standard local function call to <code>compute_hash()</code>. The call traps directly into the auto-generated <strong>Client Stub</strong>.';
+
+      document.getElementById('rpc-stage-name').textContent = 'Client Call';
+      document.getElementById('rpc-marshal-status').textContent = 'Pending';
+      document.getElementById('rpc-marshal-status').style.color = '#334155';
+      document.getElementById('rpc-wire-status').textContent = 'Idle';
+      document.getElementById('rpc-wire-status').style.color = '#64748b';
+      document.getElementById('rpc-exec-status').textContent = 'Waiting';
+      document.getElementById('rpc-exec-status').style.color = '#64748b';
+
+      document.getElementById('btn-rpc-step').textContent = 'Execute Stage 1: Client Application Call';
+      document.getElementById('rpc-walkthrough-log').innerHTML = '-- RPC walkthrough reset. Follow instructions to begin --';
     }
 
-    // Load Balancing Script
-    const clusterLoad = [0, 0, 0, 0];
+    // =======================================================
+    // 2. LOAD BALANCING WALKTHROUGH CONTROLLER
+    // =======================================================
+    let lbStage = 1;
 
     function appendLbLog(msg) {
-      const el = document.getElementById('lb-log');
+      const el = document.getElementById('lb-walkthrough-log');
       el.innerHTML += '<br>' + msg;
       el.scrollTop = el.scrollHeight;
     }
 
-    function syncClusterUi() {
-      for (let i = 0; i < 4; i++) {
-        const count = clusterLoad[i];
-        document.getElementById(`n${i}-count`).innerText = `${count} tasks`;
-        const pct = Math.min(count * 10, 100);
-        const bar = document.getElementById(`n${i}-bar`);
-        bar.style.width = `${pct}%`;
-        if (pct > 70) bar.style.backgroundColor = '#ef4444';
-        else if (pct > 30) bar.style.backgroundColor = '#f59e0b';
-        else bar.style.backgroundColor = '#0284c7';
+    function setClusterBar(nodeIdx, count) {
+      const fill = document.getElementById(`bar-fill-${nodeIdx}`);
+      const width = Math.min(count * 12, 110);
+      fill.setAttribute('width', width);
+
+      const qText = document.getElementById(`queue-txt-${nodeIdx}`);
+      qText.textContent = `Queue: ${count} Task${count === 1 ? '' : 's'}`;
+
+      const sText = document.getElementById(`status-txt-${nodeIdx}`);
+      const box = document.getElementById(`node-box-${nodeIdx}`);
+
+      if (count >= 6) {
+        fill.setAttribute('fill', '#ef4444');
+        box.setAttribute('stroke', '#ef4444');
+        box.setAttribute('fill', '#fee2e2');
+        sText.textContent = 'OVERLOADED (Stalled)';
+        sText.setAttribute('fill', '#b91c1c');
+      } else if (count >= 2) {
+        fill.setAttribute('fill', '#0284c7');
+        box.setAttribute('stroke', '#0284c7');
+        box.setAttribute('fill', '#f0f9ff');
+        sText.textContent = 'Optimal Load';
+        sText.setAttribute('fill', '#0369a1');
+      } else {
+        fill.setAttribute('fill', '#10b981');
+        box.setAttribute('stroke', '#cbd5e1');
+        box.setAttribute('fill', '#f8fafc');
+        sText.textContent = count === 0 ? 'Underloaded (Idle)' : 'Light Load';
+        sText.setAttribute('fill', '#16a34a');
       }
     }
 
-    function injectBurstLoad() {
-      clusterLoad[0] += 9;
-      clusterLoad[1] += 1;
-      appendLbLog('Event: Burst arrival! 9 tasks assigned to Node 0, 1 task to Node 1.');
-      syncClusterUi();
-    }
+    function stepLbWalkthrough() {
+      const btn = document.getElementById('btn-lb-step');
+      const badge = document.getElementById('lb-step-badge');
+      const act = document.getElementById('lb-act-text');
+      const exp = document.getElementById('lb-exp-text');
 
-    function runSenderBalancing() {
-      appendLbLog('Sender-Initiated: Overloaded Node 0 probes peers to offload tasks...');
-      for (let target = 1; target < 4; target++) {
-        if (clusterLoad[0] > 3 && clusterLoad[target] < 3) {
-          clusterLoad[0] -= 2;
-          clusterLoad[target] += 2;
-          appendLbLog(`  -> Probe successful: Node 0 transferred 2 tasks to Node ${target}.`);
-        }
+      const clStatus = document.getElementById('lb-cluster-status');
+      const polStatus = document.getElementById('lb-policy-status');
+      const migCount = document.getElementById('lb-mig-count');
+      const effTxt = document.getElementById('lb-eff-txt');
+
+      if (lbStage === 1) {
+        // Stage 1: Burst arrival on Node 0
+        document.getElementById('lb-walkthrough-log').innerHTML = '--> Stage 1: Burst Arrival on Node 0...';
+
+        setClusterBar(0, 9);
+        setClusterBar(1, 1);
+        setClusterBar(2, 0);
+        setClusterBar(3, 0);
+
+        clStatus.textContent = 'Severe Imbalance';
+        clStatus.style.color = '#ef4444';
+        polStatus.textContent = 'None (Pre-Balancing)';
+        migCount.textContent = '0 Tasks Moved';
+        effTxt.textContent = 'Degraded (Cores Idling)';
+        effTxt.style.color = '#ef4444';
+
+        appendLbLog('1. Burst traffic arrival: 8 new jobs arrive simultaneously at Node 0.');
+        appendLbLog('2. Node 0 queue spikes to 9 tasks. Queue latency increases 9x.');
+        appendLbLog('3. Severe Imbalance: Nodes 2 and 3 sit completely idle (0 tasks), wasting 50% of cluster capacity!');
+
+        lbStage = 2;
+        badge.textContent = 'Stage 2 of 3';
+        act.textContent = 'Action Required: Click \'Execute Stage 2: Sender-Initiated Push\' below.';
+        exp.innerHTML = 'Overloaded Node 0 detects that its queue exceeds threshold $T_{\\text{high}} = 3$. It probes peers to offload surplus tasks.';
+        btn.textContent = 'Execute Stage 2: Sender-Initiated Push';
+      } else if (lbStage === 2) {
+        // Stage 2: Sender-initiated offload
+        document.getElementById('lb-walkthrough-log').innerHTML = '--> Stage 2: Sender-Initiated Load Balancing Push...';
+
+        setClusterBar(0, 3);
+        setClusterBar(1, 2);
+        setClusterBar(2, 2);
+        setClusterBar(3, 3);
+
+        document.getElementById('lb-net-line').setAttribute('stroke', '#0284c7');
+
+        clStatus.textContent = 'Balanced Equilibrium';
+        clStatus.style.color = '#16a34a';
+        polStatus.textContent = 'Sender-Initiated Probing';
+        migCount.textContent = '6 Tasks Migrated';
+        effTxt.textContent = 'Optimal (All Cores Active)';
+        effTxt.style.color = '#16a34a';
+
+        appendLbLog('1. Node 0 detects queue length (9) > threshold (3). Triggers Sender-Initiated transfer.');
+        appendLbLog('2. Node 0 probes Node 2: Node 2 is idle. Node 0 transfers 2 tasks across network.');
+        appendLbLog('3. Node 0 probes Node 3: Node 3 is idle. Node 0 transfers 3 tasks across network.');
+        appendLbLog('4. Node 0 transfers 1 task to Node 1. Cluster achieves balanced equilibrium: [3, 2, 2, 3]!');
+
+        lbStage = 3;
+        badge.textContent = 'Stage 3 of 3';
+        act.textContent = 'Action Required: Click \'Simulate Stage 3: High Load & Work Stealing\' below.';
+        exp.innerHTML = 'Understand the limits of sender-probing under heavy cluster load (probe storms) and why Receiver-Initiated work stealing is superior when all nodes are busy.';
+        btn.textContent = 'Simulate Stage 3: High Load & Work Stealing';
+      } else if (lbStage === 3) {
+        document.getElementById('lb-walkthrough-log').innerHTML = '--> Stage 3: High Load Analysis (Sender Storms vs. Receiver Steals)...';
+        appendLbLog('Probe Storm Hazard: If the entire cluster is busy (e.g., all queues >= 6), sender-initiated probing generates massive network packet storms probing non-existent idle targets.');
+        appendLbLog('Receiver-Initiated Solution: Under high load, underloaded nodes proactively probe to "steal" work from busy peers. The first probe almost always finds an overloaded node immediately.');
+        appendLbLog('Takeaway: Modern systems use adaptive hybrid load balancing: Sender-initiated when cluster load is low; Receiver-initiated work stealing when cluster load is high.');
+
+        lbStage = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough from Stage 1\' to review.';
+        exp.innerHTML = 'You evaluated queue burst imbalances, sender-initiated task offloading, and receiver-initiated work stealing under high cluster load.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
       }
-      syncClusterUi();
     }
 
-    function runReceiverBalancing() {
-      appendLbLog('Receiver-Initiated: Underloaded Node 2 and Node 3 probe peers to steal work...');
-      [2, 3].forEach(receiver => {
-        if (clusterLoad[receiver] < 2) {
-          for (let donor = 0; donor < 4; donor++) {
-            if (clusterLoad[donor] > 4) {
-              clusterLoad[donor] -= 2;
-              clusterLoad[receiver] += 2;
-              appendLbLog(`  -> Work steal: Node ${receiver} stole 2 tasks from Node ${donor}.`);
-              break;
-            }
-          }
-        }
-      });
-      syncClusterUi();
-    }
+    function resetLbWalkthrough() {
+      lbStage = 1;
+      setClusterBar(0, 1);
+      setClusterBar(1, 1);
+      setClusterBar(2, 0);
+      setClusterBar(3, 0);
+      document.getElementById('lb-net-line').setAttribute('stroke', '#94a3b8');
 
-    function resetCluster() {
-      for (let i = 0; i < 4; i++) clusterLoad[i] = 0;
-      document.getElementById('lb-log').innerHTML = '-- Cluster reset to idle state --';
-      syncClusterUi();
+      document.getElementById('lb-step-badge').textContent = 'Stage 1 of 3';
+      document.getElementById('lb-act-text').textContent = 'Action Required: Click \'Simulate Stage 1: Burst Arrival on Node 0\' below.';
+      document.getElementById('lb-exp-text').innerHTML = 'Inject a burst of 8 tasks onto Node 0 while Nodes 1, 2, and 3 have near-zero tasks. Watch the cluster queue imbalance develop.';
+
+      document.getElementById('lb-cluster-status').textContent = 'Stable Baseline';
+      document.getElementById('lb-cluster-status').style.color = '#0284c7';
+      document.getElementById('lb-policy-status').textContent = 'Awaiting Run';
+      document.getElementById('lb-mig-count').textContent = '0 Tasks Moved';
+      document.getElementById('lb-eff-txt').textContent = 'Nominal';
+      document.getElementById('lb-eff-txt').style.color = '#10b981';
+
+      document.getElementById('btn-lb-step').textContent = 'Simulate Stage 1: Burst Arrival on Node 0';
+      document.getElementById('lb-walkthrough-log').innerHTML = '-- Cluster reset to baseline state --';
     }
   </script>
 </body>
