@@ -1,38 +1,55 @@
 #!/usr/bin/env python3
 # =====================================================================
-# move_wikimedia_link_to_text.py: Place Wikimedia link inside caption text
+# add_vacuum_tube_plugboard_images.py: Add images and attributions
 # =====================================================================
 import os
 import subprocess
 import sys
 
-WIKI_ASIDE_TANENBAUM_TEXT_LINK = r"""
-        <!-- WIKIPEDIA ASIDE BOX WITH TEXT LINK -->
-        <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
-          <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Operating System Foundations</h4>
+GENERATION_1_WITH_IMAGES = r"""
+      <h3>1. The First Generation (1945–1955): Vacuum Tubes and Plugboards</h3>
+      <p>
+        Following electronic breakthroughs during World War II, computers were built using <strong>vacuum tubes</strong>. These machines were massive, unreliable, and immensely expensive. A single computer filled an entire room and was operated entirely by small teams of engineers and mathematicians.
+      </p>
 
-          <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px;">
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
-              <div style="width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
-                <img src="../images/tanenbaum.jpg" alt="Andrew S. Tanenbaum Portrait" style="width: 100%; height: 100%; object-fit: cover;">
-              </div>
-              <span style="font-size: 0.72rem; color: #64748b; text-align: center; line-height: 1.2;">
-                <a href="https://commons.wikimedia.org/wiki/File:Andrew_S._Tanenbaum_2012.jpg" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Photo: Wikimedia Commons<br>contributors (2012)</a>
-              </span>
+      <!-- Visual Gallery for Vacuum Tubes and Plugboards -->
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin: 16px 0;">
+        <!-- Vacuum Tube Card -->
+        <div style="flex: 1; min-width: 280px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; display: flex; gap: 14px; align-items: flex-start;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
+            <div style="width: 100px; height: 130px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
+              <img src="../images/vacuumtube.jpg" alt="Philips 12AX7WA Vacuum Tube" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
-
-            <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
-              <p style="color: #334155; font-size: 0.9rem; line-height: 1.5; margin: 0;">
-                The concept of the operating system as both an <strong>extended machine</strong> and a <strong>resource manager</strong> was formalized in foundational computer science literature by authors such as <a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 600;">Andrew S. Tanenbaum</a>. By hiding hardware intricacies and arbitrating resource contention, the OS provides a stable, secure foundation for all user applications.
-              </p>
-              <div>
-                <a href="https://en.wikipedia.org/wiki/Operating_system" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">Read more on Wikipedia: Operating System &rarr;</a>
-              </div>
-            </div>
+            <span style="font-size: 0.7rem; color: #64748b; text-align: center; line-height: 1.2;">
+              <a href="https://commons.wikimedia.org/wiki/File:Philips_12AX7WA_tube.jpg" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Photo: Wikimedia Commons<br>contributors (2022)</a>
+            </span>
           </div>
-        </aside>"""
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
+            <strong>Vacuum Tubes:</strong> Active electronic components that controlled electrical current flow. Thousands were required per computer, generating immense heat and frequent hardware failures.
+          </div>
+        </div>
 
-def update_text_link():
+        <!-- Plugboard Card -->
+        <div style="flex: 1; min-width: 280px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; display: flex; gap: 14px; align-items: flex-start;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
+            <div style="width: 100px; height: 130px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
+              <img src="../images/plugboard.jpg" alt="IBM 402 Plugboard" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <span style="font-size: 0.7rem; color: #64748b; text-align: center; line-height: 1.2;">
+              <a href="https://commons.wikimedia.org/wiki/File:IBM402plugboard.Shrigley.wireside.jpg" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Photo: Wikimedia Commons<br>contributors (2025)</a>
+            </span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; color: #334155;">
+            <strong>Plugboards &amp; Patch Panels:</strong> Programs were wired manually using plugboards. Changing computations required physically unplugging and rerouting wire patch panels.
+          </div>
+        </div>
+      </div>
+
+      <p>
+        There were no operating systems. Programs were written entirely in machine language or wired manually onto plugboards. Every job required setting physical switches and plugging cables into patch panels.
+      </p>"""
+
+def update_gen1_images():
     portal_path = os.path.join("week01-operating-system-concepts", "index.html")
     modified = []
 
@@ -40,13 +57,12 @@ def update_text_link():
         with open(portal_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        if "Historical Summary &amp; Further Reading: Operating System Foundations" in content:
-            parts = content.split("<!-- WIKIPEDIA ASIDE BOX")
-            content = parts[0] + parts[1].split("</aside>", 1)[1]
-
-        target = "<!-- SECTION 1.2: HISTORY OF OPERATING SYSTEMS -->"
-        if target in content:
-            content = content.replace(target, WIKI_ASIDE_TANENBAUM_TEXT_LINK + "\n\n    " + target, 1)
+        target_header = "<h3>1. The First Generation (1945–1955): Vacuum Tubes and Plugboards</h3>"
+        if target_header in content:
+            parts = content.split(target_header)
+            # Find the end of the first generation paragraph before section 2
+            trailer = parts[1].split("<h3>2. The Second Generation")[1]
+            content = parts[0] + GENERATION_1_WITH_IMAGES + "\n\n      <h3>2. The Second Generation" + trailer
             with open(portal_path, "w", encoding="utf-8") as f:
                 f.write(content)
             modified.append(portal_path)
@@ -63,15 +79,15 @@ def update_text_link():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Move Wikimedia Commons link from portrait to text caption in Tanenbaum aside\n\n"
-            "Update week01-operating-system-concepts/index.html to remove the image link wrapper\n"
-            "and place the Wikimedia Commons URL directly on the photo credit caption text."
+            "Add vacuum tube and plugboard images with Wikimedia attributions to Chapter 1\n\n"
+            "Update week01-operating-system-concepts/index.html to include images/vacuumtube.jpg\n"
+            "and images/plugboard.jpg in the First Generation section with full Wikimedia Commons attributions."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Wikimedia link successfully moved to text caption!")
+    print("--> Vacuum tube and plugboard images successfully deployed!")
 
 if __name__ == "__main__":
-    update_text_link()
+    update_gen1_images()
