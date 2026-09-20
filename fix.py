@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 # =====================================================================
-# link_tanenbaum_image_to_commons.py: Make Tanenbaum portrait clickable
+# move_wikimedia_link_to_text.py: Place Wikimedia link inside caption text
 # =====================================================================
 import os
 import subprocess
 import sys
 
-WIKI_ASIDE_TANENBAUM_CLICKABLE_IMG = r"""
-        <!-- WIKIPEDIA ASIDE BOX WITH CLICKABLE PORTRAIT -->
+WIKI_ASIDE_TANENBAUM_TEXT_LINK = r"""
+        <!-- WIKIPEDIA ASIDE BOX WITH TEXT LINK -->
         <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
           <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Operating System Foundations</h4>
 
           <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px;">
             <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
-              <a href="https://commons.wikimedia.org/wiki/File:Andrew_S._Tanenbaum_2012.jpg" target="_blank" rel="noopener" style="display: block; width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;" title="View Andrew S. Tanenbaum 2012.jpg on Wikimedia Commons">
+              <div style="width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
                 <img src="../images/tanenbaum.jpg" alt="Andrew S. Tanenbaum Portrait" style="width: 100%; height: 100%; object-fit: cover;">
-              </a>
-              <span style="font-size: 0.72rem; color: #64748b; text-align: center; line-height: 1.2;">Photo: Wikimedia Commons<br>contributors (2012)</span>
+              </div>
+              <span style="font-size: 0.72rem; color: #64748b; text-align: center; line-height: 1.2;">
+                <a href="https://commons.wikimedia.org/wiki/File:Andrew_S._Tanenbaum_2012.jpg" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">Photo: Wikimedia Commons<br>contributors (2012)</a>
+              </span>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
@@ -24,13 +26,13 @@ WIKI_ASIDE_TANENBAUM_CLICKABLE_IMG = r"""
                 The concept of the operating system as both an <strong>extended machine</strong> and a <strong>resource manager</strong> was formalized in foundational computer science literature by authors such as <a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 600;">Andrew S. Tanenbaum</a>. By hiding hardware intricacies and arbitrating resource contention, the OS provides a stable, secure foundation for all user applications.
               </p>
               <div>
-                <a href="https://commons.wikimedia.org/wiki/File:Andrew_S._Tanenbaum_2012.jpg" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">View image on Wikimedia Commons &rarr;</a>
+                <a href="https://en.wikipedia.org/wiki/Operating_system" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">Read more on Wikipedia: Operating System &rarr;</a>
               </div>
             </div>
           </div>
         </aside>"""
 
-def update_clickable_image():
+def update_text_link():
     portal_path = os.path.join("week01-operating-system-concepts", "index.html")
     modified = []
 
@@ -44,7 +46,7 @@ def update_clickable_image():
 
         target = "<!-- SECTION 1.2: HISTORY OF OPERATING SYSTEMS -->"
         if target in content:
-            content = content.replace(target, WIKI_ASIDE_TANENBAUM_CLICKABLE_IMG + "\n\n    " + target, 1)
+            content = content.replace(target, WIKI_ASIDE_TANENBAUM_TEXT_LINK + "\n\n    " + target, 1)
             with open(portal_path, "w", encoding="utf-8") as f:
                 f.write(content)
             modified.append(portal_path)
@@ -61,15 +63,15 @@ def update_clickable_image():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Link Tanenbaum portrait directly to Wikimedia Commons file page\n\n"
-            "Make Andrew S. Tanenbaum portrait image clickable in the research aside box\n"
-            "of week01-operating-system-concepts/index.html, linking directly to Wikimedia Commons."
+            "Move Wikimedia Commons link from portrait to text caption in Tanenbaum aside\n\n"
+            "Update week01-operating-system-concepts/index.html to remove the image link wrapper\n"
+            "and place the Wikimedia Commons URL directly on the photo credit caption text."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Clickable Tanenbaum portrait link successfully deployed!")
+    print("--> Wikimedia link successfully moved to text caption!")
 
 if __name__ == "__main__":
-    update_clickable_image()
+    update_text_link()
