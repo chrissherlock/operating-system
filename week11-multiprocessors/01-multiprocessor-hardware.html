@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.1 Multiprocessors: Hardware, Cache Coherence &amp; OS Models — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.6;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .chapter-tag {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .lead-text {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-top: 6px;
+    }
+    .content-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .content-section h2 {
+      font-size: 1.4rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .content-section h3 {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-top: 8px;
+    }
+    p, li {
+      color: #334155;
+      font-size: 0.96rem;
+    }
+    ul, ol {
+      margin-left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .diagram-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .diagram-svg {
+      width: 100%;
+      max-width: 820px;
+      height: auto;
+    }
+    .diagram-caption {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .code-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+    table.spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 10px 0;
+    }
+    table.spec-table th, table.spec-table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    table.spec-table th {
+      background: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      padding: 14px 18px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.92rem;
+      color: #0369a1;
+    }
+
+    /* Interactive Simulator Styling */
+    .sim-container {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .cpu-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .cpu-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      display: flex;
+      justify-content: space-between;
+    }
+    .cache-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f1f5f9;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .state-badge {
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #ffffff;
+    }
+    .state-M { background-color: #ef4444; }
+    .state-E { background-color: #3b82f6; }
+    .state-S { background-color: #10b981; }
+    .state-I { background-color: #64748b; }
+    .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-sim {
+      flex: 1;
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-sim:hover { background: #0369a1; }
+    .bus-log {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 12px;
+      border-radius: 6px;
+      height: 110px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="nav-header">
+      <a href="index.html" class="nav-btn">&larr; Week 11 Overview</a>
+      <a href="02-multiprocessor-scheduling.html" class="nav-btn">Section 8.1.4: Scheduling &rarr;</a>
+    </div>
+
+    <header>
+      <span class="chapter-tag">Section 8.1</span>
+      <h1>Multiprocessors: Hardware, Cache Coherence &amp; OS Models</h1>
+      <p class="lead-text">
+        Shared-memory architectures, snooping cache protocols, hardware interconnect topologies, and kernel concurrency organizations.
+      </p>
+    </header>
+
+    <!-- SECTION 8.1.1: HARDWARE ARCHITECTURES -->
+    <section class="content-section">
+      <h2>8.1.1 Multiprocessor Hardware</h2>
+      <p>
+        A multiprocessor is a single computer system containing two or more physical CPUs (or CPU cores) that communicate directly by sharing a unified physical memory address space. Any CPU can write a memory address, and any other CPU can subsequently read that address.
+      </p>
+
+      <h3>1. Uniform Memory Access (UMA) Architecture</h3>
+      <p>
+        In a <strong>Uniform Memory Access (UMA)</strong> system, every CPU exhibits identical latency and bandwidth when referencing any location in main memory. Two principal interconnect designs achieve UMA:
+      </p>
+      <ul>
+        <li>
+          <strong>Shared Bus Architecture:</strong> CPUs and memory share a single physical bus. While cost-effective, bus bandwidth saturates quickly (typically beyond 2 to 4 processors). CPUs rely on large onboard caches to minimize bus cycles.
+        </li>
+        <li>
+          <strong>Crossbar Switch Fabric:</strong> Connects $n$ processors to $m$ memory modules using an $n \times m$ matrix of electronic crosspoints. Crosspoints allow simultaneous non-conflicting reads and writes without bus arbitration. However, the hardware footprint scales at $O(n \times m)$, limiting physical scaling.
+        </li>
+        <li>
+          <strong>Multistage Switching Networks (Omega Networks):</strong> Uses $2 \times 2$ switching elements arranged in $\log_2 n$ stages to route memory requests. Offers an architectural compromise between single-bus bottlenecks and crossbar crosspoint growth.
+        </li>
+      </ul>
+
+      <!-- SVG DIAGRAM: UMA BUS VS CROSSBAR -->
+      <div class="diagram-container">
+        <svg class="diagram-svg" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="240" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+
+          <!-- Shared Bus (Left) -->
+          <text x="200" y="24" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">UMA: Single Shared Bus</text>
+          <rect x="40" y="45" width="60" height="35" fill="#f0f9ff" stroke="#0284c7" rx="3"/><text x="70" y="67" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">CPU 0</text>
+          <rect x="120" y="45" width="60" height="35" fill="#f0f9ff" stroke="#0284c7" rx="3"/><text x="150" y="67" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">CPU 1</text>
+          <rect x="220" y="45" width="60" height="35" fill="#f0f9ff" stroke="#0284c7" rx="3"/><text x="250" y="67" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">CPU 2</text>
+          <rect x="300" y="45" width="60" height="35" fill="#f0f9ff" stroke="#0284c7" rx="3"/><text x="330" y="67" font-family="sans-serif" font-size="10" fill="#0369a1" text-anchor="middle">CPU 3</text>
+
+          <line x1="70" y1="80" x2="70" y2="120" stroke="#0284c7" stroke-width="2"/>
+          <line x1="150" y1="80" x2="150" y2="120" stroke="#0284c7" stroke-width="2"/>
+          <line x1="250" y1="80" x2="250" y2="120" stroke="#0284c7" stroke-width="2"/>
+          <line x1="330" y1="80" x2="330" y2="120" stroke="#0284c7" stroke-width="2"/>
+
+          <rect x="30" y="120" width="340" height="14" fill="#0284c7" rx="2"/>
+          <text x="200" y="131" font-family="sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">Shared System Memory Bus</text>
+
+          <line x1="200" y1="134" x2="200" y2="165" stroke="#0284c7" stroke-width="2"/>
+          <rect x="130" y="165" width="140" height="40" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
+          <text x="200" y="189" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Shared Main Memory</text>
+
+          <line x1="390" y1="20" x2="390" y2="220" stroke="#e2e8f0" stroke-width="2"/>
+
+          <!-- Crossbar Switch (Right) -->
+          <text x="590" y="24" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">UMA: Crossbar Switch Fabric</text>
+
+          <rect x="430" y="60" width="50" height="25" fill="#f0f9ff" stroke="#0284c7" rx="2"/><text x="455" y="76" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">CPU 0</text>
+          <rect x="430" y="100" width="50" height="25" fill="#f0f9ff" stroke="#0284c7" rx="2"/><text x="455" y="116" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">CPU 1</text>
+          <rect x="430" y="140" width="50" height="25" fill="#f0f9ff" stroke="#0284c7" rx="2"/><text x="455" y="156" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">CPU 2</text>
+          <rect x="430" y="180" width="50" height="25" fill="#f0f9ff" stroke="#0284c7" rx="2"/><text x="455" y="196" font-family="sans-serif" font-size="9" fill="#0369a1" text-anchor="middle">CPU 3</text>
+
+          <!-- Grid Lines -->
+          <line x1="480" y1="72" x2="720" y2="72" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="480" y1="112" x2="720" y2="112" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="480" y1="152" x2="720" y2="152" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="480" y1="192" x2="720" y2="192" stroke="#94a3b8" stroke-width="1.5"/>
+
+          <line x1="540" y1="45" x2="540" y2="192" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="600" y1="45" x2="600" y2="192" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="660" y1="45" x2="660" y2="192" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="720" y1="45" x2="720" y2="192" stroke="#94a3b8" stroke-width="1.5"/>
+
+          <!-- Crosspoints -->
+          <circle cx="540" cy="72" r="3" fill="#0284c7"/>
+          <circle cx="600" cy="112" r="3" fill="#0284c7"/>
+          <circle cx="660" cy="152" r="3" fill="#0284c7"/>
+          <circle cx="720" cy="192" r="3" fill="#0284c7"/>
+
+          <!-- Memory Modules -->
+          <rect x="525" y="200" width="30" height="25" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="540" y="216" font-family="sans-serif" font-size="8" fill="#0369a1" text-anchor="middle">M0</text>
+          <rect x="585" y="200" width="30" height="25" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="600" y="216" font-family="sans-serif" font-size="8" fill="#0369a1" text-anchor="middle">M1</text>
+          <rect x="645" y="200" width="30" height="25" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="660" y="216" font-family="sans-serif" font-size="8" fill="#0369a1" text-anchor="middle">M2</text>
+          <rect x="705" y="200" width="30" height="25" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="720" y="216" font-family="sans-serif" font-size="8" fill="#0369a1" text-anchor="middle">M3</text>
+        </svg>
+        <span class="diagram-caption">Figure 8-1: UMA Bus Architecture (left) vs. Full Crossbar Switch Fabric (right).</span>
+      </div>
+
+      <h3>2. Non-Uniform Memory Access (NUMA) Architecture</h3>
+      <p>
+        To scale beyond dozens of cores without exponential switch costs, modern systems employ <strong>Non-Uniform Memory Access (NUMA)</strong>. In a NUMA machine:
+      </p>
+      <ul>
+        <li>Physical memory is partitioned across multiple nodes.</li>
+        <li>Each node contains one or more CPUs, memory controllers, and a portion of the global address space (its <em>local memory</em>).</li>
+        <li>Accessing local memory is fast (e.g., ~50–80 ns). Accessing memory physically attached to a different node over an interconnect link (e.g., Intel UPI, AMD Infinity Fabric) requires traversals that incur noticeably higher latency (e.g., ~150–300 ns).</li>
+      </ul>
+      <div class="callout">
+        <strong>The NUMA Factor:</strong> The ratio of remote memory access latency to local memory access latency is called the <em>NUMA factor</em>. Operating system schedulers and memory allocators must be NUMA-aware to allocate pages and schedule execution within the same NUMA node whenever possible.
+      </div>
+    </section>
+
+    <!-- SECTION: CACHE COHERENCE & MESI -->
+    <section class="content-section">
+      <h2>Cache Coherence &amp; The MESI Protocol</h2>
+      <p>
+        When multiple CPUs maintain local caches of shared RAM, an inconsistent state arises if CPU A modifies variable $X$ in its local cache while CPU B holds an older copy in its cache. Hardware maintains consistency using <strong>Cache Coherence Protocols</strong>.
+      </p>
+
+      <h3>Snooping vs. Directory-Based Coherence</h3>
+      <ul>
+        <li>
+          <strong>Bus Snooping (UMA):</strong> Every cache controller monitors (snoops) the shared memory bus. When a write occurs, all other caches observing the bus either invalidate or update their copies.
+        </li>
+        <li>
+          <strong>Directory-Based Protocols (NUMA):</strong> Without a broadcast bus, directories track which nodes hold copies of every memory line. Messages are routed point-to-point only to nodes holding cached replicas.
+        </li>
+      </ul>
+
+      <h3>The 4-State MESI Protocol</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>State</th>
+            <th>Description</th>
+            <th>Memory Clean/Dirty</th>
+            <th>Other Caches Have Copy?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>M (Modified)</strong></td>
+            <td>Line is present only in this cache and is dirty (modified). Must be flushed back to RAM on eviction.</td>
+            <td>Dirty</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>E (Exclusive)</strong></td>
+            <td>Line is present only in this cache and matches main memory. Can be transitioned to Modified without bus traffic.</td>
+            <td>Clean</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>S (Shared)</strong></td>
+            <td>Line is present in this cache and potentially present in other caches. All copies match main memory.</td>
+            <td>Clean</td>
+            <td>Yes (Likely)</td>
+          </tr>
+          <tr>
+            <td><strong>I (Invalid)</strong></td>
+            <td>Line contains stale or unallocated data. Reads cause a cache miss.</td>
+            <td>N/A</td>
+            <td>N/A</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- INTERACTIVE SIMULATOR: MESI PROTOCOL -->
+      <div class="sim-container">
+        <div class="sim-header">
+          <span class="sim-title">Interactive MESI Coherence Simulator</span>
+          <button class="btn-sim" style="flex:0; width:90px;" onclick="resetMesiSim()">Reset</button>
+        </div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Observe transitions on Variable X across two distinct CPU caches sharing a snooped memory bus:
+        </p>
+
+        <div class="sim-grid">
+          <div class="cpu-box">
+            <div class="cpu-title">
+              <span>CPU 0 Core</span>
+              <span id="cpu0-status" class="state-badge state-I">State: I</span>
+            </div>
+            <div class="cache-line">
+              <span>Variable X:</span>
+              <span id="cpu0-val" style="font-weight: bold;">--</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn-sim" onclick="performCpuRead(0)">Read X</button>
+              <button class="btn-sim" onclick="performCpuWrite(0)">Write X</button>
+            </div>
+          </div>
+
+          <div class="cpu-box">
+            <div class="cpu-title">
+              <span>CPU 1 Core</span>
+              <span id="cpu1-status" class="state-badge state-I">State: I</span>
+            </div>
+            <div class="cache-line">
+              <span>Variable X:</span>
+              <span id="cpu1-val" style="font-weight: bold;">--</span>
+            </div>
+            <div class="btn-group">
+              <button class="btn-sim" onclick="performCpuRead(1)">Read X</button>
+              <button class="btn-sim" onclick="performCpuWrite(1)">Write X</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">Bus Transaction Broadcast Log:</span>
+          <div id="bus-log" class="bus-log">-- Memory Bus Idle. Main Memory X = 42 --</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8.1.2: MULTIPROCESSOR OS TYPES -->
+    <section class="content-section">
+      <h2>8.1.2 Multiprocessor Operating System Models</h2>
+      <p>
+        Operating system designers organize kernel code across multiple CPUs using three historical approaches:
+      </p>
+
+      <h3>1. Each CPU Has Its Own Operating System</h3>
+      <p>
+        Memory is statically partitioned. Each CPU runs an independent copy of the OS with its own private data structures, process table, and buffer cache.
+      </p>
+      <ul>
+        <li><strong>Pros:</strong> Zero lock contention on kernel structures; easy to construct.</li>
+        <li><strong>Cons:</strong> No resource sharing. If CPU 0 has an empty run queue while CPU 1 is overloaded with processes, CPU 0 remains idle. Memory buffers cannot be dynamically balanced.</li>
+      </ul>
+
+      <h3>2. Master-Slave Multiprocessors</h3>
+      <p>
+        One designated CPU (the master) runs the operating system kernel. All other CPUs (slaves) execute exclusively user applications.
+      </p>
+      <ul>
+        <li><strong>Pros:</strong> Eliminates race conditions in kernel memory; only the master accesses kernel structures.</li>
+        <li><strong>Cons:</strong> The master CPU becomes a massive performance bottleneck as the core count increases, leaving slave CPUs idle waiting for system call servicing.</li>
+      </ul>
+
+      <h3>3. Symmetric Multiprocessing (SMP)</h3>
+      <p>
+        A single unified operating system instance resides in shared memory. Any available CPU can execute kernel code simultaneously.
+      </p>
+      <ul>
+        <li><strong>Pros:</strong> Dynamic load balancing of processes and kernel buffers across all cores.</li>
+        <li><strong>Cons:</strong> Requires strict internal locking primitives. If protected by a single monolithic mutex (Giant Kernel Lock), parallelism collapses. Production SMP requires fine-grained locking of individual data structures (run queues, inode tables, page lists).</li>
+      </ul>
+    </section>
+
+    <!-- SECTION 8.1.3: SYNCHRONIZATION & SPINLOCKS -->
+    <section class="content-section">
+      <h2>8.1.3 Multiprocessor Synchronization &amp; Cache Contention</h2>
+      <p>
+        On a uniprocessor, an operating system can achieve mutual exclusion in kernel mode by temporarily disabling hardware interrupts. On a multiprocessor, disabling interrupts on CPU 0 has zero effect on CPU 1, which can continue executing and mutate shared memory.
+      </p>
+
+      <h3>Hardware Atomic Primitives</h3>
+      <p>
+        Hardware addresses this by providing instructions that assert bus lock signals or use cache-coherence locks to ensure atomicity across all cores:
+      </p>
+      <div class="code-box">
+// Test-and-Set hardware primitive (atomic exchange)
+int TestAndSet(int *lock) {
+    int old_val = *lock;
+    *lock = 1;
+    return old_val; // Returns 0 on success, 1 on busy
+}
+
+// Compare-and-Swap (CAS) hardware primitive
+bool CompareAndSwap(int *addr, int expected, int new_val) {
+    if (*addr == expected) {
+        *addr = new_val;
+        return true;
+    }
+    return false;
+}
+      </div>
+
+      <h3>Spinlocks &amp; Cache-Line Bouncing</h3>
+      <p>
+        When a CPU attempts to acquire a lock held by another core, it can either sleep (context switch) or spin in a tight loop. Because context switches can cost thousands of cycles, short critical sections use <strong>spinlocks</strong>.
+      </p>
+      <div class="callout">
+        <strong>The Cache Bouncing Storm:</strong> A naive spinlock that loops continuously executing <code>TestAndSet(&amp;lock)</code> issues writes on every iteration. This forces the cache line holding the lock into the <em>Modified</em> state on that core, invalidating the line across every other core on the bus. When multiple CPUs spin simultaneously, the lock cache line bounces furiously between caches, saturating the memory bus.
+      </div>
+      <p>
+        <strong>Mitigation: Test-and-Test-and-Set:</strong> The CPU spins by reading local cache lines in the <em>Shared</em> state using normal read instructions. Only when the lock is observed to be released (0) does the core issue an atomic write to acquire it.
+      </p>
+    </section>
+
+  </div>
+
+  <script>
+    // State machine implementation for MESI simulator
+    const mesiState = {
+      val: 42,
+      cpus: [
+        { state: 'I', val: null },
+        { state: 'I', val: null }
+      ]
+    };
+
+    function appendBusLog(message) {
+      const logElement = document.getElementById('bus-log');
+      const timeStr = new Date().toLocaleTimeString().split(' ')[0];
+      logElement.innerHTML += `<br>[${timeStr}] ${message}`;
+      logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    function syncSimUi() {
+      for (let i = 0; i < 2; i++) {
+        const badge = document.getElementById(`cpu${i}-status`);
+        const valElem = document.getElementById(`cpu${i}-val`);
+        const st = mesiState.cpus[i].state;
+
+        badge.className = `state-badge state-${st}`;
+        badge.innerText = `State: ${st}`;
+
+        if (st === 'I') {
+          valElem.innerText = '--';
+        } else {
+          valElem.innerText = mesiState.cpus[i].val;
+        }
+      }
+    }
+
+    function performCpuRead(cpuId) {
+      const otherId = 1 - cpuId;
+      const curState = mesiState.cpus[cpuId].state;
+
+      if (curState !== 'I') {
+        appendBusLog(`CPU ${cpuId}: Read Hit (State ${curState}). No bus traffic.`);
+        return;
+      }
+
+      // Read Miss
+      appendBusLog(`CPU ${cpuId}: Read Miss (I). Emitting BusRd...`);
+      if (mesiState.cpus[otherId].state === 'M') {
+        appendBusLog(`Bus: CPU ${otherId} snooped BusRd in Modified state! Flushing dirty data to RAM.`);
+        mesiState.val = mesiState.cpus[otherId].val;
+        mesiState.cpus[otherId].state = 'S';
+        mesiState.cpus[cpuId].state = 'S';
+        mesiState.cpus[cpuId].val = mesiState.val;
+      } else if (mesiState.cpus[otherId].state === 'E' || mesiState.cpus[otherId].state === 'S') {
+        appendBusLog(`Bus: CPU ${otherId} holds copy. Line transitions to Shared (S).`);
+        mesiState.cpus[otherId].state = 'S';
+        mesiState.cpus[cpuId].state = 'S';
+        mesiState.cpus[cpuId].val = mesiState.val;
+      } else {
+        appendBusLog(`Bus: No other cache holds line. Supplied by RAM. State Exclusive (E).`);
+        mesiState.cpus[cpuId].state = 'E';
+        mesiState.cpus[cpuId].val = mesiState.val;
+      }
+      syncSimUi();
+    }
+
+    function performCpuWrite(cpuId) {
+      const otherId = 1 - cpuId;
+      const curState = mesiState.cpus[cpuId].state;
+      const nextVal = Math.floor(Math.random() * 90) + 10;
+
+      if (curState === 'M') {
+        appendBusLog(`CPU ${cpuId}: Write Hit (Already Modified). Updating value to ${nextVal}.`);
+        mesiState.cpus[cpuId].val = nextVal;
+      } else if (curState === 'E') {
+        appendBusLog(`CPU ${cpuId}: Write Hit (Exclusive). Silent transition to Modified (M). Val=${nextVal}.`);
+        mesiState.cpus[cpuId].state = 'M';
+        mesiState.cpus[cpuId].val = nextVal;
+      } else {
+        // State S or I
+        appendBusLog(`CPU ${cpuId}: Write Miss / Invalidation request. Emitting BusRdX.`);
+        if (mesiState.cpus[otherId].state !== 'I') {
+          appendBusLog(`Bus: CPU ${otherId} snooped BusRdX. Invalidation forced (State -> I).`);
+          mesiState.cpus[otherId].state = 'I';
+          mesiState.cpus[otherId].val = null;
+        }
+        mesiState.cpus[cpuId].state = 'M';
+        mesiState.cpus[cpuId].val = nextVal;
+      }
+      syncSimUi();
+    }
+
+    function resetMesiSim() {
+      mesiState.val = 42;
+      mesiState.cpus[0] = { state: 'I', val: null };
+      mesiState.cpus[1] = { state: 'I', val: null };
+      document.getElementById('bus-log').innerHTML = '-- Memory Bus Reset. Main Memory X = 42 --';
+      syncSimUi();
+    }
+  </script>
+</body>
+</html>
