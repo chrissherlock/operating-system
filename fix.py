@@ -1,322 +1,59 @@
 #!/usr/bin/env python3
 # =====================================================================
-# generate_fully_attributed_page.py: Complete page with all card attributions
+# add_gen4_images.py: Add Macintosh and Windows 95 cards to Generation 4
 # =====================================================================
 import os
 import subprocess
-import sys
 
-COMPLETE_ATTRIBUTED_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>What Is an Operating System &amp; History -- COSC240</title>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
-    }
-    .nav-back { width: 100%; max-width: 1100px; margin: 0 auto; display: flex; }
-    .nav-back a {
-      display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600;
-      font-family: var(--font-mono); text-decoration: none; color: #0284c7;
-      background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 6px;
-    }
-    .nav-back a:hover { background-color: #0284c7; color: #ffffff; }
-    main { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 24px; }
-    header { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 30px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 8px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .content-section { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; gap: 16px; }
-    .content-section h2 { font-size: 1.3rem; color: #0369a1; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-    h3 { font-size: 1.1rem; color: #1e293b; margin-top: 10px; }
-    p { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
-    ul { margin-left: 20px; color: var(--text-muted); line-height: 1.6; }
-    li { margin-bottom: 6px; }
-    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 10px; }
-    .image-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-    .image-card img { max-width: 100%; height: 130px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
-    .image-card span { font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); line-height: 1.4; }
-    .image-card a { color: var(--accent); text-decoration: underline; }
-    .aside-box { background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin-top: 10px; }
-  </style>
-</head>
-<body>
-  <div class="nav-back">
-    <a href="index.html">&larr; Back to Chapter 1 Index</a>
-  </div>
+def execute_image_addition():
+    file_path = os.path.join("week01-operating-system-concepts", "01-what-is-an-os-and-history.html")
+    if not os.path.exists(file_path):
+        print(f"Error: {file_path} not found.")
+        return
 
-  <main>
-    <header>
-      <h1>01. What Is an Operating System &amp; History</h1>
-      <p class="subtitle">Tanenbaum Chapter 1.1 &amp; 1.2: Foundational Paradigms and the Five Computing Generations.</p>
-    </header>
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
 
-    <section class="content-section">
-      <h2>Foundational Paradigms (Tanenbaum Chapter 1.1)</h2>
-      <p>
-        To understand what an operating system is, we must examine it from two complementary perspectives: the <strong>extended machine</strong> (top-down abstraction layer) and the <strong>resource manager</strong> (bottom-up hardware multiplexer).
-      </p>
+    target_marker = "</ul>"
+    pos = content.find(target_marker)
+    if pos != -1:
+        insert_pos = pos + len(target_marker)
 
-      <h3>1. The Extended Machine (Virtualization)</h3>
-      <p>
-        Raw hardware architecture—consisting of disk controllers, volatile RAM registers, interrupt vectors, and bus timings—is notoriously complex and difficult to program directly. An operating system hides this raw complexity by providing a clean, elegant, and abstract set of instructions and abstractions (such as files, sockets, and virtual address spaces), presenting programmers with a virtual machine far superior to the physical hardware.
-      </p>
-
-      <h3>2. The Resource Manager (Multiplexing)</h3>
-      <p>
-        Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
-      </p>
-    </section>
-
-    <section class="content-section">
-      <h2>Historical Evolution &amp; Computing Generations (Tanenbaum Chapter 1.2)</h2>
-      <p>
-        The history of operating systems is intimately tied to the evolution of computer hardware across five distinct technological generations.
-      </p>
-
-      <h3>Generation 1: Vacuum Tubes (1945–1955)</h3>
-      <p>
-        Early digital computers built with vacuum tubes were massive, room-sized installations. Programming was done entirely in absolute machine language or by manually wiring physical plugboards. There were no operating systems; a single programmer had exclusive access to the machine for a scheduled block of time.
-      </p>
-      <div class="image-grid">
+        image_grid_block = """
+      <div class="image-grid" style="margin-top: 16px;">
         <div class="image-card">
-          <img src="../images/vacuumtube.jpg" alt="Vacuum Tubes">
+          <img src="../images/macintosh-128k.png" alt="Macintosh 128k">
           <span>
-            <strong>Vacuum Tube</strong><br>
-            Thermionic valve switching components.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Vacuum_tube" target="_blank" rel="noopener">Wikipedia: Vacuum Tube</a></small><br>
-            <small>Source: Wikimedia Commons contributors</small>
+            <strong>Macintosh 128k</strong><br>
+            Early personal computer with graphical desktop interface.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Macintosh_128k" target="_blank" rel="noopener">Wikipedia: Macintosh 128k</a></small><br>
+            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Macintosh_128k_transparency.png&oldid=1086425807" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+            <small>Author: Wikimedia Commons contributors</small>
           </span>
         </div>
         <div class="image-card">
-          <img src="../images/plugboard.jpg" alt="Plugboard">
+          <img src="../images/windows-95-first-run.png" alt="Windows 95 First Run">
           <span>
-            <strong>Plugboard Wiring</strong><br>
-            Manual machine programming interfaces.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Plugboard" target="_blank" rel="noopener">Wikipedia: Plugboard</a></small><br>
-            <small>Source: Wikimedia Commons contributors</small>
+            <strong>Windows 95</strong><br>
+            Desktop operating system environment.<br>
+            <small><a href="https://en.wikipedia.org/wiki/File:Windows_95_at_first_run.png" target="_blank" rel="noopener">Wikipedia File: Windows 95 at first run</a></small><br>
+            <small>Source: Wikipedia contributors</small>
           </span>
         </div>
-      </div>
+      </div>"""
 
-      <h3>Generation 2: Transistors &amp; Batch Systems (1955–1965)</h3>
-      <p>
-        The invention of the transistor introduced solid-state electronics, making computers reliable enough to manufacture and sell commercially. This era birthed <strong>batch systems</strong>, where jobs were written to punched cards, collected into batches by an operator, loaded into the computer via card readers, and executed sequentially using early monitor programs.
-      </p>
-      <div class="image-grid">
-        <div class="image-card">
-          <img src="../images/replica-first-transistor.jpg" alt="Transistor Replica">
-          <span>
-            <strong>First Transistor</strong><br>
-            Solid-state semiconductor switching.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Transistor" target="_blank" rel="noopener">Wikipedia: Transistor</a></small><br>
-            <small>Source: Wikimedia Commons contributors</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/punched-card-program-deck.jpg" alt="Punched Cards">
-          <span>
-            <strong>Punched Card Deck</strong><br>
-            Batch job submission media.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Punched_card" target="_blank" rel="noopener">Wikipedia: Punched Card</a></small><br>
-            <small>Source: Wikimedia Commons contributors</small>
-          </span>
-        </div>
-      </div>
+        content = content[:insert_pos] + image_grid_block + content[insert_pos:]
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("--> Generation 4 image cards successfully added.")
 
-      <h3>Generation 3: ICs, Multiprogramming, &amp; Time-Sharing (1965–1980)</h3>
-      <p>
-        Integrated circuits (ICs) revolutionized computer architecture. The IBM System/360 introduced hardware architecture families capable of running both commercial and scientific workloads. To eliminate CPU idle time during slow I/O operations, <strong>multiprogramming</strong> was developed, alongside <strong>time-sharing</strong> systems enabling multiple interactive users.
-      </p>
-      <div class="image-grid">
-        <div class="image-card">
-          <img src="../images/integrated-circuit.jpg" alt="Integrated Circuit">
-          <span>
-            <strong>Integrated Circuit</strong><br>
-            Microchip scaling on silicon substrates.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Integrated_circuit" target="_blank" rel="noopener">Wikipedia: Integrated Circuit</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:VLSI_VL82C486_Single_Chip_486_System_Controller_HV.jpg&oldid=1172847417" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors (CC BY-SA 3.0)</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/system360.jpg" alt="IBM System/360">
-          <span>
-            <strong>IBM System/360</strong><br>
-            Mainframe architecture family (VW-Werk Wolfsburg, 1973).<br>
-            <small><a href="https://en.wikipedia.org/wiki/IBM_System/360" target="_blank" rel="noopener">Wikipedia: IBM System/360</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Bundesarchiv_B_145_Bild-F038812-0014,_Wolfsburg,_VW_Autowerk.jpg&oldid=838121012" target="_blank" rel="noopener">Bundesarchiv Record (B 145 Bild-F038812-0014)</a></small><br>
-            <small>Author: Schaack, Lothar / Bundesarchiv (CC BY-SA 3.0)</small>
-          </span>
-        </div>
-      </div>
-
-      <h3>Generation 4: Personal Computers &amp; Networks (1980–Present)</h3>
-      <p>
-        Large-scale integration (LSI) chips made personal computers economically viable. Operating systems shifted toward graphical user interfaces (GUIs), rich file abstractions, and local area network (LAN) integration.
-      </p>
-
-      <h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>
-      <p>
-        Modern operating systems power smartphones, tablets, edge sensors, and massive hyperscale cloud datacenters, emphasizing power management, containerization, and distributed virtualization.
-      </p>
-
-      <div class="aside-box">
-        <strong>Research Aside: Andrew S. Tanenbaum &amp; MINIX</strong>
-        <p style="margin-top: 6px; font-size: 0.88rem;">
-          Andrew S. Tanenbaum created MINIX in 1987 as an educational operating system to illustrate microkernel design principles. MINIX served as the primary inspiration and initial development environment for Linus Torvalds when he began writing the Linux kernel in 1991.
-        </p>
-      </div>
-    </section>
-
-    <section class="content-section">
-      <h2>Operating System Ecosystem &amp; Architecture Families</h2>
-      <p>
-        The operating system landscape spans diverse paradigms. Below is the complete visual index of all 15 system brand marks and logos organized by architectural family.
-      </p>
-
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
-
-        <!-- Family 1 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Commercial Desktop &amp; Mobile Systems</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/windows.svg" alt="Windows" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Microsoft_Windows" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Windows</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/apple.svg" alt="Apple" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/MacOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Apple macOS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/chrome.svg" alt="ChromeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/ChromeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">ChromeOS</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Family 2 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Open-Source &amp; Unix-Like Kernels</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/tux.svg" alt="Linux" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Linux" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Linux (Tux)</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/freebsd.svg" alt="FreeBSD" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/FreeBSD" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeBSD</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/android.svg" alt="Android" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Android_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Android</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/minix.png" alt="MINIX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/MINIX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">MINIX</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Family 3 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Real-Time Operating Systems (RTOS)</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/free-rtos.png" alt="FreeRTOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/FreeRTOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeRTOS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/qnx.svg" alt="QNX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/QNX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">QNX RTOS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/vxworks.svg" alt="VxWorks" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/VxWorks" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">VxWorks</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Family 4 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Historical &amp; Enterprise Systems</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/os2.svg" alt="OS/2" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/OS/2" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">IBM OS/2</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/solaris.svg" alt="Solaris" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Solaris_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Solaris</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/openvms.svg" alt="OpenVMS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/OpenVMS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">OpenVMS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/multics.svg" alt="Multics" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Multics" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Multics</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/beos.svg" alt="BeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/BeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">BeOS</a>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-  </main>
-</body>
-</html>
-"""
-
-def execute_full_deployment():
-    base_dir = "week01-operating-system-concepts"
-    os.makedirs(base_dir, exist_ok=True)
-    file_path = os.path.join(base_dir, "01-what-is-an-os-and-history.html")
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(COMPLETE_ATTRIBUTED_HTML)
-
-    modified = [file_path]
-    fix_path = "fix.py"
-    if os.path.exists(fix_path):
-        modified.append(fix_path)
-
-    print(f"--> Staging modified files: {modified}")
     try:
-        subprocess.run(["git", "add"] + modified, check=True)
-        commit_msg = (
-            "Restore full descriptions, wiki links, and attributions to all Generation 1-3 cards\n\n"
-            "Ensure week01-operating-system-concepts/01-what-is-an-os-and-history.html contains\n"
-            "rigorous descriptions, Wikipedia topic links, and precise bibliographic URLs for every image card."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        subprocess.run(["git", "add", file_path], check=True)
+        subprocess.run(["git", "commit", "-m", "Add Macintosh 128k and Windows 95 image cards to Generation 4 in Module 1"], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-    except Exception:
-        pass
-    print("--> Fully attributed page successfully deployed!")
+        print("--> Git sync completed successfully!")
+    except Exception as e:
+        print(f"Git note: {e}")
 
 if __name__ == "__main__":
-    execute_full_deployment()
+    execute_image_addition()
