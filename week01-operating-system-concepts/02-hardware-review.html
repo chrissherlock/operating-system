@@ -289,65 +289,64 @@
         System memory is organized as a hierarchy balancing access latency, total capacity, and cost per bit:
       </p><div id="svg-memory-pyramid">
       <div style="display: flex; justify-content: center; margin: 24px 0;">
-        <svg viewBox="0 0 760 380" width="100%" height="auto" style="max-width: 760px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 760 390" width="100%" height="auto" style="max-width: 760px; font-family: ui-monospace, Menlo, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="gradReg" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#0284c7" />
-              <stop offset="100%" stop-color="#38bdf8" />
-            </linearGradient>
-            <linearGradient id="gradCache" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="#0369a1" />
-              <stop offset="100%" stop-color="#0ea5e9" />
-            </linearGradient>
-            <linearGradient id="gradRAM" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#075985" />
               <stop offset="100%" stop-color="#0284c7" />
             </linearGradient>
-            <linearGradient id="gradSSD" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#0c4a6e" />
+            <linearGradient id="gradCache" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#075985" />
               <stop offset="100%" stop-color="#0369a1" />
             </linearGradient>
-            <linearGradient id="gradDisk" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="gradRAM" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#0c4a6e" />
+              <stop offset="100%" stop-color="#075985" />
+            </linearGradient>
+            <linearGradient id="gradSSD" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stop-color="#1e293b" />
               <stop offset="100%" stop-color="#334155" />
+            </linearGradient>
+            <linearGradient id="gradDisk" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#0f172a" />
+              <stop offset="100%" stop-color="#1e293b" />
             </linearGradient>
             <marker id="arrowUp" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
               <path d="M0,6 L3,0 L6,6 Z" fill="#0284c7" />
             </marker>
             <marker id="arrowDown" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-              <path d="M0,0 L3,6 L6,0 Z" fill="#64748b" />
+              <path d="M0,0 L3,6 L6,0 Z" fill="#475569" />
             </marker>
           </defs>
 
-          <!-- Pyramid Slices -->
-          <!-- Registers -->
-          <polygon points="380,20 330,80 430,80" fill="url(#gradReg)" stroke="#ffffff" stroke-width="2" />
-          <text x="380" y="62" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">Registers (&lt; 2 KB, &lt; 1 ns)</text>
+          <!-- Pyramid Tiers with dark, deep gradients ensuring crisp white text contrast -->
+          <!-- Tier 1: Registers -->
+          <polygon points="380,25 330,85 430,85" fill="url(#gradReg)" stroke="#ffffff" stroke-width="2" />
+          <text x="380" y="68" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle">Registers (&lt; 2 KB, &lt; 1 ns)</text>
 
-          <!-- Cache -->
-          <polygon points="330,80 270,150 490,150 430,80" fill="url(#gradCache)" stroke="#ffffff" stroke-width="2" />
-          <text x="380" y="122" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">L1 / L2 / L3 Caches (SRAM, 1–15 ns)</text>
+          <!-- Tier 2: Cache Memory -->
+          <polygon points="330,85 270,155 490,155 430,85" fill="url(#gradCache)" stroke="#ffffff" stroke-width="2" />
+          <text x="380" y="128" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">L1 / L2 / L3 Caches (SRAM, 1–15 ns)</text>
 
-          <!-- Main Memory -->
-          <polygon points="270,150 200,225 560,225 490,150" fill="url(#gradRAM)" stroke="#ffffff" stroke-width="2" />
-          <text x="380" y="195" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Main Memory (DRAM, 16–128 GB, 50–100 ns)</text>
+          <!-- Tier 3: Main Memory -->
+          <polygon points="270,155 200,230 560,230 490,155" fill="url(#gradRAM)" stroke="#ffffff" stroke-width="2" />
+          <text x="380" y="200" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Main Memory (DRAM, 16–128 GB, 50–100 ns)</text>
 
-          <!-- Solid-State Disk -->
-          <polygon points="200,225 130,300 630,300 560,225" fill="url(#gradSSD)" stroke="#ffffff" stroke-width="2" />
-          <text x="380" y="270" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Solid-State Drives (NVMe / Flash, 10–50 μs)</text>
+          <!-- Tier 4: SSDs -->
+          <polygon points="200,230 130,305 630,305 560,230" fill="url(#gradSSD)" stroke="#ffffff" stroke-width="2" />
+          <text x="380" y="275" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Solid-State Drives (NVMe / Flash, 10–50 μs)</text>
 
-          <!-- Magnetic Disk -->
-          <polygon points="130,300 60,370 700,370 630,300" fill="url(#gradDisk)" stroke="#ffffff" stroke-width="2" />
-          <text x="380" y="342" fill="#ffffff" font-size="13" font-weight="bold" text-anchor="middle">Magnetic Disks / Archival (HDDs, 5–10 ms)</text>
+          <!-- Tier 5: Magnetic Disks -->
+          <polygon points="130,305 60,375 700,375 630,305" fill="url(#gradDisk)" stroke="#ffffff" stroke-width="2" />
+          <text x="380" y="348" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Magnetic Disks / Archival (HDDs, 5–10 ms)</text>
 
-          <!-- Side Indicators -->
-          <!-- Left: Speed & Cost -->
-          <line x1="45" y1="360" x2="45" y2="35" stroke="#0284c7" stroke-width="3" marker-end="url(#arrowUp)" />
-          <text x="38" y="200" fill="#0284c7" font-size="11" font-weight="bold" transform="rotate(-90 38 200)" text-anchor="middle">HIGHER ACCESS SPEED &amp; COST / BIT</text>
+          <!-- Left Indicator: Access Speed & Cost -->
+          <line x1="45" y1="365" x2="45" y2="40" stroke="#0284c7" stroke-width="3" marker-end="url(#arrowUp)" />
+          <text x="38" y="205" fill="#0284c7" font-size="11" font-weight="700" transform="rotate(-90 38 205)" text-anchor="middle">HIGHER ACCESS SPEED &amp; COST / BIT</text>
 
-          <!-- Right: Capacity -->
-          <line x1="715" y1="35" x2="715" y2="360" stroke="#64748b" stroke-width="3" marker-end="url(#arrowDown)" />
-          <text x="723" y="200" fill="#64748b" font-size="11" font-weight="bold" transform="rotate(90 723 200)" text-anchor="middle">LARGER CAPACITY &amp; PERSISTENCE</text>
+          <!-- Right Indicator: Capacity & Persistence -->
+          <line x1="715" y1="40" x2="715" y2="365" stroke="#475569" stroke-width="3" marker-end="url(#arrowDown)" />
+          <text x="723" y="205" fill="#475569" font-size="11" font-weight="700" transform="rotate(90 723 205)" text-anchor="middle">LARGER CAPACITY &amp; PERSISTENCE</text>
         </svg>
       </div>
 </div>
