@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.1.4 Multiprocessor Scheduling &amp; Security — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.6;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .chapter-tag {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .lead-text {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-top: 6px;
+    }
+    .content-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .content-section h2 {
+      font-size: 1.4rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .content-section h3 {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-top: 8px;
+    }
+    p, li {
+      color: #334155;
+      font-size: 0.96rem;
+    }
+    ul, ol {
+      margin-left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .diagram-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .diagram-svg {
+      width: 100%;
+      max-width: 840px;
+      height: auto;
+    }
+    .diagram-caption {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      padding: 14px 18px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.92rem;
+      color: #0369a1;
+    }
+    table.spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 10px 0;
+    }
+    table.spec-table th, table.spec-table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    table.spec-table th {
+      background: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Simulator styling */
+    .sim-card {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-action {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-action:hover { background: #0369a1; }
+    .gang-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(4, 1fr);
+      gap: 6px;
+      background: #ffffff;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+    .grid-hdr {
+      font-weight: bold;
+      background: #e2e8f0;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    .grid-cell {
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .gang-A { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+    .gang-B { background: #fce7f3; color: #9d174d; border-color: #fbcfe8; }
+    .gang-idle { background: #f1f5f9; color: #64748b; }
+    .active-slot {
+      outline: 3px solid #0284c7;
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.4);
+    }
+    .status-panel {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 12px;
+      border-radius: 6px;
+      height: 110px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="nav-header">
+      <a href="01-multiprocessor-hardware.html" class="nav-btn">&larr; 8.1 Hardware &amp; Coherence</a>
+      <a href="03-multicomputers-interconnects.html" class="nav-btn">8.2 Multicomputers &rarr;</a>
+    </div>
+
+    <header>
+      <span class="chapter-tag">Section 8.1.4</span>
+      <h1>Multiprocessor Scheduling &amp; Security</h1>
+      <p class="lead-text">
+        Timesharing versus spacesharing, cache affinity retention, two-dimensional gang scheduling, and microarchitectural security scheduling.
+      </p>
+    </header>
+
+    <!-- SECTION: TIMESHARING VS SPACESHARING -->
+    <section class="content-section">
+      <h2>Timesharing vs. Spacesharing</h2>
+      <p>
+        On a uniprocessor, the scheduler makes one fundamental decision: which thread runs next on the single CPU. On a multiprocessor, scheduling becomes multidimensional: the scheduler must choose <strong>which thread to run</strong> and <strong>which physical CPU core should execute it</strong>.
+      </p>
+      <ul>
+        <li>
+          <strong>Timesharing:</strong> Threads share CPU cores over time. Each CPU independently selects runnable threads from a shared or per-core run queue, executing them for a time quantum before switching. Timesharing maximizes utilization when running collections of independent, compute-bound jobs.
+        </li>
+        <li>
+          <strong>Spacesharing:</strong> Divides physical cores among parallel applications. A parallel job requesting $N$ cores is assigned $N$ dedicated CPUs until termination. No context switches or preemption occur during execution. Spacesharing avoids synchronization latency across parallel threads, but risks underutilization if threads block on I/O.
+        </li>
+      </ul>
+
+      <!-- SVG DIAGRAM: TIMESHARING VS SPACESHARING -->
+      <div class="diagram-container">
+        <svg class="diagram-svg" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="800" height="200" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+
+          <!-- Timesharing (Left) -->
+          <text x="200" y="24" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Timesharing Across Cores</text>
+          <rect x="50" y="45" width="70" height="30" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="85" y="65" font-size="9" fill="#0369a1" text-anchor="middle">Slot 1: T1</text>
+          <rect x="50" y="80" width="70" height="30" fill="#fce7f3" stroke="#db2777" rx="2"/><text x="85" y="100" font-size="9" fill="#9d174d" text-anchor="middle">Slot 2: T3</text>
+          <rect x="50" y="115" width="70" height="30" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="85" y="135" font-size="9" fill="#0369a1" text-anchor="middle">Slot 3: T2</text>
+          <text x="85" y="165" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">CPU 0</text>
+
+          <rect x="140" y="45" width="70" height="30" fill="#dcfce7" stroke="#16a34a" rx="2"/><text x="175" y="65" font-size="9" fill="#15803d" text-anchor="middle">Slot 1: T4</text>
+          <rect x="140" y="80" width="70" height="30" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="175" y="100" font-size="9" fill="#0369a1" text-anchor="middle">Slot 2: T1</text>
+          <rect x="140" y="115" width="70" height="30" fill="#fce7f3" stroke="#db2777" rx="2"/><text x="175" y="135" font-size="9" fill="#9d174d" text-anchor="middle">Slot 3: T3</text>
+          <text x="175" y="165" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">CPU 1</text>
+
+          <rect x="230" y="45" width="70" height="30" fill="#fce7f3" stroke="#db2777" rx="2"/><text x="265" y="65" font-size="9" fill="#9d174d" text-anchor="middle">Slot 1: T2</text>
+          <rect x="230" y="80" width="70" height="30" fill="#dcfce7" stroke="#16a34a" rx="2"/><text x="265" y="100" font-size="9" fill="#15803d" text-anchor="middle">Slot 2: T4</text>
+          <rect x="230" y="115" width="70" height="30" fill="#e0f2fe" stroke="#0284c7" rx="2"/><text x="265" y="135" font-size="9" fill="#0369a1" text-anchor="middle">Slot 3: T1</text>
+          <text x="265" y="165" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">CPU 2</text>
+
+          <!-- Divider -->
+          <line x1="390" y1="20" x2="390" y2="180" stroke="#e2e8f0" stroke-width="2"/>
+
+          <!-- Spacesharing (Right) -->
+          <text x="590" y="24" font-family="sans-serif" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">Spacesharing Across Partitions</text>
+          <rect x="430" y="45" width="150" height="100" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" rx="4"/>
+          <text x="505" y="70" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">Application A Partition</text>
+          <text x="505" y="90" font-size="9" fill="#475569" text-anchor="middle">Dedicated Cores: CPU 0, 1, 2</text>
+          <text x="505" y="115" font-size="9" fill="#0284c7" text-anchor="middle">No preemption / No timesharing</text>
+
+          <rect x="610" y="45" width="150" height="100" fill="#fdf2f8" stroke="#db2777" stroke-width="2" rx="4"/>
+          <text x="685" y="70" font-size="11" font-weight="bold" fill="#9d174d" text-anchor="middle">Application B Partition</text>
+          <text x="685" y="90" font-size="9" fill="#475569" text-anchor="middle">Dedicated Cores: CPU 3, 4, 5</text>
+          <text x="685" y="115" font-size="9" fill="#db2777" text-anchor="middle">Dedicated hardware allocation</text>
+        </svg>
+        <span class="diagram-caption">Figure 8-4: Multiprocessor Timesharing (interleaved execution) vs. Spacesharing (spatial core partitioning).</span>
+      </div>
+    </section>
+
+    <!-- SECTION: AFFINITY SCHEDULING -->
+    <section class="content-section">
+      <h2>Affinity Scheduling &amp; Cache Warmth</h2>
+      <p>
+        When thread $T$ executes on CPU 0, it loads working data into CPU 0's private L1 and L2 caches. If the scheduler preempts $T$ and subsequently dispatches it to CPU 1:
+      </p>
+      <ul>
+        <li>CPU 1's cache is cold relative to $T$, forcing expensive cache misses to L3 or main memory.</li>
+        <li>CPU 0's cache contains dirty lines that must be invalidated via cache coherence broadcasts when CPU 1 writes them.</li>
+      </ul>
+      <p>
+        <strong>Affinity Scheduling</strong> mitigates this performance penalty by attempting to reschedule a thread onto the same physical core it previously occupied.
+      </p>
+
+      <h3>Soft vs. Hard Affinity</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Mechanism</th>
+            <th>Trade-Off</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Soft Affinity</strong></td>
+            <td>The scheduler prefers the previous core, but migrates the thread if the core is busy and another core is idle.</td>
+            <td>Maximizes overall CPU utilization at the cost of periodic cache-cold invalidations.</td>
+          </tr>
+          <tr>
+            <td><strong>Hard Affinity</strong></td>
+            <td>The thread is strictly constrained to a designated bitmask of CPUs (e.g., via <code>sched_setaffinity</code>).</td>
+            <td>Ensures deterministic cache locality; can leave cores idle if the pinned thread blocks.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SECTION: GANG SCHEDULING -->
+    <section class="content-section">
+      <h2>Gang Scheduling (Two-Dimensional Scheduling)</h2>
+      <p>
+        When parallel programs communicate frequently using spinlocks or message barriers, standard independent scheduling causes severe performance collapse.
+      </p>
+      <div class="callout">
+        <strong>The Desynchronization Hazard:</strong> Suppose Thread 0 sends a message to Thread 1 and spins waiting for an immediate acknowledgment. If Thread 1 is scheduled on another core, it responds in nanoseconds. However, if Thread 1 is currently preempted and waiting in a run queue, Thread 0 spins wasted CPU cycles across its entire time quantum waiting for Thread 1 to be scheduled.
+      </div>
+
+      <p>
+        Pioneered by John Ousterhout (1982), <strong>Gang Scheduling</strong> solves this issue through three invariants:
+      </p>
+      <ol>
+        <li>Groups of related threads form a "gang".</li>
+        <li>All members of a gang are scheduled simultaneously on distinct physical cores.</li>
+        <li>All members of a gang begin and terminate their time slices synchronously in lockstep.</li>
+      </ol>
+
+      <!-- INTERACTIVE SIMULATOR: GANG SCHEDULING -->
+      <div class="sim-card">
+        <div class="sim-header">
+          <span class="sim-title">Interactive Gang Scheduling Matrix</span>
+          <div class="sim-controls">
+            <button class="btn-action" onclick="stepGangSchedule()">Step Next Time Slot</button>
+            <button class="btn-action" onclick="resetGangSchedule()">Reset Matrix</button>
+          </div>
+        </div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Watch 4 physical cores step through coordinated time quanta. Gang A (Blue, 4 threads) and Gang B (Pink, 3 threads) execute in synchronized blocks:
+        </p>
+
+        <div class="gang-grid">
+          <div class="grid-hdr">Time</div>
+          <div class="grid-hdr">CPU 0</div>
+          <div class="grid-hdr">CPU 1</div>
+          <div class="grid-hdr">CPU 2</div>
+          <div class="grid-hdr">CPU 3</div>
+
+          <!-- Slot 0 -->
+          <div id="slot-0-lbl" class="grid-cell" style="background:#f1f5f9;">Quantum 0</div>
+          <div id="c0-s0" class="grid-cell gang-A">Gang A (T0)</div>
+          <div id="c1-s0" class="grid-cell gang-A">Gang A (T1)</div>
+          <div id="c2-s0" class="grid-cell gang-A">Gang A (T2)</div>
+          <div id="c3-s0" class="grid-cell gang-A">Gang A (T3)</div>
+
+          <!-- Slot 1 -->
+          <div id="slot-1-lbl" class="grid-cell" style="background:#f1f5f9;">Quantum 1</div>
+          <div id="c0-s1" class="grid-cell gang-B">Gang B (T0)</div>
+          <div id="c1-s1" class="grid-cell gang-B">Gang B (T1)</div>
+          <div id="c2-s1" class="grid-cell gang-B">Gang B (T2)</div>
+          <div id="c3-s1" class="grid-cell gang-idle">[Idle]</div>
+
+          <!-- Slot 2 -->
+          <div id="slot-2-lbl" class="grid-cell" style="background:#f1f5f9;">Quantum 2</div>
+          <div id="c0-s2" class="grid-cell gang-A">Gang A (T0)</div>
+          <div id="c1-s2" class="grid-cell gang-A">Gang A (T1)</div>
+          <div id="c2-s2" class="grid-cell gang-A">Gang A (T2)</div>
+          <div id="c3-s2" class="grid-cell gang-A">Gang A (T3)</div>
+        </div>
+
+        <div id="gang-log" class="status-panel">-- Step quantum to observe coordinated parallel thread execution --</div>
+      </div>
+    </section>
+
+    <!-- SECTION: SCHEDULING FOR SECURITY -->
+    <section class="content-section">
+      <h2>Multiprocessor Scheduling for Security</h2>
+      <p>
+        Modern processors frequently deploy <strong>Simultaneous Multithreading (SMT)</strong>, where a single physical execution core presents two or more architectural hardware threads (e.g., Intel Hyper-Threading).
+      </p>
+
+      <h3>Microarchitectural Side-Channel Attacks (MDS / RIDL / Spectre)</h3>
+      <p>
+        Hardware threads sharing a physical core also share internal microarchitectural structures:
+      </p>
+      <ul>
+        <li>L1 Data &amp; Instruction Caches</li>
+        <li>Translation Lookaside Buffers (TLB)</li>
+        <li>Branch Predictor Buffers &amp; Branch Target Buffers (BTB)</li>
+        <li>Microarchitectural Fill Buffers and Line Fill Buffers</li>
+      </ul>
+      <p>
+        If the operating system scheduler pairs an untrusted user process (or malicious container) on Thread 0 while running a sensitive cryptographic service (or kernel system call) on Thread 1 of the <em>exact same physical core</em>, the attacker can observe cache eviction timing or exploit speculative execution side-channels to reconstruct secret keys.
+      </p>
+
+      <h3>Core Scheduling Mitigations</h3>
+      <p>
+        To neutralize sibling-thread side channels without disabling hyperthreading entirely, modern kernels (including Linux and Windows) implement <strong>Core Scheduling</strong>:
+      </p>
+      <div class="callout">
+        <strong>The Co-Scheduling Invariant:</strong> Sibling hardware threads belonging to the same physical core must only execute tasks belonging to the same security domain (e.g., the same process or tasks sharing identical cryptographic credentials). If an isolated task is scheduled on Thread 0, and no sibling task from the same trust group is runnable, Thread 1 is forced to execute an idle halt loop.
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let currentQuantum = -1;
+
+    function appendGangLog(msg) {
+      const el = document.getElementById('gang-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function syncGangUi() {
+      for (let s = 0; s < 3; s++) {
+        const lbl = document.getElementById(`slot-${s}-lbl`);
+        const isActive = (s === currentQuantum);
+
+        if (isActive) {
+          lbl.classList.add('active-slot');
+          for (let c = 0; c < 4; c++) {
+            document.getElementById(`c${c}-s${s}`).classList.add('active-slot');
+          }
+        } else {
+          lbl.classList.remove('active-slot');
+          for (let c = 0; c < 4; c++) {
+            document.getElementById(`c${c}-s${s}`).classList.remove('active-slot');
+          }
+        }
+      }
+    }
+
+    function stepGangSchedule() {
+      currentQuantum = (currentQuantum + 1) % 3;
+      syncGangUi();
+
+      if (currentQuantum === 0 || currentQuantum === 2) {
+        appendGangLog(`Quantum ${currentQuantum}: Dispatched Gang A across Cores 0..3 in lockstep. Inter-thread messages complete instantly.`);
+      } else {
+        appendGangLog(`Quantum 1: Dispatched Gang B across Cores 0..2. Core 3 idle (space fragmentation).`);
+      }
+    }
+
+    function resetGangSchedule() {
+      currentQuantum = -1;
+      syncGangUi();
+      document.getElementById('gang-log').innerHTML = '-- Reset scheduling matrix. Ready to step --';
+    }
+  </script>
+</body>
+</html>
