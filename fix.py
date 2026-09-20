@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add Windows NT vs Unix toggle to the Dual-Mode TRAP simulator
+# fix.py: Transform Dual-Mode TRAP simulator into an active narrative
 # =====================================================================
 import os
 import re
 import subprocess
 
-TRAP_SIMULATOR_HTML = """
+NARRATIVE_TRAP_HTML = """
       <div id="interactive-trap-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
           <div>
-            <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">Guided Walkthrough: Dual-Mode TRAP &amp; Syscall Lifecycle</h3>
-            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Compare how Unix and Windows NT bridge the user-to-kernel boundary during hardware traps.</p>
+            <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">The Journey Across the Silicon Wall: A Syscall Story</h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Follow a user application's request as it breaches hardware protection boundaries to read data from disk.</p>
           </div>
 
-          <!-- OS Selector Toggle Group -->
+          <!-- Platform Selector -->
           <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1;">
-            <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #475569; padding: 0 6px;">Platform:</span>
+            <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #475569; padding: 0 6px;">Storyline:</span>
             <button id="btn-trap-unix" class="trap-os-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: #0284c7; color: #ffffff; cursor: pointer; transition: all 0.15s ease;">Linux / Unix</button>
             <button id="btn-trap-win" class="trap-os-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer; transition: all 0.15s ease;">Windows NT</button>
           </div>
@@ -24,15 +25,15 @@ TRAP_SIMULATOR_HTML = """
 
         <!-- Instructions Guide -->
         <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
-          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Use This Simulator</div>
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Experience This Walkthrough</div>
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
-            <li><strong>Switch Architectures:</strong> Use the <code>Linux / Unix</code> and <code>Windows NT</code> buttons above at any time to compare how each OS structures system call dispatching.</li>
-            <li><strong>Step Through the Lifecycle:</strong> Click <code>Next Step &rarr;</code> to follow the control path across privilege boundaries.</li>
-            <li><strong>Notice the Subsystem Abstraction:</strong> Pay special attention to how Windows interposes <code>kernel32.dll</code> and <code>ntdll.dll</code> before reaching the hardware trap.</li>
+            <li><strong>Follow the Narrative Arc:</strong> Read each step as a chapter in the lifecycle of a disk read operation (<code>report.txt</code>).</li>
+            <li><strong>Watch the Hardware Board:</strong> Notice when the CPU mode bit flips between unprivileged user code and privileged kernel supervision.</li>
+            <li><strong>Compare Operating Systems:</strong> Toggle between <code>Linux / Unix</code> and <code>Windows NT</code> at any time to see how both OS designs navigate the same underlying hardware constraints.</li>
           </ol>
         </div>
 
-        <!-- Action Controls & Inline Next Step Explanation -->
+        <!-- Action Controls & Inline Next Step Narrative Teaser -->
         <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
           <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
             <button id="step-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
@@ -43,9 +44,9 @@ TRAP_SIMULATOR_HTML = """
           </div>
 
           <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center;">
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Upcoming Action When You Click Next:</div>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Next in the Story:</div>
             <div id="inline-next-desc" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">
-              The runtime wrapper stages system call arguments into CPU registers and issues the hardware TRAP instruction.
+              The program hits the hardware wall: it cannot talk to the disk drive directly, so it stages arguments into CPU registers to request OS assistance.
             </div>
           </div>
         </div>
@@ -57,20 +58,20 @@ TRAP_SIMULATOR_HTML = """
             <div id="status-cpu-mode" style="font-weight: 700; color: #dc2626; margin-top: 2px;">USER (Ring 3)</div>
           </div>
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Mode Bit</div>
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Hardware Mode Bit</div>
             <div id="status-mode-bit" style="font-weight: 700; color: #dc2626; margin-top: 2px;">1 (Unprivileged)</div>
           </div>
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Program Counter</div>
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Instruction Pointer (PC)</div>
             <div id="status-pc-reg" style="font-weight: 700; color: #0284c7; margin-top: 2px;">0x00401140 (App)</div>
           </div>
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Stack In Use</div>
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Active Stack</div>
             <div id="status-stack" style="font-weight: 700; color: #0284c7; margin-top: 2px;">User Stack (RSP)</div>
           </div>
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Current Step</div>
-            <div id="status-step-num" style="font-weight: 700; color: #0f172a; margin-top: 2px;">Step 1 of 6</div>
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Chapter</div>
+            <div id="status-step-num" style="font-weight: 700; color: #0f172a; margin-top: 2px;">Chapter 1 of 6</div>
           </div>
         </div>
 
@@ -85,36 +86,36 @@ TRAP_SIMULATOR_HTML = """
 
             <!-- User Space Band -->
             <rect x="20" y="20" width="820" height="105" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4" />
-            <text x="35" y="42" fill="#64748b" font-size="11" font-weight="700">USER ADDRESS SPACE (Ring 3)</text>
+            <text x="35" y="42" fill="#64748b" font-size="11" font-weight="700">USER ADDRESS SPACE (Ring 3 - Sandbox)</text>
 
             <!-- Kernel Space Band -->
             <rect x="20" y="155" width="820" height="105" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5" />
-            <text x="35" y="177" fill="#0369a1" font-size="11" font-weight="700">KERNEL ADDRESS SPACE (Ring 0)</text>
+            <text x="35" y="177" fill="#0369a1" font-size="11" font-weight="700">KERNEL ADDRESS SPACE (Ring 0 - Supervisor)</text>
 
             <!-- Node 1: User App -->
             <rect id="node-user-app" x="45" y="55" width="180" height="52" rx="5" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
-            <text id="trap-node1-title" x="135" y="78" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">User Process</text>
-            <text id="trap-node1-sub" x="135" y="94" fill="#64748b" font-size="10" text-anchor="middle">read(fd, buf, len)</text>
+            <text id="trap-node1-title" x="135" y="78" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">User Application</text>
+            <text id="trap-node1-sub" x="135" y="94" fill="#64748b" font-size="10" text-anchor="middle">Reads "report.txt"</text>
 
             <!-- Node 2: Library Stub / Trap Invocation -->
             <rect id="node-trap-trigger" x="280" y="55" width="190" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text id="trap-node2-title" x="375" y="78" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">C Runtime Stub</text>
-            <text id="trap-node2-sub" x="375" y="94" fill="#64748b" font-size="10" text-anchor="middle">SYSCALL / INT 0x80</text>
+            <text id="trap-node2-title" x="375" y="78" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Runtime Stub</text>
+            <text id="trap-node2-sub" x="375" y="94" fill="#64748b" font-size="10" text-anchor="middle">Stages Call &amp; Traps</text>
 
             <!-- Node 3: CPU Hardware Switch -->
             <rect id="node-cpu-hw" x="535" y="105" width="195" height="60" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text x="632" y="130" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">CPU Hardware Engine</text>
-            <text x="632" y="148" fill="#64748b" font-size="10" text-anchor="middle">Mode: 1 &rarr; 0 | Save SP/PC</text>
+            <text x="632" y="148" fill="#64748b" font-size="10" text-anchor="middle">Mode: 1 &rarr; 0 | Stack Swapped</text>
 
             <!-- Node 4: Kernel Dispatcher -->
             <rect id="node-kernel-idt" x="280" y="185" width="190" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text id="trap-node4-title" x="375" y="208" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">IDT / Syscall Entry</text>
-            <text id="trap-node4-sub" x="375" y="224" fill="#64748b" font-size="10" text-anchor="middle">sys_call_table[]</text>
+            <text id="trap-node4-title" x="375" y="208" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Kernel Dispatcher</text>
+            <text id="trap-node4-sub" x="375" y="224" fill="#64748b" font-size="10" text-anchor="middle">Validates Pointers</text>
 
             <!-- Node 5: Kernel Service / Device -->
             <rect id="node-kernel-driver" x="45" y="185" width="180" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-            <text id="trap-node5-title" x="135" y="208" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">VFS &amp; Disk Driver</text>
-            <text id="trap-node5-sub" x="135" y="224" fill="#64748b" font-size="10" text-anchor="middle">Execute Privileged I/O</text>
+            <text id="trap-node5-title" x="135" y="208" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Storage Driver</text>
+            <text id="trap-node5-sub" x="135" y="224" fill="#64748b" font-size="10" text-anchor="middle">Commands NVMe Bus</text>
 
             <!-- Connecting Flows -->
             <line id="edge-1" x1="225" y1="81" x2="275" y2="81" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-blue)" />
@@ -125,15 +126,15 @@ TRAP_SIMULATOR_HTML = """
           </svg>
         </div>
 
-        <!-- Two-Pane Pedagogical Dashboard -->
+        <!-- Two-Pane Story Dashboard -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px;">
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">Current State: What Is Happening</div>
+            <div id="story-heading-what" style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">The Current Story: What Is Happening</div>
             <div id="desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
           </div>
 
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Why The System Does This</div>
+            <div id="story-heading-why" style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Behind the Curtain: Why The Machine Behaves This Way</div>
             <div id="desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
           </div>
         </div>
@@ -141,145 +142,145 @@ TRAP_SIMULATOR_HTML = """
 
       <script>
         (function() {
-          const trapPlatforms = {
+          const trapStorylines = {
             unix: [
               {
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
-                pc: "0x00401140 (App Code)",
-                stack: "User Stack (RSP)",
-                stepNum: "Step 1 of 6: Application Invocation",
+                pc: "0x00401140 (App Text Editor)",
+                stack: "User Stack (RSP = 0x7FFF5000)",
+                stepNum: "Chapter 1 of 6: The Unprivileged Application Reaches a Wall",
                 activeNode: "node-user-app",
                 activeEdges: [],
-                btnNextText: "Next Step &rarr;",
+                btnNextText: "Next: Invoke Runtime Wrapper &rarr;",
                 btnPrevText: "&larr; Prev",
-                node1Title: "User Process",
+                node1Title: "Text Editor (PID 402)",
                 node1Sub: "read(fd, buffer, 512)",
-                node2Title: "C Runtime Stub",
-                node2Sub: "SYSCALL (RAX = 0)",
-                node4Title: "IDT / Syscall Entry",
-                node4Sub: "sys_call_table[0]",
-                node5Title: "VFS &amp; Disk Driver",
-                node5Sub: "sys_read() &rarr; NVMe",
-                what: "The user program calls <code>read(fd, buffer, 512)</code> in standard C library space.",
-                why: "User processes cannot manipulate storage hardware directly. The CPU mode bit (Ring 3) ensures rogue programs cannot read or write arbitrary disk sectors.",
-                nextStep: "The C library wrapper places the syscall number (RAX = 0) into registers and executes <code>SYSCALL</code> / <code>TRAP</code>."
+                node2Title: "C Library (glibc)",
+                node2Sub: "Prepares Syscall",
+                node4Title: "Syscall Table",
+                node4Sub: "sys_call_table[__NR_read]",
+                node5Title: "VFS &amp; NVMe Driver",
+                node5Sub: "Reads Blocks from Disk",
+                what: "Our story begins inside a user text editor running peacefully in User Space. The user hits 'Open File', and the application wants 512 bytes from <code>report.txt</code>. It calls the standard C function <code>read(fd, buffer, 512)</code>. Right now, the CPU is running in User Mode (Mode Bit = 1). The application cannot send electricity to the physical SSD pins or command the storage controller directly; doing so would immediately trigger a fatal General Protection Fault.",
+                why: "Imagine if any running program could send raw signals across the PCIe bus: a buggy text editor could wipe your entire operating system or spy on another user's banking session. The hardware enforces a sandbox (Ring 3) where applications can compute, but cannot touch real physical reality without permission.",
+                nextStep: "The text editor surrenders execution to the C standard library wrapper, which will stage the formal request into CPU registers."
               },
               {
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
-                pc: "0x004085A0 (glibc stub)",
-                stack: "User Stack (RSP)",
-                stepNum: "Step 2 of 6: Staging Arguments &amp; Hardware TRAP",
+                pc: "0x004085A0 (glibc syscall stub)",
+                stack: "User Stack (RSP = 0x7FFF4FE0)",
+                stepNum: "Chapter 2 of 6: Preparing the Magic Incantation (The TRAP)",
                 activeNode: "node-trap-trigger",
                 activeEdges: ["edge-1"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "User Process",
-                node1Sub: "read(fd, buffer, 512)",
-                node2Title: "C Runtime Stub",
-                node2Sub: "SYSCALL (RAX = 0)",
-                node4Title: "IDT / Syscall Entry",
+                btnNextText: "Next: Hardware Mode Switch &rarr;",
+                btnPrevText: "&larr; Prev: Application Call",
+                node1Title: "Text Editor (PID 402)",
+                node1Sub: "Waiting on I/O",
+                node2Title: "glibc Syscall Stub",
+                node2Sub: "RAX=0 (sys_read) &rarr; SYSCALL",
+                node4Title: "Syscall Table",
                 node4Sub: "sys_call_table[0]",
-                node5Title: "VFS &amp; Disk Driver",
-                node5Sub: "sys_read() &rarr; NVMe",
-                what: "The library stub loads the system call number (e.g. RAX = 0 for <code>sys_read</code>) and parameter registers (RDI, RSI, RDX), then issues the <code>SYSCALL</code> instruction.",
-                why: "User code cannot change its own privilege bit. It must execute a designated hardware instruction that vectors control through a CPU-managed gate.",
-                nextStep: "The CPU microcode catches the TRAP, clears the Mode Bit to 0 (Kernel Mode), switches to the kernel stack, and jumps to the entry point."
+                node5Title: "VFS &amp; NVMe Driver",
+                node5Sub: "Reads Blocks from Disk",
+                what: "Execution steps into the C runtime library (glibc). The library sets up the rendezvous. It writes <code>0</code> into the <code>RAX</code> register—the universal Linux catalog number for <code>sys_read</code>. It places the file descriptor into <code>RDI</code>, the buffer address into <code>RSI</code>, and the byte count (512) into <code>RDX</code>. With all arguments staged, it executes the special machine instruction: <code>SYSCALL</code>.",
+                why: "An unprivileged program cannot just flip its own mode bit from 1 to 0; the CPU hardware rejects any software attempt to elevate its own rank. The <code>SYSCALL</code> instruction is a controlled hardware gateway—a specialized architectural emergency brake designed into the silicon.",
+                nextStep: "The CPU silicon intercepts the SYSCALL instruction, drops privileges to Ring 0, swaps stacks, and jumps into supervisor space."
               },
               {
                 mode: "KERNEL (Ring 0)",
-                modeBit: "0 (Privileged Mode)",
+                modeBit: "0 (Supervisor Mode)",
                 modeColor: "#0284c7",
-                pc: "0xFFFFFFFF81A00000 (Hardware Gate)",
-                stack: "Kernel Stack (SS:RSP)",
-                stepNum: "Step 3 of 6: Hardware Mode Switch &amp; Context Save",
+                pc: "0xFFFFFFFF81A00000 (MSR_LSTAR Entry)",
+                stack: "Switched to Kernel Stack (SS:RSP)",
+                stepNum: "Chapter 3 of 6: The Silicon Gate Snaps Shut (Hardware Takeover)",
                 activeNode: "node-cpu-hw",
                 activeEdges: ["edge-2"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "User Process",
-                node1Sub: "read(fd, buffer, 512)",
-                node2Title: "C Runtime Stub",
-                node2Sub: "SYSCALL (RAX = 0)",
-                node4Title: "IDT / Syscall Entry",
-                node4Sub: "sys_call_table[0]",
-                node5Title: "VFS &amp; Disk Driver",
-                node5Sub: "sys_read() &rarr; NVMe",
-                what: "The CPU microcode flips the Mode Bit to 0, saves user RIP and RSP onto the per-thread kernel stack, and transfers execution to the kernel syscall handler.",
-                why: "Saving the execution state on a secure kernel stack prevents user code from forging return addresses or hijacking supervisor execution.",
-                nextStep: "The kernel dispatcher indexes into <code>sys_call_table</code> to locate the implementation of <code>sys_read</code>."
+                btnNextText: "Next: Route in Syscall Table &rarr;",
+                btnPrevText: "&larr; Prev: SYSCALL Trigger",
+                node1Title: "Text Editor (PID 402)",
+                node1Sub: "Suspended (State Saved)",
+                node2Title: "glibc Syscall Stub",
+                node2Sub: "Trapped into Hardware",
+                node4Title: "entry_SYSCALL_64",
+                node4Sub: "Validates Registers",
+                node5Title: "VFS &amp; NVMe Driver",
+                node5Sub: "Reads Blocks from Disk",
+                what: "At this exact microsecond, the CPU hardware takes total control. The CPU microcode instantly forces the Mode Bit in the processor flags from <code>1</code> to <code>0</code>. It saves the application's Program Counter and user Stack Pointer onto the process's private kernel stack. Then, the processor forces the Program Counter to jump directly to the kernel's hardened entry point registered in the CPU's Model-Specific Register (<code>MSR_LSTAR</code>).",
+                why: "Why does the CPU automatically switch stacks to a secret kernel memory area? Because if the kernel used the user's stack, a malicious thread in another CPU core could rewrite return addresses while the kernel was running in Ring 0, hijacking the entire machine!",
+                nextStep: "The kernel entry routine inspects the catalog number in RAX and vectors to the Virtual File System handler."
               },
               {
                 mode: "KERNEL (Ring 0)",
-                modeBit: "0 (Privileged Mode)",
+                modeBit: "0 (Supervisor Mode)",
                 modeColor: "#0284c7",
-                pc: "0xFFFFFFFF81B23040 (Syscall Table)",
-                stack: "Kernel Stack (SS:RSP)",
-                stepNum: "Step 4 of 6: Syscall Table Dispatching",
+                pc: "0xFFFFFFFF81B23040 (sys_call_table)",
+                stack: "Kernel Stack (0xFFFFC900...)",
+                stepNum: "Chapter 4 of 6: The Royal Guard Inspects the Credentials",
                 activeNode: "node-kernel-idt",
                 activeEdges: ["edge-3"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "User Process",
-                node1Sub: "read(fd, buffer, 512)",
-                node2Title: "C Runtime Stub",
-                node2Sub: "SYSCALL (RAX = 0)",
-                node4Title: "IDT / Syscall Entry",
-                node4Sub: "sys_call_table[0]",
-                node5Title: "VFS &amp; Disk Driver",
-                node5Sub: "sys_read() &rarr; NVMe",
-                what: "The kernel validates the destination buffer pointer to ensure it lies within user space, then routes the request through the Virtual File System (VFS) to the storage driver.",
-                why: "Pointer validation prevents 'confused deputy' exploits where a user process tricks the kernel into overwriting protected supervisor structures.",
-                nextStep: "The storage device driver programs the device controller and initiates physical disk I/O."
+                btnNextText: "Next: Command the Hardware &rarr;",
+                btnPrevText: "&larr; Prev: Hardware Switch",
+                node1Title: "Text Editor (PID 402)",
+                node1Sub: "Suspended (State Saved)",
+                node2Title: "glibc Syscall Stub",
+                node2Sub: "Trapped into Hardware",
+                node4Title: "Syscall Dispatcher",
+                node4Sub: "Verifies Buffer Pointers",
+                node5Title: "VFS &amp; NVMe Driver",
+                node5Sub: "Dispatches Disk Command",
+                what: "The kernel's syscall dispatcher looks at the <code>RAX</code> register. Seeing <code>0</code>, it knows the user wants <code>sys_read</code>. But before touching any files, the kernel acts with deep suspicion: it checks the destination buffer address in <code>RSI</code>. It verifies that this memory really belongs to the user application, and is not a clever trick pointing to secret kernel memory.",
+                why: "This prevents the notorious 'confused deputy' attack. If the kernel blindly filled any memory address the user supplied, an unprivileged user could pass the memory address of the OS password table and trick the kernel into overwriting it with file data!",
+                nextStep: "With pointers verified, the kernel invokes the physical storage driver to talk directly to the NVMe controller."
               },
               {
                 mode: "KERNEL (Ring 0)",
-                modeBit: "0 (Privileged Mode)",
+                modeBit: "0 (Supervisor Mode)",
                 modeColor: "#0284c7",
-                pc: "0xFFFFFFFF81C84100 (Disk Driver)",
-                stack: "Kernel Stack (SS:RSP)",
-                stepNum: "Step 5 of 6: Privileged Device Execution",
+                pc: "0xFFFFFFFF81C84100 (nvme_queue_rq)",
+                stack: "Kernel Stack (0xFFFFC900...)",
+                stepNum: "Chapter 5 of 6: Touching Reality (Privileged I/O)",
                 activeNode: "node-kernel-driver",
                 activeEdges: ["edge-4"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "User Process",
-                node1Sub: "read(fd, buffer, 512)",
-                node2Title: "C Runtime Stub",
-                node2Sub: "SYSCALL (RAX = 0)",
-                node4Title: "IDT / Syscall Entry",
-                node4Sub: "sys_call_table[0]",
-                node5Title: "VFS &amp; Disk Driver",
-                node5Sub: "sys_read() &rarr; NVMe",
-                what: "The disk driver programs NVMe controller registers or schedules a DMA transfer to move the requested 512 bytes into memory.",
-                why: "Only Ring 0 code has the architectural privilege to execute I/O instructions or access memory-mapped hardware controller registers.",
-                nextStep: "The kernel places the read byte count into RAX and executes <code>SYSRET</code> to return to user space."
+                btnNextText: "Next: Return to User Mode &rarr;",
+                btnPrevText: "&larr; Prev: Syscall Dispatch",
+                node1Title: "Text Editor (PID 402)",
+                node1Sub: "Waiting on I/O Sleep",
+                node2Title: "glibc Syscall Stub",
+                node2Sub: "Waiting for Bytes",
+                node4Title: "Syscall Dispatcher",
+                node4Sub: "VFS &rarr; Block Layer",
+                node5Title: "NVMe Device Driver",
+                node5Sub: "Issues DMA Command",
+                what: "The kernel Virtual File System (VFS) resolves the file path to physical drive blocks. The NVMe device driver issues raw commands across the PCIe bus to the controller chip. The NVMe drive fires up Direct Memory Access (DMA) and writes the 512 bytes directly from flash storage into the application's buffer. The driver receives a completion interrupt and signals that the data is safely in memory.",
+                why: "Only here, deep inside Ring 0, are the processor's I/O instructions unlocked. Because the operating system wrote the driver, it guarantees that only authorized sectors belonging to <code>report.txt</code> are read, leaving all other files untouched.",
+                nextStep: "The kernel finishes the operation, puts the byte count into RAX, and prepares to drop privileges back to the application."
               },
               {
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
                 pc: "0x00401148 (Resumed App Code)",
-                stack: "Restored User Stack (RSP)",
-                stepNum: "Step 6 of 6: Return to User Space (SYSRET / IRET)",
+                stack: "Restored User Stack (RSP = 0x7FFF5000)",
+                stepNum: "Chapter 6 of 6: The Return Home (Dropping Privilege)",
                 activeNode: "node-user-app",
                 activeEdges: ["edge-5"],
-                btnNextText: "Restart Walkthrough &#8634;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "User Process",
-                node1Sub: "read() Returned 512",
-                node2Title: "C Runtime Stub",
-                node2Sub: "SYSCALL (RAX = 0)",
-                node4Title: "IDT / Syscall Entry",
-                node4Sub: "sys_call_table[0]",
-                node5Title: "VFS &amp; Disk Driver",
-                node5Sub: "sys_read() &rarr; NVMe",
-                what: "The kernel executes <code>SYSRET</code>. The CPU restores the Mode Bit to 1, reloads the user stack pointer, and returns execution to the application.",
-                why: "Dropping privileges back to Ring 3 guarantees normal application code cannot maintain supervisor authority after its requested I/O is complete.",
-                nextStep: "Lifecycle complete. Click Restart to replay the sequence from Step 1."
+                btnNextText: "Replay the Journey &#8634;",
+                btnPrevText: "&larr; Prev: Driver Execution",
+                node1Title: "Text Editor (PID 402)",
+                node1Sub: "512 Bytes Ready in Memory!",
+                node2Title: "glibc Syscall Stub",
+                node2Sub: "read() Returned 512",
+                node4Title: "Syscall Dispatcher",
+                node4Sub: "sys_read Complete",
+                node5Title: "NVMe Device Driver",
+                node5Sub: "I/O Transfer Finished",
+                what: "The kernel writes <code>512</code> into <code>RAX</code> (telling the user that 512 bytes were successfully read). It executes the <code>SYSRET</code> instruction. In a single clock cycle, the CPU restores the Mode Bit back to <code>1</code> (User Mode), restores the original user stack pointer, and jumps execution back to the text editor. The application wakes up, reads the buffer, and renders your document on screen.",
+                why: "The circle is complete. The system returns to steady-state unprivileged execution. The application got its data, but at no moment was it ever allowed to break out of its sandbox or usurp processor authority.",
+                nextStep: "The journey is complete. Click Replay to step through the story again from the beginning."
               }
             ],
             windows: [
@@ -287,140 +288,139 @@ TRAP_SIMULATOR_HTML = """
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
-                pc: "0x00007FF710001200 (App Code)",
-                stack: "User Stack (RSP)",
-                stepNum: "Step 1 of 6: Win32 API Call (kernel32 / kernelbase)",
+                pc: "0x00007FF710001200 (Notepad / Word)",
+                stack: "User Stack (RSP = 0x00000080...)",
+                stepNum: "Chapter 1 of 6: The Win32 Application Asks for Help",
                 activeNode: "node-user-app",
                 activeEdges: [],
-                btnNextText: "Next Step &rarr;",
+                btnNextText: "Next: Enter Windows Subsystem DLLs &rarr;",
                 btnPrevText: "&larr; Prev",
-                node1Title: "Win32 Application",
+                node1Title: "Win32 App (Notepad)",
                 node1Sub: "ReadFile(hFile, buf, 512)",
-                node2Title: "ntdll.dll (Native Stub)",
-                node2Sub: "NtReadFile (SSN in EAX)",
-                node4Title: "SSDT / KiSystemCall64",
+                node2Title: "kernel32 &rarr; ntdll",
+                node2Sub: "Stages SSN in EAX",
+                node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
-                what: "The application calls the Win32 API <code>ReadFile()</code> in <code>kernel32.dll</code> / <code>kernelbase.dll</code>.",
-                why: "Unlike Unix, Windows user applications almost never invoke system calls directly. Windows insulates applications behind Win32 subsystem DLLs to preserve backward compatibility.",
-                nextStep: "<code>kernelbase.dll</code> forwards the call to the native system stub <code>NtReadFile</code> in <code>ntdll.dll</code>."
+                node5Sub: "Allocates IRP &rarr; NTFS",
+                what: "Our Windows story begins inside Notepad running in User Space. The user opens <code>report.txt</code>. The application does not call the kernel directly; instead, it calls the friendly Win32 API function: <code>ReadFile()</code> exported by <code>kernel32.dll</code>. Notepad is running strictly in Ring 3 (Mode Bit = 1). If Notepad tried to talk directly to the storage disk or manipulate page tables, the CPU would throw an immediate hardware exception.",
+                why: "Microsoft intentionally decouples software from raw system calls. Unlike Unix where syscall numbers are stable, Windows syscall numbers change with almost every Windows build and security patch! Win32 subsystem DLLs buffer applications from the shifting kernel underneath.",
+                nextStep: "kernel32.dll hands the request down to ntdll.dll, the keeper of the raw Windows system service numbers."
               },
               {
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
-                pc: "0x00007FFA300124A0 (ntdll.dll)",
-                stack: "User Stack (RSP)",
-                stepNum: "Step 2 of 6: Native Stub &amp; System Service Number (SSN)",
+                pc: "0x00007FFA300124A0 (ntdll.dll!NtReadFile)",
+                stack: "User Stack (RSP = 0x00000080...)",
+                stepNum: "Chapter 2 of 6: ntdll.dll and the Secret System Service Number",
                 activeNode: "node-trap-trigger",
                 activeEdges: ["edge-1"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "Win32 Application",
-                node1Sub: "ReadFile(hFile, buf, 512)",
-                node2Title: "ntdll.dll (Native Stub)",
-                node2Sub: "NtReadFile (SSN in EAX)",
-                node4Title: "SSDT / KiSystemCall64",
+                btnNextText: "Next: Hardware Mode Switch &rarr;",
+                btnPrevText: "&larr; Prev: Win32 Invocation",
+                node1Title: "Win32 App (Notepad)",
+                node1Sub: "Waiting on ReadFile()",
+                node2Title: "ntdll.dll Stub",
+                node2Sub: "EAX = 0x06 (NtReadFile) &rarr; syscall",
+                node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
-                what: "<code>ntdll.dll</code> loads the System Service Number (SSN) for <code>NtReadFile</code> into <code>EAX</code>, stages arguments into registers, and executes the <code>syscall</code> instruction.",
-                why: "Windows System Service Numbers change between Windows versions and builds. <code>ntdll.dll</code> isolates user binaries from shifting kernel call indexes.",
-                nextStep: "The CPU executes <code>syscall</code>, vectors to the address stored in MSR_LSTAR (<code>KiSystemCall64</code>), and enters Ring 0."
+                node5Sub: "Allocates IRP &rarr; NTFS",
+                what: "Inside <code>ntdll.dll</code>, the lowest user-mode library in Windows, sits the native stub for <code>NtReadFile</code>. This tiny stub moves the secret System Service Number (SSN, e.g. <code>0x06</code>) into the <code>EAX</code> register, stages the 64-bit parameters, and executes the CPU instruction: <code>syscall</code>.",
+                why: "<code>ntdll.dll</code> is the only code in Windows that knows the true syscall numbers for the current OS version. By locking this knowledge inside <code>ntdll.dll</code>, Windows ensures your 15-year-old application runs without recompilation on Windows 11.",
+                nextStep: "The CPU catches the syscall instruction, switches to Ring 0, swaps stacks, and jumps to KiSystemCall64 in ntoskrnl.exe."
               },
               {
                 mode: "KERNEL (Ring 0)",
-                modeBit: "0 (Privileged Mode)",
+                modeBit: "0 (Supervisor Mode)",
                 modeColor: "#0284c7",
-                pc: "0xFFFFF80020400000 (KiSystemCall64)",
+                pc: "0xFFFFF80020400000 (ntoskrnl.exe!KiSystemCall64)",
                 stack: "Kernel Stack (KTHREAD.InitialStack)",
-                stepNum: "Step 3 of 6: CPU Mode Transition to KiSystemCall64",
+                stepNum: "Chapter 3 of 6: Crossing into ntoskrnl.exe (The Hardware Switch)",
                 activeNode: "node-cpu-hw",
                 activeEdges: ["edge-2"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "Win32 Application",
-                node1Sub: "ReadFile(hFile, buf, 512)",
-                node2Title: "ntdll.dll (Native Stub)",
-                node2Sub: "NtReadFile (SSN in EAX)",
-                node4Title: "SSDT / KiSystemCall64",
-                node4Sub: "KeServiceDescriptorTable",
+                btnNextText: "Next: Lookup in SSDT &rarr;",
+                btnPrevText: "&larr; Prev: ntdll Syscall",
+                node1Title: "Win32 App (Notepad)",
+                node1Sub: "Suspended (State Saved)",
+                node2Title: "ntdll.dll Stub",
+                node2Sub: "Trapped into Hardware",
+                node4Title: "KiSystemCall64",
+                node4Sub: "Kernel Dispatcher",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
-                what: "The CPU microcode sets the Mode Bit to 0, switches to the kernel stack pointed to by the active <code>KTHREAD</code>, and vectors to <code>KiSystemCall64</code> in <code>ntoskrnl.exe</code>.",
-                why: "Hardware-enforced stack swapping guarantees that unprivileged user threads cannot corrupt internal kernel execution state.",
-                nextStep: "<code>KiSystemCall64</code> uses the SSN in EAX to index into the System Service Descriptor Table (SSDT)."
+                node5Sub: "Allocates IRP &rarr; NTFS",
+                what: "The CPU microcode catches the trap. It flips the hardware Mode Bit to <code>0</code> (Kernel Mode). The processor loads the privileged stack pointer stored in the thread's <code>KTHREAD</code> structure and branches directly to the entry point stored in the CPU's <code>MSR_LSTAR</code> register: <code>KiSystemCall64</code> inside the main Windows executive kernel (<code>ntoskrnl.exe</code>).",
+                why: "Windows must execute this stack swap in hardware before touching a single line of C code. Running kernel code on an unverified user stack would allow user-space malware to hijack kernel control flow.",
+                nextStep: "KiSystemCall64 extracts the SSN index from EAX and routes to the System Service Descriptor Table (SSDT)."
               },
               {
-                phase: "Step 4 of 6",
                 mode: "KERNEL (Ring 0)",
-                modeBit: "0 (Privileged Mode)",
+                modeBit: "0 (Supervisor Mode)",
                 modeColor: "#0284c7",
                 pc: "0xFFFFF80020521080 (ntoskrnl.exe SSDT)",
                 stack: "Kernel Stack (KTHREAD)",
-                stepNum: "Step 4 of 6: SSDT Lookup &amp; Parameter Validation",
+                stepNum: "Chapter 4 of 6: The SSDT Dispatch &amp; Parameter Probing",
                 activeNode: "node-kernel-idt",
                 activeEdges: ["edge-3"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "Win32 Application",
-                node1Sub: "ReadFile(hFile, buf, 512)",
-                node2Title: "ntdll.dll (Native Stub)",
-                node2Sub: "NtReadFile (SSN in EAX)",
-                node4Title: "SSDT / KiSystemCall64",
-                node4Sub: "KeServiceDescriptorTable",
+                btnNextText: "Next: Dispatch I/O Packet &rarr;",
+                btnPrevText: "&larr; Prev: KiSystemCall64",
+                node1Title: "Win32 App (Notepad)",
+                node1Sub: "Suspended (State Saved)",
+                node2Title: "ntdll.dll Stub",
+                node2Sub: "Trapped into Hardware",
+                node4Title: "SSDT Dispatcher",
+                node4Sub: "ProbeForWrite() Check",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
-                what: "The kernel dispatcher indexes into <code>KeServiceDescriptorTable</code> to locate <code>NtReadFile</code>. It probes user buffer pointers via <code>ProbeForWrite()</code> to verify accessibility.",
-                why: "The kernel must rigorously validate memory ranges to prevent malicious applications from tricking supervisor code into reading or writing kernel memory.",
-                nextStep: "The Windows I/O Manager allocates an I/O Request Packet (IRP) and routes it to the filesystem and disk driver stack."
+                node5Sub: "Allocates IRP &rarr; NTFS",
+                what: "<code>KiSystemCall64</code> indexes into the System Service Descriptor Table (SSDT) using the number in <code>EAX</code> to find <code>NtReadFile</code>. The kernel immediately calls <code>ProbeForWrite()</code> on the destination buffer. It ensures that the memory buffer truly belongs to user space and that memory protection flags permit writing.",
+                why: "The kernel must rigorously protect itself against buffer overflow attacks and malicious kernel memory probes. If the destination pointer overlaps supervisor space, the call is terminated immediately with <code>STATUS_ACCESS_VIOLATION</code>.",
+                nextStep: "The Windows I/O Manager wraps the read request into an I/O Request Packet (IRP) and sends it down the driver stack."
               },
               {
                 mode: "KERNEL (Ring 0)",
-                modeBit: "0 (Privileged Mode)",
+                modeBit: "0 (Supervisor Mode)",
                 modeColor: "#0284c7",
-                pc: "0xFFFFF80020684100 (Driver Stack)",
+                pc: "0xFFFFF80020684100 (ntfs.sys &rarr; stornvme.sys)",
                 stack: "Kernel Stack (KTHREAD)",
-                stepNum: "Step 5 of 6: IRP Processing &amp; Storage Drivers",
+                stepNum: "Chapter 5 of 6: The IRP Journey Down the Driver Stack",
                 activeNode: "node-kernel-driver",
                 activeEdges: ["edge-4"],
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "Win32 Application",
-                node1Sub: "ReadFile(hFile, buf, 512)",
-                node2Title: "ntdll.dll (Native Stub)",
-                node2Sub: "NtReadFile (SSN in EAX)",
-                node4Title: "SSDT / KiSystemCall64",
-                node4Sub: "KeServiceDescriptorTable",
-                node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
-                what: "The I/O Manager allocates an IRP and passes it down the driver stack (<code>ntfs.sys</code> &rarr; <code>classpnp.sys</code> &rarr; <code>stornvme.sys</code>), which commands the hardware to fetch data.",
-                why: "The packet-driven IRP model decouples high-level filesystems from physical bus architectures, supporting asynchronous non-blocking I/O across heterogeneous storage devices.",
-                nextStep: "The driver completes the IRP, returns an NTSTATUS code (STATUS_SUCCESS), and executes <code>sysret</code> to return to Ring 3."
+                btnNextText: "Next: Return to User Mode &rarr;",
+                btnPrevText: "&larr; Prev: SSDT Dispatch",
+                node1Title: "Win32 App (Notepad)",
+                node1Sub: "Waiting on IRP Completion",
+                node2Title: "ntdll.dll Stub",
+                node2Sub: "Waiting for Bytes",
+                node4Title: "I/O Manager",
+                node4Sub: "Dispatches IRP",
+                node5Title: "ntfs.sys &amp; stornvme.sys",
+                node5Sub: "Executes DMA Transfer",
+                what: "Here is the architectural genius of Windows: the I/O Manager creates a self-contained packet called an <strong>IRP (I/O Request Packet)</strong>. It passes this packet down a layered stack: from <code>ntfs.sys</code> (which looks up file clusters), down to <code>classpnp.sys</code>, down to <code>stornvme.sys</code>. The storage driver programs the NVMe controller registers, DMA transfers 512 bytes into RAM, and completes the IRP with <code>STATUS_SUCCESS</code>.",
+                why: "Windows uses packet-driven I/O so that operations can be asynchronous, stacked, filtered (e.g. by antivirus drivers), and redirected without the filesystem knowing what kind of physical storage controller is connected.",
+                nextStep: "The kernel finishes execution, puts the status code into EAX, and executes sysret to return to user mode."
               },
               {
                 mode: "USER (Ring 3)",
                 modeBit: "1 (Unprivileged)",
                 modeColor: "#dc2626",
-                pc: "0x00007FF710001208 (Resumed App Code)",
-                stack: "Restored User Stack (RSP)",
-                stepNum: "Step 6 of 6: Return to User Mode (sysret / Status Translation)",
+                pc: "0x00007FF710001208 (Notepad Resumes)",
+                stack: "Restored User Stack (RSP = 0x00000080...)",
+                stepNum: "Chapter 6 of 6: Returning to User Space &amp; Subsystem Translation",
                 activeNode: "node-user-app",
                 activeEdges: ["edge-5"],
-                btnNextText: "Restart Walkthrough &#8634;",
-                btnPrevText: "&larr; Prev",
-                node1Title: "Win32 Application",
-                node1Sub: "ReadFile() returns TRUE",
-                node2Title: "ntdll.dll (Native Stub)",
-                node2Sub: "NtReadFile (SSN in EAX)",
-                node4Title: "SSDT / KiSystemCall64",
-                node4Sub: "KeServiceDescriptorTable",
-                node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
-                what: "The kernel executes <code>sysret</code>. The CPU returns to Ring 3 in <code>ntdll.dll</code>, which passes the <code>NTSTATUS</code> back to <code>kernelbase.dll</code>. The Win32 API converts it to <code>TRUE</code> and the application resumes.",
-                why: "Privilege is safely dropped back to user mode. Subsystem DLLs translate internal NT status codes into user-friendly Win32 return conventions.",
-                nextStep: "Lifecycle complete. Click Restart to replay the sequence from Step 1."
+                btnNextText: "Replay the Journey &#8634;",
+                btnPrevText: "&larr; Prev: IRP Processing",
+                node1Title: "Win32 App (Notepad)",
+                node1Sub: "ReadFile() returned TRUE!",
+                node2Title: "kernel32 / ntdll",
+                node2Sub: "Converts NTSTATUS &rarr; BOOL",
+                node4Title: "KiSystemCall64",
+                node4Sub: "sysret drops privilege",
+                node5Title: "Driver Stack",
+                node5Sub: "IRP Completed",
+                what: "The kernel executes <code>sysret</code>. The CPU switches the Mode Bit back to <code>1</code> (User Mode), restores Notepad's stack pointer, and resumes execution in <code>ntdll.dll</code>. <code>ntdll.dll</code> passes the result back to <code>kernel32.dll</code>, which translates the raw <code>STATUS_SUCCESS</code> code into a standard Win32 <code>TRUE</code> boolean. Notepad receives its 512 bytes and displays your text.",
+                why: "The boundary has been crossed and safely restored. Applications enjoy seamless file access while the hardware and kernel maintain absolute, unbroken protection over physical hardware.",
+                nextStep: "The journey is complete. Click Replay to step through the story again from the beginning."
               }
             ]
           };
@@ -429,7 +429,7 @@ TRAP_SIMULATOR_HTML = """
           let trapIndex = 0;
 
           function renderTrapState() {
-            const data = trapPlatforms[currentTrapPlatform][trapIndex];
+            const data = trapStorylines[currentTrapPlatform][trapIndex];
             document.getElementById("status-cpu-mode").textContent = data.mode;
             document.getElementById("status-cpu-mode").style.color = data.modeColor;
             document.getElementById("status-mode-bit").textContent = data.modeBit;
@@ -518,7 +518,7 @@ TRAP_SIMULATOR_HTML = """
           document.getElementById("btn-trap-win").addEventListener("click", () => setTrapPlatform("windows"));
 
           document.getElementById("step-next-btn").addEventListener("click", function() {
-            if (trapIndex < trapPlatforms[currentTrapPlatform].length - 1) {
+            if (trapIndex < trapStorylines[currentTrapPlatform].length - 1) {
               trapIndex++;
             } else {
               trapIndex = 0;
@@ -543,7 +543,7 @@ TRAP_SIMULATOR_HTML = """
       </script>
 """
 
-def update_trap_simulator():
+def update_trap_simulator_narrative():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -556,8 +556,8 @@ def update_trap_simulator():
     match = re.search(pattern, content, flags=re.DOTALL)
     if match:
         start, end = match.span()
-        content = content[:start] + TRAP_SIMULATOR_HTML.strip() + content[end:]
-        print("--> Injected Unix vs Windows toggle into TRAP simulator.")
+        content = content[:start] + NARRATIVE_TRAP_HTML.strip() + content[end:]
+        print("--> Injected narrative storytelling into TRAP simulator.")
     else:
         print("--> Interactive TRAP simulator container not found.")
 
@@ -567,9 +567,9 @@ def update_trap_simulator():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Add Windows NT vs Unix toggle to dual-mode TRAP simulator in Module 2\n\n"
-            "Enable comparative walkthrough of Windows Win32/ntdll/SSDT/IRP pipeline\n"
-            "versus Unix syscall mechanisms in 02-hardware-review.html via fix.py."
+            "Transform dual-mode TRAP walkthrough into an active narrative trace\n\n"
+            "Revise week01-operating-system-concepts/02-hardware-review.html so each\n"
+            "step chronicles the story of an unprivileged file read across silicon."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -578,4 +578,4 @@ def update_trap_simulator():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_trap_simulator()
+    update_trap_simulator_narrative()
