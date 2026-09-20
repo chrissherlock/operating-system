@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8.2.4–8.2.7 RPC, DSM &amp; Load Balancing — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.6;
+    }
+    .wrapper {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .nav-btn:hover {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .chapter-tag {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .lead-text {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-top: 6px;
+    }
+    .content-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .content-section h2 {
+      font-size: 1.4rem;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .content-section h3 {
+      font-size: 1.15rem;
+      color: var(--accent-hover);
+      margin-top: 8px;
+    }
+    p, li {
+      color: #334155;
+      font-size: 0.96rem;
+    }
+    ul, ol {
+      margin-left: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .diagram-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .diagram-svg {
+      width: 100%;
+      max-width: 840px;
+      height: auto;
+    }
+    .diagram-caption {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .code-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+    table.spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin: 10px 0;
+    }
+    table.spec-table th, table.spec-table td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+    table.spec-table th {
+      background: #f1f5f9;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: #f0f9ff;
+      padding: 14px 18px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.92rem;
+      color: #0369a1;
+    }
+
+    /* Simulator styling */
+    .sim-card {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sim-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sim-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-action {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-action:hover { background: #0369a1; }
+    .status-panel {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 12px;
+      border-radius: 6px;
+      height: 120px;
+      overflow-y: auto;
+    }
+    .node-cluster {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .node-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .node-bar {
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .node-fill {
+      height: 100%;
+      background: #0284c7;
+      width: 0%;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+    <div class="nav-header">
+      <a href="03-multicomputers-interconnects.html" class="nav-btn">&larr; 8.2 Topologies &amp; Messaging</a>
+      <a href="05-distributed-systems-middleware.html" class="nav-btn">8.3 Distributed Systems &rarr;</a>
+    </div>
+
+    <header>
+      <span class="chapter-tag">Section 8.2.4 &ndash; 8.2.7</span>
+      <h1>RPC, Distributed Shared Memory &amp; Load Balancing</h1>
+      <p class="lead-text">
+        Execution semantics across network boundaries, page-based memory emulation, communication-aware task placement, and distributed scheduling algorithms.
+      </p>
+    </header>
+
+    <!-- SECTION 8.2.4: RPC DETAILS & SEMANTICS -->
+    <section class="content-section">
+      <h2>8.2.4 Remote Procedure Call Semantics &amp; Fault Modes</h2>
+      <p>
+        While standard procedure calls execute within a single address space with uniform pointers and guaranteed returns, Remote Procedure Calls operate over unreliable networks where messages can be dropped, duplicated, or reordered.
+      </p>
+
+      <h3>Handling Client-Server Failures</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Failure Condition</th>
+            <th>Impact</th>
+            <th>Resolution Strategy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Lost Request Message</strong></td>
+            <td>Client hangs indefinitely waiting for a reply that will never arrive.</td>
+            <td>Client sets retransmission timer; resends request upon expiration.</td>
+          </tr>
+          <tr>
+            <td><strong>Lost Reply Message</strong></td>
+            <td>Server executed the operation, but the client never received confirmation.</td>
+            <td>Requires <em>Idempotency</em> analysis. Non-idempotent operations must use sequence numbers to avoid re-execution.</td>
+          </tr>
+          <tr>
+            <td><strong>Server Crash After Execution</strong></td>
+            <td>Server executes transaction, crashes before network transmission of ack.</td>
+            <td>Client cannot distinguish between pre-execution and post-execution crashes without persistent transaction logs.</td>
+          </tr>
+          <tr>
+            <td><strong>Client Crash (Orphan Tasks)</strong></td>
+            <td>Server continues computing on behalf of a client that is no longer running.</td>
+            <td>Orphan elimination algorithms: Extermination, Reincarnation (epoch numbers), or Gentle Expiration.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Invocation Semantics</h3>
+      <ul>
+        <li>
+          <strong>At-Least-Once Semantics:</strong> Client retransmits requests until an acknowledgment returns. Guarantees that the call runs at least once, but may execute multiple times if replies are delayed or dropped. Safe only for <em>idempotent</em> operations (e.g., reading a specific file block, setting a balance to a fixed number).
+        </li>
+        <li>
+          <strong>At-Most-Once Semantics:</strong> Server tracks sequence IDs and filters duplicate requests. Guarantees that the operation runs either once or not at all if the server crashed. Essential for non-idempotent requests (e.g., transferring funds or appending to a ledger).
+        </li>
+        <li>
+          <strong>Exactly-Once Semantics:</strong> The theoretical ideal where an operation occurs precisely once despite network partitions and node crashes. In practice, achieving this across arbitrary failure modes requires distributed two-phase commit protocols and persistent transaction logging.
+        </li>
+      </ul>
+    </section>
+
+    <!-- INTERACTIVE SIMULATOR: RPC STEPPER -->
+    <section class="content-section">
+      <div class="sim-card">
+        <div class="sim-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="sim-title">Interactive RPC Transaction Walkthrough</span>
+          <div class="sim-controls">
+            <button class="btn-action" onclick="advanceRpcStep()">Step Next Stage</button>
+            <button class="btn-action" onclick="resetRpcSim()">Reset Pipeline</button>
+          </div>
+        </div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Step through an RPC invocation of <code>compute_hash(data_block)</code> across client and server nodes:
+        </p>
+
+        <div id="rpc-stage-display" style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:16px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-mono); font-size:0.82rem;">
+          <div id="st-client-app" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">1. Client App</div>
+          <div>&rarr;</div>
+          <div id="st-client-stub" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">2. Client Stub (Marshal)</div>
+          <div>&rarr;</div>
+          <div id="st-network" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">3. Network Wire</div>
+          <div>&rarr;</div>
+          <div id="st-server-stub" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">4. Server Stub (Unmarshal)</div>
+          <div>&rarr;</div>
+          <div id="st-server-exec" style="padding:8px 12px; border:2px solid #cbd5e1; border-radius:4px;">5. Server Exec</div>
+        </div>
+
+        <div id="rpc-log" class="status-panel">-- Click 'Step Next Stage' to start the RPC trace --</div>
+      </div>
+    </section>
+
+    <!-- SECTION 8.2.5: DSM CONSISTENCY & FALSE SHARING -->
+    <section class="content-section">
+      <h2>8.2.5 Distributed Shared Memory: Consistency Models</h2>
+      <p>
+        Building scalable Distributed Shared Memory requires balancing the illusion of strict memory consistency against network message volume.
+      </p>
+
+      <h3>1. Sequential Consistency</h3>
+      <p>
+        Defined by Leslie Lamport (1979): A multiprocessor system is sequentially consistent if the result of any execution is the same as if the operations of all processors were executed in some sequential order, and the operations of each individual processor appear in this sequence in the order specified by its program. Every write must be visible to all subsequent reads across all nodes immediately, requiring synchronous invalidation round-trips that saturate network bandwidth.
+      </p>
+
+      <h3>2. Release Consistency</h3>
+      <p>
+        Rather than synchronizing memory on every individual read and write, <strong>Release Consistency</strong> divides memory accesses into ordinary reads/writes and synchronization operations:
+      </p>
+      <ul>
+        <li><strong>Acquire:</strong> Informs the system that a critical section is beginning. Memory updates made by other nodes are pulled and validated locally.</li>
+        <li><strong>Ordinary Accesses:</strong> Reads and writes occur to local page copies without broadcasting network invalidations.</li>
+        <li><strong>Release:</strong> Signals completion of the critical section. All local dirty modifications are propagated out to other nodes holding copies.</li>
+      </ul>
+      <div class="callout">
+        <strong>Performance Impact:</strong> Release consistency batches multiple writes together, exchanging updates only at synchronization boundaries. This drastically reduces network message frequency compared to sequential consistency.
+      </div>
+    </section>
+
+    <!-- SECTION 8.2.6 & 8.2.7: LOAD BALANCING -->
+    <section class="content-section">
+      <h2>8.2.6 &amp; 8.2.7 Distributed Scheduling &amp; Load Balancing</h2>
+      <p>
+        In a multicomputer, arrival rates across independent nodes fluctuate over time. Dynamic load balancing transfers runnable tasks from heavily loaded machines to lightly loaded machines.
+      </p>
+
+      <h3>Algorithm Taxonomies</h3>
+      <ul>
+        <li>
+          <strong>Transfer Policy:</strong> Determines whether a node is in a suitable state to offload a task (e.g., local run queue length exceeds threshold $T_{\text{high}}$) or receive a task (run queue falls below $T_{\text{low}}$).
+        </li>
+        <li>
+          <strong>Location Policy:</strong> Identifies which peer node should be chosen as the partner for task migration.
+        </li>
+        <li>
+          <strong>Information Policy:</strong> Dictates how load metrics are collected across nodes (periodic broadcast vs. demand-driven polling).
+        </li>
+      </ul>
+
+      <h3>Sender-Initiated vs. Receiver-Initiated Probing</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Characteristic</th>
+            <th>Sender-Initiated Probing</th>
+            <th>Receiver-Initiated Probing</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Initiator</strong></td>
+            <td>Overloaded node with excess tasks.</td>
+            <td>Underloaded or idle node seeking work.</td>
+          </tr>
+          <tr>
+            <td><strong>Low System Load</strong></td>
+            <td><strong>Highly efficient:</strong> First probe quickly finds an idle node.</td>
+            <td><strong>Inefficient:</strong> Many idle nodes probe few busy nodes.</td>
+          </tr>
+          <tr>
+            <td><strong>High System Load</strong></td>
+            <td><strong>Probe Storms:</strong> Busy nodes flood the network seeking non-existent idle targets.</td>
+            <td><strong>Highly efficient:</strong> Idle node immediately finds a heavily loaded partner to offload.</td>
+          </tr>
+          <tr>
+            <td><strong>Migration Cost</strong></td>
+            <td>Preemptive or newly spawned tasks can be moved before starting.</td>
+            <td>Usually requires migrating already-executing tasks, incurring context and memory transfer costs.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- INTERACTIVE SIMULATOR: LOAD BALANCING -->
+      <div class="sim-card">
+        <div class="sim-title">Dynamic Cluster Load Balancing Sandbox</div>
+        <p style="font-size: 0.88rem; color: #475569;">
+          Observe task distribution and migration across a 4-node cluster using Sender-Initiated versus Receiver-Initiated policies:
+        </p>
+
+        <div class="node-cluster">
+          <div class="node-card">
+            Node 0<br>
+            <span id="n0-count" style="font-weight:bold;">0 tasks</span>
+            <div class="node-bar"><div id="n0-bar" class="node-fill"></div></div>
+          </div>
+          <div class="node-card">
+            Node 1<br>
+            <span id="n1-count" style="font-weight:bold;">0 tasks</span>
+            <div class="node-bar"><div id="n1-bar" class="node-fill"></div></div>
+          </div>
+          <div class="node-card">
+            Node 2<br>
+            <span id="n2-count" style="font-weight:bold;">0 tasks</span>
+            <div class="node-bar"><div id="n2-bar" class="node-fill"></div></div>
+          </div>
+          <div class="node-card">
+            Node 3<br>
+            <span id="n3-count" style="font-weight:bold;">0 tasks</span>
+            <div class="node-bar"><div id="n3-bar" class="node-fill"></div></div>
+          </div>
+        </div>
+
+        <div class="sim-controls">
+          <button class="btn-action" onclick="injectBurstLoad()">Inject Burst on Node 0</button>
+          <button class="btn-action" onclick="runSenderBalancing()">Run Sender-Initiated Push</button>
+          <button class="btn-action" onclick="runReceiverBalancing()">Run Receiver-Initiated Steal</button>
+          <button class="btn-action" onclick="resetCluster()">Reset Cluster</button>
+        </div>
+
+        <div id="lb-log" class="status-panel">-- Cluster idle. Inject burst load to begin --</div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // RPC Stepper Script
+    let rpcStep = 0;
+    const rpcStages = [
+      'st-client-app',
+      'st-client-stub',
+      'st-network',
+      'st-server-stub',
+      'st-server-exec'
+    ];
+
+    function appendRpcLog(msg) {
+      const el = document.getElementById('rpc-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function syncRpcDisplay() {
+      rpcStages.forEach((id, idx) => {
+        const elem = document.getElementById(id);
+        if (idx === rpcStep) {
+          elem.style.borderColor = '#0284c7';
+          elem.style.backgroundColor = '#e0f2fe';
+          elem.style.fontWeight = 'bold';
+        } else {
+          elem.style.borderColor = '#cbd5e1';
+          elem.style.backgroundColor = '#ffffff';
+          elem.style.fontWeight = 'normal';
+        }
+      });
+    }
+
+    function advanceRpcStep() {
+      rpcStep = (rpcStep + 1) % 6;
+      if (rpcStep === 1) {
+        document.getElementById('rpc-log').innerHTML = '--> Step 1: Client Application invokes compute_hash(data_block) via normal call.';
+      } else if (rpcStep === 2) {
+        appendRpcLog('--> Step 2: Client Stub marshals parameters into network message buffer.');
+      } else if (rpcStep === 3) {
+        appendRpcLog('--> Step 3: Kernel transport sends packet over network wire to server endpoint.');
+      } else if (rpcStep === 4) {
+        appendRpcLog('--> Step 4: Server Stub receives packet, unmarshals arguments, creates stack frame.');
+      } else if (rpcStep === 5) {
+        appendRpcLog('--> Step 5: Server Worker executes compute_hash(). Returns hash result to stub.');
+      } else if (rpcStep === 0) {
+        appendRpcLog('--> RPC Round-Trip Complete! Result unmarshaled and returned to Client App.');
+      }
+      syncRpcDisplay();
+    }
+
+    function resetRpcSim() {
+      rpcStep = 0;
+      syncRpcDisplay();
+      document.getElementById('rpc-log').innerHTML = '-- RPC pipeline reset --';
+    }
+
+    // Load Balancing Script
+    const clusterLoad = [0, 0, 0, 0];
+
+    function appendLbLog(msg) {
+      const el = document.getElementById('lb-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function syncClusterUi() {
+      for (let i = 0; i < 4; i++) {
+        const count = clusterLoad[i];
+        document.getElementById(`n${i}-count`).innerText = `${count} tasks`;
+        const pct = Math.min(count * 10, 100);
+        const bar = document.getElementById(`n${i}-bar`);
+        bar.style.width = `${pct}%`;
+        if (pct > 70) bar.style.backgroundColor = '#ef4444';
+        else if (pct > 30) bar.style.backgroundColor = '#f59e0b';
+        else bar.style.backgroundColor = '#0284c7';
+      }
+    }
+
+    function injectBurstLoad() {
+      clusterLoad[0] += 9;
+      clusterLoad[1] += 1;
+      appendLbLog('Event: Burst arrival! 9 tasks assigned to Node 0, 1 task to Node 1.');
+      syncClusterUi();
+    }
+
+    function runSenderBalancing() {
+      appendLbLog('Sender-Initiated: Overloaded Node 0 probes peers to offload tasks...');
+      for (let target = 1; target < 4; target++) {
+        if (clusterLoad[0] > 3 && clusterLoad[target] < 3) {
+          clusterLoad[0] -= 2;
+          clusterLoad[target] += 2;
+          appendLbLog(`  -> Probe successful: Node 0 transferred 2 tasks to Node ${target}.`);
+        }
+      }
+      syncClusterUi();
+    }
+
+    function runReceiverBalancing() {
+      appendLbLog('Receiver-Initiated: Underloaded Node 2 and Node 3 probe peers to steal work...');
+      [2, 3].forEach(receiver => {
+        if (clusterLoad[receiver] < 2) {
+          for (let donor = 0; donor < 4; donor++) {
+            if (clusterLoad[donor] > 4) {
+              clusterLoad[donor] -= 2;
+              clusterLoad[receiver] += 2;
+              appendLbLog(`  -> Work steal: Node ${receiver} stole 2 tasks from Node ${donor}.`);
+              break;
+            }
+          }
+        }
+      });
+      syncClusterUi();
+    }
+
+    function resetCluster() {
+      for (let i = 0; i < 4; i++) clusterLoad[i] = 0;
+      document.getElementById('lb-log').innerHTML = '-- Cluster reset to idle state --';
+      syncClusterUi();
+    }
+  </script>
+</body>
+</html>
