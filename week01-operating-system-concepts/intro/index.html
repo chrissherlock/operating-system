@@ -52,11 +52,15 @@
     p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
     .content-section { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; gap: 16px; }
     .content-section h2 { font-size: 1.3rem; color: #0369a1; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+    h3 { font-size: 1.1rem; color: #1e293b; margin-top: 10px; }
     p { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
+    ul { margin-left: 20px; color: var(--text-muted); line-height: 1.6; }
+    li { margin-bottom: 6px; }
     .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 10px; }
     .image-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
     .image-card img { max-width: 100%; height: 140px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
     .image-card span { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted); }
+    .aside-box { background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin-top: 10px; }
   </style>
   <!-- MathJax Configuration -->
   <script>
@@ -81,41 +85,85 @@
     </header>
 
     <section class="content-section">
-      <h2>Foundational Paradigms</h2>
+      <h2>Foundational Paradigms (Tanenbaum Chapter 1.1)</h2>
       <p>
         To understand what an operating system is, we must examine it from two complementary perspectives: the <strong>extended machine</strong> (top-down abstraction layer) and the <strong>resource manager</strong> (bottom-up hardware multiplexer).
       </p>
+
+      <h3>1. The Extended Machine (Virtualization)</h3>
       <p>
-        <strong>1. The Extended Machine:</strong> Raw hardware architecture (such as disk controllers, bus timings, and volatile RAM registers) is notoriously complex and difficult to program directly. An operating system hides this raw complexity by providing a clean, elegant, and abstract set of instructions and abstractions (such as files, sockets, and virtual address spaces), presenting programmers with a virtual machine far superior to the physical hardware.
+        Raw hardware architecture—consisting of disk controllers, volatile RAM registers, interrupt vectors, and bus timings—is notoriously complex and difficult to program directly. An operating system hides this raw complexity by providing a clean, elegant, and abstract set of instructions and abstractions (such as files, sockets, and virtual address spaces), presenting programmers with a virtual machine far superior to the physical hardware.
+      </p>
+
+      <h3>2. The Resource Manager (Multiplexing)</h3>
+      <p>
+        Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
       </p>
       <p>
-        <strong>2. The Resource Manager:</strong> Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
+        Resource management involves two primary forms of multiplexing:
       </p>
+      <ul>
+        <li><strong>Time Multiplexing:</strong> Taking turns. The CPU switches rapidly between multiple running processes or threads, giving each the illusion of dedicated processor ownership.</li>
+        <li><strong>Space Multiplexing:</strong> Sharing physical storage or memory. Main memory is partitioned among multiple programs simultaneously, and disk storage is divided into independent files and directories.</li>
+      </ul>
     </section>
 
     <section class="content-section">
-      <h2>Historical Evolution &amp; Computing Generations</h2>
+      <h2>Historical Evolution &amp; Computing Generations (Tanenbaum Chapter 1.2)</h2>
       <p>
-        The history of operating systems is intimately tied to the evolution of computer hardware across five distinct technological generations.
+        The history of operating systems spans five distinct technological generations, closely tracking the evolution of underlying electronic components.
       </p>
 
+      <h3>Generation 1: Vacuum Tubes (1945–1955)</h3>
+      <p>
+        Early digital computers built with vacuum tubes were massive, room-sized installations. Programming was done entirely in absolute machine language or by manually wiring physical plugboards. There were no operating systems; a single programmer had exclusive access to the machine for a scheduled block of time.
+      </p>
       <div class="image-grid">
         <div class="image-card">
           <img src="../../images/vacuumtube.jpg" alt="Vacuum Tubes">
-          <span>Generation 1: Vacuum Tubes (1945–1955)</span>
+          <span>Vacuum Tubes (12AX7WA)<br><small>Wikimedia Commons</small></span>
         </div>
         <div class="image-card">
           <img src="../../images/plugboard.jpg" alt="Plugboard">
-          <span>Plugboard Wiring &amp; Absolute Machine Language</span>
+          <span>IBM 402 Plugboard Wiring<br><small>Wikimedia Commons</small></span>
         </div>
+      </div>
+
+      <h3>Generation 2: Transistors &amp; Batch Systems (1955–1965)</h3>
+      <p>
+        The invention of the transistor introduced solid-state electronics, making computers reliable enough to manufacture and sell commercially. This era birthed <strong>batch systems</strong>, where jobs were written to punched cards, collected into batches by an operator, loaded into the computer via card readers, and executed sequentially using early monitor programs (the precursors to modern operating systems).
+      </p>
+      <div class="image-grid">
         <div class="image-card">
           <img src="../../images/replica-first-transistor.jpg" alt="Transistor Replica">
-          <span>Generation 2: Transistors &amp; Batch Systems (1955–1965)</span>
+          <span>First Working Transistor Replica<br><small>Wikimedia Commons</small></span>
         </div>
         <div class="image-card">
           <img src="../../images/punched-card-program-deck.jpg" alt="Punched Cards">
-          <span>Punched Card Program Decks</span>
+          <span>Punched Card Program Deck<br><small>Wikimedia Commons</small></span>
         </div>
+      </div>
+
+      <h3>Generation 3: ICs, Multiprogramming, &amp; Time-Sharing (1965–1980)</h3>
+      <p>
+        Integrated circuits (ICs) revolutionized computer architecture. The IBM System/360 introduced hardware architecture families capable of running both commercial and scientific workloads. To eliminate CPU idle time during slow I/O operations, <strong>multiprogramming</strong> was developed: memory was partitioned to hold multiple jobs concurrently. When one job awaited disk I/O, the CPU switched to another. Concurrently, <strong>time-sharing</strong> systems emerged, allowing multiple interactive users to access a central mainframe simultaneously.
+      </p>
+
+      <h3>Generation 4: Personal Computers &amp; Networks (1980–Present)</h3>
+      <p>
+        Large-scale integration (LSI) chips made personal computers economically viable. Operating systems shifted toward graphical user interfaces (GUIs), rich file abstractions, and local area network (LAN) integration, establishing modern desktop and server paradigms.
+      </p>
+
+      <h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>
+      <p>
+        Modern operating systems power smartphones, tablets, edge sensors, and massive hyperscale cloud datacenters, emphasizing power management, sensor integration, containerization, and distributed virtualization.
+      </p>
+
+      <div class="aside-box">
+        <strong>Research Aside: Andrew S. Tanenbaum &amp; MINIX</strong>
+        <p style="margin-top: 6px; font-size: 0.88rem;">
+          Andrew S. Tanenbaum created MINIX in 1987 as an educational operating system to illustrate the principles of microkernel design. MINIX served as the primary inspiration and initial development environment for Linus Torvalds when he began writing the Linux kernel in 1991.
+        </p>
       </div>
     </section>
 
