@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Widen boot sequence SVG cards and fix text overflow
+# fix.py: Add Windows NT vs Unix toggle to the Dual-Mode TRAP simulator
 # =====================================================================
 import os
 import re
 import subprocess
 
-REFINED_MULTI_OS_BOOT_HTML = """
-      <div id="interactive-boot-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <!-- Simulator Header -->
+TRAP_SIMULATOR_HTML = """
+      <div id="interactive-trap-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
           <div>
-            <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">Guided Walkthrough: System Boot Sequence</h3>
-            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Compare how Linux, Windows, and macOS execute the five universal bootstrap stages (Tanenbaum 1.3.6).</p>
+            <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">Guided Walkthrough: Dual-Mode TRAP &amp; Syscall Lifecycle</h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Compare how Unix and Windows NT bridge the user-to-kernel boundary during hardware traps.</p>
           </div>
 
           <!-- OS Selector Toggle Group -->
           <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1;">
-            <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #475569; padding: 0 6px;">OS:</span>
-            <button id="btn-os-linux" class="boot-os-btn active" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: #0284c7; color: #ffffff; cursor: pointer; transition: all 0.15s ease;">Linux</button>
-            <button id="btn-os-windows" class="boot-os-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer; transition: all 0.15s ease;">Windows</button>
-            <button id="btn-os-macos" class="boot-os-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer; transition: all 0.15s ease;">macOS</button>
+            <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #475569; padding: 0 6px;">Platform:</span>
+            <button id="btn-trap-unix" class="trap-os-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: #0284c7; color: #ffffff; cursor: pointer; transition: all 0.15s ease;">Linux / Unix</button>
+            <button id="btn-trap-win" class="trap-os-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer; transition: all 0.15s ease;">Windows NT</button>
           </div>
         </div>
 
@@ -28,586 +26,453 @@ REFINED_MULTI_OS_BOOT_HTML = """
         <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
           <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Use This Simulator</div>
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
-            <li><strong>Toggle Operating Systems:</strong> Use the <code>Linux</code>, <code>Windows</code>, and <code>macOS</code> buttons above at any time to compare how each OS handles that specific boot stage.</li>
-            <li><strong>Step Through the Hand-offs:</strong> Click <code>Next Step &rarr;</code> to step through each execution phase in sequence.</li>
-            <li><strong>Inspect Hardware Transitions:</strong> Observe the <strong>Executing Entity</strong>, <strong>Active Program Counter</strong>, and the highlighted bus path in the architecture diagram.</li>
+            <li><strong>Switch Architectures:</strong> Use the <code>Linux / Unix</code> and <code>Windows NT</code> buttons above at any time to compare how each OS structures system call dispatching.</li>
+            <li><strong>Step Through the Lifecycle:</strong> Click <code>Next Step &rarr;</code> to follow the control path across privilege boundaries.</li>
+            <li><strong>Notice the Subsystem Abstraction:</strong> Pay special attention to how Windows interposes <code>kernel32.dll</code> and <code>ntdll.dll</code> before reaching the hardware trap.</li>
           </ol>
         </div>
 
         <!-- Action Controls & Inline Next Step Explanation -->
         <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
-          <!-- Controls -->
           <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
-            <button id="boot-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
+            <button id="step-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
             <div style="display: flex; gap: 8px;">
-              <button id="boot-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
-              <button id="boot-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
+              <button id="step-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="step-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
             </div>
           </div>
 
-          <!-- Inline Next Step Explanation Pane -->
           <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center;">
             <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Upcoming Action When You Click Next:</div>
-            <div id="boot-inline-next-desc" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">
-              The firmware will run the Power-On Self-Test (POST), initialize DRAM memory controllers, and probe buses for boot storage devices.
+            <div id="inline-next-desc" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">
+              The runtime wrapper stages system call arguments into CPU registers and issues the hardware TRAP instruction.
             </div>
           </div>
         </div>
 
-        <!-- System State Bar -->
+        <!-- Hardware State Bar -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; font-family: var(--font-mono); font-size: 0.8rem;">
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Boot Phase</div>
-            <div id="boot-status-phase" style="font-weight: 700; color: #0284c7; margin-top: 2px;">Stage 1 of 5</div>
-          </div>
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Executing Entity</div>
-            <div id="boot-status-target" style="font-weight: 700; color: #0f172a; margin-top: 2px;">CPU Hardware / Reset Vector</div>
-          </div>
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Program Counter (PC)</div>
-            <div id="boot-status-pc" style="font-weight: 700; color: #0369a1; margin-top: 2px;">0xFFFFFFF0 (Reset Vector)</div>
-          </div>
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
             <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">CPU Mode</div>
-            <div id="boot-status-mode" style="font-weight: 700; color: #166534; margin-top: 2px;">Raw Machine / Firmware Mode</div>
+            <div id="status-cpu-mode" style="font-weight: 700; color: #dc2626; margin-top: 2px;">USER (Ring 3)</div>
           </div>
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
-            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Active Code Binary</div>
-            <div id="boot-status-media" style="font-weight: 700; color: #475569; margin-top: 2px;">Motherboard Flash ROM</div>
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Mode Bit</div>
+            <div id="status-mode-bit" style="font-weight: 700; color: #dc2626; margin-top: 2px;">1 (Unprivileged)</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Program Counter</div>
+            <div id="status-pc-reg" style="font-weight: 700; color: #0284c7; margin-top: 2px;">0x00401140 (App)</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Stack In Use</div>
+            <div id="status-stack" style="font-weight: 700; color: #0284c7; margin-top: 2px;">User Stack (RSP)</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Current Step</div>
+            <div id="status-step-num" style="font-weight: 700; color: #0f172a; margin-top: 2px;">Step 1 of 6</div>
           </div>
         </div>
 
-        <!-- Boot Sequence Interactive SVG (Widened to 980 for Comfortable Text Placement) -->
+        <!-- Interactive Vector Visualisation -->
         <div style="display: flex; justify-content: center; margin-bottom: 20px; overflow-x: auto;">
-          <svg id="boot-anim-svg" viewBox="0 0 980 300" width="100%" height="auto" style="max-width: 980px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
-            <!-- Main System Interconnect Bus -->
-            <rect x="25" y="130" width="930" height="22" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
-            <text x="490" y="145" fill="#475569" font-size="10.5" font-weight="700" text-anchor="middle">SYSTEM INTERCONNECT BUS (Memory Channels &amp; Peripheral Buses)</text>
+          <svg id="trap-anim-svg" viewBox="0 0 860 280" width="100%" height="auto" style="max-width: 860px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="marker-blue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
+              </marker>
+            </defs>
 
-            <!-- Node 1: Power & Hardware Reset (x: 25, w: 170) -->
-            <g id="boot-node-power" transform="translate(25, 30)">
-              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">1. Power &amp; Reset</text>
-              <text id="node-1-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Voltages Stabilize</text>
-              <text id="node-1-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">PC &larr; Reset Vector</text>
-            </g>
+            <!-- User Space Band -->
+            <rect x="20" y="20" width="820" height="105" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4" />
+            <text x="35" y="42" fill="#64748b" font-size="11" font-weight="700">USER ADDRESS SPACE (Ring 3)</text>
 
-            <!-- Node 2: Firmware (BIOS/UEFI) (x: 215, w: 170) -->
-            <g id="boot-node-firmware" transform="translate(215, 30)">
-              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-2-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">2. Firmware (POST)</text>
-              <text id="node-2-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Checks RAM &amp; Disks</text>
-              <text id="node-2-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Reads Boot Priority</text>
-            </g>
+            <!-- Kernel Space Band -->
+            <rect x="20" y="155" width="820" height="105" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5" />
+            <text x="35" y="177" fill="#0369a1" font-size="11" font-weight="700">KERNEL ADDRESS SPACE (Ring 0)</text>
 
-            <!-- Node 3: Bootloader Storage (x: 405, w: 170) -->
-            <g id="boot-node-storage" transform="translate(405, 30)">
-              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-3-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">3. Boot Manager</text>
-              <text id="node-3-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">ESP Partition</text>
-              <text id="node-3-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Loads Bootloader</text>
-            </g>
+            <!-- Node 1: User App -->
+            <rect id="node-user-app" x="45" y="55" width="180" height="52" rx="5" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+            <text id="trap-node1-title" x="135" y="78" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">User Process</text>
+            <text id="trap-node1-sub" x="135" y="94" fill="#64748b" font-size="10" text-anchor="middle">read(fd, buf, len)</text>
 
-            <!-- Node 4: Kernel Relocation in RAM (x: 595, w: 170) -->
-            <g id="boot-node-ram" transform="translate(595, 30)">
-              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-4-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">4. Kernel Load</text>
-              <text id="node-4-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">RAM Memory Setup</text>
-              <text id="node-4-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">MMU Paging Activated</text>
-            </g>
+            <!-- Node 2: Library Stub / Trap Invocation -->
+            <rect id="node-trap-trigger" x="280" y="55" width="190" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+            <text id="trap-node2-title" x="375" y="78" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">C Runtime Stub</text>
+            <text id="trap-node2-sub" x="375" y="94" fill="#64748b" font-size="10" text-anchor="middle">SYSCALL / INT 0x80</text>
 
-            <!-- Node 5: Userspace Hand-off (x: 785, w: 170) -->
-            <g id="boot-node-kernel" transform="translate(785, 30)">
-              <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="node-5-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">5. Userspace Init</text>
-              <text id="node-5-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Initial System PID</text>
-              <text id="node-5-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Drops to User Mode</text>
-            </g>
+            <!-- Node 3: CPU Hardware Switch -->
+            <rect id="node-cpu-hw" x="535" y="105" width="195" height="60" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+            <text x="632" y="130" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">CPU Hardware Engine</text>
+            <text x="632" y="148" fill="#64748b" font-size="10" text-anchor="middle">Mode: 1 &rarr; 0 | Save SP/PC</text>
 
-            <!-- Bus Interconnect Vertical Lines (Centered on cards) -->
-            <line id="boot-line-1" x1="110" y1="95" x2="110" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-2" x1="300" y1="95" x2="300" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-3" x1="490" y1="95" x2="490" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-4" x1="680" y1="95" x2="680" y2="130" stroke="#cbd5e1" stroke-width="2" />
-            <line id="boot-line-5" x1="870" y1="95" x2="870" y2="130" stroke="#cbd5e1" stroke-width="2" />
+            <!-- Node 4: Kernel Dispatcher -->
+            <rect id="node-kernel-idt" x="280" y="185" width="190" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+            <text id="trap-node4-title" x="375" y="208" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">IDT / Syscall Entry</text>
+            <text id="trap-node4-sub" x="375" y="224" fill="#64748b" font-size="10" text-anchor="middle">sys_call_table[]</text>
 
-            <!-- Dynamic Data Flow Representation Box in Lower Half -->
-            <g transform="translate(25, 180)">
-              <rect x="0" y="0" width="930" height="95" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
-              <text x="24" y="26" fill="#0369a1" font-size="11" font-weight="700">ACTIVE BUS INTERCONNECT &amp; SYSTEM MAPPING</text>
-              <text id="boot-flow-label" x="24" y="52" fill="#0f172a" font-size="11" font-family="var(--font-mono)">
-                Hardware resets registers &rarr; CPU fetches first instruction from mapped ROM/Flash.
-              </text>
-              <text id="boot-flow-sublabel" x="24" y="74" fill="#64748b" font-size="10" font-family="var(--font-mono)">
-                No RAM is initialized yet. Execution proceeds directly from non-volatile firmware storage.
-              </text>
-            </g>
+            <!-- Node 5: Kernel Service / Device -->
+            <rect id="node-kernel-driver" x="45" y="185" width="180" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+            <text id="trap-node5-title" x="135" y="208" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">VFS &amp; Disk Driver</text>
+            <text id="trap-node5-sub" x="135" y="224" fill="#64748b" font-size="10" text-anchor="middle">Execute Privileged I/O</text>
+
+            <!-- Connecting Flows -->
+            <line id="edge-1" x1="225" y1="81" x2="275" y2="81" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-blue)" />
+            <path id="edge-2" d="M 470,81 L 530,125" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-blue)" />
+            <path id="edge-3" d="M 535,145 L 475,200" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-blue)" />
+            <line id="edge-4" x1="280" y1="211" x2="230" y2="211" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-blue)" />
+            <path id="edge-5" d="M 135,185 C 135,145 135,120 135,113" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#marker-blue)" />
           </svg>
         </div>
 
-        <!-- Two-Pane Explanation Dashboard -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-          <!-- Current Action Pane -->
+        <!-- Two-Pane Pedagogical Dashboard -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px;">
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
             <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">Current State: What Is Happening</div>
-            <div id="boot-desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
-              Power stabilizes and the power supply asserts a hardware ready signal. The CPU resets its internal register state and sets the Program Counter to a hardwired physical address (the reset vector) mapped to non-volatile motherboard ROM/Flash.
-            </div>
+            <div id="desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
           </div>
 
-          <!-- Rationale Pane -->
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
             <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Why The System Does This</div>
-            <div id="boot-desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
-              Dynamic RAM (DRAM) is volatile and contains arbitrary noise at power-on. The CPU hardware must begin execution from an unchangeable non-volatile memory chip hardwired into the processor address space.
-            </div>
+            <div id="desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
           </div>
         </div>
       </div>
 
       <script>
         (function() {
-          const osBootData = {
-            linux: [
+          const trapPlatforms = {
+            unix: [
               {
-                phase: "Stage 1 of 5: Power-On & Reset Vector",
-                target: "Motherboard ROM / SPI Flash",
-                pc: "0xFFFFFFF0 (x86 Reset Vector)",
-                mode: "Real Mode / Flat Protected",
-                media: "Motherboard SPI Flash NVRAM",
-                activeNode: "boot-node-power",
-                activeLine: "boot-line-1",
+                mode: "USER (Ring 3)",
+                modeBit: "1 (Unprivileged)",
+                modeColor: "#dc2626",
+                pc: "0x00401140 (App Code)",
+                stack: "User Stack (RSP)",
+                stepNum: "Step 1 of 6: Application Invocation",
+                activeNode: "node-user-app",
+                activeEdges: [],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "The UEFI / BIOS firmware will execute the POST, initialize DRAM memory channels, and scan NVRAM for boot drive entries.",
-                flowTitle: "CPU RESET ASSERTION -> Direct Flash ROM Instruction Fetch",
-                flowSub: "No DRAM memory is initialized yet. The CPU fetches its first jump instruction directly from mapped flash storage.",
-                node3Title: "3. GRUB / Systemd-boot",
-                node3Sub: "ESP (/EFI/BOOT)",
-                node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz & initramfs",
-                node4Sub: "Staged into RAM",
-                node4Detail: "startup_64 entry",
-                node5Title: "5. systemd / init",
-                node5Sub: "PID 1 in User Space",
-                node5Detail: "Target default.target",
-                what: "On power stabilization, the motherboard asserts the reset line. The CPU initializes registers and vectors to <code>0xFFFFFFF0</code> in flash ROM, beginning execution in motherboard firmware (UEFI or legacy BIOS).",
-                why: "DRAM is volatile and empty at power-on. The CPU requires a hardwired non-volatile address to begin instruction fetching without software dependencies."
+                node1Title: "User Process",
+                node1Sub: "read(fd, buffer, 512)",
+                node2Title: "C Runtime Stub",
+                node2Sub: "SYSCALL (RAX = 0)",
+                node4Title: "IDT / Syscall Entry",
+                node4Sub: "sys_call_table[0]",
+                node5Title: "VFS &amp; Disk Driver",
+                node5Sub: "sys_read() &rarr; NVMe",
+                what: "The user program calls <code>read(fd, buffer, 512)</code> in standard C library space.",
+                why: "User processes cannot manipulate storage hardware directly. The CPU mode bit (Ring 3) ensures rogue programs cannot read or write arbitrary disk sectors.",
+                nextStep: "The C library wrapper places the syscall number (RAX = 0) into registers and executes <code>SYSCALL</code> / <code>TRAP</code>."
               },
               {
-                phase: "Stage 2 of 5: Hardware Self-Test & Bus Discovery",
-                target: "UEFI / BIOS Firmware Runtime",
-                pc: "Firmware Entry Vector",
-                mode: "Privileged Firmware Context",
-                media: "Motherboard Flash ROM / NVRAM",
-                activeNode: "boot-node-firmware",
-                activeLine: "boot-line-2",
+                mode: "USER (Ring 3)",
+                modeBit: "1 (Unprivileged)",
+                modeColor: "#dc2626",
+                pc: "0x004085A0 (glibc stub)",
+                stack: "User Stack (RSP)",
+                stepNum: "Step 2 of 6: Staging Arguments &amp; Hardware TRAP",
+                activeNode: "node-trap-trigger",
+                activeEdges: ["edge-1"],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "The firmware will read the Linux EFI bootloader (GRUB or systemd-boot) from the EFI System Partition (ESP).",
-                flowTitle: "POST & BUS DISCOVERY -> Memory Training & NVRAM Lookup",
-                flowSub: "Firmware verifies RAM chips, probes PCIe/NVMe storage controllers, and loads boot variables.",
-                node3Title: "3. GRUB / Systemd-boot",
-                node3Sub: "ESP (/EFI/BOOT)",
-                node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz & initramfs",
-                node4Sub: "Staged into RAM",
-                node4Detail: "startup_64 entry",
-                node5Title: "5. systemd / init",
-                node5Sub: "PID 1 in User Space",
-                node5Detail: "Target default.target",
-                what: "The firmware runs POST, trains the DRAM memory controller, scans PCIe/USB buses for devices, and queries UEFI NVRAM variables to identify the designated Linux boot disk.",
-                why: "The operating system cannot run until physical memory and peripheral buses operate with stable electrical signaling."
+                node1Title: "User Process",
+                node1Sub: "read(fd, buffer, 512)",
+                node2Title: "C Runtime Stub",
+                node2Sub: "SYSCALL (RAX = 0)",
+                node4Title: "IDT / Syscall Entry",
+                node4Sub: "sys_call_table[0]",
+                node5Title: "VFS &amp; Disk Driver",
+                node5Sub: "sys_read() &rarr; NVMe",
+                what: "The library stub loads the system call number (e.g. RAX = 0 for <code>sys_read</code>) and parameter registers (RDI, RSI, RDX), then issues the <code>SYSCALL</code> instruction.",
+                why: "User code cannot change its own privilege bit. It must execute a designated hardware instruction that vectors control through a CPU-managed gate.",
+                nextStep: "The CPU microcode catches the TRAP, clears the Mode Bit to 0 (Kernel Mode), switches to the kernel stack, and jumps to the entry point."
               },
               {
-                phase: "Stage 3 of 5: Linux Bootloader (GRUB / systemd-boot)",
-                target: "ESP: /EFI/BOOT/grubx64.efi",
-                pc: "0x00007C00 (MBR) or EFI Image Base",
-                mode: "32/64-bit Protected Mode",
-                media: "Storage Media (NVMe / SATA SSD)",
-                activeNode: "boot-node-storage",
-                activeLine: "boot-line-3",
+                mode: "KERNEL (Ring 0)",
+                modeBit: "0 (Privileged Mode)",
+                modeColor: "#0284c7",
+                pc: "0xFFFFFFFF81A00000 (Hardware Gate)",
+                stack: "Kernel Stack (SS:RSP)",
+                stepNum: "Step 3 of 6: Hardware Mode Switch &amp; Context Save",
+                activeNode: "node-cpu-hw",
+                activeEdges: ["edge-2"],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "The bootloader will stage the compressed kernel image (vmlinuz) and initial ramdisk (initramfs) into physical memory.",
-                flowTitle: "BOOTLOADER STAGING -> Reading Kernel Images into RAM",
-                flowSub: "GRUB displays boot menu, parses grub.cfg, and reads vmlinuz and initramfs from the filesystem.",
-                node3Title: "3. GRUB / Systemd-boot",
-                node3Sub: "ESP (/EFI/BOOT)",
-                node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz & initramfs",
-                node4Sub: "Staged into RAM",
-                node4Detail: "startup_64 entry",
-                node5Title: "5. systemd / init",
-                node5Sub: "PID 1 in User Space",
-                node5Detail: "Target default.target",
-                what: "Firmware loads <code>grubx64.efi</code> into RAM. GRUB reads its configuration file, mounts the ext4/Btrfs boot partition, and stages <code>vmlinuz</code> and <code>initramfs</code> into memory.",
-                why: "UEFI firmware lacks deep knowledge of Linux file systems. A dedicated bootloader bridges firmware and the Linux kernel."
+                node1Title: "User Process",
+                node1Sub: "read(fd, buffer, 512)",
+                node2Title: "C Runtime Stub",
+                node2Sub: "SYSCALL (RAX = 0)",
+                node4Title: "IDT / Syscall Entry",
+                node4Sub: "sys_call_table[0]",
+                node5Title: "VFS &amp; Disk Driver",
+                node5Sub: "sys_read() &rarr; NVMe",
+                what: "The CPU microcode flips the Mode Bit to 0, saves user RIP and RSP onto the per-thread kernel stack, and transfers execution to the kernel syscall handler.",
+                why: "Saving the execution state on a secure kernel stack prevents user code from forging return addresses or hijacking supervisor execution.",
+                nextStep: "The kernel dispatcher indexes into <code>sys_call_table</code> to locate the implementation of <code>sys_read</code>."
               },
               {
-                phase: "Stage 4 of 5: Kernel Decompression & Subsystem Init",
-                target: "Linux Kernel (startup_64 in RAM)",
-                pc: "0xFFFFFFFF81000000 (Kernel Virtual Base)",
-                mode: "Kernel Mode (Ring 0 / Long Mode)",
-                media: "System RAM (DRAM)",
-                activeNode: "boot-node-ram",
-                activeLine: "boot-line-4",
+                mode: "KERNEL (Ring 0)",
+                modeBit: "0 (Privileged Mode)",
+                modeColor: "#0284c7",
+                pc: "0xFFFFFFFF81B23040 (Syscall Table)",
+                stack: "Kernel Stack (SS:RSP)",
+                stepNum: "Step 4 of 6: Syscall Table Dispatching",
+                activeNode: "node-kernel-idt",
+                activeEdges: ["edge-3"],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "The Linux kernel will mount the root filesystem, activate virtual memory paging, and spawn /sbin/init or systemd.",
-                flowTitle: "KERNEL EXTRACTION -> Hardware Takeover & MMU Page Table Setup",
-                flowSub: "Kernel initializes 4-level page tables, sets up IDT vectors, and loads built-in hardware drivers.",
-                node3Title: "3. GRUB / Systemd-boot",
-                node3Sub: "ESP (/EFI/BOOT)",
-                node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz & initramfs",
-                node4Sub: "Staged into RAM",
-                node4Detail: "startup_64 entry",
-                node5Title: "5. systemd / init",
-                node5Sub: "PID 1 in User Space",
-                node5Detail: "Target default.target",
-                what: "The kernel decompresses into memory, initializes MMU 4-level page tables, builds the IDT, and initializes device drivers using the temporary <code>initramfs</code> before mounting the real root filesystem.",
-                why: "Firmware services are permanently discarded. The Linux kernel takes direct ownership of physical hardware and memory protection."
+                node1Title: "User Process",
+                node1Sub: "read(fd, buffer, 512)",
+                node2Title: "C Runtime Stub",
+                node2Sub: "SYSCALL (RAX = 0)",
+                node4Title: "IDT / Syscall Entry",
+                node4Sub: "sys_call_table[0]",
+                node5Title: "VFS &amp; Disk Driver",
+                node5Sub: "sys_read() &rarr; NVMe",
+                what: "The kernel validates the destination buffer pointer to ensure it lies within user space, then routes the request through the Virtual File System (VFS) to the storage driver.",
+                why: "Pointer validation prevents 'confused deputy' exploits where a user process tricks the kernel into overwriting protected supervisor structures.",
+                nextStep: "The storage device driver programs the device controller and initiates physical disk I/O."
               },
               {
-                phase: "Stage 5 of 5: Userspace Hand-off (PID 1: systemd)",
-                target: "/sbin/init or /usr/lib/systemd/systemd",
-                pc: "Userspace Program Entry",
-                mode: "User Mode (Ring 3)",
-                media: "Root Filesystem (ext4 / Btrfs / XFS)",
-                activeNode: "boot-node-kernel",
-                activeLine: "boot-line-5",
+                mode: "KERNEL (Ring 0)",
+                modeBit: "0 (Privileged Mode)",
+                modeColor: "#0284c7",
+                pc: "0xFFFFFFFF81C84100 (Disk Driver)",
+                stack: "Kernel Stack (SS:RSP)",
+                stepNum: "Step 5 of 6: Privileged Device Execution",
+                activeNode: "node-kernel-driver",
+                activeEdges: ["edge-4"],
+                btnNextText: "Next Step &rarr;",
+                btnPrevText: "&larr; Prev",
+                node1Title: "User Process",
+                node1Sub: "read(fd, buffer, 512)",
+                node2Title: "C Runtime Stub",
+                node2Sub: "SYSCALL (RAX = 0)",
+                node4Title: "IDT / Syscall Entry",
+                node4Sub: "sys_call_table[0]",
+                node5Title: "VFS &amp; Disk Driver",
+                node5Sub: "sys_read() &rarr; NVMe",
+                what: "The disk driver programs NVMe controller registers or schedules a DMA transfer to move the requested 512 bytes into memory.",
+                why: "Only Ring 0 code has the architectural privilege to execute I/O instructions or access memory-mapped hardware controller registers.",
+                nextStep: "The kernel places the read byte count into RAX and executes <code>SYSRET</code> to return to user space."
+              },
+              {
+                mode: "USER (Ring 3)",
+                modeBit: "1 (Unprivileged)",
+                modeColor: "#dc2626",
+                pc: "0x00401148 (Resumed App Code)",
+                stack: "Restored User Stack (RSP)",
+                stepNum: "Step 6 of 6: Return to User Space (SYSRET / IRET)",
+                activeNode: "node-user-app",
+                activeEdges: ["edge-5"],
                 btnNextText: "Restart Walkthrough &#8634;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
-                flowTitle: "USERSPACE HAND-OFF -> Execution of PID 1 in Ring 3",
-                flowSub: "Kernel drops privileges, switches mode bit to 1, and systemd spawns login managers and daemons.",
-                node3Title: "3. GRUB / Systemd-boot",
-                node3Sub: "ESP (/EFI/BOOT)",
-                node3Detail: "Reads grub.cfg",
-                node4Title: "4. vmlinuz & initramfs",
-                node4Sub: "Staged into RAM",
-                node4Detail: "startup_64 entry",
-                node5Title: "5. systemd / init",
-                node5Sub: "PID 1 in User Space",
-                node5Detail: "Target default.target",
-                what: "The kernel executes <code>/sbin/init</code> (typically symlinked to <code>systemd</code>) as PID 1, transitioning the CPU from Ring 0 to Ring 3 (User Mode). Systemd starts user services and the display manager.",
-                why: "The system transitions to steady-state execution where all user software runs unprivileged and interacts with hardware solely via system calls."
+                node1Title: "User Process",
+                node1Sub: "read() Returned 512",
+                node2Title: "C Runtime Stub",
+                node2Sub: "SYSCALL (RAX = 0)",
+                node4Title: "IDT / Syscall Entry",
+                node4Sub: "sys_call_table[0]",
+                node5Title: "VFS &amp; Disk Driver",
+                node5Sub: "sys_read() &rarr; NVMe",
+                what: "The kernel executes <code>SYSRET</code>. The CPU restores the Mode Bit to 1, reloads the user stack pointer, and returns execution to the application.",
+                why: "Dropping privileges back to Ring 3 guarantees normal application code cannot maintain supervisor authority after its requested I/O is complete.",
+                nextStep: "Lifecycle complete. Click Restart to replay the sequence from Step 1."
               }
             ],
             windows: [
               {
-                phase: "Stage 1 of 5: Power-On & Reset Vector",
-                target: "Motherboard ROM / SPI Flash",
-                pc: "0xFFFFFFF0 (x86 Reset Vector)",
-                mode: "Real Mode / Flat Protected",
-                media: "Motherboard SPI Flash NVRAM",
-                activeNode: "boot-node-power",
-                activeLine: "boot-line-1",
+                mode: "USER (Ring 3)",
+                modeBit: "1 (Unprivileged)",
+                modeColor: "#dc2626",
+                pc: "0x00007FF710001200 (App Code)",
+                stack: "User Stack (RSP)",
+                stepNum: "Step 1 of 6: Win32 API Call (kernel32 / kernelbase)",
+                activeNode: "node-user-app",
+                activeEdges: [],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "UEFI firmware will execute POST, train memory, and read the Windows Boot Manager entry in NVRAM.",
-                flowTitle: "CPU RESET ASSERTION -> Direct Flash ROM Instruction Fetch",
-                flowSub: "Motherboard power circuitry stabilizes. CPU fetches first instruction from flash ROM.",
-                node3Title: "3. bootmgfw.efi",
-                node3Sub: "Boot Manager (ESP)",
-                node3Detail: "Reads BCD Store",
-                node4Title: "4. winload & ntoskrnl",
-                node4Sub: "Staged into RAM",
-                node4Detail: "KiSystemStartup",
-                node5Title: "5. smss & csrss",
-                node5Sub: "Session Manager",
-                node5Detail: "Spawns winlogon",
-                what: "Voltages stabilize and the motherboard asserts the reset line. The CPU clears its registers and vectors to <code>0xFFFFFFF0</code> to begin execution in UEFI firmware.",
-                why: "Main memory is volatile. The CPU requires a dedicated hardware address mapped to non-volatile flash ROM to execute instructions on power-on."
+                node1Title: "Win32 Application",
+                node1Sub: "ReadFile(hFile, buf, 512)",
+                node2Title: "ntdll.dll (Native Stub)",
+                node2Sub: "NtReadFile (SSN in EAX)",
+                node4Title: "SSDT / KiSystemCall64",
+                node4Sub: "KeServiceDescriptorTable",
+                node5Title: "I/O Manager &amp; Drivers",
+                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
+                what: "The application calls the Win32 API <code>ReadFile()</code> in <code>kernel32.dll</code> / <code>kernelbase.dll</code>.",
+                why: "Unlike Unix, Windows user applications almost never invoke system calls directly. Windows insulates applications behind Win32 subsystem DLLs to preserve backward compatibility.",
+                nextStep: "<code>kernelbase.dll</code> forwards the call to the native system stub <code>NtReadFile</code> in <code>ntdll.dll</code>."
               },
               {
-                phase: "Stage 2 of 5: Hardware Self-Test & Bus Discovery",
-                target: "UEFI Firmware Runtime",
-                pc: "Firmware Entry Vector",
-                mode: "Privileged Firmware Context",
-                media: "Motherboard Flash ROM / NVRAM",
-                activeNode: "boot-node-firmware",
-                activeLine: "boot-line-2",
+                mode: "USER (Ring 3)",
+                modeBit: "1 (Unprivileged)",
+                modeColor: "#dc2626",
+                pc: "0x00007FFA300124A0 (ntdll.dll)",
+                stack: "User Stack (RSP)",
+                stepNum: "Step 2 of 6: Native Stub &amp; System Service Number (SSN)",
+                activeNode: "node-trap-trigger",
+                activeEdges: ["edge-1"],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "Firmware will locate the Windows Boot Manager (bootmgfw.efi) in the EFI System Partition.",
-                flowTitle: "POST & BUS DISCOVERY -> Memory Training & BCD Entry Resolution",
-                flowSub: "Firmware trains memory controllers, initializes PCIe storage buses, and selects Windows boot entry.",
-                node3Title: "3. bootmgfw.efi",
-                node3Sub: "Boot Manager (ESP)",
-                node3Detail: "Reads BCD Store",
-                node4Title: "4. winload & ntoskrnl",
-                node4Sub: "Staged into RAM",
-                node4Detail: "KiSystemStartup",
-                node5Title: "5. smss & csrss",
-                node5Sub: "Session Manager",
-                node5Detail: "Spawns winlogon",
-                what: "UEFI firmware executes the Power-On Self-Test (POST), checks physical RAM, initializes NVMe/SATA storage controllers, and inspects NVRAM to find the Windows Boot Manager entry.",
-                why: "Hardware initialization ensures DRAM timings and device buses are operating reliably before passing control to the Windows operating system loader."
+                node1Title: "Win32 Application",
+                node1Sub: "ReadFile(hFile, buf, 512)",
+                node2Title: "ntdll.dll (Native Stub)",
+                node2Sub: "NtReadFile (SSN in EAX)",
+                node4Title: "SSDT / KiSystemCall64",
+                node4Sub: "KeServiceDescriptorTable",
+                node5Title: "I/O Manager &amp; Drivers",
+                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
+                what: "<code>ntdll.dll</code> loads the System Service Number (SSN) for <code>NtReadFile</code> into <code>EAX</code>, stages arguments into registers, and executes the <code>syscall</code> instruction.",
+                why: "Windows System Service Numbers change between Windows versions and builds. <code>ntdll.dll</code> isolates user binaries from shifting kernel call indexes.",
+                nextStep: "The CPU executes <code>syscall</code>, vectors to the address stored in MSR_LSTAR (<code>KiSystemCall64</code>), and enters Ring 0."
               },
               {
-                phase: "Stage 3 of 5: Windows Boot Manager & OS Loader",
-                target: "ESP: \\EFI\\Microsoft\\Boot\\bootmgfw.efi",
-                pc: "UEFI Executable Entry",
-                mode: "64-bit UEFI Protected Environment",
-                media: "EFI System Partition (FAT32)",
-                activeNode: "boot-node-storage",
-                activeLine: "boot-line-3",
+                mode: "KERNEL (Ring 0)",
+                modeBit: "0 (Privileged Mode)",
+                modeColor: "#0284c7",
+                pc: "0xFFFFF80020400000 (KiSystemCall64)",
+                stack: "Kernel Stack (KTHREAD.InitialStack)",
+                stepNum: "Step 3 of 6: CPU Mode Transition to KiSystemCall64",
+                activeNode: "node-cpu-hw",
+                activeEdges: ["edge-2"],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "winload.efi will read ntoskrnl.exe, hal.dll, and boot-start drivers into physical RAM.",
-                flowTitle: "WINDOWS BOOT MANAGER -> Reading BCD & Invoking winload.efi",
-                flowSub: "bootmgfw.efi reads the BCD registry hive, locates the Windows partition, and launches winload.efi.",
-                node3Title: "3. bootmgfw.efi",
-                node3Sub: "Boot Manager (ESP)",
-                node3Detail: "Reads BCD Store",
-                node4Title: "4. winload & ntoskrnl",
-                node4Sub: "Staged into RAM",
-                node4Detail: "KiSystemStartup",
-                node5Title: "5. smss & csrss",
-                node5Sub: "Session Manager",
-                node5Detail: "Spawns winlogon",
-                what: "UEFI runs <code>bootmgfw.efi</code>, which reads the Boot Configuration Data (BCD) store. It identifies the Windows OS partition and launches the Windows OS Loader (<code>winload.efi</code>).",
-                why: "The Windows Boot Manager isolates the firmware interface from the Windows kernel and allows multi-boot selection or recovery mode options."
+                node1Title: "Win32 Application",
+                node1Sub: "ReadFile(hFile, buf, 512)",
+                node2Title: "ntdll.dll (Native Stub)",
+                node2Sub: "NtReadFile (SSN in EAX)",
+                node4Title: "SSDT / KiSystemCall64",
+                node4Sub: "KeServiceDescriptorTable",
+                node5Title: "I/O Manager &amp; Drivers",
+                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
+                what: "The CPU microcode sets the Mode Bit to 0, switches to the kernel stack pointed to by the active <code>KTHREAD</code>, and vectors to <code>KiSystemCall64</code> in <code>ntoskrnl.exe</code>.",
+                why: "Hardware-enforced stack swapping guarantees that unprivileged user threads cannot corrupt internal kernel execution state.",
+                nextStep: "<code>KiSystemCall64</code> uses the SSN in EAX to index into the System Service Descriptor Table (SSDT)."
               },
               {
-                phase: "Stage 4 of 5: Kernel Staging & Subsystem Init (ntoskrnl.exe)",
-                target: "Windows NT Kernel (ntoskrnl.exe)",
-                pc: "KiSystemStartup Entry Point",
-                mode: "Kernel Mode (Ring 0 / 64-bit)",
-                media: "System RAM (DRAM)",
-                activeNode: "boot-node-ram",
-                activeLine: "boot-line-4",
+                phase: "Step 4 of 6",
+                mode: "KERNEL (Ring 0)",
+                modeBit: "0 (Privileged Mode)",
+                modeColor: "#0284c7",
+                pc: "0xFFFFF80020521080 (ntoskrnl.exe SSDT)",
+                stack: "Kernel Stack (KTHREAD)",
+                stepNum: "Step 4 of 6: SSDT Lookup &amp; Parameter Validation",
+                activeNode: "node-kernel-idt",
+                activeEdges: ["edge-3"],
                 btnNextText: "Next Step &rarr;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "The NT kernel will initialize the Object Manager, mount NTFS, and spawn the Session Manager (smss.exe).",
-                flowTitle: "KERNEL INITIALIZATION -> ntoskrnl.exe & hal.dll Hardware Takeover",
-                flowSub: "winload.efi enables paging, exits UEFI services, and transfers control to KiSystemStartup.",
-                node3Title: "3. bootmgfw.efi",
-                node3Sub: "Boot Manager (ESP)",
-                node3Detail: "Reads BCD Store",
-                node4Title: "4. winload & ntoskrnl",
-                node4Sub: "Staged into RAM",
-                node4Detail: "KiSystemStartup",
-                node5Title: "5. smss & csrss",
-                node5Sub: "Session Manager",
-                node5Detail: "Spawns winlogon",
-                what: "<code>winload.efi</code> loads <code>ntoskrnl.exe</code>, the Hardware Abstraction Layer (<code>hal.dll</code>), and boot drivers. It sets up page tables, calls <code>ExitBootServices()</code>, and branches to <code>KiSystemStartup</code>.",
-                why: "The Windows NT kernel takes complete control of the processor and establishes virtual memory translation, permanently discarding firmware runtimes."
+                node1Title: "Win32 Application",
+                node1Sub: "ReadFile(hFile, buf, 512)",
+                node2Title: "ntdll.dll (Native Stub)",
+                node2Sub: "NtReadFile (SSN in EAX)",
+                node4Title: "SSDT / KiSystemCall64",
+                node4Sub: "KeServiceDescriptorTable",
+                node5Title: "I/O Manager &amp; Drivers",
+                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
+                what: "The kernel dispatcher indexes into <code>KeServiceDescriptorTable</code> to locate <code>NtReadFile</code>. It probes user buffer pointers via <code>ProbeForWrite()</code> to verify accessibility.",
+                why: "The kernel must rigorously validate memory ranges to prevent malicious applications from tricking supervisor code into reading or writing kernel memory.",
+                nextStep: "The Windows I/O Manager allocates an I/O Request Packet (IRP) and routes it to the filesystem and disk driver stack."
               },
               {
-                phase: "Stage 5 of 5: Userspace Hand-off (smss.exe & csrss.exe)",
-                target: "\\SystemRoot\\System32\\smss.exe",
-                pc: "Userspace Process Entry",
-                mode: "User Mode (Ring 3)",
-                media: "Windows System Drive (NTFS)",
-                activeNode: "boot-node-kernel",
-                activeLine: "boot-line-5",
+                mode: "KERNEL (Ring 0)",
+                modeBit: "0 (Privileged Mode)",
+                modeColor: "#0284c7",
+                pc: "0xFFFFF80020684100 (Driver Stack)",
+                stack: "Kernel Stack (KTHREAD)",
+                stepNum: "Step 5 of 6: IRP Processing &amp; Storage Drivers",
+                activeNode: "node-kernel-driver",
+                activeEdges: ["edge-4"],
+                btnNextText: "Next Step &rarr;",
+                btnPrevText: "&larr; Prev",
+                node1Title: "Win32 Application",
+                node1Sub: "ReadFile(hFile, buf, 512)",
+                node2Title: "ntdll.dll (Native Stub)",
+                node2Sub: "NtReadFile (SSN in EAX)",
+                node4Title: "SSDT / KiSystemCall64",
+                node4Sub: "KeServiceDescriptorTable",
+                node5Title: "I/O Manager &amp; Drivers",
+                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
+                what: "The I/O Manager allocates an IRP and passes it down the driver stack (<code>ntfs.sys</code> &rarr; <code>classpnp.sys</code> &rarr; <code>stornvme.sys</code>), which commands the hardware to fetch data.",
+                why: "The packet-driven IRP model decouples high-level filesystems from physical bus architectures, supporting asynchronous non-blocking I/O across heterogeneous storage devices.",
+                nextStep: "The driver completes the IRP, returns an NTSTATUS code (STATUS_SUCCESS), and executes <code>sysret</code> to return to Ring 3."
+              },
+              {
+                mode: "USER (Ring 3)",
+                modeBit: "1 (Unprivileged)",
+                modeColor: "#dc2626",
+                pc: "0x00007FF710001208 (Resumed App Code)",
+                stack: "Restored User Stack (RSP)",
+                stepNum: "Step 6 of 6: Return to User Mode (sysret / Status Translation)",
+                activeNode: "node-user-app",
+                activeEdges: ["edge-5"],
                 btnNextText: "Restart Walkthrough &#8634;",
                 btnPrevText: "&larr; Prev",
-                inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
-                flowTitle: "USERSPACE HAND-OFF -> Spawning smss.exe & Windows Subsystem",
-                flowSub: "smss.exe starts csrss.exe (Win32), wininit.exe, and winlogon.exe to present the user login screen.",
-                node3Title: "3. bootmgfw.efi",
-                node3Sub: "Boot Manager (ESP)",
-                node3Detail: "Reads BCD Store",
-                node4Title: "4. winload & ntoskrnl",
-                node4Sub: "Staged into RAM",
-                node4Detail: "KiSystemStartup",
-                node5Title: "5. smss & csrss",
-                node5Sub: "Session Manager",
-                node5Detail: "Spawns winlogon",
-                what: "The kernel executes the Session Manager Subsystem (<code>smss.exe</code>) in user mode (Ring 3). <code>smss.exe</code> creates environment variables, starts the Client/Server Runtime (<code>csrss.exe</code>), and launches <code>winlogon.exe</code>.",
-                why: "The system reaches normal desktop state. All applications execute in isolated Ring 3 environments with mediated access through Win32/NT system calls."
-              }
-            ],
-            macos: [
-              {
-                phase: "Stage 1 of 5: Power-On & Reset Vector",
-                target: "Apple Silicon Boot ROM / Flash",
-                pc: "Hardware Reset Vector",
-                mode: "Secure Boot Secure World / EL3",
-                media: "On-Chip Secure Boot ROM",
-                activeNode: "boot-node-power",
-                activeLine: "boot-line-1",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                inlineNext: "The Boot ROM will verify the cryptographic signature of the low-level bootloader (LLB / iBoot).",
-                flowTitle: "HARDWARE RESET ASSERTION -> On-Chip Boot ROM Execution",
-                flowSub: "Apple Silicon chip powers on. Hardware starts execution from unchangeable internal Mask ROM.",
-                node3Title: "3. iBoot / boot.efi",
-                node3Sub: "Stage 2 Bootloader",
-                node3Detail: "Verifies APFS Volume",
-                node4Title: "4. XNU Kernel",
-                node4Sub: "mach_kernel in RAM",
-                node4Detail: "i386_init / arm_init",
-                node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master",
-                node5Detail: "Spawns WindowServer",
-                what: "On power-on, the processor initializes and begins execution directly from immutable on-die Mask ROM (on Apple Silicon) or UEFI firmware (on Intel Macs).",
-                why: "Establishing an unbroken cryptographic hardware Root of Trust requires the earliest instructions to reside in read-only silicon that cannot be tampered with."
-              },
-              {
-                phase: "Stage 2 of 5: Hardware Self-Test & Low-Level Boot",
-                target: "Low-Level Bootloader (LLB / iBoot Stage 1)",
-                pc: "Firmware Stage Entry",
-                mode: "Privileged Firmware Context",
-                media: "NAND Storage (SysCfg)",
-                activeNode: "boot-node-firmware",
-                activeLine: "boot-line-2",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                inlineNext: "iBoot will initialize the memory controller, verify APFS seals, and locate the macOS boot kernelcache.",
-                flowTitle: "POST & MEMORY TRAINING -> Hardware Signature Verification",
-                flowSub: "iBoot calibrates unified memory, verifies hardware security certificates, and scans storage.",
-                node3Title: "3. iBoot / boot.efi",
-                node3Sub: "Stage 2 Bootloader",
-                node3Detail: "Verifies APFS Volume",
-                node4Title: "4. XNU Kernel",
-                node4Sub: "mach_kernel in RAM",
-                node4Detail: "i386_init / arm_init",
-                node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master",
-                node5Detail: "Spawns WindowServer",
-                what: "The low-level firmware tests hardware components, initializes the unified memory architecture (UMA), interrogates attached NVMe storage, and validates cryptographic signatures.",
-                why: "macOS enforces strict secure boot verification at every hand-off stage before granting access to unified memory or storage buses."
-              },
-              {
-                phase: "Stage 3 of 5: Stage 2 Bootloader (iBoot / boot.efi)",
-                target: "Apple File System (APFS Preboot Volume)",
-                pc: "Bootloader Entry Address",
-                mode: "Privileged Execution Environment",
-                media: "APFS Preboot Container",
-                activeNode: "boot-node-storage",
-                activeLine: "boot-line-3",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                inlineNext: "The bootloader will stage the authenticated kernelcache (XNU kernel, Mach, BSD, and I/O Kit) into memory.",
-                flowTitle: "BOOTLOADER STAGING -> Reading Sealed Kernel Collection into RAM",
-                flowSub: "iBoot loads boot.efi, verifies the Sealed System Volume (SSV) hash, and prepares DeviceTree.",
-                node3Title: "3. iBoot / boot.efi",
-                node3Sub: "Stage 2 Bootloader",
-                node3Detail: "Verifies APFS Volume",
-                node4Title: "4. XNU Kernel",
-                node4Sub: "mach_kernel in RAM",
-                node4Detail: "i386_init / arm_init",
-                node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master",
-                node5Detail: "Spawns WindowServer",
-                what: "The Stage 2 bootloader loads the Sealed System Volume cryptographic manifests, validates the macOS kernelcache (or boot collection), and stages it into system RAM alongside the Device Tree.",
-                why: "macOS runs from an immutable, cryptographically signed snapshot of the system volume, preventing unauthorized modification."
-              },
-              {
-                phase: "Stage 4 of 5: XNU Kernel Initialization (Mach + BSD)",
-                target: "XNU Kernel (mach_kernel in RAM)",
-                pc: "Kernel Entry Point",
-                mode: "Kernel Mode (Ring 0 / EL1)",
-                media: "Unified System RAM",
-                activeNode: "boot-node-ram",
-                activeLine: "boot-line-4",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
-                inlineNext: "The XNU kernel will mount the read-only APFS system volume and spawn launchd as process ID 1.",
-                flowTitle: "KERNEL TAKEOVER -> Mach VM, BSD Subsystems, & I/O Kit Drivers",
-                flowSub: "Kernel enables MMU translation, starts task scheduling, and attaches C++ I/O Kit device drivers.",
-                node3Title: "3. iBoot / boot.efi",
-                node3Sub: "Stage 2 Bootloader",
-                node3Detail: "Verifies APFS Volume",
-                node4Title: "4. XNU Kernel",
-                node4Sub: "mach_kernel in RAM",
-                node4Detail: "i386_init / arm_init",
-                node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master",
-                node5Detail: "Spawns WindowServer",
-                what: "Execution transfers to the XNU kernel. The Mach microkernel core activates virtual memory and threads, BSD layer sets up POSIX interfaces, and I/O Kit loads object-oriented device drivers.",
-                why: "XNU combines Mach memory virtualization with BSD POSIX APIs to manage the complete unified hardware complex securely."
-              },
-              {
-                phase: "Stage 5 of 5: Userspace Hand-off (launchd PID 1)",
-                target: "/sbin/launchd",
-                pc: "Userspace Program Entry",
-                mode: "User Mode (Ring 3 / EL0)",
-                media: "Sealed System Volume (APFS)",
-                activeNode: "boot-node-kernel",
-                activeLine: "boot-line-5",
-                btnNextText: "Restart Walkthrough &#8634;",
-                btnPrevText: "&larr; Prev",
-                inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
-                flowTitle: "USERSPACE HAND-OFF -> launchd Daemon & WindowServer",
-                flowSub: "Kernel drops to User Mode, launchd manages daemons, and WindowServer presents the login screen.",
-                node3Title: "3. iBoot / boot.efi",
-                node3Sub: "Stage 2 Bootloader",
-                node3Detail: "Verifies APFS Volume",
-                node4Title: "4. XNU Kernel",
-                node4Sub: "mach_kernel in RAM",
-                node4Detail: "i386_init / arm_init",
-                node5Title: "5. launchd (PID 1)",
-                node5Sub: "Userspace Master",
-                node5Detail: "Spawns WindowServer",
-                what: "The kernel executes <code>/sbin/launchd</code> as PID 1 in user space (Ring 3 / EL0). <code>launchd</code> reads LaunchDaemons property lists, initializes system services, and starts <code>WindowServer</code>.",
-                why: "The system reaches full graphical multi-user operation. User applications run unprivileged and access system services via POSIX and Mach system calls."
+                node1Title: "Win32 Application",
+                node1Sub: "ReadFile() returns TRUE",
+                node2Title: "ntdll.dll (Native Stub)",
+                node2Sub: "NtReadFile (SSN in EAX)",
+                node4Title: "SSDT / KiSystemCall64",
+                node4Sub: "KeServiceDescriptorTable",
+                node5Title: "I/O Manager &amp; Drivers",
+                node5Sub: "IRP &rarr; ntfs.sys &rarr; NVMe",
+                what: "The kernel executes <code>sysret</code>. The CPU returns to Ring 3 in <code>ntdll.dll</code>, which passes the <code>NTSTATUS</code> back to <code>kernelbase.dll</code>. The Win32 API converts it to <code>TRUE</code> and the application resumes.",
+                why: "Privilege is safely dropped back to user mode. Subsystem DLLs translate internal NT status codes into user-friendly Win32 return conventions.",
+                nextStep: "Lifecycle complete. Click Restart to replay the sequence from Step 1."
               }
             ]
           };
 
-          let currentOS = "linux";
-          let bootIndex = 0;
+          let currentTrapPlatform = "unix";
+          let trapIndex = 0;
 
-          function renderBootState() {
-            const data = osBootData[currentOS][bootIndex];
-            document.getElementById("boot-status-phase").innerHTML = data.phase;
-            document.getElementById("boot-status-target").textContent = data.target;
-            document.getElementById("boot-status-pc").textContent = data.pc;
-            document.getElementById("boot-status-mode").textContent = data.mode;
-            document.getElementById("boot-status-media").textContent = data.media;
+          function renderTrapState() {
+            const data = trapPlatforms[currentTrapPlatform][trapIndex];
+            document.getElementById("status-cpu-mode").textContent = data.mode;
+            document.getElementById("status-cpu-mode").style.color = data.modeColor;
+            document.getElementById("status-mode-bit").textContent = data.modeBit;
+            document.getElementById("status-mode-bit").style.color = data.modeColor;
+            document.getElementById("status-pc-reg").textContent = data.pc;
+            document.getElementById("status-stack").textContent = data.stack;
+            document.getElementById("status-step-num").innerHTML = data.stepNum;
+            document.getElementById("desc-what").innerHTML = data.what;
+            document.getElementById("desc-why").innerHTML = data.why;
+            document.getElementById("inline-next-desc").innerHTML = data.nextStep;
 
-            document.getElementById("boot-inline-next-desc").innerHTML = data.inlineNext;
-            document.getElementById("boot-desc-what").innerHTML = data.what;
-            document.getElementById("boot-desc-why").innerHTML = data.why;
+            // Update SVG node text
+            document.getElementById("trap-node1-title").textContent = data.node1Title;
+            document.getElementById("trap-node1-sub").textContent = data.node1Sub;
+            document.getElementById("trap-node2-title").textContent = data.node2Title;
+            document.getElementById("trap-node2-sub").textContent = data.node2Sub;
+            document.getElementById("trap-node4-title").textContent = data.node4Title;
+            document.getElementById("trap-node4-sub").textContent = data.node4Sub;
+            document.getElementById("trap-node5-title").textContent = data.node5Title;
+            document.getElementById("trap-node5-sub").textContent = data.node5Sub;
 
-            document.getElementById("boot-flow-label").textContent = data.flowTitle;
-            document.getElementById("boot-flow-sublabel").textContent = data.flowSub;
-
-            // Update SVG labels cleanly
-            document.getElementById("node-3-title").textContent = data.node3Title;
-            document.getElementById("node-3-sub").textContent = data.node3Sub;
-            document.getElementById("node-3-detail").textContent = data.node3Detail;
-
-            document.getElementById("node-4-title").textContent = data.node4Title;
-            document.getElementById("node-4-sub").textContent = data.node4Sub;
-            document.getElementById("node-4-detail").textContent = data.node4Detail;
-
-            document.getElementById("node-5-title").textContent = data.node5Title;
-            document.getElementById("node-5-sub").textContent = data.node5Sub;
-            document.getElementById("node-5-detail").textContent = data.node5Detail;
-
-            const nextBtn = document.getElementById("boot-next-btn");
-            const prevBtn = document.getElementById("boot-prev-btn");
+            const nextBtn = document.getElementById("step-next-btn");
+            const prevBtn = document.getElementById("step-prev-btn");
 
             if (nextBtn) nextBtn.innerHTML = data.btnNextText;
             if (prevBtn) {
               prevBtn.innerHTML = data.btnPrevText;
-              prevBtn.style.opacity = bootIndex === 0 ? "0.5" : "1.0";
-              prevBtn.style.cursor = bootIndex === 0 ? "not-allowed" : "pointer";
+              prevBtn.style.opacity = trapIndex === 0 ? "0.5" : "1.0";
+              prevBtn.style.cursor = trapIndex === 0 ? "not-allowed" : "pointer";
             }
 
-            const allNodes = ["boot-node-power", "boot-node-firmware", "boot-node-storage", "boot-node-ram", "boot-node-kernel"];
+            const allNodes = ["node-user-app", "node-trap-trigger", "node-cpu-hw", "node-kernel-idt", "node-kernel-driver"];
             allNodes.forEach(id => {
               const el = document.getElementById(id);
               if (el) {
-                const rect = el.querySelector("rect");
-                if (rect) {
-                  rect.setAttribute("stroke", "#cbd5e1");
-                  rect.setAttribute("stroke-width", "1.5");
-                  rect.setAttribute("fill", "#ffffff");
-                }
+                el.setAttribute("stroke", "#cbd5e1");
+                el.setAttribute("stroke-width", "1.5");
+                el.setAttribute("fill", "#ffffff");
               }
             });
 
-            const allLines = ["boot-line-1", "boot-line-2", "boot-line-3", "boot-line-4", "boot-line-5"];
-            allLines.forEach(id => {
+            const allEdges = ["edge-1", "edge-2", "edge-3", "edge-4", "edge-5"];
+            allEdges.forEach(id => {
               const el = document.getElementById(id);
               if (el) {
                 el.setAttribute("stroke", "#cbd5e1");
@@ -617,74 +482,68 @@ REFINED_MULTI_OS_BOOT_HTML = """
 
             const activeNodeEl = document.getElementById(data.activeNode);
             if (activeNodeEl) {
-              const rect = activeNodeEl.querySelector("rect");
-              if (rect) {
-                rect.setAttribute("stroke", "#0284c7");
-                rect.setAttribute("stroke-width", "2.5");
-                rect.setAttribute("fill", "#f0f9ff");
-              }
+              activeNodeEl.setAttribute("stroke", data.modeColor === "#0284c7" ? "#0284c7" : "#dc2626");
+              activeNodeEl.setAttribute("stroke-width", "2.5");
+              activeNodeEl.setAttribute("fill", data.modeColor === "#0284c7" ? "#f0f9ff" : "#fef2f2");
             }
 
-            const activeLineEl = document.getElementById(data.activeLine);
-            if (activeLineEl) {
-              activeLineEl.setAttribute("stroke", "#0284c7");
-              activeLineEl.setAttribute("stroke-width", "3");
-            }
-          }
-
-          function setOSSelection(osKey) {
-            currentOS = osKey;
-            const osButtons = {
-              linux: document.getElementById("btn-os-linux"),
-              windows: document.getElementById("btn-os-windows"),
-              macos: document.getElementById("btn-os-macos")
-            };
-            Object.keys(osButtons).forEach(key => {
-              const btn = osButtons[key];
-              if (btn) {
-                if (key === osKey) {
-                  btn.style.background = "#0284c7";
-                  btn.style.color = "#ffffff";
-                } else {
-                  btn.style.background = "transparent";
-                  btn.style.color = "#475569";
-                }
+            data.activeEdges.forEach(id => {
+              const edgeEl = document.getElementById(id);
+              if (edgeEl) {
+                edgeEl.setAttribute("stroke", "#0284c7");
+                edgeEl.setAttribute("stroke-width", "3");
               }
             });
-            renderBootState();
           }
 
-          document.getElementById("btn-os-linux").addEventListener("click", () => setOSSelection("linux"));
-          document.getElementById("btn-os-windows").addEventListener("click", () => setOSSelection("windows"));
-          document.getElementById("btn-os-macos").addEventListener("click", () => setOSSelection("macos"));
-
-          document.getElementById("boot-next-btn").addEventListener("click", function() {
-            if (bootIndex < osBootData[currentOS].length - 1) {
-              bootIndex++;
+          function setTrapPlatform(platformKey) {
+            currentTrapPlatform = platformKey;
+            const btnUnix = document.getElementById("btn-trap-unix");
+            const btnWin = document.getElementById("btn-trap-win");
+            if (platformKey === "unix") {
+              btnUnix.style.background = "#0284c7";
+              btnUnix.style.color = "#ffffff";
+              btnWin.style.background = "transparent";
+              btnWin.style.color = "#475569";
             } else {
-              bootIndex = 0;
+              btnWin.style.background = "#0284c7";
+              btnWin.style.color = "#ffffff";
+              btnUnix.style.background = "transparent";
+              btnUnix.style.color = "#475569";
             }
-            renderBootState();
+            renderTrapState();
+          }
+
+          document.getElementById("btn-trap-unix").addEventListener("click", () => setTrapPlatform("unix"));
+          document.getElementById("btn-trap-win").addEventListener("click", () => setTrapPlatform("windows"));
+
+          document.getElementById("step-next-btn").addEventListener("click", function() {
+            if (trapIndex < trapPlatforms[currentTrapPlatform].length - 1) {
+              trapIndex++;
+            } else {
+              trapIndex = 0;
+            }
+            renderTrapState();
           });
 
-          document.getElementById("boot-prev-btn").addEventListener("click", function() {
-            if (bootIndex > 0) {
-              bootIndex--;
-              renderBootState();
+          document.getElementById("step-prev-btn").addEventListener("click", function() {
+            if (trapIndex > 0) {
+              trapIndex--;
+              renderTrapState();
             }
           });
 
-          document.getElementById("boot-reset-btn").addEventListener("click", function() {
-            bootIndex = 0;
-            renderBootState();
+          document.getElementById("step-reset-btn").addEventListener("click", function() {
+            trapIndex = 0;
+            renderTrapState();
           });
 
-          renderBootState();
+          renderTrapState();
         })();
       </script>
 """
 
-def update_boot_simulator_card_widths():
+def update_trap_simulator():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -693,14 +552,14 @@ def update_boot_simulator_card_widths():
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    pattern = r'<div id="interactive-boot-simulator".*?</script>'
+    pattern = r'<div id="interactive-trap-simulator".*?</script>'
     match = re.search(pattern, content, flags=re.DOTALL)
     if match:
         start, end = match.span()
-        content = content[:start] + REFINED_MULTI_OS_BOOT_HTML.strip() + content[end:]
-        print("--> Replaced boot simulator with widened SVG cards and clean text formatting.")
+        content = content[:start] + TRAP_SIMULATOR_HTML.strip() + content[end:]
+        print("--> Injected Unix vs Windows toggle into TRAP simulator.")
     else:
-        print("--> Interactive boot simulator container not found.")
+        print("--> Interactive TRAP simulator container not found.")
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
@@ -708,9 +567,9 @@ def update_boot_simulator_card_widths():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Widen boot sequence SVG cards and fix text overflow on long OS titles\n\n"
-            "Expand boot simulator SVG canvas width to 980, widen individual node\n"
-            "rectangles to 170px, and resolve HTML entity escaping in Module 2."
+            "Add Windows NT vs Unix toggle to dual-mode TRAP simulator in Module 2\n\n"
+            "Enable comparative walkthrough of Windows Win32/ntdll/SSDT/IRP pipeline\n"
+            "versus Unix syscall mechanisms in 02-hardware-review.html via fix.py."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -719,4 +578,4 @@ def update_boot_simulator_card_widths():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_boot_simulator_card_widths()
+    update_trap_simulator()
