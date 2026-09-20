@@ -1,41 +1,50 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add dedicated Next Step explanation pane to Module 2
+# fix.py: Place next step buttons under simulator guide with adjacent explanation
 # =====================================================================
 import os
 import re
 import subprocess
 
-THREE_PANE_DASHBOARD_HTML = """
-        <!-- Three-Pane Pedagogical Dashboard -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 20px;">
-          <!-- Current Action Pane -->
-          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">Current State: What Is Happening</div>
-            <div id="desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
-              The user program needs to read 512 bytes from a file. It calls <code>read(fd, buffer, 512)</code> in standard C library space.
+RESTRUCTURED_SIMULATOR_TOP = """
+        <!-- Simulator Title Header -->
+        <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
+          <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">Guided Walkthrough: The Dual-Mode TRAP &amp; Syscall Lifecycle</h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Step through how hardware enforces isolation when an application requests privileged OS services.</p>
+        </div>
+
+        <!-- Instructions Guide -->
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Use This Simulator</div>
+          <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
+            <li><strong>Step Through the Lifecycle:</strong> Use the controls below to step through each execution phase in sequence.</li>
+            <li><strong>Observe the Hardware State Bar:</strong> Notice the <strong>CPU Mode</strong> color switch between red (User Mode) and blue (Kernel Mode), and watch the <strong>Program Counter (PC)</strong> move between user addresses and kernel routines.</li>
+            <li><strong>Follow Active Nodes &amp; Buses:</strong> The highlighted vector path shows which hardware unit has execution priority at each step.</li>
+          </ol>
+        </div>
+
+        <!-- Action Controls & Inline Next Step Explanation -->
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
+          <!-- Buttons Stack -->
+          <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
+            <button id="step-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
+            <div style="display: flex; gap: 8px;">
+              <button id="step-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="step-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
             </div>
           </div>
 
-          <!-- Rationale Pane -->
-          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Why The System Does This</div>
-            <div id="desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
-              User-level isolation ensures no application can directly manipulate physical hardware sectors or issue raw disk commands without operating system supervision.
-            </div>
-          </div>
-
-          <!-- Dedicated Next Step Pane -->
-          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0369a1; padding: 16px; border-radius: 0 6px 6px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Next Step: What To Expect</div>
-            <div id="desc-next" style="font-size: 0.9rem; color: #0c4a6e; line-height: 1.55; margin-top: 8px;">
-              The C runtime wrapper will place system call arguments into CPU registers (e.g., RAX = 0 for sys_read) and issue the <code>SYSCALL</code> / <code>TRAP</code> assembly instruction.
+          <!-- Inline Next Step Explanation Pane -->
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center;">
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.03em;">Upcoming Action When You Click Next:</div>
+            <div id="inline-next-desc" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">
+              The C runtime wrapper will stage system call arguments into CPU registers (e.g., RAX = 0 for sys_read) and issue the <code>SYSCALL</code> / <code>TRAP</code> assembly instruction.
             </div>
           </div>
         </div>
 """
 
-REVISED_SCRIPT = """
+REVISED_SCRIPT_LOGIC = """
       <script>
         (function() {
           const steps = [
@@ -144,7 +153,7 @@ REVISED_SCRIPT = """
             document.getElementById("status-step-num").innerHTML = data.stepNum;
             document.getElementById("desc-what").innerHTML = data.what;
             document.getElementById("desc-why").innerHTML = data.why;
-            document.getElementById("desc-next").innerHTML = data.nextStep;
+            document.getElementById("inline-next-desc").innerHTML = data.nextStep;
 
             const nextBtn = document.getElementById("step-next-btn");
             const prevBtn = document.getElementById("step-prev-btn");
@@ -217,7 +226,7 @@ REVISED_SCRIPT = """
       </script>
 """
 
-def replace_with_three_pane_dashboard():
+def reposition_controls():
     file_path = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found.")
@@ -226,35 +235,43 @@ def replace_with_three_pane_dashboard():
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # 1. Remove obsolete single-line upcoming action ticker if present
-    content = re.sub(
-        r'<div style="display: flex; align-items: center; gap: 8px; background: #e0f2fe;.*?</div>\s*',
-        '',
-        content,
-        flags=re.DOTALL
-    )
+    # Match everything from the start of #interactive-trap-simulator to the start of the Hardware State Bar
+    pattern_top = r'<div id="interactive-trap-simulator"[^>]*>.*?<!-- Hardware State Bar -->'
+    if re.search(pattern_top, content, flags=re.DOTALL):
+        replacement = f'<div id="interactive-trap-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">' + "\n" + RESTRUCTURED_SIMULATOR_TOP + "\n        <!-- Hardware State Bar -->"
+        content = re.sub(pattern_top, replacement, content, flags=re.DOTALL)
+        print("--> Repositioned simulator buttons and explanation under the how-to guide.")
 
-    # 2. Replace old two-column explanation cards with the new 3-pane dashboard
-    old_explanation_cards = re.search(
-        r'<!-- Dynamic Pedagogical Explanation Cards -->.*?</div>\s*</div>\s*</div>',
-        content,
-        flags=re.DOTALL
-    )
-    if old_explanation_cards:
-        content = content.replace(old_explanation_cards.group(0), THREE_PANE_DASHBOARD_HTML.strip() + "\n      </div>")
-        print("--> Replaced two-column explanation cards with 3-pane dashboard.")
-    else:
-        # Fallback: search by ID desc-what container
-        pattern_fallback = r'<div style="display: grid; grid-template-columns: 1fr 1fr;.*?</div>\s*</div>\s*</div>'
-        if re.search(pattern_fallback, content, flags=re.DOTALL):
-            content = re.sub(pattern_fallback, THREE_PANE_DASHBOARD_HTML.strip() + "\n      </div>", content, flags=re.DOTALL)
-            print("--> Replaced explanation cards via fallback pattern.")
+    # Update bottom dashboard to two cards (What Is Happening, Why The System Does This) since Next is now inline above
+    two_pane_dashboard = """        <!-- Two-Pane Pedagogical Dashboard -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px;">
+          <!-- Current Action Pane -->
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">Current State: What Is Happening</div>
+            <div id="desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
+              The user program needs to read 512 bytes from a file. It calls <code>read(fd, buffer, 512)</code> in standard user space.
+            </div>
+          </div>
 
-    # 3. Replace script logic to populate desc-next
+          <!-- Rationale Pane -->
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Why The System Does This</div>
+            <div id="desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;">
+              User-level isolation ensures no application can directly manipulate physical hardware sectors without operating system supervision.
+            </div>
+          </div>
+        </div>"""
+
+    pattern_bottom = r'<!-- Three-Pane Pedagogical Dashboard -->.*?</div>\s*</div>\s*</div>'
+    if re.search(pattern_bottom, content, flags=re.DOTALL):
+        content = re.sub(pattern_bottom, two_pane_dashboard + "\n      </div>", content, flags=re.DOTALL)
+        print("--> Updated bottom dashboard to clean 2-card layout.")
+
+    # Update script logic
     script_pattern = r"<script>\s*\(function\(\)\s*\{\s*const steps = \[.*?\];\s*let currentIndex = 0;.*?</script>"
     if re.search(script_pattern, content, flags=re.DOTALL):
-        content = re.sub(script_pattern, REVISED_SCRIPT.strip(), content, flags=re.DOTALL)
-        print("--> Injected updated script supporting desc-next pane.")
+        content = re.sub(script_pattern, REVISED_SCRIPT_LOGIC.strip(), content, flags=re.DOTALL)
+        print("--> Updated script logic to target #inline-next-desc.")
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
@@ -262,9 +279,9 @@ def replace_with_three_pane_dashboard():
     try:
         subprocess.run(["git", "add", "fix.py", file_path], check=True)
         commit_msg = (
-            "Add dedicated Next Step explanation pane to Module 2 interactive widget\n\n"
-            "Update week01-operating-system-concepts/02-hardware-review.html to replace\n"
-            "the ticker with a persistent three-pane dashboard detailing the next step."
+            "Relocate simulator controls beneath instructions with adjacent next step guide\n\n"
+            "Move navigation buttons below the usage guide in 02-hardware-review.html\n"
+            "with an inline pane detailing the upcoming step right next to the controls."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -273,4 +290,4 @@ def replace_with_three_pane_dashboard():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    replace_with_three_pane_dashboard()
+    reposition_controls()
