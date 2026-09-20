@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Align week index header link styling with pagination buttons
+# fix.py: Replace week index label with home icon in navigation header
 # =====================================================================
-os_import = __import__('os')
-re_import = __import__('re')
-subprocess_import = __import__('subprocess')
+import os
+import re
+import subprocess
 
 WEEK_TITLE_MAP = {
     "week01-operating-system-concepts": "Week 1: Operating System Concepts",
@@ -20,52 +20,50 @@ WEEK_TITLE_MAP = {
     "week12-security": "Week 12: Security"
 }
 
-def align_navigation_pill_styling():
+def update_header_with_home_icon():
     repo_root = "."
     modified_files = []
 
-    # Styled pill template matching pagination buttons
+    # Styled pill template featuring a home symbol (🏠)
     pill_template = '<a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">'
 
-    for root, dirs, files in os_import.walk(repo_root):
-        dir_name = os_import.path.basename(root)
+    for root, dirs, files in os.walk(repo_root):
+        dir_name = os.path.basename(root)
         week_title = WEEK_TITLE_MAP.get(dir_name)
         if not week_title:
             continue
 
         for file in files:
             if file.endswith(".html") and file != "index.html":
-                file_path = os_import.path.join(root, file)
+                file_path = os.path.join(root, file)
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 updated = False
                 new_content = content
 
-                # Replace any existing index.html anchor tag in nav/header with the pill-styled version
-                # Or wrap the week title if unstyled
-                old_anchor_patterns = [
-                    rf'<a\s+href="index\.html"\s+style="[^"]*">\s*{re_import.escape(week_title)}\s*</a>',
-                    rf'<a\s+href="index\.html"\s*>\s*{re_import.escape(week_title)}\s*</a>',
-                    rf'<a\s+href="\./index\.html"\s*>\s*{re_import.escape(week_title)}\s*</a>'
+                # Match existing styled or unstyled navigation index links
+                patterns_to_replace = [
+                    rf'<a\s+href="index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠)?\s*{re.escape(week_title)}\s*</a>',
+                    rf'<a\s+href="\./index\.html"[^>]*>\s*(?:&larr;|&rarr;|&#8592;|&#8594;|🏠)?\s*{re.escape(week_title)}\s*</a>',
+                    rf'<span>\s*{re.escape(week_title)}\s*</span>'
                 ]
 
                 replaced = False
-                for pat in old_anchor_patterns:
-                    if re_import.search(pat, new_content):
-                        new_content = re_import.sub(pat, f'{pill_template}&larr; {week_title}</a>', new_content)
+                for pat in patterns_to_replace:
+                    if re.search(pat, new_content):
+                        new_content = re.sub(pat, f'{pill_template}&#127968; {week_title}</a>', new_content)
                         updated = True
                         replaced = True
                         break
 
                 if not replaced and week_title in new_content:
-                    # Target header/nav block
                     header_pattern = r'(<header[^>]*>.*?</header>|<nav[^>]*>.*?</nav>|<div[^>]*class="[^"]*nav[^"]*"[^>]*>.*?</div>)'
-                    header_match = re_import.search(header_pattern, new_content, flags=re_import.DOTALL | re_import.IGNORECASE)
+                    header_match = re.search(header_pattern, new_content, flags=re.DOTALL | re.IGNORECASE)
                     if header_match:
                         h_block = header_match.group(1)
                         if week_title in h_block:
-                            new_h_block = h_block.replace(week_title, f'{pill_template}&larr; {week_title}</a>')
+                            new_h_block = h_block.replace(week_title, f'{pill_template}&#127968; {week_title}</a>')
                             new_content = new_content.replace(h_block, new_h_block)
                             updated = True
 
@@ -73,23 +71,23 @@ def align_navigation_pill_styling():
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(new_content)
                     modified_files.append(file_path)
-                    print(f"--> Aligned navigation header pill styling in: {file_path}")
+                    print(f"--> Updated navigation header with home symbol in: {file_path}")
 
     if modified_files:
         try:
-            subprocess_import.run(["git", "add", "fix.py"] + modified_files, check=True)
+            subprocess.run(["git", "add", "fix.py"] + modified_files, check=True)
             commit_msg = (
-                "Align week index navigation header styling with pagination buttons\n\n"
-                "Update module HTML files across all week directories so the center week\n"
-                "index link matches the styled pill format of the previous/next buttons."
+                "Replace week index text label with home icon in navigation header\n\n"
+                "Update all week module HTML files to display a home symbol (🏠) alongside\n"
+                "the week title within the styled navigation pill link."
             )
-            subprocess_import.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess_import.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for pill-styled navigation headers!")
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("--> Git sync completed successfully for home icon navigation headers!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> All week index navigation headers are already styled as pills.")
+        print("--> All week index navigation headers already use the home symbol.")
 
 if __name__ == "__main__":
-    align_navigation_pill_styling()
+    update_header_with_home_icon()
