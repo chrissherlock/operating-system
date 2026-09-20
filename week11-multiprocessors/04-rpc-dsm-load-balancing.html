@@ -424,35 +424,154 @@
       </div>
     </section>
 
-    <!-- SECTION 8.2.5: DISTRIBUTED SHARED MEMORY -->
+        <!-- SECTION 8.2.5: DISTRIBUTED SHARED MEMORY -->
     <section class="content-section">
       <h2>8.2.5 Distributed Shared Memory (DSM) &amp; Memory Consistency</h2>
       <p>
-        Multicomputers lack shared physical memory. <strong>Distributed Shared Memory (DSM)</strong> emulates a single shared address space across independent multicomputer nodes using virtual memory page tables and network messaging.
+        While multicomputers offer superior physical scalability and lower hardware costs compared to large symmetric multiprocessors, programming them requires message-passing primitives (MPI, sockets) rather than direct variable references. <strong>Distributed Shared Memory (DSM)</strong> bridges this architectural divide by emulating a single, globally shared virtual address space across independent, physically disjoint multicomputer nodes.
       </p>
 
-      <h3>1. Page-Based DSM Architecture</h3>
+      <h3>1. Page-Based DSM Emulation (The Kai Li / Ivy Model)</h3>
       <p>
-        Pioneered by Kai Li (Ivy, 1986), page-based DSM partitions the virtual address space into standard page-sized chunks (e.g., 4 KB):
+        Rather than building specialized hardware, software page-based DSM leverages the CPU's existing <strong>Memory Management Unit (MMU)</strong> and standard virtual memory page tables:
       </p>
       <ul>
-        <li><strong>Read Replication:</strong> When Node 0 reads a page physically stored on Node 1, a page fault triggers. The DSM runtime requests the page over the network, maps it as <em>Read-Only</em> on Node 0, and allows concurrent reads across multiple nodes.</li>
-        <li><strong>Write Invalidation &amp; Ownership:</strong> When Node 0 writes to a shared page, a write fault triggers. The DSM runtime sends invalidation messages to all nodes holding read-only copies. Node 0 becomes the sole owner, mapping the page as <em>Read/Write</em>.</li>
-        <li><strong>False Sharing:</strong> If two unrelated variables reside on the exact same 4 KB page and are written concurrently by different nodes, the page bounces continuously across the network, destroying performance.</li>
+        <li><strong>Read Replication (Shared State):</strong> When Node 1 attempts to read address space on a page currently owned exclusively by Node 0, the MMU triggers a page fault. The OS trap routine intercepts this fault, halts the thread, and transmits a network request to Node 0. Node 0 sends a copy of the page over the wire. Both nodes then set their local page table entry to <em>Read-Only</em>. Subsequent concurrent reads on both nodes run at full local memory speed with zero network traffic.</li>
+        <li><strong>Write Invalidation &amp; Exclusive Ownership:</strong> If Node 0 subsequently attempts to write to that replicated page, an MMU write-protection fault occurs. To preserve coherence, Node 0 broadcasts an invalidation message across the network, forcing Node 1 to mark its page table entry as <em>Invalid</em>. Node 0 then upgrades its own mapping to <em>Read/Write</em>, becoming the sole owner of the page.</li>
+        <li><strong>The False Sharing Pathology:</strong> Because virtual memory page sizes are coarse (typically 4 KB or 64 KB), two completely independent threads running on different nodes may write to distinct variables that happen to reside within the same physical page (e.g., Node 0 writes <code>array[0]</code> while Node 1 writes <code>array[100]</code>). The DSM runtime cannot distinguish variable boundaries from page boundaries, causing the entire 4 KB page to bounce furiously between nodes on every write, saturating the network.</li>
       </ul>
 
-      <h3>2. Sequential vs. Release Consistency</h3>
-      <p>
-        To eliminate false sharing and network thrashing, DSM systems replace <strong>Sequential Consistency</strong> (which demands that all writes be immediately visible globally) with <strong>Release Consistency</strong>:
-      </p>
+      <h3>2. Memory Consistency Models: From Sequential to Release</h3>
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Consistency Model</th>
+            <th>Contract &amp; Synchronization Invariant</th>
+            <th>Network Overhead</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Strict Consistency</strong></td>
+            <td>Any read to memory location $x$ returns the value stored by the most recent write to $x$ in absolute physical time.</td>
+            <td>Physically impossible in distributed systems without instantaneous zero-latency communication.</td>
+          </tr>
+          <tr>
+            <td><strong>Sequential Consistency</strong></td>
+            <td>All memory operations appear to execute in some sequential order that is consistent across all nodes, and operations of each individual process appear in program order.</td>
+            <td>Extremely high. Every write must synchronously invalidate or update all peer copies globally before progressing.</td>
+          </tr>
+          <tr>
+            <td><strong>Causal Consistency</strong></td>
+            <td>Writes that are potentially causally related must be seen by every node in the same order. Concurrent writes may be observed in different orders.</td>
+            <td>Moderate. Uses vector clocks to track causal dependencies across nodes.</td>
+          </tr>
+          <tr>
+            <td><strong>Release Consistency</strong></td>
+            <td>Ordinary reads and writes are strictly local and batched. Coherence messages are restricted entirely to synchronization boundaries: <code>Acquire()</code> and <code>Release()</code>.</td>
+            <td>Minimal. Eliminates false sharing and ping-pong bouncing by sending compressed diffs only at synchronization points.</td>
+          </tr>
+        </tbody>
+      </table>
+
       <div class="callout">
-        <strong>Release Consistency Invariant:</strong> Ordinary reads and writes to local page copies are not broadcast across the network immediately. Updates are batched and propagated only when a thread executes an explicit synchronization primitive:
+        <strong>The Release Consistency Invariant (Munin / TreadMarks):</strong>
         <ul>
-          <li><code>Acquire()</code>: Local copies are validated and updated from remote nodes before entering a critical section.</li>
-          <li><code>Release()</code>: Dirty modifications made within the critical section are flushed out to peer nodes.</li>
+          <li><strong>Acquire():</strong> Tells the DSM runtime that a critical section is beginning. The local node pulls invalidation notices or updates from the lock's previous owner, refreshing stale pages before user code reads them.</li>
+          <li><strong>Ordinary Stores:</strong> Memory writes inside the critical section modify local memory directly. No network messages are sent during the critical section.</li>
+          <li><strong>Release():</strong> Tells the DSM runtime that the critical section has ended. The local node computes binary diffs of modified pages and broadcasts them to subsequent acquirers.</li>
         </ul>
       </div>
+
+      <!-- GUIDED WALKTHROUGH: DSM COHERENCE LIFECYCLE -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Page Faulting, Replication &amp; Release Consistency</span>
+          <span id="dsm-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> This walkthrough visually tracks how operating systems emulate shared memory across message-passing hardware. Observe how MMU page faults trigger network page transfers, how write faults enforce single-writer ownership via invalidation, and how Release Consistency eliminates network ping-ponging.
+        </p>
+
+        <div class="instruction-card">
+          <div id="dsm-act-text" class="action-req">Action Required: Click 'Execute Stage 1: Read Fault &amp; Page Replication' below.</div>
+          <div id="dsm-exp-text" class="action-exp">Initially, Page P1 resides only on Node 0. Watch Node 1 attempt a read on P1. The MMU generates a page fault, prompting the DSM runtime to fetch P1 across the network and map it as <strong>Read-Only</strong> on both nodes.</div>
+        </div>
+
+        <!-- Inline Interactive SVG DSM Schematic -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="dsm-schematic-svg" viewBox="0 0 740 290" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- Node 0 Container -->
+            <rect id="dsm-n0-box" x="20" y="20" width="320" height="200" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" rx="6"/>
+            <text x="180" y="42" text-anchor="middle" font-weight="bold" fill="#15803d" font-size="12">Multicomputer Node 0</text>
+
+            <!-- Node 0 Core Pipeline -->
+            <rect id="dsm-n0-core" x="40" y="55" width="130" height="35" fill="#ffffff" stroke="#16a34a" rx="4"/>
+            <text x="105" y="77" text-anchor="middle" font-weight="bold" fill="#15803d">Core 0 (Pipeline)</text>
+
+            <!-- Node 0 MMU Page Table Entry -->
+            <rect id="dsm-n0-mmu" x="185" y="55" width="135" height="35" fill="#dcfce7" stroke="#16a34a" rx="4"/>
+            <text id="dsm-n0-mmu-txt" x="252" y="77" text-anchor="middle" font-weight="bold" fill="#15803d">PTE: P1 [Read/Write]</text>
+
+            <!-- Node 0 Local Physical Page Frame -->
+            <rect id="dsm-n0-page" x="40" y="105" width="280" height="60" fill="#ffffff" stroke="#16a34a" rx="4"/>
+            <text x="180" y="125" text-anchor="middle" font-weight="bold" fill="#15803d">Physical Page Frame P1 (4 KB)</text>
+            <text id="dsm-n0-data-txt" x="180" y="145" text-anchor="middle" font-family="var(--font-mono)" fill="#334155">Data: Var X = 100, Var Y = 200</text>
+
+            <!-- Node 0 Network Interface Controller -->
+            <rect id="dsm-n0-nic" x="100" y="175" width="160" height="30" fill="#f1f5f9" stroke="#cbd5e1" rx="3"/>
+            <text id="dsm-n0-nic-txt" x="180" y="195" text-anchor="middle" font-weight="bold" fill="#475569">NIC 0: Idle</text>
+
+            <!-- Interconnect Network Wire -->
+            <line id="dsm-net-wire" x1="260" y1="190" x2="480" y2="190" stroke="#cbd5e1" stroke-width="4"/>
+            <text id="dsm-wire-txt" x="370" y="180" text-anchor="middle" font-size="9" font-weight="bold" fill="#64748b">Interconnect Fabric</text>
+
+            <!-- Node 1 Container -->
+            <rect id="dsm-n1-box" x="400" y="20" width="320" height="200" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="560" y="42" text-anchor="middle" font-weight="bold" fill="#475569" font-size="12">Multicomputer Node 1</text>
+
+            <!-- Node 1 Core Pipeline -->
+            <rect id="dsm-n1-core" x="420" y="55" width="130" height="35" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="485" y="77" text-anchor="middle" font-weight="bold" fill="#475569">Core 1 (Pipeline)</text>
+
+            <!-- Node 1 MMU Page Table Entry -->
+            <rect id="dsm-n1-mmu" x="565" y="55" width="135" height="35" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
+            <text id="dsm-n1-mmu-txt" x="632" y="77" text-anchor="middle" font-weight="bold" fill="#64748b">PTE: P1 [Invalid]</text>
+
+            <!-- Node 1 Local Physical Page Frame -->
+            <rect id="dsm-n1-page" x="420" y="105" width="280" height="60" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="3,3" rx="4"/>
+            <text id="dsm-n1-page-hdr" x="560" y="125" text-anchor="middle" font-weight="bold" fill="#94a3b8">Unmapped Virtual Memory</text>
+            <text id="dsm-n1-data-txt" x="560" y="145" text-anchor="middle" font-family="var(--font-mono)" fill="#94a3b8">[No Local Copy of Page P1]</text>
+
+            <!-- Node 1 Network Interface Controller -->
+            <rect id="dsm-n1-nic" x="480" y="175" width="160" height="30" fill="#f1f5f9" stroke="#cbd5e1" rx="3"/>
+            <text id="dsm-n1-nic-txt" x="560" y="195" text-anchor="middle" font-weight="bold" fill="#475569">NIC 1: Idle</text>
+
+            <!-- Global DSM State Summary Bar (Bottom) -->
+            <rect x="20" y="235" width="700" height="42" fill="#ffffff" stroke="#cbd5e1" rx="4"/>
+            <text x="40" y="260" font-weight="bold" fill="#334155">DSM State:</text>
+            <text id="dsm-summary-state" x="120" y="260" font-weight="bold" fill="#15803d">Single Owner (Node 0 Exclusive Read/Write)</text>
+            <text id="dsm-traffic-metric" x="530" y="260" font-size="10" font-weight="bold" fill="#64748b">Network Overhead: 0 KB/s</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Node 0 Page Rights: <strong id="dsm-n0-rights" style="color:#15803d;">Read/Write (Exclusive)</strong></div>
+          <div>Node 1 Page Rights: <strong id="dsm-n1-rights" style="color:#64748b;">Invalid (Fault on Access)</strong></div>
+          <div>Consistency Policy: <span id="dsm-policy-txt" style="font-weight:bold; color:#0284c7;">Sequential (Strict Faults)</span></div>
+          <div>False Sharing Status: <span id="dsm-fs-status" style="font-weight:bold; color:#10b981;">None</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-dsm-step" class="btn-step" onclick="stepDsmWalkthrough()">Execute Stage 1: Read Fault &amp; Page Replication</button>
+          <button class="btn-reset" onclick="resetDsmWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="dsm-walkthrough-log" class="status-panel">-- DSM environment initialized. Page P1 is owned exclusively by Node 0. Click button above to step --</div>
+      </div>
     </section>
+
 
     <!-- SECTION 8.2.6 & 8.2.7: LOAD BALANCING WALKTHROUGH -->
     <section class="content-section">
@@ -762,6 +881,252 @@
 
       document.getElementById('btn-rpc-step').textContent = 'Execute Stage 1: Client Application Call';
       document.getElementById('rpc-walkthrough-log').innerHTML = '-- RPC walkthrough reset. Follow instructions to begin --';
+    }
+
+    
+    // =======================================================
+    // 1.5 DISTRIBUTED SHARED MEMORY (DSM) WALKTHROUGH
+    // =======================================================
+    let dsmStage = 1;
+
+    function appendDsmLog(msg) {
+      const el = document.getElementById('dsm-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function resetDsmSvgElements() {
+      // Node 0 reset to exclusive owner
+      document.getElementById('dsm-n0-box').setAttribute('fill', '#f0fdf4');
+      document.getElementById('dsm-n0-box').setAttribute('stroke', '#16a34a');
+      document.getElementById('dsm-n0-core').setAttribute('stroke', '#16a34a');
+      document.getElementById('dsm-n0-mmu').setAttribute('fill', '#dcfce7');
+      document.getElementById('dsm-n0-mmu').setAttribute('stroke', '#16a34a');
+      document.getElementById('dsm-n0-mmu-txt').textContent = 'PTE: P1 [Read/Write]';
+      document.getElementById('dsm-n0-mmu-txt').setAttribute('fill', '#15803d');
+      document.getElementById('dsm-n0-page').setAttribute('fill', '#ffffff');
+      document.getElementById('dsm-n0-page').setAttribute('stroke', '#16a34a');
+      document.getElementById('dsm-n0-data-txt').textContent = 'Data: Var X = 100, Var Y = 200';
+      document.getElementById('dsm-n0-nic').setAttribute('fill', '#f1f5f9');
+      document.getElementById('dsm-n0-nic-txt').textContent = 'NIC 0: Idle';
+
+      // Interconnect reset
+      document.getElementById('dsm-net-wire').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('dsm-wire-txt').textContent = 'Interconnect Fabric';
+      document.getElementById('dsm-wire-txt').setAttribute('fill', '#64748b');
+
+      // Node 1 reset to invalid
+      document.getElementById('dsm-n1-box').setAttribute('fill', '#f8fafc');
+      document.getElementById('dsm-n1-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('dsm-n1-core').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('dsm-n1-mmu').setAttribute('fill', '#f1f5f9');
+      document.getElementById('dsm-n1-mmu').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('dsm-n1-mmu-txt').textContent = 'PTE: P1 [Invalid]';
+      document.getElementById('dsm-n1-mmu-txt').setAttribute('fill', '#64748b');
+      document.getElementById('dsm-n1-page').setAttribute('fill', '#f8fafc');
+      document.getElementById('dsm-n1-page').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('dsm-n1-page').setAttribute('stroke-dasharray', '3,3');
+      document.getElementById('dsm-n1-page-hdr').textContent = 'Unmapped Virtual Memory';
+      document.getElementById('dsm-n1-page-hdr').setAttribute('fill', '#94a3b8');
+      document.getElementById('dsm-n1-data-txt').textContent = '[No Local Copy of Page P1]';
+      document.getElementById('dsm-n1-data-txt').setAttribute('fill', '#94a3b8');
+      document.getElementById('dsm-n1-nic').setAttribute('fill', '#f1f5f9');
+      document.getElementById('dsm-n1-nic-txt').textContent = 'NIC 1: Idle';
+
+      // Metrics
+      document.getElementById('dsm-summary-state').textContent = 'Single Owner (Node 0 Exclusive Read/Write)';
+      document.getElementById('dsm-summary-state').setAttribute('fill', '#15803d');
+      document.getElementById('dsm-traffic-metric').textContent = 'Network Overhead: 0 KB/s';
+      document.getElementById('dsm-n0-rights').textContent = 'Read/Write (Exclusive)';
+      document.getElementById('dsm-n0-rights').style.color = '#15803d';
+      document.getElementById('dsm-n1-rights').textContent = 'Invalid (Fault on Access)';
+      document.getElementById('dsm-n1-rights').style.color = '#64748b';
+      document.getElementById('dsm-policy-txt').textContent = 'Sequential (Strict Faults)';
+      document.getElementById('dsm-policy-txt').style.color = '#0284c7';
+      document.getElementById('dsm-fs-status').textContent = 'None';
+      document.getElementById('dsm-fs-status').style.color = '#10b981';
+    }
+
+    function stepDsmWalkthrough() {
+      const btn = document.getElementById('btn-dsm-step');
+      const badge = document.getElementById('dsm-step-badge');
+      const act = document.getElementById('dsm-act-text');
+      const exp = document.getElementById('dsm-exp-text');
+
+      const n0Rights = document.getElementById('dsm-n0-rights');
+      const n1Rights = document.getElementById('dsm-n1-rights');
+      const policyTxt = document.getElementById('dsm-policy-txt');
+      const fsStatus = document.getElementById('dsm-fs-status');
+      const sumState = document.getElementById('dsm-summary-state');
+      const trafficTxt = document.getElementById('dsm-traffic-metric');
+
+      if (dsmStage === 1) {
+        // Stage 1: Read Fault & Replication
+        document.getElementById('dsm-walkthrough-log').innerHTML = '--> Stage 1: Read Fault Intercepted & Page Replicated...';
+
+        // Light up wire and NICs
+        document.getElementById('dsm-net-wire').setAttribute('stroke', '#0284c7');
+        document.getElementById('dsm-wire-txt').textContent = 'Page Transfer: Page P1 (4 KB) Copied Node 0 -> Node 1';
+        document.getElementById('dsm-wire-txt').setAttribute('fill', '#0284c7');
+        document.getElementById('dsm-n0-nic').setAttribute('fill', '#e0f2fe');
+        document.getElementById('dsm-n0-nic-txt').textContent = 'NIC 0: TX Page P1';
+        document.getElementById('dsm-n1-nic').setAttribute('fill', '#e0f2fe');
+        document.getElementById('dsm-n1-nic-txt').textContent = 'NIC 1: RX Page P1';
+
+        // Downgrade Node 0 to Read-Only
+        document.getElementById('dsm-n0-mmu').setAttribute('fill', '#e0f2fe');
+        document.getElementById('dsm-n0-mmu-txt').textContent = 'PTE: P1 [Read-Only]';
+        document.getElementById('dsm-n0-mmu-txt').setAttribute('fill', '#0369a1');
+
+        // Setup Node 1 with Read-Only copy
+        document.getElementById('dsm-n1-box').setAttribute('fill', '#f0f9ff');
+        document.getElementById('dsm-n1-box').setAttribute('stroke', '#0284c7');
+        document.getElementById('dsm-n1-mmu').setAttribute('fill', '#e0f2fe');
+        document.getElementById('dsm-n1-mmu-txt').textContent = 'PTE: P1 [Read-Only]';
+        document.getElementById('dsm-n1-mmu-txt').setAttribute('fill', '#0369a1');
+
+        document.getElementById('dsm-n1-page').setAttribute('fill', '#ffffff');
+        document.getElementById('dsm-n1-page').setAttribute('stroke', '#0284c7');
+        document.getElementById('dsm-n1-page').removeAttribute('stroke-dasharray');
+        document.getElementById('dsm-n1-page-hdr').textContent = 'Replicated Physical Frame P1';
+        document.getElementById('dsm-n1-page-hdr').setAttribute('fill', '#0369a1');
+        document.getElementById('dsm-n1-data-txt').textContent = 'Data: Var X = 100, Var Y = 200';
+        document.getElementById('dsm-n1-data-txt').setAttribute('fill', '#334155');
+
+        n0Rights.textContent = 'Read-Only (Shared)';
+        n0Rights.style.color = '#0284c7';
+        n1Rights.textContent = 'Read-Only (Shared)';
+        n1Rights.style.color = '#0284c7';
+        sumState.textContent = 'Replicated State (Both Nodes Mapped Read-Only)';
+        sumState.setAttribute('fill', '#0284c7');
+        trafficTxt.textContent = 'Network Overhead: 4 KB Transfer (One-time)';
+
+        appendDsmLog('1. Core 1 attempted instruction: "MOV EAX, [Var X]". MMU raised page fault (PTE marked Invalid).');
+        appendDsmLog('2. OS trap routine sent network request to Node 0 requesting Page P1.');
+        appendDsmLog('3. Node 0 transferred entire 4 KB frame across the network to Node 1.');
+        appendDsmLog('4. Coherence Invariant: Both nodes downgrade PTE permissions to Read-Only to prevent silent writes.');
+        appendDsmLog('5. Core 1 resumes. Subsequent reads to Var X and Var Y execute locally in 1 ns!');
+
+        dsmStage = 2;
+        badge.textContent = 'Stage 2 of 3';
+        act.textContent = 'Action Required: Click \'Execute Stage 2: Write Invalidation & False Sharing Hazard\' below.';
+        exp.innerHTML = 'Now watch Node 0 execute a write: <code>Var X = 999</code>. Because the page is marked Read-Only, an MMU protection fault forces an invalidation broadcast to Node 1. If Node 1 concurrently writes to <code>Var Y</code> on the same page, observe the false sharing ping-pong storm.';
+        btn.textContent = 'Execute Stage 2: Write Invalidation & False Sharing Hazard';
+      } else if (dsmStage === 2) {
+        // Stage 2: Write Invalidation & False Sharing
+        document.getElementById('dsm-walkthrough-log').innerHTML = '--> Stage 2: Write Fault, Invalidation Broadcast & False Sharing Hazard...';
+
+        // Invalidation broadcast across wire
+        document.getElementById('dsm-net-wire').setAttribute('stroke', '#ef4444');
+        document.getElementById('dsm-wire-txt').textContent = 'Invalidate Broadcast: Node 0 revokes Node 1 copy';
+        document.getElementById('dsm-wire-txt').setAttribute('fill', '#ef4444');
+
+        // Node 0 takes exclusive write ownership
+        document.getElementById('dsm-n0-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('dsm-n0-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('dsm-n0-mmu').setAttribute('fill', '#fee2e2');
+        document.getElementById('dsm-n0-mmu-txt').textContent = 'PTE: P1 [Read/Write Dirty]';
+        document.getElementById('dsm-n0-mmu-txt').setAttribute('fill', '#b91c1c');
+        document.getElementById('dsm-n0-data-txt').textContent = 'Data: Var X = 999 (Dirty), Var Y = 200';
+
+        // Node 1 invalidated
+        document.getElementById('dsm-n1-box').setAttribute('fill', '#f8fafc');
+        document.getElementById('dsm-n1-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('dsm-n1-mmu').setAttribute('fill', '#fee2e2');
+        document.getElementById('dsm-n1-mmu-txt').textContent = 'PTE: P1 [Invalidated]';
+        document.getElementById('dsm-n1-mmu-txt').setAttribute('fill', '#b91c1c');
+        document.getElementById('dsm-n1-page').setAttribute('fill', '#f8fafc');
+        document.getElementById('dsm-n1-page').setAttribute('stroke', '#ef4444');
+        document.getElementById('dsm-n1-page').setAttribute('stroke-dasharray', '3,3');
+        document.getElementById('dsm-n1-data-txt').textContent = '[Stale Data Invalidate Struck]';
+        document.getElementById('dsm-n1-data-txt').setAttribute('fill', '#ef4444');
+
+        n0Rights.textContent = 'Read/Write (Exclusive Owner)';
+        n0Rights.style.color = '#ef4444';
+        n1Rights.textContent = 'Invalid (Revoked)';
+        n1Rights.style.color = '#ef4444';
+        fsStatus.textContent = 'High False Sharing Thrash';
+        fsStatus.style.color = '#ef4444';
+        sumState.textContent = 'Sequential Consistency Bottleneck (Page Bouncing)';
+        sumState.setAttribute('fill', '#ef4444');
+        trafficTxt.textContent = 'Network Overhead: Severe Invalidation Storm';
+
+        appendDsmLog('1. Node 0 executed write: "MOV [Var X], 999". MMU raised write-protection trap.');
+        appendDsmLog('2. Node 0 sent network invalidation packet to Node 1.');
+        appendDsmLog('3. Node 1 marked PTE Invalid. Node 0 upgraded to Read/Write.');
+        appendDsmLog('4. The False Sharing Pathology: If Node 1 now writes to Var Y (an unrelated variable on Page P1), Node 1 will trigger a write fault, invalidate Node 0, and yank the 4 KB page back across the wire.');
+        appendDsmLog('5. Result: The entire 4 KB page bounces continuously across the wire on every loop iteration, collapsing bandwidth.');
+
+        dsmStage = 3;
+        badge.textContent = 'Stage 3 of 3';
+        act.textContent = 'Action Required: Click \'Apply Release Consistency & Batched Diffs\' below.';
+        exp.innerHTML = 'Switch the runtime from Sequential Consistency to <strong>Release Consistency</strong> (e.g., TreadMarks / Munin). Watch how ordinary writes run locally without network traffic, synchronizing only compressed diffs at <code>Acquire()</code> / <code>Release()</code> synchronization points.';
+        btn.textContent = 'Apply Release Consistency & Batched Diffs';
+      } else if (dsmStage === 3) {
+        // Stage 3: Release Consistency
+        document.getElementById('dsm-walkthrough-log').innerHTML = '--> Stage 3: Release Consistency with Compressed Memory Diffs...';
+
+        // Network wire calm
+        document.getElementById('dsm-net-wire').setAttribute('stroke', '#16a34a');
+        document.getElementById('dsm-wire-txt').textContent = 'Batched Release: Compressed Diff (8 Bytes) Synced at Barrier';
+        document.getElementById('dsm-wire-txt').setAttribute('fill', '#16a34a');
+
+        // Both nodes active in green
+        document.getElementById('dsm-n0-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('dsm-n0-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('dsm-n0-mmu').setAttribute('fill', '#dcfce7');
+        document.getElementById('dsm-n0-mmu-txt').textContent = 'PTE: P1 [Synced Release]';
+        document.getElementById('dsm-n0-mmu-txt').setAttribute('fill', '#15803d');
+        document.getElementById('dsm-n0-data-txt').textContent = 'Data: Var X = 999, Var Y = 400';
+
+        document.getElementById('dsm-n1-box').setAttribute('fill', '#f0fdf4');
+        document.getElementById('dsm-n1-box').setAttribute('stroke', '#16a34a');
+        document.getElementById('dsm-n1-mmu').setAttribute('fill', '#dcfce7');
+        document.getElementById('dsm-n1-mmu-txt').textContent = 'PTE: P1 [Synced Acquire]';
+        document.getElementById('dsm-n1-mmu-txt').setAttribute('fill', '#15803d');
+        document.getElementById('dsm-n1-page').setAttribute('fill', '#ffffff');
+        document.getElementById('dsm-n1-page').setAttribute('stroke', '#16a34a');
+        document.getElementById('dsm-n1-page').removeAttribute('stroke-dasharray');
+        document.getElementById('dsm-n1-page-hdr').textContent = 'Synchronized Page Frame P1';
+        document.getElementById('dsm-n1-page-hdr').setAttribute('fill', '#15803d');
+        document.getElementById('dsm-n1-data-txt').textContent = 'Data: Var X = 999, Var Y = 400';
+        document.getElementById('dsm-n1-data-txt').setAttribute('fill', '#334155');
+
+        n0Rights.textContent = 'Read/Write (Batched Diffs)';
+        n0Rights.style.color = '#16a34a';
+        n1Rights.textContent = 'Read/Write (Batched Diffs)';
+        n1Rights.style.color = '#16a34a';
+        policyTxt.textContent = 'Release Consistency (Lazy Diffs)';
+        policyTxt.style.color = '#16a34a';
+        fsStatus.textContent = 'Eliminated (Concurrent Writes Allowed)';
+        fsStatus.style.color = '#16a34a';
+        sumState.textContent = 'Release Consistency Achieved (Zero False Sharing)';
+        sumState.setAttribute('fill', '#15803d');
+        trafficTxt.textContent = 'Network Overhead: ~8 Bytes Diff at Release()';
+
+        appendDsmLog('1. Switched to Release Consistency: Node 0 writes to Var X and Node 1 writes to Var Y concurrently without immediate invalidation messages.');
+        appendDsmLog('2. DSM creates a "twin copy" of Page P1 to track which exact bytes change locally.');
+        appendDsmLog('3. At Release(), Node 0 computes the byte diff ("Var X = 999", 4 bytes).');
+        appendDsmLog('4. At Acquire(), Node 1 merges the diff into its local copy without invalidating Page P1.');
+        appendDsmLog('5. Takeaway: Release Consistency eliminates false sharing ping-ponging by batching updates into lightweight diffs at explicit synchronization barriers!');
+
+        dsmStage = 1;
+        badge.textContent = 'Complete (Ready to Restart)';
+        act.textContent = 'Walkthrough Complete. Click \'Restart Walkthrough from Stage 1\' to review.';
+        exp.innerHTML = 'You evaluated page-based read replication, sequential consistency invalidation thrashing, and release consistency diff synchronization.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
+      }
+    }
+
+    function resetDsmWalkthrough() {
+      dsmStage = 1;
+      resetDsmSvgElements();
+
+      document.getElementById('dsm-step-badge').textContent = 'Stage 1 of 3';
+      document.getElementById('dsm-act-text').textContent = 'Action Required: Click \'Execute Stage 1: Read Fault & Page Replication\' below.';
+      document.getElementById('dsm-exp-text').innerHTML = 'Initially, Page P1 resides only on Node 0. Watch Node 1 attempt a read on P1. The MMU generates a page fault, prompting the DSM runtime to fetch P1 across the network and map it as <strong>Read-Only</strong> on both nodes.';
+      document.getElementById('btn-dsm-step').textContent = 'Execute Stage 1: Read Fault & Page Replication';
+      document.getElementById('dsm-walkthrough-log').innerHTML = '-- DSM walkthrough reset. Page P1 owned exclusively by Node 0 --';
     }
 
     // =======================================================
