@@ -284,7 +284,7 @@
       </p>
     </header>
 
-    <!-- SECTION 1: TIMESHARING VS SPACESHARING & AFFINITY -->
+        <!-- SECTION 1: TIMESHARING VS SPACESHARING & AFFINITY -->
     <section class="content-section">
       <h2>Timesharing, Spacesharing &amp; Affinity Scheduling</h2>
       <p>
@@ -292,48 +292,168 @@
       </p>
 
       <h3>1. Timesharing vs. Spacesharing</h3>
+      <p>
+        The operating system must balance resource utilization against inter-thread synchronization overhead:
+      </p>
       <ul>
         <li>
-          <strong>Timesharing Across Cores:</strong> Threads share CPU cores over discrete time slices (quanta). Each core independently selects runnable threads from a per-core or shared run queue, preempting them when their time quantum expires. Timesharing maximizes overall system throughput and interactive responsiveness for independent tasks.
+          <strong>Timesharing Across Cores:</strong> Threads share CPU cores over discrete time slices (quanta). Each core independently selects runnable threads from a per-core or shared run queue, preempting them when their time quantum expires. Timesharing maximizes overall system utilization and interactive responsiveness when running independent, compute-bound jobs.
         </li>
         <li>
           <strong>Spacesharing Across Partitions:</strong> Physical cores are partitioned among parallel applications. If a parallel scientific job requests 4 cores, the kernel assigns 4 dedicated CPUs to that job until completion. No preemption or timesharing occurs on those cores. Spacesharing eliminates synchronization latency and context-switching overhead, but risks core starvation if threads block on external I/O.
         </li>
       </ul>
 
-      <h3>2. Affinity Scheduling &amp; The Cache Warmth Penalty</h3>
-      <p>
-        When thread $T$ executes on CPU 0, it populates CPU 0's private L1 and L2 caches with its working data set. If $T$ is preempted and subsequently rescheduled on CPU 1:
-      </p>
-      <ul>
-        <li><strong>Cold Cache Misses:</strong> CPU 1's cache does not contain $T$'s working set, causing hundreds of cycles of stalls as data is fetched from L3 or physical RAM.</li>
-        <li><strong>Coherence Invalidation Overhead:</strong> If $T$ mutates data on CPU 1 that was previously left dirty in CPU 0's cache, the hardware cache coherence protocol must broadcast invalidation messages, stalling the interconnect.</li>
-      </ul>
-      <p>
-        To prevent thrashing, operating systems implement <strong>Affinity Scheduling</strong>:
-      </p>
       <table class="spec-table">
         <thead>
           <tr>
-            <th>Affinity Type</th>
-            <th>Mechanism</th>
-            <th>Trade-Off</th>
+            <th>Scheduling Dimension</th>
+            <th>Timesharing Across Cores</th>
+            <th>Spacesharing Partitions</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Soft Affinity</strong></td>
-            <td>The scheduler attempts to reschedule a thread on its last executed core. However, if that core is busy and another core is idle, the thread is migrated (e.g., via work stealing).</td>
-            <td>Maintains high overall CPU utilization, but incurs periodic cache re-warming penalties.</td>
+            <td><strong>Core Assignment</strong></td>
+            <td>Dynamic; threads move between cores across quanta.</td>
+            <td>Static; dedicated cores bound for job duration.</td>
           </tr>
           <tr>
-            <td><strong>Hard Affinity</strong></td>
-            <td>The thread is strictly bound to a designated CPU mask (e.g., via Linux <code>sched_setaffinity()</code> or Windows <code>SetThreadAffinityMask()</code>).</td>
-            <td>Guarantees deterministic cache warmth and predictable timing; risks idle core capacity if the pinned thread blocks.</td>
+            <td><strong>Preemption Overhead</strong></td>
+            <td>High; regular context switches and cache evictions.</td>
+            <td>Zero; applications run uninterrupted to completion.</td>
+          </tr>
+          <tr>
+            <td><strong>Synchronization Penalty</strong></td>
+            <td>High risk of spinlock stalls if lock holders are preempted.</td>
+            <td>Zero preemption stalls; spinlocks resolve in nanoseconds.</td>
+          </tr>
+          <tr>
+            <td><strong>System Utilization</strong></td>
+            <td>High; idle cores immediately pick up waiting threads.</td>
+            <td>Lower; cores sit idle if a thread blocks on I/O.</td>
           </tr>
         </tbody>
       </table>
+
+      <h3>2. Cache Warmth &amp; The Migration Penalty</h3>
+      <p>
+        When thread $T$ executes on Core 0, it loads its working set (data structures, stack frames, loop variables) into Core 0's private L1 and L2 caches. This is called a <strong>warm cache</strong>.
+      </p>
+      <p>
+        If the operating system preempts $T$ and subsequently dispatches it to Core 1 to balance run queues:
+      </p>
+      <ul>
+        <li><strong>Cold Cache Misses:</strong> Core 1's L1/L2 caches contain none of $T$'s data. Every instruction fetch and memory load incurs a cache miss, stalling the execution pipeline while data is fetched from shared L3 or physical DRAM (~40–80 ns vs. ~1 ns for L1).</li>
+        <li><strong>Coherence Invalidation Traffic:</strong> If $T$ mutates data on Core 1 that was left dirty in Core 0's cache, the hardware cache coherence protocol must broadcast invalidation messages, invalidating lines across the interconnect and adding bus contention.</li>
+      </ul>
+
+      <h3>3. Soft vs. Hard Affinity Scheduling</h3>
+      <p>
+        To preserve cache warmth without causing CPU starvation, kernels implement <strong>Affinity Scheduling</strong>:
+      </p>
+      <ul>
+        <li>
+          <strong>Soft Affinity:</strong> The scheduler prefers to reschedule a thread on the physical core it last occupied. If that core is busy, the scheduler delays migration briefly (an affinity grace period). Only when another core becomes idle and load imbalance exceeds a threshold does <em>work stealing</em> migrate the thread.
+        </li>
+        <li>
+          <strong>Hard Affinity:</strong> The application or administrator explicitly binds a thread to a specific set of cores using system calls (e.g., Linux <code>sched_setaffinity()</code> or Windows <code>SetThreadAffinityMask()</code>). The scheduler is forbidden from migrating the thread, guaranteeing deterministic cache locality at the cost of potential core underutilization.
+        </li>
+      </ul>
+
+      <!-- GUIDED WALKTHROUGH: CACHE WARMTH & AFFINITY -->
+      <div class="walkthrough-box">
+        <div class="walkthrough-header">
+          <span class="walkthrough-title">Guided Walkthrough: Cache Warmth &amp; Affinity Scheduling</span>
+          <span id="aff-step-badge" class="step-badge">Stage 1 of 3</span>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
+          <strong>Concept Overview:</strong> When an operating system scheduler migrates a thread between cores, it discards the hardware benefits of cache locality. This walkthrough visually demonstrates the physical contents of private L1/L2 caches: observe how executing a thread on a warm core achieves near-instant memory hits, how thread migration induces a severe cold-cache penalty, and how affinity scheduling preserves execution throughput.
+        </p>
+
+        <div class="instruction-card">
+          <div id="aff-act-text" class="action-req">Action Required: Click 'Execute Stage 1: Thread A on Warm Core 0' below.</div>
+          <div id="aff-exp-text" class="action-exp">Watch Thread A execute on Core 0. Notice that its working set lines (X, Y, Z) reside inside Core 0's private L1/L2 cache, delivering 100% cache hits and optimal execution latency (~1.2 ns).</div>
+        </div>
+
+        <!-- Inline Interactive SVG Cache Warmth Diagram -->
+        <div style="background:#ffffff; border:1px solid var(--border); border-radius:6px; padding:16px; display:flex; justify-content:center;">
+          <svg id="affinity-svg" viewBox="0 0 740 310" style="width:100%; max-width:720px; height:auto; font-family:var(--font-mono); font-size:11px;">
+            <!-- Core 0 Architecture (Left) -->
+            <rect id="aff-c0-box" x="30" y="20" width="320" height="180" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" rx="6"/>
+            <text x="190" y="42" text-anchor="middle" font-weight="bold" fill="#15803d" font-size="12">Physical Core 0</text>
+
+            <!-- Core 0 Pipeline & Active Thread -->
+            <rect id="aff-c0-thread-box" x="50" y="55" width="280" height="34" fill="#dcfce7" stroke="#16a34a" rx="4"/>
+            <text id="aff-c0-thread-txt" x="190" y="76" text-anchor="middle" font-weight="bold" fill="#15803d">Running: Thread A (Active)</text>
+
+            <!-- Core 0 Private L1/L2 Cache Array -->
+            <rect x="50" y="100" width="280" height="85" fill="#ffffff" stroke="#16a34a" stroke-dasharray="3,3" rx="4"/>
+            <text x="190" y="118" text-anchor="middle" font-size="10" font-weight="bold" fill="#15803d">Private L1/L2 Cache Array (Core 0)</text>
+
+            <rect id="aff-c0-line0" x="65" y="128" width="75" height="24" fill="#16a34a" rx="3"/>
+            <text id="aff-c0-txt0" x="102" y="144" text-anchor="middle" font-weight="bold" fill="#ffffff">Line X: Warm</text>
+
+            <rect id="aff-c0-line1" x="152" y="128" width="75" height="24" fill="#16a34a" rx="3"/>
+            <text id="aff-c0-txt1" x="189" y="144" text-anchor="middle" font-weight="bold" fill="#ffffff">Line Y: Warm</text>
+
+            <rect id="aff-c0-line2" x="240" y="128" width="75" height="24" fill="#16a34a" rx="3"/>
+            <text id="aff-c0-txt2" x="277" y="144" text-anchor="middle" font-weight="bold" fill="#ffffff">Line Z: Warm</text>
+
+            <text id="aff-c0-stat-txt" x="190" y="172" text-anchor="middle" font-size="9" fill="#15803d" font-weight="bold">Cache State: 100% Warm (Hits: ~1.2 ns)</text>
+
+            <!-- Core 1 Architecture (Right) -->
+            <rect id="aff-c1-box" x="390" y="20" width="320" height="180" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="6"/>
+            <text x="550" y="42" text-anchor="middle" font-weight="bold" fill="#475569" font-size="12">Physical Core 1</text>
+
+            <!-- Core 1 Pipeline & Active Thread -->
+            <rect id="aff-c1-thread-box" x="410" y="55" width="280" height="34" fill="#f1f5f9" stroke="#cbd5e1" rx="4"/>
+            <text id="aff-c1-thread-txt" x="550" y="76" text-anchor="middle" font-weight="bold" fill="#64748b">Pipeline: [Idle / Other]</text>
+
+            <!-- Core 1 Private L1/L2 Cache Array -->
+            <rect x="410" y="100" width="280" height="85" fill="#ffffff" stroke="#cbd5e1" stroke-dasharray="3,3" rx="4"/>
+            <text x="550" y="118" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">Private L1/L2 Cache Array (Core 1)</text>
+
+            <rect id="aff-c1-line0" x="425" y="128" width="75" height="24" fill="#94a3b8" rx="3"/>
+            <text id="aff-c1-txt0" x="462" y="144" text-anchor="middle" font-weight="bold" fill="#ffffff">Line X: Cold</text>
+
+            <rect id="aff-c1-line1" x="512" y="128" width="75" height="24" fill="#94a3b8" rx="3"/>
+            <text id="aff-c1-txt1" x="549" y="144" text-anchor="middle" font-weight="bold" fill="#ffffff">Line Y: Cold</text>
+
+            <rect id="aff-c1-line2" x="600" y="128" width="75" height="24" fill="#94a3b8" rx="3"/>
+            <text id="aff-c1-txt2" x="637" y="144" text-anchor="middle" font-weight="bold" fill="#ffffff">Line Z: Cold</text>
+
+            <text id="aff-c1-stat-txt" x="550" y="172" text-anchor="middle" font-size="9" fill="#64748b">Cache State: Cold / Unmapped</text>
+
+            <!-- Interconnect & L3 Bus Lines -->
+            <line id="aff-bus-c0" x1="190" y1="200" x2="190" y2="235" stroke="#16a34a" stroke-width="3"/>
+            <line id="aff-bus-c1" x1="550" y1="200" x2="550" y2="235" stroke="#cbd5e1" stroke-width="3"/>
+            <line x1="190" y1="235" x2="550" y2="235" stroke="#cbd5e1" stroke-width="3"/>
+
+            <!-- Shared L3 Cache / Interconnect (Bottom) -->
+            <rect id="aff-l3-box" x="120" y="245" width="500" height="50" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" rx="4"/>
+            <text x="370" y="268" text-anchor="middle" font-weight="bold" fill="#334155" font-size="11">Shared L3 Cache &amp; Interconnect Fabric</text>
+            <text id="aff-l3-txt" x="370" y="284" text-anchor="middle" font-size="9" fill="#64748b">No Inter-Core Cache Invalidation Traffic</text>
+          </svg>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; background:#ffffff; border:1px solid var(--border); padding:12px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem;">
+          <div>Thread Location: <strong id="aff-loc-txt" style="color:#16a34a;">Core 0 (Warm)</strong></div>
+          <div>Memory Hit Latency: <span id="aff-lat-txt" style="font-weight:bold; color:#16a34a;">~1.2 ns (L1 Hit)</span></div>
+          <div>Interconnect Traffic: <span id="aff-bus-txt" style="font-weight:bold; color:#10b981;">None (Local)</span></div>
+          <div>Affinity Mode: <span id="aff-mode-txt" style="font-weight:bold; color:#0284c7;">Soft Affinity</span></div>
+        </div>
+
+        <div class="walkthrough-controls">
+          <button id="btn-aff-step" class="btn-step" onclick="stepAffinityWalkthrough()">Simulate Stage 2: Naïve Migration to Cold Core 1</button>
+          <button class="btn-reset" onclick="resetAffinityWalkthrough()">Reset Walkthrough</button>
+        </div>
+
+        <div id="aff-walkthrough-log" class="status-panel">-- Stage 1 ready: Thread A running on warm Core 0 with optimal cache hit ratios --</div>
+      </div>
     </section>
+
 
     <!-- SECTION 2: GANG SCHEDULING WALKTHROUGH -->
     <section class="content-section">
@@ -565,6 +685,184 @@
   </div>
 
   <script>
+    
+    // =======================================================
+    // 0. AFFINITY SCHEDULING & CACHE WARMTH WALKTHROUGH
+    // =======================================================
+    let affStage = 1;
+
+    function appendAffLog(msg) {
+      const el = document.getElementById('aff-walkthrough-log');
+      el.innerHTML += '<br>' + msg;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function resetAffSvgElements() {
+      // Core 0 Warm (Default)
+      document.getElementById('aff-c0-box').setAttribute('fill', '#f0fdf4');
+      document.getElementById('aff-c0-box').setAttribute('stroke', '#16a34a');
+      document.getElementById('aff-c0-thread-box').setAttribute('fill', '#dcfce7');
+      document.getElementById('aff-c0-thread-box').setAttribute('stroke', '#16a34a');
+      document.getElementById('aff-c0-thread-txt').textContent = 'Running: Thread A (Active)';
+      document.getElementById('aff-c0-thread-txt').setAttribute('fill', '#15803d');
+
+      ['0', '1', '2'].forEach(idx => {
+        const line = document.getElementById(`aff-c0-line${idx}`);
+        line.setAttribute('fill', '#16a34a');
+      });
+      document.getElementById('aff-c0-stat-txt').textContent = 'Cache State: 100% Warm (Hits: ~1.2 ns)';
+      document.getElementById('aff-c0-stat-txt').setAttribute('fill', '#15803d');
+
+      // Core 1 Cold (Default)
+      document.getElementById('aff-c1-box').setAttribute('fill', '#f8fafc');
+      document.getElementById('aff-c1-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('aff-c1-thread-box').setAttribute('fill', '#f1f5f9');
+      document.getElementById('aff-c1-thread-box').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('aff-c1-thread-txt').textContent = 'Pipeline: [Idle / Other]';
+      document.getElementById('aff-c1-thread-txt').setAttribute('fill', '#64748b');
+
+      ['0', '1', '2'].forEach(idx => {
+        const line = document.getElementById(`aff-c1-line${idx}`);
+        line.setAttribute('fill', '#94a3b8');
+      });
+      document.getElementById('aff-c1-stat-txt').textContent = 'Cache State: Cold / Unmapped';
+      document.getElementById('aff-c1-stat-txt').setAttribute('fill', '#64748b');
+
+      // Bus & L3
+      document.getElementById('aff-bus-c0').setAttribute('stroke', '#16a34a');
+      document.getElementById('aff-bus-c1').setAttribute('stroke', '#cbd5e1');
+      document.getElementById('aff-l3-box').setAttribute('fill', '#f1f5f9');
+      document.getElementById('aff-l3-box').setAttribute('stroke', '#94a3b8');
+      document.getElementById('aff-l3-txt').textContent = 'No Inter-Core Cache Invalidation Traffic';
+    }
+
+    function stepAffinityWalkthrough() {
+      const btn = document.getElementById('btn-aff-step');
+      const badge = document.getElementById('aff-step-badge');
+      const act = document.getElementById('aff-act-text');
+      const exp = document.getElementById('aff-exp-text');
+
+      const locTxt = document.getElementById('aff-loc-txt');
+      const latTxt = document.getElementById('aff-lat-txt');
+      const busTxt = document.getElementById('aff-bus-txt');
+      const modeTxt = document.getElementById('aff-mode-txt');
+
+      if (affStage === 1) {
+        // Stage 2: Naive Migration to Core 1 (Cold Cache)
+        document.getElementById('aff-walkthrough-log').innerHTML = '--> Stage 2: Naïve Migration to Core 1 (Cold Cache Hazard)...';
+
+        // Core 0 becomes Idle / Stale
+        document.getElementById('aff-c0-box').setAttribute('fill', '#f8fafc');
+        document.getElementById('aff-c0-box').setAttribute('stroke', '#cbd5e1');
+        document.getElementById('aff-c0-thread-box').setAttribute('fill', '#f1f5f9');
+        document.getElementById('aff-c0-thread-box').setAttribute('stroke', '#cbd5e1');
+        document.getElementById('aff-c0-thread-txt').textContent = 'Pipeline: [Idle]';
+        document.getElementById('aff-c0-thread-txt').setAttribute('fill', '#64748b');
+
+        ['0', '1', '2'].forEach(idx => {
+          document.getElementById(`aff-c0-line${idx}`).setAttribute('fill', '#e2e8f0');
+        });
+        document.getElementById('aff-c0-stat-txt').textContent = 'Lines Dirty in Core 0 (Stale on Core 1)';
+        document.getElementById('aff-c0-stat-txt').setAttribute('fill', '#64748b');
+
+        // Core 1 running Thread A with Cold Cache
+        document.getElementById('aff-c1-box').setAttribute('fill', '#fef2f2');
+        document.getElementById('aff-c1-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('aff-c1-thread-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('aff-c1-thread-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('aff-c1-thread-txt').textContent = 'Running: Thread A (Cold Cache Misses!)';
+        document.getElementById('aff-c1-thread-txt').setAttribute('fill', '#991b1b');
+
+        ['0', '1', '2'].forEach(idx => {
+          document.getElementById(`aff-c1-line${idx}`).setAttribute('fill', '#ef4444');
+          document.getElementById(`aff-c1-txt${idx}`).textContent = 'Miss (Fetch)';
+        });
+        document.getElementById('aff-c1-stat-txt').textContent = 'Cache State: 0% Hits (Pipeline Stalled)';
+        document.getElementById('aff-c1-stat-txt').setAttribute('fill', '#ef4444');
+
+        // Active interconnect traffic
+        document.getElementById('aff-bus-c0').setAttribute('stroke', '#ef4444');
+        document.getElementById('aff-bus-c1').setAttribute('stroke', '#ef4444');
+        document.getElementById('aff-l3-box').setAttribute('fill', '#fee2e2');
+        document.getElementById('aff-l3-box').setAttribute('stroke', '#ef4444');
+        document.getElementById('aff-l3-txt').textContent = 'High Interconnect Traffic: Cache Lines Transferred Core 0 -> Core 1';
+
+        locTxt.textContent = 'Core 1 (Cold)';
+        locTxt.style.color = '#ef4444';
+        latTxt.textContent = '~55 ns (Cold Misses)';
+        latTxt.style.color = '#ef4444';
+        busTxt.textContent = 'High (Interconnect Stalls)';
+        busTxt.style.color = '#ef4444';
+        modeTxt.textContent = 'Naïve Load Balancing';
+        modeTxt.style.color = '#ef4444';
+
+        appendAffLog('1. Scheduler observes Core 1 underutilized and migrates Thread A across cores.');
+        appendAffLog('2. Cold Cache Shock: Core 1 L1/L2 caches contain zero data for Thread A.');
+        appendAffLog('3. Memory Stall: Every access to variables X, Y, and Z misses Core 1\'s cache, requiring round-trip fetches across the L3 interconnect.');
+        appendAffLog('4. Latency spikes from 1.2 ns to 55 ns (a ~45x slowdown) until Core 1 caches re-warm.');
+
+        affStage = 2;
+        badge.textContent = 'Stage 2 of 3';
+        act.textContent = 'Action Required: Click \'Apply Affinity Scheduling Retention\' below.';
+        exp.innerHTML = 'Now observe how <strong>Affinity Scheduling</strong> prevents this performance penalty. The scheduler recognizes Core 0 as Thread A\'s warm home, keeping Thread A pinned to Core 0 across subsequent quanta.';
+        btn.textContent = 'Apply Affinity Scheduling Retention';
+      } else if (affStage === 2) {
+        // Stage 3: Affinity Retention
+        resetAffSvgElements();
+        document.getElementById('aff-walkthrough-log').innerHTML = '--> Stage 3: Affinity Scheduling Retains Warm Locality...';
+
+        document.getElementById('aff-c0-thread-txt').textContent = 'Running: Thread A (Affinity Pinned)';
+        document.getElementById('aff-c0-stat-txt').textContent = 'Cache State: 100% Warm (Hits: ~1.2 ns)';
+
+        locTxt.textContent = 'Core 0 (Affinity Retained)';
+        locTxt.style.color = '#16a34a';
+        latTxt.textContent = '~1.2 ns (L1 Hit)';
+        latTxt.style.color = '#16a34a';
+        busTxt.textContent = 'Zero (Pure Local Hits)';
+        busTxt.style.color = '#10b981';
+        modeTxt.textContent = 'Hard / Soft Affinity';
+        modeTxt.style.color = '#16a34a';
+
+        appendAffLog('1. Affinity policy enforced: Scheduler prioritizes Core 0 for Thread A.');
+        appendAffLog('2. Thread A resumes on Core 0: Cache lines X, Y, and Z remain intact in L1/L2.');
+        appendAffLog('3. Zero cold cache misses: Memory instructions execute at peak pipeline speed (~1.2 ns).');
+        appendAffLog('4. Interconnect bus remains completely quiet, preserving bandwidth for other cores.');
+
+        affStage = 3;
+        badge.textContent = 'Stage 3 of 3';
+        act.textContent = 'Action Required: Click \'Restart Walkthrough from Stage 1\' below.';
+        exp.innerHTML = 'Walkthrough complete! You observed warm cache execution, the ~45x latency penalty of cold core migration, and how affinity scheduling preserves execution locality.';
+        btn.textContent = 'Restart Walkthrough from Stage 1';
+      } else if (affStage === 3) {
+        resetAffinityWalkthrough();
+      }
+    }
+
+    function resetAffinityWalkthrough() {
+      affStage = 1;
+      resetAffSvgElements();
+
+      document.getElementById('aff-step-badge').textContent = 'Stage 1 of 3';
+      document.getElementById('aff-act-text').textContent = 'Action Required: Click \'Execute Stage 1: Thread A on Warm Core 0\' below.';
+      document.getElementById('aff-exp-text').innerHTML = 'Watch Thread A execute on Core 0. Notice that its working set lines (X, Y, Z) reside inside Core 0\'s private L1/L2 cache, delivering 100% cache hits and optimal execution latency (~1.2 ns).';
+
+      const locTxt = document.getElementById('aff-loc-txt');
+      locTxt.textContent = 'Core 0 (Warm)';
+      locTxt.style.color = '#16a34a';
+      const latTxt = document.getElementById('aff-lat-txt');
+      latTxt.textContent = '~1.2 ns (L1 Hit)';
+      latTxt.style.color = '#16a34a';
+      const busTxt = document.getElementById('aff-bus-txt');
+      busTxt.textContent = 'None (Local)';
+      busTxt.style.color = '#10b981';
+      const modeTxt = document.getElementById('aff-mode-txt');
+      modeTxt.textContent = 'Soft Affinity';
+      modeTxt.style.color = '#0284c7';
+
+      document.getElementById('btn-aff-step').textContent = 'Simulate Stage 2: Naïve Migration to Cold Core 1';
+      document.getElementById('aff-walkthrough-log').innerHTML = '-- Stage 1 ready: Thread A running on warm Core 0 with optimal cache hit ratios --';
+    }
+
     // =======================================================
     // 1. GANG SCHEDULING WALKTHROUGH CONTROLLER
     // =======================================================
