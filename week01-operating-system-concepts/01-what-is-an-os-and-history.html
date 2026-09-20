@@ -42,10 +42,10 @@
     p { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
     ul { margin-left: 20px; color: var(--text-muted); line-height: 1.6; }
     li { margin-bottom: 6px; }
-    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 10px; }
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 10px; }
     .image-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-    .image-card img { max-width: 100%; height: 140px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
-    .image-card span { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted); }
+    .image-card img { max-width: 100%; height: 130px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
+    .image-card span { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted); line-height: 1.4; }
     .aside-box { background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin-top: 10px; }
   </style>
 </head>
@@ -75,13 +75,6 @@
       <p>
         Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users.
       </p>
-      <p>
-        Resource management involves two primary forms of multiplexing:
-      </p>
-      <ul>
-        <li><strong>Time Multiplexing:</strong> Taking turns. The CPU switches rapidly between multiple running processes or threads, giving each the illusion of dedicated processor ownership.</li>
-        <li><strong>Space Multiplexing:</strong> Sharing physical storage or memory. Main memory is partitioned among multiple programs simultaneously, and disk storage is divided into independent files and directories.</li>
-      </ul>
     </section>
 
     <section class="content-section">
@@ -97,11 +90,21 @@
       <div class="image-grid">
         <div class="image-card">
           <img src="../images/vacuumtube.jpg" alt="Vacuum Tubes">
-          <span>Vacuum Tubes (12AX7WA)<br><small>Wikimedia Commons</small></span>
+          <span>
+            <strong>Vacuum Tube</strong><br>
+            Thermionic valve switching components.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Vacuum_tube" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
+            <small>Wikimedia Commons contributors</small>
+          </span>
         </div>
         <div class="image-card">
           <img src="../images/plugboard.jpg" alt="Plugboard">
-          <span>IBM 402 Plugboard Wiring<br><small>Wikimedia Commons</small></span>
+          <span>
+            <strong>Plugboard Wiring</strong><br>
+            Manual machine programming interfaces.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Plugboard" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
+            <small>Wikimedia Commons contributors</small>
+          </span>
         </div>
       </div>
 
@@ -112,11 +115,21 @@
       <div class="image-grid">
         <div class="image-card">
           <img src="../images/replica-first-transistor.jpg" alt="Transistor Replica">
-          <span>First Working Transistor Replica<br><small>Wikimedia Commons</small></span>
+          <span>
+            <strong>First Transistor</strong><br>
+            Solid-state semiconductor switching.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Transistor" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
+            <small>Wikimedia Commons contributors</small>
+          </span>
         </div>
         <div class="image-card">
           <img src="../images/punched-card-program-deck.jpg" alt="Punched Cards">
-          <span>Punched Card Program Deck<br><small>Wikimedia Commons</small></span>
+          <span>
+            <strong>Punched Card Deck</strong><br>
+            Batch job submission media.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Punched_card" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
+            <small>Wikimedia Commons contributors</small>
+          </span>
         </div>
       </div>
 
@@ -127,11 +140,21 @@
       <div class="image-grid">
         <div class="image-card">
           <img src="../images/integrated-circuit.jpg" alt="Integrated Circuit">
-          <span>Integrated Circuit Microchip<br><small>Wikimedia Commons contributors, CC BY-SA 3.0</small></span>
+          <span>
+            <strong>Integrated Circuit</strong><br>
+            Microchip scaling on silicon substrates.<br>
+            <small><a href="https://en.wikipedia.org/wiki/Integrated_circuit" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
+            <small>Wikimedia Commons contributors, CC BY-SA 3.0</small>
+          </span>
         </div>
         <div class="image-card">
           <img src="../images/system360.jpg" alt="IBM System/360">
-          <span>IBM System/360 Mainframe at VW-Werk Wolfsburg (1973)<br><small>Bundesarchiv, B 145 Bild-F038812-0014 / Schaack, Lothar / CC-BY-SA 3.0</small></span>
+          <span>
+            <strong>IBM System/360</strong><br>
+            Mainframe architecture family (VW-Werk Wolfsburg, 1973).<br>
+            <small><a href="https://en.wikipedia.org/wiki/IBM_System/360" target="_blank" rel="noopener">Wikipedia Article</a></small><br>
+            <small>Bundesarchiv, B 145 Bild-F038812-0014 / Schaack, Lothar / CC-BY-SA 3.0</small>
+          </span>
         </div>
       </div>
 
