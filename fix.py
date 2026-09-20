@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # =====================================================================
-# update_chapter_index_card_layout.py: Align Chapter 1 index with Week 10 format
+# remove_os_zoo_card.py: Remove Operating System Zoo card from index
 # =====================================================================
 import os
 import subprocess
 import sys
 
-CARD_LAYOUT_HTML = r"""<!DOCTYPE html>
+UPDATED_CARD_LAYOUT_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -140,37 +140,31 @@ CARD_LAYOUT_HTML = r"""<!DOCTYPE html>
       <span class="link-text">Explore Module &rarr;</span>
     </a>
 
-    <!-- Section 1.3 -->
+    <!-- Computer Hardware Review -->
     <div class="card">
       <h2>Computer Hardware Review</h2>
       <p>Examine processors, instruction execution cycles, memory hierarchy, magnetic disks, solid-state drives, I/O devices, and system buses.</p>
     </div>
 
-    <!-- Section 1.4 -->
-    <div class="card">
-      <h2>The Operating System Zoo</h2>
-      <p>Survey mainframe, server, multiprocessor, personal computer, handheld, embedded, sensor-node, real-time, and smart-card operating systems.</p>
-    </div>
-
-    <!-- Section 1.5 -->
+    <!-- Operating System Concepts -->
     <div class="card">
       <h2>Operating System Concepts</h2>
       <p>Understand key architectural abstractions: processes, address spaces, files, input/output streams, protection rings, and command shells.</p>
     </div>
 
-    <!-- Section 1.6 -->
+    <!-- System Calls -->
     <div class="card">
       <h2>System Calls</h2>
       <p>Analyze API mechanics, trap instructions, user-to-kernel mode transitions, and the execution flow of operating system service calls.</p>
     </div>
 
-    <!-- Section 1.7 -->
+    <!-- Operating System Structure -->
     <div class="card">
       <h2>Operating System Structure</h2>
       <p>Compare architectural designs: monolithic systems, layered systems, microclients, client-server models, virtual machines, and exokernels.</p>
     </div>
 
-    <!-- Section 1.8 -->
+    <!-- The World According to C -->
     <div class="card">
       <h2>The World According to C</h2>
       <p>Review the role of the C programming language and POSIX standards in systems programming, compilation models, and header file management.</p>
@@ -181,13 +175,13 @@ CARD_LAYOUT_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def execute_layout_update():
+def execute_removal():
     portal_dir = "week01-operating-system-concepts"
     os.makedirs(portal_dir, exist_ok=True)
     portal_path = os.path.join(portal_dir, "index.html")
 
     with open(portal_path, "w", encoding="utf-8") as f:
-        f.write(CARD_LAYOUT_HTML)
+        f.write(UPDATED_CARD_LAYOUT_HTML)
 
     modified = [portal_path]
     fix_path = "fix.py"
@@ -198,15 +192,15 @@ def execute_layout_update():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Align Chapter 1 index page layout with standard week card structure\n\n"
-            "Update week01-operating-system-concepts/index.html to use the stacked card container layout,\n"
-            "top back navigation link, and header styling matching the Week 10 curriculum modules."
+            "Remove Operating System Zoo card from Chapter 1 index portal\n\n"
+            "Update week01-operating-system-concepts/index.html to remove the card corresponding\n"
+            "to The Operating System Zoo section."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Chapter 1 card layout index successfully deployed!")
+    print("--> Operating System Zoo card successfully removed and deployed!")
 
 if __name__ == "__main__":
-    execute_layout_update()
+    execute_removal()
