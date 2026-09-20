@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # =====================================================================
-# update_agarwal_attribution.py: Add photo attribution for Anant Agarwal
+# fix_agarwal_filename.py: Correct image filename to agarwal.jpeg
 # =====================================================================
 import os
 import subprocess
 import sys
 
-WIKI_ASIDE_NUMA_AGARWAL_ATTRIB = r"""
-        <!-- NUMA & DASH RESEARCH ASIDE WITH PORTRAIT AND ATTRIBUTION -->
+WIKI_ASIDE_NUMA_AGARWAL_CORRECT = r"""
+        <!-- NUMA & DASH RESEARCH ASIDE WITH CORRECT FILENAME -->
         <aside style="display: block; border-left: 4px solid #0284c7; background: #f0f9ff; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 24px 0; font-size: 0.92rem; color: #0369a1;">
           <h4 style="margin-bottom: 8px; font-weight: bold; color: #0369a1;">Historical Summary &amp; Further Reading: Non-Uniform Memory Access (NUMA) &amp; DASH</h4>
 
           <div style="display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px;">
             <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;">
               <div style="width: 120px; height: 150px; background: #e2e8f0; border-radius: 4px; overflow: hidden; border: 1px solid #bae6fd;">
-                <img src="../images/argawal.jpeg" alt="Anant Agarwal Portrait" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="../images/agarwal.jpeg" alt="Anant Agarwal Portrait" style="width: 100%; height: 100%; object-fit: cover;">
               </div>
               <span style="font-size: 0.72rem; color: #64748b; text-align: center; line-height: 1.2;">Photo by New America<br>(2015 Conference)</span>
             </div>
@@ -30,7 +30,7 @@ WIKI_ASIDE_NUMA_AGARWAL_ATTRIB = r"""
           </div>
         </aside>"""
 
-def update_agarwal_attrib():
+def fix_filename():
     mod1 = os.path.join("week11-multiprocessors", "01-multiprocessor-hardware.html")
     modified = []
 
@@ -44,7 +44,7 @@ def update_agarwal_attrib():
 
         target = "<!-- GUIDED WALKTHROUGH 3: MESI PROTOCOL -->"
         if target in content:
-            content = content.replace(target, WIKI_ASIDE_NUMA_AGARWAL_ATTRIB + "\n\n      " + target, 1)
+            content = content.replace(target, WIKI_ASIDE_NUMA_AGARWAL_CORRECT + "\n\n      " + target, 1)
             with open(mod1, "w", encoding="utf-8") as f:
                 f.write(content)
             modified.append(mod1)
@@ -61,15 +61,15 @@ def update_agarwal_attrib():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Add photo attribution for Anant Agarwal portrait in NUMA aside box\n\n"
-            "Update 01-multiprocessor-hardware.html to include attribution text underneath\n"
-            "Anant Agarwal's portrait referencing the New America 2015 conference source."
+            "Correct image filename reference from argawal.jpeg to agarwal.jpeg\n\n"
+            "Update 01-multiprocessor-hardware.html to reference the correct asset filename\n"
+            "images/agarwal.jpeg in the Anant Agarwal NUMA research aside box."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> Anant Agarwal photo attribution successfully deployed to NUMA aside!")
+    print("--> Image filename correction successfully deployed!")
 
 if __name__ == "__main__":
-    update_agarwal_attrib()
+    fix_filename()
