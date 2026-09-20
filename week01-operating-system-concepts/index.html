@@ -102,16 +102,6 @@
       color: #ffffff;
     }
   </style>
-  <!-- MathJax Configuration for LaTeX Rendering -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
-      }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <div class="nav-back">
@@ -125,36 +115,40 @@
 
   <div class="main-container">
 
-    <!-- Intro Module -->
-    <a href="intro/index.html" class="card" style="border-color: #bae6fd; background-color: #f0f9ff;">
-      <h2>What Is an Operating System &amp; History</h2>
-      <p>Explore foundational concepts including the operating system as a resource manager, extended machine, and the five generations of computing.</p>
-      <span class="link-text">Explore Module &rarr;</span>
+    <!-- Module 01 -->
+    <a href="01-what-is-an-os.html" class="card">
+      <h2>01. What Is an Operating System?</h2>
+      <p>Examine foundational paradigms: the operating system as an extended machine (top-down virtualization) and as a resource manager (bottom-up multiplexing).</p>
+      <span class="link-text">Launch Module &rarr;</span>
     </a>
 
-    <!-- Computer Hardware Review -->
-    <div class="card">
-      <h2>Computer Hardware Review</h2>
-      <p>Examine processors, instruction execution cycles, memory hierarchy, magnetic disks, solid-state drives, I/O devices, and system buses.</p>
-    </div>
+    <!-- Module 02 -->
+    <a href="02-history.html" class="card">
+      <h2>02. History of Operating Systems</h2>
+      <p>Trace the five computing generations from vacuum tubes and batch systems to modern cloud environments, featuring historical archives and the 15-logo OS ecosystem grid.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
 
-    <!-- Operating System Concepts -->
-    <div class="card">
-      <h2>Operating System Concepts</h2>
+    <!-- Module 03 -->
+    <a href="03-hardware-review.html" class="card">
+      <h2>03. Computer Hardware Review</h2>
+      <p>Review processor architecture, instruction execution cycles, memory hierarchy, magnetic disks, solid-state drives, I/O devices, and system buses.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
+
+    <!-- Module 04 -->
+    <a href="04-os-concepts.html" class="card">
+      <h2>04. Operating System Concepts</h2>
       <p>Understand key architectural abstractions: processes, address spaces, files, input/output streams, protection rings, and command shells.</p>
-    </div>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
 
-    <!-- System Calls -->
-    <div class="card">
-      <h2>System Calls</h2>
-      <p>Analyze API mechanics, trap instructions, user-to-kernel mode transitions, and the execution flow of operating system service calls.</p>
-    </div>
-
-    <!-- Operating System Structure -->
-    <div class="card">
-      <h2>Operating System Structure</h2>
-      <p>Compare architectural designs: monolithic systems, layered systems, microclients, client-server models, virtual machines, and exokernels.</p>
-    </div>
+    <!-- Module 05 -->
+    <a href="05-os-structure.html" class="card">
+      <h2>05. Operating System Structure</h2>
+      <p>Compare structural designs: monolithic systems, layered architectures, microkernels, client-server models, virtual machines, and exokernels.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
 
   </div>
 </body>
