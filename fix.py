@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
 # =====================================================================
-# remove_world_according_to_c_card.py: Remove C section card from index
+# restore_intro_page.py: Recreate intro page with correct image paths
 # =====================================================================
 import os
 import subprocess
 import sys
 
-UPDATED_INDEX_HTML = r"""<!DOCTYPE html>
+INTRO_INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>COSC240: Chapter 1 - Introduction (Tanenbaum)</title>
+  <title>What Is an Operating System &amp; History — COSC240</title>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
-      --border-dark: #94a3b8;
       --accent: #0284c7;
-      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -35,59 +32,10 @@ UPDATED_INDEX_HTML = r"""<!DOCTYPE html>
       align-items: center;
       gap: 18px;
     }
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 1100px;
-    }
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      transition: transform 0.15s ease, border-color 0.15s ease;
-      text-decoration: none;
-      color: inherit;
-    }
-    .card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-    .card h2 {
-      font-size: 1.2rem;
-      color: var(--accent);
-    }
-    .card p {
-      font-size: 0.92rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .card .link-text {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin-top: 6px;
-    }
-    .card:hover .link-text {
-      text-decoration: underline;
-    }
     .nav-back {
       width: 100%;
       max-width: 1100px;
-      margin: 0 auto 6px auto;
-      padding: 0 4px;
+      margin: 0 auto;
       display: flex;
     }
     .nav-back a {
@@ -103,81 +51,112 @@ UPDATED_INDEX_HTML = r"""<!DOCTYPE html>
       border: 1px solid #bae6fd;
       padding: 6px 12px;
       border-radius: 6px;
-      transition: background-color 0.15s ease, color 0.15s ease;
     }
-    .nav-back a:hover {
-      background-color: #0284c7;
-      color: #ffffff;
-    }
+    .nav-back a:hover { background-color: #0284c7; color: #ffffff; }
+    main { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 24px; }
+    header { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 30px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 8px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .content-section { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 30px; display: flex; flex-direction: column; gap: 16px; }
+    .content-section h2 { font-size: 1.3rem; color: #0369a1; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+    p { color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; }
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 10px; }
+    .image-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+    .image-card img { max-width: 100%; height: 140px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #ffffff; }
+    .image-card span { font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted); }
   </style>
-  <!-- MathJax Configuration for LaTeX Rendering -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']]
-      }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <div class="nav-back">
-    <a href="../index.html">&larr; Back to Course Overview</a>
+    <a href="../index.html">&larr; Back to Chapter 1 Index</a>
   </div>
 
-  <header>
-    <h1>Chapter 1: Introduction</h1>
-    <p class="subtitle">Operating Systems Design &amp; Implementation (Andrew S. Tanenbaum)</p>
-  </header>
+  <main>
+    <header>
+      <h1>What Is an Operating System &amp; History</h1>
+      <p class="subtitle">Tanenbaum Chapter 1.1 &amp; 1.2: Resource Managers, Extended Machines, and Computing Generations.</p>
+    </header>
 
-  <div class="main-container">
+    <section class="content-section">
+      <h2>Foundational Paradigms</h2>
+      <p>
+        An operating system serves two primary functions: acting as an <strong>extended machine</strong> (providing clean abstractions over raw hardware) and as a <strong>resource manager</strong> (multiplexing processor time, memory space, and I/O devices among competing applications).
+      </p>
+    </section>
 
-    <!-- Intro Module -->
-    <a href="intro/index.html" class="card" style="border-color: #bae6fd; background-color: #f0f9ff;">
-      <h2>What Is an Operating System &amp; History</h2>
-      <p>Explore foundational concepts including the operating system as a resource manager, extended machine, and the five generations of computing.</p>
-      <span class="link-text">Explore Module &rarr;</span>
-    </a>
+    <section class="content-section">
+      <h2>Historical Evolution &amp; Generations</h2>
+      <p>
+        The history of operating systems spans five distinct technological generations, transitioning from manual vacuum tube wiring to cloud-native distributed nodes.
+      </p>
 
-    <!-- Computer Hardware Review -->
-    <div class="card">
-      <h2>Computer Hardware Review</h2>
-      <p>Examine processors, instruction execution cycles, memory hierarchy, magnetic disks, solid-state drives, I/O devices, and system buses.</p>
-    </div>
+      <div class="image-grid">
+        <div class="image-card">
+          <img src="../../images/vacuumtube.jpg" alt="Vacuum Tubes">
+          <span>Generation 1: Vacuum Tubes (1945–1955)</span>
+        </div>
+        <div class="image-card">
+          <img src="../../images/plugboard.jpg" alt="Plugboard">
+          <span>Plugboard Programming</span>
+        </div>
+        <div class="image-card">
+          <img src="../../images/replica-first-transistor.jpg" alt="Transistor Replica">
+          <span>Generation 2: Transistors (1955–1965)</span>
+        </div>
+        <div class="image-card">
+          <img src="../../images/punched-card-program-deck.jpg" alt="Punched Cards">
+          <span>Batch Program Decks</span>
+        </div>
+      </div>
+    </section>
 
-    <!-- Operating System Concepts -->
-    <div class="card">
-      <h2>Operating System Concepts</h2>
-      <p>Understand key architectural abstractions: processes, address spaces, files, input/output streams, protection rings, and command shells.</p>
-    </div>
+    <section class="content-section">
+      <h2>Operating System Ecosystem Logos</h2>
+      <p>
+        Major operating system brand marks across commercial, open-source, RTOS, and historical architectures.
+      </p>
 
-    <!-- System Calls -->
-    <div class="card">
-      <h2>System Calls</h2>
-      <p>Analyze API mechanics, trap instructions, user-to-kernel mode transitions, and the execution flow of operating system service calls.</p>
-    </div>
-
-    <!-- Operating System Structure -->
-    <div class="card">
-      <h2>Operating System Structure</h2>
-      <p>Compare architectural designs: monolithic systems, layered systems, microclients, client-server models, virtual machines, and exokernels.</p>
-    </div>
-
-  </div>
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px;">
+        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+          <img src="../../images/logos/windows.svg" alt="Windows" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+          <a href="https://en.wikipedia.org/wiki/Microsoft_Windows" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Windows</a>
+        </div>
+        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+          <img src="../../images/logos/apple.svg" alt="Apple" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+          <a href="https://en.wikipedia.org/wiki/MacOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Apple macOS</a>
+        </div>
+        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+          <img src="../../images/logos/tux.svg" alt="Linux" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+          <a href="https://en.wikipedia.org/wiki/Linux" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Linux (Tux)</a>
+        </div>
+        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+          <img src="../../images/logos/freebsd.svg" alt="FreeBSD" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+          <a href="https://en.wikipedia.org/wiki/FreeBSD" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeBSD</a>
+        </div>
+        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+          <img src="../../images/logos/android.svg" alt="Android" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+          <a href="https://en.wikipedia.org/wiki/Android_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Android</a>
+        </div>
+        <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
+          <img src="../../images/logos/os2.svg" alt="OS/2" style="max-width: 42px; max-height: 42px; object-fit: contain;">
+          <a href="https://en.wikipedia.org/wiki/OS/2" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">IBM OS/2</a>
+        </div>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
 """
 
-def execute_removal():
-    portal_dir = "week01-operating-system-concepts"
-    os.makedirs(portal_dir, exist_ok=True)
-    portal_path = os.path.join(portal_dir, "index.html")
+def execute_restoration():
+    intro_dir = os.path.join("week01-operating-system-concepts", "intro")
+    os.makedirs(intro_dir, exist_ok=True)
+    intro_path = os.path.join(intro_dir, "index.html")
 
-    with open(portal_path, "w", encoding="utf-8") as f:
-        f.write(UPDATED_INDEX_HTML)
+    with open(intro_path, "w", encoding="utf-8") as f:
+        f.write(INTRO_INDEX_HTML)
 
-    modified = [portal_path]
+    modified = [intro_path]
     fix_path = "fix.py"
     if os.path.exists(fix_path):
         modified.append(fix_path)
@@ -186,15 +165,15 @@ def execute_removal():
     try:
         subprocess.run(["git", "add"] + modified, check=True)
         commit_msg = (
-            "Remove The World According to C card from Chapter 1 index portal\n\n"
-            "Update week01-operating-system-concepts/index.html to remove the card corresponding\n"
-            "to The World According to C section."
+            "Restore intro page with correct relative image paths\n\n"
+            "Update week01-operating-system-concepts/intro/index.html to reference images\n"
+            "using ../../images/ prefixes so generation photos and logos render properly."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
     except Exception:
         pass
-    print("--> The World According to C card successfully removed and deployed!")
+    print("--> Intro page successfully restored and deployed!")
 
 if __name__ == "__main__":
-    execute_removal()
+    execute_restoration()
