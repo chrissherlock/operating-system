@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 11: Multiprocessor Systems &amp; Distributed Computing — COSC240</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+    header {
+      text-align: center;
+      max-width: 900px;
+    }
+    h1 {
+      font-size: 2.1rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+      max-width: 950px;
+    }
+    .nav-back {
+      width: 100%;
+      max-width: 950px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: var(--accent);
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+    .overview-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .overview-card h2 {
+      font-size: 1.35rem;
+      color: var(--text);
+    }
+    .overview-card p {
+      line-height: 1.65;
+      color: #334155;
+      font-size: 0.95rem;
+    }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 18px;
+    }
+    .module-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .module-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px -2px rgba(2, 132, 199, 0.12);
+    }
+    .module-tag {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .module-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .module-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+    .topics-list {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .topic-pill {
+      font-size: 0.74rem;
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      color: #475569;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+    .diagram-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .diagram-svg {
+      width: 100%;
+      max-width: 850px;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="nav-back">
+    <a href="../index.html">&larr; Return to Course Dashboard</a>
+  </div>
+
+  <header>
+    <h1>Week 11: Multiprocessor Systems &amp; Distributed Computing</h1>
+    <p class="subtitle">Tanenbaum &amp; Bos, Chapter 8: Multiprocessor Architectures, Cache Coherence, Gang Scheduling, Interconnects, RPC, and Distributed Middleware.</p>
+  </header>
+
+  <div class="main-container">
+
+    <div class="overview-card">
+      <h2>Curriculum Framework</h2>
+      <p>
+        As clock frequency scaling hit physical thermal barriers, high-performance computing shifted definitively from raw clock speed to hardware parallelism. Operating systems must coordinate concurrent execution across tight multi-core chips, non-uniform memory architectures (NUMA), loosely coupled multicomputers, and distributed networks.
+      </p>
+      <p>
+        Week 11 examines the mechanisms required to manage these systems: resolving hardware cache contention, coordinating atomic bus synchronization, executing thread scheduling across affinity domains, and deploying distributed abstractions that span local network nodes.
+      </p>
+    </div>
+
+    <!-- Architectural Overview Diagram -->
+    <div class="diagram-card">
+      <svg class="diagram-svg" viewBox="0 0 820 230" xmlns="http://www.w3.org/2000/svg">
+        <rect width="820" height="230" fill="#ffffff" rx="6" stroke="#cbd5e1"/>
+        <text x="410" y="24" font-family="sans-serif" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">Spectrum of Parallel &amp; Distributed Computing Architectures</text>
+
+        <!-- SMP Box -->
+        <rect x="30" y="50" width="230" height="155" fill="#f0f9ff" stroke="#0284c7" rx="4"/>
+        <text x="145" y="72" font-family="sans-serif" font-size="11" font-weight="bold" fill="#0369a1" text-anchor="middle">1. Shared Memory Multiprocessors</text>
+        <rect x="45" y="85" width="45" height="30" fill="#0284c7" rx="2"/><text x="67.5" y="104" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">CPU 0</text>
+        <rect x="100" y="85" width="45" height="30" fill="#0284c7" rx="2"/><text x="122.5" y="104" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">CPU 1</text>
+        <rect x="155" y="85" width="45" height="30" fill="#0284c7" rx="2"/><text x="177.5" y="104" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">CPU n</text>
+        <line x1="45" y1="128" x2="245" y2="128" stroke="#0284c7" stroke-width="3"/>
+        <text x="145" y="140" font-family="sans-serif" font-size="8" fill="#0369a1" text-anchor="middle">Shared System Bus / Crossbar</text>
+        <rect x="65" y="152" width="160" height="35" fill="#e0f2fe" stroke="#0284c7" rx="2"/>
+        <text x="145" y="174" font-family="sans-serif" font-size="10" font-weight="bold" fill="#0369a1" text-anchor="middle">Global Shared RAM (UMA)</text>
+
+        <!-- NUMA Box -->
+        <rect x="295" y="50" width="230" height="155" fill="#f8fafc" stroke="#64748b" rx="4"/>
+        <text x="410" y="72" font-family="sans-serif" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">2. Distributed Shared Memory (NUMA)</text>
+        <rect x="310" y="88" width="85" height="42" fill="#e2e8f0" stroke="#94a3b8" rx="2"/>
+        <text x="352.5" y="105" font-family="sans-serif" font-size="8" font-weight="bold" fill="#0f172a" text-anchor="middle">Node 0</text>
+        <text x="352.5" y="120" font-family="sans-serif" font-size="8" fill="#475569" text-anchor="middle">CPU + Fast RAM</text>
+        <rect x="425" y="88" width="85" height="42" fill="#e2e8f0" stroke="#94a3b8" rx="2"/>
+        <text x="467.5" y="105" font-family="sans-serif" font-size="8" font-weight="bold" fill="#0f172a" text-anchor="middle">Node 1</text>
+        <text x="467.5" y="120" font-family="sans-serif" font-size="8" fill="#475569" text-anchor="middle">CPU + Fast RAM</text>
+        <path d="M 395 109 L 425 109" stroke="#64748b" stroke-width="2" stroke-dasharray="3,3"/>
+        <rect x="320" y="152" width="180" height="35" fill="#f1f5f9" stroke="#94a3b8" rx="2"/>
+        <text x="410" y="167" font-family="sans-serif" font-size="9" font-weight="bold" fill="#334155" text-anchor="middle">High-Speed Interconnect</text>
+        <text x="410" y="180" font-family="sans-serif" font-size="8" fill="#64748b" text-anchor="middle">Single Address Space, Non-Uniform Latency</text>
+
+        <!-- Clusters Box -->
+        <rect x="560" y="50" width="230" height="155" fill="#f0fdf4" stroke="#16a34a" rx="4"/>
+        <text x="675" y="72" font-family="sans-serif" font-size="11" font-weight="bold" fill="#15803d" text-anchor="middle">3. Multicomputers &amp; Clusters</text>
+        <rect x="575" y="88" width="85" height="42" fill="#dcfce7" stroke="#16a34a" rx="2"/>
+        <text x="617.5" y="105" font-family="sans-serif" font-size="8" font-weight="bold" fill="#166534" text-anchor="middle">Host A</text>
+        <text x="617.5" y="120" font-family="sans-serif" font-size="8" fill="#15803d" text-anchor="middle">Isolated OS/RAM</text>
+        <rect x="690" y="88" width="85" height="42" fill="#dcfce7" stroke="#16a34a" rx="2"/>
+        <text x="732.5" y="105" font-family="sans-serif" font-size="8" font-weight="bold" fill="#166534" text-anchor="middle">Host B</text>
+        <text x="732.5" y="120" font-family="sans-serif" font-size="8" fill="#15803d" text-anchor="middle">Isolated OS/RAM</text>
+        <line x1="617.5" y1="130" x2="617.5" y2="152" stroke="#16a34a" stroke-width="2"/>
+        <line x1="732.5" y1="130" x2="732.5" y2="152" stroke="#16a34a" stroke-width="2"/>
+        <rect x="585" y="152" width="180" height="35" fill="#f0fdf4" stroke="#16a34a" rx="2"/>
+        <text x="675" y="167" font-family="sans-serif" font-size="9" font-weight="bold" fill="#15803d" text-anchor="middle">Message Passing Network</text>
+        <text x="675" y="180" font-family="sans-serif" font-size="8" fill="#166534" text-anchor="middle">Explicit RPC / Socket Boundaries</text>
+      </svg>
+    </div>
+
+    <div class="modules-grid">
+
+      <!-- Module 1 -->
+      <a href="01-multiprocessor-hardware.html" class="module-card">
+        <span class="module-tag">Module 1 &bull; Section 8.1</span>
+        <h3 class="module-title">Multiprocessor Hardware, Cache Coherence &amp; OS Models</h3>
+        <p class="module-desc">
+          Compare shared-bus UMA systems against crossbar/omega switch fabrics and NUMA architectures. Investigate bus snooping, MESI cache protocols, and evaluate the three classic multiprocessor OS organizations: Each CPU Has Its Own OS, Master-Slave, and Symmetric Multiprocessing (SMP).
+        </p>
+        <div class="topics-list">
+          <span class="topic-pill">UMA vs NUMA</span>
+          <span class="topic-pill">MESI Protocol</span>
+          <span class="topic-pill">Spinlocks</span>
+          <span class="topic-pill">SMP Organization</span>
+        </div>
+      </a>
+
+      <!-- Module 2 -->
+      <a href="02-multiprocessor-scheduling.html" class="module-card">
+        <span class="module-tag">Module 2 &bull; Section 8.1.4</span>
+        <h3 class="module-title">Multiprocessor Scheduling &amp; Security</h3>
+        <p class="module-desc">
+          Analyze timesharing vs. spacesharing trade-offs. Detail smart scheduling, affinity scheduling, and two-dimensional gang scheduling for fine-grained communicating threads. Explore co-scheduling vulnerabilities (Spectre/MDS) and core-pairing mitigations.
+        </p>
+        <div class="topics-list">
+          <span class="topic-pill">Affinity Domains</span>
+          <span class="topic-pill">Gang Scheduling</span>
+          <span class="topic-pill">Thread Synchronization</span>
+          <span class="topic-pill">Core Pairing</span>
+        </div>
+      </a>
+
+      <!-- Module 3 -->
+      <a href="03-multicomputers-interconnects.html" class="module-card">
+        <span class="module-tag">Module 3 &bull; Section 8.2</span>
+        <h3 class="module-title">Multicomputers, Message Passing &amp; Interconnects</h3>
+        <p class="module-desc">
+          Explore shared-nothing multicomputer clusters. Contrast network topology designs (rings, grids, hypercubes) with store-and-forward vs. wormhole routing. Detail low-level kernel communication protocols against zero-copy user-space interfaces.
+        </p>
+        <div class="topics-list">
+          <span class="topic-pill">Hypercube Topologies</span>
+          <span class="topic-pill">Wormhole Routing</span>
+          <span class="topic-pill">Zero-Copy Messaging</span>
+          <span class="topic-pill">DMA Buffers</span>
+        </div>
+      </a>
+
+      <!-- Module 4 -->
+      <a href="04-rpc-dsm-load-balancing.html" class="module-card">
+        <span class="module-tag">Module 4 &bull; Sections 8.2.4 &ndash; 8.2.7</span>
+        <h3 class="module-title">RPC, Distributed Shared Memory &amp; Load Balancing</h3>
+        <p class="module-desc">
+          Study Remote Procedure Call (RPC) mechanics, client/server stubs, and parameter marshalling. Deconstruct page-based Distributed Shared Memory (DSM) using page-fault traps. Formulate distributed scheduling heuristics, including sender-initiated and receiver-initiated load balancing.
+        </p>
+        <div class="topics-list">
+          <span class="topic-pill">RPC Marshalling</span>
+          <span class="topic-pill">Page-Based DSM</span>
+          <span class="topic-pill">Sender-Initiated</span>
+          <span class="topic-pill">Receiver-Initiated</span>
+        </div>
+      </a>
+
+      <!-- Module 5 -->
+      <a href="05-distributed-systems-middleware.html" class="module-card">
+        <span class="module-tag">Module 5 &bull; Section 8.3</span>
+        <h3 class="module-title">Distributed Systems &amp; Middleware Architectures</h3>
+        <p class="module-desc">
+          Examine the evolution toward transparent distributed middleware. Evaluate document-based architectures (World Wide Web), distributed file systems (NFSv4 stateful leases), object brokers, and coordination-based tuple space models (Linda).
+        </p>
+        <div class="topics-list">
+          <span class="topic-pill">NFSv4 Architecture</span>
+          <span class="topic-pill">Compound RPCs</span>
+          <span class="topic-pill">Tuple Spaces</span>
+          <span class="topic-pill">Linda Primitives</span>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
