@@ -912,8 +912,8 @@
                 consoleMid: "Dual execution units service I1 & I2. Both loads complete and forward to ALU.",
                 consoleSub: "Reorder Buffer (ROB) tracks in-flight instructions for in-order retirement.",
                 inlinePreview: "We are at Cycle 3. I1 and I2 are executing in parallel load ports. Next, both I1 and I2 retire together (2.0 IPC peak!) while I3 executes in the multiplier. Click Next to advance to Cycle 4.",
-                what: "<code>I1</code> and <code>I2</code> execute in parallel on separate memory load ports. Their loaded values are forwarded immediately across an internal bypass crossbar into the integer execution units for <code>I3</code> and <code>I4</code>.",
-                why: "Superscalar architectures use dual-ported or banked L1 data caches so two distinct memory loads can be serviced simultaneously without causing a cache port structural hazard."
+                what: "Because the L1 cache has dual memory read channels (\"load ports\"), the CPU retrieves both numbers <em>A</em> and <em>B</em> from memory at the exact same moment. Instead of making downstream instructions wait for those values to be saved to registers first, direct internal bypass wires (an internal crossbar network) route the loaded numbers straight into the math units so <code>I3</code> can start multiplying immediately.",
+                why: "Standard caches only allow one read at a time. To execute two loads simultaneously, the Level 1 cache is partitioned into multiple banks (or \"dual-ported\") like having two grocery checkout registers open at once. This prevents a memory bottleneck from forcing parallel pipelines to wait."
               },
               {
                 cycle: "Cycle 4",
