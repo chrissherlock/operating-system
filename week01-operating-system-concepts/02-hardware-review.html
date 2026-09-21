@@ -157,7 +157,7 @@
 </head>
 <body>
 
-  <nav class="module-nav-bar">    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>    <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&#127968; Week 1: Operating System Concepts</a>    <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>  </nav>
+  <nav class="module-nav-bar">    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">← Previous: 01. What Is an OS &amp; History</a>    <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&#127968; Week 1: Operating System Concepts</a>    <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts →</a>  </nav>
 
   <main>
     <header>
@@ -227,7 +227,7 @@
           <rect x="420" y="195" width="220" height="65" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
           <text x="530" y="218" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle">General Purpose Registers &amp; PSW</text>
           <text x="530" y="235" fill="#475569" font-size="11" text-anchor="middle">4. WRITEBACK (R0..Rn, Flags)</text>
-          <text x="530" y="250" fill="#0284c7" font-size="10" font-weight="600" text-anchor="middle">PC &larr; PC + Instruction Length</text>
+          <text x="530" y="250" fill="#0284c7" font-size="10" font-weight="600" text-anchor="middle">PC ← PC + Instruction Length</text>
 
           <!-- Bus Lines & Arrows -->
           <!-- Memory to Fetch -->
@@ -474,7 +474,7 @@
           <g transform="translate(20, 295)">
             <text x="0" y="20" fill="#0f172a" font-size="13" font-weight="700">3. Superscalar Execution: Multiple Pipelines (e.g., Dual-Issue)</text>
             <rect x="0" y="32" width="790" height="30" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
-            <text x="15" y="52" fill="#0369a1" font-size="11" font-weight="600">Dual Fetch &amp; Decode &rarr; Parallel ALUs (ALU 1 &amp; ALU 2) &rarr; Retired Concurrently (&gt; 1 IPC Throughput)</text>
+            <text x="15" y="52" fill="#0369a1" font-size="11" font-weight="600">Dual Fetch &amp; Decode → Parallel ALUs (ALU 1 &amp; ALU 2) → Retired Concurrently (&gt; 1 IPC Throughput)</text>
           </g>
         </svg>
       </div>
@@ -509,7 +509,7 @@
 
           <rect x="290" y="85" width="160" height="50" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="1.5" />
           <text x="370" y="107" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">TRAP / SYSCALL</text>
-          <text x="370" y="123" fill="#e0f2fe" font-size="10" text-anchor="middle">Mode Bit: User &rarr; Kernel</text>
+          <text x="370" y="123" fill="#e0f2fe" font-size="10" text-anchor="middle">Mode Bit: User → Kernel</text>
 
           <rect x="490" y="170" width="190" height="55" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
           <text x="585" y="193" fill="#0369a1" font-size="12" font-weight="bold" text-anchor="middle">Syscall Dispatcher</text>
@@ -518,7 +518,7 @@
           <path d="M 250,80 L 285,100" fill="none" stroke="#0284c7" stroke-width="2" />
           <path d="M 450,115 L 485,185" fill="none" stroke="#0284c7" stroke-width="2" />
           <path d="M 490,205 C 360,240 240,160 160,110" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4" />
-          <text x="330" y="220" fill="#64748b" font-size="10" text-anchor="middle">IRET / SYSRET (Kernel &rarr; User)</text>
+          <text x="330" y="220" fill="#64748b" font-size="10" text-anchor="middle">IRET / SYSRET (Kernel → User)</text>
         </svg>
       </div>
 
@@ -543,7 +543,7 @@
           <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Experience This Walkthrough</div>
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
             <li><strong>Follow the Story Arc:</strong> The top card frames where we are in the story right now and what objective needs to happen next.</li>
-            <li><strong>Step Forward to Advance:</strong> Click <code>Next Step &rarr;</code> to resolve that objective and enter the next chapter of the journey.</li>
+            <li><strong>Step Forward to Advance:</strong> Click <code>Next Step →</code> to resolve that objective and enter the next chapter of the journey.</li>
             <li><strong>Compare Operating Systems:</strong> Toggle between <code>Linux / Unix</code> and <code>Windows NT</code> to observe how both designs tackle the exact same silicon boundary.</li>
           </ol>
         </div>
@@ -551,9 +551,9 @@
         <!-- Action Controls & Situation + Objective Card -->
         <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
           <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
-            <button id="step-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
+            <button id="step-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step →</button>
             <div style="display: flex; gap: 8px;">
-              <button id="step-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="step-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">← Prev</button>
               <button id="step-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
             </div>
           </div>
@@ -618,7 +618,7 @@
             <!-- Node 3: CPU Hardware Switch -->
             <rect id="node-cpu-hw" x="535" y="105" width="195" height="60" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text x="632" y="130" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">CPU Hardware Engine</text>
-            <text x="632" y="148" fill="#64748b" font-size="10" text-anchor="middle">Mode: 1 &rarr; 0 | Stack Swapped</text>
+            <text x="632" y="148" fill="#64748b" font-size="10" text-anchor="middle">Mode: 1 → 0 | Stack Swapped</text>
 
             <!-- Node 4: Kernel Dispatcher -->
             <rect id="node-kernel-idt" x="280" y="185" width="190" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
@@ -666,8 +666,8 @@
                 stepNum: "Chapter 1 of 6: The Unprivileged Application Reaches a Wall",
                 activeNode: "node-user-app",
                 activeEdges: [],
-                btnNextText: "Next: Enter Library Wrapper &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next: Enter Library Wrapper →",
+                btnPrevText: "← Prev",
                 node1Title: "Text Editor (PID 402)",
                 node1Sub: "read(fd, buffer, 512)",
                 node2Title: "C Library (glibc)",
@@ -689,12 +689,12 @@
                 stepNum: "Chapter 2 of 6: Staging Registers &amp; The Trap Invocation",
                 activeNode: "node-trap-trigger",
                 activeEdges: ["edge-1"],
-                btnNextText: "Next: Trigger Hardware Trap &rarr;",
-                btnPrevText: "&larr; Prev: Application Call",
+                btnNextText: "Next: Trigger Hardware Trap →",
+                btnPrevText: "← Prev: Application Call",
                 node1Title: "Text Editor (PID 402)",
                 node1Sub: "Waiting on I/O",
                 node2Title: "glibc Syscall Stub",
-                node2Sub: "RAX=0 (sys_read) &rarr; SYSCALL",
+                node2Sub: "RAX=0 (sys_read) → SYSCALL",
                 node4Title: "Syscall Table",
                 node4Sub: "sys_call_table[0]",
                 node5Title: "VFS &amp; NVMe Driver",
@@ -712,8 +712,8 @@
                 stepNum: "Chapter 3 of 6: The Silicon Gate Snaps Shut (Hardware Takeover)",
                 activeNode: "node-cpu-hw",
                 activeEdges: ["edge-2"],
-                btnNextText: "Next: Route in Syscall Table &rarr;",
-                btnPrevText: "&larr; Prev: SYSCALL Trigger",
+                btnNextText: "Next: Route in Syscall Table →",
+                btnPrevText: "← Prev: SYSCALL Trigger",
                 node1Title: "Text Editor (PID 402)",
                 node1Sub: "Suspended (State Saved)",
                 node2Title: "glibc Syscall Stub",
@@ -735,8 +735,8 @@
                 stepNum: "Chapter 4 of 6: The Royal Guard Inspects Credentials",
                 activeNode: "node-kernel-idt",
                 activeEdges: ["edge-3"],
-                btnNextText: "Next: Command the Hardware &rarr;",
-                btnPrevText: "&larr; Prev: Hardware Switch",
+                btnNextText: "Next: Command the Hardware →",
+                btnPrevText: "← Prev: Hardware Switch",
                 node1Title: "Text Editor (PID 402)",
                 node1Sub: "Suspended (State Saved)",
                 node2Title: "glibc Syscall Stub",
@@ -758,14 +758,14 @@
                 stepNum: "Chapter 5 of 6: Touching Reality (Privileged I/O)",
                 activeNode: "node-kernel-driver",
                 activeEdges: ["edge-4"],
-                btnNextText: "Next: Return to User Mode &rarr;",
-                btnPrevText: "&larr; Prev: Syscall Dispatch",
+                btnNextText: "Next: Return to User Mode →",
+                btnPrevText: "← Prev: Syscall Dispatch",
                 node1Title: "Text Editor (PID 402)",
                 node1Sub: "Waiting on I/O Sleep",
                 node2Title: "glibc Syscall Stub",
                 node2Sub: "Waiting for Bytes",
                 node4Title: "Syscall Dispatcher",
-                node4Sub: "VFS &rarr; Block Layer",
+                node4Sub: "VFS → Block Layer",
                 node5Title: "NVMe Device Driver",
                 node5Sub: "Issues DMA Command",
                 what: "The Virtual File System (VFS) has mapped the file offset to physical storage blocks. The NVMe device driver has programmed the controller registers across the PCIe bus. Direct Memory Access (DMA) has streamed the 512 bytes directly into RAM, and a hardware interrupt has just signaled transfer completion.",
@@ -781,8 +781,8 @@
                 stepNum: "Chapter 6 of 6: The Return Home (Dropping Privilege)",
                 activeNode: "node-user-app",
                 activeEdges: ["edge-5"],
-                btnNextText: "Replay the Journey &#8634;",
-                btnPrevText: "&larr; Prev: Driver Execution",
+                btnNextText: "Replay the Journey ↺",
+                btnPrevText: "← Prev: Driver Execution",
                 node1Title: "Text Editor (PID 402)",
                 node1Sub: "512 Bytes Ready in Memory!",
                 node2Title: "glibc Syscall Stub",
@@ -806,16 +806,16 @@
                 stepNum: "Chapter 1 of 6: The Win32 Application Requests Help",
                 activeNode: "node-user-app",
                 activeEdges: [],
-                btnNextText: "Next: Enter Subsystem DLLs &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next: Enter Subsystem DLLs →",
+                btnPrevText: "← Prev",
                 node1Title: "Notepad (PID 1024)",
                 node1Sub: "ReadFile(hFile, buf, 512)",
-                node2Title: "kernel32 &rarr; ntdll",
+                node2Title: "kernel32 → ntdll",
                 node2Sub: "Prepares Syscall",
                 node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "Allocates IRP &rarr; NTFS",
+                node5Sub: "Allocates IRP → NTFS",
                 what: "Our Windows story begins inside Notepad running in User Space. The user opens <code>report.txt</code>. Notepad calls the standard Win32 API function <code>ReadFile()</code> in <code>kernel32.dll</code> / <code>kernelbase.dll</code>. Notepad runs in Ring 3 (Mode Bit = 1). If it attempted to issue raw storage commands, the processor would throw a hardware exception.",
                 why: "Microsoft intentionally isolates user applications behind subsystem DLLs. While Unix syscall numbers remain stable across releases, Windows system service numbers change between builds and security updates! The Win32 subsystem shields applications from changes in the underlying kernel.",
                 situationObj: "<strong>Where we are:</strong> We are in the initial unprivileged state. Notepad wants to read 512 bytes, but Win32 applications never call kernel trap instructions directly.<br><br><strong>What we need to do next:</strong> We need <code>kernelbase.dll</code> to forward the request to <code>ntdll.dll</code> to identify the native system service number. Click <strong>Next Step</strong> to enter the subsystem."
@@ -829,16 +829,16 @@
                 stepNum: "Chapter 2 of 6: Staging the System Service Number (SSN)",
                 activeNode: "node-trap-trigger",
                 activeEdges: ["edge-1"],
-                btnNextText: "Next: Trigger Hardware Trap &rarr;",
-                btnPrevText: "&larr; Prev: Win32 Invocation",
+                btnNextText: "Next: Trigger Hardware Trap →",
+                btnPrevText: "← Prev: Win32 Invocation",
                 node1Title: "Notepad (PID 1024)",
                 node1Sub: "Waiting on ReadFile()",
                 node2Title: "ntdll.dll Native Stub",
-                node2Sub: "EAX = 0x06 (NtReadFile) &rarr; syscall",
+                node2Sub: "EAX = 0x06 (NtReadFile) → syscall",
                 node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "Allocates IRP &rarr; NTFS",
+                node5Sub: "Allocates IRP → NTFS",
                 what: "Execution is currently inside <code>ntdll.dll</code>, the lowest user-mode layer in Windows. The assembly stub has loaded the System Service Number for <code>NtReadFile</code> (e.g., <code>0x06</code>) into <code>EAX</code> and aligned arguments into registers. The CPU stands poised on the <code>syscall</code> instruction.",
                 why: "Because <code>ntdll.dll</code> is updated alongside the kernel with each Windows update, it is the only user-mode binary that knows the correct System Service Numbers for the active kernel build. This design allows decades-old Windows binaries to continue working on modern versions of Windows without recompilation.",
                 situationObj: "<strong>Where we are:</strong> <code>ntdll.dll</code> has staged the System Service Number into <code>EAX</code>, but we are still executing in unprivileged User Space.<br><br><strong>What we need to do next:</strong> We need to execute the <code>syscall</code> instruction so CPU hardware can elevate to Ring 0 and enter the Windows kernel. Click <strong>Next Step</strong> to trigger the hardware trap."
@@ -852,8 +852,8 @@
                 stepNum: "Chapter 3 of 6: Crossing the Threshold into ntoskrnl.exe",
                 activeNode: "node-cpu-hw",
                 activeEdges: ["edge-2"],
-                btnNextText: "Next: Lookup in SSDT &rarr;",
-                btnPrevText: "&larr; Prev: ntdll Syscall",
+                btnNextText: "Next: Lookup in SSDT →",
+                btnPrevText: "← Prev: ntdll Syscall",
                 node1Title: "Notepad (PID 1024)",
                 node1Sub: "Suspended (State Saved)",
                 node2Title: "ntdll.dll Native Stub",
@@ -861,7 +861,7 @@
                 node4Title: "KiSystemCall64",
                 node4Sub: "Kernel Dispatcher",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "Allocates IRP &rarr; NTFS",
+                node5Sub: "Allocates IRP → NTFS",
                 what: "The CPU hardware has caught the trap. It has set Mode Bit = 0, loaded the privileged kernel stack pointer from the active thread's <code>KTHREAD</code> structure, and branched directly to the entry point stored in <code>MSR_LSTAR</code>: <code>KiSystemCall64</code> inside <code>ntoskrnl.exe</code>.",
                 why: "Switching to an isolated kernel stack in silicon ensures that user-mode code cannot tamper with execution context while running in supervisor mode. The processor hardware enforces this boundary before executing any kernel instructions.",
                 situationObj: "<strong>Where we are:</strong> The CPU has swapped to the privileged <code>KTHREAD</code> kernel stack and branched to <code>KiSystemCall64</code> in <code>ntoskrnl.exe</code>.<br><br><strong>What we need to do next:</strong> We need the dispatcher to use the index in <code>EAX</code> to look up <code>NtReadFile</code> in the System Service Descriptor Table (SSDT). Click <strong>Next Step</strong> to route the service."
@@ -875,8 +875,8 @@
                 stepNum: "Chapter 4 of 6: The SSDT Dispatch &amp; Memory Validation",
                 activeNode: "node-kernel-idt",
                 activeEdges: ["edge-3"],
-                btnNextText: "Next: Dispatch I/O Packet &rarr;",
-                btnPrevText: "&larr; Prev: KiSystemCall64",
+                btnNextText: "Next: Dispatch I/O Packet →",
+                btnPrevText: "← Prev: KiSystemCall64",
                 node1Title: "Notepad (PID 1024)",
                 node1Sub: "Suspended (State Saved)",
                 node2Title: "ntdll.dll Native Stub",
@@ -884,7 +884,7 @@
                 node4Title: "SSDT Dispatcher",
                 node4Sub: "ProbeForWrite() Check",
                 node5Title: "I/O Manager &amp; Drivers",
-                node5Sub: "Allocates IRP &rarr; NTFS",
+                node5Sub: "Allocates IRP → NTFS",
                 what: "<code>KiSystemCall64</code> has indexed into the System Service Descriptor Table (SSDT) using <code>EAX = 0x06</code> to locate <code>NtReadFile</code>. The kernel is currently running <code>ProbeForWrite()</code> across the destination buffer to confirm it belongs entirely to user space and has write permissions.",
                 why: "The kernel must rigorously validate memory boundaries. If an unprivileged application could pass a pointer to kernel memory, it could trick supervisor routines into overwriting security descriptors or page tables, compromising system security.",
                 situationObj: "<strong>Where we are:</strong> The kernel has matched the service number in the SSDT, but cannot touch storage until it verifies the caller's buffer.<br><br><strong>What we need to do next:</strong> We need the kernel to validate the pointer with <code>ProbeForWrite()</code> and construct an I/O Request Packet (IRP). Click <strong>Next Step</strong> to build and send the IRP."
@@ -893,13 +893,13 @@
                 mode: "KERNEL (Ring 0)",
                 modeBit: "0 (Supervisor Mode)",
                 modeColor: "#0284c7",
-                pc: "0xFFFFF80020684100 (ntfs.sys &rarr; stornvme.sys)",
+                pc: "0xFFFFF80020684100 (ntfs.sys → stornvme.sys)",
                 stack: "Kernel Stack (KTHREAD)",
                 stepNum: "Chapter 5 of 6: The IRP Travels the Driver Stack",
                 activeNode: "node-kernel-driver",
                 activeEdges: ["edge-4"],
-                btnNextText: "Next: Return to User Mode &rarr;",
-                btnPrevText: "&larr; Prev: SSDT Dispatch",
+                btnNextText: "Next: Return to User Mode →",
+                btnPrevText: "← Prev: SSDT Dispatch",
                 node1Title: "Notepad (PID 1024)",
                 node1Sub: "Waiting on IRP Completion",
                 node2Title: "ntdll.dll Native Stub",
@@ -921,12 +921,12 @@
                 stepNum: "Chapter 6 of 6: Returning to User Space &amp; Subsystem Translation",
                 activeNode: "node-user-app",
                 activeEdges: ["edge-5"],
-                btnNextText: "Replay the Journey &#8634;",
-                btnPrevText: "&larr; Prev: IRP Processing",
+                btnNextText: "Replay the Journey ↺",
+                btnPrevText: "← Prev: IRP Processing",
                 node1Title: "Notepad (PID 1024)",
                 node1Sub: "ReadFile() returned TRUE!",
                 node2Title: "kernel32 / ntdll",
-                node2Sub: "Converts NTSTATUS &rarr; BOOL",
+                node2Sub: "Converts NTSTATUS → BOOL",
                 node4Title: "KiSystemCall64",
                 node4Sub: "sysret drops privilege",
                 node5Title: "Driver Stack",
@@ -1104,13 +1104,13 @@
           <text x="720" y="112" fill="#64748b" font-size="10" text-anchor="middle">Frame 42 (Kernel Allocation)</text>
 
           <rect x="615" y="125" width="210" height="25" rx="4" fill="#d1fae5" stroke="#10b981" />
-          <text x="720" y="142" fill="#065f46" font-size="10" font-weight="bold" text-anchor="middle">Frame 88 &larr; Virtual Page 0</text>
+          <text x="720" y="142" fill="#065f46" font-size="10" font-weight="bold" text-anchor="middle">Frame 88 ← Virtual Page 0</text>
 
           <rect x="615" y="155" width="210" height="25" rx="4" fill="#f1f5f9" stroke="#cbd5e1" />
           <text x="720" y="172" fill="#64748b" font-size="10" text-anchor="middle">Frame 89 (Other App Frame)</text>
 
           <rect x="615" y="185" width="210" height="25" rx="4" fill="#d1fae5" stroke="#10b981" />
-          <text x="720" y="202" fill="#065f46" font-size="10" font-weight="bold" text-anchor="middle">Frame 102 &larr; Virtual Page 1</text>
+          <text x="720" y="202" fill="#065f46" font-size="10" font-weight="bold" text-anchor="middle">Frame 102 ← Virtual Page 1</text>
 
           <!-- Mapping Arrows -->
           <path d="M 245,114 L 340,114" fill="none" stroke="#0284c7" stroke-width="2" />
@@ -1157,7 +1157,7 @@
           <!-- Offset Box (Top) -->
           <rect x="520" y="36" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
           <text x="680" y="58" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
-          <text x="680" y="73" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] &bull; Identifies exact byte in 4 KiB page</text>
+          <text x="680" y="73" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Identifies exact byte in 4 KiB page</text>
 
           <!-- Middle Translation Unit -->
           <!-- VPN down into MMU lookup -->
@@ -1186,7 +1186,7 @@
           <!-- Offset Box (Bottom) -->
           <rect x="520" y="194" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
           <text x="680" y="216" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
-          <text x="680" y="231" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] &bull; Unmodified intra-frame byte offset</text>
+          <text x="680" y="231" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Unmodified intra-frame byte offset</text>
         </svg>
       </div>
 
@@ -1270,9 +1270,9 @@
         <!-- Controls & Adjacent Next Step Card -->
         <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
           <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
-            <button id="mmu-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
+            <button id="mmu-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step →</button>
             <div style="display: flex; gap: 8px;">
-              <button id="mmu-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="mmu-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">← Prev</button>
               <button id="mmu-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
             </div>
           </div>
@@ -1366,7 +1366,7 @@
               <rect x="0" y="0" width="890" height="85" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
               <text x="20" y="25" fill="#0369a1" font-size="11" font-weight="700">ACTIVE TRANSLATION STAGE &amp; BUS STATUS</text>
               <text id="mmu-flow-title" x="20" y="48" fill="#0f172a" font-size="11" font-family="var(--font-mono)">
-                CPU issues virtual load &rarr; MMU evaluates TLB tag cache.
+                CPU issues virtual load → MMU evaluates TLB tag cache.
               </text>
               <text id="mmu-flow-sub" x="20" y="68" fill="#64748b" font-size="10" font-family="var(--font-mono)">
                 Initial request staged. Checking on-die cache lines.
@@ -1398,7 +1398,7 @@
               name: "x86-64",
               rootName: "CR3",
               faultName: "CR2",
-              levels: "4-Level (PML4 &rarr; PDPT &rarr; PD &rarr; PT)",
+              levels: "4-Level (PML4 → PDPT → PD → PT)",
               walk: [
                 {
                   vaddr: "0x00403018",
@@ -1408,10 +1408,10 @@
                   paddr: "Translating...",
                   activeNode: "mmu-node-cpu",
                   activeLine: "mmu-line-1",
-                  btnNextText: "Next: Query TLB &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Query TLB →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The MMU will query the L1/L2 data TLB tag array to see if VPN 0x00403 is already cached.",
-                  flowTitle: "x86-64 INSTRUCTION FETCH &rarr; Splitting 48-bit Canonical Virtual Address",
+                  flowTitle: "x86-64 INSTRUCTION FETCH → Splitting 48-bit Canonical Virtual Address",
                   flowSub: "CPU decodes MOV RAX, [0x00403018]. Bits [47:12] define VPN; bits [11:0] define page offset.",
                   what: "An application executes a load instruction from heap address <code>0x00403018</code>. The x86-64 core decomposes the 48-bit address into a 36-bit Virtual Page Number (<code>0x00403</code>) and a 12-bit Page Offset (<code>0x018</code>).",
                   why: "Separating page index from intra-page byte offset allows hardware to manage memory allocation in standardized 4 KiB units while maintaining precise single-byte addressing."
@@ -1424,10 +1424,10 @@
                   paddr: "Translating...",
                   activeNode: "mmu-node-tlb",
                   activeLine: "mmu-line-2",
-                  btnNextText: "Next: Walk 4-Level Page Table &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Walk 4-Level Page Table →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The hardware MMU page table walker will load root physical address from register CR3 and traverse DRAM.",
-                  flowTitle: "x86-64 TLB TAG COMPARISON &rarr; Cache Miss Detected",
+                  flowTitle: "x86-64 TLB TAG COMPARISON → Cache Miss Detected",
                   flowSub: "VPN 0x00403 is absent in L1/L2 TLB. MMU initiates a hardware walk using root pointer in CR3.",
                   what: "The MMU checks the on-die TLB. The tag comparison fails to find VPN <code>0x00403</code>. The hardware signals a <strong>TLB Miss</strong> and activates the hardware page table walker.",
                   why: "The TLB is kept small (typically 64 to 1536 entries) to maintain single-cycle associative lookup speeds. Uncached entries require walking the multi-level page table stored in main memory."
@@ -1440,12 +1440,12 @@
                   paddr: "Base: 0x07B40000",
                   activeNode: "mmu-node-ptw",
                   activeLine: "mmu-line-3",
-                  btnNextText: "Next: Read Physical DRAM &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Read Physical DRAM →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The MMU will append offset 0x018 to physical frame base 0x07B40000 and insert the translation into the TLB.",
-                  flowTitle: "x86-64 HARDWARE WALK &rarr; PML4 &rarr; PDPT &rarr; PD &rarr; PT Entry Found",
+                  flowTitle: "x86-64 HARDWARE WALK → PML4 → PDPT → PD → PT Entry Found",
                   flowSub: "MMU reads Page Table Entry in RAM: Physical Frame 0x07B40 with Present=1, R/W=1, User=1.",
-                  what: "The MMU reads root physical pointer <code>0x1A4000</code> from register <strong>CR3</strong>. It walks the 4-level tree (PML4 &rarr; PDPT &rarr; PD &rarr; PT). The final Page Table Entry yields <strong>Physical Frame Number 0x07B40</strong> with Present=1 and User/Supervisor=1.",
+                  what: "The MMU reads root physical pointer <code>0x1A4000</code> from register <strong>CR3</strong>. It walks the 4-level tree (PML4 → PDPT → PD → PT). The final Page Table Entry yields <strong>Physical Frame Number 0x07B40</strong> with Present=1 and User/Supervisor=1.",
                   why: "Hierarchical page tables permit sparse address spaces: unallocated 2 MiB or 1 GiB virtual address ranges require zero page tables, conserving physical RAM."
                 },
                 {
@@ -1456,10 +1456,10 @@
                   paddr: "0x07B40018",
                   activeNode: "mmu-node-ram",
                   activeLine: "mmu-line-4",
-                  btnNextText: "Restart Walkthrough &#8634;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Restart Walkthrough ↺",
+                  btnPrevText: "← Prev",
                   inlineNext: "Translation complete. The mapping is now cached in the TLB for single-cycle future access.",
-                  flowTitle: "x86-64 PHYSICAL ACCESS &rarr; Issuing 0x07B40018 to Memory Bus",
+                  flowTitle: "x86-64 PHYSICAL ACCESS → Issuing 0x07B40018 to Memory Bus",
                   flowSub: "MMU inserts translation into TLB and loads 64-bit word from DRAM into RAX.",
                   what: "The MMU combines frame address <code>0x07B40000</code> with the original 12-bit offset <code>0x018</code> to generate physical address <code>0x07B40018</code>. It caches the mapping in the TLB and reads the data from DRAM.",
                   why: "Inserting the translation into the TLB guarantees that subsequent instruction executions accessing this 4 KiB page resolve in a single clock cycle without touching RAM page tables."
@@ -1474,10 +1474,10 @@
                   paddr: "None (P=0)",
                   activeNode: "mmu-node-cpu",
                   activeLine: "mmu-line-1",
-                  btnNextText: "Next: Walk Page Table &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Walk Page Table →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The MMU will walk the page table and check the Present bit in the PTE.",
-                  flowTitle: "x86-64 MEMORY ACCESS &rarr; Accessing Evicted / Swapped Virtual Page",
+                  flowTitle: "x86-64 MEMORY ACCESS → Accessing Evicted / Swapped Virtual Page",
                   flowSub: "Application references heap address 0x00705020. Data currently resides in swap storage.",
                   what: "An application thread accesses address <code>0x00705020</code> in a memory region whose page was previously evicted to disk swap by the operating system kernel.",
                   why: "Operating systems overcommit memory: inactive pages are written to backing store storage so active processes can make use of high-speed DRAM."
@@ -1490,10 +1490,10 @@
                   paddr: "TRAP to Kernel",
                   activeNode: "mmu-node-ptw",
                   activeLine: "mmu-line-3",
-                  btnNextText: "Next: Fire Page Fault (Int 14) &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Fire Page Fault (Int 14) →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The CPU will store the faulting virtual address in register CR2 and invoke Interrupt 14 in the kernel IDT.",
-                  flowTitle: "x86-64 MMU EXCEPTION &rarr; Present Bit = 0 Triggers Interrupt 14",
+                  flowTitle: "x86-64 MMU EXCEPTION → Present Bit = 0 Triggers Interrupt 14",
                   flowSub: "Hardware stores faulting address in CR2 and transfers control to kernel page fault handler.",
                   what: "The MMU walks the page tables and finds that <strong>Present Bit = 0</strong> in the PTE. The MMU halts execution, places faulting address <code>0x00705020</code> into register <strong>CR2</strong>, pushes an error code, and fires <strong>Interrupt 14</strong>.",
                   why: "Hardware cannot perform file system operations or disk I/O. The MMU must trap into the supervisor kernel so the OS can allocate a physical frame and retrieve data from storage."
@@ -1506,10 +1506,10 @@
                   paddr: "Allocating Frame...",
                   activeNode: "mmu-node-disk",
                   activeLine: "mmu-line-5",
-                  btnNextText: "Next: Swap In from Storage &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Swap In from Storage →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The kernel storage driver will allocate a physical frame and read the 4 KiB block from disk into memory.",
-                  flowTitle: "x86-64 KERNEL PAGE FAULT HANDLER &rarr; Swap File Read",
+                  flowTitle: "x86-64 KERNEL PAGE FAULT HANDLER → Swap File Read",
                   flowSub: "OS allocates physical Frame 0x09210 and initiates NVMe/SATA DMA block transfer.",
                   what: "The kernel page fault handler reads register <strong>CR2</strong>, confirms the address is valid in the process memory map, allocates a free physical frame (<code>0x09210</code>), and issues a read command to swap storage.",
                   why: "Demand paging allows systems to run workloads larger than installed physical RAM by treating disk storage as a slower extension of the memory hierarchy."
@@ -1522,10 +1522,10 @@
                   paddr: "0x09210020",
                   activeNode: "mmu-node-ram",
                   activeLine: "mmu-line-4",
-                  btnNextText: "Restart Walkthrough &#8634;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Restart Walkthrough ↺",
+                  btnPrevText: "← Prev",
                   inlineNext: "The kernel executes IRET. The CPU seamlessly retries the faulting instruction with the page resident in RAM.",
-                  flowTitle: "x86-64 PTE UPDATE &rarr; Setting Present=1 &amp; Issuing IRET",
+                  flowTitle: "x86-64 PTE UPDATE → Setting Present=1 &amp; Issuing IRET",
                   flowSub: "PTE points to Frame 0x09210. CPU returns to user mode and restarts instruction.",
                   what: "Storage transfer completes. The kernel writes physical frame <code>0x09210</code> into the PTE, sets <strong>Present Bit = 1</strong>, executes <code>INVLPG</code> to clear stale TLB entries, and issues <code>IRET</code>. The CPU restarts the faulting instruction transparently.",
                   why: "Demand paging is fully transparent to user software. The application experiences a temporary I/O stall, but requires no custom error-handling logic."
@@ -1536,7 +1536,7 @@
               name: "ARM64 (AArch64)",
               rootName: "TTBR0_EL1",
               faultName: "FAR_EL1",
-              levels: "4-Level Translation (L0 &rarr; L1 &rarr; L2 &rarr; L3)",
+              levels: "4-Level Translation (L0 → L1 → L2 → L3)",
               walk: [
                 {
                   vaddr: "0x00000000403018",
@@ -1546,10 +1546,10 @@
                   paddr: "Translating...",
                   activeNode: "mmu-node-cpu",
                   activeLine: "mmu-line-1",
-                  btnNextText: "Next: Query Micro-TLB &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Query Micro-TLB →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The ARM64 MMU will query the L1/L2 Unified TLB using the ASID tagged in TTBR0_EL1.",
-                  flowTitle: "ARM64 INSTRUCTION FETCH &rarr; Evaluating TTBR0_EL1 User Range",
+                  flowTitle: "ARM64 INSTRUCTION FETCH → Evaluating TTBR0_EL1 User Range",
                   flowSub: "CPU decodes LDR X0, [X1]. Bit 63=0 selects TTBR0_EL1 (User Space) over TTBR1_EL1 (Kernel Space).",
                   what: "An ARM64 core decodes an instruction loading from address <code>0x00000000403018</code>. Because the top address bits are 0, the MMU knows this address belongs to user space and selects <strong>TTBR0_EL1</strong> (Translation Table Base Register 0).",
                   why: "ARM64 cleanly splits the virtual address space in hardware: user addresses use TTBR0_EL1, while supervisor addresses use TTBR1_EL1, eliminating the need to flush kernel mappings on user context switches."
@@ -1562,10 +1562,10 @@
                   paddr: "Translating...",
                   activeNode: "mmu-node-tlb",
                   activeLine: "mmu-line-2",
-                  btnNextText: "Next: Walk Translation Tables &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Walk Translation Tables →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The ARM64 MMU translation table walk unit will load table base from TTBR0_EL1.",
-                  flowTitle: "ARM64 TLB LOOKUP &rarr; Tag Miss with ASID Filtering",
+                  flowTitle: "ARM64 TLB LOOKUP → Tag Miss with ASID Filtering",
                   flowSub: "TLB tag check fails for VPN 0x0000403 with current ASID. Hardware triggers translation table walk.",
                   what: "The ARM64 MMU searches the TLB. The entry is not present for the current <strong>ASID (Address Space ID)</strong>. The hardware flags a TLB miss and begins a translation table walk.",
                   why: "ARM64 embeds the process ASID directly in the TLB tag. Multiple processes can share the TLB simultaneously without entries colliding or requiring flushes across context switches."
@@ -1578,12 +1578,12 @@
                   paddr: "Base: 0x08C20000",
                   activeNode: "mmu-node-ptw",
                   activeLine: "mmu-line-3",
-                  btnNextText: "Next: Read Physical DRAM &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Read Physical DRAM →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The MMU will append offset 0x018 to the resolved physical base and insert the descriptor into the TLB.",
-                  flowTitle: "ARM64 TABLE WALK &rarr; Levels 0 &rarr; 1 &rarr; 2 &rarr; 3 Page Descriptor",
+                  flowTitle: "ARM64 TABLE WALK → Levels 0 → 1 → 2 → 3 Page Descriptor",
                   flowSub: "MMU reads Level 3 Descriptor: Physical Output Address 0x08C20000, Valid Bit=1, AF=1.",
-                  what: "The MMU reads the Level 0 base table from <strong>TTBR0_EL1</strong> (physical address <code>0x2B8000</code>) and traverses translation levels L0 &rarr; L1 &rarr; L2 &rarr; L3. The Level 3 descriptor yields <strong>Physical Address 0x08C20000</strong> with Valid=1.",
+                  what: "The MMU reads the Level 0 base table from <strong>TTBR0_EL1</strong> (physical address <code>0x2B8000</code>) and traverses translation levels L0 → L1 → L2 → L3. The Level 3 descriptor yields <strong>Physical Address 0x08C20000</strong> with Valid=1.",
                   why: "ARM64 page tables support configurable translation granule sizes (4 KiB, 16 KiB, or 64 KiB), allowing operating systems to choose optimal trade-offs between mapping granularity and table overhead."
                 },
                 {
@@ -1594,10 +1594,10 @@
                   paddr: "0x08C20018",
                   activeNode: "mmu-node-ram",
                   activeLine: "mmu-line-4",
-                  btnNextText: "Restart Walkthrough &#8634;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Restart Walkthrough ↺",
+                  btnPrevText: "← Prev",
                   inlineNext: "Translation complete. The mapping is cached in the ARM64 TLB with its active ASID tag.",
-                  flowTitle: "ARM64 PHYSICAL ACCESS &rarr; Emitting 0x08C20018 over Interconnect",
+                  flowTitle: "ARM64 PHYSICAL ACCESS → Emitting 0x08C20018 over Interconnect",
                   flowSub: "Data loaded from DRAM into register X0. Translation cached in L1 Data TLB.",
                   what: "The MMU combines the physical page address with offset <code>0x018</code> to form <code>0x08C20018</code>. The CPU fetches the data from physical DRAM into register <code>X0</code> and caches the translation in the TLB.",
                   why: "Caching both the physical translation and memory attributes (Normal vs Device memory, inner/outer shareability) guarantees future accesses bypass table walks completely."
@@ -1612,10 +1612,10 @@
                   paddr: "None (Valid=0)",
                   activeNode: "mmu-node-cpu",
                   activeLine: "mmu-line-1",
-                  btnNextText: "Next: Walk Translation Table &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Walk Translation Table →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The ARM64 MMU will evaluate the translation descriptor and discover Valid Bit = 0.",
-                  flowTitle: "ARM64 MEMORY ACCESS &rarr; Accessing Non-Resident Virtual Address",
+                  flowTitle: "ARM64 MEMORY ACCESS → Accessing Non-Resident Virtual Address",
                   flowSub: "Application accesses 0x00000000705020. Data is currently paged out to disk backing store.",
                   what: "A user thread running at Exception Level 0 (EL0) accesses address <code>0x00000000705020</code>, referencing a virtual page currently not resident in physical memory.",
                   why: "Paging enables efficient memory sharing and dynamic allocation on memory-constrained mobile and server ARM64 architectures."
@@ -1628,10 +1628,10 @@
                   paddr: "TRAP to EL1",
                   activeNode: "mmu-node-ptw",
                   activeLine: "mmu-line-3",
-                  btnNextText: "Next: Fire Translation Fault &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Fire Translation Fault →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The CPU will store the faulting address in FAR_EL1 and syndrome code in ESR_EL1, trapping to EL1.",
-                  flowTitle: "ARM64 TRANSLATION FAULT &rarr; Exception Raised to EL1 (Kernel)",
+                  flowTitle: "ARM64 TRANSLATION FAULT → Exception Raised to EL1 (Kernel)",
                   flowSub: "Hardware populates FAR_EL1 with faulting address and ESR_EL1 with exception syndrome.",
                   what: "The MMU walks the table and finds the Level 3 descriptor has <strong>Bit 0 (Valid) = 0</strong>. The CPU halts execution, saves the address to <strong>FAR_EL1</strong> (Fault Address Register), writes the cause into <strong>ESR_EL1</strong>, and traps to kernel mode at EL1.",
                   why: "ARM64 categorizes faults cleanly: ESR_EL1 details whether the fault was a translation fault, permission fault, or access flag fault, speeding up kernel dispatching."
@@ -1644,10 +1644,10 @@
                   paddr: "Allocating Frame...",
                   activeNode: "mmu-node-disk",
                   activeLine: "mmu-line-5",
-                  btnNextText: "Next: Swap In from Storage &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Swap In from Storage →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The kernel disk driver will stream the page from storage into a newly allocated RAM frame.",
-                  flowTitle: "ARM64 KERNEL FAULT DISPATCH &rarr; Reading Storage Swap",
+                  flowTitle: "ARM64 KERNEL FAULT DISPATCH → Reading Storage Swap",
                   flowSub: "Kernel reads FAR_EL1, allocates physical frame 0x09530000, and triggers DMA block read.",
                   what: "The kernel reads <strong>FAR_EL1</strong> to identify the missing address, allocates physical RAM frame <code>0x09530000</code>, and initiates a DMA transfer from storage backing store into memory.",
                   why: "Demand paging allows the OS to run large binaries by loading only executable sections as they are touched by the instruction pointer."
@@ -1660,10 +1660,10 @@
                   paddr: "0x09530020",
                   activeNode: "mmu-node-ram",
                   activeLine: "mmu-line-4",
-                  btnNextText: "Restart Walkthrough &#8634;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Restart Walkthrough ↺",
+                  btnPrevText: "← Prev",
                   inlineNext: "The kernel executes ERET. The CPU transparently restarts the instruction at EL0 with the page now in RAM.",
-                  flowTitle: "ARM64 DESCRIPTOR UPDATE &rarr; TLBI Invalidation &amp; ERET",
+                  flowTitle: "ARM64 DESCRIPTOR UPDATE → TLBI Invalidation &amp; ERET",
                   flowSub: "Kernel sets Valid=1 in Level 3 descriptor, executes TLBI to flush stale tags, and returns via ERET.",
                   what: "Storage transfer completes. The kernel sets Valid=1 in the Level 3 descriptor, executes <code>TLBI VAE1IS</code> to invalidate any stale TLB lines, and issues <code>ERET</code>. The CPU returns to EL0 and restarts the load instruction.",
                   why: "The application resumes without ever knowing a disk read occurred. Hardware and kernel collaboration provides seamless virtual memory abstraction."
@@ -1674,7 +1674,7 @@
               name: "RISC-V (Sv39)",
               rootName: "satp",
               faultName: "stval",
-              levels: "3-Level Translation (VPN[2] &rarr; VPN[1] &rarr; VPN[0])",
+              levels: "3-Level Translation (VPN[2] → VPN[1] → VPN[0])",
               walk: [
                 {
                   vaddr: "0x00403018",
@@ -1684,10 +1684,10 @@
                   paddr: "Translating...",
                   activeNode: "mmu-node-cpu",
                   activeLine: "mmu-line-1",
-                  btnNextText: "Next: Query TLB &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Query TLB →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The RISC-V MMU will check the translation cache for the VPN and ASID stored in satp.",
-                  flowTitle: "RISC-V Sv39 FETCH &rarr; Decomposing 39-bit Virtual Address",
+                  flowTitle: "RISC-V Sv39 FETCH → Decomposing 39-bit Virtual Address",
                   flowSub: "Address decomposes into three 9-bit VPN fields (VPN[2], VPN[1], VPN[0]) and 12-bit offset.",
                   what: "A user program executing in U-mode issues a load from address <code>0x00403018</code>. Under RISC-V <strong>Sv39</strong> virtual memory, the 39-bit address is split into three 9-bit page directory indexes and a 12-bit offset.",
                   why: "RISC-V uses modular address sizes (Sv39, Sv48, Sv57). Sv39 provides a 512 GiB virtual address space with small 3-level page tables, ideal for efficient embedded and server silicon."
@@ -1700,10 +1700,10 @@
                   paddr: "Translating...",
                   activeNode: "mmu-node-tlb",
                   activeLine: "mmu-line-2",
-                  btnNextText: "Next: Walk Sv39 Page Table &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Walk Sv39 Page Table →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The hardware will read the root page table physical address from the satp register.",
-                  flowTitle: "RISC-V TLB SEARCH &rarr; Cache Miss Detected",
+                  flowTitle: "RISC-V TLB SEARCH → Cache Miss Detected",
                   flowSub: "No matching tag found in TLB. Hardware activates multi-level page table walk.",
                   what: "The MMU searches the TLB. The tag comparison fails. The MMU raises a TLB miss and begins walking the Sv39 page tables in memory.",
                   why: "Caching translations avoids repeated memory reads. A miss forces the hardware to read up to three 64-bit page table entries from RAM."
@@ -1716,12 +1716,12 @@
                   paddr: "Base: 0x08E10000",
                   activeNode: "mmu-node-ptw",
                   activeLine: "mmu-line-3",
-                  btnNextText: "Next: Read Physical DRAM &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Read Physical DRAM →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The MMU will append offset 0x018 to the resolved PPN and insert the entry into the TLB.",
-                  flowTitle: "RISC-V Sv39 WALK &rarr; Traverses Level 2 &rarr; 1 &rarr; 0 PTEs",
+                  flowTitle: "RISC-V Sv39 WALK → Traverses Level 2 → 1 → 0 PTEs",
                   flowSub: "Hardware locates leaf PTE: PPN 0x08E10, Valid=1, Readable=1, User=1.",
-                  what: "The MMU reads the root Physical Page Number from register <strong>satp</strong> (Supervisor Address Translation and Protection). It traverses indexes VPN[2] &rarr; VPN[1] &rarr; VPN[0]. The leaf entry reveals <strong>Physical Page Number 0x08E10</strong> with Valid=1 and User=1.",
+                  what: "The MMU reads the root Physical Page Number from register <strong>satp</strong> (Supervisor Address Translation and Protection). It traverses indexes VPN[2] → VPN[1] → VPN[0]. The leaf entry reveals <strong>Physical Page Number 0x08E10</strong> with Valid=1 and User=1.",
                   why: "RISC-V allows non-leaf PTEs to be marked as valid leaves, providing native hardware support for 2 MiB (megapage) and 1 GiB (gigapage) superpages without extra hardware complexity."
                 },
                 {
@@ -1732,10 +1732,10 @@
                   paddr: "0x08E10018",
                   activeNode: "mmu-node-ram",
                   activeLine: "mmu-line-4",
-                  btnNextText: "Restart Walkthrough &#8634;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Restart Walkthrough ↺",
+                  btnPrevText: "← Prev",
                   inlineNext: "Translation complete. Translation cached in RISC-V TLB.",
-                  flowTitle: "RISC-V PHYSICAL ACCESS &rarr; Issuing 0x08E10018 to Bus",
+                  flowTitle: "RISC-V PHYSICAL ACCESS → Issuing 0x08E10018 to Bus",
                   flowSub: "DRAM returns data word into CPU register. TLB caches mapping.",
                   what: "The MMU appends offset <code>0x018</code> to physical base <code>0x08E10000</code>, creating physical address <code>0x08E10018</code>. The CPU loads data from RAM and stores the translation in the TLB.",
                   why: "Future accesses to this 4 KiB range will hit the TLB, bypassing memory reads until an <code>sfence.vma</code> instruction invalidates the cache."
@@ -1750,10 +1750,10 @@
                   paddr: "None (Valid=0)",
                   activeNode: "mmu-node-cpu",
                   activeLine: "mmu-line-1",
-                  btnNextText: "Next: Walk Page Table &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Walk Page Table →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The MMU will walk the Sv39 page table and inspect the leaf PTE Valid bit.",
-                  flowTitle: "RISC-V MEMORY ACCESS &rarr; Accessing Swapped Address",
+                  flowTitle: "RISC-V MEMORY ACCESS → Accessing Swapped Address",
                   flowSub: "Application references address 0x00705020 in unmapped/swapped memory space.",
                   what: "An unprivileged application thread running in U-mode attempts to load from address <code>0x00705020</code>. The data is currently stored in disk swap.",
                   why: "Virtual memory isolates processes and permits memory overcommit across desktop and server RISC-V implementations."
@@ -1766,10 +1766,10 @@
                   paddr: "TRAP to S-mode",
                   activeNode: "mmu-node-ptw",
                   activeLine: "mmu-line-3",
-                  btnNextText: "Next: Fire Page Fault (Cause 13) &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Fire Page Fault (Cause 13) →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The CPU will store the fault address into stval and raise Load Page Fault (Cause 13) to S-mode.",
-                  flowTitle: "RISC-V EXCEPTION &rarr; Load Page Fault (scause = 13)",
+                  flowTitle: "RISC-V EXCEPTION → Load Page Fault (scause = 13)",
                   flowSub: "MMU halts walk. CPU records faulting address in stval and traps to supervisor.",
                   what: "The MMU finds <strong>Bit 0 (Valid) = 0</strong> in the PTE. The CPU writes faulting address <code>0x00705020</code> into register <strong>stval</strong> (Supervisor Trap Value), sets <strong>scause</strong> to 13 (Load Page Fault), and transfers control to the S-mode kernel.",
                   why: "RISC-V separates trap value (stval) from trap reason (scause), giving supervisor software an unambiguous, clean interface to diagnose memory faults."
@@ -1782,10 +1782,10 @@
                   paddr: "Allocating Frame...",
                   activeNode: "mmu-node-disk",
                   activeLine: "mmu-line-5",
-                  btnNextText: "Next: Swap In from Storage &rarr;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Next: Swap In from Storage →",
+                  btnPrevText: "← Prev",
                   inlineNext: "The supervisor kernel will allocate a physical frame and issue a storage transfer.",
-                  flowTitle: "RISC-V KERNEL TRAP DISPATCH &rarr; Reading Swap Storage",
+                  flowTitle: "RISC-V KERNEL TRAP DISPATCH → Reading Swap Storage",
                   flowSub: "OS inspects stval, allocates Frame 0x09840, and starts disk block read.",
                   what: "The S-mode kernel reads <strong>stval</strong>, allocates physical memory frame <code>0x09840000</code>, and initiates a DMA transfer from storage backing store.",
                   why: "The operating system transparently handles page allocation while application execution remains paused."
@@ -1798,10 +1798,10 @@
                   paddr: "0x09840020",
                   activeNode: "mmu-node-ram",
                   activeLine: "mmu-line-4",
-                  btnNextText: "Restart Walkthrough &#8634;",
-                  btnPrevText: "&larr; Prev",
+                  btnNextText: "Restart Walkthrough ↺",
+                  btnPrevText: "← Prev",
                   inlineNext: "The kernel executes sret. The CPU transparently restarts the faulting load instruction.",
-                  flowTitle: "RISC-V PTE UPDATE &rarr; sfence.vma &amp; sret Execution",
+                  flowTitle: "RISC-V PTE UPDATE → sfence.vma &amp; sret Execution",
                   flowSub: "PTE updated with Frame 0x09840, Valid=1. CPU flushes TLB and returns via sret.",
                   what: "The storage transfer completes. The kernel writes PPN <code>0x09840</code> into the PTE, sets <strong>Valid = 1</strong>, executes <code>sfence.vma</code> to synchronize the TLB, and issues <code>sret</code>. The CPU returns to U-mode and restarts the instruction.",
                   why: "The application resumes seamlessly without knowing a disk transfer occurred. Hardware and kernel collaborate to preserve the illusion of infinite memory."
@@ -2058,7 +2058,7 @@
           <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">How to Use This Simulator</div>
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.88rem; line-height: 1.5;">
             <li><strong>Toggle Operating Systems:</strong> Use the <code>Linux</code>, <code>Windows</code>, and <code>macOS</code> buttons above at any time to compare how each OS handles that specific boot stage.</li>
-            <li><strong>Step Through the Hand-offs:</strong> Click <code>Next Step &rarr;</code> to step through each execution phase in sequence.</li>
+            <li><strong>Step Through the Hand-offs:</strong> Click <code>Next Step →</code> to step through each execution phase in sequence.</li>
             <li><strong>Inspect Hardware Transitions:</strong> Observe the <strong>Executing Entity</strong>, <strong>Active Program Counter</strong>, and the highlighted bus path in the architecture diagram.</li>
           </ol>
         </div>
@@ -2067,9 +2067,9 @@
         <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
           <!-- Controls -->
           <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
-            <button id="boot-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
+            <button id="boot-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step →</button>
             <div style="display: flex; gap: 8px;">
-              <button id="boot-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="boot-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">← Prev</button>
               <button id="boot-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
             </div>
           </div>
@@ -2119,7 +2119,7 @@
               <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
               <text x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">1. Power &amp; Reset</text>
               <text id="node-1-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Voltages Stabilize</text>
-              <text id="node-1-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">PC &larr; Reset Vector</text>
+              <text id="node-1-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">PC ← Reset Vector</text>
             </g>
 
             <!-- Node 2: Firmware (BIOS/UEFI) (x: 215, w: 170) -->
@@ -2166,7 +2166,7 @@
               <rect x="0" y="0" width="930" height="95" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
               <text x="24" y="26" fill="#0369a1" font-size="11" font-weight="700">ACTIVE BUS INTERCONNECT &amp; SYSTEM MAPPING</text>
               <text id="boot-flow-label" x="24" y="52" fill="#0f172a" font-size="11" font-family="var(--font-mono)">
-                Hardware resets registers &rarr; CPU fetches first instruction from mapped ROM/Flash.
+                Hardware resets registers → CPU fetches first instruction from mapped ROM/Flash.
               </text>
               <text id="boot-flow-sublabel" x="24" y="74" fill="#64748b" font-size="10" font-family="var(--font-mono)">
                 No RAM is initialized yet. Execution proceeds directly from non-volatile firmware storage.
@@ -2207,8 +2207,8 @@
                 media: "Motherboard SPI Flash NVRAM",
                 activeNode: "boot-node-power",
                 activeLine: "boot-line-1",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The UEFI / BIOS firmware will execute the POST, initialize DRAM memory channels, and scan NVRAM for boot drive entries.",
                 flowTitle: "CPU RESET ASSERTION -> Direct Flash ROM Instruction Fetch",
                 flowSub: "No DRAM memory is initialized yet. The CPU fetches its first jump instruction directly from mapped flash storage.",
@@ -2232,8 +2232,8 @@
                 media: "Motherboard Flash ROM / NVRAM",
                 activeNode: "boot-node-firmware",
                 activeLine: "boot-line-2",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The firmware will read the Linux EFI bootloader (GRUB or systemd-boot) from the EFI System Partition (ESP).",
                 flowTitle: "POST & BUS DISCOVERY -> Memory Training & NVRAM Lookup",
                 flowSub: "Firmware verifies RAM chips, probes PCIe/NVMe storage controllers, and loads boot variables.",
@@ -2257,8 +2257,8 @@
                 media: "Storage Media (NVMe / SATA SSD)",
                 activeNode: "boot-node-storage",
                 activeLine: "boot-line-3",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The bootloader will stage the compressed kernel image (vmlinuz) and initial ramdisk (initramfs) into physical memory.",
                 flowTitle: "BOOTLOADER STAGING -> Reading Kernel Images into RAM",
                 flowSub: "GRUB displays boot menu, parses grub.cfg, and reads vmlinuz and initramfs from the filesystem.",
@@ -2282,8 +2282,8 @@
                 media: "System RAM (DRAM)",
                 activeNode: "boot-node-ram",
                 activeLine: "boot-line-4",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The Linux kernel will mount the root filesystem, activate virtual memory paging, and spawn /sbin/init or systemd.",
                 flowTitle: "KERNEL EXTRACTION -> Hardware Takeover & MMU Page Table Setup",
                 flowSub: "Kernel initializes 4-level page tables, sets up IDT vectors, and loads built-in hardware drivers.",
@@ -2307,8 +2307,8 @@
                 media: "Root Filesystem (ext4 / Btrfs / XFS)",
                 activeNode: "boot-node-kernel",
                 activeLine: "boot-line-5",
-                btnNextText: "Restart Walkthrough &#8634;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Restart Walkthrough ↺",
+                btnPrevText: "← Prev",
                 inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
                 flowTitle: "USERSPACE HAND-OFF -> Execution of PID 1 in Ring 3",
                 flowSub: "Kernel drops privileges, switches mode bit to 1, and systemd spawns login managers and daemons.",
@@ -2334,8 +2334,8 @@
                 media: "Motherboard SPI Flash NVRAM",
                 activeNode: "boot-node-power",
                 activeLine: "boot-line-1",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "UEFI firmware will execute POST, train memory, and read the Windows Boot Manager entry in NVRAM.",
                 flowTitle: "CPU RESET ASSERTION -> Direct Flash ROM Instruction Fetch",
                 flowSub: "Motherboard power circuitry stabilizes. CPU fetches first instruction from flash ROM.",
@@ -2359,8 +2359,8 @@
                 media: "Motherboard Flash ROM / NVRAM",
                 activeNode: "boot-node-firmware",
                 activeLine: "boot-line-2",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "Firmware will locate the Windows Boot Manager (bootmgfw.efi) in the EFI System Partition.",
                 flowTitle: "POST & BUS DISCOVERY -> Memory Training & BCD Entry Resolution",
                 flowSub: "Firmware trains memory controllers, initializes PCIe storage buses, and selects Windows boot entry.",
@@ -2384,8 +2384,8 @@
                 media: "EFI System Partition (FAT32)",
                 activeNode: "boot-node-storage",
                 activeLine: "boot-line-3",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "winload.efi will read ntoskrnl.exe, hal.dll, and boot-start drivers into physical RAM.",
                 flowTitle: "WINDOWS BOOT MANAGER -> Reading BCD & Invoking winload.efi",
                 flowSub: "bootmgfw.efi reads the BCD registry hive, locates the Windows partition, and launches winload.efi.",
@@ -2409,8 +2409,8 @@
                 media: "System RAM (DRAM)",
                 activeNode: "boot-node-ram",
                 activeLine: "boot-line-4",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The NT kernel will initialize the Object Manager, mount NTFS, and spawn the Session Manager (smss.exe).",
                 flowTitle: "KERNEL INITIALIZATION -> ntoskrnl.exe & hal.dll Hardware Takeover",
                 flowSub: "winload.efi enables paging, exits UEFI services, and transfers control to KiSystemStartup.",
@@ -2434,8 +2434,8 @@
                 media: "Windows System Drive (NTFS)",
                 activeNode: "boot-node-kernel",
                 activeLine: "boot-line-5",
-                btnNextText: "Restart Walkthrough &#8634;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Restart Walkthrough ↺",
+                btnPrevText: "← Prev",
                 inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
                 flowTitle: "USERSPACE HAND-OFF -> Spawning smss.exe & Windows Subsystem",
                 flowSub: "smss.exe starts csrss.exe (Win32), wininit.exe, and winlogon.exe to present the user login screen.",
@@ -2461,8 +2461,8 @@
                 media: "On-Chip Secure Boot ROM",
                 activeNode: "boot-node-power",
                 activeLine: "boot-line-1",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The Boot ROM will verify the cryptographic signature of the low-level bootloader (LLB / iBoot).",
                 flowTitle: "HARDWARE RESET ASSERTION -> On-Chip Boot ROM Execution",
                 flowSub: "Apple Silicon chip powers on. Hardware starts execution from unchangeable internal Mask ROM.",
@@ -2486,8 +2486,8 @@
                 media: "NAND Storage (SysCfg)",
                 activeNode: "boot-node-firmware",
                 activeLine: "boot-line-2",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "iBoot will initialize the memory controller, verify APFS seals, and locate the macOS boot kernelcache.",
                 flowTitle: "POST & MEMORY TRAINING -> Hardware Signature Verification",
                 flowSub: "iBoot calibrates unified memory, verifies hardware security certificates, and scans storage.",
@@ -2511,8 +2511,8 @@
                 media: "APFS Preboot Container",
                 activeNode: "boot-node-storage",
                 activeLine: "boot-line-3",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The bootloader will stage the authenticated kernelcache (XNU kernel, Mach, BSD, and I/O Kit) into memory.",
                 flowTitle: "BOOTLOADER STAGING -> Reading Sealed Kernel Collection into RAM",
                 flowSub: "iBoot loads boot.efi, verifies the Sealed System Volume (SSV) hash, and prepares DeviceTree.",
@@ -2536,8 +2536,8 @@
                 media: "Unified System RAM",
                 activeNode: "boot-node-ram",
                 activeLine: "boot-line-4",
-                btnNextText: "Next Step &rarr;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Next Step →",
+                btnPrevText: "← Prev",
                 inlineNext: "The XNU kernel will mount the read-only APFS system volume and spawn launchd as process ID 1.",
                 flowTitle: "KERNEL TAKEOVER -> Mach VM, BSD Subsystems, & I/O Kit Drivers",
                 flowSub: "Kernel enables MMU translation, starts task scheduling, and attaches C++ I/O Kit device drivers.",
@@ -2561,8 +2561,8 @@
                 media: "Sealed System Volume (APFS)",
                 activeNode: "boot-node-kernel",
                 activeLine: "boot-line-5",
-                btnNextText: "Restart Walkthrough &#8634;",
-                btnPrevText: "&larr; Prev",
+                btnNextText: "Restart Walkthrough ↺",
+                btnPrevText: "← Prev",
                 inlineNext: "Boot sequence complete. Clicking restart will reset the walkthrough back to Stage 1.",
                 flowTitle: "USERSPACE HAND-OFF -> launchd Daemon & WindowServer",
                 flowSub: "Kernel drops to User Mode, launchd manages daemons, and WindowServer presents the login screen.",
@@ -2716,9 +2716,9 @@
   </main>
 
   <nav class="module-nav-bar bottom">
-    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>
+    <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">← Previous: 01. What Is an OS &amp; History</a>
     <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&#127968; Week 1: Operating System Concepts</a>
-    <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>
+    <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts →</a>
   </nav>
 
 </body>
