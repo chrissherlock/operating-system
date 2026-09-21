@@ -1,68 +1,128 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Remove card wrappers from 03-os-concepts.html
-# =====================================================================
-import os
-import re
-import subprocess
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. Operating System Concepts | Week 1: Operating System Concepts</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+    }
+    h2 {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 36px;
+    }
+    h3 {
+      margin-top: 28px;
+      margin-bottom: 8px;
+      color: #0284c7;
+      font-size: 1.15rem;
+    }
+    p {
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    ul, ol {
+      margin-left: 20px;
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    code {
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      color: #0369a1;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Navigation Bar -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="02-hardware-review.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Hardware Review</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <a href="04-os-structure.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. OS Structure &rarr;</a>
+    </nav>
 
-TARGET_FILE = os.path.join("week01-operating-system-concepts", "03-os-concepts.html")
+    <h2>03. Operating System Concepts</h2>
+    <p>At the heart of every computer system lies a collection of powerful architectural abstractions designed to turn raw hardware into a programmable, secure, and intuitive environment. Drawing from Tanenbaum's foundational taxonomy, this module examines the core conceptual pillars that define modern operating systems.</p>
 
-def remove_card_containers():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} not found.")
-        return
+    <h3>1. The Process Abstraction</h3>
+    <p>The fundamental concept in any modern operating system is the <strong>process</strong>—an abstraction of a running program. A process is not merely the machine code on disk; it is an active execution entity encompassing:</p>
+    <ul>
+      <li><strong>Program Counter (PC):</strong> Tracks the current instruction being executed.</li>
+      <li><strong>Registers:</strong> Hold temporary working variables and architectural state.</li>
+      <li><strong>Memory Map:</strong> Encompasses the text segment (code), data segment (variables), heap (dynamic allocation), and stack (function frames).</li>
+      <li><strong>Open File Descriptors:</strong> References to active I/O streams and network sockets.</li>
+    </ul>
+    <p>The operating system maintains a <em>Process Control Block (PCB)</em> for every active process, allowing the CPU to multiplex between independent programs seamlessly.</p>
 
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
+    <h3>2. Address Spaces &amp; Virtual Memory</h3>
+    <p>To prevent concurrent programs from corrupting one another's memory, operating systems introduce the <strong>address space</strong>. Each process is presented with its own private, contiguous virtual memory range. The Memory Management Unit (MMU) translates these virtual addresses into physical RAM locations on the fly, providing memory isolation, protection rings, and support for swapping.</p>
 
-    # Regex to find card divs (divs with background, border, border-radius, box-shadow or padding)
-    # and unwrap their inner contents.
-    # Let's inspect or target common card patterns used across the course files.
+    <h3>3. Files &amp; Hierarchical Directories</h3>
+    <p>Operating systems abstract messy disk sectors, tracks, and cylinders into logical units known as <strong>files</strong>. Files provide persistent storage managed through hierarchical directory trees. Key concepts include:</p>
+    <ul>
+      <li><strong>Mounting:</strong> Integrating separate physical file systems into a single unified directory hierarchy.</li>
+      <li><strong>File Descriptors:</strong> Integers returned by system calls (e.g., <code>open</code>) used by applications to read and write data streams without knowing underlying device geometry.</li>
+    </ul>
 
-    # Pattern for card divs with white/light backgrounds and borders
-    # e.g., <div style="background: #ffffff; border: 1px solid ..."> ... </div>
+    <h3>4. Input/Output (I/O) Subsystems</h3>
+    <p>The I/O subsystem abstracts diverse hardware peripherals—from keyboards to NVMe storage arrays—behind standardized device drivers and system calls. Kernels utilize interrupt handlers, device buffers, and asynchronous completion queues to decouple slow peripheral operations from fast CPU instruction cycles.</p>
 
-    # Let's replace card wrapper open/close tags while keeping inner HTML.
-    # We can use regex to match outer card divs if they wrap major sections.
+    <h3>5. Protection &amp; Security</h3>
+    <p>Multi-user and networked operating systems enforce strict access controls to safeguard data. Mechanisms include:</p>
+    <ul>
+      <li><strong>User and Group Identifiers (UID/GID):</strong> Associates processes with specific security principals.</li>
+      <li><strong>Access Control Lists (ACLs) &amp; Permission Bits:</strong> Dictate whether read, write, or execute privileges are granted.</li>
+      <li><strong>Privilege Rings:</strong> Hardware-enforced separation between unprivileged user mode and supervisor (kernel) mode.</li>
+    </ul>
 
-    # Let's log original length
-    print(f"Original file length: {len(content)} characters.")
+    <h3>6. The Command Interpreter (The Shell)</h3>
+    <p>The shell is not part of the kernel, but it is the primary user interface for interacting with operating system services. When a user enters a command, the shell parses the input, issues <code>fork()</code> to create a child process, executes <code>exec()</code> to load the binary program, and manages input/output redirection and piping.</p>
 
-    # Remove generic card wrapper divs that match card styling while preserving inner content
-    # Specifically targeting divs with box-shadow or card border-radius & padding
-    pattern = re.compile(
-        r'<div style="[^"]*?(?:background:\s*#(?:fff|ffffff|f8fafc)|border-radius:\s*\d+px|box-shadow:[^"]*?)[^"]*?">([\s\S]*?)</div>\s*(?=<!--|\Z|<h2|<article)',
-        re.IGNORECASE
-    )
-
-    # Let's perform a targeted replacement for known card structures or general unwrapping
-    # If specific card comments exist, we can target those as well.
-
-    # Let's write a cleaner unwrapper that strips card wrapper divs while keeping their children
-    modified_content = content
-
-    # Example: remove wrapper divs that have border-radius and box-shadow or card padding
-    # Let's use a robust string replacement or recursive tag matching if needed.
-    # Alternatively, let's inspect and strip specific card style attributes.
-
-    print("--> Stripped card wrappers from 03-os-concepts.html successfully.")
-
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(modified_content)
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Remove enclosing card wrappers from Module 3 operating system concepts\n\n"
-            "Strip out card container divs, borders, and background boxes from\n"
-            "03-os-concepts.html so sections flow naturally as inline document text."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for Module 3 card removal!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    remove_card_containers()
+    <!-- Navigation Bar Bottom -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="02-hardware-review.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Hardware Review</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <a href="04-os-structure.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. OS Structure &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
