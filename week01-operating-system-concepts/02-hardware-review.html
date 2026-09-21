@@ -190,7 +190,7 @@
           <!-- Main Memory / Bus Box -->
           <rect x="30" y="40" width="170" height="230" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
           <text x="115" y="70" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">Main Memory</text>
-          <text x="115" y="88" fill="#64748b" font-size="10" text-anchor="middle">(Instructions &amp; Data)</text>
+          <text x="115" y="88" fill="#64748b" font-size="10" text-anchor="middle">(Instructions & Data)</text>
 
           <rect x="50" y="115" width="130" height="36" rx="4" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5" />
           <text x="115" y="138" fill="#0284c7" font-size="11" font-weight="600" text-anchor="middle">Code Segment</text>
@@ -220,12 +220,12 @@
           <!-- Execution ALU -->
           <rect x="650" y="80" width="130" height="70" rx="6" fill="#0284c7" stroke="#0369a1" stroke-width="1.5" />
           <text x="715" y="105" fill="#ffffff" font-size="12" font-weight="700" text-anchor="middle">3. EXECUTE</text>
-          <text x="715" y="123" fill="#ffffff" font-size="11" font-weight="600" text-anchor="middle">ALU &amp; Shifter</text>
+          <text x="715" y="123" fill="#ffffff" font-size="11" font-weight="600" text-anchor="middle">ALU & Shifter</text>
           <text x="715" y="139" fill="#e0f2fe" font-size="10" text-anchor="middle">Math / Logic / Branch</text>
 
           <!-- Register File & Writeback -->
           <rect x="420" y="195" width="220" height="65" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
-          <text x="530" y="218" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle">General Purpose Registers &amp; PSW</text>
+          <text x="530" y="218" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle">General Purpose Registers & PSW</text>
           <text x="530" y="235" fill="#475569" font-size="11" text-anchor="middle">4. WRITEBACK (R0..Rn, Flags)</text>
           <text x="530" y="250" fill="#0284c7" font-size="10" font-weight="600" text-anchor="middle">PC ← PC + Instruction Length</text>
 
@@ -268,14 +268,14 @@
         <svg viewBox="0 0 860 410" width="100%" height="auto" style="max-width: 860px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <!-- Outer Boundary -->
           <rect x="15" y="15" width="830" height="380" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
-          <text x="35" y="42" fill="#0369a1" font-size="13" font-weight="700">CPU INTERNAL REGISTERS &amp; EXECUTION STATE</text>
+          <text x="35" y="42" fill="#0369a1" font-size="13" font-weight="700">CPU INTERNAL REGISTERS & EXECUTION STATE</text>
 
           <!-- Top Section: 3 Dedicated Columns -->
           <!-- 1. General-Purpose Registers -->
           <g transform="translate(35, 60)">
             <rect x="0" y="0" width="250" height="175" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" />
             <text x="125" y="24" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle">General-Purpose Registers (GPRs)</text>
-            <text x="125" y="40" fill="#64748b" font-size="10" text-anchor="middle">User-Visible Data &amp; Operand Scratchpad</text>
+            <text x="125" y="40" fill="#64748b" font-size="10" text-anchor="middle">User-Visible Data & Operand Scratchpad</text>
 
             <rect x="15" y="52" width="220" height="26" rx="3" fill="#ffffff" stroke="#cbd5e1" />
             <text x="25" y="69" fill="#0284c7" font-size="11" font-weight="700">R0 / RAX</text>
@@ -315,7 +315,7 @@
             <rect x="15" y="55" width="220" height="105" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1" />
             <text x="25" y="80" fill="#0f172a" font-size="11" font-weight="700">Points to Top of Active Stack</text>
             <text x="25" y="100" fill="#64748b" font-size="10">• Adjusted on PUSH and POP</text>
-            <text x="25" y="120" fill="#64748b" font-size="10">• Tracks Activation Records &amp; Frames</text>
+            <text x="25" y="120" fill="#64748b" font-size="10">• Tracks Activation Records & Frames</text>
             <text x="25" y="140" fill="#64748b" font-size="10">• Holds Subroutine Return Addrs</text>
           </g>
 
@@ -323,7 +323,7 @@
           <g transform="translate(35, 250)">
             <rect x="0" y="0" width="790" height="130" rx="6" fill="#f8fafc" stroke="#475569" stroke-width="1.5" />
             <text x="20" y="24" fill="#0f172a" font-size="12" font-weight="700">Program Status Word (PSW / Flags Register)</text>
-            <text x="440" y="24" fill="#64748b" font-size="10">Hardware Execution Flags &amp; Protection Level</text>
+            <text x="440" y="24" fill="#64748b" font-size="10">Hardware Execution Flags & Protection Level</text>
 
             <!-- Bitfield Grid Container -->
             <!-- Arithmetic Status Flags (Bits 0-3) -->
@@ -362,7 +362,7 @@
             <!-- Bottom Descriptive Labels -->
             <g transform="translate(20, 82)">
               <rect x="0" y="0" width="390" height="36" rx="4" fill="#f0fdf4" stroke="#86efac" />
-              <text x="195" y="16" fill="#166534" font-size="10" font-weight="700" text-anchor="middle">Control &amp; Privilege State</text>
+              <text x="195" y="16" fill="#166534" font-size="10" font-weight="700" text-anchor="middle">Control & Privilege State</text>
               <text x="195" y="29" fill="#15803d" font-size="9" text-anchor="middle">Enforces hardware isolation between OS kernel and user space</text>
 
               <rect x="390" y="0" width="360" height="36" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
@@ -474,7 +474,7 @@
           <g transform="translate(20, 295)">
             <text x="0" y="20" fill="#0f172a" font-size="13" font-weight="700">3. Superscalar Execution: Multiple Pipelines (e.g., Dual-Issue)</text>
             <rect x="0" y="32" width="790" height="30" rx="4" fill="#f0f9ff" stroke="#bae6fd" />
-            <text x="15" y="52" fill="#0369a1" font-size="11" font-weight="600">Dual Fetch &amp; Decode → Parallel ALUs (ALU 1 &amp; ALU 2) → Retired Concurrently (&gt; 1 IPC Throughput)</text>
+            <text x="15" y="52" fill="#0369a1" font-size="11" font-weight="600">Dual Fetch & Decode → Parallel ALUs (ALU 1 & ALU 2) → Retired Concurrently (&gt; 1 IPC Throughput)</text>
           </g>
         </svg>
       </div>
@@ -613,7 +613,7 @@
             <!-- Node 2: Library Stub / Trap Invocation -->
             <rect id="node-trap-trigger" x="280" y="55" width="190" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
             <text id="trap-node2-title" x="375" y="78" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Runtime Stub</text>
-            <text id="trap-node2-sub" x="375" y="94" fill="#64748b" font-size="10" text-anchor="middle">Stages Call &amp; Traps</text>
+            <text id="trap-node2-sub" x="375" y="94" fill="#64748b" font-size="10" text-anchor="middle">Stages Call & Traps</text>
 
             <!-- Node 3: CPU Hardware Switch -->
             <rect id="node-cpu-hw" x="535" y="105" width="195" height="60" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
@@ -674,7 +674,7 @@
                 node2Sub: "Prepares Syscall",
                 node4Title: "Syscall Table",
                 node4Sub: "sys_call_table[__NR_read]",
-                node5Title: "VFS &amp; NVMe Driver",
+                node5Title: "VFS & NVMe Driver",
                 node5Sub: "Reads Blocks from Disk",
                 what: "Our Unix story begins inside a text editor running in User Space. The user opens <code>report.txt</code>, and the program needs 512 bytes from disk. It calls <code>read(fd, buffer, 512)</code>. The CPU is running in User Mode (Mode Bit = 1). The application cannot send voltage pulses across the storage bus or touch physical disk sectors directly; doing so would trigger an immediate General Protection Fault.",
                 why: "If any running application could manipulate the storage bus directly, a buggy program could corrupt files belonging to other users or read password hashes straight off the disk platters. The CPU hardware enforces a strict sandbox (Ring 3) to protect system integrity.",
@@ -686,7 +686,7 @@
                 modeColor: "#dc2626",
                 pc: "0x004085A0 (glibc syscall stub)",
                 stack: "User Stack (RSP = 0x7FFF4FE0)",
-                stepNum: "Chapter 2 of 6: Staging Registers &amp; The Trap Invocation",
+                stepNum: "Chapter 2 of 6: Staging Registers & The Trap Invocation",
                 activeNode: "node-trap-trigger",
                 activeEdges: ["edge-1"],
                 btnNextText: "Next: Trigger Hardware Trap →",
@@ -697,7 +697,7 @@
                 node2Sub: "RAX=0 (sys_read) → SYSCALL",
                 node4Title: "Syscall Table",
                 node4Sub: "sys_call_table[0]",
-                node5Title: "VFS &amp; NVMe Driver",
+                node5Title: "VFS & NVMe Driver",
                 node5Sub: "Reads Blocks from Disk",
                 what: "Execution is currently inside the C runtime library (glibc). The library stub has staged the parameters: <code>RAX = 0</code> (Linux syscall number for <code>sys_read</code>), <code>RDI = fd</code>, <code>RSI = buffer pointer</code>, and <code>RDX = 512</code>. The CPU is paused right on the <code>SYSCALL</code> instruction, ready to trigger the boundary cross.",
                 why: "An unprivileged program cannot modify its own privilege level; the CPU hardware rejects any software instruction attempting to clear the mode bit. The <code>SYSCALL</code> instruction acts as a controlled gateway—an intentional architectural escape hatch into the supervisor.",
@@ -720,7 +720,7 @@
                 node2Sub: "Trapped into Hardware",
                 node4Title: "entry_SYSCALL_64",
                 node4Sub: "Validates Registers",
-                node5Title: "VFS &amp; NVMe Driver",
+                node5Title: "VFS & NVMe Driver",
                 node5Sub: "Reads Blocks from Disk",
                 what: "The CPU microcode has taken control and crossed the silicon wall. It has cleared the Mode Bit from <code>1</code> to <code>0</code>, saved the user Program Counter and Stack Pointer onto the process's private kernel stack, and branched to the entry point stored in the CPU's Model-Specific Register (<code>MSR_LSTAR</code>).",
                 why: "The CPU switches to a private kernel stack because user-space memory is untrusted. If the kernel used the user's stack, a malicious concurrent thread could rewrite return addresses while the kernel was running in Ring 0, hijacking the supervisor.",
@@ -743,7 +743,7 @@
                 node2Sub: "Trapped into Hardware",
                 node4Title: "Syscall Dispatcher",
                 node4Sub: "Verifies Buffer Pointers",
-                node5Title: "VFS &amp; NVMe Driver",
+                node5Title: "VFS & NVMe Driver",
                 node5Sub: "Dispatches Disk Command",
                 what: "The kernel dispatcher has read <code>RAX = 0</code> and indexed into <code>sys_call_table</code> to locate <code>sys_read</code>. It is currently validating the buffer address in <code>RSI</code> to ensure the entire destination range resides inside unprivileged user memory and is writable.",
                 why: "This prevents 'confused deputy' exploits: if the kernel blindly accepted any memory pointer without checking, a malicious program could pass a pointer to the kernel's own page tables and trick the kernel into overwriting its own security structures with file data.",
@@ -814,7 +814,7 @@
                 node2Sub: "Prepares Syscall",
                 node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
-                node5Title: "I/O Manager &amp; Drivers",
+                node5Title: "I/O Manager & Drivers",
                 node5Sub: "Allocates IRP → NTFS",
                 what: "Our Windows story begins inside Notepad running in User Space. The user opens <code>report.txt</code>. Notepad calls the standard Win32 API function <code>ReadFile()</code> in <code>kernel32.dll</code> / <code>kernelbase.dll</code>. Notepad runs in Ring 3 (Mode Bit = 1). If it attempted to issue raw storage commands, the processor would throw a hardware exception.",
                 why: "Microsoft intentionally isolates user applications behind subsystem DLLs. While Unix syscall numbers remain stable across releases, Windows system service numbers change between builds and security updates! The Win32 subsystem shields applications from changes in the underlying kernel.",
@@ -837,7 +837,7 @@
                 node2Sub: "EAX = 0x06 (NtReadFile) → syscall",
                 node4Title: "KiSystemCall64 / SSDT",
                 node4Sub: "KeServiceDescriptorTable",
-                node5Title: "I/O Manager &amp; Drivers",
+                node5Title: "I/O Manager & Drivers",
                 node5Sub: "Allocates IRP → NTFS",
                 what: "Execution is currently inside <code>ntdll.dll</code>, the lowest user-mode layer in Windows. The assembly stub has loaded the System Service Number for <code>NtReadFile</code> (e.g., <code>0x06</code>) into <code>EAX</code> and aligned arguments into registers. The CPU stands poised on the <code>syscall</code> instruction.",
                 why: "Because <code>ntdll.dll</code> is updated alongside the kernel with each Windows update, it is the only user-mode binary that knows the correct System Service Numbers for the active kernel build. This design allows decades-old Windows binaries to continue working on modern versions of Windows without recompilation.",
@@ -860,7 +860,7 @@
                 node2Sub: "Trapped into Hardware",
                 node4Title: "KiSystemCall64",
                 node4Sub: "Kernel Dispatcher",
-                node5Title: "I/O Manager &amp; Drivers",
+                node5Title: "I/O Manager & Drivers",
                 node5Sub: "Allocates IRP → NTFS",
                 what: "The CPU hardware has caught the trap. It has set Mode Bit = 0, loaded the privileged kernel stack pointer from the active thread's <code>KTHREAD</code> structure, and branched directly to the entry point stored in <code>MSR_LSTAR</code>: <code>KiSystemCall64</code> inside <code>ntoskrnl.exe</code>.",
                 why: "Switching to an isolated kernel stack in silicon ensures that user-mode code cannot tamper with execution context while running in supervisor mode. The processor hardware enforces this boundary before executing any kernel instructions.",
@@ -872,7 +872,7 @@
                 modeColor: "#0284c7",
                 pc: "0xFFFFF80020521080 (ntoskrnl.exe SSDT)",
                 stack: "Kernel Stack (KTHREAD)",
-                stepNum: "Chapter 4 of 6: The SSDT Dispatch &amp; Memory Validation",
+                stepNum: "Chapter 4 of 6: The SSDT Dispatch & Memory Validation",
                 activeNode: "node-kernel-idt",
                 activeEdges: ["edge-3"],
                 btnNextText: "Next: Dispatch I/O Packet →",
@@ -883,7 +883,7 @@
                 node2Sub: "Trapped into Hardware",
                 node4Title: "SSDT Dispatcher",
                 node4Sub: "ProbeForWrite() Check",
-                node5Title: "I/O Manager &amp; Drivers",
+                node5Title: "I/O Manager & Drivers",
                 node5Sub: "Allocates IRP → NTFS",
                 what: "<code>KiSystemCall64</code> has indexed into the System Service Descriptor Table (SSDT) using <code>EAX = 0x06</code> to locate <code>NtReadFile</code>. The kernel is currently running <code>ProbeForWrite()</code> across the destination buffer to confirm it belongs entirely to user space and has write permissions.",
                 why: "The kernel must rigorously validate memory boundaries. If an unprivileged application could pass a pointer to kernel memory, it could trick supervisor routines into overwriting security descriptors or page tables, compromising system security.",
@@ -906,7 +906,7 @@
                 node2Sub: "Waiting for Bytes",
                 node4Title: "I/O Manager",
                 node4Sub: "Dispatches IRP",
-                node5Title: "ntfs.sys &amp; stornvme.sys",
+                node5Title: "ntfs.sys & stornvme.sys",
                 node5Sub: "Executes DMA Transfer",
                 what: "The Windows I/O Manager has dispatched an <strong>IRP (I/O Request Packet)</strong> down the driver stack: <code>ntfs.sys</code> mapped clusters, and <code>stornvme.sys</code> programmed the NVMe hardware. DMA has streamed the 512 bytes directly into RAM, and the driver has completed the IRP with <code>STATUS_SUCCESS</code>.",
                 why: "Windows relies on packet-driven I/O so requests can be processed asynchronously, queued, filtered by antivirus filter drivers, or redirected over networks without the caller needing to know the physical storage device type.",
@@ -918,7 +918,7 @@
                 modeColor: "#dc2626",
                 pc: "0x00007FF710001208 (Notepad.exe)",
                 stack: "Restored User Stack (RSP = 0x00000080...)",
-                stepNum: "Chapter 6 of 6: Returning to User Space &amp; Subsystem Translation",
+                stepNum: "Chapter 6 of 6: Returning to User Space & Subsystem Translation",
                 activeNode: "node-user-app",
                 activeEdges: ["edge-5"],
                 btnNextText: "Replay the Journey ↺",
@@ -1312,7 +1312,7 @@
           <svg id="mmu-anim-svg" viewBox="0 0 940 280" width="100%" height="auto" style="max-width: 940px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
             <!-- Interconnect Bus Bar -->
             <rect x="25" y="130" width="890" height="20" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
-            <text x="470" y="144" fill="#475569" font-size="10" font-weight="700" text-anchor="middle">CPU INTERNAL &amp; SYSTEM MEMORY INTERCONNECT</text>
+            <text x="470" y="144" fill="#475569" font-size="10" font-weight="700" text-anchor="middle">CPU INTERNAL & SYSTEM MEMORY INTERCONNECT</text>
 
             <!-- Node 1: CPU Execution Core (x: 25, w: 165) -->
             <g id="mmu-node-cpu" transform="translate(25, 30)">
@@ -1364,7 +1364,7 @@
             <!-- Dynamic Bottom Mapping Console -->
             <g transform="translate(25, 175)">
               <rect x="0" y="0" width="890" height="85" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
-              <text x="20" y="25" fill="#0369a1" font-size="11" font-weight="700">ACTIVE TRANSLATION STAGE &amp; BUS STATUS</text>
+              <text x="20" y="25" fill="#0369a1" font-size="11" font-weight="700">ACTIVE TRANSLATION STAGE & BUS STATUS</text>
               <text id="mmu-flow-title" x="20" y="48" fill="#0f172a" font-size="11" font-family="var(--font-mono)">
                 CPU issues virtual load → MMU evaluates TLB tag cache.
               </text>
@@ -1525,7 +1525,7 @@
                   btnNextText: "Restart Walkthrough ↺",
                   btnPrevText: "← Prev",
                   inlineNext: "The kernel executes IRET. The CPU seamlessly retries the faulting instruction with the page resident in RAM.",
-                  flowTitle: "x86-64 PTE UPDATE → Setting Present=1 &amp; Issuing IRET",
+                  flowTitle: "x86-64 PTE UPDATE → Setting Present=1 & Issuing IRET",
                   flowSub: "PTE points to Frame 0x09210. CPU returns to user mode and restarts instruction.",
                   what: "Storage transfer completes. The kernel writes physical frame <code>0x09210</code> into the PTE, sets <strong>Present Bit = 1</strong>, executes <code>INVLPG</code> to clear stale TLB entries, and issues <code>IRET</code>. The CPU restarts the faulting instruction transparently.",
                   why: "Demand paging is fully transparent to user software. The application experiences a temporary I/O stall, but requires no custom error-handling logic."
@@ -1663,7 +1663,7 @@
                   btnNextText: "Restart Walkthrough ↺",
                   btnPrevText: "← Prev",
                   inlineNext: "The kernel executes ERET. The CPU transparently restarts the instruction at EL0 with the page now in RAM.",
-                  flowTitle: "ARM64 DESCRIPTOR UPDATE → TLBI Invalidation &amp; ERET",
+                  flowTitle: "ARM64 DESCRIPTOR UPDATE → TLBI Invalidation & ERET",
                   flowSub: "Kernel sets Valid=1 in Level 3 descriptor, executes TLBI to flush stale tags, and returns via ERET.",
                   what: "Storage transfer completes. The kernel sets Valid=1 in the Level 3 descriptor, executes <code>TLBI VAE1IS</code> to invalidate any stale TLB lines, and issues <code>ERET</code>. The CPU returns to EL0 and restarts the load instruction.",
                   why: "The application resumes without ever knowing a disk read occurred. Hardware and kernel collaboration provides seamless virtual memory abstraction."
@@ -1801,7 +1801,7 @@
                   btnNextText: "Restart Walkthrough ↺",
                   btnPrevText: "← Prev",
                   inlineNext: "The kernel executes sret. The CPU transparently restarts the faulting load instruction.",
-                  flowTitle: "RISC-V PTE UPDATE → sfence.vma &amp; sret Execution",
+                  flowTitle: "RISC-V PTE UPDATE → sfence.vma & sret Execution",
                   flowSub: "PTE updated with Frame 0x09840, Valid=1. CPU flushes TLB and returns via sret.",
                   what: "The storage transfer completes. The kernel writes PPN <code>0x09840</code> into the PTE, sets <strong>Valid = 1</strong>, executes <code>sfence.vma</code> to synchronize the TLB, and issues <code>sret</code>. The CPU returns to U-mode and restarts the instruction.",
                   why: "The application resumes seamlessly without knowing a disk transfer occurred. Hardware and kernel collaborate to preserve the illusion of infinite memory."
@@ -2000,7 +2000,7 @@
 
           <!-- System Bus Bar -->
           <rect x="40" y="145" width="710" height="24" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
-          <text x="395" y="161" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">SYSTEM &amp; MEMORY BUS (PCIe / DMI / Memory Channels)</text>
+          <text x="395" y="161" fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">SYSTEM & MEMORY BUS (PCIe / DMI / Memory Channels)</text>
 
           <!-- Device Controller -->
           <rect x="310" y="210" width="180" height="60" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
@@ -2112,12 +2112,12 @@
           <svg id="boot-anim-svg" viewBox="0 0 980 300" width="100%" height="auto" style="max-width: 980px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
             <!-- Main System Interconnect Bus -->
             <rect x="25" y="130" width="930" height="22" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
-            <text x="490" y="145" fill="#475569" font-size="10.5" font-weight="700" text-anchor="middle">SYSTEM INTERCONNECT BUS (Memory Channels &amp; Peripheral Buses)</text>
+            <text x="490" y="145" fill="#475569" font-size="10.5" font-weight="700" text-anchor="middle">SYSTEM INTERCONNECT BUS (Memory Channels & Peripheral Buses)</text>
 
             <!-- Node 1: Power & Hardware Reset (x: 25, w: 170) -->
             <g id="boot-node-power" transform="translate(25, 30)">
               <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">1. Power &amp; Reset</text>
+              <text x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">1. Power & Reset</text>
               <text id="node-1-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Voltages Stabilize</text>
               <text id="node-1-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">PC ← Reset Vector</text>
             </g>
@@ -2126,7 +2126,7 @@
             <g id="boot-node-firmware" transform="translate(215, 30)">
               <rect x="0" y="0" width="170" height="65" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
               <text id="node-2-title" x="85" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">2. Firmware (POST)</text>
-              <text id="node-2-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Checks RAM &amp; Disks</text>
+              <text id="node-2-sub" x="85" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Checks RAM & Disks</text>
               <text id="node-2-detail" x="85" y="56" fill="#0284c7" font-size="9" text-anchor="middle">Reads Boot Priority</text>
             </g>
 
@@ -2164,7 +2164,7 @@
             <!-- Dynamic Data Flow Representation Box in Lower Half -->
             <g transform="translate(25, 180)">
               <rect x="0" y="0" width="930" height="95" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
-              <text x="24" y="26" fill="#0369a1" font-size="11" font-weight="700">ACTIVE BUS INTERCONNECT &amp; SYSTEM MAPPING</text>
+              <text x="24" y="26" fill="#0369a1" font-size="11" font-weight="700">ACTIVE BUS INTERCONNECT & SYSTEM MAPPING</text>
               <text id="boot-flow-label" x="24" y="52" fill="#0f172a" font-size="11" font-family="var(--font-mono)">
                 Hardware resets registers → CPU fetches first instruction from mapped ROM/Flash.
               </text>
