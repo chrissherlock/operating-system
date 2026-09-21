@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Clarify Multiply-Accumulate scenario in pipeline simulator
+# fix.py: Demystify "pipeline bubbles" in 02-hardware-review.html
 # =====================================================================
 import os
 import re
@@ -8,38 +8,7 @@ import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-NEW_INSTRUCTIONS_BOX = """        <!-- Instructions Guide -->
-        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
-          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Computing a Multiply-Accumulate (MAC) Step</div>
-          <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
-            We are computing one single term of a vector dot product: <strong><code>sum = sum + (A &times; B)</code></strong>. This Multiply-Accumulate operation is the foundational math kernel used in 3D graphics transforms, audio DSP filters, and machine learning tensor operations:
-          </p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 10px;">
-            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
-              <strong style="color: #0284c7; font-family: var(--font-mono);">I1: LOAD R1, [A]</strong>
-              <div style="color: #64748b; margin-top: 2px;">Fetch value <em>A</em> from RAM into scratch register <code>R1</code>.</div>
-            </div>
-            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
-              <strong style="color: #0284c7; font-family: var(--font-mono);">I2: LOAD R2, [B]</strong>
-              <div style="color: #64748b; margin-top: 2px;">Fetch value <em>B</em> from RAM into scratch register <code>R2</code>.</div>
-            </div>
-            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
-              <strong style="color: #0284c7; font-family: var(--font-mono);">I3: MUL R3, R1, R2</strong>
-              <div style="color: #64748b; margin-top: 2px;">Multiply <code>R1 &times; R2</code> and store product in <code>R3</code>.</div>
-            </div>
-            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
-              <strong style="color: #0284c7; font-family: var(--font-mono);">I4: ADD R4, R4, R3</strong>
-              <div style="color: #64748b; margin-top: 2px;">Accumulate: add product <code>R3</code> into total <code>R4</code>.</div>
-            </div>
-          </div>
-          <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.84rem; line-height: 1.5;">
-            <li><strong>Independent Operations (I1 &amp; I2):</strong> Reading <em>A</em> and <em>B</em> have zero dependencies on each other—demonstrating how superscalar dual-issue cores and multicore CPUs execute loads concurrently.</li>
-            <li><strong>Data Dependencies (RAW Hazards):</strong> <code>I3</code> cannot multiply until <code>I1</code> and <code>I2</code> deliver their data, and <code>I4</code> cannot accumulate until <code>I3</code> finishes multiplying—revealing why hardware requires data forwarding bypasses.</li>
-            <li><strong>Throughput Comparison:</strong> Observe how execution drops from <strong>16 cycles</strong> (unpipelined) &rarr; <strong>7 cycles</strong> (pipelined) &rarr; <strong>4 cycles</strong> (superscalar/multicore).</li>
-          </ol>
-        </div>"""
-
-def update_scenario_briefing():
+def update_bubble_explanations():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -47,39 +16,79 @@ def update_scenario_briefing():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Match the previous instructions block inside interactive-pipeline-simulator
-    pattern = r'<!-- Instructions Guide -->\s*<div style="background: #f1f5f9;.*?</div>\s*<!-- Action Controls'
-    match = re.search(pattern, content, flags=re.DOTALL)
-    if match:
-        replacement = NEW_INSTRUCTIONS_BOX + "\n\n        <!-- Action Controls"
-        content = content[:match.start()] + replacement + content[match.end():]
-        print("--> Replaced scenario instructions guide with detailed MAC explanation.")
-    else:
-        # Fallback: target by text substring
-        fallback_pattern = r'<div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">\s*<div style="font-family: var\(--font-mono\); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">Workload Scenario &amp; Instructions</div>.*?</div>'
-        match_fallback = re.search(fallback_pattern, content, flags=re.DOTALL)
-        if match_fallback:
-            content = content[:match_fallback.start()] + NEW_INSTRUCTIONS_BOX.strip() + content[match_fallback.end():]
-            print("--> Replaced scenario instructions via fallback pattern.")
-        else:
-            print("--> Error: could not locate scenario instructions block in 02-hardware-review.html.")
-            return
+    # 1. Update the Cycle 1 "what" explanation in JavaScript
+    old_cycle1_what = (
+        'what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the '
+        'instruction bus. The machine code for <code>I1: LOAD R1, [A]</code> is latched into the '
+        'Instruction Fetch (IF) register. Hardware automatically increments <code>PC &larr; PC + 4</code>. '
+        'The Decode, Execute, and Writeback stages hold uninitialized bubbles."'
+    )
+
+    new_cycle1_what = (
+        'what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the '
+        'instruction bus. The machine code for <code>I1: LOAD R1, [A]</code> is latched into the '
+        'Instruction Fetch (IF) register, and the hardware increments <code>PC &larr; PC + 4</code>.<br><br>'
+        '<strong>What is a \\"Bubble\\"?</strong> In CPU design, a <em>bubble</em> is jargon for an '
+        'idle stage that does no useful work—essentially an enforced <code>NOP</code> (No Operation). '
+        'Think of an automated car wash: when the first car enters the Soap bay, the Scrub, Rinse, '
+        'and Dry bays downstream are completely empty. Because our conveyor belt just turned on, '
+        'Decode, Execute, and Writeback hold inactive control bits until <code>I1</code> physically shifts '
+        'into them over the next few cycles."'
+    )
+
+    # 2. Update Cycle 1 "why" explanation in JavaScript
+    old_cycle1_why = (
+        'why: "Dividing instruction processing into discrete stages decoupled by edge-triggered D flip-flops '
+        'isolates path delays. The clock frequency only needs to accommodate the propagation delay of the '
+        'longest individual stage rather than the entire instruction execution cycle."'
+    )
+
+    new_cycle1_why = (
+        'why: "A pipeline requires a brief \\"fill latency\\" ($k-1$ cycles) before all stages are populated. '
+        'During this warm-up, the control unit explicitly disables write-enable flags for downstream stages '
+        'so empty bubbles cannot accidentally corrupt register values or trip spurious hardware faults. '
+        'Once <code>I1</code> reaches Writeback at Cycle 4, every bubble will have drained and the pipeline '
+        'reaches steady-state 1.0 IPC."'
+    )
+
+    # 3. Update preview text for Cycle 1
+    old_cycle1_preview = (
+        'inlinePreview: "We are at Cycle 1. I1 has been fetched into the core. Next, I1 moves into the '
+        'Decode stage while the Fetch stage retrieves I2. Click Next to advance to Cycle 2."'
+    )
+
+    new_cycle1_preview = (
+        'inlinePreview: "We are at Cycle 1 (Pipeline Priming). I1 is entering the Fetch bay while downstream '
+        'stages sit idle as bubbles. Next, I1 advances to Decode while I2 enters Fetch. Click Next to advance to Cycle 2."'
+    )
+
+    content = content.replace(old_cycle1_what, new_cycle1_what)
+    content = content.replace(old_cycle1_why, new_cycle1_why)
+    content = content.replace(old_cycle1_preview, new_cycle1_preview)
+
+    # 4. Make SVG stage labels friendlier when empty
+    content = content.replace('decode: "Empty (Bubble)"', 'decode: "Idle (Bubble: No Op)"')
+    content = content.replace('exec: "Empty (Bubble)"', 'exec: "Idle (Bubble: No Op)"')
+    content = content.replace('wb: "Empty (Bubble)"', 'wb: "Idle (Bubble: No Op)"')
+    content = content.replace('>Empty (Bubble)<', '>Idle (Bubble: No Op)<')
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
 
+    print(f"--> Updated pipeline bubble explanations in {TARGET_FILE}")
+
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Clarify vector dot-product scenario in instruction pipeline walkthrough\n\n"
-            "Clarify the mathematical Multiply-Accumulate formula (sum = sum + A * B)\n"
-            "and provide plain-English explanations for I1-I4 in 02-hardware-review.html."
+            "Clarify pipeline bubble terminology and mechanics in Module 2 simulator\n\n"
+            "Add plain-English explanations and the assembly line analogy for pipeline\n"
+            "bubbles in cycle 1 of the instruction throughput walkthrough."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for 02-hardware-review.html!")
+        print("--> Git sync completed successfully for pipeline bubble clarification!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_scenario_briefing()
+    update_bubble_explanations()

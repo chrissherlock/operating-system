@@ -594,7 +594,7 @@
             <g id="pipe-node-decode" transform="translate(250, 40)">
               <rect x="0" y="0" width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
               <text x="90" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Stage 2: DECODE (ID)</text>
-              <text id="pipe-decode-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Empty (Bubble)</text>
+              <text id="pipe-decode-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Idle (Bubble: No Op)</text>
               <text id="pipe-decode-sub" x="90" y="68" fill="#64748b" font-size="9.5" text-anchor="middle">Read Registers / Opcode</text>
             </g>
 
@@ -602,7 +602,7 @@
             <g id="pipe-node-exec" transform="translate(470, 40)">
               <rect x="0" y="0" width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
               <text x="90" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Stage 3: EXECUTE (EX)</text>
-              <text id="pipe-exec-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Empty (Bubble)</text>
+              <text id="pipe-exec-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Idle (Bubble: No Op)</text>
               <text id="pipe-exec-sub" x="90" y="68" fill="#64748b" font-size="9.5" text-anchor="middle">ALU / Address Gen</text>
             </g>
 
@@ -610,7 +610,7 @@
             <g id="pipe-node-wb" transform="translate(690, 40)">
               <rect x="0" y="0" width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
               <text x="90" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Stage 4: WRITEBACK (WB)</text>
-              <text id="pipe-wb-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Empty (Bubble)</text>
+              <text id="pipe-wb-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Idle (Bubble: No Op)</text>
               <text id="pipe-wb-sub" x="90" y="68" fill="#64748b" font-size="9.5" text-anchor="middle">Update Register File</text>
             </g>
 
@@ -662,17 +662,17 @@
                 ipc: "0.00 IPC",
                 hazard: "None (Pipeline Priming)",
                 fetch: "I1: LOAD R1, [A]",
-                decode: "Empty (Bubble)",
-                exec: "Empty (Bubble)",
-                wb: "Empty (Bubble)",
+                decode: "Idle (Bubble: No Op)",
+                exec: "Idle (Bubble: No Op)",
+                wb: "Idle (Bubble: No Op)",
                 activeStages: ["pipe-node-fetch"],
                 forwardingActive: false,
                 consoleTop: "STANDARD 4-STAGE PIPELINE &bull; CLOCK CYCLE 1",
                 consoleMid: "I1 is fetched from memory address 0x00401000 into the Instruction Register.",
                 consoleSub: "Downstream pipeline latches are currently empty as execution begins.",
-                inlinePreview: "We are at Cycle 1. I1 has been fetched into the core. Next, I1 moves into the Decode stage while the Fetch stage retrieves I2. Click Next to advance to Cycle 2.",
-                what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the instruction bus. The machine code for <code>I1: LOAD R1, [A]</code> is latched into the Instruction Fetch (IF) register. Hardware automatically increments <code>PC &larr; PC + 4</code>. The Decode, Execute, and Writeback stages hold uninitialized bubbles.",
-                why: "Dividing instruction processing into discrete stages decoupled by edge-triggered D flip-flops isolates path delays. The clock frequency only needs to accommodate the propagation delay of the longest individual stage rather than the entire instruction execution cycle."
+                inlinePreview: "We are at Cycle 1 (Pipeline Priming). I1 is entering the Fetch bay while downstream stages sit idle as bubbles. Next, I1 advances to Decode while I2 enters Fetch. Click Next to advance to Cycle 2.",
+                what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the instruction bus. The machine code for <code>I1: LOAD R1, [A]</code> is latched into the Instruction Fetch (IF) register, and the hardware increments <code>PC &larr; PC + 4</code>.<br><br><strong>What is a \"Bubble\"?</strong> In CPU design, a <em>bubble</em> is jargon for an idle stage that does no useful work—essentially an enforced <code>NOP</code> (No Operation). Think of an automated car wash: when the first car enters the Soap bay, the Scrub, Rinse, and Dry bays downstream are completely empty. Because our conveyor belt just turned on, Decode, Execute, and Writeback hold inactive control bits until <code>I1</code> physically shifts into them over the next few cycles.",
+                why: "A pipeline requires a brief \"fill latency\" ($k-1$ cycles) before all stages are populated. During this warm-up, the control unit explicitly disables write-enable flags for downstream stages so empty bubbles cannot accidentally corrupt register values or trip spurious hardware faults. Once <code>I1</code> reaches Writeback at Cycle 4, every bubble will have drained and the pipeline reaches steady-state 1.0 IPC."
               },
               {
                 cycle: "Cycle 2",
@@ -682,8 +682,8 @@
                 hazard: "None (Independent Loads)",
                 fetch: "I2: LOAD R2, [B]",
                 decode: "I1: LOAD R1, [A]",
-                exec: "Empty (Bubble)",
-                wb: "Empty (Bubble)",
+                exec: "Idle (Bubble: No Op)",
+                wb: "Idle (Bubble: No Op)",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode"],
                 forwardingActive: false,
                 consoleTop: "STANDARD 4-STAGE PIPELINE &bull; CLOCK CYCLE 2",
@@ -702,7 +702,7 @@
                 fetch: "I3: MUL R3, R1, R2",
                 decode: "I2: LOAD R2, [B]",
                 exec: "I1: LOAD R1, [A]",
-                wb: "Empty (Bubble)",
+                wb: "Idle (Bubble: No Op)",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode", "pipe-node-exec"],
                 forwardingActive: true,
                 consoleTop: "STANDARD 4-STAGE PIPELINE &bull; CLOCK CYCLE 3",
@@ -797,9 +797,9 @@
                 ipc: "0.00 IPC",
                 hazard: "None (Parallel Fetch)",
                 fetch: "I1 &amp; I2 (Dual-Issue)",
-                decode: "Empty (Bubble)",
-                exec: "Empty (Bubble)",
-                wb: "Empty (Bubble)",
+                decode: "Idle (Bubble: No Op)",
+                exec: "Idle (Bubble: No Op)",
+                wb: "Idle (Bubble: No Op)",
                 activeStages: ["pipe-node-fetch"],
                 forwardingActive: false,
                 consoleTop: "DUAL-ISSUE SUPERSCALAR &bull; CLOCK CYCLE 1",
@@ -817,8 +817,8 @@
                 hazard: "Dual Issue Matrix Check",
                 fetch: "I3 &amp; I4 (Dual-Issue)",
                 decode: "I1 &amp; I2 (Dual Decode)",
-                exec: "Empty (Bubble)",
-                wb: "Empty (Bubble)",
+                exec: "Idle (Bubble: No Op)",
+                wb: "Idle (Bubble: No Op)",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode"],
                 forwardingActive: false,
                 consoleTop: "DUAL-ISSUE SUPERSCALAR &bull; CLOCK CYCLE 2",
@@ -837,7 +837,7 @@
                 fetch: "Drained",
                 decode: "I3 &amp; I4 (Dual Decode)",
                 exec: "I1 &amp; I2 (Dual Load)",
-                wb: "Empty (Bubble)",
+                wb: "Idle (Bubble: No Op)",
                 activeStages: ["pipe-node-decode", "pipe-node-exec"],
                 forwardingActive: true,
                 consoleTop: "DUAL-ISSUE SUPERSCALAR &bull; CLOCK CYCLE 3",
