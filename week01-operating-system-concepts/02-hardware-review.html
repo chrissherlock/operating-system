@@ -716,6 +716,32 @@
         </svg>
       </div>
 
+      <!-- Superpage Conceptual Explanation -->
+      <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <h3 style="margin-top: 0; color: #0f172a; font-size: 1.15rem; font-weight: 700;">Understanding Superpages (Huge Pages)</h3>
+        <p style="color: #334155; font-size: 0.95rem; line-height: 1.6; margin-bottom: 14px;">
+          Normally, x86-64 uses a 4-level page table hierarchy to translate standard 4 KiB pages, requiring individual memory lookups across PML4, PDPT, Page Directory, and Page Table. However, modern workloads with massive memory footprints (such as databases and hypervisors) can overwhelm the Translation Lookaside Buffer (TLB) if every 4 KiB chunk requires its own translation entry.
+        </p>
+        <p style="color: #334155; font-size: 0.95rem; line-height: 1.6; margin-bottom: 16px;">
+          A <strong>superpage</strong> (or huge page) solves this by allowing the MMU to terminate the page walk early. By asserting a special <strong>Page Size (PS) bit</strong> in the Page Directory Entry (PDE) at Level 2, the hardware treats the entire 2 MiB region as a single atomic mapping, bypassing lower page tables completely and binding directly to a physical superpage frame.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+          <div style="background: #f8fafc; border-left: 4px solid #0284c7; padding: 12px 16px; border-radius: 4px;">
+            <strong style="color: #0369a1; font-family: var(--font-mono); font-size: 0.85rem;">Standard 4 KiB Paging</strong>
+            <div style="color: #475569; font-size: 0.88rem; margin-top: 4px; line-height: 1.4;">
+              Full 4-level walk offers fine-grained memory management but results in high TLB pressure for large allocations.
+            </div>
+          </div>
+          <div style="background: #f8fafc; border-left: 4px solid #059669; padding: 12px 16px; border-radius: 4px;">
+            <strong style="color: #047857; font-family: var(--font-mono); font-size: 0.85rem;">2 MiB Superpages</strong>
+            <div style="color: #475569; font-size: 0.88rem; margin-top: 4px; line-height: 1.4;">
+              Halves the page walk depth, allowing a single TLB entry to cover 512 times more memory and dramatically boosting performance.
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Interactive Walkthrough: Address Translation & Offset Pass-Through -->
       <div id="interactive-translation-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
@@ -732,8 +758,8 @@
         </div>
 
         <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
-          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Tracing a 4 KiB Virtual-to-Physical Translation</div>
-          <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
+          <div id="trans-scenario-title" style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Tracing a 4 KiB Virtual-to-Physical Translation</div>
+          <p id="trans-scenario-desc" style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
             We are tracing how the MMU translates virtual address <strong><code>0x00403018</code></strong> into physical DRAM address <strong><code>0x07B40018</code></strong> across synchronized page table entries:
           </p>
         </div>
@@ -1003,6 +1029,9 @@
 
           function renderTransState() {
             const list = transStorylines[currentTransMode];
+            if (transIndex >= list.length) transIndex = list.length - 1;
+            if (transIndex < 0) transIndex = 0;
+
             const data = list[transIndex];
 
             document.getElementById("trans-stat-va").textContent = data.va;
@@ -1015,6 +1044,21 @@
             document.getElementById("trans-desc-what").innerHTML = data.what;
             document.getElementById("trans-desc-why").innerHTML = data.why;
             document.getElementById("trans-console-top").textContent = data.consoleTop;
+
+            const scenarioTitles = {
+              "4k": "The Scenario: Tracing a 4 KiB Virtual-to-Physical Translation",
+              "2m": "The Scenario: Tracing a 2 MiB Superpage Direct Translation",
+              "swap": "The Scenario: Resolving a Swapped Page Fault Trap"
+            };
+            const scenarioDescs = {
+              "4k": "We are tracing how the MMU translates virtual address <strong><code>0x00403018</code></strong> into physical DRAM address <strong><code>0x07B40018</code></strong> across synchronized page table entries:",
+              "2m": "We are tracing how the MMU maps virtual address <strong><code>0x00400000</code></strong> directly into a massive 2 MiB physical superpage frame <strong><code>0x08000000</code></strong>:",
+              "swap": "We are tracing how the MMU and OS handle a missing page fault for virtual address <strong><code>0x00705020</code></strong> swapped to secondary storage:"
+            };
+            const tEl = document.getElementById("trans-scenario-title");
+            const dEl = document.getElementById("trans-scenario-desc");
+            if (tEl) tEl.textContent = scenarioTitles[currentTransMode];
+            if (dEl) dEl.innerHTML = scenarioDescs[currentTransMode];
 
             const nextBtn = document.getElementById("trans-next-btn");
             const prevBtn = document.getElementById("trans-prev-btn");
