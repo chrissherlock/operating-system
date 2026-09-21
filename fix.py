@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Replace &amp; leaks with literal & in 02-hardware-review.html
+# fix.py: Explain and update MSR_LSTAR context in 02-hardware-review.html
 # =====================================================================
 import os
 import re
@@ -8,7 +8,7 @@ import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-def sanitize_ampersands():
+def update_msr_lstar_context():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -16,63 +16,88 @@ def sanitize_ampersands():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # 1. Clean JS script strings where &amp; was passed to textContent or innerHTML
-    # Target script blocks specifically
-    def clean_script_block(match):
-        script_body = match.group(0)
-        # Replace &amp; inside script strings with literal &
-        cleaned = script_body.replace("&amp;", "&")
-        return cleaned
+    # Enhanced explanation for Unix Chapter 3
+    old_unix_ch3 = (
+        'what: "The CPU microcode has taken control and crossed the silicon wall. '
+        'It has cleared the Mode Bit from <code>1</code> to <code>0</code>, saved the user '
+        'Program Counter and Stack Pointer onto the process\'s private kernel stack, and '
+        'branched to the kernel entry point stored in the CPU\'s Model-Specific Register '
+        '(<code>MSR_LSTAR</code>)."'
+    )
 
-    new_content = re.sub(r'<script\b[^>]*>.*?</script>', clean_script_block, content, flags=re.DOTALL)
+    new_unix_ch3 = (
+        'what: "The CPU microcode has taken control and crossed the silicon wall. '
+        'It clears the Mode Bit from <code>1</code> to <code>0</code>, saves the return '
+        'Program Counter into <code>RCX</code> and flags into <code>R11</code>, swaps to '
+        'the private kernel stack, and directly sets the instruction pointer to the address '
+        'stored in <code>MSR_LSTAR</code> (Model-Specific Register 0xC0000082, the Long System '
+        'Target Address Register pointing to <code>entry_SYSCALL_64</code>)."'
+    )
 
-    # 2. Clean SVG text nodes where &amp; was used inside text content
-    def clean_svg_text(match):
-        svg_body = match.group(0)
-        # In SVG <text> elements, replace &amp; with literal &
-        cleaned = re.sub(r'(<text\b[^>]*>)(.*?)(</text>)', lambda m: m.group(1) + m.group(2).replace("&amp;", "&") + m.group(3), svg_body, flags=re.DOTALL)
-        return cleaned
+    old_unix_ch3_why = (
+        'why: "The CPU switches to a private kernel stack because user-space memory is untrusted. '
+        'If the kernel used the user\'s stack, a malicious concurrent thread could rewrite return '
+        'addresses while the kernel was running in Ring 0, hijacking the supervisor."'
+    )
 
-    new_content = re.sub(r'<svg\b[^>]*>.*?</svg>', clean_svg_text, new_content, flags=re.DOTALL)
+    new_unix_ch3_why = (
+        'why: "Early x86 processors used software interrupts (<code>INT 0x80</code>) that required '
+        'expensive memory reads through the Interrupt Descriptor Table (IDT). With 64-bit <code>syscall</code>, '
+        'the CPU reads the target kernel function pointer directly from high-speed on-die silicon '
+        '(<code>MSR_LSTAR</code>), eliminating IDT lookups. The kernel stack swap ensures unprivileged '
+        'threads cannot tamper with supervisor call frames."'
+    )
 
-    # 3. Clean specific node titles that leak into UI cards
-    node_replacements = [
-        ('node2Title: "kernel32 &amp; ntdll"', 'node2Title: "kernel32 & ntdll"'),
-        ('node4Title: "VFS &amp; NVMe Driver"', 'node4Title: "VFS & NVMe Driver"'),
-        ('node5Title: "VFS &amp; NVMe Driver"', 'node5Title: "VFS & NVMe Driver"'),
-        ('node5Title: "I/O Manager &amp; Drivers"', 'node5Title: "I/O Manager & Drivers"'),
-        ('node5Title: "ntfs.sys &amp; stornvme.sys"', 'node5Title: "ntfs.sys & stornvme.sys"'),
-        ('node3Title: "vmlinuz &amp; initramfs"', 'node3Title: "vmlinuz & initramfs"'),
-        ('node4Title: "vmlinuz &amp; initramfs"', 'node4Title: "vmlinuz & initramfs"'),
-        ('node4Title: "winload &amp; ntoskrnl"', 'node4Title: "winload & ntoskrnl"'),
-        ('node5Title: "smss &amp; csrss"', 'node5Title: "smss & csrss"'),
-        ('&amp;rarr;', '→'),
-        ('&amp;larr;', '←'),
-        ('&amp;bull;', '•'),
-    ]
+    # Enhanced explanation for Windows Chapter 3
+    old_win_ch3 = (
+        'what: "The CPU hardware has caught the trap. It has set Mode Bit = 0, loaded the '
+        'privileged kernel stack pointer from the active thread\'s <code>KTHREAD</code> structure, '
+        'and branched directly to the entry point stored in <code>MSR_LSTAR</code>: '
+        '<code>KiSystemCall64</code> inside <code>ntoskrnl.exe</code>."'
+    )
 
-    for old, new in node_replacements:
-        new_content = new_content.replace(old, new)
+    new_win_ch3 = (
+        'what: "The CPU hardware catches the trap. It sets Mode Bit = 0, loads the privileged '
+        'kernel stack pointer from <code>KTHREAD.InitialStack</code>, and loads <code>RIP</code> '
+        'directly from <code>MSR_LSTAR</code> (Long System Target Address Register), jumping straight '
+        'into <code>ntoskrnl.exe!KiSystemCall64</code> with zero IDT memory lookup latency."'
+    )
 
-    if new_content != content:
-        with open(TARGET_FILE, "w", encoding="utf-8") as f:
-            f.write(new_content)
-        print("--> Replaced leaking &amp; instances with clean characters.")
+    old_win_ch3_why = (
+        'why: "Switching to an isolated kernel stack in silicon ensures that user-mode code cannot '
+        'tamper with execution context while running in supervisor mode. The processor hardware '
+        'enforces this boundary before executing any kernel instructions."'
+    )
 
-        try:
-            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-            commit_msg = (
-                "Replace leaking &amp; entities with literal ampersands in Module 2\n\n"
-                "Clean up JavaScript data objects and SVG text labels in\n"
-                "02-hardware-review.html so ampersands render properly as plain text."
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for 02-hardware-review.html!")
-        except Exception as e:
-            print(f"Git execution note: {e}")
-    else:
-        print("--> No leaking &amp; found in targeted sections.")
+    new_win_ch3_why = (
+        'why: "By caching the kernel entry vector in the dedicated <code>MSR_LSTAR</code> register '
+        'during Windows initialization, 64-bit systems bypass legacy software interrupt dispatching. '
+        'The processor atomically switches to a secure kernel stack and begins executing <code>KiSystemCall64</code> '
+        'before user-mode threads can observe or modify CPU state."'
+    )
+
+    content = content.replace(old_unix_ch3, new_unix_ch3)
+    content = content.replace(old_unix_ch3_why, new_unix_ch3_why)
+    content = content.replace(old_win_ch3, new_win_ch3)
+    content = content.replace(old_win_ch3_why, new_win_ch3_why)
+
+    with open(TARGET_FILE, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(f"--> Updated MSR_LSTAR narrative panels in {TARGET_FILE}")
+
+    try:
+        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        commit_msg = (
+            "Clarify MSR_LSTAR hardware dispatch in Syscall Story simulator\n\n"
+            "Expand Chapter 3 explanatory panes in 02-hardware-review.html to\n"
+            "demystify MSR_LSTAR (Model-Specific Register) and fast syscall entry."
+        )
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        print("--> Git sync completed successfully for MSR_LSTAR clarification!")
+    except Exception as e:
+        print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    sanitize_ampersands()
+    update_msr_lstar_context()
