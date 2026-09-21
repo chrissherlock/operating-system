@@ -1961,6 +1961,31 @@
 
       <!-- Interactive Directed Narrative Stepper: Bit-Slice & Offset Pass-Through Engine -->
       <div id="interactive-translation-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <!-- Instructions & Scenario Guide -->
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Tracing a 4 KiB Virtual-to-Physical Translation</div>
+          <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
+            We are tracing how the MMU translates virtual address <strong><code>0x00403018</code></strong> into physical DRAM address <strong><code>0x07B40018</code></strong>. This walkthrough demonstrates the foundational mechanics of virtual memory:
+          </p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 10px;">
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
+              <strong style="color: #0284c7; font-family: var(--font-mono);">1. Bit-Slicing (VPN)</strong>
+              <div style="color: #64748b; margin-top: 2px;">Upper address bits identify the Virtual Page Number (<code>0x00403</code>) for page table walks.</div>
+            </div>
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
+              <strong style="color: #059669; font-family: var(--font-mono);">2. Offset Pass-Through</strong>
+              <div style="color: #64748b; margin-top: 2px;">Lower 12 bits (<code>0x018</code>) bypass translation entirely, passing through unmodified.</div>
+            </div>
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
+              <strong style="color: #7c3aed; font-family: var(--font-mono);">3. Frame Assembly (PFN)</strong>
+              <div style="color: #64748b; margin-top: 2px;">Combined with Physical Frame Number (<code>0x07B40</code>) to form the final physical address.</div>
+            </div>
+          </div>
+          <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.84rem; line-height: 1.5;">
+            <li><strong>Why Offset Passes Through:</strong> Because virtual page size (4 KiB) matches physical frame size ($2^{12} = 4096$ bytes), intra-page byte offsets remain identical in physical RAM.</li>
+            <li><strong>Granularity Toggles:</strong> Switch between <code>4 KiB Standard Page</code>, <code>2 MiB Superpage</code>, and <code>Swapped Page</code> modes to observe different MMU behaviors.</li>
+          </ol>
+        </div>
         <!-- Header & Dimension Toggles -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
           <div>

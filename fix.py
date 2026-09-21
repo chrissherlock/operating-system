@@ -1,13 +1,39 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Fix overlapping SVG arrow and label in 02-hardware-review.html
+# fix.py: Add scenario briefing card to Address Translation simulator
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-def fix_svg_overlap():
+TRANSLATION_GUIDE_CARD = """        <!-- Instructions & Scenario Guide -->
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Tracing a 4 KiB Virtual-to-Physical Translation</div>
+          <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
+            We are tracing how the MMU translates virtual address <strong><code>0x00403018</code></strong> into physical DRAM address <strong><code>0x07B40018</code></strong>. This walkthrough demonstrates the foundational mechanics of virtual memory:
+          </p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 10px;">
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
+              <strong style="color: #0284c7; font-family: var(--font-mono);">1. Bit-Slicing (VPN)</strong>
+              <div style="color: #64748b; margin-top: 2px;">Upper address bits identify the Virtual Page Number (<code>0x00403</code>) for page table walks.</div>
+            </div>
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
+              <strong style="color: #059669; font-family: var(--font-mono);">2. Offset Pass-Through</strong>
+              <div style="color: #64748b; margin-top: 2px;">Lower 12 bits (<code>0x018</code>) bypass translation entirely, passing through unmodified.</div>
+            </div>
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
+              <strong style="color: #7c3aed; font-family: var(--font-mono);">3. Frame Assembly (PFN)</strong>
+              <div style="color: #64748b; margin-top: 2px;">Combined with Physical Frame Number (<code>0x07B40</code>) to form the final physical address.</div>
+            </div>
+          </div>
+          <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.84rem; line-height: 1.5;">
+            <li><strong>Why Offset Passes Through:</strong> Because virtual page size (4 KiB) matches physical frame size ($2^{12} = 4096$ bytes), intra-page byte offsets remain identical in physical RAM.</li>
+            <li><strong>Granularity Toggles:</strong> Switch between <code>4 KiB Standard Page</code>, <code>2 MiB Superpage</code>, and <code>Swapped Page</code> modes to observe different MMU behaviors.</li>
+          </ol>
+        </div>"""
+
+def add_translation_guide_card():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -15,56 +41,26 @@ def fix_svg_overlap():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Target the second diagram containing the physical address label
-    old_diagram_snippet = """      <div class="diagram-container" style="margin: 24px 0;">
-        <svg viewBox="0 0 880 260" width="100%" height="auto" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">"""
+    if "The Scenario: Tracing a 4 KiB Virtual-to-Physical Translation" in content:
+        print("--> Translation guide card already present.")
+        return
 
-    new_diagram_snippet = """      <div class="diagram-container" style="margin: 24px 0;">
-        <svg viewBox="0 0 880 290" width="100%" height="100%" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">"""
+    # Target the opening div of the translation simulator
+    sim_marker = '<div id="interactive-translation-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">'
+    header_marker = '<!-- Header & Dimension Toggles -->'
 
-    # Also shift the bottom group down
-    old_bottom_group = """          <!-- Bottom Label (Shifted Down) -->
-          <text x="40" y="180" fill="#0f172a" font-size="12" font-weight="700">PHYSICAL ADDRESS (Issued to DRAM Memory Bus)</text>
-
-          <!-- Physical Address Split Boxes (Shifted Down to y=194) -->
-          <!-- PFN Box -->
-          <rect x="40" y="194" width="460" height="46" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-          <text x="270" y="216" fill="#059669" font-size="12" font-weight="700" text-anchor="middle">Physical Frame Number (PFN)</text>
-          <text x="270" y="231" fill="#065f46" font-size="9.5" text-anchor="middle">Base address of 4 KiB frame in physical DRAM</text>
-
-          <!-- Offset Box (Bottom) -->
-          <rect x="520" y="194" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-          <text x="680" y="216" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
-          <text x="680" y="231" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Unmodified intra-frame byte offset</text>"""
-
-    new_bottom_group = """          <!-- Bottom Label (Shifted Down) -->
-          <text x="40" y="210" fill="#0f172a" font-size="12" font-weight="700">PHYSICAL ADDRESS (Issued to DRAM Memory Bus)</text>
-
-          <!-- Physical Address Split Boxes (Shifted Down to y=224) -->
-          <!-- PFN Box -->
-          <rect x="40" y="224" width="460" height="46" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-          <text x="270" y="246" fill="#059669" font-size="12" font-weight="700" text-anchor="middle">Physical Frame Number (PFN)</text>
-          <text x="270" y="261" fill="#065f46" font-size="9.5" text-anchor="middle">Base address of 4 KiB frame in physical DRAM</text>
-
-          <!-- Offset Box (Bottom) -->
-          <rect x="520" y="224" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-          <text x="680" y="246" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
-          <text x="680" y="261" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Unmodified intra-frame byte offset</text>"""
-
-    # Adjust arrow path ending above the new label position
-    old_arrow_path = '<path d="M 680,82 L 680,188" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowGray)" />'
-    new_arrow_path = '<path d="M 680,82 L 680,218" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowGray)" />'
-
-    if old_diagram_snippet in content and old_bottom_group in content:
-        content = content.replace(old_diagram_snippet, new_diagram_snippet)
-        content = content.replace(old_bottom_group, new_bottom_group)
-        content = content.replace(old_arrow_path, new_arrow_path)
-        print("--> Successfully updated SVG viewBox, label coordinates, and arrow path.")
+    target_pos = content.find(sim_marker)
+    if target_pos != -1:
+        header_pos = content.find(header_marker, target_pos)
+        if header_pos != -1:
+            content = content[:header_pos] + TRANSLATION_GUIDE_CARD + "\n        " + content[header_pos:]
+            print("--> Successfully injected scenario briefing card into translation simulator.")
+        else:
+            print("--> Error: Could not locate header marker inside translation simulator.")
+            return
     else:
-        print("--> Warning: Exact snippet match not found; performing regex/alternative patch.")
-        # Fallback substring replacements
-        content = content.replace('viewBox="0 0 880 260"', 'viewBox="0 0 880 290"')
-        content = content.replace('height="auto"', 'height="100%"')
+        print("--> Error: Could not locate interactive translation simulator element.")
+        return
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
@@ -72,15 +68,15 @@ def fix_svg_overlap():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Fix overlapping arrow line and physical address label in Module 2 diagram\n\n"
-            "Adjust SVG vertical layout and viewBox in 02-hardware-review.html to prevent\n"
-            "the pass-through arrow line from overwriting the physical address label."
+            "Add scenario briefing card to Address Translation walkthrough\n\n"
+            "Insert a structured instructional guide card above the address translation\n"
+            "simulator in 02-hardware-review.html to frame the learning objectives."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for diagram layout fix!")
+        print("--> Git sync completed successfully for translation guide card!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    fix_svg_overlap()
+    add_translation_guide_card()
