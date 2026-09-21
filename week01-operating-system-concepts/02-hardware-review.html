@@ -2003,28 +2003,7 @@
             <li><strong>Synchronized Table Matrix:</strong> Observe how the expanded graphical table entries illuminate sequentially as each step of the table walk executes.</li>
             <li><strong>Granularity Toggles:</strong> Switch between modes to compare standard pages, superpages, and page faults.</li>
           </ol>
-        <!-- Glossary Definitions: CR Registers & Table Structures -->
-        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 16px; margin-top: 12px;">
-          <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 6px;">Key Definitions &amp; Hardware Terminology</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
-            <div>
-              <strong style="color: #0284c7; font-family: var(--font-mono);">CR3 (Control Register 3)</strong>
-              <div style="color: #64748b; margin-top: 2px;">The processor root register storing the physical base address of the current process's top-level page table (PML4). Context switching updates CR3.</div>
-            </div>
-            <div>
-              <strong style="color: #0284c7; font-family: var(--font-mono);">CR4 (Control Register 4)</strong>
-              <div style="color: #64748b; margin-top: 2px;">Extended control register enabling advanced CPU features such as Physical Address Extension (PAE), page size extensions, and virtualization support.</div>
-            </div>
-            <div>
-              <strong style="color: #0284c7; font-family: var(--font-mono);">PML4 (Page Map Level 4)</strong>
-              <div style="color: #64748b; margin-top: 2px;">The top-level 4 KiB table in x86-64 4-level paging, containing 512 entries that point to Page Directory Pointer Tables (PDPTs).</div>
-            </div>
-            <div>
-              <strong style="color: #059669; font-family: var(--font-mono);">PTE (Page Table Entry)</strong>
-              <div style="color: #64748b; margin-top: 2px;">The leaf entry in a page table containing the physical frame number (PFN) and control flags (Present, R/W, User/Supervisor, NX).</div>
-            </div>
-          </div>
-        </div>
+
         </div>
 
         <!-- Action Controls & Foreshadowed Preview Panel -->
@@ -2175,7 +2154,7 @@
         </div>
 
         <!-- Paired Analytical Panes -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
             <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.03em;">Detailed Mechanics: What Is Happening</div>
             <div id="trans-desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
@@ -2184,6 +2163,29 @@
           <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
             <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.03em;">Why The System Does This</div>
             <div id="trans-desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
+          </div>
+        </div>
+
+        <!-- Key Definitions & Hardware Terminology (Placed under Detailed Mechanics) -->
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px;">
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 8px;">Key Definitions &amp; Hardware Terminology</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">CR3 Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">Processor root register storing the physical base address of the current process top-level page table (PML4).</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">CR4 Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">Extended control register enabling PAE, page size extensions, and virtualization features.</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">PML4 Table</strong>
+              <div style="color: #64748b; margin-top: 2px;">Top-level 4 KiB table in x86-64 4-level paging containing entries pointing to PDPTs.</div>
+            </div>
+            <div>
+              <strong style="color: #059669; font-family: var(--font-mono);">PTE (Page Table Entry)</strong>
+              <div style="color: #64748b; margin-top: 2px;">Leaf entry in a page table containing the physical frame number (PFN) and protection flags.</div>
+            </div>
           </div>
         </div>
       </div>
