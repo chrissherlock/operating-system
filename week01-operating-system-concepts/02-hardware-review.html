@@ -1901,7 +1901,7 @@
         The hardware MMU takes the Virtual Page Number and indexes into the active process's <strong>Page Table</strong> to discover the corresponding <strong>Physical Frame Number (PFN)</strong>. The lowest 12 bits of the original address (the offset) pass through completely unmodified, because the byte offset within a virtual page is identical to the byte offset within a physical frame:
       </p>
       <div class="diagram-container" style="margin: 24px 0;">
-        <svg viewBox="0 0 880 260" width="100%" height="auto" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 880 290" width="100%" height="100%" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <marker id="arrowBlue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
               <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
@@ -1940,22 +1940,22 @@
           <path d="M 270,146 L 270,188" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrowGreen)" />
 
           <!-- Unmodified Offset Pass-Through Line -->
-          <path d="M 680,82 L 680,188" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowGray)" />
+          <path d="M 680,82 L 680,218" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowGray)" />
           <text x="692" y="138" fill="#64748b" font-size="9.5" font-style="italic">Passes through unchanged</text>
 
           <!-- Bottom Label (Shifted Down) -->
-          <text x="40" y="180" fill="#0f172a" font-size="12" font-weight="700">PHYSICAL ADDRESS (Issued to DRAM Memory Bus)</text>
+          <text x="40" y="210" fill="#0f172a" font-size="12" font-weight="700">PHYSICAL ADDRESS (Issued to DRAM Memory Bus)</text>
 
-          <!-- Physical Address Split Boxes (Shifted Down to y=194) -->
+          <!-- Physical Address Split Boxes (Shifted Down to y=224) -->
           <!-- PFN Box -->
-          <rect x="40" y="194" width="460" height="46" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-          <text x="270" y="216" fill="#059669" font-size="12" font-weight="700" text-anchor="middle">Physical Frame Number (PFN)</text>
-          <text x="270" y="231" fill="#065f46" font-size="9.5" text-anchor="middle">Base address of 4 KiB frame in physical DRAM</text>
+          <rect x="40" y="224" width="460" height="46" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+          <text x="270" y="246" fill="#059669" font-size="12" font-weight="700" text-anchor="middle">Physical Frame Number (PFN)</text>
+          <text x="270" y="261" fill="#065f46" font-size="9.5" text-anchor="middle">Base address of 4 KiB frame in physical DRAM</text>
 
           <!-- Offset Box (Bottom) -->
-          <rect x="520" y="194" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
-          <text x="680" y="216" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
-          <text x="680" y="231" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Unmodified intra-frame byte offset</text>
+          <rect x="520" y="224" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+          <text x="680" y="246" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
+          <text x="680" y="261" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Unmodified intra-frame byte offset</text>
         </svg>
       </div>
 
