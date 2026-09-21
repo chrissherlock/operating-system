@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Align navigation font-family with Module 3 styling
+# fix.py: Fix half-encoded restart character in pipeline walkthrough
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-def align_nav_font():
+def fix_restart_character():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -15,66 +15,42 @@ def align_nav_font():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # In 02-hardware-review.html, .module-nav-btn was explicitly styled with:
-    #   font-family: var(--font-mono);
-    # In 03-os-concepts.html, it inherits the body sans-serif font family.
-    old_nav_css = """    .module-nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: #334155;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      font-family: var(--font-mono);
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    }"""
+    # The buggy entity syntax
+    old_snippet = 'nextBtn.innerHTML = pipeIndex === list.length - 1 ? "Restart Walkthrough &↺;" : "Next Step &rarr;";'
+    new_snippet = 'nextBtn.innerHTML = pipeIndex === list.length - 1 ? "Restart Walkthrough &#x21BA;" : "Next Step &rarr;";'
 
-    new_nav_css = """    .module-nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: #334155;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      font-family: var(--font-sans);
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    }"""
+    # Also check the address translation walkthrough just in case it shared the same pattern
+    old_trans_snippet = 'nextBtn.innerHTML = transIndex === list.length - 1 ? "Restart Walkthrough &↺;" : "Next Step &rarr;";'
+    new_trans_snippet = 'nextBtn.innerHTML = transIndex === list.length - 1 ? "Restart Walkthrough &#x21BA;" : "Next Step &rarr;";'
 
-    if old_nav_css in content:
-        content = content.replace(old_nav_css, new_nav_css)
-        print("--> Successfully updated .module-nav-btn to use var(--font-sans).")
-    else:
-        # Fallback inline replacement if formatting has slight spacing differences
-        content = content.replace("font-family: var(--font-mono);", "font-family: var(--font-sans);", 1)
-        print("--> Replaced first occurrence of mono font in navigation CSS.")
+    modified = content
+    if old_snippet in modified:
+        modified = modified.replace(old_snippet, new_snippet)
+        print("--> Fixed pipeline restart button entity.")
+    if old_trans_snippet in modified:
+        modified = modified.replace(old_trans_snippet, new_trans_snippet)
+        print("--> Fixed translation restart button entity.")
+
+    if modified == content:
+        # Fallback replacement if exact spacing differs
+        modified = modified.replace("&↺;", "&#x21BA;")
+        print("--> Replaced '&↺;' globally with '&#x21BA;'.")
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
+        f.write(modified)
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Unify font family across navigation elements in Module 2\n\n"
-            "Update .module-nav-btn font-family in 02-hardware-review.html to use the\n"
-            "primary sans-serif font stack, matching Module 3's navigation styling."
+            "Fix broken HTML entity encoding in pipeline restart button\n\n"
+            "Correct the restart button innerHTML in 02-hardware-review.html by replacing\n"
+            "the invalid '&↺;' entity syntax with a clean Unicode counterclockwise arrow."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for navigation font consistency!")
+        print("--> Git sync completed successfully for restart entity fix!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    align_nav_font()
+    fix_restart_character()
