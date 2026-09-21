@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Replace raw LaTeX markup with clean HTML in 02-hardware-review.html
+# fix.py: Add beginner-friendly explanation of "latched" to Module 2
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-def sanitize_latex_in_simulator():
+def update_latch_explanation():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -15,69 +15,47 @@ def sanitize_latex_in_simulator():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Replacements for escaped LaTeX strings inside JavaScript data objects
-    replacements = [
-        (
-            '($k-1$ cycles)',
-            '(<em>k</em> - 1 cycles, where <em>k</em> = 4 stages, requiring 3 warm-up cycles)'
-        ),
-        (
-            '($k = 4$)',
-            '(<em>k</em> = 4 stages)'
-        ),
-        (
-            '($k=4$)',
-            '(<em>k</em> = 4 stages)'
-        ),
-        (
-            '($N \\to \\infty$)',
-            '(as instruction count <em>N</em> grows large)'
-        ),
-        (
-            '($N \\\\to \\\\infty$)',
-            '(as instruction count <em>N</em> grows large)'
-        ),
-        (
-            '($4 \\times 4$)',
-            '(4 instructions &times; 4 stages)'
-        ),
-        (
-            '($4 \\\\times 4$)',
-            '(4 instructions &times; 4 stages)'
-        ),
-        (
-            '$IPC > 1.0$',
-            'IPC &gt; 1.0'
-        ),
-        (
-            '$k-1$',
-            '<em>k</em> - 1'
-        )
-    ]
+    # Target the Cycle 1 "what" string in JavaScript
+    old_target = (
+        'what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the '
+        'instruction bus. The machine code for <code>I1: LOAD R1, [A]</code> is latched into the '
+        'Instruction Fetch (IF) register, and the hardware increments <code>PC &larr; PC + 4</code>.<br><br>'
+        '<strong>What is a \\"Bubble\\"?</strong>'
+    )
 
-    new_content = content
-    for old, new in replacements:
-        new_content = new_content.replace(old, new)
+    new_replacement = (
+        'what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the '
+        'instruction bus. The machine code for <code>I1: LOAD R1, [A]</code> is <strong>latched</strong> '
+        '(captured and locked in place) into the Instruction Fetch (IF) register, and the hardware '
+        'increments <code>PC &larr; PC + 4</code>.<br><br>'
+        '<strong>What does \\"Latched\\" mean?</strong> Think of a camera shutter snapping a photo: '
+        'voltages on the memory wires constantly fluctuate, but when the CPU clock ticks, internal storage '
+        'circuits (latches) snap shut to freeze those electrical 1s and 0s rock-solid. This guarantees that '
+        'the Decode stage sees a stable, unchanging copy of <code>I1</code> even when the bus starts fetching '
+        'the next instruction.<br><br>'
+        '<strong>What is a \\"Bubble\\"?</strong>'
+    )
 
-    if new_content != content:
+    if old_target in content:
+        content = content.replace(old_target, new_replacement)
         with open(TARGET_FILE, "w", encoding="utf-8") as f:
-            f.write(new_content)
-        print(f"--> Successfully replaced escaped LaTeX with clean HTML in {TARGET_FILE}")
+            f.write(content)
+        print(f"--> Successfully integrated beginner-friendly latch explanation in {TARGET_FILE}")
 
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Replace escaped LaTeX math markup with standard HTML in Module 2\n\n"
-                "Convert raw LaTeX ($k-1$, $k=4$, $IPC > 1.0$) inside simulator strings\n"
-                "in 02-hardware-review.html into clean, semantic HTML formatting."
+                "Clarify register latching terminology in Module 2 pipeline walkthrough\n\n"
+                "Add a concise, beginner-friendly explanation of hardware register latching\n"
+                "using the camera snapshot analogy in cycle 1 of 02-hardware-review.html."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for LaTeX markup cleanup!")
+            print("--> Git sync completed successfully for latch explanation update!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> No raw LaTeX instances found to replace.")
+        print("--> Warning: Target substring for Cycle 1 explanation not found.")
 
 if __name__ == "__main__":
-    sanitize_latex_in_simulator()
+    update_latch_explanation()
