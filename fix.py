@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add PDPT definition to the hardware glossary card
+# fix.py: Add root register definition to hardware terminology glossary
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-def add_pdpt_definition():
+def add_root_register_definition():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -15,33 +15,8 @@ def add_pdpt_definition():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Old glossary card HTML block without PDPT
-    old_glossary = """        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px;">
-          <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 8px;">Key Definitions &amp; Hardware Terminology</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
-            <div>
-              <strong style="color: #0284c7; font-family: var(--font-mono);">CR3 Register</strong>
-              <div style="color: #64748b; margin-top: 2px;">Processor root register storing the physical base address of the current process top-level page table (PML4).</div>
-            </div>
-            <div>
-              <strong style="color: #0284c7; font-family: var(--font-mono);">CR4 Register</strong>
-              <div style="color: #64748b; margin-top: 2px;">Extended control register enabling PAE, page size extensions, and virtualization features.</div>
-            </div>
-            <div>
-              <strong style="color: #0284c7; font-family: var(--font-mono);">PML4 Table</strong>
-              <div style="color: #64748b; margin-top: 2px;">Top-level 4 KiB table in x86-64 4-level paging containing entries pointing to PDPTs.</div>
-            </div>
-            <div>
-              <strong style="color: #059669; font-family: var(--font-mono);">PTE (Page Table Entry)</strong>
-              <div style="color: #64748b; margin-top: 2px;">Leaf entry in a page table containing the physical frame number (PFN) and protection flags.</div>
-            </div>
-          </div>
-        </div>"""
-
-    # Updated glossary card HTML including PDPT
-    new_glossary = """        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px;">
-          <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 8px;">Key Definitions &amp; Hardware Terminology</div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
+    # Old glossary card HTML block without dedicated Root Register card
+    old_glossary = """          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
             <div>
               <strong style="color: #0284c7; font-family: var(--font-mono);">CR3 Register</strong>
               <div style="color: #64748b; margin-top: 2px;">Processor root register storing the physical base address of the top-level page table (PML4).</div>
@@ -62,14 +37,41 @@ def add_pdpt_definition():
               <strong style="color: #059669; font-family: var(--font-mono);">PTE (Page Table Entry)</strong>
               <div style="color: #64748b; margin-top: 2px;">Leaf entry containing the physical frame number (PFN) and protection flags.</div>
             </div>
-          </div>
-        </div>"""
+          </div>"""
+
+    # Updated glossary card HTML including Root Register definition
+    new_glossary = """          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">Root Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">The top-level CPU architectural pointer (such as CR3 on x86 or TTBR0 on ARM) anchoring the execution context by storing the physical base address of the active process's top-level translation table.</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">CR3 Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">The specific x86 root register storing the physical base address of the top-level page table (PML4).</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">CR4 Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">Extended control register enabling PAE, page size extensions, and virtualization features.</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">PML4 Table</strong>
+              <div style="color: #64748b; margin-top: 2px;">Top-level 4 KiB table in x86-64 4-level paging containing entries pointing to PDPTs.</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">PDPT</strong>
+              <div style="color: #64748b; margin-top: 2px;">Page Directory Pointer Table (Level 3); contains 512 entries pointing to Page Directories.</div>
+            </div>
+            <div>
+              <strong style="color: #059669; font-family: var(--font-mono);">PTE (Page Table Entry)</strong>
+              <div style="color: #64748b; margin-top: 2px;">Leaf entry containing the physical frame number (PFN) and protection flags.</div>
+            </div>
+          </div>"""
 
     if old_glossary in content:
         content = content.replace(old_glossary, new_glossary)
-        print("--> Added PDPT definition to the hardware glossary.")
+        print("--> Added Root Register definition to the hardware glossary card.")
     else:
-        print("--> Glossary card pattern not found exact; checking alternative match.")
+        print("--> Warning: Glossary grid pattern not matched exactly.")
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
@@ -77,15 +79,15 @@ def add_pdpt_definition():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add PDPT definition to translation simulator key definitions glossary\n\n"
-            "Include the Page Directory Pointer Table (PDPT) in the hardware terminology\n"
-            "card within 02-hardware-review.html."
+            "Add root register definition to translation simulator key definitions glossary\n\n"
+            "Define 'Root Register (CR3)' in the hardware terminology card within\n"
+            "02-hardware-review.html to explain the processor anchor for virtual memory."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for PDPT addition!")
+        print("--> Git sync completed successfully for Root Register addition!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    add_pdpt_definition()
+    add_root_register_definition()

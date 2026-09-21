@@ -880,8 +880,12 @@
           <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 8px;">Key Definitions &amp; Hardware Terminology</div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
             <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">Root Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">The top-level CPU architectural pointer (such as CR3 on x86 or TTBR0 on ARM) anchoring the execution context by storing the physical base address of the active process's top-level translation table.</div>
+            </div>
+            <div>
               <strong style="color: #0284c7; font-family: var(--font-mono);">CR3 Register</strong>
-              <div style="color: #64748b; margin-top: 2px;">Processor root register storing the physical base address of the top-level page table (PML4).</div>
+              <div style="color: #64748b; margin-top: 2px;">The specific x86 root register storing the physical base address of the top-level page table (PML4).</div>
             </div>
             <div>
               <strong style="color: #0284c7; font-family: var(--font-mono);">CR4 Register</strong>
