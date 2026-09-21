@@ -1013,6 +1013,7 @@
                 el.setAttribute("stroke", "#cbd5e1");
                 el.setAttribute("stroke-width", "1.5");
                 el.setAttribute("fill", "#ffffff");
+                el.style.filter = "none";
               }
             });
 
@@ -1027,9 +1028,10 @@
 
             const activeNodeEl = document.getElementById(data.activeNode);
             if (activeNodeEl) {
-              activeNodeEl.setAttribute("stroke", data.modeColor === "#0284c7" ? "#0284c7" : "#dc2626");
-              activeNodeEl.setAttribute("stroke-width", "2.5");
-              activeNodeEl.setAttribute("fill", data.modeColor === "#0284c7" ? "#f0f9ff" : "#fef2f2");
+              activeNodeEl.setAttribute("stroke", "#ea580c");
+              activeNodeEl.setAttribute("stroke-width", "3");
+              activeNodeEl.setAttribute("fill", "#fff7ed");
+              activeNodeEl.style.filter = "drop-shadow(0 0 6px rgba(234, 88, 12, 0.45))";
             }
 
             data.activeEdges.forEach(id => {
