@@ -1,59 +1,1174 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Repair Instruction Throughput Engine walkthrough script closure
+# fix.py: Regenerate complete 02-hardware-review.html from scratch
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-def repair_pipeline_script():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} not found.")
-        return
+COMPLETE_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02. Computer Hardware Review -- COSC240</title>
+  <style id="module-nav-styles">
+    .module-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      gap: 12px;
+      box-sizing: border-box;
+    }
+    .module-nav-bar.bottom {
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+    .module-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: #0284c7;
+      background-color: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .module-nav-btn:hover {
+      background-color: #f1f5f9;
+      color: #0f172a; border-color: #94a3b8;
+    }
+  </style>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; overflow-wrap: break-word; word-break: break-word; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    main {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    article.module-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    h2 {
+      font-size: 1.3rem;
+      color: #0369a1;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 18px;
+    }
+    h3 {
+      font-size: 1.1rem;
+      color: #1e293b;
+      margin-top: 14px;
+    }
+    p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    ul, ol {
+      margin-left: 20px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      background-color: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #0369a1;
+    }
+    .diagram-container {
+      display: flex;
+      justify-content: center;
+      margin: 24px 0;
+      width: 100%;
+      overflow-x: auto;
+    }
+    .aside-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.92rem;
+      background: #ffffff;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
 
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
+  <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 0 auto 16px auto;">
+    <div style="flex: 1; text-align: left;">
+      <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>
+    </div>
+    <div style="flex: 1; text-align: center;">
+      <a href="index.html" class="module-nav-btn">&#127968; Week 1: Operating System Concepts</a>
+    </div>
+    <div style="flex: 1; text-align: right;">
+      <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>
+    </div>
+  </nav>
 
-    # Locate the pipeline script block and ensure its IIFE closure is intact
-    target_snippet = """          document.getElementById("pipe-reset-btn").addEventListener("click", function() {
+  <main>
+    <header>
+      <h1>02. Computer Hardware Review</h1>
+      <p class="subtitle">Tanenbaum Chapter 1.3: Processors, Memory Hierarchy, Disks, I/O Devices, Buses, and Booting.</p>
+    </header>
+
+    <article class="module-body">
+      <h2>1. Processors (CPUs) &amp; Execution Mechanics</h2>
+      <p>
+        The Central Processing Unit (CPU) is the computational brain of the computer, executing instructions fetched from main memory. The CPU follows the classical <strong>fetch-decode-execute cycle</strong>:
+      </p>
+      <ul>
+        <li><strong>Fetch:</strong> Retrieve the instruction at the memory address currently designated by the Program Counter (PC).</li>
+        <li><strong>Decode:</strong> Interpret the operation code (opcode) to determine the instruction type and identify the required operands.</li>
+        <li><strong>Execute:</strong> Carry out the operation within the Arithmetic Logic Unit (ALU), manipulate data registers, and adjust processor state flags.</li>
+      </ul>
+
+      <!-- Interactive Walkthrough: Instruction Throughput Engine -->
+      <div id="interactive-pipeline-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
+          <div>
+            <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">Interactive Walkthrough: Instruction Throughput Engine</h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Step through sequential vector operations across standard pipelined, superscalar, and multicore execution.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #475569; padding: 0 6px;">Architecture:</span>
+            <button id="pipe-btn-pipeline" class="pipe-mode-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: #0284c7; color: #ffffff; cursor: pointer;">Pipelined (4-Stage)</button>
+            <button id="pipe-btn-superscalar" class="pipe-mode-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer;">Dual-Issue Superscalar</button>
+            <button id="pipe-btn-multicore" class="pipe-mode-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer;">Dual-Core Multicore</button>
+          </div>
+        </div>
+
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Computing a Multiply-Accumulate (MAC) Step</div>
+          <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
+            We are computing one single term of a vector dot product: <strong><code>sum = sum + (A &times; B)</code></strong>.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
+            <button id="pipe-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer;">Next Step &rarr;</button>
+            <div style="display: flex; gap: 8px;">
+              <button id="pipe-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="pipe-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
+            </div>
+          </div>
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center;">
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase;">Where We Are &amp; What Happens Next Click:</div>
+            <div id="pipe-inline-preview" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">Loading pipeline state...</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; font-family: var(--font-mono); font-size: 0.8rem;">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Clock Cycle</div>
+            <div id="pipe-stat-cycle" style="font-weight: 700; color: #0f172a; margin-top: 2px;">Cycle 1</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Execution Phase</div>
+            <div id="pipe-stat-phase" style="font-weight: 700; color: #0284c7; margin-top: 2px;">Pipeline Fill</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Instructions Retired</div>
+            <div id="pipe-stat-retired" style="font-weight: 700; color: #059669; margin-top: 2px;">0 / 4</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Throughput (IPC)</div>
+            <div id="pipe-stat-ipc" style="font-weight: 700; color: #0369a1; margin-top: 2px;">0.00 IPC</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Hazard Status</div>
+            <div id="pipe-stat-hazard" style="font-weight: 700; color: #166534; margin-top: 2px;">None (Clean Fill)</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-bottom: 20px; overflow-x: auto;">
+          <svg id="pipe-anim-svg" viewBox="0 0 920 280" width="100%" height="100%" style="max-width: 920px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+            <g id="pipe-node-fetch" transform="translate(30, 40)">
+              <rect x="0" y="0" width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="90" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Stage 1: FETCH (IF)</text>
+              <text id="pipe-fetch-instr" x="90" y="48" fill="#0284c7" font-size="11" font-weight="700" text-anchor="middle">I1: LOAD R1, [A]</text>
+              <text id="pipe-fetch-sub" x="90" y="68" fill="#64748b" font-size="9.5" text-anchor="middle">PC = 0x00401000</text>
+            </g>
+            <g id="pipe-node-decode" transform="translate(250, 40)">
+              <rect x="0" y="0" width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="90" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Stage 2: DECODE (ID)</text>
+              <text id="pipe-decode-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Idle (Bubble)</text>
+              <text id="pipe-decode-sub" x="90" y="68" fill="#64748b" font-size="9.5" text-anchor="middle">Read Registers</text>
+            </g>
+            <g id="pipe-node-exec" transform="translate(470, 40)">
+              <rect x="0" y="0" width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="90" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Stage 3: EXECUTE (EX)</text>
+              <text id="pipe-exec-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Idle (Bubble)</text>
+              <text id="pipe-exec-sub" x="90" y="68" fill="#64748b" font-size="9.5" text-anchor="middle">ALU / Address Gen</text>
+            </g>
+            <g id="pipe-node-wb" transform="translate(690, 40)">
+              <rect x="0" y="0" width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="90" y="24" fill="#0f172a" font-size="11" font-weight="700" text-anchor="middle">Stage 4: WRITEBACK</text>
+              <text id="pipe-wb-instr" x="90" y="48" fill="#475569" font-size="11" font-weight="700" text-anchor="middle">Idle (Bubble)</text>
+              <text id="pipe-wb-sub" x="90" y="68" fill="#64748b" font-size="9.5" text-anchor="middle">Update Register File</text>
+            </g>
+            <path id="pipe-flow-1" d="M 210,85 L 245,85" stroke="#cbd5e1" stroke-width="2" />
+            <path id="pipe-flow-2" d="M 430,85 L 465,85" stroke="#cbd5e1" stroke-width="2" />
+            <path id="pipe-flow-3" d="M 650,85 L 685,85" stroke="#cbd5e1" stroke-width="2" />
+            <path id="pipe-forwarding-path" d="M 560,130 C 560,165 340,165 340,135" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" />
+            <text id="pipe-forward-label" x="450" y="160" fill="#64748b" font-size="9.5" text-anchor="middle">Data Forwarding Bypass</text>
+            <g transform="translate(30, 180)">
+              <rect x="0" y="0" width="840" height="80" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
+              <text id="pipe-console-top" x="20" y="26" fill="#0369a1" font-size="11" font-weight="700">PIPELINE TOPOLOGY: SINGLE-CORE</text>
+              <text id="pipe-console-mid" x="20" y="48" fill="#0f172a" font-size="11" font-family="var(--font-mono)">Cycle 1: Fetching Instruction I1 into IF Stage.</text>
+              <text id="pipe-console-sub" x="20" y="68" fill="#64748b" font-size="10" font-family="var(--font-mono)">Core 0 active.</text>
+            </g>
+          </svg>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">Detailed Mechanics: What Is Happening</div>
+            <div id="pipe-desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase;">Behind the Curtain: Why The System Does This</div>
+            <div id="pipe-desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function() {
+          const pipeStorylines = {
+            pipeline: [
+              {
+                cycle: "Cycle 1", phase: "Pipeline Fill (Stage 1 Active)", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                fetch: "I1: LOAD R1, [A]", decode: "Idle (Bubble)", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
+                activeStages: ["pipe-node-fetch"], forwardingActive: false,
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 1",
+                consoleMid: "I1 is fetched from memory address 0x00401000 into the Instruction Register.",
+                consoleSub: "Downstream pipeline latches are currently empty.",
+                inlinePreview: "We are at Cycle 1. I1 is entering Fetch while downstream stages sit idle. Click Next to advance to Cycle 2.",
+                what: "The CPU begins execution by asserting Program Counter 0x00401000 on the instruction bus, latching I1 into the Instruction Fetch stage.",
+                why: "A pipeline requires a brief fill latency before all stages populate. Control logic disables downstream writes until execution reaches steady-state."
+              },
+              {
+                cycle: "Cycle 2", phase: "Pipeline Fill (Stages 1-2)", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                fetch: "I2: LOAD R2, [B]", decode: "I1: LOAD R1, [A]", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
+                activeStages: ["pipe-node-fetch", "pipe-node-decode"], forwardingActive: false,
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 2",
+                consoleMid: "I1 enters Decode; I2 enters Fetch.",
+                consoleSub: "Hardware decodes LOAD opcode while fetching next word.",
+                inlinePreview: "We are at Cycle 2. I1 is decoding and I2 is fetching. Click Next to advance to Cycle 3.",
+                what: "I1 shifts into Instruction Decode while Fetch retrieves I2: LOAD R2, [B].",
+                why: "Functional units operate concurrently without structural collision, increasing instruction throughput."
+              },
+              {
+                cycle: "Cycle 3", phase: "Pipeline Fill & Hazard Detection", retired: "0 / 4", ipc: "0.00 IPC", hazard: "RAW Hazard Detected",
+                fetch: "I3: MUL R3, R1, R2", decode: "I2: LOAD R2, [B]", exec: "I1: LOAD R1, [A]", wb: "Idle (Bubble)",
+                activeStages: ["pipe-node-fetch", "pipe-node-decode", "pipe-node-exec"], forwardingActive: true,
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 3",
+                consoleMid: "I1 executes address calculation; I3 is fetched.",
+                consoleSub: "Hazard unit primes forwarding bypass for R1.",
+                inlinePreview: "We are at Cycle 3. I1 executes and I3 detects a data dependency on R1. Click Next to advance to Cycle 4.",
+                what: "I1 moves to Execute. The hazard unit detects I3 requires R1 before I1 updates the register file.",
+                why: "Internal bypass multiplexer buses route the calculated value directly from ALU output into I3 without stalling."
+              },
+              {
+                cycle: "Cycle 4", phase: "Steady State (Full Pipeline)", retired: "1 / 4", ipc: "0.25 IPC", hazard: "Forwarding Active",
+                fetch: "I4: ADD R4, R4, R3", decode: "I3: MUL R3, R1, R2", exec: "I2: LOAD R2, [B]", wb: "I1: LOAD R1, [A]",
+                activeStages: ["pipe-node-fetch", "pipe-node-decode", "pipe-node-exec", "pipe-node-wb"], forwardingActive: true,
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 4 (FULL PIPELINE)",
+                consoleMid: "I1 writes back R1 and retires. All stages occupied.",
+                consoleSub: "Pipeline reaches full steady-state utilization (1.0 IPC).",
+                inlinePreview: "We are at Cycle 4. All stages occupied and I1 has retired. Click Next to advance to Cycle 5.",
+                what: "All 4 stages are occupied. I1 writes back to R1 and retires. I4 enters Fetch.",
+                why: "From this point forward, the core retires one instruction every clock cycle."
+              },
+              {
+                cycle: "Cycle 5", phase: "Pipeline Drain", retired: "2 / 4", ipc: "0.40 IPC", hazard: "Forwarding Active",
+                fetch: "Drained", decode: "I4: ADD R4, R4, R3", exec: "I3: MUL R3, R1, R2", wb: "I2: LOAD R2, [B]",
+                activeStages: ["pipe-node-decode", "pipe-node-exec", "pipe-node-wb"], forwardingActive: true,
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 5",
+                consoleMid: "I2 writes back R2; I3 multiplies R1*R2 in ALU.",
+                consoleSub: "Remaining operations drain down the pipe.",
+                inlinePreview: "We are at Cycle 5. I3 is multiplying in the ALU. Click Next to advance to Cycle 6.",
+                what: "I2 writes back and retires. I3 enters the ALU multiplier array to compute R1 * R2.",
+                why: "Multiplication circuits are deeply pipelined to maintain high clock frequencies."
+              },
+              {
+                cycle: "Cycle 6", phase: "Pipeline Drain", retired: "3 / 4", ipc: "0.50 IPC", hazard: "None",
+                fetch: "Drained", decode: "Drained", exec: "I4: ADD R4, R4, R3", wb: "I3: MUL R3, R1, R2",
+                activeStages: ["pipe-node-exec", "pipe-node-wb"], forwardingActive: false,
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 6",
+                consoleMid: "I3 writes back R3; I4 adds R4 + R3.",
+                consoleSub: "Accumulator stage computing final sum.",
+                inlinePreview: "We are at Cycle 6. I4 is in the ALU. Click Next to finish.",
+                what: "I3 writes its product into R3 and retires. I4 adds R3 into accumulator R4.",
+                why: "Forwarding allowed I4 to begin execution immediately following I3's ALU phase."
+              },
+              {
+                cycle: "Cycle 7", phase: "Workload Complete", retired: "4 / 4", ipc: "0.57 IPC", hazard: "None",
+                fetch: "Idle", decode: "Idle", exec: "Idle", wb: "I4: ADD R4, R4, R3",
+                activeStages: ["pipe-node-wb"], forwardingActive: false,
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 7 (COMPLETE)",
+                consoleMid: "I4 writes back final sum to R4. All 4 instructions retired.",
+                consoleSub: "Total execution: 7 cycles for 4 instructions.",
+                inlinePreview: "Walkthrough complete! 4 instructions finished in 7 cycles. Click Reset or switch to Superscalar mode.",
+                what: "I4 writes back to R4 and retires. Total execution took 7 cycles vs 16 unpipelined cycles.",
+                why: "Pipelining achieves nearly a 400% speedup over sequential execution for vector loops."
+              }
+            ],
+            superscalar: [
+              {
+                cycle: "Cycle 1", phase: "Dual-Issue Fetch & Decode", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                fetch: "I1 & I2 (Dual-Issue)", decode: "Idle (Bubble)", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
+                activeStages: ["pipe-node-fetch"], forwardingActive: false,
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 1",
+                consoleMid: "Wide fetcher reads both I1 and I2 simultaneously.",
+                consoleSub: "Dual instruction queues primed.",
+                inlinePreview: "We are at Cycle 1. Both I1 and I2 fetched simultaneously. Click Next to advance to Cycle 2.",
+                what: "The wide instruction fetch unit pulls both I1 and I2 simultaneously in a single cycle.",
+                why: "Superscalar processors build parallel pipelines side-by-side, achieving IPC > 1.0."
+              },
+              {
+                cycle: "Cycle 2", phase: "Dual Execute", retired: "0 / 4", ipc: "0.00 IPC", hazard: "Dual Issue Matrix Check",
+                fetch: "I3 & I4 (Dual-Issue)", decode: "I1 & I2 (Dual Decode)", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
+                activeStages: ["pipe-node-fetch", "pipe-node-decode"], forwardingActive: false,
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 2",
+                consoleMid: "I1 & I2 decode simultaneously; I3 & I4 fetched.",
+                consoleSub: "Scoreboard validates register independence.",
+                inlinePreview: "We are at Cycle 2. I1 & I2 decode while I3 & I4 fetch. Click Next to advance to Cycle 3.",
+                what: "Dual decoders process I1 and I2 in parallel while I3 and I4 are fetched side-by-side.",
+                why: "Dependency matrices confirm I1 and I2 target different registers and execute concurrently."
+              },
+              {
+                cycle: "Cycle 3", phase: "Parallel Execution & Retiring", retired: "2 / 4", ipc: "1.00 IPC", hazard: "Cross-Pipeline Forwarding",
+                fetch: "Drained", decode: "I3 & I4 (Dual Decode)", exec: "I1 & I2 (Dual Load)", wb: "Idle (Bubble)",
+                activeStages: ["pipe-node-decode", "pipe-node-exec"], forwardingActive: true,
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 3",
+                consoleMid: "Dual execution units service I1 & I2.",
+                consoleSub: "Reorder Buffer tracks in-flight instructions.",
+                inlinePreview: "We are at Cycle 3. I1 & I2 executing in parallel load ports. Click Next to advance to Cycle 4.",
+                what: "Dual memory read channels retrieve both input numbers from memory at the exact same moment.",
+                why: "Partitioning L1 caches into multiple banks prevents memory bottlenecks."
+              },
+              {
+                cycle: "Cycle 4", phase: "Dual Retirement (Complete)", retired: "4 / 4", ipc: "1.00 IPC", hazard: "None",
+                fetch: "Idle", decode: "Idle", exec: "I3 (MUL) & I4 (ADD)", wb: "I1 & I2 Retired",
+                activeStages: ["pipe-node-exec", "pipe-node-wb"], forwardingActive: false,
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 4 (COMPLETE)",
+                consoleMid: "I3 and I4 finish execution and retire simultaneously.",
+                consoleSub: "Total execution: 4 clock cycles.",
+                inlinePreview: "Walkthrough complete! 4 instructions finished in only 4 clock cycles.",
+                what: "I3 and I4 complete execution and retire together through the Reorder Buffer in 4 cycles.",
+                why: "Parallel dispatching overcomes single-issue pipeline throughput limits."
+              }
+            ],
+            multicore: [
+              {
+                cycle: "Cycle 1", phase: "Thread Partitioning across Cores", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                fetch: "Core 0: I1 | Core 1: I2", decode: "Empty", exec: "Empty", wb: "Empty",
+                activeStages: ["pipe-node-fetch"], forwardingActive: false,
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 1",
+                consoleMid: "OS dispatches Iteration A to Core 0 and Iteration B to Core 1.",
+                consoleSub: "Two independent silicon cores with private caches.",
+                inlinePreview: "We are at Cycle 1. Both cores fetched independent loop iterations. Click Next to advance to Cycle 2.",
+                what: "The OS divides the workload across two separate CPU cores.",
+                why: "Multicore systems feature completely separate execution pipelines, eliminating dependency stalls."
+              },
+              {
+                cycle: "Cycle 2", phase: "Parallel Execution on Separate Dies", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                fetch: "Core 0: I3 | Core 1: I4", decode: "Core 0: I1 | Core 1: I2", exec: "Empty", wb: "Empty",
+                activeStages: ["pipe-node-fetch", "pipe-node-decode"], forwardingActive: false,
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 2",
+                consoleMid: "Both cores decode simultaneously.",
+                consoleSub: "MESI cache coherency protocol active.",
+                inlinePreview: "We are at Cycle 2. Both cores decoding thread instructions. Click Next to advance to Cycle 3.",
+                what: "Both cores decode their instructions simultaneously using dedicated L1 caches.",
+                why: "Private L1 caches prevent memory access contention between cores."
+              },
+              {
+                cycle: "Cycle 3", phase: "Parallel Compute & Cache Snooping", retired: "2 / 4", ipc: "0.67 IPC", hazard: "MESI Clean",
+                fetch: "Drained", decode: "Core 0: I3 | Core 1: I4", exec: "Core 0: I1 | Core 1: I2", wb: "Empty",
+                activeStages: ["pipe-node-decode", "pipe-node-exec"], forwardingActive: false,
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 3",
+                consoleMid: "Core 0 and Core 1 retire loads simultaneously.",
+                consoleSub: "Cache coherence snoops shared interconnect.",
+                inlinePreview: "We are at Cycle 3. Both cores finished memory loads. Click Next to finish.",
+                what: "Both cores complete memory loads in parallel and retire their initial instructions.",
+                why: "Multicore architectures scale throughput without increasing clock frequencies."
+              },
+              {
+                cycle: "Cycle 4", phase: "Multiprocessing Complete", retired: "4 / 4", ipc: "1.00 IPC", hazard: "None",
+                fetch: "Idle", decode: "Idle", exec: "Core 0: I3 | Core 1: I4", wb: "Core 0 & Core 1 Retired",
+                activeStages: ["pipe-node-exec", "pipe-node-wb"], forwardingActive: false,
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 4 (COMPLETE)",
+                consoleMid: "Core 0 and Core 1 complete workloads in parallel.",
+                consoleSub: "True thread-level parallelism (TLP) achieved.",
+                inlinePreview: "Walkthrough complete! Two independent physical cores executed workload in parallel.",
+                what: "Core 0 and Core 1 complete arithmetic calculations and retire threads in 4 cycles.",
+                why: "True hardware parallelism enables high system throughput across multithreaded apps."
+              }
+            ]
+          };
+
+          let currentPipeMode = "pipeline";
+          let pipeIndex = 0;
+
+          function renderPipeState() {
+            const list = pipeStorylines[currentPipeMode];
+            const data = list[pipeIndex];
+
+            document.getElementById("pipe-stat-cycle").textContent = data.cycle;
+            document.getElementById("pipe-stat-phase").textContent = data.phase;
+            document.getElementById("pipe-stat-retired").textContent = data.retired;
+            document.getElementById("pipe-stat-ipc").textContent = data.ipc;
+            document.getElementById("pipe-stat-hazard").textContent = data.hazard;
+
+            document.getElementById("pipe-inline-preview").innerHTML = data.inlinePreview;
+            document.getElementById("pipe-desc-what").innerHTML = data.what;
+            document.getElementById("pipe-desc-why").innerHTML = data.why;
+
+            document.getElementById("pipe-fetch-instr").innerHTML = data.fetch;
+            document.getElementById("pipe-decode-instr").innerHTML = data.decode;
+            document.getElementById("pipe-exec-instr").innerHTML = data.exec;
+            document.getElementById("pipe-wb-instr").innerHTML = data.wb;
+
+            document.getElementById("pipe-console-top").textContent = data.consoleTop;
+            document.getElementById("pipe-console-mid").textContent = data.consoleMid;
+            document.getElementById("pipe-console-sub").textContent = data.consoleSub;
+
+            const nextBtn = document.getElementById("pipe-next-btn");
+            const prevBtn = document.getElementById("pipe-prev-btn");
+
+            if (nextBtn) {
+              nextBtn.innerHTML = pipeIndex === list.length - 1 ? "Restart Walkthrough &↺;" : "Next Step &rarr;";
+            }
+            if (prevBtn) {
+              prevBtn.style.opacity = pipeIndex === 0 ? "0.5" : "1.0";
+              prevBtn.style.cursor = pipeIndex === 0 ? "not-allowed" : "pointer";
+            }
+
+            const allStages = ["pipe-node-fetch", "pipe-node-decode", "pipe-node-exec", "pipe-node-wb"];
+            allStages.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                const rect = el.querySelector("rect");
+                if (rect) {
+                  rect.setAttribute("stroke", "#cbd5e1");
+                  rect.setAttribute("stroke-width", "1.5");
+                  rect.setAttribute("fill", "#ffffff");
+                  rect.style.filter = "none";
+                }
+              }
+            });
+
+            data.activeStages.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                const rect = el.querySelector("rect");
+                if (rect) {
+                  if (id === "pipe-node-wb" && data.retired !== "0 / 4") {
+                    rect.setAttribute("stroke", "#059669");
+                    rect.setAttribute("stroke-width", "3");
+                    rect.setAttribute("fill", "#ecfdf5");
+                    rect.style.filter = "drop-shadow(0 0 6px rgba(5, 150, 105, 0.4))";
+                  } else {
+                    rect.setAttribute("stroke", "#ea580c");
+                    rect.setAttribute("stroke-width", "2.5");
+                    rect.setAttribute("fill", "#fff7ed");
+                    rect.style.filter = "drop-shadow(0 0 5px rgba(234, 88, 12, 0.35))";
+                  }
+                }
+              }
+            });
+
+            const fwdPath = document.getElementById("pipe-forwarding-path");
+            const fwdLabel = document.getElementById("pipe-forward-label");
+            if (fwdPath && fwdLabel) {
+              if (data.forwardingActive) {
+                fwdPath.setAttribute("stroke", "#0284c7");
+                fwdPath.setAttribute("stroke-width", "2.5");
+                fwdPath.setAttribute("stroke-dasharray", "none");
+                fwdLabel.setAttribute("fill", "#0284c7");
+                fwdLabel.setAttribute("font-weight", "700");
+              } else {
+                fwdPath.setAttribute("stroke", "#cbd5e1");
+                fwdPath.setAttribute("stroke-width", "2");
+                fwdPath.setAttribute("stroke-dasharray", "4,4");
+                fwdLabel.setAttribute("fill", "#64748b");
+                fwdLabel.setAttribute("font-weight", "400");
+              }
+            }
+          }
+
+          function setPipeMode(modeKey) {
+            currentPipeMode = modeKey;
+            pipeIndex = 0;
+            const buttons = {
+              "pipeline": document.getElementById("pipe-btn-pipeline"),
+              "superscalar": document.getElementById("pipe-btn-superscalar"),
+              "multicore": document.getElementById("pipe-btn-multicore")
+            };
+            Object.keys(buttons).forEach(k => {
+              const btn = buttons[k];
+              if (btn) {
+                if (k === modeKey) {
+                  btn.style.background = "#0284c7";
+                  btn.style.color = "#ffffff";
+                } else {
+                  btn.style.background = "transparent";
+                  btn.style.color = "#475569";
+                }
+              }
+            });
+            renderPipeState();
+          }
+
+          document.getElementById("pipe-btn-pipeline").addEventListener("click", () => setPipeMode("pipeline"));
+          document.getElementById("pipe-btn-superscalar").addEventListener("click", () => setPipeMode("superscalar"));
+          document.getElementById("pipe-btn-multicore").addEventListener("click", () => setPipeMode("multicore"));
+
+          document.getElementById("pipe-next-btn").addEventListener("click", function() {
+            const list = pipeStorylines[currentPipeMode];
+            if (pipeIndex < list.length - 1) {
+              pipeIndex++;
+            } else {
+              pipeIndex = 0;
+            }
+            renderPipeState();
+          });
+
+          document.getElementById("pipe-prev-btn").addEventListener("click", function() {
+            if (pipeIndex > 0) {
+              pipeIndex--;
+              renderPipeState();
+            }
+          });
+
+          document.getElementById("pipe-reset-btn").addEventListener("click", function() {
             pipeIndex = 0;
             renderPipeState();
           });
 
           renderPipeState();
-        })();"""
+        })();
+      </script>
 
-    if target_snippet not in content:
-        # If the IIFE closing was truncated, let's search for renderPipeState(); and append it cleanly
-        broken_snippet = """          document.getElementById("pipe-reset-btn").addEventListener("click", function() {
-            pipeIndex = 0;
-            renderPipeState();
+      <h2>2. Privilege Modes &amp; Hardware Protection</h2>
+      <p>To prevent rogue or faulty user software from crashing the operating system or corrupting other programs, CPU hardware enforces distinct privilege execution levels:</p>
+      <ul>
+        <li><strong>Kernel Mode (Supervisor Mode):</strong> Complete, unrestricted access to physical memory, instructions, and system configuration tables.</li>
+        <li><strong>User Mode:</strong> A restricted subset of instructions where direct memory access to kernel space and raw I/O instructions are strictly prohibited.</li>
+      </ul>
+
+      <!-- Deep Dive: Privilege Hierarchies Across Architectures -->
+      <div class="aside-box" style="border-left-color: #7c3aed; background: #fef6ff; margin: 20px 0;">
+        <strong style="color: #6d28d9; font-size: 1rem;">Deep Dive: Privilege Hierarchies Across Architectures (Rings, ELs, and Modes)</strong>
+        <p style="margin-top: 8px; color: #334155;">
+          While the term <strong>"Rings"</strong> (Ring 0 through Ring 3) is famously associated with x86 architecture, the underlying concept of hierarchical hardware privilege is universal across modern processors:
+        </p>
+        <div style="overflow-x: auto; margin: 12px 0;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.84rem; background: #ffffff; text-align: left;">
+            <thead>
+              <tr style="background: #f3e8ff; color: #581c87; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase;">
+                <th style="padding: 8px 12px; border: 1px solid #d8b4fe;">Processor Architecture</th>
+                <th style="padding: 8px 12px; border: 1px solid #d8b4fe;">User / Application Tier</th>
+                <th style="padding: 8px 12px; border: 1px solid #d8b4fe;">Kernel / Supervisor Tier</th>
+                <th style="padding: 8px 12px; border: 1px solid #d8b4fe;">Virtualization / Firmware Tier</th>
+              </tr>
+            </thead>
+            <tbody style="color: #334155;">
+              <tr>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 700; color: #7c3aed;">x86-64 (Intel / AMD)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>Ring 3</strong> (User applications)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>Ring 0</strong> (OS Kernel)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>Ring -1 / VMX Root</strong> (Hypervisors)</td>
+              </tr>
+              <tr style="background: #faf5ff;">
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 700; color: #7c3aed;">ARM64 (AArch64)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>EL0</strong> (Apps &amp; OS Daemons)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>EL1</strong> (OS Kernel / Supervisor)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>EL2 / EL3</strong> (Hypervisor / Secure Monitor)</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0; font-weight: 700; color: #7c3aed;">RISC-V</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>U-mode</strong> (User Mode)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>S-mode</strong> (Supervisor Mode)</td>
+                <td style="padding: 8px 12px; border: 1px solid #e2e8f0;"><strong>M-mode</strong> (Machine Mode / Firmware)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top: 8px; color: #334155; font-size: 0.88rem;">
+          Regardless of nomenclature, the hardware state machine enforces identical safety guarantees: unprivileged instructions cannot manipulate page tables, modify control registers, or execute raw I/O without trapping through a controlled supervisor gateway.
+        </p>
+        <div style="margin-top: 12px; background: #ffffff; border: 1px solid #d8b4fe; border-left: 3px solid #7c3aed; padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 0.85rem;">
+          <strong style="color: #6d28d9;">Historical Footnote: What Happened to Rings 1 and 2?</strong>
+          <p style="margin: 4px 0 0 0; color: #475569; line-height: 1.5;">
+            While Intel's hardware design originally defined 4 rings—with <strong>Ring 1</strong> intended for device drivers and <strong>Ring 2</strong> for system services—mainstream operating systems like Linux and Windows chose to ignore them, using only <strong>Ring 0 (Kernel)</strong> and <strong>Ring 3 (User)</strong>. Running drivers in Ring 1 or 2 provided little real-world security protection because a driver bug could still compromise the kernel, and managing four hardware rings added unnecessary architectural complexity.
+          </p>
+        </div>
+      </div>
+
+      <h2>3. Virtual Memory &amp; The Memory Management Unit (MMU)</h2>
+      <p>Modern architectures decouple the addresses generated by programs from the physical addresses wired into silicon using <strong>Virtual Memory</strong>, managed directly by specialized hardware called the <strong>Memory Management Unit (MMU)</strong>.</p>
+
+      <h3>Address Translation Mechanics</h3>
+      <p>
+        The hardware MMU takes the Virtual Page Number and indexes into the active process's Page Table to discover the corresponding Physical Frame Number (PFN). The lowest 12 bits of the original address (the offset) pass through completely unmodified, because the byte offset within a virtual page is identical to the byte offset within a physical frame:
+      </p>
+
+      <div class="diagram-container" style="margin: 24px 0;">
+        <svg viewBox="0 0 880 290" width="100%" height="100%" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowBlue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
+            </marker>
+            <marker id="arrowGreen" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#059669" />
+            </marker>
+            <marker id="arrowGray" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#64748b" />
+            </marker>
+          </defs>
+          <text x="40" y="24" fill="#0f172a" font-size="12" font-weight="700">VIRTUAL ADDRESS (Generated by CPU Instruction)</text>
+          <rect x="40" y="36" width="460" height="46" rx="5" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" />
+          <text x="270" y="58" fill="#0284c7" font-size="12" font-weight="700" text-anchor="middle">Virtual Page Number (VPN)</text>
+          <text x="270" y="73" fill="#0369a1" font-size="9.5" text-anchor="middle">Upper Address Bits [47:12]</text>
+          <rect x="520" y="36" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+          <text x="680" y="58" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
+          <text x="680" y="73" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Identifies exact byte in 4 KiB page</text>
+          <path d="M 270,82 L 270,108" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arrowBlue)" />
+          <rect x="180" y="112" width="180" height="34" rx="4" fill="#0284c7" stroke="#0369a1" stroke-width="1.5" />
+          <text x="270" y="133" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">Page Table Lookup</text>
+          <path d="M 270,146 L 270,188" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrowGreen)" />
+          <path d="M 680,82 L 680,218" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowGray)" />
+          <text x="692" y="138" fill="#64748b" font-size="9.5" font-style="italic">Passes through unchanged</text>
+          <text x="40" y="210" fill="#0f172a" font-size="12" font-weight="700">PHYSICAL ADDRESS (Issued to DRAM Memory Bus)</text>
+          <rect x="40" y="224" width="460" height="46" rx="5" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+          <text x="270" y="246" fill="#059669" font-size="12" font-weight="700" text-anchor="middle">Physical Frame Number (PFN)</text>
+          <text x="270" y="261" fill="#065f46" font-size="9.5" text-anchor="middle">Base address of 4 KiB frame in physical DRAM</text>
+          <rect x="520" y="224" width="320" height="46" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="2" />
+          <text x="680" y="246" fill="#334155" font-size="12" font-weight="700" text-anchor="middle">Page Offset (12 bits)</text>
+          <text x="680" y="261" fill="#64748b" font-size="9.5" text-anchor="middle">Bits [11:0] • Unmodified intra-frame byte offset</text>
+        </svg>
+      </div>
+
+      <!-- Interactive Walkthrough: Address Translation & Offset Pass-Through -->
+      <div id="interactive-translation-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
+          <div>
+            <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem;">Interactive Walkthrough: Synchronized Page Table Walk &amp; Offset Pass-Through</h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Trace how the MMU steps through multi-level page table entries (PTEs) in DRAM in real time.</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #475569; padding: 0 6px;">Granularity:</span>
+            <button id="trans-btn-4k" class="trans-mode-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: #0284c7; color: #ffffff; cursor: pointer;">4 KiB Standard Page</button>
+            <button id="trans-btn-2m" class="trans-mode-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer;">2 MiB Superpage</button>
+            <button id="trans-btn-swap" class="trans-mode-btn" style="padding: 5px 12px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; border-radius: 5px; border: none; background: transparent; color: #475569; cursor: pointer;">Swapped Page</button>
+          </div>
+        </div>
+
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
+          <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Tracing a 4 KiB Virtual-to-Physical Translation</div>
+          <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
+            We are tracing how the MMU translates virtual address <strong><code>0x00403018</code></strong> into physical DRAM address <strong><code>0x07B40018</code></strong> across synchronized page table entries:
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
+          <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
+            <button id="trans-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer;">Next Step &rarr;</button>
+            <div style="display: flex; gap: 8px;">
+              <button id="trans-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="trans-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
+            </div>
+          </div>
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 0 6px 6px 0; padding: 10px 14px; display: flex; flex-direction: column; justify-content: center;">
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase;">Where We Are &amp; What Happens Next Click:</div>
+            <div id="trans-inline-preview" style="font-size: 0.88rem; color: #0c4a6e; line-height: 1.45; margin-top: 4px;">Loading translation state...</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; font-family: var(--font-mono); font-size: 0.8rem;">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Virtual Address</div>
+            <div id="trans-stat-va" style="font-weight: 700; color: #0f172a; margin-top: 2px;">0x00403018</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Active Table Walk</div>
+            <div id="trans-stat-vpn" style="font-weight: 700; color: #0284c7; margin-top: 2px;">CR3 Root</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Page Offset</div>
+            <div id="trans-stat-offset" style="font-weight: 700; color: #059669; margin-top: 2px;">0x018 (Bypass)</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Physical Frame (PFN)</div>
+            <div id="trans-stat-pfn" style="font-weight: 700; color: #0369a1; margin-top: 2px;">Pending...</div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px;">
+            <div style="color: #64748b; font-size: 0.72rem; text-transform: uppercase;">Final Physical Addr</div>
+            <div id="trans-stat-pa" style="font-weight: 700; color: #7c3aed; margin-top: 2px;">Pending...</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-bottom: 20px; overflow-x: auto;">
+          <svg id="trans-anim-svg" viewBox="0 0 940 340" width="100%" height="100%" style="max-width: 940px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="marker-trans-blue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
+              </marker>
+            </defs>
+            <g id="trans-node-cr3" transform="translate(25, 110)">
+              <rect x="0" y="0" width="120" height="70" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="60" y="24" fill="#0369a1" font-size="10" font-weight="700" text-anchor="middle">Root Register</text>
+              <text x="60" y="44" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle">CR3</text>
+              <text x="60" y="60" fill="#64748b" font-size="9" text-anchor="middle">0x1A4000</text>
+            </g>
+            <g id="trans-node-pml4" transform="translate(180, 50)">
+              <rect x="0" y="0" width="130" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="65" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">PML4 Table</text>
+              <rect x="10" y="28" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">Index 0: Unused</text>
+              <rect x="10" y="52" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">Index 1: Unused</text>
+              <rect x="10" y="76" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="65" y="93" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">Index 2: 0x2B100</text>
+              <rect x="10" y="106" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="119" fill="#64748b" font-size="8.5" text-anchor="middle">Index 3: Unused</text>
+              <rect x="10" y="130" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">Index 4: Unused</text>
+              <rect x="10" y="154" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
+            </g>
+            <g id="trans-node-pdpt" transform="translate(345, 50)">
+              <rect x="0" y="0" width="130" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="65" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">PDPT Table</text>
+              <rect x="10" y="28" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">Index 0: Unused</text>
+              <rect x="10" y="52" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">Index 1: Unused</text>
+              <rect x="10" y="76" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="89" fill="#64748b" font-size="8.5" text-anchor="middle">Index 2: Unused</text>
+              <rect x="10" y="100" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="65" y="117" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">Index 3: 0x3C200</text>
+              <rect x="10" y="130" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">Index 4: Unused</text>
+              <rect x="10" y="154" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
+            </g>
+            <g id="trans-node-pd" transform="translate(510, 50)">
+              <rect x="0" y="0" width="130" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="65" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">Page Directory</text>
+              <rect x="10" y="28" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">Index 0: Unused</text>
+              <rect x="10" y="52" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">Index 1: Unused</text>
+              <rect x="10" y="76" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="89" fill="#64748b" font-size="8.5" text-anchor="middle">Index 2: Unused</text>
+              <rect x="10" y="100" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="65" y="117" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">Index 3: 0x4D300</text>
+              <rect x="10" y="130" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">Index 4: Unused</text>
+              <rect x="10" y="154" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
+            </g>
+            <g id="trans-node-pt" transform="translate(675, 50)">
+              <rect x="0" y="0" width="140" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="70" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">Page Table (PT)</text>
+              <rect x="10" y="28" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00401: Unused</text>
+              <rect x="10" y="52" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00402: Unused</text>
+              <rect x="10" y="76" width="120" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="70" y="93" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">VPN 0x00403: 0x07B40</text>
+              <rect x="10" y="106" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="119" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00404: Unused</text>
+              <rect x="10" y="130" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00405: Unused</text>
+              <rect x="10" y="154" width="120" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
+            </g>
+            <path id="trans-path-1" d="M 145,145 L 175,145" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-trans-blue)" />
+            <path id="trans-path-2" d="M 310,145 L 340,145" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-trans-blue)" />
+            <path id="trans-path-3" d="M 475,145 L 505,145" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-trans-blue)" />
+            <path id="trans-path-4" d="M 640,145 L 670,145" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-trans-blue)" />
+            <path id="trans-bypass-path" d="M 745,245 C 745,290 400,290 400,245" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" />
+            <text id="trans-bypass-label" x="572" y="278" fill="#64748b" font-size="9.5" text-anchor="middle">Page Offset (0x018) Passes Through Completely Unmodified to DRAM</text>
+            <g transform="translate(25, 290)">
+              <rect x="0" y="0" width="890" height="40" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
+              <text id="trans-console-top" x="15" y="25" fill="#0369a1" font-size="11" font-weight="700">TRANSLATION ENGINE STATUS: READY</text>
+            </g>
+          </svg>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">Detailed Mechanics: What Is Happening</div>
+            <div id="trans-desc-what" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #10b981; padding: 16px; border-radius: 0 6px 6px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #059669; text-transform: uppercase;">Why The System Does This</div>
+            <div id="trans-desc-why" style="font-size: 0.9rem; color: #1e293b; line-height: 1.55; margin-top: 8px;"></div>
+          </div>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px;">
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 8px;">Key Definitions &amp; Hardware Terminology</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 0.83rem; color: #334155;">
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">CR3 Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">Processor root register storing the physical base address of the current process top-level page table (PML4).</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">CR4 Register</strong>
+              <div style="color: #64748b; margin-top: 2px;">Extended control register enabling PAE, page size extensions, and virtualization features.</div>
+            </div>
+            <div>
+              <strong style="color: #0284c7; font-family: var(--font-mono);">PML4 Table</strong>
+              <div style="color: #64748b; margin-top: 2px;">Top-level 4 KiB table in x86-64 4-level paging containing entries pointing to PDPTs.</div>
+            </div>
+            <div>
+              <strong style="color: #059669; font-family: var(--font-mono);">PTE (Page Table Entry)</strong>
+              <div style="color: #64748b; margin-top: 2px;">Leaf entry in a page table containing the physical frame number (PFN) and protection flags.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (function() {
+          const transStorylines = {
+            "4k": [
+              {
+                step: "Step 1: CR3 Root Lookup & PML4 Table", phase: "1. CR3 &rarr; PML4 Lookup", va: "0x00403018", vpn: "CR3 Root Lookup", offset: "0x018", pfn: "Pending...", pa: "Pending...",
+                activeNodes: ["trans-node-cr3", "trans-node-pml4"], activePaths: ["trans-path-1"], bypassActive: false,
+                consoleTop: "TRANSLATION STEP 1 • CR3 ROOT REGISTER TO PML4 TABLE",
+                what: "The MMU reads the root page table physical address 0x1A4000 from control register CR3. It indexes into the top-level PML4 table.",
+                why: "CR3 anchors the process's complete virtual address space, ensuring complete memory isolation."
+              },
+              {
+                step: "Step 2: PDPT Table Traversal", phase: "2. PML4 &rarr; PDPT Traversal", va: "0x00403018", vpn: "PDPT Indexing", offset: "0x018", pfn: "Pending...", pa: "Pending...",
+                activeNodes: ["trans-node-pml4", "trans-node-pdpt"], activePaths: ["trans-path-2"], bypassActive: false,
+                consoleTop: "TRANSLATION STEP 2 • PML4 ENTRY TO PDPT TABLE",
+                what: "Using the address found in PML4, the MMU accesses the PDPT in DRAM, selecting Entry 3.",
+                why: "Multi-level hierarchies allow operating systems to omit unused memory regions entirely."
+              },
+              {
+                step: "Step 3: Page Directory Traversal", phase: "3. PDPT &rarr; Page Directory", va: "0x00403018", vpn: "Page Directory Indexing", offset: "0x018", pfn: "Pending...", pa: "Pending...",
+                activeNodes: ["trans-node-pdpt", "trans-node-pd"], activePaths: ["trans-path-3"], bypassActive: false,
+                consoleTop: "TRANSLATION STEP 3 • PDPT ENTRY TO PAGE DIRECTORY",
+                what: "The MMU accesses the Page Directory in DRAM, reading Entry 3 which points to the Page Table.",
+                why: "Staging memory lookups keeps individual page tables compact (4 KiB per table)."
+              },
+              {
+                step: "Step 4: Page Table Leaf Resolution", phase: "4. Page Directory &rarr; Page Table Leaf", va: "0x00403018", vpn: "VPN 0x00403 Resolved", offset: "0x018", pfn: "0x07B40", pa: "0x07B40018",
+                activeNodes: ["trans-node-pd", "trans-node-pt"], activePaths: ["trans-path-4"], bypassActive: true,
+                consoleTop: "TRANSLATION STEP 4 • PAGE TABLE LEAF PTE RESOLUTION",
+                what: "The MMU reads the final Page Table, indexing VPN 0x00403 to yield Physical Frame Number 0x07B40.",
+                why: "The leaf PTE encodes permission metadata alongside the physical frame number."
+              },
+              {
+                step: "Step 5: Offset Pass-Through & Assembly", phase: "5. Physical Address Assembled", va: "0x00403018", vpn: "VPN 0x00403", offset: "0x018 (Unmodified)", pfn: "0x07B40", pa: "0x07B40018 (Complete)",
+                activeNodes: ["trans-node-pt"], activePaths: [], bypassActive: true,
+                consoleTop: "TRANSLATION STEP 5 • OFFSET PASS-THROUGH & DRAM BUS ISSUE",
+                what: "The lowest 12 bits (0x018) pass through unmodified, combining with PFN 0x07B40000 to issue 0x07B40018.",
+                why: "Intra-page byte offsets remain 100% identical in physical memory."
+              }
+            ],
+            "2m": [
+              {
+                step: "Superpage Step 1: CR3 to PML4", phase: "1. CR3 Root Lookup", va: "0x00400000 (2MB)", vpn: "Superpage Root", offset: "0x000", pfn: "Pending...", pa: "Pending...",
+                activeNodes: ["trans-node-cr3", "trans-node-pml4"], activePaths: ["trans-path-1"], bypassActive: false,
+                consoleTop: "2 MiB SUPERPAGE WALK • STEP 1",
+                what: "The MMU checks PML4 for a 2 MiB superpage mapping.",
+                why: "Superpages reduce TLB pressure for large memory-intensive applications."
+              },
+              {
+                step: "Superpage Step 2: Direct PDE Mapping", phase: "2. Direct Superpage Resolution", va: "0x00400000 (2MB)", vpn: "PDE Superpage Entry", offset: "0x000 (21 bits)", pfn: "0x04000 (2MB)", pa: "0x08000000",
+                activeNodes: ["trans-node-pdpt", "trans-node-pd"], activePaths: ["trans-path-2", "trans-path-3"], bypassActive: true,
+                consoleTop: "2 MiB SUPERPAGE WALK • STEP 2 (COMPLETE)",
+                what: "The Page Directory Entry maps directly to a massive 2 MiB physical DRAM frame.",
+                why: "Stopping the page walk early at Level 2 maximizes TLB efficiency."
+              }
+            ],
+            "swap": [
+              {
+                step: "Swap Step 1: Page Table Walk to Swapped PTE", phase: "1. Swapped PTE Located", va: "0x00705020", vpn: "VPN 0x00705", offset: "0x020", pfn: "None (Present=0)", pa: "Page Fault!",
+                activeNodes: ["trans-node-cr3", "trans-node-pml4", "trans-node-pdpt", "trans-node-pd", "trans-node-pt"], activePaths: ["trans-path-1", "trans-path-2", "trans-path-3", "trans-path-4"], bypassActive: false,
+                consoleTop: "SWAPPED PAGE FAULT WALK • STEP 1",
+                what: "The MMU completes the page table walk but discovers Present Bit = 0 in the leaf PTE.",
+                why: "Demand paging allows systems to overcommit physical RAM by evicting inactive pages to disk."
+              },
+              {
+                step: "Swap Step 2: Kernel Frame Allocation & Swap-In", phase: "2. Kernel Fault Resolution", va: "0x00705020", vpn: "VPN 0x00705", offset: "0x020", pfn: "0x09840", pa: "0x09840020",
+                activeNodes: ["trans-node-pt"], activePaths: [], bypassActive: true,
+                consoleTop: "SWAPPED PAGE FAULT WALK • STEP 2 (COMPLETE)",
+                what: "The CPU traps into the page fault handler. The OS allocates frame 0x09840 and reads swap data.",
+                why: "The application resumes execution seamlessly, unaware its memory page was on disk."
+              }
+            ]
+          };
+
+          let currentTransMode = "4k";
+          let transIndex = 0;
+
+          function renderTransState() {
+            const list = transStorylines[currentTransMode];
+            const data = list[transIndex];
+
+            document.getElementById("trans-stat-va").textContent = data.va;
+            document.getElementById("trans-stat-vpn").textContent = data.vpn;
+            document.getElementById("trans-stat-offset").textContent = data.offset;
+            document.getElementById("trans-stat-pfn").textContent = data.pfn;
+            document.getElementById("trans-stat-pa").textContent = data.pa;
+
+            document.getElementById("trans-inline-preview").innerHTML = data.step + " completed. Click Next to continue.";
+            document.getElementById("trans-desc-what").innerHTML = data.what;
+            document.getElementById("trans-desc-why").innerHTML = data.why;
+            document.getElementById("trans-console-top").textContent = data.consoleTop;
+
+            const nextBtn = document.getElementById("trans-next-btn");
+            const prevBtn = document.getElementById("trans-prev-btn");
+
+            if (nextBtn) {
+              nextBtn.innerHTML = transIndex === list.length - 1 ? "Restart Walkthrough &↺;" : "Next Step &rarr;";
+            }
+            if (prevBtn) {
+              prevBtn.style.opacity = transIndex === 0 ? "0.5" : "1.0";
+              prevBtn.style.cursor = transIndex === 0 ? "not-allowed" : "pointer";
+            }
+
+            const allNodes = ["trans-node-cr3", "trans-node-pml4", "trans-node-pdpt", "trans-node-pd", "trans-node-pt"];
+            allNodes.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                const rect = el.querySelector("rect");
+                if (rect) {
+                  rect.setAttribute("stroke", "#cbd5e1");
+                  rect.setAttribute("stroke-width", "1.5");
+                  rect.setAttribute("fill", "#ffffff");
+                  rect.style.filter = "none";
+                }
+              }
+            });
+
+            data.activeNodes.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                const rect = el.querySelector("rect");
+                if (rect) {
+                  rect.setAttribute("stroke", "#ea580c");
+                  rect.setAttribute("stroke-width", "2.5");
+                  rect.setAttribute("fill", "#fff7ed");
+                  rect.style.filter = "drop-shadow(0 0 5px rgba(234, 88, 12, 0.35))";
+                }
+              }
+            });
+
+            const allPaths = ["trans-path-1", "trans-path-2", "trans-path-3", "trans-path-4"];
+            allPaths.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                el.setAttribute("stroke", "#cbd5e1");
+                el.setAttribute("stroke-width", "2");
+              }
+            });
+
+            data.activePaths.forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                el.setAttribute("stroke", "#ea580c");
+                el.setAttribute("stroke-width", "3");
+              }
+            });
+
+            const bypassPath = document.getElementById("trans-bypass-path");
+            const bypassLabel = document.getElementById("trans-bypass-label");
+            if (bypassPath && bypassLabel) {
+              if (data.bypassActive) {
+                bypassPath.setAttribute("stroke", "#059669");
+                bypassPath.setAttribute("stroke-width", "2.5");
+                bypassPath.setAttribute("stroke-dasharray", "none");
+                bypassLabel.setAttribute("fill", "#059669");
+                bypassLabel.setAttribute("font-weight", "700");
+              } else {
+                bypassPath.setAttribute("stroke", "#cbd5e1");
+                bypassPath.setAttribute("stroke-width", "2");
+                bypassPath.setAttribute("stroke-dasharray", "4,4");
+                bypassLabel.setAttribute("fill", "#64748b");
+                bypassLabel.setAttribute("font-weight", "400");
+              }
+            }
+          }
+
+          function setTransMode(modeKey) {
+            currentTransMode = modeKey;
+            transIndex = 0;
+            const buttons = {
+              "4k": document.getElementById("trans-btn-4k"),
+              "2m": document.getElementById("trans-btn-2m"),
+              "swap": document.getElementById("trans-btn-swap")
+            };
+            Object.keys(buttons).forEach(k => {
+              const btn = buttons[k];
+              if (btn) {
+                if (k === modeKey) {
+                  btn.style.background = "#0284c7";
+                  btn.style.color = "#ffffff";
+                } else {
+                  btn.style.background = "transparent";
+                  btn.style.color = "#475569";
+                }
+              }
+            });
+            renderTransState();
+          }
+
+          document.getElementById("trans-btn-4k").addEventListener("click", () => setTransMode("4k"));
+          document.getElementById("trans-btn-2m").addEventListener("click", () => setTransMode("2m"));
+          document.getElementById("trans-btn-swap").addEventListener("click", () => setTransMode("swap"));
+
+          document.getElementById("trans-next-btn").addEventListener("click", function() {
+            const list = transStorylines[currentTransMode];
+            if (transIndex < list.length - 1) {
+              transIndex++;
+            } else {
+              transIndex = 0;
+            }
+            renderTransState();
           });
 
-          renderPipeState();"""
+          document.getElementById("trans-prev-btn").addEventListener("click", function() {
+            if (transIndex > 0) {
+              transIndex--;
+              renderTransState();
+            }
+          });
 
-        if broken_snippet in content:
-            content = content.replace(broken_snippet, broken_snippet + "\n        })();")
-            print("--> Restored missing IIFE closure for pipeStorylines script.")
-        else:
-            print("--> Warning: Exact pipeStorylines script block pattern not matched.")
+          document.getElementById("trans-reset-btn").addEventListener("click", function() {
+            transIndex = 0;
+            renderTransState();
+          });
 
+          renderTransState();
+        })();
+      </script>
+
+      <h2>4. Disks, I/O Devices, &amp; Controller Hardware</h2>
+      <p>I/O devices consist of physical components and electronic device controllers that accept commands from the OS.</p>
+
+      <h2>5. Buses &amp; The Boot Process</h2>
+      <p>Modern computers utilize a hierarchy of specialized buses connecting processors, memory, and controllers.</p>
+    </article>
+  </main>
+
+  <nav class="module-nav-bar bottom" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 24px auto;">
+    <div style="flex: 1; text-align: left;">
+      <a href="01-what-is-an-os-and-history.html" class="module-nav-btn">&larr; Previous: 01. What Is an OS &amp; History</a>
+    </div>
+    <div style="flex: 1; text-align: center;">
+      <a href="index.html" class="module-nav-btn">&#127968; Week 1: Operating System Concepts</a>
+    </div>
+    <div style="flex: 1; text-align: right;">
+      <a href="03-os-concepts.html" class="module-nav-btn">Next: 03. OS Concepts &rarr;</a>
+    </div>
+  </nav>
+
+</body>
+</html>
+"""
+
+def generate_page():
+    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
+        f.write(COMPLETE_HTML)
+    print(f"--> Successfully generated complete {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Fix broken script closure in Instruction Throughput Engine walkthrough\n\n"
-            "Restore missing IIFE closure and event binding logic for the instruction\n"
-            "throughput engine interactive stepper in 02-hardware-review.html."
+            "Rewrite fix.py to correctly generate Module 2 HTML from scratch\n\n"
+            "Replace patching logic with a complete generator script in fix.py\n"
+            "that outputs the entire 02-hardware-review.html correctly."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for pipeline script repair!")
+        print("--> Git sync completed successfully for fix.py execution!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    repair_pipeline_script()
+    generate_page()
