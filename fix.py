@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Align Modules 1 and 2 styling with Module 3 clean card layout
+# fix.py: Apply grey margin and white container layout to Modules 1 and 2
 # =====================================================================
 import os
 import subprocess
 
-FILES_TO_FIX = [
+TARGET_FILES = [
     os.path.join("week01-operating-system-concepts", "01-what-is-an-os-and-history.html"),
     os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 ]
 
-SHARED_STYLE_BLOCK = """  <style>
+CONTAINER_CSS = """  <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -31,49 +31,6 @@ SHARED_STYLE_BLOCK = """  <style>
       border-radius: 8px;
       padding: 40px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    h1, h2, h3 {
-      color: #0f172a;
-    }
-    h2 {
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 8px;
-      margin-top: 36px;
-    }
-    h3 {
-      margin-top: 28px;
-      margin-bottom: 8px;
-      color: #0284c7;
-      font-size: 1.15rem;
-    }
-    p {
-      color: #475569;
-      margin-bottom: 12px;
-    }
-    ul, ol {
-      margin-left: 20px;
-      color: #475569;
-      margin-bottom: 12px;
-    }
-    li {
-      margin-bottom: 4px;
-    }
-    code {
-      font-family: var(--font-mono);
-      background: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.88rem;
-      color: #0369a1;
-    }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
     }
     .module-nav-bar {
       display: flex;
@@ -104,8 +61,8 @@ SHARED_STYLE_BLOCK = """  <style>
     }
   </style>"""
 
-def apply_styling_updates():
-    for target_path in FILES_TO_FIX:
+def update_module_layout():
+    for target_path in TARGET_FILES:
         if not os.path.exists(target_path):
             print(f"Skipping {target_path}: file not found.")
             continue
@@ -113,12 +70,7 @@ def apply_styling_updates():
         with open(target_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Replace existing <style> block(s) or insert before </head>
-        # For simplicity and robust consistency, let's inject the standard shared styles
-        # or update body/container wrappers if needed.
-        print(f"--> Updating styling for {target_path}...")
-
-        # Ensure container div wraps the content inside body if not already present
+        # Ensure container div wraps the content if missing
         if '<div class="container">' not in content:
             content = content.replace("<body>", "<body>\n  <div class=\"container\">")
             content = content.replace("</body>", "  </div>\n</body>")
@@ -127,18 +79,18 @@ def apply_styling_updates():
             f.write(content)
 
     try:
-        subprocess.run(["git", "add", "fix.py"] + FILES_TO_FIX, check=True)
+        subprocess.run(["git", "add", "fix.py"] + TARGET_FILES, check=True)
         commit_msg = (
-            "Align styling of hardware review and OS history modules with Module 3\n\n"
-            "Update week01-operating-system-concepts/01-what-is-an-os-and-history.html\n"
-            "and week01-operating-system-concepts/02-hardware-review.html to use the\n"
-            "clean white background layout, padding, and typography from Module 3."
+            "Apply grey margins and white container layout to Modules 1 and 2\n\n"
+            "Ensure week01-operating-system-concepts/01-what-is-an-os-and-history.html\n"
+            "and week01-operating-system-concepts/02-hardware-review.html share the exact\n"
+            "grey body background with bordered white content containers."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for Modules 1 and 2 styling!")
+        print("--> Git sync completed successfully for container layouts!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    apply_styling_updates()
+    update_module_layout()
