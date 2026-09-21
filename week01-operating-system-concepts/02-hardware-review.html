@@ -1982,7 +1982,7 @@
             </div>
           </div>
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.84rem; line-height: 1.5;">
-            <li><strong>Why Offset Passes Through:</strong> Because virtual page size (4 KiB) matches physical frame size ($2^{12} = 4096$ bytes), intra-page byte offsets remain identical in physical RAM.</li>
+            <li><strong>Why Offset Passes Through:</strong> Because virtual page size (4 KiB) matches physical frame size (2<sup>12</sup> = 4096 bytes), intra-page byte offsets remain identical in physical RAM.</li>
             <li><strong>Granularity Toggles:</strong> Switch between <code>4 KiB Standard Page</code>, <code>2 MiB Superpage</code>, and <code>Swapped Page</code> modes to observe different MMU behaviors.</li>
           </ol>
         </div>
@@ -2150,7 +2150,7 @@
                 consoleSub: "Lower 12 bits (0x018) enter pass-through wire; upper bits enter page table walker.",
                 inlinePreview: "We are at Step 2. The address is split into VPN and Offset. Next, the MMU walks the page table to find the Physical Frame Number. Click Next to advance to Step 3.",
                 what: "The MMU hardware bit-slices the address: the upper bits form the <strong>Virtual Page Number (VPN) <code>0x00403</code></strong>, while the lowest 12 bits form the <strong>Page Offset <code>0x018</code></strong>.",
-                why: "Standard 4 KiB pages require exactly 12 bits for byte indexing ($2^{12} = 4096$ bytes), leaving the remaining upper bits for page table indexing."
+                why: "Standard 4 KiB pages require exactly 12 bits for byte indexing (2<sup>12</sup> = 4096 bytes), leaving the remaining upper bits for page table indexing."
               },
               {
                 step: "Step 3: MMU Page Table Walk",
