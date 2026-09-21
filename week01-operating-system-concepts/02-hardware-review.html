@@ -965,6 +965,7 @@
                 step: "Superpage Step 1: CR3 to PML4", phase: "1. CR3 Root Lookup", va: "0x00400000 (2MB)", vpn: "Superpage Root", offset: "0x000", pfn: "Pending...", pa: "Pending...",
                 activeNodes: ["trans-node-cr3", "trans-node-pml4"], activePaths: ["trans-path-1"], bypassActive: false,
                 consoleTop: "2 MiB SUPERPAGE WALK • STEP 1",
+                inlinePreview: "The MMU queries the top-level PML4 table, checking for superpage flags before descending further into the table hierarchy.",
                 what: "The MMU checks PML4 for a 2 MiB superpage mapping.",
                 why: "Superpages reduce TLB pressure for large memory-intensive applications."
               },
@@ -972,6 +973,7 @@
                 step: "Superpage Step 2: Direct PDE Mapping", phase: "2. Direct Superpage Resolution", va: "0x00400000 (2MB)", vpn: "PDE Superpage Entry", offset: "0x000 (21 bits)", pfn: "0x04000 (2MB)", pa: "0x08000000",
                 activeNodes: ["trans-node-pdpt", "trans-node-pd"], activePaths: ["trans-path-2", "trans-path-3"], bypassActive: true,
                 consoleTop: "2 MiB SUPERPAGE WALK • STEP 2 (COMPLETE)",
+                inlinePreview: "The Page Directory Entry asserts a 2 MiB superpage flag, bypassing lower page tables entirely and mapping straight to physical frame 0x04000.",
                 what: "The Page Directory Entry maps directly to a massive 2 MiB physical DRAM frame.",
                 why: "Stopping the page walk early at Level 2 maximizes TLB efficiency."
               }
@@ -981,6 +983,7 @@
                 step: "Swap Step 1: Page Table Walk to Swapped PTE", phase: "1. Swapped PTE Located", va: "0x00705020", vpn: "VPN 0x00705", offset: "0x020", pfn: "None (Present=0)", pa: "Page Fault!",
                 activeNodes: ["trans-node-cr3", "trans-node-pml4", "trans-node-pdpt", "trans-node-pd", "trans-node-pt"], activePaths: ["trans-path-1", "trans-path-2", "trans-path-3", "trans-path-4"], bypassActive: false,
                 consoleTop: "SWAPPED PAGE FAULT WALK • STEP 1",
+                inlinePreview: "The page table walk completes, but the leaf PTE reports Present Bit = 0, triggering an immediate hardware page fault trap to the kernel.",
                 what: "The MMU completes the page table walk but discovers Present Bit = 0 in the leaf PTE.",
                 why: "Demand paging allows systems to overcommit physical RAM by evicting inactive pages to disk."
               },
@@ -988,6 +991,7 @@
                 step: "Swap Step 2: Kernel Frame Allocation & Swap-In", phase: "2. Kernel Fault Resolution", va: "0x00705020", vpn: "VPN 0x00705", offset: "0x020", pfn: "0x09840", pa: "0x09840020",
                 activeNodes: ["trans-node-pt"], activePaths: [], bypassActive: true,
                 consoleTop: "SWAPPED PAGE FAULT WALK • STEP 2 (COMPLETE)",
+                inlinePreview: "The kernel allocates a free physical frame (0x09840), reads the swapped page from disk into DRAM, updates the PTE, and restarts the instruction.",
                 what: "The CPU traps into the page fault handler. The OS allocates frame 0x09840 and reads swap data.",
                 why: "The application resumes execution seamlessly, unaware its memory page was on disk."
               }
