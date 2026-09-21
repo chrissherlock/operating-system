@@ -672,7 +672,7 @@
                 consoleSub: "Downstream pipeline latches are currently empty as execution begins.",
                 inlinePreview: "We are at Cycle 1 (Pipeline Priming). I1 is entering the Fetch bay while downstream stages sit idle as bubbles. Next, I1 advances to Decode while I2 enters Fetch. Click Next to advance to Cycle 2.",
                 what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the instruction bus. The machine code for <code>I1: LOAD R1, [A]</code> is latched into the Instruction Fetch (IF) register, and the hardware increments <code>PC &larr; PC + 4</code>.<br><br><strong>What is a \"Bubble\"?</strong> In CPU design, a <em>bubble</em> is jargon for an idle stage that does no useful work—essentially an enforced <code>NOP</code> (No Operation). Think of an automated car wash: when the first car enters the Soap bay, the Scrub, Rinse, and Dry bays downstream are completely empty. Because our conveyor belt just turned on, Decode, Execute, and Writeback hold inactive control bits until <code>I1</code> physically shifts into them over the next few cycles.",
-                why: "A pipeline requires a brief \"fill latency\" ($k-1$ cycles) before all stages are populated. During this warm-up, the control unit explicitly disables write-enable flags for downstream stages so empty bubbles cannot accidentally corrupt register values or trip spurious hardware faults. Once <code>I1</code> reaches Writeback at Cycle 4, every bubble will have drained and the pipeline reaches steady-state 1.0 IPC."
+                why: "A pipeline requires a brief \"fill latency\" (<em>k</em> - 1 cycles, where <em>k</em> = 4 stages, requiring 3 warm-up cycles) before all stages are populated. During this warm-up, the control unit explicitly disables write-enable flags for downstream stages so empty bubbles cannot accidentally corrupt register values or trip spurious hardware faults. Once <code>I1</code> reaches Writeback at Cycle 4, every bubble will have drained and the pipeline reaches steady-state 1.0 IPC."
               },
               {
                 cycle: "Cycle 2",
@@ -785,8 +785,8 @@
                 consoleMid: "I4 writes back final sum to R4. All 4 instructions successfully retired.",
                 consoleSub: "Total execution: 7 cycles for 4 instructions (vs 16 cycles non-pipelined).",
                 inlinePreview: "Walkthrough complete! 4 instructions finished in 7 cycles (saving 9 cycles over non-pipelined execution). Click Reset or toggle to Superscalar mode to see parallel issue.",
-                what: "<code>I4</code> writes back into <code>R4</code>. All 4 instructions are officially retired. Total execution time was 7 clock cycles, compared to 16 cycles on an unpipelined architecture ($4 \times 4$).",
-                why: "The pipelining speedup theorem states that speedup approaches the number of pipeline stages ($k=4$) as $N \to \infty$. For long vector loops, this pipeline achieves a near 400% speedup over sequential execution."
+                what: "<code>I4</code> writes back into <code>R4</code>. All 4 instructions are officially retired. Total execution time was 7 clock cycles, compared to 16 cycles on an unpipelined architecture (4 instructions &times; 4 stages).",
+                why: "The pipelining speedup theorem states that speedup approaches the number of pipeline stages (<em>k</em> = 4 stages) as $N \to \infty$. For long vector loops, this pipeline achieves a near 400% speedup over sequential execution."
               }
             ],
             superscalar: [
@@ -807,7 +807,7 @@
                 consoleSub: "Dual instruction queues primed &bull; Superscalar issue logic checks dependency matrix.",
                 inlinePreview: "We are at Cycle 1. The superscalar core fetched both I1 and I2 simultaneously. Next, both instructions decode in parallel while I3 and I4 are fetched together. Click Next to advance to Cycle 2.",
                 what: "The CPU's wide instruction fetch unit pulls 64 bits from the L1 instruction cache, loading <strong>both</strong> <code>I1: LOAD R1, [A]</code> and <code>I2: LOAD R2, [B]</code> simultaneously into dual instruction queues in a single cycle.",
-                why: "A single pipeline is bound by the theoretical ceiling of 1.0 IPC. Superscalar designs duplicate execution paths to fetch, decode, and issue multiple instructions per cycle, achieving $IPC > 1.0$."
+                why: "A single pipeline is bound by the theoretical ceiling of 1.0 IPC. Superscalar designs duplicate execution paths to fetch, decode, and issue multiple instructions per cycle, achieving IPC &gt; 1.0."
               },
               {
                 cycle: "Cycle 2",
