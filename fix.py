@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Generate complete 01-what-is-an-os-and-history.html in single card
+# fix.py: Align 04-os-structure.html layout into single container card
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join(
     "week01-operating-system-concepts",
-    "01-what-is-an-os-and-history.html"
+    "04-os-structure.html"
 )
 
 HTML_CONTENT = r"""<!DOCTYPE html>
@@ -15,7 +15,7 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>01. What Is an Operating System &amp; History -- COSC240</title>
+  <title>04. Operating System Structure -- COSC240</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -28,11 +28,11 @@ HTML_CONTENT = r"""<!DOCTYPE html>
       --text: #0f172a;
       --text-muted: #475569;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; overflow-wrap: break-word; word-break: break-word; }
     body {
-      background-color: var(--bg);
-      color: var(--text);
       font-family: var(--font-sans);
+      color: var(--text);
+      background-color: var(--bg);
       margin: 0;
       padding: 32px 16px;
       line-height: 1.6;
@@ -133,40 +133,13 @@ HTML_CONTENT = r"""<!DOCTYPE html>
     li {
       margin-bottom: 6px;
     }
-    .image-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin: 16px 0 24px 0;
-    }
-    .image-card {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      text-align: center;
-    }
-    .image-card img {
-      max-width: 100%;
-      height: 130px;
-      object-fit: contain;
-      border-radius: 4px;
-      border: 1px solid #e2e8f0;
-      background: #ffffff;
-    }
-    .image-card span {
-      font-size: 0.78rem;
+    code {
       font-family: var(--font-mono);
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-    .image-card a {
-      color: var(--accent);
-      text-decoration: underline;
+      font-size: 0.88rem;
+      background-color: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #0369a1;
     }
     .aside-box {
       background: #f8fafc;
@@ -182,298 +155,78 @@ HTML_CONTENT = r"""<!DOCTYPE html>
   <div class="container">
 
     <nav class="module-nav-bar">
-      <div class="module-nav-placeholder">&larr; Placeholder</div>
+      <div>
+        <a href="03-os-concepts.html" class="module-nav-btn">&larr; Previous: 03. OS Concepts</a>
+      </div>
       <div>
         <a href="index.html" class="module-nav-btn">&#127968; Week 1: Operating System Concepts</a>
       </div>
-      <div>
-        <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Hardware Review &rarr;</a>
-      </div>
+      <div class="module-nav-placeholder">&rarr; Placeholder</div>
     </nav>
 
     <header>
-      <h1>01. What Is an Operating System &amp; History</h1>
-      <p class="subtitle">Tanenbaum Chapter 1.1 &amp; 1.2: Foundational Paradigms and the Five Computing Generations.</p>
+      <h1>04. Operating System Structure</h1>
+      <p class="subtitle">Tanenbaum Chapter 1.7: Monolithic, Layered, Microkernel, Client-Server, and Virtual Machine Architectures.</p>
     </header>
 
     <article class="module-body">
-      <h2>Foundational Paradigms (Tanenbaum Chapter 1.1)</h2>
+      <h2>Architectural Archetypes</h2>
       <p>
-        To understand what an operating system is, we must examine it from two complementary perspectives: the <strong>extended machine</strong> (top-down abstraction layer) and the <strong>resource manager</strong> (bottom-up hardware multiplexer).
+        How an operating system is structured internally dictates its reliability, performance, maintainability, and extensibility. Modern designs balance raw kernel performance against isolation barriers that prevent subsystem faults from causing catastrophic system panics.
       </p>
 
-      <h3>1. The Extended Machine (Virtualization)</h3>
+      <h3>1. Monolithic Systems</h3>
       <p>
-        Raw hardware architecture—consisting of disk controllers, volatile RAM registers, interrupt vectors, and bus timings—is notoriously complex and difficult to program directly. An operating system hides this raw complexity by providing a clean, elegant, and abstract set of instructions and abstractions (such as files, sockets, and virtual address spaces), presenting programmers with a virtual machine far superior to the physical hardware.
-      </p>
-
-      <h3>2. The Resource Manager (Multiplexing)</h3>
-      <p>
-        Modern computers consist of processors, memories, timers, disks, mice, keyboards, network interfaces, and printers. The operating system acts as an arbiter, managing and multiplexing these physical resources efficiently, fairly, and securely among multiple competing applications and users. Multiplexing occurs in two ways:
+        In a monolithic architecture, the entire operating system executes as a single unified program in supervisor mode (Ring 0). All kernel components—including the CPU scheduler, virtual memory management, virtual file system, networking stacks, and peripheral device drivers—share the same address space.
       </p>
       <ul>
-        <li><strong>Time Multiplexing:</strong> Different programs or users take turns using the resource sequentially (e.g., CPU scheduling or print spooling).</li>
-        <li><strong>Space Multiplexing:</strong> Instead of taking turns, customers share physical slices of the resource simultaneously (e.g., allocating chunks of physical memory or disk blocks).</li>
+        <li><strong>Strengths:</strong> Maximum runtime performance with minimal call overhead; kernel subsystems communicate via direct, fast function calls.</li>
+        <li><strong>Weaknesses:</strong> Poor fault isolation. A bug, memory leak, or invalid pointer dereference in a third-party device driver can compromise or crash the entire machine.</li>
       </ul>
 
-      <h2>Historical Evolution &amp; Computing Generations (Tanenbaum Chapter 1.2)</h2>
+      <h3>2. Layered Systems</h3>
       <p>
-        The history of operating systems is intimately tied to the evolution of computer hardware across five distinct technological generations.
+        Layered systems organize the operating system into a strict hierarchy of abstraction tiers, where each layer depends solely on the interfaces provided by the layer immediately below it. The hardware resides at Layer 0, while the user interface sits at the highest layer (such as Dijkstra's THE multiprogramming system).
       </p>
 
-      <h3>Generation 1: Vacuum Tubes (1945–1955)</h3>
+      <h3>3. Microkernels</h3>
       <p>
-        Early digital computers built with vacuum tubes were massive, room-sized installations characterized by immense power consumption, high component failure rates, and vacuum tubes burning out frequently during execution. Programming was performed entirely in absolute machine language (binary or decimal instruction sets) or by manually configuring external plugboards and switches.
+        Microkernel architectures adopt a philosophy of minimal kernel privilege. Only the absolute essentials required to support an operating system remain in supervisor mode: primitive low-level memory mapping, fundamental thread scheduling, and inter-process communication (IPC).
       </p>
       <p>
-        There were no operating systems in this era; every user interaction required total manual control. A single programmer/operator team had exclusive, scheduled access to the entire physical hardware complex for a designated block of time. Common tasks—such as loading routines, input/output conversions, and debugging—were laboriously performed by hand without assembly languages, compilers, or standard runtime libraries.
-      </p>
-      <div class="image-grid">
-        <div class="image-card">
-          <img src="../images/vacuumtube.jpg" alt="Vacuum Tubes">
-          <span>
-            <strong>Vacuum Tube</strong><br>
-            Thermionic valve switching components (Philips 12AX7WA).<br>
-            <small><a href="https://en.wikipedia.org/wiki/Vacuum_tube" target="_blank" rel="noopener">Wikipedia: Vacuum Tube</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Philips_12AX7WA_tube.jpg&oldid=632557730" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/plugboard.jpg" alt="Plugboard">
-          <span>
-            <strong>Plugboard Wiring</strong><br>
-            Manual machine programming interfaces (IBM 402).<br>
-            <small><a href="https://en.wikipedia.org/wiki/Plugboard" target="_blank" rel="noopener">Wikipedia: Plugboard</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:IBM402plugboard.Shrigley.wireside.jpg&oldid=1052177723" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors</small>
-          </span>
-        </div>
-      </div>
-
-      <h3>Generation 2: Transistors &amp; Batch Systems (1955–1965)</h3>
-      <p>
-        The invention of the transistor at Bell Labs introduced solid-state electronics, replacing fragile and heat-generating vacuum tubes with reliable semiconductor components. This dramatic improvement allowed computers to operate continuously without frequent catastrophic hardware failures, enabling commercial manufacture and widespread adoption across large enterprises and scientific research labs.
-      </p>
-      <p>
-        To bridge the immense speed disparity between rapid CPU instruction execution and slow mechanical I/O devices (like card readers and line printers), this era birthed <strong>batch systems</strong> controlled by early primitive monitor programs such as <strong>GM-NAA I/O</strong>, <strong>FMS (Fortran Monitor System)</strong>, and <strong>IBSYS</strong>. Jobs were written to punched cards, collected into physical batches by human operators, transferred to magnetic tape offline via secondary satellite computers, and fed sequentially into the main mainframe under control of the resident monitor program. This automated job sequencing and system control effectively formed the earliest ancestor of modern operating systems.
-      </p>
-      <div class="image-grid">
-        <div class="image-card">
-          <img src="../images/replica-first-transistor.jpg" alt="Transistor Replica">
-          <span>
-            <strong>First Transistor</strong><br>
-            Solid-state semiconductor switching (Replica).<br>
-            <small><a href="https://en.wikipedia.org/wiki/Transistor" target="_blank" rel="noopener">Wikipedia: Transistor</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:A_replica_of_the_first_working_transistor_02.jpg&oldid=778754993" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/punched-card-program-deck.jpg" alt="Punched Cards">
-          <span>
-            <strong>Punched Card Deck</strong><br>
-            Batch job submission media.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Punched_card" target="_blank" rel="noopener">Wikipedia: Punched Card</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:VLSI_VL82C486_Single_Chip_486_System_Controller_HV.jpg&oldid=1172847417" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors (CC BY-SA 3.0)</small>
-          </span>
-        </div>
-      </div>
-
-      <h3>Generation 3: ICs, Multiprogramming, &amp; Time-Sharing (1965–1980)</h3>
-      <p>
-        The invention of the integrated circuit (IC) allowed dozens to hundreds of transistors to be etched onto a single silicon chip, dramatically reducing cost while increasing computational power. A major breakthrough was the introduction of the <strong>IBM System/360</strong> in 1964, which unified scientific and commercial architectures under a single instruction set architecture (ISA) and gave birth to the massive <strong>OS/360</strong> operating system.
-      </p>
-      <p>
-        To prevent expensive processors from idling while waiting for slow mechanical I/O operations to complete, this era pioneered <strong>multiprogramming</strong>—partitioning memory into several pieces so that when one job blocked waiting for I/O, the CPU immediately switched to another job. Furthermore, the development of interactive <strong>time-sharing</strong> systems (such as MIT's <strong>CTSS</strong> and the ambitious <strong>MULTICS</strong> project) enabled dozens of users to log in simultaneously via remote terminals, receiving fast conversational responses.
-      </p>
-      <div class="image-grid">
-        <div class="image-card">
-          <img src="../images/integrated-circuit.jpg" alt="Integrated Circuit">
-          <span>
-            <strong>Integrated Circuit</strong><br>
-            Microchip scaling on silicon substrates.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Integrated_circuit" target="_blank" rel="noopener">Wikipedia: Integrated Circuit</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:VLSI_VL82C486_Single_Chip_486_System_Controller_HV.jpg&oldid=1172847417" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: Wikimedia Commons contributors (CC BY-SA 3.0)</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/system360.jpg" alt="IBM System/360">
-          <span>
-            <strong>IBM System/360</strong><br>
-            Mainframe architecture family (VW-Werk Wolfsburg, 1973).<br>
-            <small><a href="https://en.wikipedia.org/wiki/IBM_System/360" target="_blank" rel="noopener">Wikipedia: IBM System/360</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Bundesarchiv_B_145_Bild-F038812-0014,_Wolfsburg,_VW_Autowerk.jpg&oldid=838121012" target="_blank" rel="noopener">Bundesarchiv Record (B 145 Bild-F038812-0014)</a></small><br>
-            <small>Author: Schaack, Lothar / Bundesarchiv (CC BY-SA 3.0)</small>
-          </span>
-        </div>
-      </div>
-
-      <h3>Generation 4: Personal Computers &amp; Networks (1980–Present)</h3>
-      <p>
-        Large-Scale Integration (LSI) and Very Large-Scale Integration (VLSI) made microprocessors economically accessible, sparking the personal computer revolution. Operating systems shifted dramatically away from centralized multi-user mainframes toward responsive, single-user desktop environments designed for accessibility and personal productivity.
-      </p>
-      <p>
-        Key milestones and architectural shifts during Generation 4 include:
+        All other traditional operating system services—including file systems, network protocol stacks, and device drivers—are moved into unprivileged user mode (Ring 3) as discrete server daemons.
       </p>
       <ul>
-        <li><strong>Graphical User Interfaces (GUIs):</strong> Pioneered at Xerox PARC and popularized by the Apple Macintosh (1984) and Microsoft Windows (culminating in Windows 95), operating systems integrated visual window managers, icons, menus, and pointer (WIMP) paradigms, eliminating raw command-line dependency for everyday users.</li>
-        <li><strong>Networking &amp; Distributed Architectures:</strong> Local Area Networks (LANs) and TCP/IP protocol stacks were integrated directly into operating system kernels, transforming isolated computers into interconnected nodes capable of network file systems and client-server workflows.</li>
-        <li><strong>Protected Memory &amp; Preemptive Multitasking:</strong> Early single-tasking microcomputer OSs (like MS-DOS) gave way to robust 32-bit and 64-bit architectures (such as Windows NT, modern macOS, and Linux) featuring hardware-enforced memory protection, virtual memory paging, and preemptive task scheduling.</li>
-      </ul>
-
-      <div class="image-grid">
-        <div class="image-card">
-          <img src="../images/macintosh-128k.png" alt="Apple Macintosh 128k">
-          <span>
-            <strong>Macintosh 128k (1984)</strong><br>
-            Mass-market personal computer GUI environment.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Macintosh_128K" target="_blank" rel="noopener">Wikipedia: Macintosh 128K</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Macintosh_128k_transparency.png&oldid=857211029" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Author: AllAboutApple / Wikimedia Commons (CC BY-SA 2.5)</small>
-          </span>
-        </div>
-        <div class="image-card">
-          <img src="../images/windows-95-first-run.png" alt="Windows 95 Desktop">
-          <span>
-            <strong>Windows 95 Desktop</strong><br>
-            32-bit consumer desktop with Start menu and taskbar.<br>
-            <small><a href="https://en.wikipedia.org/wiki/Windows_95" target="_blank" rel="noopener">Wikipedia: Windows 95</a></small><br>
-            <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Windows_95_first_run.png&oldid=1073862215" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
-            <small>Attribution: Microsoft Windows 95 OS</small>
-          </span>
-        </div>
-      </div>
-
-      <h3>Generation 5: Mobile, Cloud, &amp; Ubiquitous Computing (Present)</h3>
-      <p>
-        The contemporary computing era has shifted dramatically away from stationary desktop environments toward highly distributed, heterogeneous, and mobile ecosystems. Modern operating systems must span an immense spectrum of hardware scales—ranging from miniature battery-powered wearable sensors and smartphones to massive hyperscale cloud datacenters comprising millions of server cores.
-      </p>
-      <p>
-        Key architectural paradigms defining Generation 5 include:
-      </p>
-      <ul>
-        <li><strong>Mobile &amp; Power-Aware Operating Systems:</strong> Platforms like Android and iOS introduced aggressive power management frameworks, thermal throttling, context-aware sensor integration, strict application sandboxing, and wireless cellular/Wi-Fi stack management to maximize battery longevity and user responsiveness.</li>
-        <li><strong>Cloud Computing &amp; Hypervisors:</strong> Hyperscale cloud infrastructures rely on robust Type-1 hypervisors (such as KVM, Xen, and VMware ESXi) to virtualize compute, storage, and networking layers, allowing cloud providers to dynamically provision and migrate virtual machines across elastic server clusters.</li>
-        <li><strong>Containerization &amp; Orchestration:</strong> Operating system-level virtualization through container runtimes (such as Docker) and orchestrators (such as Kubernetes) enables lightweight, isolated application packaging that shares a common host kernel, optimizing resource utilization and microservices deployment.</li>
-        <li><strong>Ubiquitous &amp; IoT Computing:</strong> Billions of smart devices, industrial sensors, and embedded appliances run specialized lightweight real-time operating systems (RTOS) and micro-kernels (such as FreeRTOS or Zephyr) that integrate seamlessly into ambient networks with minimal memory and power footprints.</li>
+        <li><strong>Strengths:</strong> Exceptional fault tolerance and security. If a file system or network driver crashes, the microkernel restarts the server process without bringing down the machine.</li>
+        <li><strong>Weaknesses:</strong> IPC overhead. Transitioning requests between user-space servers requires repeated context switches and memory boundary crossings.</li>
       </ul>
 
       <div class="aside-box">
-        <strong>Research Aside: Andrew S. Tanenbaum &amp; MINIX</strong>
+        <strong>Case Study: MINIX 3 &amp; QNX Neutrino</strong>
         <p style="margin-top: 6px; font-size: 0.88rem;">
-          Andrew S. Tanenbaum created MINIX in 1987 as an educational operating system to illustrate microkernel design principles. MINIX served as the primary inspiration and initial development environment for Linus Torvalds when he began writing the Linux kernel in 1991.
+          Both MINIX 3 and BlackBerry QNX showcase microkernel designs where device drivers run as isolated user processes. In mission-critical embedded environments like automotive dashboards and medical equipment, an isolated driver crash can self-heal without interrupting core system operation.
         </p>
       </div>
 
-      <h2>Operating System Ecosystem &amp; Architecture Families</h2>
+      <h3>4. Client-Server Architectures</h3>
       <p>
-        The operating system landscape spans diverse paradigms. Below is the complete visual index of all 15 system brand marks and logos organized by architectural family.
+        A generalization of the microkernel concept where the operating system splits into clients (applications requesting services) and servers (subsystems servicing those requests). Because communication occurs through standardized message-passing protocols, clients and servers can reside on the same physical machine or communicate across network fabrics seamlessly.
       </p>
 
-      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
-
-        <!-- Family 1 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Commercial Desktop &amp; Mobile Systems</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/windows.svg" alt="Windows" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Microsoft_Windows" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Windows</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/apple.svg" alt="Apple" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/MacOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Apple macOS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/chrome.svg" alt="ChromeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/ChromeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">ChromeOS</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Family 2 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Open-Source &amp; Unix-Like Kernels</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/tux.svg" alt="Linux" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Linux" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Linux (Tux)</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/freebsd.svg" alt="FreeBSD" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/FreeBSD" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeBSD</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/android.svg" alt="Android" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Android_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Android</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/minix.png" alt="MINIX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/MINIX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">MINIX</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Family 3 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Real-Time Operating Systems (RTOS)</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/free-rtos.png" alt="FreeRTOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/FreeRTOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">FreeRTOS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/qnx.svg" alt="QNX" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/QNX" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">QNX RTOS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/vxworks.svg" alt="VxWorks" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/VxWorks" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">VxWorks</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Family 4 -->
-        <div>
-          <div style="font-family: var(--font-mono); font-size: 0.8rem; font-weight: bold; color: #0369a1; text-transform: uppercase; margin-bottom: 10px;">Historical &amp; Enterprise Systems</div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap;">
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/os2.svg" alt="OS/2" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/OS/2" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">IBM OS/2</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/solaris.svg" alt="Solaris" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Solaris_(operating_system)" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Solaris</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/openvms.svg" alt="OpenVMS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/OpenVMS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">OpenVMS</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/multics.svg" alt="Multics" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/Multics" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">Multics</a>
-            </div>
-            <div style="width: 120px; height: 110px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px; gap: 6px;">
-              <img src="../images/logos/beos.svg" alt="BeOS" style="max-width: 42px; max-height: 42px; object-fit: contain;">
-              <a href="https://en.wikipedia.org/wiki/BeOS" target="_blank" rel="noopener" style="font-size: 0.72rem; font-family: var(--font-mono); font-weight: bold; color: #0284c7; text-decoration: underline;">BeOS</a>
-            </div>
-          </div>
-        </div>
-
-      </div>
+      <h3>5. Virtual Machines &amp; Hypervisors</h3>
+      <p>
+        Virtualization abstracts physical machine hardware into multiple isolated execution environments. <strong>Type-1 (bare-metal) hypervisors</strong> execute directly on raw server silicon, managing CPU scheduling and memory partitions for multiple concurrent guest kernels. <strong>Type-2 (hosted) hypervisors</strong> run as applications inside a conventional host operating system.
+      </p>
     </article>
 
     <nav class="module-nav-bar bottom">
-      <div class="module-nav-placeholder">&larr; Placeholder</div>
+      <div>
+        <a href="03-os-concepts.html" class="module-nav-btn">&larr; Previous: 03. OS Concepts</a>
+      </div>
       <div>
         <a href="index.html" class="module-nav-btn">&#127968; Week 1: Operating System Concepts</a>
       </div>
-      <div>
-        <a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Hardware Review &rarr;</a>
-      </div>
+      <div class="module-nav-placeholder">&rarr; Placeholder</div>
     </nav>
 
   </div>
@@ -481,24 +234,24 @@ HTML_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-def generate_module_one():
+def generate_module_four():
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(HTML_CONTENT)
-    print(f"--> Overwrote {TARGET_FILE} with complete single-container layout.")
+    print(f"--> Overwrote {TARGET_FILE} with unified single-card container structure.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Unify Module 1 layout into single container card with intact assets\n\n"
-            "Rewrite 01-what-is-an-os-and-history.html so navigation, header, historical\n"
-            "image grids, and OS family matrices are enclosed in a single white\n"
-            "container card while preserving all image cards, links, and attributions."
+            "Unify Module 4 OS structure layout into single container card\n\n"
+            "Align 04-os-structure.html with the course layout standard: wrap all\n"
+            "elements in a single bounded .container card, remove nested content-section\n"
+            "boxes, and standardize navigation buttons and typography."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for Module 1 single card!")
+        print("--> Git sync completed successfully for Module 4!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    generate_module_one()
+    generate_module_four()
