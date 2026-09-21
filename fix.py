@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Highlight active node in Syscall Story diagram in orange
+# fix.py: Center home navigation button in 01-what-is-an-os-and-history.html
 # =====================================================================
 import os
 import re
 import subprocess
 
-TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
+TARGET_FILE = os.path.join("week01-operating-system-concepts", "01-what-is-an-os-and-history.html")
 
-def apply_orange_active_highlight():
+def align_home_button_center():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -16,43 +16,79 @@ def apply_orange_active_highlight():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Locate the activeNode styling logic in renderTrapState
-    old_highlight_pattern = r'const activeNodeEl = document\.getElementById\(data\.activeNode\);[\s\S]*?activeNodeEl\.setAttribute\("fill",.*?\);[\s\S]*?}'
+    week_title = "Week 1: Operating System Concepts"
+    pill_style = (
+        'display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; '
+        'background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; '
+        'color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; '
+        'box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;'
+    )
+    home_pill = f'<a href="index.html" style="{pill_style}">&#127968; {week_title}</a>'
+    next_btn = '<a href="02-hardware-review.html" class="module-nav-btn">Next: 02. Hardware Review &rarr;</a>'
 
-    new_highlight_snippet = """const activeNodeEl = document.getElementById(data.activeNode);
-            if (activeNodeEl) {
-              activeNodeEl.setAttribute("stroke", "#ea580c");
-              activeNodeEl.setAttribute("stroke-width", "3");
-              activeNodeEl.setAttribute("fill", "#fff7ed");
-              activeNodeEl.style.filter = "drop-shadow(0 0 6px rgba(234, 88, 12, 0.45))";
-            }"""
+    # Top nav bar (balanced 3-element flex container)
+    top_nav = f'''<nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 0 auto 16px auto;">
+    <div style="visibility: hidden; flex: 1; text-align: left;">&larr; Placeholder</div>
+    <div style="flex: 1; text-align: center;">
+      {home_pill}
+    </div>
+    <div style="flex: 1; text-align: right;">
+      {next_btn}
+    </div>
+  </nav>'''
 
-    # Also make sure other inactive nodes reset their filter
-    old_reset_pattern = r'(el\.setAttribute\("fill", "#ffffff"\);)'
-    new_reset_snippet = r'\1\n                el.style.filter = "none";'
+    # Bottom nav bar (balanced 3-element flex container)
+    bottom_nav = f'''<nav class="module-nav-bar bottom" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 24px auto 24px auto;">
+    <div style="visibility: hidden; flex: 1; text-align: left;">&larr; Placeholder</div>
+    <div style="flex: 1; text-align: center;">
+      {home_pill}
+    </div>
+    <div style="flex: 1; text-align: right;">
+      {next_btn}
+    </div>
+  </nav>'''
 
-    modified_content = re.sub(old_highlight_pattern, new_highlight_snippet, content)
-    modified_content = re.sub(old_reset_pattern, new_reset_snippet, modified_content)
+    new_content = content
 
-    if modified_content != content:
+    # Replace top nav if present, else prepend right after <body>
+    top_nav_pattern = r'<nav\s+class=["\']module-nav-bar["\'][^>]*>.*?</nav>'
+    match_top = re.search(top_nav_pattern, new_content, flags=re.DOTALL)
+    if match_top:
+        new_content = new_content[:match_top.start()] + top_nav + new_content[match_top.end():]
+    else:
+        body_match = re.search(r'(<body[^>]*>)', new_content, flags=re.IGNORECASE)
+        if body_match:
+            new_content = new_content.replace(body_match.group(1), f'{body_match.group(1)}\n  {top_nav}')
+
+    # Replace bottom nav if present, else append right before </body>
+    bottom_nav_pattern = r'<nav\s+class=["\']module-nav-bar\s+bottom["\'][^>]*>.*?</nav>'
+    match_bottom = re.search(bottom_nav_pattern, new_content, flags=re.DOTALL)
+    if match_bottom:
+        new_content = new_content[:match_bottom.start()] + bottom_nav + new_content[match_bottom.end():]
+    else:
+        close_body_idx = new_content.rfind('</body>')
+        if close_body_idx != -1:
+            new_content = new_content[:close_body_idx] + f'  {bottom_nav}\n' + new_content[close_body_idx:]
+
+    if new_content != content:
         with open(TARGET_FILE, "w", encoding="utf-8") as f:
-            f.write(modified_content)
-        print("--> Updated active diagram node to vivid orange styling.")
+            f.write(new_content)
+        print(f"--> Centered home navigation button in {TARGET_FILE}")
 
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Highlight active stage in Syscall Story SVG diagram in orange\n\n"
-                "Update renderTrapState in 02-hardware-review.html to apply vivid orange\n"
-                "stroke and background to the active node for clear visual emphasis."
+                "Center home navigation button in week01/01-what-is-an-os-and-history.html\n\n"
+                "Update top and bottom navigation bars in 01-what-is-an-os-and-history.html\n"
+                "to place the home pill button in the center using a balanced flex layout."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully for 02-hardware-review.html!")
+            print("--> Git sync completed successfully for 01-what-is-an-os-and-history.html!")
         except Exception as e:
             print(f"Git execution note: {e}")
     else:
-        print("--> Warning: Target pattern not matched in 02-hardware-review.html.")
+        print("--> Navigation bar in 01-what-is-an-os-and-history.html is already up to date.")
 
 if __name__ == "__main__":
-    apply_orange_active_highlight()
+    align_home_button_center()
