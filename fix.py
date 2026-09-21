@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add synchronized page table walk matrix to translation simulator
+# fix.py: Expand page table entry density in 02-hardware-review.html
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-SYNCHRONIZED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative Stepper: Bit-Slice & Synchronized Page Table Walk Engine -->
+EXPANDED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative Stepper: Bit-Slice & Synchronized Page Table Walk Engine -->
       <div id="interactive-translation-simulator" style="margin: 32px 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <!-- Header & Dimension Toggles -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 18px;">
@@ -46,7 +46,7 @@ SYNCHRONIZED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative
             </div>
           </div>
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.84rem; line-height: 1.5;">
-            <li><strong>Synchronized Table Matrix:</strong> Observe how the graphical table entries illuminate sequentially as each step of the table walk executes.</li>
+            <li><strong>Synchronized Table Matrix:</strong> Observe how the expanded graphical table entries illuminate sequentially as each step of the table walk executes.</li>
             <li><strong>Granularity Toggles:</strong> Switch between modes to compare standard pages, superpages, and page faults.</li>
           </ol>
         </div>
@@ -91,9 +91,9 @@ SYNCHRONIZED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative
           </div>
         </div>
 
-        <!-- Synchronized SVG Visual Canvas: Matrix Table Walk -->
+        <!-- Synchronized SVG Visual Canvas: Expanded Matrix Table Walk -->
         <div style="display: flex; justify-content: center; margin-bottom: 20px; overflow-x: auto;">
-          <svg id="trans-anim-svg" viewBox="0 0 940 320" width="100%" height="100%" style="max-width: 940px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+          <svg id="trans-anim-svg" viewBox="0 0 940 340" width="100%" height="100%" style="max-width: 940px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <marker id="marker-trans-blue" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
                 <path d="M0,0 L6,3 L0,6 Z" fill="#0284c7" />
@@ -108,52 +108,76 @@ SYNCHRONIZED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative
               <text x="60" y="60" fill="#64748b" font-size="9" text-anchor="middle">0x1A4000</text>
             </g>
 
-            <!-- Table 1: PML4 Table -->
-            <g id="trans-node-pml4" transform="translate(180, 85)">
-              <rect x="0" y="0" width="130" height="120" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text x="65" y="20" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">PML4 Table</text>
-              <rect x="10" y="32" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="65" y="47" fill="#64748b" font-size="9" text-anchor="middle">Entry 0: Unused</text>
-              <rect x="10" y="58" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
-              <text x="65" y="74" fill="#0284c7" font-size="9.5" font-weight="700" text-anchor="middle">Entry 1: 0x2B100</text>
-              <rect x="10" y="88" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="65" y="103" fill="#64748b" font-size="9" text-anchor="middle">Entry 2: Unused</text>
+            <!-- Table 1: PML4 Table (Expanded Density) -->
+            <g id="trans-node-pml4" transform="translate(180, 50)">
+              <rect x="0" y="0" width="130" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="65" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">PML4 Table</text>
+              <rect x="10" y="28" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">Index 0: Unused</text>
+              <rect x="10" y="52" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">Index 1: Unused</text>
+              <rect x="10" y="76" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="65" y="93" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">Index 2: 0x2B100</text>
+              <rect x="10" y="106" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="119" fill="#64748b" font-size="8.5" text-anchor="middle">Index 3: Unused</text>
+              <rect x="10" y="130" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">Index 4: Unused</text>
+              <rect x="10" y="154" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
             </g>
 
-            <!-- Table 2: PDPT Table -->
-            <g id="trans-node-pdpt" transform="translate(345, 85)">
-              <rect x="0" y="0" width="130" height="120" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text x="65" y="20" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">PDPT Table</text>
-              <rect x="10" y="32" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="65" y="47" fill="#64748b" font-size="9" text-anchor="middle">Entry 0: Unused</text>
-              <rect x="10" y="58" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
-              <text x="65" y="74" fill="#0284c7" font-size="9.5" font-weight="700" text-anchor="middle">Entry 3: 0x3C200</text>
-              <rect x="10" y="88" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="65" y="103" fill="#64748b" font-size="9" text-anchor="middle">Entry 4: Unused</text>
+            <!-- Table 2: PDPT Table (Expanded Density) -->
+            <g id="trans-node-pdpt" transform="translate(345, 50)">
+              <rect x="0" y="0" width="130" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="65" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">PDPT Table</text>
+              <rect x="10" y="28" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">Index 0: Unused</text>
+              <rect x="10" y="52" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">Index 1: Unused</text>
+              <rect x="10" y="76" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="89" fill="#64748b" font-size="8.5" text-anchor="middle">Index 2: Unused</text>
+              <rect x="10" y="100" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="65" y="117" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">Index 3: 0x3C200</text>
+              <rect x="10" y="130" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">Index 4: Unused</text>
+              <rect x="10" y="154" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
             </g>
 
-            <!-- Table 3: Page Directory (PD) -->
-            <g id="trans-node-pd" transform="translate(510, 85)">
-              <rect x="0" y="0" width="130" height="120" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text x="65" y="20" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">Page Directory</text>
-              <rect x="10" y="32" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="65" y="47" fill="#64748b" font-size="9" text-anchor="middle">Entry 1: Unused</text>
-              <rect x="10" y="58" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
-              <text x="65" y="74" fill="#0284c7" font-size="9.5" font-weight="700" text-anchor="middle">Entry 3: 0x4D300</text>
-              <rect x="10" y="88" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="65" y="103" fill="#64748b" font-size="9" text-anchor="middle">Entry 4: Unused</text>
+            <!-- Table 3: Page Directory (PD) (Expanded Density) -->
+            <g id="trans-node-pd" transform="translate(510, 50)">
+              <rect x="0" y="0" width="130" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="65" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">Page Directory</text>
+              <rect x="10" y="28" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">Index 0: Unused</text>
+              <rect x="10" y="52" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">Index 1: Unused</text>
+              <rect x="10" y="76" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="89" fill="#64748b" font-size="8.5" text-anchor="middle">Index 2: Unused</text>
+              <rect x="10" y="100" width="110" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="65" y="117" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">Index 3: 0x4D300</text>
+              <rect x="10" y="130" width="110" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">Index 4: Unused</text>
+              <rect x="10" y="154" width="110" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="65" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
             </g>
 
-            <!-- Table 4: Page Table (PT) -->
-            <g id="trans-node-pt" transform="translate(675, 85)">
-              <rect x="0" y="0" width="140" height="120" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
-              <text x="70" y="20" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">Page Table (PT)</text>
-              <rect x="10" y="32" width="120" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="70" y="47" fill="#64748b" font-size="9" text-anchor="middle">VPN 0x00402: Unused</text>
-              <rect x="10" y="58" width="120" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
-              <text x="70" y="74" fill="#0284c7" font-size="9.5" font-weight="700" text-anchor="middle">VPN 0x00403: 0x07B40</text>
-              <rect x="10" y="88" width="120" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="70" y="103" fill="#64748b" font-size="9" text-anchor="middle">VPN 0x00404: Unused</text>
+            <!-- Table 4: Page Table (PT) (Expanded Density) -->
+            <g id="trans-node-pt" transform="translate(675, 50)">
+              <rect x="0" y="0" width="140" height="190" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+              <text x="70" y="18" fill="#0f172a" font-size="10.5" font-weight="700" text-anchor="middle">Page Table (PT)</text>
+              <rect x="10" y="28" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="41" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00401: Unused</text>
+              <rect x="10" y="52" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="65" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00402: Unused</text>
+              <rect x="10" y="76" width="120" height="26" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1" />
+              <text x="70" y="93" fill="#0284c7" font-size="9" font-weight="700" text-anchor="middle">VPN 0x00403: 0x07B40</text>
+              <rect x="10" y="106" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="119" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00404: Unused</text>
+              <rect x="10" y="130" width="120" height="20" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="143" fill="#64748b" font-size="8.5" text-anchor="middle">VPN 0x00405: Unused</text>
+              <rect x="10" y="154" width="120" height="22" rx="3" fill="#f8fafc" stroke="#e2e8f0" />
+              <text x="70" y="169" fill="#64748b" font-size="8.5" text-anchor="middle">... (512 Entries)</text>
             </g>
 
             <!-- Connecting Flow Paths -->
@@ -163,13 +187,13 @@ SYNCHRONIZED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative
             <path id="trans-path-4" d="M 640,145 L 670,145" stroke="#cbd5e1" stroke-width="2" marker-end="url(#marker-trans-blue)" />
 
             <!-- Offset Pass-Through Bypass Path -->
-            <path id="trans-bypass-path" d="M 745,205 C 745,260 400,260 400,205" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" />
-            <text id="trans-bypass-label" x="572" y="248" fill="#64748b" font-size="9.5" text-anchor="middle">Page Offset (0x018) Passes Through Completely Unmodified to DRAM</text>
+            <path id="trans-bypass-path" d="M 745,245 C 745,290 400,290 400,245" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" />
+            <text id="trans-bypass-label" x="572" y="278" fill="#64748b" font-size="9.5" text-anchor="middle">Page Offset (0x018) Passes Through Completely Unmodified to DRAM</text>
 
             <!-- Lower Topology Console -->
-            <g transform="translate(25, 260)">
-              <rect x="0" y="0" width="890" height="45" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
-              <text id="trans-console-top" x="15" y="27" fill="#0369a1" font-size="11" font-weight="700">TRANSLATION ENGINE STATUS: READY</text>
+            <g transform="translate(25, 290)">
+              <rect x="0" y="0" width="890" height="40" rx="6" fill="#f8fafc" stroke="#cbd5e1" />
+              <text id="trans-console-top" x="15" y="25" fill="#0369a1" font-size="11" font-weight="700">TRANSLATION ENGINE STATUS: READY</text>
             </g>
           </svg>
         </div>
@@ -204,7 +228,7 @@ SYNCHRONIZED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative
                 activePaths: ["trans-path-1"],
                 bypassActive: false,
                 consoleTop: "TRANSLATION STEP 1 • CR3 ROOT REGISTER TO PML4 TABLE",
-                what: "The MMU reads the root page table physical address <code>0x1A4000</code> from control register <strong>CR3</strong>. It indexes into the PML4 table, locating entry 1 which points to the PDPT table at <code>0x2B100</code>.",
+                what: "The MMU reads the root page table physical address <code>0x1A4000</code> from control register <strong>CR3</strong>. It indexes into the PML4 table, locating entry 2 which points to the PDPT table at <code>0x2B100</code>.",
                 why: "CR3 anchors the process's complete virtual address space, ensuring complete memory isolation between running applications."
               },
               {
@@ -487,7 +511,7 @@ SYNCHRONIZED_TABLE_SIMULATOR_HTML = """      <!-- Interactive Directed Narrative
         })();
       </script>"""
 
-def add_synchronized_table_simulator():
+def update_expanded_table_simulator():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -495,19 +519,15 @@ def add_synchronized_table_simulator():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Replace the old translation simulator block with the new synchronized matrix version
-    # Let's find where interactive-translation-simulator starts and ends
     start_marker = '<div id="interactive-translation-simulator"'
     start_pos = content.find(start_marker)
 
     if start_pos != -1:
-        # Find the next major section header or closing div that bounds it
-        # Let's look for Section 3's script block end or Section 4 header
         section4_marker = '<h2>4. Disks, I/O Devices'
         end_pos = content.find(section4_marker, start_pos)
         if end_pos != -1:
-            content = content[:start_pos] + SYNCHRONIZED_TABLE_SIMULATOR_HTML + "\n\n      " + content[end_pos:]
-            print("--> Replaced translation simulator with synchronized table matrix version.")
+            content = content[:start_pos] + EXPANDED_TABLE_SIMULATOR_HTML + "\n\n      " + content[end_pos:]
+            print("--> Updated translation simulator with expanded high-density tables.")
         else:
             print("--> Error: Could not locate Section 4 boundary.")
             return
@@ -521,15 +541,15 @@ def add_synchronized_table_simulator():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add synchronized page table walk matrix to Module 2 address translation sim\n\n"
-            "Embed a live, step-synchronized page table entry matrix and pointer arrows\n"
-            "within the address translation simulator SVG canvas in 02-hardware-review.html."
+            "Expand page table entry density in Module 2 translation simulator\n\n"
+            "Increase the number of visible rows in the PML4, PDPT, Page Directory,\n"
+            "and Page Table SVG nodes within 02-hardware-review.html for a realistic view."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for synchronized table walk simulator!")
+        print("--> Git sync completed successfully for expanded table density!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    add_synchronized_table_simulator()
+    update_expanded_table_simulator()
