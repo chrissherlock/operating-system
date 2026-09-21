@@ -1194,7 +1194,33 @@
       </script>
 
       <h2>4. Disks, I/O Devices, &amp; Controller Hardware</h2>
-      <p>I/O devices consist of physical components and electronic device controllers that accept commands from the OS.</p>
+      <p>
+        Input/output (I/O) hardware bridges the CPU and memory with the outside digital and physical world. Because physical devices (keyboards, network interfaces, NVMe drives, and displays) operate at speeds orders of magnitude slower than CPU registers and DRAM buses, computer architectures utilize a specialized hierarchy of hardware controllers and communication pathways.
+      </p>
+
+      <h3>The Component Hierarchy</h3>
+      <ul>
+        <li><strong>Physical Devices:</strong> The electromechanical or solid-state endpoints (e.g., spinning magnetic platters, NAND flash cells, LED backlights, or sensor arrays) that interact directly with the physical environment.</li>
+        <li><strong>Device Controllers (Adapters):</strong> Integrated circuits or expansion cards (such as a PCIe NVMe controller or USB host controller) attached to the motherboard. The controller provides an electronic hardware interface that translates low-level physical signals into structured digital registers and buffers.</li>
+        <li><strong>Device Drivers:</strong> Software modules running in kernel mode (Ring 0) that understand the specific register layouts, command sets, and quirks of a given controller, translating generic OS read/write requests into device-specific operations.</li>
+      </ul>
+
+      <h3>How I/O Communication Works</h3>
+      <p>The CPU communicates with device controllers using two primary hardware mechanisms:</p>
+      <ol>
+        <li><strong>Port-Mapped I/O (PMIO):</strong> The CPU uses dedicated, isolated hardware instructions (such as <code>in</code> and <code>out</code> on x86) interacting with a separate address space specifically reserved for I/O ports.</li>
+        <li><strong>Memory-Mapped I/O (MMIO):</strong> The controller's control and data registers are mapped directly into the system's physical address space. When the CPU writes to a specific MMIO physical address, the memory bus routes the write directly to the hardware controller's internal registers instead of DRAM.</li>
+      </ol>
+
+      <h3>Direct Memory Access (DMA)</h3>
+      <p>
+        To prevent the CPU from wasting valuable cycles moving large blocks of data byte-by-byte between an I/O device and DRAM, systems employ a <strong>Direct Memory Access (DMA)</strong> controller:
+      </p>
+      <ul>
+        <li><strong>Offloading Data Transfers:</strong> The CPU programs the DMA controller with source and destination addresses, byte counts, and direction flags, then issues a transfer command.</li>
+        <li><strong>Bus Mastership:</strong> The DMA controller takes control of the memory bus (bus mastership), reading data directly from the device controller and writing it straight into physical RAM at hardware speeds.</li>
+        <li><strong>Completion Interrupt:</strong> Once the entire block transfer finishes, the DMA controller asserts a hardware interrupt line to notify the CPU, eliminating software polling overhead entirely.</li>
+      </ul>
 
       <h2>5. Buses &amp; The Boot Process</h2>
       <p>Modern computers utilize a hierarchy of specialized buses connecting processors, memory, and controllers.</p>
