@@ -1104,18 +1104,24 @@
                 if (k === modeKey) {
                   btn.style.background = "#0284c7";
                   btn.style.color = "#ffffff";
+                  btn.style.fontWeight = "700";
                 } else {
                   btn.style.background = "transparent";
                   btn.style.color = "#475569";
+                  btn.style.fontWeight = "600";
                 }
               }
             });
             renderTransState();
           }
 
-          document.getElementById("trans-btn-4k").addEventListener("click", () => setTransMode("4k"));
-          document.getElementById("trans-btn-2m").addEventListener("click", () => setTransMode("2m"));
-          document.getElementById("trans-btn-swap").addEventListener("click", () => setTransMode("swap"));
+          const btn4k = document.getElementById("trans-btn-4k");
+          const btn2m = document.getElementById("trans-btn-2m");
+          const btnSwap = document.getElementById("trans-btn-swap");
+
+          if (btn4k) btn4k.addEventListener("click", function() { setTransMode("4k"); });
+          if (btn2m) btn2m.addEventListener("click", function() { setTransMode("2m"); });
+          if (btnSwap) btnSwap.addEventListener("click", function() { setTransMode("swap"); });
 
           document.getElementById("trans-next-btn").addEventListener("click", function() {
             const list = transStorylines[currentTransMode];
