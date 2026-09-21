@@ -1819,6 +1819,12 @@
         <p style="margin-top: 8px; color: #334155; font-size: 0.88rem;">
           Regardless of nomenclature, the hardware state machine enforces identical safety guarantees: unprivileged instructions cannot manipulate page tables, modify control registers, or execute raw I/O without trapping through a controlled supervisor gateway.
         </p>
+        <div style="margin-top: 12px; background: #ffffff; border: 1px solid #d8b4te; border-left: 3px solid #7c3aed; padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 0.85rem;">
+          <strong style="color: #6d28d9;">Historical Footnote: What Happened to Rings 1 and 2?</strong>
+          <p style="margin: 4px 0 0 0; color: #475569; line-height: 1.5;">
+            While Intel's hardware design originally defined 4 rings—with <strong>Ring 1</strong> intended for device drivers and <strong>Ring 2</strong> for system services—mainstream operating systems like Linux and Windows chose to ignore them, using only **Ring 0 (Kernel)** and **Ring 3 (User)**. Running drivers in Ring 1 or 2 provided little real-world security protection because a driver bug could still compromise the kernel, and managing four hardware rings added unnecessary architectural complexity.
+          </p>
+        </div>
       </div>
 
       <h2>3. Virtual Memory &amp; The Memory Management Unit (MMU)</h2>
