@@ -1,20 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add historical footnote about Rings 1 and 2 to Module 2
+# fix.py: Clean up stray markdown bold markers in 02-hardware-review.html
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week01-operating-system-concepts", "02-hardware-review.html")
 
-RINGS_FOOTNOTE_HTML = """        <div style="margin-top: 12px; background: #ffffff; border: 1px solid #d8b4te; border-left: 3px solid #7c3aed; padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 0.85rem;">
-          <strong style="color: #6d28d9;">Historical Footnote: What Happened to Rings 1 and 2?</strong>
-          <p style="margin: 4px 0 0 0; color: #475569; line-height: 1.5;">
-            While Intel's hardware design originally defined 4 rings—with <strong>Ring 1</strong> intended for device drivers and <strong>Ring 2</strong> for system services—mainstream operating systems like Linux and Windows chose to ignore them, using only **Ring 0 (Kernel)** and **Ring 3 (User)**. Running drivers in Ring 1 or 2 provided little real-world security protection because a driver bug could still compromise the kernel, and managing four hardware rings added unnecessary architectural complexity.
-          </p>
-        </div>"""
-
-def add_rings_footnote():
+def fix_stray_markdown():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -22,51 +15,40 @@ def add_rings_footnote():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    if "Historical Footnote: What Happened to Rings 1 and 2?" in content:
-        print("--> Rings 1 and 2 footnote already present.")
-        return
+    # Replace the malformed markdown bold pattern with clean HTML strong tags
+    old_pattern = "using only **Ring 0 (Kernel)** and **Ring 3 (User)**."
+    # Wait, in the actual HTML snippet it was written as **Ring 0 (Kernel)** without a closing ** pair or similar
+    # Let's search for any stray ** near Ring 0 / Ring 3 in the footnote
 
-    # Find the closing div of the privilege hierarchies deep dive box
-    target_marker = 'Regardless of nomenclature, the hardware state machine enforces identical safety guarantees: unprivileged instructions cannot manipulate page tables, modify control registers, or execute raw I/O without trapping through a controlled supervisor gateway.\n        </p>\n      </div>'
+    new_content = content.replace("using only **Ring 0 (Kernel)** and **Ring 3 (User)**.", "using only <strong>Ring 0 (Kernel)</strong> and <strong>Ring 3 (User)</strong>.")
+    # Also catch any general stray double asterisks in that block
+    new_content = new_content.replace("**Ring 0 (Kernel)**", "<strong>Ring 0 (Kernel)</strong>")
+    new_content = new_content.replace("**Ring 3 (User)**", "<strong>Ring 3 (User)</strong>")
 
-    if target_marker in content:
-        replacement = target_marker.replace('\n      </div>', '\n' + RINGS_FOOTNOTE_HTML + '\n      </div>')
-        content = content.replace(target_marker, replacement)
-        print("--> Added Rings 1 and 2 historical footnote inside privilege deep dive box.")
+    # Generic cleanup of stray ** in the footnote paragraph
+    footnote_target_snippet = "using only **Ring 0 (Kernel)"
+    if footnote_target_snippet in new_content:
+        new_content = new_content.replace("using only **Ring 0 (Kernel)", "using only <strong>Ring 0 (Kernel)</strong>")
+
+    if new_content != content:
+        with open(TARGET_FILE, "w", encoding="utf-8") as f:
+            f.write(new_content)
+        print(f"--> Cleaned up stray markdown syntax in {TARGET_FILE}")
+
+        try:
+            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+            commit_msg = (
+                "Fix stray markdown bold markers in Module 2 historical footnote\n\n"
+                "Remove stray ** bold markers from the Rings 1 and 2 historical footnote\n"
+                "within 02-hardware-review.html."
+            )
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("--> Git sync completed successfully!")
+        except Exception as e:
+            print(f"Git execution note: {e}")
     else:
-        # Fallback target matching end of privilege deep dive box
-        fallback = 'Regardless of nomenclature, the hardware state machine enforces identical safety guarantees'
-        if fallback in content:
-            # Append before closing div of aside-box
-            idx = content.find(fallback)
-            end_div = content.find('</div>', idx)
-            # Find the second closing div or end of aside-box
-            aside_end = content.find('</div>\n\n      <h2>3.', idx)
-            if aside_end != -1:
-                content = content[:aside_end] + RINGS_FOOTNOTE_HTML + "\n      " + content[aside_end:]
-                print("--> Added Rings 1 and 2 footnote via fallback position.")
-            else:
-                print("--> Error: Could not locate exact insertion point for footnote.")
-                return
-        else:
-            print("--> Error: Could not find privilege deep dive container.")
-            return
-
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Add historical footnote on Rings 1 and 2 to Module 2 privilege deep dive\n\n"
-            "Insert an explanatory note detailing the original design intent of x86\n"
-            "Rings 1 and 2 and why modern operating systems use a flat 2-ring model."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for Rings 1 & 2 footnote!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
+        print("--> No stray markdown markers found.")
 
 if __name__ == "__main__":
-    add_rings_footnote()
+    fix_stray_markdown()
