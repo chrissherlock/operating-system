@@ -159,13 +159,13 @@
 
   <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 0 auto 16px auto;">
     <div style="flex: 1; text-align: left;">
-      <a href="01-what-is-an-os-and-history.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&larr; Previous: 01. What Is an OS &amp; History</a>
+      <a href="01-what-is-an-os-and-history.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">← Previous: 01. What Is an OS &amp; History</a>
     </div>
     <div style="flex: 1; text-align: center;">
       <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&#127968; Week 1: Operating System Concepts</a>
     </div>
     <div style="flex: 1; text-align: right;">
-      <a href="03-os-concepts.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">Next: 03. OS Concepts &rarr;</a>
+      <a href="03-os-concepts.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">Next: 03. OS Concepts →</a>
     </div>
   </nav>
 
@@ -511,7 +511,7 @@
         <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin-bottom: 16px;">
           <div style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">The Scenario: Computing a Multiply-Accumulate (MAC) Step</div>
           <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 0.9rem; line-height: 1.5;">
-            We are computing one single term of a vector dot product: <strong><code>sum = sum + (A &times; B)</code></strong>. This Multiply-Accumulate operation is the foundational math kernel used in 3D graphics transforms, audio DSP filters, and machine learning tensor operations:
+            We are computing one single term of a vector dot product: <strong><code>sum = sum + (A × B)</code></strong>. This Multiply-Accumulate operation is the foundational math kernel used in 3D graphics transforms, audio DSP filters, and machine learning tensor operations:
           </p>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 10px;">
             <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
@@ -524,7 +524,7 @@
             </div>
             <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
               <strong style="color: #0284c7; font-family: var(--font-mono);">I3: MUL R3, R1, R2</strong>
-              <div style="color: #64748b; margin-top: 2px;">Multiply <code>R1 &times; R2</code> and store product in <code>R3</code>.</div>
+              <div style="color: #64748b; margin-top: 2px;">Multiply <code>R1 × R2</code> and store product in <code>R3</code>.</div>
             </div>
             <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px; font-size: 0.82rem;">
               <strong style="color: #0284c7; font-family: var(--font-mono);">I4: ADD R4, R4, R3</strong>
@@ -534,16 +534,16 @@
           <ol style="margin-left: 20px; margin-bottom: 0; color: #334155; font-size: 0.84rem; line-height: 1.5;">
             <li><strong>Independent Operations (I1 &amp; I2):</strong> Reading <em>A</em> and <em>B</em> have zero dependencies on each other—demonstrating how superscalar dual-issue cores and multicore CPUs execute loads concurrently.</li>
             <li><strong>Data Dependencies (RAW Hazards):</strong> <code>I3</code> cannot multiply until <code>I1</code> and <code>I2</code> deliver their data, and <code>I4</code> cannot accumulate until <code>I3</code> finishes multiplying—revealing why hardware requires data forwarding bypasses.</li>
-            <li><strong>Throughput Comparison:</strong> Observe how execution drops from <strong>16 cycles</strong> (unpipelined) &rarr; <strong>7 cycles</strong> (pipelined) &rarr; <strong>4 cycles</strong> (superscalar/multicore).</li>
+            <li><strong>Throughput Comparison:</strong> Observe how execution drops from <strong>16 cycles</strong> (unpipelined) → <strong>7 cycles</strong> (pipelined) → <strong>4 cycles</strong> (superscalar/multicore).</li>
           </ol>
         </div>
 
         <!-- Action Controls & Foreshadowed Preview Panel -->
         <div style="display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: stretch; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px; margin-bottom: 20px;">
           <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 170px;">
-            <button id="pipe-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step &rarr;</button>
+            <button id="pipe-next-btn" style="padding: 10px 16px; font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; border-radius: 6px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer; text-align: center; transition: all 0.15s ease;">Next Step →</button>
             <div style="display: flex; gap: 8px;">
-              <button id="pipe-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">&larr; Prev</button>
+              <button id="pipe-prev-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">← Prev</button>
               <button id="pipe-reset-btn" style="flex: 1; padding: 6px 10px; font-family: var(--font-mono); font-size: 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; cursor: pointer;">Reset</button>
             </div>
           </div>
@@ -698,7 +698,7 @@
                 consoleMid: "I1 is fetched from memory address 0x00401000 into the Instruction Register.",
                 consoleSub: "Downstream pipeline latches are currently empty as execution begins.",
                 inlinePreview: "We are at Cycle 1 (Pipeline Priming). I1 is entering the Fetch bay while downstream stages sit idle as bubbles. Next, I1 advances to Decode while I2 enters Fetch. Click Next to advance to Cycle 2.",
-                what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the instruction bus. On the rising clock edge, the machine code for <code>I1: LOAD R1, [A]</code> is latched into the Instruction Fetch (IF) register, and the hardware increments <code>PC &larr; PC + 4</code>. Because the pipeline has just started, the Decode, Execute, and Writeback stages hold idle bubbles and perform no operations.",
+                what: "The CPU begins execution by asserting Program Counter <code>0x00401000</code> on the instruction bus. On the rising clock edge, the machine code for <code>I1: LOAD R1, [A]</code> is latched into the Instruction Fetch (IF) register, and the hardware increments <code>PC ← PC + 4</code>. Because the pipeline has just started, the Decode, Execute, and Writeback stages hold idle bubbles and perform no operations.",
                 why: "A pipeline requires a brief \"fill latency\" (<em>k</em> - 1 cycles, where <em>k</em> = 4 stages, requiring 3 warm-up cycles) before all stages are populated. During this warm-up, the control unit explicitly disables write-enable flags for downstream stages so empty bubbles cannot accidentally corrupt register values or trip spurious hardware faults. Once <code>I1</code> reaches Writeback at Cycle 4, every bubble will have drained and the pipeline reaches steady-state 1.0 IPC."
               },
               {
@@ -734,7 +734,7 @@
                 forwardingActive: true,
                 consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 3",
                 consoleMid: "I1 executes address calculation; I2 decodes; I3 (MUL) is fetched into the core.",
-                consoleSub: "Hazard unit detects I3 depends on R1 and R2 &rarr; primes forwarding bypass.",
+                consoleSub: "Hazard unit detects I3 depends on R1 and R2 → primes forwarding bypass.",
                 inlinePreview: "We are at Cycle 3. I1 is executing and I3 detects a data dependency on R1. Next, the pipeline fills completely, I1 completes writeback, and data forwarding provides R1 to I3 without stalling. Click Next to advance to Cycle 4.",
                 what: "<code>I1</code> moves to the <strong>Execute (EX)</strong> stage, calculating the effective memory address for <code>[A]</code>. <code>I2</code> enters Decode, and <code>I3: MUL R3, R1, R2</code> is fetched. The core's hazard detection unit identifies a <strong>Read-After-Write (RAW)</strong> dependency: <code>I3</code> requires <code>R1</code> before <code>I1</code> has updated the register file.",
                 why: "Without bypass hardware, the processor would be forced to stall (insert bubbles) for two clock cycles until <code>I1</code> reached Writeback. The hardware primes internal multiplexer bypass buses (forwarding paths) to route the calculated value directly from the ALU/Memory output into <code>I3</code>'s input latches."
@@ -744,7 +744,7 @@
                 phase: "Steady State (Full Pipeline)",
                 retired: "1 / 4",
                 ipc: "0.25 IPC",
-                hazard: "Forwarding Active (EX &rarr; ID)",
+                hazard: "Forwarding Active (EX → ID)",
                 fetch: "I4: ADD R4, R4, R3",
                 decode: "I3: MUL R3, R1, R2",
                 exec: "I2: LOAD R2, [B]",
@@ -774,7 +774,7 @@
                 consoleMid: "I2 writes back R2; I3 multiplies R1*R2 in ALU; I4 decodes. I1 and I2 retired.",
                 consoleSub: "No new instructions fetched. Remaining operations drain down the pipe.",
                 inlinePreview: "We are at Cycle 5. I2 has retired and I3 is multiplying in the ALU. Next, I3 writes back product R3 and I4 executes addition. Click Next to advance to Cycle 6.",
-                what: "<code>I2</code> writes back into register <code>R2</code> and retires. <code>I3</code> enters the ALU multiplier array to compute <code>R1 &times; R2</code>. <code>I4</code> decodes in ID, and the Fetch stage drains to idle as the 4-instruction block has been fully fetched.",
+                what: "<code>I2</code> writes back into register <code>R2</code> and retires. <code>I3</code> enters the ALU multiplier array to compute <code>R1 × R2</code>. <code>I4</code> decodes in ID, and the Fetch stage drains to idle as the 4-instruction block has been fully fetched.",
                 why: "Multiplication circuits are deeply pipelined (typically using Booth encoding and Wallace tree adders). Staging ensures the clock frequency remains high without letting multi-bit multiplication stall upstream stages."
               },
               {
@@ -812,7 +812,7 @@
                 consoleMid: "I4 writes back final sum to R4. All 4 instructions successfully retired.",
                 consoleSub: "Total execution: 7 cycles for 4 instructions (vs 16 cycles non-pipelined).",
                 inlinePreview: "Walkthrough complete! 4 instructions finished in 7 cycles (saving 9 cycles over non-pipelined execution). Click Reset or toggle to Superscalar mode to see parallel issue.",
-                what: "<code>I4</code> writes back into <code>R4</code>. All 4 instructions are officially retired. Total execution time was 7 clock cycles, compared to 16 cycles on an unpipelined architecture (4 instructions &times; 4 stages).",
+                what: "<code>I4</code> writes back into <code>R4</code>. All 4 instructions are officially retired. Total execution time was 7 clock cycles, compared to 16 cycles on an unpipelined architecture (4 instructions × 4 stages).",
                 why: "The pipelining speedup theorem states that speedup approaches the number of pipeline stages (<em>k</em> = 4 stages) as $N \to \infty$. For long vector loops, this pipeline achieves a near 400% speedup over sequential execution."
               }
             ],
@@ -1008,7 +1008,7 @@
             const prevBtn = document.getElementById("pipe-prev-btn");
 
             if (nextBtn) {
-              nextBtn.innerHTML = pipeIndex === list.length - 1 ? "Restart Walkthrough &#8634;" : "Next Step &rarr;";
+              nextBtn.innerHTML = pipeIndex === list.length - 1 ? "Restart Walkthrough &#8634;" : "Next Step →";
             }
             if (prevBtn) {
               prevBtn.style.opacity = pipeIndex === 0 ? "0.5" : "1.0";
@@ -3389,13 +3389,13 @@
 
   <nav class="module-nav-bar bottom" style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1100px; margin: 24px auto 24px auto;">
     <div style="flex: 1; text-align: left;">
-      <a href="01-what-is-an-os-and-history.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&larr; Previous: 01. What Is an OS &amp; History</a>
+      <a href="01-what-is-an-os-and-history.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">← Previous: 01. What Is an OS &amp; History</a>
     </div>
     <div style="flex: 1; text-align: center;">
       <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&#127968; Week 1: Operating System Concepts</a>
     </div>
     <div style="flex: 1; text-align: right;">
-      <a href="03-os-concepts.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">Next: 03. OS Concepts &rarr;</a>
+      <a href="03-os-concepts.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">Next: 03. OS Concepts →</a>
     </div>
   </nav>
 
