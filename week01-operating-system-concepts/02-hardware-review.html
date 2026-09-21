@@ -775,7 +775,7 @@
                 consoleSub: "No new instructions fetched. Remaining operations drain down the pipe.",
                 inlinePreview: "We are at Cycle 5. I2 has retired and I3 is multiplying in the ALU. Next, I3 writes back product R3 and I4 executes addition. Click Next to advance to Cycle 6.",
                 what: "<code>I2</code> writes back into register <code>R2</code> and retires. <code>I3</code> enters the ALU multiplier array to compute <code>R1 × R2</code>. <code>I4</code> decodes in ID, and the Fetch stage drains to idle as the 4-instruction block has been fully fetched.",
-                why: "Multiplication circuits are deeply pipelined (typically using Booth encoding and Wallace tree adders). Staging ensures the clock frequency remains high without letting multi-bit multiplication stall upstream stages."
+                why: "Multiplication circuits are deeply pipelined (typically using <a href=\"https://en.wikipedia.org/wiki/Booth%27s_multiplication_algorithm\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color: #0284c7; text-decoration: underline;\">Booth encoding</a> and <a href=\"https://en.wikipedia.org/wiki/Wallace_tree\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color: #0284c7; text-decoration: underline;\">Wallace tree adders</a>). Staging ensures the clock frequency remains high without letting multi-bit multiplication stall upstream stages."
               },
               {
                 cycle: "Cycle 6",
