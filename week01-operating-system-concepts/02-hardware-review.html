@@ -674,6 +674,12 @@
                 An idle cycle where a stage does no useful work—an enforced <code>NOP</code> (No Operation). Just like empty wash bays when an automated car wash first starts up, downstream stages sit idle until the first real instruction shifts into them.
               </p>
             </div>
+            <div style="background: #f8fafc; border-left: 3px solid #8b5cf6; padding: 8px 12px; border-radius: 0 4px 4px 0;">
+              <strong style="color: #6d28d9;">What is a "Wide Instruction Fetch Unit"?</strong>
+              <p style="margin: 4px 0 0 0; color: #475569;">
+                A widened memory bus that grabs a large chunk of cache memory (e.g., 16 to 64 bytes) in a single clock cycle instead of reading one instruction at a time. This floods the instruction queue so multiple decoders and ALUs can fire in parallel (superscalar execution) without waiting on memory.
+              </p>
+            </div>
           </div>
         </div>
       </div>
