@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add introductory paragraph to 02-hardware-review.html
+# fix.py: Add introductory paragraph to 01-what-is-an-os-and-history.html
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join(
     "week01-operating-system-concepts",
-    "02-hardware-review.html"
+    "01-what-is-an-os-and-history.html"
 )
 
 INTRO_PARAGRAPH = """    <article class="module-body">
       <p>
-        An operating system does not exist in an abstract mathematical vacuum; it is fundamentally shaped and constrained by the physical silicon it commands. At its core, the OS acts as both a resource manager and an extended virtual machine, turning raw hardware into a safe, programmable execution environment. However, software alone cannot enforce memory protection boundaries or wrest control back from an errant program—it requires direct hardware cooperation through privileged CPU execution modes, timer interrupts, Memory Management Units (MMUs), and DMA controllers. Understanding these physical hardware building blocks is the indispensable foundation for studying how operating systems virtualize the CPU and memory, coordinate concurrent threads, and persist data to non-volatile storage.
+        A computer without software is little more than a collection of silicon gates, metal traces, and magnetic or solid-state cells incapable of meaningful work on its own. While user applications perform specific end-user tasks—compiling code, serving web traffic, or rendering graphics—they cannot safely or conveniently manipulate bare physical hardware directly. The <strong>operating system</strong> is the foundational system software that bridges this divide. Sitting directly between application programs and underlying physical hardware, the OS provides clean, uniform abstractions while arbitrating scarce hardware resources across multiple competing tasks. Tracing how operating systems evolved from early operator-driven batch pipelines into modern preemptive, networked kernels reveals the core engineering trade-offs that govern all computing systems today.
       </p>"""
 
-def insert_intro_paragraph():
+def insert_module_one_intro():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -28,9 +28,9 @@ def insert_intro_paragraph():
         print(f"Error: Could not locate '{target_tag}' in {TARGET_FILE}.")
         return
 
-    # Check if intro text is already present
-    if "An operating system does not exist in an abstract mathematical vacuum" in content:
-        print("Notice: Introductory paragraph already present.")
+    # Check if intro text already exists
+    if "A computer without software is little more than a collection of silicon gates" in content:
+        print("Notice: Introductory paragraph already present in Module 1.")
         return
 
     # Replace the opening <article class="module-body"> with tag + intro paragraph
@@ -44,10 +44,10 @@ def insert_intro_paragraph():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add introductory conceptual paragraph to Module 2 hardware review\n\n"
-            "Insert an architectural introductory paragraph at the top of the body\n"
-            "in 02-hardware-review.html framing physical hardware mechanisms as the\n"
-            "substrate for operating system virtualization, protection, and I/O."
+            "Add introductory conceptual paragraph to Module 1 overview\n\n"
+            "Insert a foundational introductory paragraph at the start of the body\n"
+            "in 01-what-is-an-os-and-history.html to motivate the role of operating\n"
+            "systems before examining core paradigms and computing generations."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -56,4 +56,4 @@ def insert_intro_paragraph():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    insert_intro_paragraph()
+    insert_module_one_intro()
