@@ -1,77 +1,73 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add Butler Lampson image card to Systems Engineering aside
+# fix.py: Normalize Butler Lampson image filename and path reference
 # =====================================================================
 import os
+import shutil
 import subprocess
 
-TARGET_FILE = os.path.join(
+TARGET_HTML = os.path.join(
     "week01-operating-system-concepts",
     "02-hardware-review.html"
 )
+IMAGES_DIR = "images"
+DESIRED_FILENAME = "butler-lampson.jpg"
+DESIRED_PATH = os.path.join(IMAGES_DIR, DESIRED_FILENAME)
 
-REBUILT_LAMPSON_ASIDE = """      <!-- Historical Aside: Butler Lampson & John Ousterhout -->
-      <div class="aside-box" style="border-left-color: #d97706; background: #fffbeb; margin: 20px 0;">
-        <strong style="color: #b45309; font-size: 1rem;">Systems Engineering: Lampson's Laws &amp; Ousterhout's Law</strong>
+def normalize_lampson_asset():
+    print("--> Checking local image assets in root 'images/' directory...")
 
-        <div style="display: flex; gap: 16px; align-items: flex-start; margin-top: 10px; flex-wrap: wrap;">
-          <!-- Left: Compact Image Card -->
-          <div class="image-card" style="max-width: 170px; width: 100%; flex-shrink: 0; margin: 0; background: #ffffff;">
-            <img src="../images/butler-lampson.jpg" alt="Butler Lampson, Royal Society" style="height: 110px; width: 100%; object-fit: cover;">
-            <span>
-              <strong>Butler Lampson</strong><br>
-              <small><a href="https://commons.wikimedia.org/w/index.php?title=File:Butler_Lampson_Royal_Society_(cropped).jpg&oldid=1102221289" target="_blank" rel="noopener">Wikimedia Record</a></small><br>
-              <small>Author: Wikimedia Commons</small>
-            </span>
-          </div>
+    if not os.path.exists(IMAGES_DIR):
+        os.makedirs(IMAGES_DIR, exist_ok=True)
+        print(f"--> Created missing '{IMAGES_DIR}' directory.")
 
-          <!-- Right: Text Content -->
-          <div style="flex: 1; min-width: 260px;">
-            <p style="margin: 0; color: #334155; line-height: 1.55;">
-              Turing Award winner Butler Lampson emphasized a core rule of operating system design: <strong>separation of policy from mechanism</strong>. The hardware provides mechanisms (like MMU page walks or timer traps), while the OS establishes policies (like scheduling algorithms or eviction rules). Mixing them leads to brittle architectures.
-            </p>
-          </div>
-        </div>
+    # Check if target image already exists
+    if not os.path.exists(DESIRED_PATH):
+        # Search for potential unnormalized variants
+        candidates = [
+            "Butler Lampson Royal Society (cropped).jpg",
+            "Butler_Lampson_Royal_Society_(cropped).jpg",
+            "ButlerLampson.jpg",
+            "lampson.jpg"
+        ]
+        found = False
+        for candidate in candidates:
+            candidate_path = os.path.join(IMAGES_DIR, candidate)
+            if os.path.exists(candidate_path):
+                shutil.copy(candidate_path, DESIRED_PATH)
+                print(f"--> Copied '{candidate}' to normalized filename '{DESIRED_FILENAME}'.")
+                found = True
+                break
+        if not found:
+            print(f"--> Notice: '{DESIRED_FILENAME}' not found in '{IMAGES_DIR}/'. Please place the image there if missing.")
+    else:
+        print(f"--> Confirmed: '{DESIRED_FILENAME}' exists in root images folder.")
 
-        <div style="margin-top: 12px; background: #ffffff; border: 1px solid #fde68a; border-left: 3px solid #d97706; padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 0.85rem;">
-          <strong style="color: #b45309;">John Ousterhout &amp; The Memory Latency Wall</strong>
-          <p style="margin: 4px 0 0 0; color: #475569; line-height: 1.5;">
-            In his landmark 1990 paper, John Ousterhout observed that while CPU clock speeds were scaling exponentially, memory and storage bus latency lagged severely behind. This reality explains why hardware architectural breakthroughs like Translation Lookaside Buffers (TLBs), DMA controllers, and superpages are vital to preventing CPU starvation.
-          </p>
-        </div>
-      </div>"""
+    if os.path.exists(TARGET_HTML):
+        with open(TARGET_HTML, "r", encoding="utf-8") as f:
+            content = f.read()
 
-def update_lampson_aside_markup():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} not found.")
-        return
+        # Ensure correct relative path reference
+        correct_src = 'src="../images/butler-lampson.jpg"'
+        if correct_src not in content:
+            # Replace any variant src path
+            import re
+            content = re.sub(r'src="[^"]*butler-lampson\.jpg"', correct_src, content)
+            content = re.sub(r'src="[^"]*Butler[^"]*\.jpg"', correct_src, content)
 
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    start_marker = "<!-- Historical Aside: Butler Lampson & John Ousterhout -->"
-    next_section_marker = "<h2>4. Disks, I/O Devices, &amp; Controller Hardware</h2>"
-
-    if start_marker not in content or next_section_marker not in content:
-        print("Error: Could not locate Lampson aside boundaries in Module 2.")
-        return
-
-    parts = content.split(start_marker, 1)
-    remainder = parts[1].split(next_section_marker, 1)
-
-    updated_content = f"{parts[0]}{REBUILT_LAMPSON_ASIDE}\n\n    {next_section_marker}{remainder[1]}"
-
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(updated_content)
-
-    print(f"--> Successfully added Butler Lampson image card to {TARGET_FILE}.")
+            with open(TARGET_HTML, "w", encoding="utf-8") as f:
+                f.write(content)
+            print(f"--> Updated image src reference in {TARGET_HTML}.")
 
     try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        subprocess.run(["git", "add", "fix.py", TARGET_HTML], check=True)
+        if os.path.exists(DESIRED_PATH):
+            subprocess.run(["git", "add", DESIRED_PATH], check=True)
+
         commit_msg = (
-            "Add Butler Lampson image card and attribution to systems aside\n\n"
-            "Embed images/butler-lampson.jpg into the Systems Engineering aside in\n"
-            "02-hardware-review.html with clean flexbox layout and complete metadata."
+            "Normalize Butler Lampson image filename and reference in Module 2\n\n"
+            "Ensure images/butler-lampson.jpg exists under the expected lowercase\n"
+            "hyphenated name in the root images folder and update references."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -80,4 +76,4 @@ def update_lampson_aside_markup():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_lampson_aside_markup()
+    normalize_lampson_asset()
