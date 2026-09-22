@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Link historical pioneer names to their Wikipedia articles
+# fix.py: Precisely link first body occurrence of pioneers, avoiding headers
 # =====================================================================
 import os
+import re
 import subprocess
 
 TARGET_FILE = os.path.join(
@@ -10,7 +11,7 @@ TARGET_FILE = os.path.join(
     "02-hardware-review.html"
 )
 
-def embed_pioneer_links():
+def apply_precise_pioneer_links():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -18,82 +19,68 @@ def embed_pioneer_links():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    original_content = content
+    # 1. Strip all existing Wikipedia anchor tags around these names to ensure a clean slate
+    wiki_urls = [
+        "https://en.wikipedia.org/wiki/John_von_Neumann",
+        "https://en.wikipedia.org/wiki/James_R._Goodman",
+        "https://en.wikipedia.org/wiki/Tom_Kilburn",
+        "https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)",
+        "https://en.wikipedia.org/wiki/Butler_Lampson",
+        "https://en.wikipedia.org/wiki/John_Ousterhout"
+    ]
+    for url in wiki_urls:
+        content = re.sub(rf'<a\s+[^>]*href="{re.escape(url)}"[^>]*>([^<]+)</a>', r'\1', content)
 
-    # 1. John von Neumann
-    content = content.replace(
-        "John von Neumann",
-        '<a href="https://en.wikipedia.org/wiki/John_von_Neumann" target="_blank" rel="noopener">John von Neumann</a>'
-    )
-    # Avoid double-linking if already processed
-    content = content.replace(
-        '<a href="https://en.wikipedia.org/wiki/John_von_Neumann" target="_blank" rel="noopener"><a href="https://en.wikipedia.org/wiki/John_von_Neumann" target="_blank" rel="noopener">John von Neumann</a></a>',
-        '<a href="https://en.wikipedia.org/wiki/John_von_Neumann" target="_blank" rel="noopener">John von Neumann</a>'
-    )
+    # 2. Define precise target replacements in body paragraphs only (avoiding headings and <strong> titles)
+    # We target the exact sentence where they are first introduced in the body text.
 
-    # 2. James Goodman
-    content = content.replace(
-        "James Goodman",
-        '<a href="https://en.wikipedia.org/wiki/James_R._Goodman" target="_blank" rel="noopener">James Goodman</a>'
-    )
-    content = content.replace(
-        '<a href="https://en.wikipedia.org/wiki/James_R._Goodman" target="_blank" rel="noopener"><a href="https://en.wikipedia.org/wiki/James_R._Goodman" target="_blank" rel="noopener">James Goodman</a></a>',
-        '<a href="https://en.wikipedia.org/wiki/James_R._Goodman" target="_blank" rel="noopener">James Goodman</a>'
-    )
+    # John von Neumann
+    target_vn = "Before John von Neumann formalized"
+    replacement_vn = 'Before <a href="https://en.wikipedia.org/wiki/John_von_Neumann" target="_blank" rel="noopener">John von Neumann</a> formalized'
+    if target_vn in content:
+        content = content.replace(target_vn, replacement_vn, 1)
 
-    # 3. Tom Kilburn
-    content = content.replace(
-        "Tom Kilburn",
-        '<a href="https://en.wikipedia.org/wiki/Tom_Kilburn" target="_blank" rel="noopener">Tom Kilburn</a>'
-    )
-    content = content.replace(
-        '<a href="https://en.wikipedia.org/wiki/Tom_Kilburn" target="_blank" rel="noopener"><a href="https://en.wikipedia.org/wiki/Tom_Kilburn" target="_blank" rel="noopener">Tom Kilburn</a></a>',
-        '<a href="https://en.wikipedia.org/wiki/Tom_Kilburn" target="_blank" rel="noopener">Tom Kilburn</a>'
-    )
+    # James Goodman (in the paragraph text: "Goodman solved this")
+    target_jg = "Goodman solved this by introducing"
+    replacement_jg = '<a href="https://en.wikipedia.org/wiki/James_R._Goodman" target="_blank" rel="noopener">Goodman</a> solved this by introducing'
+    if target_jg in content:
+        content = content.replace(target_jg, replacement_jg, 1)
 
-    # 4. John McCarthy
-    content = content.replace(
-        "John McCarthy",
-        '<a href="https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)" target="_blank" rel="noopener">John McCarthy</a>'
-    )
-    content = content.replace(
-        '<a href="https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)" target="_blank" rel="noopener"><a href="https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)" target="_blank" rel="noopener">John McCarthy</a></a>',
-        '<a href="https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)" target="_blank" rel="noopener">John McCarthy</a>'
-    )
+    # Tom Kilburn
+    target_tk = "led by Tom Kilburn and David Edwards"
+    replacement_tk = 'led by <a href="https://en.wikipedia.org/wiki/Tom_Kilburn" target="_blank" rel="noopener">Tom Kilburn</a> and David Edwards'
+    if target_tk in content:
+        content = content.replace(target_tk, replacement_tk, 1)
 
-    # 5. Butler Lampson
-    content = content.replace(
-        "Butler Lampson",
-        '<a href="https://en.wikipedia.org/wiki/Butler_Lampson" target="_blank" rel="noopener">Butler Lampson</a>'
-    )
-    content = content.replace(
-        '<a href="https://en.wikipedia.org/wiki/Butler_Lampson" target="_blank" rel="noopener"><a href="https://en.wikipedia.org/wiki/Butler_Lampson" target="_blank" rel="noopener">Butler Lampson</a></a>',
-        '<a href="https://en.wikipedia.org/wiki/Butler_Lampson" target="_blank" rel="noopener">Butler Lampson</a>'
-    )
+    # John McCarthy
+    target_jm = "In 1963, John McCarthy championed"
+    replacement_jm = 'In 1963, <a href="https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)" target="_blank" rel="noopener">John McCarthy</a> championed'
+    if target_jm in content:
+        content = content.replace(target_jm, replacement_jm, 1)
 
-    # 6. John Ousterhout
-    content = content.replace(
-        "John Ousterhout",
-        '<a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" rel="noopener">John Ousterhout</a>'
-    )
-    content = content.replace(
-        '<a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" rel="noopener"><a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" rel="noopener">John Ousterhout</a></a>',
-        '<a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" rel="noopener">John Ousterhout</a>'
-    )
+    # Butler Lampson
+    target_bl = "Turing Award winner Butler Lampson emphasized"
+    replacement_bl = 'Turing Award winner <a href="https://en.wikipedia.org/wiki/Butler_Lampson" target="_blank" rel="noopener">Butler Lampson</a> emphasized'
+    if target_bl in content:
+        content = content.replace(target_bl, replacement_bl, 1)
 
-    if content != original_content:
-        with open(TARGET_FILE, "w", encoding="utf-8") as f:
-            f.write(content)
-        print(f"--> Successfully added Wikipedia links to pioneers in {TARGET_FILE}.")
-    else:
-        print("--> No changes made; links may already be present.")
+    # John Ousterhout
+    target_jo = "In his landmark paper, John Ousterhout observed"
+    replacement_jo = 'In his landmark paper, <a href="https://en.wikipedia.org/wiki/John_Ousterhout" target="_blank" rel="noopener">John Ousterhout</a> observed'
+    if target_jo in content:
+        content = content.replace(target_jo, replacement_jo, 1)
+
+    with open(TARGET_FILE, "w", encoding="utf-8") as f:
+        f.write(content)
+
+    print(f"--> Successfully applied precise pioneer Wikipedia links in {TARGET_FILE}.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add Wikipedia hyperlinks to historical pioneer names in Module 2\n\n"
-            "Enhance historical and systems engineering aside boxes in\n"
-            "02-hardware-review.html with direct links to respective Wikipedia articles."
+            "Precisely link first body occurrence of pioneers, avoiding headers\n\n"
+            "Target exact body sentence introductions in 02-hardware-review.html\n"
+            "while leaving headings and strong header titles unlinked."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -102,4 +89,4 @@ def embed_pioneer_links():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    embed_pioneer_links()
+    apply_precise_pioneer_links()
