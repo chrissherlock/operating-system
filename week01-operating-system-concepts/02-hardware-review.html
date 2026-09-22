@@ -178,7 +178,10 @@
       <p class="subtitle">Tanenbaum Chapter 1.3: Processors, Memory Hierarchy, Disks, I/O Devices, Buses, and Booting.</p>
     </header>
 
-    <article class="module-body">
+        <article class="module-body">
+      <p>
+        An operating system does not exist in an abstract mathematical vacuum; it is fundamentally shaped and constrained by the physical silicon it commands. At its core, the OS acts as both a resource manager and an extended virtual machine, turning raw hardware into a safe, programmable execution environment. However, software alone cannot enforce memory protection boundaries or wrest control back from an errant program—it requires direct hardware cooperation through privileged CPU execution modes, timer interrupts, Memory Management Units (MMUs), and DMA controllers. Understanding these physical hardware building blocks is the indispensable foundation for studying how operating systems virtualize the CPU and memory, coordinate concurrent threads, and persist data to non-volatile storage.
+      </p>
       <h2>System Architecture Overview</h2>
       <p>
         The diagram below maps out how the core hardware subsystems covered in this module connect—from CPU execution engines and memory hierarchies down to system buses, storage controllers, and boot firmware.
