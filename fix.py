@@ -1,131 +1,503 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Place contextual definitions in dedicated section below panes
+# fix.py: Expand 04-os-structure.html with full architectural content
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join(
     "week01-operating-system-concepts",
-    "03-os-concepts.html"
+    "04-os-structure.html"
 )
 
-REVISED_STEPPER_BLOCK = r"""    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
-    <div id="interactive-process-stepper" style="margin: 36px 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+EXPANDED_MODULE_04_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04. Operating System Structure | Week 1: Operating System Concepts</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 {
+      color: #0f172a;
+    }
+    h2 {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 36px;
+    }
+    h3 {
+      margin-top: 28px;
+      margin-bottom: 8px;
+      color: #0284c7;
+      font-size: 1.15rem;
+    }
+    h4 {
+      margin-top: 20px;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      color: #334155;
+    }
+    p {
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    ul, ol {
+      margin-left: 20px;
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    code {
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      color: #0369a1;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .diagram-container {
+      display: flex;
+      justify-content: center;
+      margin: 24px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Navigation Bar Top -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="03-os-concepts.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 03. OS Concepts</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">End of Week 1</span>
+    </nav>
+
+    <h2>04. Operating System Structure</h2>
+    <p>
+      An operating system is among the largest and most complex software systems engineered by humans. Because modern kernels encompass device drivers, virtual memory allocators, process schedulers, file systems, and network protocols, their internal structural design dictates their reliability, execution performance, security boundaries, and maintainability.
+    </p>
+    <p>
+      Following the design philosophy outlined in <em>Operating Systems: Three Easy Pieces</em> (OSTEP), the central crux of operating system structure is balancing <strong>protection</strong> (preventing faulty components from crashing the entire system) against <strong>efficiency</strong> (minimizing hardware mode switches, address space context switches, and IPC overheads).
+    </p>
+
+    <!-- OSTEP Structural Crux Callout -->
+    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 16px; border-radius: 0 6px 6px 0; margin: 20px 0 28px 0;">
+      <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.88rem; color: #0369a1; text-transform: uppercase; margin-bottom: 4px;">THE CRUX: MODULARITY VS. PROTECTION AND PERFORMANCE</div>
+      <p style="font-size: 0.9rem; color: #334155; margin: 0; line-height: 1.5;">
+        How should operating system functionality be partitioned between privileged supervisor mode (Ring 0) and unprivileged user mode (Ring 3)? If all subsystems reside in Ring 0 for raw invocation speed, a single driver defect crashes the entire machine. If subsystems are moved to user space for fault isolation, how can the OS maintain acceptable performance in the presence of frequent cross-domain IPC and context switches?
+      </p>
+    </div>
+
+    <h3>1. Monolithic Systems: Raw Performance &amp; Unified Space</h3>
+    <p>
+      In a classical <strong>monolithic architecture</strong>, the entire operating system executes as a single large binary image in privileged hardware mode (Ring 0 / Supervisor Mode). All primary components—including the process scheduler, virtual memory manager, VFS, networking stacks, and peripheral device drivers—share a single unified address space.
+    </p>
+    <p>
+      Applications transition from unprivileged user mode into kernel mode using hardware trap instructions (<code>syscall</code> or <code>sysenter</code>). Once inside the kernel, internal subsystems interact via simple, high-speed C function calls with zero address-space switching overhead.
+    </p>
+
+    <h4>Architectural Properties of Monolithic Kernels</h4>
+    <ul>
+      <li><strong>Maximum Execution Speed:</strong> Subsystems exchange pointers directly in memory without marshalling data across protection boundaries or switching MMU translation page roots.</li>
+      <li><strong>Absence of Fault Isolation:</strong> Because all kernel code shares a single flat memory space without memory protection rings between modules, an unhandled null-pointer dereference, buffer overrun, or wild write in any third-party device driver corrupts kernel memory and causes a fatal system panic or blue screen.</li>
+      <li><strong>Loadable Kernel Modules (LKMs):</strong> Modern monolithic kernels (e.g., Linux, FreeBSD) mitigate monolithic inflexibility by supporting dynamically loaded binary objects (<code>.ko</code> files). Modules can be linked into kernel space on demand to support new hardware without requiring kernel recompilation, though they still execute with unconstrained Ring 0 privileges.</li>
+    </ul>
+
+    <!-- Diagram 1: Monolithic vs Microkernel SVG -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 840 330" width="100%" height="100%" style="max-width: 840px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="mono-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+          </marker>
+          <marker id="ipc-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#9333ea" />
+          </marker>
+          <filter id="struct-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06" />
+          </filter>
+        </defs>
+
+        <!-- Left: Monolithic Architecture -->
+        <g transform="translate(30, 20)" filter="url(#struct-shadow)">
+          <rect width="365" height="290" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+          <rect width="365" height="28" rx="6" fill="#f0f9ff" />
+          <line x1="0" y1="28" x2="365" y2="28" stroke="#bae6fd" />
+          <text x="182" y="19" fill="#0369a1" font-size="10.5" font-weight="700" text-anchor="middle">Monolithic Architecture (Linux / BSD)</text>
+
+          <!-- User Space -->
+          <rect x="20" y="42" width="325" height="50" rx="4" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="182" y="62" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">User Applications (Ring 3)</text>
+          <text x="182" y="78" fill="#64748b" font-size="8.5" text-anchor="middle">Issues POSIX syscalls: read(), write(), fork()</text>
+
+          <!-- System Call Trap Boundary -->
+          <line x1="20" y1="108" x2="345" y2="108" stroke="#0284c7" stroke-width="2" stroke-dasharray="4,3" />
+          <text x="182" y="104" fill="#0284c7" font-size="8" font-weight="700" text-anchor="middle">Hardware System Call Boundary (Trap)</text>
+
+          <!-- Monolithic Ring 0 Kernel -->
+          <rect x="20" y="118" width="325" height="150" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2" />
+          <text x="182" y="136" fill="#15803d" font-size="10" font-weight="700" text-anchor="middle">Privileged Monolithic Kernel (Ring 0)</text>
+
+          <g transform="translate(35, 146)">
+            <rect x="0" y="0" width="88" height="32" rx="3" fill="#ffffff" stroke="#86efac" />
+            <text x="44" y="20" fill="#166534" font-size="8" font-weight="600" text-anchor="middle">VFS / Ext4</text>
+
+            <rect x="98" y="0" width="98" height="32" rx="3" fill="#ffffff" stroke="#86efac" />
+            <text x="147" y="20" fill="#166534" font-size="8" font-weight="600" text-anchor="middle">TCP/IP Stack</text>
+
+            <rect x="206" y="0" width="88" height="32" rx="3" fill="#ffffff" stroke="#86efac" />
+            <text x="250" y="20" fill="#166534" font-size="8" font-weight="600" text-anchor="middle">Scheduler</text>
+
+            <rect x="0" y="42" width="140" height="32" rx="3" fill="#ffffff" stroke="#86efac" />
+            <text x="70" y="62" fill="#166534" font-size="8" font-weight="600" text-anchor="middle">Virtual Memory (Paging)</text>
+
+            <rect x="150" y="42" width="144" height="32" rx="3" fill="#fee2e2" stroke="#ef4444" />
+            <text x="222" y="62" fill="#991b1b" font-size="8" font-weight="700" text-anchor="middle">Device Drivers (PCIe, NVMe)</text>
+          </g>
+          <text x="182" y="258" fill="#991b1b" font-size="7.5" text-anchor="middle">&Delta; Single driver bug can panic entire kernel</text>
+        </g>
+
+        <!-- Right: Microkernel Architecture -->
+        <g transform="translate(445, 20)" filter="url(#struct-shadow)">
+          <rect width="365" height="290" rx="6" fill="#ffffff" stroke="#9333ea" stroke-width="1.5" />
+          <rect width="365" height="28" rx="6" fill="#faf5ff" />
+          <line x1="0" y1="28" x2="365" y2="28" stroke="#f3e8ff" />
+          <text x="182" y="19" fill="#7e22ce" font-size="10.5" font-weight="700" text-anchor="middle">Microkernel Architecture (seL4 / QNX)</text>
+
+          <!-- User Space Servers -->
+          <rect x="20" y="42" width="325" height="142" rx="4" fill="#faf5ff" stroke="#e9d5ff" />
+          <text x="182" y="58" fill="#581c87" font-size="9.5" font-weight="700" text-anchor="middle">User Space Servers (Ring 3 Isolated Processes)</text>
+
+          <g transform="translate(32, 68)">
+            <rect x="0" y="0" width="92" height="30" rx="3" fill="#ffffff" stroke="#c084fc" />
+            <text x="46" y="19" fill="#6b21a8" font-size="8" font-weight="600" text-anchor="middle">Client App</text>
+
+            <rect x="102" y="0" width="98" height="30" rx="3" fill="#ffffff" stroke="#c084fc" />
+            <text x="151" y="19" fill="#6b21a8" font-size="8" font-weight="600" text-anchor="middle">File Server</text>
+
+            <rect x="210" y="0" width="90" height="30" rx="3" fill="#ffffff" stroke="#c084fc" />
+            <text x="255" y="19" fill="#6b21a8" font-size="8" font-weight="600" text-anchor="middle">Network Svc</text>
+
+            <rect x="0" y="38" width="145" height="30" rx="3" fill="#ffffff" stroke="#c084fc" />
+            <text x="72" y="57" fill="#6b21a8" font-size="8" font-weight="600" text-anchor="middle">NVMe Storage Driver</text>
+
+            <rect x="155" y="38" width="145" height="30" rx="3" fill="#ffffff" stroke="#c084fc" />
+            <text x="227" y="57" fill="#6b21a8" font-size="8" font-weight="600" text-anchor="middle">Display Server</text>
+          </g>
+          <text x="182" y="174" fill="#059669" font-size="7.5" text-anchor="middle">&checkmark; Driver crash only kills isolated user process</text>
+
+          <!-- Microkernel Boundary -->
+          <line x1="20" y1="198" x2="345" y2="198" stroke="#9333ea" stroke-width="2" stroke-dasharray="4,3" />
+          <text x="182" y="194" fill="#7e22ce" font-size="8" font-weight="700" text-anchor="middle">Capability / IPC Trap Boundary</text>
+
+          <!-- Minimalist Microkernel in Ring 0 -->
+          <rect x="20" y="208" width="325" height="60" rx="4" fill="#f5f3ff" stroke="#a855f7" stroke-width="1.2" />
+          <text x="182" y="226" fill="#6b21a8" font-size="9.5" font-weight="700" text-anchor="middle">Minimal Microkernel (Ring 0)</text>
+          <text x="182" y="242" fill="#475569" font-size="8" text-anchor="middle">Address Space Switching • Fast IPC • Thread Dispatching</text>
+          <text x="182" y="256" fill="#475569" font-size="8" text-anchor="middle">Interrupt Routing &amp; Hardware Capability Validation</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>2. Layered Systems &amp; Hierarchical Protection Rings</h3>
+    <p>
+      Pioneered by Edsger Dijkstra's <strong>THE multiprogramming system</strong> (1968), the layered approach organizes the operating system as a strict hierarchy of functional layers, numbered from $0$ (the hardware core) to $N$ (the user interface).
+    </p>
+    <p>
+      Under a strict layered discipline, layer $M$ can invoke routines and inspect data structures exclusively in layer $M-1$, and cannot access services in layer $M+1$.
+    </p>
+
+    <!-- Classic THE Multiprogramming Layers -->
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; background: #ffffff;">
+        <thead>
+          <tr style="background: #f1f5f9; color: #1e293b;">
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1; width: 80px;">Layer</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1; width: 220px;">Subsystem Responsibilities</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Hardware / Architectural Abstraction</th>
+          </tr>
+        </thead>
+        <tbody style="color: #334155;">
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700; text-anchor: center;">Layer 5</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">The Operator (Shell)</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">User commands, process creation, input/output redirection.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700; text-anchor: center;">Layer 4</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">User Programs</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Compilers, applications, math libraries operating within address spaces.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700; text-anchor: center;">Layer 3</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">I/O Device Buffering</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Buffering keyboard, printer, and tape streams; manages device synchronization.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700; text-anchor: center;">Layer 2</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Operator Console</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Communication link between system operator and executing programs.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700; text-anchor: center;">Layer 1</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Memory Management</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Allocates core memory and drum storage; handles swapping and page faults.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700; text-anchor: center;">Layer 0</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">CPU Scheduling &amp; Dispatch</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Hardware timer interrupts, semaphores, low-level process context switching.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      While conceptually pure, rigid layering rarely survives in production general-purpose kernels due to bidirectional dependencies. For instance, the virtual memory manager needs the backing file system to page dirty frames out to disk, while the file system needs the virtual memory manager to allocate physical cache buffers. Consequently, contemporary systems use layered concepts logically (such as POSIX VFS &rarr; Block Layer &rarr; Device Driver) rather than enforcing rigid execution boundaries.
+    </p>
+
+    <h3>3. Microkernels: Minimalist Privileged Core &amp; Capability IPC</h3>
+    <p>
+      The <strong>microkernel philosophy</strong> dictates that only mechanisms that strictly require supervisor privilege should remain in Ring 0. Everything else—including file systems, network protocol stacks, device drivers, and window managers—is stripped from the kernel and executed as separate, unprivileged user-space server processes.
+    </p>
+    <p>
+      The microkernel core typically provides only four essential services:
+    </p>
+    <ol>
+      <li><strong>Low-Level Thread Scheduling:</strong> Allocating CPU cores across threads.</li>
+      <li><strong>Virtual Memory Translation:</strong> Setting up page tables and mapping hardware address spaces.</li>
+      <li><strong>Hardware Interrupt Dispatch:</strong> Converting physical IRQs into asynchronous messages sent to user-space driver threads.</li>
+      <li><strong>Inter-Process Communication (IPC):</strong> Providing fast, validated message passing and capability delegation so independent servers can communicate.</li>
+    </ol>
+
+    <h4>The Evolution: First-Generation (Mach) vs. Second-Generation (L4 / seL4)</h4>
+    <p>
+      Early microkernels like Carnegie Mellon's <strong>Mach</strong> suffered significant performance penalties. Servicing an I/O request required bouncing messages between user applications, the file server, the disk driver, and the kernel, incurring excessive TLB flushes and context switch overheads.
+    </p>
+    <p>
+      Second-generation microkernels, pioneered by Jochen Liedtke's <strong>L4</strong> and formally verified systems like <strong>seL4</strong>, demonstrated that IPC overhead could be slashed by an order of magnitude. By using register-passed synchronous IPC, unforgeable capability nodes (Cnodes), and radical minimalist kernel footprints (under 10,000 lines of code), modern microkernels deliver high determinism and formal mathematical proofs of security enforcement.
+    </p>
+
+    <h3>4. Client-Server &amp; Hybrid Architectures (Windows NT &amp; macOS XNU)</h3>
+    <p>
+      Modern desktop and enterprise systems bridge the gap between monolithic throughput and microkernel isolation using <strong>hybrid architectures</strong>:
+    </p>
+    <ul>
+      <li><strong>Windows NT Architecture:</strong> The NT kernel consists of the low-level <strong>Microkernel</strong> (responsible for thread dispatching, interrupt handling, and multiprocessor sync) and the surrounding <strong>NT Executive</strong> (providing object security, virtual memory, process tracking, and I/O request packet [IRP] routing). While both execute in Ring 0 for performance, user applications interact with the system via distinct <strong>Environment Subsystems</strong> (Win32, POSIX/WSL) running in user space as server processes (e.g., <code>csrss.exe</code>).</li>
+      <li><strong>macOS XNU Kernel:</strong> Apple's XNU engine merges a customized fork of the <strong>Mach microkernel</strong> (for thread primitives, IPC, and virtual memory tasks) with the <strong>FreeBSD kernel</strong> (providing POSIX APIs, BSD process credentials, network sockets, and file systems) alongside the <strong>IOKit</strong> object-oriented C++ driver framework, all executing inside a single Ring 0 address space.</li>
+    </ul>
+
+    <h3>5. Exokernels &amp; Unikernels: End-to-End Application Customization</h3>
+    <p>
+      Developed at MIT by Dawson Engler and Frans Kaashoek, the <strong>exokernel architecture</strong> challenges the fundamental premise that operating systems should provide high-level abstractions (like files, sockets, and virtual address spaces).
+    </p>
+    <p>
+      An exokernel provides <strong>zero high-level abstractions</strong>. Instead, its sole responsibility is to securely multiplex raw physical hardware resources (physical disk blocks, physical page frames, raw network packet descriptors) using hardware capabilities.
+    </p>
+    <ul>
+      <li><strong>Library Operating Systems (LibOS):</strong> All traditional OS abstractions (e.g., an ext4 file system, a BSD TCP stack) are moved into standard user-space libraries linked directly with the application binary.</li>
+      <li><strong>Application-Specific Optimization:</strong> A database engine can bypass conventional file system buffering and page replacement policies, implementing custom disk allocation algorithms optimized specifically for B-tree index traversal.</li>
+      <li><strong>Unikernels (MirageOS, OSv):</strong> In cloud virtualization settings, the application code, language runtime, and library OS components are compiled into a single specialized image that executes directly on top of a hypervisor with no multi-user protections or shell, eliminating kernel-user mode transitions entirely.</li>
+    </ul>
+
+    <h3>6. Virtual Machines &amp; Hypervisors</h3>
+    <p>
+      Virtualization abstracts the physical hardware itself, allowing multiple independent guest operating systems to execute concurrently on a single physical machine:
+    </p>
+    <ul>
+      <li><strong>Type-1 Bare-Metal Hypervisors (VMware ESXi, Xen, KVM):</strong> The hypervisor runs directly on the bare metal silicon in the most privileged hardware mode (e.g., VMX root mode on x86-64). Guest operating systems execute inside virtual machine containers with hardware traps intercepting sensitive CPU instructions.</li>
+      <li><strong>Type-2 Hosted Hypervisors (VirtualBox, VMware Workstation):</strong> The hypervisor executes as an application atop an existing host operating system, relying on the host kernel for physical hardware drivers and scheduling.</li>
+      <li><strong>Hardware Support (Intel VT-x / AMD-V):</strong> Modern CPUs incorporate dedicated hardware execution modes (Root vs. Non-Root) and hardware-managed control blocks (Virtual Machine Control Structure - VMCS) to handle <em>VM exits</em> and hardware-accelerated nested page tables (Extended Page Tables - EPT).</li>
+    </ul>
+
+    <h4>Comprehensive Comparison of Operating System Architectures</h4>
+    <div style="overflow-x: auto; margin: 20px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; background: #ffffff;">
+        <thead>
+          <tr style="background: #f1f5f9; color: #1e293b;">
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Architecture Model</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Privileged (Ring 0) Scope</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Fault Isolation Boundary</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Communication Mechanism</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Real-World Examples</th>
+          </tr>
+        </thead>
+        <tbody style="color: #334155;">
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700;">Monolithic</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">All services: VFS, Drivers, Network, Memory, Scheduling.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">User vs. Kernel boundary only. No intra-kernel isolation.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Direct C function calls and shared kernel pointers.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Linux, FreeBSD, OpenBSD.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700;">Microkernel</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Minimal primitives: Address spaces, Thread dispatch, IPC.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Isolated address space per server and driver process.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Synchronous/Asynchronous message-passing IPC.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">seL4, QNX Neutrino, Minix 3.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700;">Hybrid</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Microkernel core + OS Executive &amp; File Systems in Ring 0.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Environment subsystems isolated; core drivers in Ring 0.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Internal LPC/ALPC messaging and direct pointer routing.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Windows NT (11/Server), macOS XNU.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 700;">Exokernel</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Hardware resource multiplexing &amp; capability checks only.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Complete application isolation; OS services linked as LibOS.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Direct hardware access via capability tokens.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">MIT Aegis, Xok, Nemesis.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
+    <div id="interactive-os-stepper" style="margin: 36px 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
         <div>
-          <h3 style="margin: 0; color: #0284c7; font-size: 1.25rem;">Interactive Simulator: Process Lifecycle Walkthrough</h3>
-          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Scenario: Database query report execution (PID 4092) under severe memory contention and storage I/O.</p>
+          <h3 style="margin: 0; color: #0284c7; font-size: 1.25rem;">Interactive Simulator: Cross-Architecture I/O Request Stepper</h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Scenario: Application issues read() system call to fetch a 4 KiB block from an NVMe SSD.</p>
         </div>
 
         <!-- Comparative Dimension Toggles -->
         <div style="display: flex; gap: 6px;">
-          <button type="button" class="model-toggle active" data-model="3" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer;">3-State</button>
-          <button type="button" class="model-toggle" data-model="5" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">5-State</button>
-          <button type="button" class="model-toggle" data-model="7" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">7-State</button>
+          <button type="button" class="arch-toggle active" data-arch="monolithic" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer;">Monolithic</button>
+          <button type="button" class="arch-toggle" data-arch="microkernel" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">Microkernel</button>
+          <button type="button" class="arch-toggle" data-arch="hybrid" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">Hybrid (NT)</button>
+          <button type="button" class="arch-toggle" data-arch="exokernel" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">Exokernel</button>
         </div>
       </div>
 
       <!-- Live State Telemetry Status Bar -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin-bottom: 18px; font-family: var(--font-mono); font-size: 0.8rem;">
-        <div><span style="color: #64748b;">CURRENT STATE:</span> <strong id="telemetry-state" style="color: #0284c7;">READY</strong></div>
-        <div><span style="color: #64748b;">RESIDENCE:</span> <strong id="telemetry-residence" style="color: #059669;">PHYSICAL DRAM</strong></div>
-        <div><span style="color: #64748b;">ACTIVE CPU:</span> <strong id="telemetry-cpu" style="color: #475569;">NONE (IN QUEUE)</strong></div>
-        <div><span style="color: #64748b;">PENDING I/O:</span> <strong id="telemetry-io" style="color: #475569;">NONE</strong></div>
+        <div><span style="color: #64748b;">EXECUTION MODE:</span> <strong id="telemetry-mode" style="color: #0284c7;">USER MODE (RING 3)</strong></div>
+        <div><span style="color: #64748b;">ACTIVE COMPONENT:</span> <strong id="telemetry-component" style="color: #059669;">APPLICATION RUNTIME</strong></div>
+        <div><span style="color: #64748b;">CONTEXT SWITCHES:</span> <strong id="telemetry-switches" style="color: #475569;">0</strong></div>
+        <div><span style="color: #64748b;">COMMUNICATION:</span> <strong id="telemetry-comm" style="color: #475569;">NONE</strong></div>
       </div>
 
       <!-- Synchronized Visual Canvas -->
       <div style="display: flex; justify-content: center; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 6px; padding: 12px; margin-bottom: 18px;">
-        <svg id="stepper-svg" viewBox="0 0 820 340" width="100%" height="100%" style="max-width: 820px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <svg id="arch-stepper-svg" viewBox="0 0 820 320" width="100%" height="100%" style="max-width: 820px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <marker id="step-arrow-default" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <marker id="arch-arrow-default" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
               <polygon points="0 1, 6 3.5, 0 6" fill="#94a3b8" />
             </marker>
-            <marker id="step-arrow-active" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <marker id="arch-arrow-active" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
               <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
             </marker>
-            <filter id="active-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <filter id="arch-active-glow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#0284c7" flood-opacity="0.6" />
             </filter>
           </defs>
 
-          <!-- Bounds Guide -->
-          <rect id="dram-zone" x="10" y="20" width="800" height="175" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-dasharray="4,4" />
-          <text id="dram-label" x="25" y="38" fill="#94a3b8" font-size="8.5" font-weight="700">PRIMARY MEMORY (PHYSICAL RAM)</text>
+          <!-- Ring 3 and Ring 0 Background Zones -->
+          <rect x="10" y="20" width="800" height="120" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-dasharray="4,4" />
+          <text x="25" y="38" fill="#64748b" font-size="8.5" font-weight="700">USER MODE (RING 3)</text>
 
-          <rect id="disk-zone" x="10" y="215" width="800" height="110" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="4,4" style="display: none;" />
-          <text id="disk-label" x="25" y="232" fill="#94a3b8" font-size="8.5" font-weight="700" style="display: none;">SECONDARY STORAGE (SWAPFILE ON DISK)</text>
+          <rect x="10" y="155" width="800" height="150" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-dasharray="4,4" />
+          <text x="25" y="173" fill="#15803d" font-size="8.5" font-weight="700">SUPERVISOR / KERNEL MODE (RING 0)</text>
 
-          <!-- Clean Tangential Vector Paths -->
-          <path id="path-admit" d="M 106,105 L 170,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
-          <path id="path-dispatch" d="M 245,90 C 315,55 410,55 478,90" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
-          <path id="path-preempt" d="M 480,122 C 410,155 315,155 246,122" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#step-arrow-default)" />
-          <path id="path-block" d="M 554,105 L 660,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
-          <path id="path-event" d="M 690,70 C 640,30 280,30 220,70" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
-          <path id="path-exit" d="M 535,74 C 585,35 710,35 750,75" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
-
-          <path id="path-swapout-ready" d="M 200,144 L 218,232" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
-          <path id="path-swapin-ready" d="M 235,232 L 217,146" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
-          <path id="path-swapout-blocked" d="M 690,144 L 690,232" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
-          <path id="path-swapin-blocked" d="M 712,232 L 712,146" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
-          <path id="path-event-disk" d="M 662,270 L 268,270" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
-
-          <!-- Circular State Nodes -->
-          <g id="node-NEW" transform="translate(70, 105)" style="display: none;">
-            <circle cx="0" cy="0" r="35" fill="#ffffff" stroke="#94a3b8" stroke-width="2" />
-            <text x="0" y="-3" fill="#334155" font-size="10.5" font-weight="700" text-anchor="middle">NEW</text>
-            <text x="0" y="11" fill="#64748b" font-size="7.5" text-anchor="middle">Creating</text>
+          <!-- Component Boxes -->
+          <!-- User App Node -->
+          <g id="box-app" transform="translate(40, 55)">
+            <rect width="130" height="60" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8" />
+            <text x="65" y="28" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">User App</text>
+            <text x="65" y="44" fill="#64748b" font-size="8" text-anchor="middle">read(fd, buf)</text>
           </g>
 
-          <g id="node-READY" transform="translate(210, 105)">
-            <circle cx="0" cy="0" r="38" fill="#eff6ff" stroke="#0284c7" stroke-width="2" />
-            <text x="0" y="-3" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">READY</text>
-            <text x="0" y="11" fill="#64748b" font-size="7.5" text-anchor="middle">Run Queue</text>
+          <!-- User-Space Server (Used in Microkernel / Exokernel) -->
+          <g id="box-userserver" transform="translate(260, 55)">
+            <rect width="160" height="60" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8" />
+            <text id="label-userserver-title" x="80" y="28" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">File System Server</text>
+            <text id="label-userserver-sub" x="80" y="44" fill="#64748b" font-size="8" text-anchor="middle">User-Space Daemon</text>
           </g>
 
-          <g id="node-RUNNING" transform="translate(515, 105)">
-            <circle cx="0" cy="0" r="38" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-            <text x="0" y="-3" fill="#065f46" font-size="11" font-weight="700" text-anchor="middle">RUNNING</text>
-            <text x="0" y="11" fill="#047857" font-size="7.5" text-anchor="middle">CPU Core 1</text>
+          <!-- Kernel Subsystem / Core Node -->
+          <g id="box-kernel" transform="translate(260, 195)">
+            <rect width="160" height="65" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8" />
+            <text id="label-kernel-title" x="80" y="30" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">VFS &amp; File System</text>
+            <text id="label-kernel-sub" x="80" y="46" fill="#64748b" font-size="8" text-anchor="middle">Ring 0 Core</text>
           </g>
 
-          <g id="node-BLOCKED" transform="translate(700, 105)">
-            <circle cx="0" cy="0" r="38" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
-            <text x="0" y="-3" fill="#991b1b" font-size="11" font-weight="700" text-anchor="middle">BLOCKED</text>
-            <text x="0" y="11" fill="#b91c1c" font-size="7.5" text-anchor="middle">Wait on I/O</text>
+          <!-- Device Driver Node -->
+          <g id="box-driver" transform="translate(500, 195)">
+            <rect width="145" height="65" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8" />
+            <text id="label-driver-title" x="72" y="30" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">NVMe Driver</text>
+            <text id="label-driver-sub" x="72" y="46" fill="#64748b" font-size="8" text-anchor="middle">MMIO Controller</text>
           </g>
 
-          <g id="node-TERMINATED" transform="translate(770, 105)" style="display: none;">
-            <circle cx="0" cy="0" r="32" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
-            <text x="0" y="-2" fill="#92400e" font-size="9.5" font-weight="700" text-anchor="middle">EXIT</text>
-            <text x="0" y="10" fill="#78350f" font-size="7" text-anchor="middle">Zombie</text>
+          <!-- Physical Hardware Node -->
+          <g id="box-hardware" transform="translate(700, 195)">
+            <rect width="90" height="65" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.8" />
+            <text x="45" y="30" fill="#0f172a" font-size="10" font-weight="700" text-anchor="middle">NVMe SSD</text>
+            <text x="45" y="46" fill="#64748b" font-size="8" text-anchor="middle">Physical</text>
           </g>
 
-          <g id="node-READY_SUSP" transform="translate(230, 270)" style="display: none;">
-            <circle cx="0" cy="0" r="36" fill="#faf5ff" stroke="#9333ea" stroke-width="2" />
-            <text x="0" y="-6" fill="#7e22ce" font-size="8" font-weight="700" text-anchor="middle">READY /</text>
-            <text x="0" y="6" fill="#7e22ce" font-size="8" font-weight="700" text-anchor="middle">SUSPENDED</text>
-          </g>
+          <!-- Transition Paths -->
+          <!-- Path 1: App to Kernel Trap (Downward) -->
+          <path id="arch-path-trap" d="M 105,115 L 105,225 L 255,225" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arch-arrow-default)" />
 
-          <g id="node-BLOCKED_SUSP" transform="translate(700, 270)" style="display: none;">
-            <circle cx="0" cy="0" r="36" fill="#fff1f2" stroke="#e11d48" stroke-width="2" />
-            <text x="0" y="-6" fill="#be123c" font-size="8" font-weight="700" text-anchor="middle">BLOCKED /</text>
-            <text x="0" y="6" fill="#be123c" font-size="8" font-weight="700" text-anchor="middle">SUSPENDED</text>
-          </g>
+          <!-- Path 2: App to User-Space Server (Horizontal) -->
+          <path id="arch-path-app-server" d="M 170,85 L 255,85" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arch-arrow-default)" />
+
+          <!-- Path 3: User Server to Kernel IPC (Downward) -->
+          <path id="arch-path-server-kernel" d="M 340,115 L 340,190" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arch-arrow-default)" />
+
+          <!-- Path 4: Kernel to Driver (Horizontal) -->
+          <path id="arch-path-kernel-driver" d="M 420,225 L 495,225" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arch-arrow-default)" />
+
+          <!-- Path 5: Driver to Hardware (MMIO/DMA) -->
+          <path id="arch-path-driver-hw" d="M 645,225 L 695,225" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arch-arrow-default)" />
         </svg>
       </div>
 
       <!-- Foreshadowed Navigation & Controls -->
       <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px;">
         <div style="display: flex; gap: 8px;">
-          <button type="button" id="btn-prev-step" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; border-radius: 5px; cursor: pointer;">&larr; Prev</button>
-          <button type="button" id="btn-next-step" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; border-radius: 5px; cursor: pointer;">Next Step &rarr;</button>
-          <button type="button" id="btn-reset-step" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; border-radius: 5px; cursor: pointer;">Reset</button>
+          <button type="button" id="btn-arch-prev" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; border-radius: 5px; cursor: pointer;">&larr; Prev</button>
+          <button type="button" id="btn-arch-next" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; border-radius: 5px; cursor: pointer;">Next Step &rarr;</button>
+          <button type="button" id="btn-arch-reset" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; border-radius: 5px; cursor: pointer;">Reset</button>
         </div>
 
         <!-- Inline Preview of Next Action -->
         <div style="font-size: 0.85rem; color: #334155;">
-          <span style="color: #64748b; font-weight: 600;">UPCOMING TRANSITION:</span> <span id="preview-text" style="font-weight: 700; color: #0284c7;">Scheduler dispatches PID 4092 onto CPU Core 1</span>
+          <span style="color: #64748b; font-weight: 600;">UPCOMING TRANSITION:</span> <span id="arch-preview-text" style="font-weight: 700; color: #0284c7;">Application executes syscall trap into kernel mode</span>
         </div>
       </div>
 
@@ -134,251 +506,223 @@ REVISED_STEPPER_BLOCK = r"""    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRA
         <!-- Pane 1: Mechanics -->
         <div style="border: 1px solid #bae6fd; background: #f0f9ff; border-radius: 6px; padding: 16px;">
           <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">1. What Is Happening (Low-Level Mechanics)</div>
-          <div id="pane-mechanics" style="font-size: 0.9rem; color: #1e293b; line-height: 1.5;"></div>
+          <div id="arch-pane-mechanics" style="font-size: 0.9rem; color: #1e293b; line-height: 1.5;"></div>
         </div>
 
         <!-- Pane 2: Rationale -->
         <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 16px;">
           <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #92400e; text-transform: uppercase; margin-bottom: 6px;">2. Why The System Does This (Design Rationale)</div>
-          <div id="pane-rationale" style="font-size: 0.9rem; color: #78350f; line-height: 1.5;"></div>
+          <div id="arch-pane-rationale" style="font-size: 0.9rem; color: #78350f; line-height: 1.5;"></div>
         </div>
       </div>
 
       <!-- Dedicated Contextual Definitions Section (Underneath on its own) -->
       <div style="border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; padding: 16px;">
-        <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Contextual Definitions &amp; System Concepts</div>
-        <div id="pane-definitions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;"></div>
+        <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Contextual Definitions &amp; Architectural Concepts</div>
+        <div id="arch-pane-definitions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;"></div>
       </div>
     </div>
 
     <!-- Stepper Logic Script -->
     <script>
       (function() {
-        const scenarios = {
-          "3": [
+        const archWorkflows = {
+          "monolithic": [
             {
-              state: "READY",
-              residence: "PHYSICAL DRAM",
-              cpu: "NONE (IN QUEUE)",
-              io: "NONE",
-              node: "node-READY",
-              activePath: "path-dispatch",
-              preview: "Scheduler allocates time slice on CPU Core 1",
-              mechanics: "PID 4092 resides in the kernel run queue. The scheduler selects it, loads its saved registers (RIP, RSP, RAX) from its Process Control Block into the CPU, and executes return-from-trap.",
-              rationale: "Separates policy (which job to schedule) from mechanism (context switch execution). Allows CPU time-sharing among multiple resident tasks without program modification.",
+              mode: "USER MODE (RING 3)",
+              component: "USER APPLICATION",
+              switches: "0",
+              comm: "LOCAL INSTRUCTION",
+              activeBox: "box-app",
+              activePath: "arch-path-trap",
+              preview: "Application executes syscall instruction to trap into Ring 0",
+              mechanics: "The user program places system call number __NR_read (0) into RAX, file descriptor into RDI, buffer address into RSI, and executes the syscall instruction.",
+              rationale: "Limited Direct Execution requires user programs to use hardware-mediated gates rather than invoking raw kernel memory routines directly.",
               definitions: [
-                { term: "Context Switch", desc: "Low-level assembly procedure that saves hardware CPU registers of the interrupted process and restores the register state of the scheduled process." },
-                { term: "Policy vs. Mechanism", desc: "A foundational OS design rule: mechanisms specify 'how' a task is executed, while policies determine 'which' decisions are made." }
+                { term: "System Call ABI", desc: "The hardware register conventions agreed upon between user-space libraries and the kernel for passing call numbers and arguments." },
+                { term: "Hardware Privilege Level", desc: "CPU execution rings (e.g. Ring 3 user vs Ring 0 supervisor) enforcing memory protection boundaries." }
               ]
             },
             {
-              state: "RUNNING",
-              residence: "PHYSICAL DRAM",
-              cpu: "CORE 1 (EXECUTING)",
-              io: "NONE",
-              node: "node-RUNNING",
-              activePath: "path-block",
-              preview: "Database query issues read() for table index on NVMe SSD",
-              mechanics: "The program executes user-space arithmetic until encountering an un-cached database index. It invokes the read() system call, executing a trap instruction to switch from user mode to kernel mode.",
-              rationale: "Limited Direct Execution guarantees native hardware execution speed while preventing unprivileged software from issuing arbitrary commands directly to raw hardware devices.",
+              mode: "KERNEL MODE (RING 0)",
+              component: "VFS & EXT4 DRIVER",
+              switches: "0 (NO CR3 SWAP)",
+              comm: "IN-KERNEL C FUNCTION CALL",
+              activeBox: "box-kernel",
+              activePath: "arch-path-kernel-driver",
+              preview: "VFS resolves inode extent and calls NVMe block submit routine",
+              mechanics: "The kernel validates the buffer address, walks the inode extent tree to translate file offset into logical block addresses (LBAs), and invokes the NVMe block driver via a direct function pointer.",
+              rationale: "Monolithic execution avoids address-space switching. Subsystems communicate via standard compiled C function calls within a single flat address space.",
               definitions: [
-                { term: "Trap Instruction", desc: "A privileged hardware instruction that elevates CPU privilege from Ring 3 (User) to Ring 0 (Kernel) and jumps to a pre-registered trap table address." },
-                { term: "Limited Direct Execution (LDE)", desc: "The operating system runs programs directly on the bare CPU hardware while maintaining strict control via hardware trap tables and timer interrupts." }
+                { term: "Virtual File System (VFS)", desc: "The kernel abstraction layer that provides uniform POSIX file primitives atop diverse file system drivers." },
+                { term: "Function Pointer Dispatch", desc: "Calling driver operations directly via pointers in a virtual function table (e.g. file_operations) without IPC." }
               ]
             },
             {
-              state: "BLOCKED",
-              residence: "PHYSICAL DRAM",
-              cpu: "NONE (YIELDED)",
-              io: "PENDING (NVMe READ)",
-              node: "node-BLOCKED",
-              activePath: "path-event",
-              preview: "Storage controller raises interrupt upon finishing data transfer",
-              mechanics: "The kernel marks PID 4092 as BLOCKED, moves its PCB from the active run queue into the NVMe controller's wait queue, and triggers a context switch to run another ready process.",
-              rationale: "Maximizes CPU utilization. Reading from storage takes thousands to millions of CPU clock cycles; yielding the core prevents the processor from stalling on idle wait loops.",
+              mode: "KERNEL MODE (RING 0)",
+              component: "NVMe DRIVER & CONTROLLER",
+              switches: "0 (SAME CONTEXT)",
+              comm: "MMIO REGISTER WRITE",
+              activeBox: "box-driver",
+              activePath: "arch-path-driver-hw",
+              preview: "Driver writes command descriptor to NVMe Submission Queue Doorbell",
+              mechanics: "The driver builds an NVMe read command descriptor in physical memory and writes the queue index into the controller's memory-mapped I/O (MMIO) doorbell register.",
+              rationale: "Direct memory-mapped hardware manipulation provides maximum throughput for gigabyte-per-second storage hardware.",
               definitions: [
-                { term: "Device Wait Queue", desc: "An in-kernel linked list tracking blocked processes awaiting hardware signals from a specific peripheral controller." },
-                { term: "I/O Overlapping", desc: "Maximizing system efficiency by interleaving CPU computation of ready tasks with asynchronous hardware transfers of blocked tasks." }
-              ]
-            },
-            {
-              state: "READY",
-              residence: "PHYSICAL DRAM",
-              cpu: "NONE (IN QUEUE)",
-              io: "COMPLETED",
-              node: "node-READY",
-              activePath: "path-dispatch",
-              preview: "Scheduler picks PID 4092 to resume processing the read buffer",
-              mechanics: "The NVMe controller asserts an interrupt line. The kernel's Interrupt Service Routine (ISR) copies data into the buffer and transitions PID 4092 back to the READY run queue.",
-              rationale: "Interrupt-driven event loops eliminate busy-waiting polling, allowing the OS to wake only the exact processes whose prerequisite events have finished.",
-              definitions: [
-                { term: "Interrupt Service Routine (ISR)", desc: "A pre-compiled kernel handler invoked directly by hardware interrupts to service asynchronous peripheral events." },
-                { term: "Asynchronous Notification", desc: "Hardware event signalling that wakes waiting tasks without demanding constant CPU polling." }
+                { term: "Memory-Mapped I/O (MMIO)", desc: "Mapping hardware controller registers into physical CPU address space, allowing register writes via standard store instructions." },
+                { term: "Direct Memory Access (DMA)", desc: "Hardware capability allowing the storage controller to transfer blocks straight into host DRAM without CPU involvement." }
               ]
             }
           ],
-          "5": [
+          "microkernel": [
             {
-              state: "NEW",
-              residence: "PHYSICAL DRAM",
-              cpu: "NONE (CREATING)",
-              io: "NONE",
-              node: "node-NEW",
-              activePath: "path-admit",
-              preview: "Kernel admits initialized process into scheduler run queue",
-              mechanics: "Parent process calls fork()/CreateProcess(). The OS allocates a new PCB (PID 4092), initializes virtual memory page tables, loads the binary executable header, but has not yet placed it on the run queue.",
-              rationale: "Prevents half-initialized tasks from being picked by the dispatcher before address bounds and security tokens are fully established.",
+              mode: "USER MODE (RING 3)",
+              component: "USER APPLICATION",
+              switches: "0",
+              comm: "LOCAL INSTRUCTION",
+              activeBox: "box-app",
+              activePath: "arch-path-app-server",
+              preview: "App marshals read request into an IPC message packet",
+              mechanics: "The application encodes the requested file ID and byte count into an IPC message buffer and invokes the microkernel's ipc_send() capability endpoint.",
+              rationale: "Microkernels expose zero high-level file system primitives in Ring 0; applications must communicate with isolated user-space servers.",
               definitions: [
-                { term: "Process Control Block (PCB)", desc: "The central kernel data structure holding process identification, register context, memory root pointers, and open file tables." },
-                { term: "Admission Control", desc: "The policy phase governing when a newly constructed task is permitted to compete for system resources." }
+                { term: "Capability Endpoint", desc: "An unforgeable kernel token authorizing an application to communicate with a specific server port." },
+                { term: "Message Marshalling", desc: "Serializing function arguments and data structures into flat byte buffers suitable for inter-process transmission." }
               ]
             },
             {
-              state: "READY",
-              residence: "PHYSICAL DRAM",
-              cpu: "NONE (IN QUEUE)",
-              io: "NONE",
-              node: "node-READY",
-              activePath: "path-dispatch",
-              preview: "Scheduler dispatches PID 4092 onto CPU Core 1",
-              mechanics: "The process is admitted to the run queue. The scheduler selects PID 4092 and switches the MMU CR3 pointer to its page table root.",
-              rationale: "Ensures uniform scheduling competition alongside other active system tasks.",
+              mode: "USER MODE (RING 3)",
+              component: "FILE SYSTEM SERVER",
+              switches: "2 (APP -> KERN -> FS)",
+              comm: "SYNCHRONOUS MICROKERNEL IPC",
+              activeBox: "box-userserver",
+              activePath: "arch-path-server-kernel",
+              preview: "FS server translates request and sends IPC to isolated NVMe driver",
+              mechanics: "The microkernel switches address spaces (CR3 swap) to run the File System Server. The FS daemon parses its internal directory structures and sends a secondary IPC to the isolated driver daemon.",
+              rationale: "Fault isolation: if the file system server encounters a memory bug or crashes, the core kernel and device drivers continue running uninterrupted.",
               definitions: [
-                { term: "Page Table Base (CR3/TTBR0)", desc: "The hardware register storing the physical base address of the active virtual-to-physical memory mapping hierarchy." },
-                { term: "Address Space Virtualization", desc: "Presenting each process with an illusion of contiguous private memory while sharing underlying physical RAM." }
+                { term: "TLB Invalidation", desc: "Flushing cached virtual-to-physical address translations caused by switching memory page tables between processes." },
+                { term: "Fault Domain", desc: "A bounded execution environment where software failures cannot propagate outward to compromise other modules." }
               ]
             },
             {
-              state: "RUNNING",
-              residence: "PHYSICAL DRAM",
-              cpu: "CORE 1 (EXECUTING)",
-              io: "NONE",
-              node: "node-RUNNING",
-              activePath: "path-exit",
-              preview: "Report finishes and process executes exit(0) system call",
-              mechanics: "Query processes all database records, formats the text report to standard output, and executes the exit() system call.",
-              rationale: "Explicit exit boundaries allow applications to signal completion and return numeric status codes to the parent process.",
+              mode: "USER MODE (RING 3)",
+              component: "USER-SPACE NVMe DRIVER",
+              switches: "4 (FS -> KERN -> DRV)",
+              comm: "CAPABILITY MMIO WRITE",
+              activeBox: "box-driver",
+              activePath: "arch-path-driver-hw",
+              preview: "Driver accesses memory-mapped I/O registers via kernel capability",
+              mechanics: "The driver daemon receives the block read request. Using memory pages mapped by the microkernel via explicit I/O capabilities, it programs the NVMe hardware doorbell.",
+              rationale: "Running device drivers in user space protects the system from the most common source of operating system crashes (buggy third-party peripheral code).",
               definitions: [
-                { term: "exit() System Call", desc: "The termination entrypoint where an application requests kernel deallocation of its execution context." },
-                { term: "Lifecycle Finalization", desc: "Structured teardown that ensures shared locks, memory, and devices are reliably recovered." }
-              ]
-            },
-            {
-              state: "TERMINATED",
-              residence: "RELEASED (DRAM FREED)",
-              cpu: "NONE (DEAD)",
-              io: "NONE",
-              node: "node-TERMINATED",
-              activePath: "",
-              preview: "Parent calls wait() to reap zombie PCB entry",
-              mechanics: "The OS deallocates virtual address space pages, closes open file descriptors, and retains only the PCB entry (Zombie state) containing the exit status until parent reaps it.",
-              rationale: "Preserves the exit return code until the creator process can collect it; prevents leaking PID table slots once wait() completes.",
-              definitions: [
-                { term: "Zombie / Defunct Process", desc: "A terminated process whose address space is freed but whose PCB remains to store the exit status code." },
-                { term: "Parent Synchronization", desc: "Enabling ancestor tasks to verify child job success or failure before finalizing accounting records." }
+                { term: "User-Space Driver", desc: "A device driver executing entirely in Ring 3, using hardware capabilities granted by the microkernel." },
+                { term: "I/O Privilege Level (IOPL)", desc: "Hardware flags dictating whether a user-mode task has permission to issue port or memory-mapped I/O." }
               ]
             }
           ],
-          "7": [
+          "hybrid": [
             {
-              state: "RUNNING",
-              residence: "PHYSICAL DRAM",
-              cpu: "CORE 1 (EXECUTING)",
-              io: "NONE",
-              node: "node-RUNNING",
-              activePath: "path-block",
-              preview: "Task issues blocking I/O while system memory reaches 99% capacity",
-              mechanics: "PID 4092 issues an I/O request. Simultaneously, severe system-wide memory exhaustion triggers the Medium-Term Scheduler (Swapper).",
-              rationale: "Operating systems must actively protect against memory thrashing when total active working sets exceed physical RAM.",
+              mode: "USER MODE (RING 3)",
+              component: "USER APPLICATION",
+              switches: "0",
+              comm: "LOCAL WIN32 INSTRUCTION",
+              activeBox: "box-app",
+              activePath: "arch-path-trap",
+              preview: "App calls Win32 ReadFile(), transitioning through ntdll.dll",
+              mechanics: "Application calls ReadFile(). Win32 subsystem DLLs format arguments and invoke NtReadFile() in ntdll.dll, issuing a syscall trap into the NT Executive.",
+              rationale: "Separates the operating system API personality (Win32, POSIX) from the underlying kernel executive primitives.",
               definitions: [
-                { term: "Medium-Term Scheduler", desc: "The kernel subsystem responsible for moving entire process working sets between physical DRAM and backing storage." },
-                { term: "Memory Overcommitment", desc: "Allocating more virtual memory than physically exists, relying on swapping to handle peaks." }
+                { term: "Environment Subsystem", desc: "User-space server processes (e.g. csrss.exe) presenting standardized operating system APIs to software." },
+                { term: "Native API (ntdll.dll)", desc: "The undocumented, low-level interface bridging Win32 subsystems directly to the NT executive." }
               ]
             },
             {
-              state: "BLOCKED",
-              residence: "PHYSICAL DRAM",
-              cpu: "NONE (BLOCKED)",
-              io: "PENDING",
-              node: "node-BLOCKED",
-              activePath: "path-swapout-blocked",
-              preview: "Swapper selects dormant blocked task and migrates memory to disk",
-              mechanics: "Because PID 4092 is blocked waiting on I/O, the swapper writes its private heap and stack pages out to the swap partition, reclaiming DRAM frames for active tasks.",
-              rationale: "Swapping out a blocked process frees RAM immediately without hurting current throughput, since the task cannot execute anyway until I/O completes.",
+              mode: "KERNEL MODE (RING 0)",
+              component: "NT EXECUTIVE & I/O MANAGER",
+              switches: "0 (NO ADDRESS SWITCH)",
+              comm: "I/O REQUEST PACKET (IRP)",
+              activeBox: "box-kernel",
+              activePath: "arch-path-kernel-driver",
+              preview: "I/O Manager allocates IRP and routes it down driver stack",
+              mechanics: "The NT I/O Manager creates an I/O Request Packet (IRP) representing the read request. It passes the IRP pointer down a chain of layered drivers (Filter -> NTFS -> Volume Manager).",
+              rationale: "Layered IRP routing allows security filters, antivirus monitors, and volume encryptors (BitLocker) to intercept operations transparently.",
               definitions: [
-                { term: "Swap Space / Backing Store", desc: "A dedicated raw disk partition or filesystem pagefile allocated for paging out process frames." },
-                { term: "Working-Set Eviction", desc: "Paging out memory of idle or waiting processes to prioritize resident space for CPU-active tasks." }
+                { term: "I/O Request Packet (IRP)", desc: "The core Windows NT data structure containing all metadata, buffers, and parameters for an asynchronous I/O request." },
+                { term: "Layered Driver Architecture", desc: "A stack of device drivers where higher layers perform transformations and pass requests downward." }
               ]
             },
             {
-              state: "BLOCKED / SUSPENDED",
-              residence: "SECONDARY DISK",
-              cpu: "NONE (SWAPPED)",
-              io: "PENDING (ON DISK)",
-              node: "node-BLOCKED_SUSP",
-              activePath: "path-event-disk",
-              preview: "Storage I/O completes while process memory is still on disk",
-              mechanics: "The storage controller asserts an interrupt signaling completion. The kernel marks the I/O as done in the PCB without paging memory back into RAM immediately.",
-              rationale: "Prevents wasteful premature page-ins. The kernel simply transitions the process from Blocked/Suspended to Ready/Suspended.",
+              mode: "KERNEL MODE (RING 0)",
+              component: "STORPORT & NVMe MINI-PORT",
+              switches: "0 (SAME CONTEXT)",
+              comm: "DIRECT CONTROLLER ACCESS",
+              activeBox: "box-driver",
+              activePath: "arch-path-driver-hw",
+              preview: "Miniport driver passes hardware command to physical NVMe controller",
+              mechanics: "The Storport driver routes the IRP to the NVMe miniport driver, which translates the request into hardware submission queue entries and rings the controller doorbell.",
+              rationale: "Executes performance-sensitive storage drivers inside Ring 0 to achieve parity with monolithic systems while preserving modularity.",
               definitions: [
-                { term: "Asynchronous Event Resolution", desc: "Updating kernel PCB metadata to reflect device completion without requiring memory restoration." },
-                { term: "Deferred Allocation", desc: "Avoiding expensive I/O transfers until the target resource is strictly guaranteed to run." }
+                { term: "Miniport Driver", desc: "A simplified, vendor-supplied driver that manages hardware specifics while a Microsoft class driver manages OS interactions." },
+                { term: "Asynchronous Completion Queue", desc: "Kernel mechanism notifying caller threads of completed IRPs without blocking execution." }
+              ]
+            }
+          ],
+          "exokernel": [
+            {
+              mode: "USER MODE (RING 3)",
+              component: "APP LINKED WITH LIBOS",
+              switches: "0",
+              comm: "IN-PROCESS LIBRARY CALL",
+              activeBox: "box-app",
+              activePath: "arch-path-trap",
+              preview: "App LibOS computes exact physical disk block and formats capability request",
+              mechanics: "The application's linked Library OS (LibOS) consults its custom embedded filesystem index, calculates the exact physical disk sector, and presents a capability token to the exokernel.",
+              rationale: "Eliminates generic OS abstractions. Applications customize storage layout, caching algorithms, and block scheduling directly.",
+              definitions: [
+                { term: "Library OS (LibOS)", desc: "Operating system services (file systems, network stacks) compiled as a user library linked directly into an application." },
+                { term: "Exokernel Multiplexing", desc: "Exporting raw physical hardware slices directly to user code while verifying access via capabilities." }
               ]
             },
             {
-              state: "READY / SUSPENDED",
-              residence: "SECONDARY DISK",
-              cpu: "NONE (READY ON DISK)",
-              io: "COMPLETED",
-              node: "node-READY_SUSP",
-              activePath: "path-swapin-ready",
-              preview: "Memory pressure eases; swapper pages working set back to DRAM",
-              mechanics: "Another high-memory job terminates. The medium-term scheduler detects available physical RAM and pages PID 4092's working set back into physical DRAM.",
-              rationale: "Balances memory allocation demand, moving the process to in-memory Ready so the short-term dispatcher can schedule it.",
+              mode: "KERNEL MODE (RING 0)",
+              component: "EXOKERNEL CORE",
+              switches: "0",
+              comm: "CAPABILITY VERIFICATION",
+              activeBox: "box-kernel",
+              activePath: "arch-path-driver-hw",
+              preview: "Exokernel verifies block capability and initiates hardware transfer",
+              mechanics: "The minimalist exokernel verifies that the application holds the valid cryptographic capability for the target disk block. Once validated, it grants access and programs the device.",
+              rationale: "Separates protection from management. The kernel guarantees safety and access rights, but the application decides how to manage data.",
               definitions: [
-                { term: "Demand Page-In", desc: "Reading process frames back from swap disk into newly allocated physical DRAM page frames." },
-                { term: "Two-Tier Scheduling", desc: "Separating long-term memory residence control from millisecond-level CPU quantum dispatching." }
-              ]
-            },
-            {
-              state: "READY",
-              residence: "PHYSICAL DRAM",
-              cpu: "NONE (IN QUEUE)",
-              io: "COMPLETED",
-              node: "node-READY",
-              activePath: "path-dispatch",
-              preview: "Scheduler dispatches reloaded process to complete calculation",
-              mechanics: "PID 4092 is fully restored in physical RAM and queued on the active run queue.",
-              rationale: "Completes the medium-term scheduling recovery loop with zero data loss or application crashes.",
-              definitions: [
-                { term: "Run Queue Enqueue", desc: "Appending a fully resident task structure to the active per-CPU scheduler run list." },
-                { term: "Fault Transparency", desc: "Providing the application with the complete illusion of uninterrupted execution despite memory paging." }
+                { term: "Protection vs. Management", desc: "The exokernel doctrine: the kernel only enforces resource isolation; applications manage all policies." },
+                { term: "Secure Binding", desc: "A hardware or software mechanism that locks a resource to an application without runtime kernel intervention." }
               ]
             }
           ]
         };
 
-        let currentModel = "3";
+        let currentArch = "monolithic";
         let currentStep = 0;
 
-        function refreshView() {
-          const modelData = scenarios[currentModel];
-          if (currentStep >= modelData.length) currentStep = 0;
-          const stepData = modelData[currentStep];
+        function refreshArchView() {
+          const archData = archWorkflows[currentArch];
+          if (currentStep >= archData.length) currentStep = 0;
+          const stepData = archData[currentStep];
 
           // 1. Update Telemetry
-          document.getElementById("telemetry-state").textContent = stepData.state;
-          document.getElementById("telemetry-residence").textContent = stepData.residence;
-          document.getElementById("telemetry-cpu").textContent = stepData.cpu;
-          document.getElementById("telemetry-io").textContent = stepData.io;
+          document.getElementById("telemetry-mode").textContent = stepData.mode;
+          document.getElementById("telemetry-component").textContent = stepData.component;
+          document.getElementById("telemetry-switches").textContent = stepData.switches;
+          document.getElementById("telemetry-comm").textContent = stepData.comm;
 
           // 2. Update Narrative Panes
-          document.getElementById("preview-text").textContent = stepData.preview;
-          document.getElementById("pane-mechanics").textContent = stepData.mechanics;
-          document.getElementById("pane-rationale").textContent = stepData.rationale;
+          document.getElementById("arch-preview-text").textContent = stepData.preview;
+          document.getElementById("arch-pane-mechanics").textContent = stepData.mechanics;
+          document.getElementById("arch-pane-rationale").textContent = stepData.rationale;
 
           // 3. Render Dedicated Definitions Container
-          const defsContainer = document.getElementById("pane-definitions");
+          const defsContainer = document.getElementById("arch-pane-definitions");
           defsContainer.innerHTML = "";
           stepData.definitions.forEach(item => {
             const card = document.createElement("div");
@@ -390,58 +734,57 @@ REVISED_STEPPER_BLOCK = r"""    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRA
             defsContainer.appendChild(card);
           });
 
-          // 4. Update Model Specific Elements Visibility
-          const is7 = currentModel === "7";
-          const is5or7 = currentModel === "5" || currentModel === "7";
+          // 4. Update Architectural Box Titles Based on Mode
+          const userServerBox = document.getElementById("box-userserver");
+          const kernelTitle = document.getElementById("label-kernel-title");
+          const kernelSub = document.getElementById("label-kernel-sub");
 
-          document.getElementById("disk-zone").style.display = is7 ? "block" : "none";
-          document.getElementById("disk-label").style.display = is7 ? "block" : "none";
-          document.getElementById("node-NEW").style.display = is5or7 ? "block" : "none";
-          document.getElementById("node-TERMINATED").style.display = is5or7 ? "block" : "none";
-          document.getElementById("path-admit").style.display = is5or7 ? "block" : "none";
-          document.getElementById("path-exit").style.display = is5or7 ? "block" : "none";
+          if (currentArch === "microkernel") {
+            userServerBox.style.display = "block";
+            kernelTitle.textContent = "Minimal Microkernel";
+            kernelSub.textContent = "IPC & Scheduling (Ring 0)";
+          } else if (currentArch === "exokernel") {
+            userServerBox.style.display = "none";
+            kernelTitle.textContent = "Exokernel Core";
+            kernelSub.textContent = "Resource Protection";
+          } else {
+            userServerBox.style.display = "none";
+            kernelTitle.textContent = "VFS & File System";
+            kernelSub.textContent = "Ring 0 Executive Core";
+          }
 
-          document.getElementById("node-READY_SUSP").style.display = is7 ? "block" : "none";
-          document.getElementById("node-BLOCKED_SUSP").style.display = is7 ? "block" : "none";
-          document.getElementById("path-swapout-ready").style.display = is7 ? "block" : "none";
-          document.getElementById("path-swapin-ready").style.display = is7 ? "block" : "none";
-          document.getElementById("path-swapout-blocked").style.display = is7 ? "block" : "none";
-          document.getElementById("path-swapin-blocked").style.display = is7 ? "block" : "none";
-          document.getElementById("path-event-disk").style.display = is7 ? "block" : "none";
-
-          // 5. Highlight Active Node
-          const allNodes = ["node-NEW", "node-READY", "node-RUNNING", "node-BLOCKED", "node-TERMINATED", "node-READY_SUSP", "node-BLOCKED_SUSP"];
-          allNodes.forEach(nid => {
-            const el = document.getElementById(nid);
+          // 5. Highlight Active Component Box
+          const allBoxes = ["box-app", "box-userserver", "box-kernel", "box-driver", "box-hardware"];
+          allBoxes.forEach(bid => {
+            const el = document.getElementById(bid);
             if (el) {
-              const circle = el.querySelector("circle");
-              if (circle) {
-                circle.removeAttribute("filter");
-                circle.style.strokeWidth = "2px";
+              const rect = el.querySelector("rect");
+              if (rect) {
+                rect.removeAttribute("filter");
+                rect.style.strokeWidth = "1.8px";
+                rect.style.stroke = "#cbd5e1";
               }
             }
           });
 
-          const activeNodeEl = document.getElementById(stepData.node);
-          if (activeNodeEl) {
-            const circle = activeNodeEl.querySelector("circle");
-            if (circle) {
-              circle.setAttribute("filter", "url(#active-glow)");
-              circle.style.strokeWidth = "3.5px";
+          const activeBoxEl = document.getElementById(stepData.activeBox);
+          if (activeBoxEl) {
+            const rect = activeBoxEl.querySelector("rect");
+            if (rect) {
+              rect.setAttribute("filter", "url(#arch-active-glow)");
+              rect.style.strokeWidth = "3px";
+              rect.style.stroke = "#0284c7";
             }
           }
 
-          // 6. Highlight Active Transition Path & Marker
-          const allPaths = [
-            "path-admit", "path-dispatch", "path-preempt", "path-block", "path-event", "path-exit",
-            "path-swapout-ready", "path-swapin-ready", "path-swapout-blocked", "path-swapin-blocked", "path-event-disk"
-          ];
+          // 6. Highlight Active Transition Path
+          const allPaths = ["arch-path-trap", "arch-path-app-server", "arch-path-server-kernel", "arch-path-kernel-driver", "arch-path-driver-hw"];
           allPaths.forEach(pid => {
             const pel = document.getElementById(pid);
             if (pel) {
               pel.style.stroke = "#cbd5e1";
               pel.style.strokeWidth = "2px";
-              pel.setAttribute("marker-end", "url(#step-arrow-default)");
+              pel.setAttribute("marker-end", "url(#arch-arrow-default)");
             }
           });
 
@@ -449,16 +792,16 @@ REVISED_STEPPER_BLOCK = r"""    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRA
             const activePathEl = document.getElementById(stepData.activePath);
             if (activePathEl) {
               activePathEl.style.stroke = "#0284c7";
-              activePathEl.style.strokeWidth = "3.5px";
-              activePathEl.setAttribute("marker-end", "url(#step-arrow-active)");
+              activePathEl.style.strokeWidth = "3px";
+              activePathEl.setAttribute("marker-end", "url(#arch-arrow-active)");
             }
           }
         }
 
-        // Event Listeners for Model Toggles
-        document.querySelectorAll(".model-toggle").forEach(btn => {
+        // Toggle Listeners
+        document.querySelectorAll(".arch-toggle").forEach(btn => {
           btn.addEventListener("click", function() {
-            document.querySelectorAll(".model-toggle").forEach(b => {
+            document.querySelectorAll(".arch-toggle").forEach(b => {
               b.style.background = "#ffffff";
               b.style.color = "#475569";
               b.style.borderColor = "#cbd5e1";
@@ -466,72 +809,63 @@ REVISED_STEPPER_BLOCK = r"""    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRA
             this.style.background = "#0284c7";
             this.style.color = "#ffffff";
             this.style.borderColor = "#0284c7";
-            currentModel = this.getAttribute("data-model");
+            currentArch = this.getAttribute("data-arch");
             currentStep = 0;
-            refreshView();
+            refreshArchView();
           });
         });
 
-        // Navigation Stepper Buttons
-        document.getElementById("btn-next-step").addEventListener("click", function() {
-          currentStep = (currentStep + 1) % scenarios[currentModel].length;
-          refreshView();
+        // Stepper Navigation
+        document.getElementById("btn-arch-next").addEventListener("click", function() {
+          currentStep = (currentStep + 1) % archWorkflows[currentArch].length;
+          refreshArchView();
         });
 
-        document.getElementById("btn-prev-step").addEventListener("click", function() {
-          currentStep = (currentStep - 1 + scenarios[currentModel].length) % scenarios[currentModel].length;
-          refreshView();
+        document.getElementById("btn-arch-prev").addEventListener("click", function() {
+          currentStep = (currentStep - 1 + archWorkflows[currentArch].length) % archWorkflows[currentArch].length;
+          refreshArchView();
         });
 
-        document.getElementById("btn-reset-step").addEventListener("click", function() {
+        document.getElementById("btn-arch-reset").addEventListener("click", function() {
           currentStep = 0;
-          refreshView();
+          refreshArchView();
         });
 
-        // Initial render
-        refreshView();
+        // Initial Paint
+        refreshArchView();
       })();
     </script>
+
+    <!-- Navigation Bar Bottom -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="03-os-concepts.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 03. OS Concepts</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">End of Week 1</span>
+    </nav>
+  </div>
+</body>
+</html>
 """
 
-def apply_definitions_layout_fix():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} not found.")
-        return
-
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    start_tag = "<!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->"
-    end_tag = "<h3>2. Address Spaces &amp; Virtual Memory"
-
-    if start_tag not in content or end_tag not in content:
-        print("--> Error: Could not locate interactive stepper boundaries.")
-        return
-
-    part_before = content.split(start_tag)[0]
-    part_after = content.split(end_tag)[1]
-
-    updated_content = f"{part_before}{REVISED_STEPPER_BLOCK}\n\n    {end_tag}{part_after}"
-
+def write_expanded_module_four():
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(updated_content)
+        f.write(EXPANDED_MODULE_04_HTML.strip() + "\n")
 
-    print(f"--> Successfully moved contextual definitions to dedicated section in {TARGET_FILE}.")
+    print(f"--> Successfully expanded {TARGET_FILE} with complete architectural curriculum.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Move contextual definitions to dedicated section in process stepper\n\n"
-            "Restructure the interactive process stepper in 03-os-concepts.html so\n"
-            "that context-based definitions render in an independent full-width\n"
-            "container directly beneath the paired analytical panes."
+            "Expand Module 4 with in-depth OS architectures and interactive stepper\n\n"
+            "Expand 04-os-structure.html to cover monolithic, layered, microkernel,\n"
+            "hybrid, exokernel, and hypervisor designs with a cross-architectural\n"
+            "comparison table and an interactive I/O dispatch stepper widget."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
+        print("--> Git sync completed successfully for Module 4 expansion!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    apply_definitions_layout_fix()
+    write_expanded_module_four()
