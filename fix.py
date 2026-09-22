@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add 7-state process model and SVG diagram to 03-os-concepts.html
+# fix.py: Add Interactive Pedagogical Stepper for Process Models
 # =====================================================================
 import os
 import subprocess
@@ -10,166 +10,429 @@ TARGET_FILE = os.path.join(
     "03-os-concepts.html"
 )
 
-SEVEN_STATE_SECTION = r"""    <h4>Virtual Memory Realities: The Seven-State Process Model</h4>
-    <p>
-      While the 5-state model accounts for lifecycle boundaries, it implicitly assumes that all active processes reside permanently in physical RAM. In reality, modern systems frequently face memory overcommitment—where the aggregate virtual address spaces of all runnable and blocked processes exceed physical DRAM capacity.
-    </p>
-    <p>
-      To prevent the system from crashing under memory exhaustion, the operating system introduces a <strong>Medium-Term Scheduler (The Swapper)</strong>. The swapper moves dormant or blocked processes from physical RAM to secondary backing stores (a swap partition, swapfile, or pagefile), introducing two distinct <strong>suspended states</strong> and giving rise to the classical <strong>Seven-State Model</strong>:
-    </p>
+INTERACTIVE_STEPPER_HTML = r"""
+    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
+    <div id="interactive-process-stepper" style="margin: 36px 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+          <h3 style="margin: 0; color: #0284c7; font-size: 1.25rem;">Interactive Simulator: Process Lifecycle Walkthrough</h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Scenario: Database query report execution (PID 4092) under severe memory contention and storage I/O.</p>
+        </div>
 
-    <ul>
-      <li><strong>Ready (In-Memory):</strong> The process resides in physical DRAM and is ready for the dispatcher to schedule onto an available CPU core.</li>
-      <li><strong>Blocked (In-Memory):</strong> The process resides in physical DRAM, but is waiting for an external event (I/O completion, timer, mutex).</li>
-      <li><strong>Blocked / Suspended (On Disk):</strong> The process was waiting for an event and, to relieve severe memory pressure, the OS swapped its address space out to disk. It cannot run even if a CPU is idle.</li>
-      <li><strong>Ready / Suspended (On Disk):</strong> The event the process was waiting for has completed, or a runnable process was swapped to disk. The process is ready to execute instructions immediately once the OS swaps its working set back into physical DRAM.</li>
-    </ul>
+        <!-- Comparative Dimension Toggles -->
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="model-toggle active" data-model="3" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer;">3-State</button>
+          <button type="button" class="model-toggle" data-model="5" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">5-State</button>
+          <button type="button" class="model-toggle" data-model="7" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">7-State</button>
+        </div>
+      </div>
 
-    <!-- Diagram 2c: Seven-State Process Lifecycle -->
-    <div style="display: flex; justify-content: center; margin: 28px 0;">
-      <svg viewBox="0 0 860 480" width="100%" height="100%" style="max-width: 860px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker id="trans7-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
-          </marker>
-          <marker id="trans7-arrow-slate" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-            <polygon points="0 1, 6 3.5, 0 6" fill="#64748b" />
-          </marker>
-          <marker id="trans7-arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-            <polygon points="0 1, 6 3.5, 0 6" fill="#ef4444" />
-          </marker>
-          <marker id="trans7-arrow-green" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-            <polygon points="0 1, 6 3.5, 0 6" fill="#059669" />
-          </marker>
-          <marker id="trans7-arrow-amber" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-            <polygon points="0 1, 6 3.5, 0 6" fill="#d97706" />
-          </marker>
-          <marker id="trans7-arrow-purple" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-            <polygon points="0 1, 6 3.5, 0 6" fill="#9333ea" />
-          </marker>
-          <filter id="node7-shadow" x="-8%" y="-8%" width="116%" height="116%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08" />
-          </filter>
-        </defs>
+      <!-- Live State Telemetry Status Bar -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin-bottom: 18px; font-family: var(--font-mono); font-size: 0.8rem;">
+        <div><span style="color: #64748b;">CURRENT STATE:</span> <strong id="telemetry-state" style="color: #0284c7;">READY</strong></div>
+        <div><span style="color: #64748b;">RESIDENCE:</span> <strong id="telemetry-residence" style="color: #059669;">PHYSICAL DRAM</strong></div>
+        <div><span style="color: #64748b;">ACTIVE CPU:</span> <strong id="telemetry-cpu" style="color: #475569;">NONE (IN QUEUE)</strong></div>
+        <div><span style="color: #64748b;">PENDING I/O:</span> <strong id="telemetry-io" style="color: #475569;">NONE</strong></div>
+      </div>
 
-        <!-- Canvas Background Zones -->
-        <!-- In-Memory Zone -->
-        <rect x="15" y="40" width="830" height="230" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="4,4" />
-        <text x="30" y="60" fill="#475569" font-size="9" font-weight="700">PRIMARY MEMORY (PHYSICAL RAM - ACTIVE)</text>
+      <!-- Synchronized Visual Canvas -->
+      <div style="display: flex; justify-content: center; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 6px; padding: 12px; margin-bottom: 18px;">
+        <svg id="stepper-svg" viewBox="0 0 820 340" width="100%" height="100%" style="max-width: 820px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="step-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#94a3b8" id="arrow-polygon" />
+            </marker>
+            <filter id="active-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#0284c7" flood-opacity="0.6" />
+            </filter>
+          </defs>
 
-        <!-- Swapped Backing Store Zone -->
-        <rect x="15" y="290" width="830" height="170" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-dasharray="4,4" />
-        <text x="30" y="310" fill="#475569" font-size="9" font-weight="700">SECONDARY STORAGE (SWAPFILE / BACKING STORE - SUSPENDED)</text>
+          <!-- Bounds Guide -->
+          <rect id="dram-zone" x="10" y="20" width="800" height="175" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-dasharray="4,4" />
+          <text id="dram-label" x="25" y="38" fill="#94a3b8" font-size="8.5" font-weight="700">PRIMARY MEMORY (PHYSICAL RAM)</text>
 
-        <!-- 1. NEW STATE -->
-        <g transform="translate(75, 135)" filter="url(#node7-shadow)">
-          <circle cx="0" cy="0" r="38" fill="#ffffff" stroke="#94a3b8" stroke-width="2" />
-          <text x="0" y="-4" fill="#334155" font-size="11" font-weight="700" text-anchor="middle">NEW</text>
-          <text x="0" y="10" fill="#64748b" font-size="7.5" text-anchor="middle">Created</text>
-        </g>
+          <rect id="disk-zone" x="10" y="215" width="800" height="110" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="4,4" style="display: none;" />
+          <text id="disk-label" x="25" y="232" fill="#94a3b8" font-size="8.5" font-weight="700" style="display: none;">SECONDARY STORAGE (SWAPFILE ON DISK)</text>
 
-        <!-- Transition: New -> Ready -->
-        <path d="M 113,135 L 182,135" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#trans7-arrow-blue)" />
-        <text x="147" y="127" fill="#0369a1" font-size="7.5" font-weight="700" text-anchor="middle">Admit</text>
+          <!-- SVG Paths for Transitions -->
+          <!-- 3-State / 5-State / 7-State Top Flow -->
+          <path id="path-admit" d="M 105,105 L 180,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
+          <path id="path-dispatch" d="M 245,90 C 315,60 415,60 485,90" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" />
+          <path id="path-preempt" d="M 485,120 C 415,150 315,150 245,120" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#step-arrow)" />
+          <path id="path-block" d="M 545,115 C 575,130 635,160 670,165" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" />
+          <path id="path-event" d="M 680,105 C 640,40 310,35 235,80" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" />
+          <path id="path-exit" d="M 545,90 C 585,45 680,45 745,85" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
 
-        <!-- Transition: New -> Ready/Suspended (Direct Admit to Swap) -->
-        <path d="M 95,168 C 115,225 150,335 202,370" fill="none" stroke="#9333ea" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#trans7-arrow-purple)" />
-        <text x="125" y="270" fill="#7e22ce" font-size="7" font-weight="600">Admit (Overcommit)</text>
+          <!-- 7-State Paths -->
+          <path id="path-swapout-ready" d="M 210,145 L 210,240" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
+          <path id="path-swapin-ready" d="M 235,240 L 235,145" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
+          <path id="path-swapout-blocked" d="M 690,145 L 690,240" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
+          <path id="path-swapin-blocked" d="M 715,240 L 715,145" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
+          <path id="path-event-disk" d="M 660,270 L 275,270" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
 
-        <!-- 2. READY STATE (In-Memory) -->
-        <g transform="translate(225, 135)" filter="url(#node7-shadow)">
-          <circle cx="0" cy="0" r="42" fill="#eff6ff" stroke="#0284c7" stroke-width="2" />
-          <text x="0" y="-4" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">READY</text>
-          <text x="0" y="10" fill="#64748b" font-size="7.5" text-anchor="middle">In Memory</text>
-        </g>
+          <!-- Circular State Nodes -->
+          <!-- NEW -->
+          <g id="node-NEW" transform="translate(70, 105)" style="display: none;">
+            <circle cx="0" cy="0" r="35" fill="#ffffff" stroke="#94a3b8" stroke-width="2" />
+            <text x="0" y="-3" fill="#334155" font-size="10.5" font-weight="700" text-anchor="middle">NEW</text>
+            <text x="0" y="11" fill="#64748b" font-size="7.5" text-anchor="middle">Creating</text>
+          </g>
 
-        <!-- 3. RUNNING STATE -->
-        <g transform="translate(500, 135)" filter="url(#node7-shadow)">
-          <circle cx="0" cy="0" r="42" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
-          <text x="0" y="-4" fill="#065f46" font-size="11" font-weight="700" text-anchor="middle">RUNNING</text>
-          <text x="0" y="10" fill="#047857" font-size="7.5" text-anchor="middle">On CPU Core</text>
-        </g>
+          <!-- READY -->
+          <g id="node-READY" transform="translate(210, 105)">
+            <circle cx="0" cy="0" r="38" fill="#eff6ff" stroke="#0284c7" stroke-width="2" />
+            <text x="0" y="-3" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">READY</text>
+            <text x="0" y="11" fill="#64748b" font-size="7.5" text-anchor="middle">Run Queue</text>
+          </g>
 
-        <!-- Transition: Ready -> Running (Dispatch) -->
-        <path d="M 264,120 C 330,95 395,95 461,120" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#trans7-arrow-blue)" />
-        <text x="362" y="96" fill="#0369a1" font-size="8" font-weight="700" text-anchor="middle">Dispatch</text>
+          <!-- RUNNING -->
+          <g id="node-RUNNING" transform="translate(515, 105)">
+            <circle cx="0" cy="0" r="38" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+            <text x="0" y="-3" fill="#065f46" font-size="11" font-weight="700" text-anchor="middle">RUNNING</text>
+            <text x="0" y="11" fill="#047857" font-size="7.5" text-anchor="middle">CPU Core 1</text>
+          </g>
 
-        <!-- Transition: Running -> Ready (Preempt) -->
-        <path d="M 461,150 C 395,175 330,175 264,150" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#trans7-arrow-slate)" />
-        <text x="362" y="180" fill="#475569" font-size="8" font-weight="600" text-anchor="middle">Timeout / Preempt</text>
+          <!-- BLOCKED -->
+          <g id="node-BLOCKED" transform="translate(700, 105)">
+            <circle cx="0" cy="0" r="38" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
+            <text x="0" y="-3" fill="#991b1b" font-size="11" font-weight="700" text-anchor="middle">BLOCKED</text>
+            <text x="0" y="11" fill="#b91c1c" font-size="7.5" text-anchor="middle">Wait on I/O</text>
+          </g>
 
-        <!-- 4. BLOCKED STATE (In-Memory) -->
-        <g transform="translate(670, 135)" filter="url(#node7-shadow)">
-          <circle cx="0" cy="0" r="42" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
-          <text x="0" y="-4" fill="#991b1b" font-size="11" font-weight="700" text-anchor="middle">BLOCKED</text>
-          <text x="0" y="10" fill="#b91c1c" font-size="7.5" text-anchor="middle">In Memory</text>
-        </g>
+          <!-- TERMINATED -->
+          <g id="node-TERMINATED" transform="translate(770, 105)" style="display: none;">
+            <circle cx="0" cy="0" r="32" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
+            <text x="0" y="-2" fill="#92400e" font-size="9.5" font-weight="700" text-anchor="middle">EXIT</text>
+            <text x="0" y="10" fill="#78350f" font-size="7" text-anchor="middle">Zombie</text>
+          </g>
 
-        <!-- Transition: Running -> Blocked -->
-        <path d="M 542,135 L 626,135" fill="none" stroke="#ef4444" stroke-width="1.8" marker-end="url(#trans7-arrow-red)" />
-        <text x="584" y="127" fill="#b91c1c" font-size="7.5" font-weight="700" text-anchor="middle">Event Wait</text>
+          <!-- 7-State Swapped Nodes -->
+          <!-- READY / SUSPENDED -->
+          <g id="node-READY_SUSP" transform="translate(230, 270)" style="display: none;">
+            <circle cx="0" cy="0" r="36" fill="#faf5ff" stroke="#9333ea" stroke-width="2" />
+            <text x="0" y="-6" fill="#7e22ce" font-size="8" font-weight="700" text-anchor="middle">READY /</text>
+            <text x="0" y="6" fill="#7e22ce" font-size="8" font-weight="700" text-anchor="middle">SUSPENDED</text>
+          </g>
 
-        <!-- Transition: Blocked -> Ready -->
-        <path d="M 660,95 C 630,60 310,40 240,96" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#trans7-arrow-green)" />
-        <text x="450" y="58" fill="#065f46" font-size="7.5" font-weight="700" text-anchor="middle">Event Occurred</text>
+          <!-- BLOCKED / SUSPENDED -->
+          <g id="node-BLOCKED_SUSP" transform="translate(700, 270)" style="display: none;">
+            <circle cx="0" cy="0" r="36" fill="#fff1f2" stroke="#e11d48" stroke-width="2" />
+            <text x="0" y="-6" fill="#be123c" font-size="8" font-weight="700" text-anchor="middle">BLOCKED /</text>
+            <text x="0" y="6" fill="#be123c" font-size="8" font-weight="700" text-anchor="middle">SUSPENDED</text>
+          </g>
+        </svg>
+      </div>
 
-        <!-- Transition: Running -> Terminated -->
-        <path d="M 500,93 L 500,45 C 500,30 750,30 775,88" fill="none" stroke="#d97706" stroke-width="1.8" marker-end="url(#trans7-arrow-amber)" />
-        <text x="740" y="44" fill="#92400e" font-size="7.5" font-weight="700" text-anchor="middle">Exit / Release</text>
+      <!-- Foreshadowed Navigation & Controls -->
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px;">
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="btn-prev-step" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; border-radius: 5px; cursor: pointer;">&larr; Prev</button>
+          <button type="button" id="btn-next-step" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; border-radius: 5px; cursor: pointer;">Next Step &rarr;</button>
+          <button type="button" id="btn-reset-step" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; border-radius: 5px; cursor: pointer;">Reset</button>
+        </div>
 
-        <!-- 5. TERMINATED STATE -->
-        <g transform="translate(780, 135)" filter="url(#node7-shadow)">
-          <circle cx="0" cy="0" r="38" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
-          <text x="0" y="-4" fill="#92400e" font-size="10.5" font-weight="700" text-anchor="middle">TERMINATED</text>
-          <text x="0" y="10" fill="#78350f" font-size="7" text-anchor="middle">Zombie</text>
-        </g>
+        <!-- Inline Preview of Next Action -->
+        <div style="font-size: 0.85rem; color: #334155;">
+          <span style="color: #64748b; font-weight: 600;">UPCOMING TRANSITION:</span> <span id="preview-text" style="font-weight: 700; color: #0284c7;">Scheduler dispatches PID 4092 onto CPU Core 1</span>
+        </div>
+      </div>
 
-        <!-- ==================== SWAPPED STATES (LOWER TIER) ==================== -->
+      <!-- Paired Analytical Panes -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div style="border: 1px solid #bae6fd; background: #f0f9ff; border-radius: 6px; padding: 16px;">
+          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">1. What Is Happening (Mechanics &amp; Data Flow)</div>
+          <div id="pane-mechanics" style="font-size: 0.9rem; color: #1e293b; line-height: 1.5;">
+            PID 4092 sits in the ready queue. The kernel scheduler issues a context switch, popping register state and loading the CR3 page directory base onto CPU Core 1.
+          </div>
+        </div>
 
-        <!-- 6. READY / SUSPENDED -->
-        <g transform="translate(245, 385)" filter="url(#node7-shadow)">
-          <circle cx="0" cy="0" r="44" fill="#faf5ff" stroke="#9333ea" stroke-width="2" />
-          <text x="0" y="-10" fill="#7e22ce" font-size="9.5" font-weight="700" text-anchor="middle">READY /</text>
-          <text x="0" y="4" fill="#7e22ce" font-size="9.5" font-weight="700" text-anchor="middle">SUSPENDED</text>
-          <text x="0" y="18" fill="#6b21a8" font-size="7" text-anchor="middle">(On Disk)</text>
-        </g>
-
-        <!-- 7. BLOCKED / SUSPENDED -->
-        <g transform="translate(670, 385)" filter="url(#node7-shadow)">
-          <circle cx="0" cy="0" r="44" fill="#fff1f2" stroke="#e11d48" stroke-width="2" />
-          <text x="0" y="-10" fill="#be123c" font-size="9.5" font-weight="700" text-anchor="middle">BLOCKED /</text>
-          <text x="0" y="4" fill="#be123c" font-size="9.5" font-weight="700" text-anchor="middle">SUSPENDED</text>
-          <text x="0" y="18" fill="#9f1239" font-size="7" text-anchor="middle">(On Disk)</text>
-        </g>
-
-        <!-- Vertical Swap Transitions: Ready <-> Ready/Suspended -->
-        <path d="M 215,177 L 215,340" fill="none" stroke="#9333ea" stroke-width="1.8" marker-end="url(#trans7-arrow-purple)" />
-        <text x="180" y="255" fill="#7e22ce" font-size="7.5" font-weight="700" text-anchor="middle">Suspend (Swap Out)</text>
-
-        <path d="M 245,340 L 245,178" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#trans7-arrow-blue)" />
-        <text x="282" y="255" fill="#0369a1" font-size="7.5" font-weight="700" text-anchor="middle">Activate (Swap In)</text>
-
-        <!-- Vertical Swap Transitions: Blocked <-> Blocked/Suspended -->
-        <path d="M 660,177 L 660,340" fill="none" stroke="#e11d48" stroke-width="1.8" marker-end="url(#trans7-arrow-red)" />
-        <text x="625" y="255" fill="#be123c" font-size="7.5" font-weight="700" text-anchor="middle">Suspend (Swap Out)</text>
-
-        <path d="M 685,340 L 685,178" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#trans7-arrow-green)" />
-        <text x="722" y="255" fill="#065f46" font-size="7.5" font-weight="700" text-anchor="middle">Activate (Swap In)</text>
-
-        <!-- Horizontal Transition on Disk: Blocked/Suspended -> Ready/Suspended -->
-        <path d="M 625,385 L 291,385" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#trans7-arrow-green)" />
-        <rect x="405" y="375" width="115" height="18" rx="3" fill="#ffffff" stroke="#86efac" />
-        <text x="462" y="388" fill="#065f46" font-size="7.5" font-weight="700" text-anchor="middle">Event Occurs (While Swapped)</text>
-      </svg>
+        <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 16px;">
+          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #92400e; text-transform: uppercase; margin-bottom: 6px;">2. Why The System Does This (Rationale &amp; Trade-offs)</div>
+          <div id="pane-rationale" style="font-size: 0.9rem; color: #78350f; line-height: 1.5;">
+            Decouples CPU allocation policy from program execution. The dispatcher prioritizes interactive responsiveness and turnaround fairness without requiring the program to know when it gets executed.
+          </div>
+        </div>
+      </div>
     </div>
 
-    <h4>Key Swapping Dynamics in the Seven-State Model</h4>
-    <ul>
-      <li><strong>Autonomous Event Completion in Storage:</strong> Notice the horizontal transition from <code>Blocked/Suspended</code> to <code>Ready/Suspended</code>. When a hardware I/O request finishes for a swapped-out process, the interrupt service routine updates the PCB in kernel memory immediately—moving it to the Ready/Suspended queue without requiring an expensive page-in until memory pressure subsides.</li>
-      <li><strong>Swapping Policy Trade-offs:</strong> The OS prioritizes swapping out <em>Blocked</em> processes over <em>Ready</em> ones, as blocked jobs cannot utilize CPU cycles anyway. However, if severe memory starvation persists, even Ready processes are suspended to allow remaining tasks to finish without destructive page thrashing.</li>
-    </ul>"""
+    <!-- Stepper Logic Script -->
+    <script>
+      (function() {
+        // Scenarios for 3-State, 5-State, and 7-State Models
+        const scenarios = {
+          "3": [
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "NONE",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler allocates time slice on CPU Core 1",
+              mechanics: "PID 4092 resides in the kernel run queue. The scheduler selects it, loads its saved registers (RIP, RSP, RAX) from its Process Control Block into the CPU, and executes return-from-trap.",
+              rationale: "Separates policy (which job to schedule) from mechanism (context switch execution). Allows CPU time-sharing among multiple resident tasks."
+            },
+            {
+              state: "RUNNING",
+              residence: "PHYSICAL DRAM",
+              cpu: "CORE 1 (EXECUTING)",
+              io: "NONE",
+              node: "node-RUNNING",
+              activePath: "path-block",
+              preview: "Database query issues read() for table index on NVMe SSD",
+              mechanics: "The program executes user-space arithmetic. It then encounters a database index lookup not cached in memory, prompting a read() system call that traps into kernel mode.",
+              rationale: "Limited Direct Execution allows native CPU speed during calculations while preventing unrestricted peripheral hardware access by trapping into Ring 0."
+            },
+            {
+              state: "BLOCKED",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (YIELDED)",
+              io: "PENDING (NVMe READ)",
+              node: "node-BLOCKED",
+              activePath: "path-event",
+              preview: "Storage controller raises interrupt upon finishing data transfer",
+              mechanics: "The kernel marks PID 4092 as BLOCKED, moves it from the run queue to the NVMe device wait queue, and dispatches another ready task to keep the CPU 100% utilized.",
+              rationale: "Maximizes CPU utilization. Waiting synchronously for storage takes millions of CPU cycles; the OS immediately swaps in another task to overlap computation with I/O."
+            },
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "COMPLETED",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler picks PID 4092 to resume processing the read buffer",
+              mechanics: "The storage controller asserts an interrupt line. The kernel's Interrupt Service Routine (ISR) copies data into the buffer and transitions PID 4092 back to the READY run queue.",
+              rationale: "Interrupt-driven event loops eliminate busy-waiting polling, allowing the OS to wake only the exact processes whose prerequisite events have finished."
+            }
+          ],
+          "5": [
+            {
+              state: "NEW",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (CREATING)",
+              io: "NONE",
+              node: "node-NEW",
+              activePath: "path-admit",
+              preview: "Kernel admits initialized process into scheduler run queue",
+              mechanics: "Parent process calls fork()/CreateProcess(). The OS allocates a new PCB (PID 4092), initializes virtual memory page tables, loads the binary executable header, but has not yet placed it on the run queue.",
+              rationale: "Prevents half-initialized tasks from being picked by the dispatcher before address bounds and security tokens are fully established."
+            },
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "NONE",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler dispatches PID 4092 onto CPU Core 1",
+              mechanics: "The process is admitted to the run queue. The scheduler selects PID 4092 and switches the MMU CR3 pointer to its page table root.",
+              rationale: "Ensures uniform scheduling competition alongside other active system tasks."
+            },
+            {
+              state: "RUNNING",
+              residence: "PHYSICAL DRAM",
+              cpu: "CORE 1 (EXECUTING)",
+              io: "NONE",
+              node: "node-RUNNING",
+              activePath: "path-exit",
+              preview: "Report finishes and process executes exit(0) system call",
+              mechanics: "Query processes all database records, formats the text report to standard output, and executes the exit() system call.",
+              rationale: "Explicit exit boundaries allow applications to signal completion and return numeric status codes to the parent process."
+            },
+            {
+              state: "TERMINATED",
+              residence: "RELEASED (DRAM FREED)",
+              cpu: "NONE (DEAD)",
+              io: "NONE",
+              node: "node-TERMINATED",
+              activePath: "",
+              preview: "Parent calls wait() to reap zombie PCB entry",
+              mechanics: "The OS deallocates virtual address space pages, closes open file descriptors, and retains only the PCB entry (Zombie state) containing the exit status until parent reaps it.",
+              rationale: "Preserves the exit return code until the creator process can collect it; prevents leaking PID table slots once wait() completes."
+            }
+          ],
+          "7": [
+            {
+              state: "RUNNING",
+              residence: "PHYSICAL DRAM",
+              cpu: "CORE 1 (EXECUTING)",
+              io: "NONE",
+              node: "node-RUNNING",
+              activePath: "path-block",
+              preview: "Task issues blocking I/O while system memory reaches 99% capacity",
+              mechanics: "PID 4092 issues an I/O request. Simultaneously, severe system-wide memory exhaustion triggers the Medium-Term Scheduler (Swapper).",
+              rationale: "Operating systems must actively protect against memory thrashing when total active working sets exceed physical RAM."
+            },
+            {
+              state: "BLOCKED",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (BLOCKED)",
+              io: "PENDING",
+              node: "node-BLOCKED",
+              activePath: "path-swapout-blocked",
+              preview: "Swapper selects dormant blocked task and migrates memory to disk",
+              mechanics: "Because PID 4092 is blocked waiting on I/O, the swapper writes its private heap and stack pages out to the swap partition, reclaiming DRAM frames for active tasks.",
+              rationale: "Swapping out a blocked process frees RAM immediately without hurting current throughput, since the task cannot execute anyway until I/O completes."
+            },
+            {
+              state: "BLOCKED / SUSPENDED",
+              residence: "SECONDARY DISK",
+              cpu: "NONE (SWAPPED)",
+              io: "PENDING (ON DISK)",
+              node: "node-BLOCKED_SUSP",
+              activePath: "path-event-disk",
+              preview: "Storage I/O completes while process memory is still on disk",
+              mechanics: "The storage controller asserts an interrupt signaling completion. The kernel marks the I/O as done in the PCB without paging memory back into RAM immediately.",
+              rationale: "Prevents wasteful premature page-ins. The kernel simply transitions the process from Blocked/Suspended to Ready/Suspended."
+            },
+            {
+              state: "READY / SUSPENDED",
+              residence: "SECONDARY DISK",
+              cpu: "NONE (READY ON DISK)",
+              io: "COMPLETED",
+              node: "node-READY_SUSP",
+              activePath: "path-swapin-ready",
+              preview: "Memory pressure eases; swapper pages working set back to DRAM",
+              mechanics: "Another high-memory job terminates. The medium-term scheduler detects available physical RAM and pages PID 4092's working set back into physical DRAM.",
+              rationale: "Balances memory allocation demand, moving the process to in-memory Ready so the short-term dispatcher can schedule it."
+            },
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "COMPLETED",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler dispatches reloaded process to complete calculation",
+              mechanics: "PID 4092 is fully restored in physical RAM and queued on the active run queue.",
+              rationale: "Completes the medium-term scheduling recovery loop with zero data loss or application crashes."
+            }
+          ]
+        };
 
-def update_process_lifecycle_section():
+        let currentModel = "3";
+        let currentStep = 0;
+
+        function refreshView() {
+          const modelData = scenarios[currentModel];
+          if (currentStep >= modelData.length) currentStep = 0;
+          const stepData = modelData[currentStep];
+
+          // 1. Update Telemetry
+          document.getElementById("telemetry-state").textContent = stepData.state;
+          document.getElementById("telemetry-residence").textContent = stepData.residence;
+          document.getElementById("telemetry-cpu").textContent = stepData.cpu;
+          document.getElementById("telemetry-io").textContent = stepData.io;
+
+          // 2. Update Narrative Panes
+          document.getElementById("preview-text").textContent = stepData.preview;
+          document.getElementById("pane-mechanics").textContent = stepData.mechanics;
+          document.getElementById("pane-rationale").textContent = stepData.rationale;
+
+          // 3. Update Model Specific Elements Visibility
+          const is7 = currentModel === "7";
+          const is5or7 = currentModel === "5" || currentModel === "7";
+
+          document.getElementById("disk-zone").style.display = is7 ? "block" : "none";
+          document.getElementById("disk-label").style.display = is7 ? "block" : "none";
+          document.getElementById("node-NEW").style.display = is5or7 ? "block" : "none";
+          document.getElementById("node-TERMINATED").style.display = is5or7 ? "block" : "none";
+          document.getElementById("path-admit").style.display = is5or7 ? "block" : "none";
+          document.getElementById("path-exit").style.display = is5or7 ? "block" : "none";
+
+          document.getElementById("node-READY_SUSP").style.display = is7 ? "block" : "none";
+          document.getElementById("node-BLOCKED_SUSP").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapout-ready").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapin-ready").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapout-blocked").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapin-blocked").style.display = is7 ? "block" : "none";
+          document.getElementById("path-event-disk").style.display = is7 ? "block" : "none";
+
+          // 4. Highlight Active Node
+          const allNodes = ["node-NEW", "node-READY", "node-RUNNING", "node-BLOCKED", "node-TERMINATED", "node-READY_SUSP", "node-BLOCKED_SUSP"];
+          allNodes.forEach(nid => {
+            const el = document.getElementById(nid);
+            if (el) {
+              const circle = el.querySelector("circle");
+              if (circle) {
+                circle.removeAttribute("filter");
+                circle.style.strokeWidth = "2px";
+              }
+            }
+          });
+
+          const activeNodeEl = document.getElementById(stepData.node);
+          if (activeNodeEl) {
+            const circle = activeNodeEl.querySelector("circle");
+            if (circle) {
+              circle.setAttribute("filter", "url(#active-glow)");
+              circle.style.strokeWidth = "3.5px";
+            }
+          }
+
+          // 5. Highlight Active Transition Path
+          const allPaths = [
+            "path-admit", "path-dispatch", "path-preempt", "path-block", "path-event", "path-exit",
+            "path-swapout-ready", "path-swapin-ready", "path-swapout-blocked", "path-swapin-blocked", "path-event-disk"
+          ];
+          allPaths.forEach(pid => {
+            const pel = document.getElementById(pid);
+            if (pel) {
+              pel.style.stroke = "#cbd5e1";
+              pel.style.strokeWidth = "2px";
+            }
+          });
+
+          if (stepData.activePath) {
+            const activePathEl = document.getElementById(stepData.activePath);
+            if (activePathEl) {
+              activePathEl.style.stroke = "#0284c7";
+              activePathEl.style.strokeWidth = "3.5px";
+            }
+          }
+        }
+
+        // Event Listeners for Toggles
+        document.querySelectorAll(".model-toggle").forEach(btn => {
+          btn.addEventListener("click", function() {
+            document.querySelectorAll(".model-toggle").forEach(b => {
+              b.style.background = "#ffffff";
+              b.style.color = "#475569";
+              b.style.borderColor = "#cbd5e1";
+            });
+            this.style.background = "#0284c7";
+            this.style.color = "#ffffff";
+            this.style.borderColor = "#0284c7";
+            currentModel = this.getAttribute("data-model");
+            currentStep = 0;
+            refreshView();
+          });
+        });
+
+        // Navigation Stepper Buttons
+        document.getElementById("btn-next-step").addEventListener("click", function() {
+          currentStep = (currentStep + 1) % scenarios[currentModel].length;
+          refreshView();
+        });
+
+        document.getElementById("btn-prev-step").addEventListener("click", function() {
+          currentStep = (currentStep - 1 + scenarios[currentModel].length) % scenarios[currentModel].length;
+          refreshView();
+        });
+
+        document.getElementById("btn-reset-step").addEventListener("click", function() {
+          currentStep = 0;
+          refreshView();
+        });
+
+        // Initial paint
+        refreshView();
+      })();
+    </script>
+"""
+
+def insert_interactive_stepper():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -177,51 +440,34 @@ def update_process_lifecycle_section():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Search for the old seven-state placeholder/section
-    # In earlier scripts, it started with <h4>Virtual Memory Realities: The Seven-State Model</h4>
-    # and ended right before <h3>2. Address Spaces
-    old_start = "<h4>Virtual Memory Realities: The Seven-State Model</h4>"
+    # Place the interactive stepper right after the Seven-State Model section
+    # and directly before Section 2: Address Spaces
     sec2_start = "<h3>2. Address Spaces &amp; Virtual Memory"
+    if sec2_start not in content:
+        print(f"Error: Could not find '{sec2_start}' in {TARGET_FILE}.")
+        return
 
-    if old_start in content and sec2_start in content:
-        part_before = content.split(old_start)[0]
-        part_after = content.split(sec2_start)[1]
-        content = f"{part_before}{SEVEN_STATE_SECTION}\n\n    {sec2_start}{part_after}"
-        print("--> Replaced older seven-state placeholder with full 7-state model and diagram.")
-    else:
-        # Fallback: look for </svg>\n    </div> before Section 2
-        sec2_pos = content.find(sec2_start)
-        if sec2_pos != -1:
-            # Find the closing </div> of Diagram 2b
-            prev_div = content.rfind("</div>", 0, sec2_pos)
-            if prev_div != -1:
-                content = content[:prev_div + 6] + "\n\n" + SEVEN_STATE_SECTION + "\n\n    " + content[sec2_pos:]
-                print("--> Appended 7-state section using relative diagram anchor.")
-            else:
-                print("--> Error: Could not locate insertion point before Section 2.")
-                return
-        else:
-            print(f"--> Error: Could not locate Section 2 in {TARGET_FILE}.")
-            return
+    parts = content.split(sec2_start, 1)
+    updated_content = f"{parts[0]}{INTERACTIVE_STEPPER_HTML}\n\n    {sec2_start}{parts[1]}"
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
+        f.write(updated_content)
 
-    print(f"--> Saved complete 7-state process model to {TARGET_FILE}.")
+    print(f"--> Successfully integrated Interactive Pedagogical Stepper into {TARGET_FILE}.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add comprehensive seven-state process model and diagram to Module 3\n\n"
-            "Expand Section 1 of 03-os-concepts.html to detail the seven-state model\n"
-            "governing medium-term scheduling, swapping, and suspended states under\n"
-            "memory pressure, complete with a dedicated two-tier SVG diagram."
+            "Add interactive process lifecycle stepper to Module 3\n\n"
+            "Implement an interactive Directed Narrative Stepper in 03-os-concepts.html\n"
+            "supporting 3-state, 5-state, and 7-state models with live telemetry,\n"
+            "synchronized SVG nodes, and paired mechanical/rationale panes."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for Seven-State model!")
+        print("--> Git sync completed successfully for Interactive Stepper!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_process_lifecycle_section()
+    insert_interactive_stepper()
