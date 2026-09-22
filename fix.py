@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create week02-processes/index.html aligned with OSTEP & Tanenbaum
+# fix.py: Create week02-processes/index.html matching Week 1 index structure
 # =====================================================================
 import os
 import subprocess
@@ -8,12 +8,12 @@ import subprocess
 TARGET_DIR = "week02-processes"
 TARGET_FILE = os.path.join(TARGET_DIR, "index.html")
 
-WEEK02_HTML_CONTENT = r"""<!DOCTYPE html>
+WEEK02_INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 2: Processes, Concurrency &amp; CPU Virtualization | COSC240</title>
+  <title>Week 2: Processes &amp; Concurrency -- COSC240</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -101,12 +101,6 @@ WEEK02_HTML_CONTENT = r"""<!DOCTYPE html>
       margin-top: 28px;
       margin-bottom: 12px;
     }
-    h3 {
-      font-size: 1.15rem;
-      color: #1e293b;
-      margin-top: 20px;
-      margin-bottom: 8px;
-    }
     p {
       color: var(--text-muted);
       line-height: 1.6;
@@ -120,47 +114,16 @@ WEEK02_HTML_CONTENT = r"""<!DOCTYPE html>
       margin-bottom: 12px;
     }
     li {
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
-    code {
-      font-family: var(--font-mono);
-      font-size: 0.88rem;
-      background-color: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: #0369a1;
-    }
-    .diagram-container {
-      display: flex;
-      justify-content: center;
-      margin: 24px 0;
-      width: 100%;
-      overflow-x: auto;
-    }
-    .aside-box {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 20px 0;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-      font-size: 0.92rem;
-      background: #ffffff;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 10px 14px;
-      text-align: left;
-    }
-    th {
-      background-color: #f1f5f9;
-      color: #1e293b;
+    a.module-link {
+      color: var(--accent);
+      text-decoration: none;
       font-weight: 600;
+    }
+    a.module-link:hover {
+      text-decoration: underline;
+      color: var(--accent-hover);
     }
   </style>
 </head>
@@ -169,7 +132,7 @@ WEEK02_HTML_CONTENT = r"""<!DOCTYPE html>
 
     <nav class="module-nav-bar">
       <div>
-        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: OS Concepts</a>
+        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: Operating System Concepts</a>
       </div>
       <div>
         <span style="font-size: 0.85rem; font-weight: 600; color: #334155;">COSC240 Operating Systems</span>
@@ -180,41 +143,45 @@ WEEK02_HTML_CONTENT = r"""<!DOCTYPE html>
     </nav>
 
     <header>
-      <h1>Week 2: Processes, Concurrency &amp; CPU Virtualization</h1>
-      <p class="subtitle">Limited Direct Execution, Process APIs, CPU Scheduling Metrics, and Multi-Level Feedback Queues.</p>
+      <h1>Week 2: Processes &amp; Concurrency</h1>
+      <p class="subtitle">CPU Virtualization, Limited Direct Execution, Process APIs, and Scheduling Foundations.</p>
     </header>
 
     <article class="module-body">
       <p>
-        Building upon the hardware and foundational concepts explored in Week 1, Week 2 dives deep into how operating systems virtualize the Central Processing Unit (CPU). Grounded in the pedagogical frameworks of <em>Operating Systems: Three Easy Pieces</em> (OSTEP) and Andrew Tanenbaum's <em>Modern Operating Systems</em>, this week examines how the kernel multiplexes a finite number of physical CPU cores across dozens of concurrent processes using <strong>Limited Direct Execution (LDE)</strong>, rigorous process creation APIs, and sophisticated scheduling algorithms.
+        Welcome to Week 2 of COSC240. Following our review of computer hardware and architectural abstractions in Week 1, this week investigates how operating systems virtualize the CPU to support concurrent execution. Grounded in the pedagogical frameworks of <em>Operating Systems: Three Easy Pieces</em> (OSTEP) and Andrew Tanenbaum's <em>Modern Operating Systems</em>, these modules explore how kernels multiplex physical hardware across multiple active processes.
       </p>
 
-      <h2>Week 2 Module Overview</h2>
+      <h2>Week 2 Module Directory</h2>
       <ul>
-        <li><strong>Module 01: The Abstraction &amp; Limited Direct Execution (LDE)</strong> — How the OS runs code directly on the bare CPU while retaining absolute control via hardware traps and timer interrupts.</li>
-        <li><strong>Module 02: Process APIs &amp; Lifecycle Control</strong> — Exploring POSIX process creation (<code>fork()</code>, <code>exec()</code>, <code>wait()</code>) and process teardown.</li>
-        <li><strong>Module 03: CPU Scheduling Metrics &amp; Classical Algorithms</strong> — Evaluating turnaround time, response time, FIFO, SJF, STCF, and Round Robin scheduling.</li>
-        <li><strong>Module 04: Advanced Scheduling: Multi-Level Feedback Queues (MLFQ)</strong> — How production kernels balance interactive responsiveness and batch throughput without a priori job length knowledge.</li>
+        <li>
+          <strong>01. <a href="01-limited-direct-execution.html" class="module-link">Limited Direct Execution (LDE)</a>:</strong>
+          Examines how the OS runs programs directly on bare silicon while retaining absolute control via hardware traps, return-from-trap assembly routines, and timer interrupts.
+        </li>
+        <li>
+          <strong>02. <a href="02-process-api.html" class="module-link">Process APIs &amp; Lifecycle Control</a>:</strong>
+          Explores POSIX process creation primitives (<code>fork()</code>, <code>exec()</code>, <code>wait()</code>, <code>exit()</code>) and process teardown dynamics.
+        </li>
+        <li>
+          <strong>03. <a href="03-cpu-scheduling.html" class="module-link">CPU Scheduling Metrics &amp; Algorithms</a>:</strong>
+          Evaluates core performance metrics (turnaround time, response time, fairness) and classical scheduling algorithms including FIFO, SJF, STCF, and Round Robin.
+        </li>
+        <li>
+          <strong>04. <a href="04-mlfq.html" class="module-link">Multi-Level Feedback Queues (MLFQ)</a>:</strong>
+          Analyzes how production schedulers balance interactive responsiveness and batch throughput dynamically without requiring a priori job length knowledge.
+        </li>
       </ul>
-
-      <div class="aside-box" style="border-left-color: #0284c7; background: #f0f9ff;">
-        <strong style="color: #0369a1; font-size: 1rem;">OSTEP Core Tenet: Virtualizing the CPU</strong>
-        <p style="margin-top: 8px; color: #334155; line-height: 1.55;">
-          As Remzi Arpaci-Dusseau emphasizes in OSTEP, the OS creates the illusion of an infinite number of CPUs by virtualizing the physical processor. To achieve this with minimal performance degradation, the kernel employs <strong>Limited Direct Execution</strong>—allowing programs to execute directly on the hardware silicon until hardware-enforced traps or timer interrupts wrest control back to supervisor mode.
-        </p>
-      </div>
-
     </article>
 
     <nav class="module-nav-bar bottom">
       <div>
-        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: OS Concepts</a>
+        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: Operating System Concepts</a>
       </div>
       <div>
-        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&#127968; Week 1 Root</a>
+        <span style="font-size: 0.85rem; font-weight: 600; color: #334155;">Week 2: Processes &amp; Concurrency</span>
       </div>
       <div>
-        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Week 2 In Progress</span>
+        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Next Week &rarr;</span>
       </div>
     </nav>
 
@@ -226,16 +193,16 @@ WEEK02_HTML_CONTENT = r"""<!DOCTYPE html>
 def generate_week_two_index():
     os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(WEEK02_HTML_CONTENT.strip() + "\n")
+        f.write(WEEK02_INDEX_HTML.strip() + "\n")
 
-    print(f"--> Successfully created {TARGET_FILE} aligned with OSTEP & Tanenbaum.")
+    print(f"--> Successfully created {TARGET_FILE} matching Week 1 index structure.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Create and structure week02-processes/index.html following OSTEP and Tanenbaum\n\n"
-            "Establish the foundation for Week 2 covering processes, CPU virtualization,\n"
-            "scheduling metrics, and concurrency frameworks based on OSTEP and Tanenbaum."
+            "Create week02-processes/index.html matching Week 1 module index structure\n\n"
+            "Establish the Week 2 landing page with standard card layout, module links,\n"
+            "and OSTEP/Tanenbaum alignment."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
