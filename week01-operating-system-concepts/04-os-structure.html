@@ -374,7 +374,7 @@
       </table>
     </div>
 
-        <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
+    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
     <div id="interactive-os-stepper" style="margin: 36px 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
         <div>
@@ -509,9 +509,9 @@
           <button type="button" id="btn-arch-reset" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; border-radius: 5px; cursor: pointer;">Reset</button>
         </div>
 
-        <!-- Inline Preview of Next Action -->
+        <!-- Inline Preview of Active Step (Stage Explanation) -->
         <div style="font-size: 0.85rem; color: #334155;">
-          <span style="color: #64748b; font-weight: 600;">UPCOMING TRANSITION:</span> <span id="arch-preview-text" style="font-weight: 700; color: #0284c7;">Application executes syscall trap into kernel mode</span>
+          <span style="color: #64748b; font-weight: 600;">Stage Explanation:</span> <span id="arch-preview-text" style="font-weight: 700; color: #0284c7;">Application executes syscall trap into kernel mode</span>
         </div>
       </div>
 
@@ -530,7 +530,7 @@
         </div>
       </div>
 
-      <!-- Dedicated Contextual Definitions Section (Underneath on its own) -->
+      <!-- Dedicated Contextual Definitions Section -->
       <div style="border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; padding: 16px;">
         <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Contextual Definitions &amp; Architectural Concepts</div>
         <div id="arch-pane-definitions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;"></div>
@@ -881,7 +881,6 @@
         refreshArchView();
       })();
     </script>
-
 
     <!-- Navigation Bar Bottom -->
     <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
