@@ -401,173 +401,173 @@
           const pipeStorylines = {
             pipeline: [
               {
-                cycle: "Cycle 1", phase: "The Spark: Fetching I1", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                cycle: "Cycle 1", phase: "Instruction Fetch (IF)", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
                 fetch: "I1: LOAD R1, [A]", decode: "Idle (Bubble)", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
                 activeStages: ["pipe-node-fetch"], forwardingActive: false,
-                consoleTop: "THE STORY BEGINS • CLOCK CYCLE 1",
-                consoleMid: "The Program Counter points to 0x00401000. I1 is pulled into the fetch stage.",
-                consoleSub: "The processor wakes up, eager to load the first vector element.",
-                inlinePreview: "<strong>The Journey Begins:</strong> The CPU asserts address <code>0x00401000</code> on the instruction bus. Instruction <code>I1 (LOAD R1, [A])</code> is pulled from memory into the fetch latch, while downstream stages sit quiet.",
-                what: "The instruction fetch unit asserts the PC on the address bus, latching the first machine instruction into the pipeline registers.",
-                why: "Processors require an initial pipeline fill latency before functional units can operate at peak cadence."
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 1",
+                consoleMid: "I1 is fetched from memory address 0x00401000 into the Instruction Register.",
+                consoleSub: "Downstream pipeline latches are currently empty.",
+                inlinePreview: "<strong>The Spark of Execution:</strong> The Program Counter asserts address <code>0x00401000</code> onto the system bus. Instruction <code>I1 (LOAD R1, [A])</code> is pulled from memory into the fetch latch, while the downstream decoding and execution units wait quietly in anticipation.",
+                what: "The CPU begins execution by asserting Program Counter 0x00401000 on the instruction bus, latching I1 into the Instruction Fetch stage.",
+                why: "A pipeline requires a brief fill latency before all stages populate. Control logic disables downstream writes until execution reaches steady-state."
               },
               {
-                cycle: "Cycle 2", phase: "Decoding & Fetching Next", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                cycle: "Cycle 2", phase: "Fetch & Decode Stages", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
                 fetch: "I2: LOAD R2, [B]", decode: "I1: LOAD R1, [A]", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode"], forwardingActive: false,
-                consoleTop: "PARALLEL MOMENTUM • CLOCK CYCLE 2",
-                consoleMid: "I1 enters Decode; I2 is fetched from memory right behind it.",
-                consoleSub: "The control logic begins unpacking opcodes and register operands.",
-                inlinePreview: "<strong>Unpacking Intent:</strong> Instruction <code>I1</code> moves into the decode stage to unpack its operands, while the fetch unit immediately grabs <code>I2 (LOAD R2, [B])</code> to keep the pipeline fed.",
-                what: "The control unit decodes I1's opcode while the fetch unit retrieves the second instruction concurrently.",
-                why: "Overlapping fetch and decode operations ensures the execution units never starve for work."
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 2",
+                consoleMid: "I1 enters Decode; I2 enters Fetch.",
+                consoleSub: "Hardware decodes LOAD opcode while fetching next word.",
+                inlinePreview: "<strong>Unpacking Intent:</strong> Instruction <code>I1</code> shifts into the decode stage, where control hardware unpacks its <code>LOAD</code> opcode and isolates register operands. Right behind it, the fetch engine grabs <code>I2 (LOAD R2, [B])</code> to keep the pipeline fed.",
+                what: "I1 shifts into Instruction Decode while Fetch retrieves I2: LOAD R2, [B].",
+                why: "Functional units operate concurrently without structural collision, increasing instruction throughput."
               },
               {
-                cycle: "Cycle 3", phase: "Encountering Dependencies", retired: "0 / 4", ipc: "0.00 IPC", hazard: "RAW Hazard Managed",
+                cycle: "Cycle 3", phase: "Fetch, Decode, & Execute", retired: "0 / 4", ipc: "0.00 IPC", hazard: "RAW Hazard Managed",
                 fetch: "I3: MUL R3, R1, R2", decode: "I2: LOAD R2, [B]", exec: "I1: LOAD R1, [A]", wb: "Idle (Bubble)",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode", "pipe-node-exec"], forwardingActive: true,
-                consoleTop: "THE DEPENDENCY WEB • CLOCK CYCLE 3",
-                consoleMid: "I1 calculates address in ALU; I3 arrives needing R1 before it's written.",
-                consoleSub: "The hazard unit activates the internal data forwarding bypass path.",
-                inlinePreview: "<strong>The Plot Thickens:</strong> Instruction <code>I1</code> calculates its memory address in the ALU. Meanwhile, incoming instruction <code>I3</code> demands value <code>R1</code>. Because <code>I1</code> hasn't reached writeback yet, the hardware primes a <strong>forwarding bypass</strong>.",
-                what: "The execution unit computes I1's memory address while the hazard unit detects a Read-After-Write (RAW) dependency for I3.",
-                why: "Modern CPUs avoid catastrophic pipeline stalls by piping ALU results directly back into dependent instruction inputs."
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 3",
+                consoleMid: "I1 executes address calculation; I3 is fetched.",
+                consoleSub: "Hazard unit primes forwarding bypass for R1.",
+                inlinePreview: "<strong>The Plot Thickens:</strong> Instruction <code>I1</code> calculates its memory address inside the ALU. Meanwhile, incoming instruction <code>I3</code> arrives demanding value <code>R1</code>. Sensing the dependency before <code>I1</code> writes back, the hardware routes a <strong>data forwarding bypass</strong> directly from the ALU output.",
+                what: "I1 moves to Execute. The hazard unit detects I3 requires R1 before I1 updates the register file.",
+                why: "Internal bypass multiplexer buses route the calculated value directly from ALU output into I3 without stalling."
               },
               {
-                cycle: "Cycle 4", phase: "Steady-State Harmony", retired: "1 / 4", ipc: "0.25 IPC", hazard: "Forwarding Active",
+                cycle: "Cycle 4", phase: "Steady-State Full Pipeline", retired: "1 / 4", ipc: "0.25 IPC", hazard: "Forwarding Active",
                 fetch: "I4: ADD R4, R4, R3", decode: "I3: MUL R3, R1, R2", exec: "I2: LOAD R2, [B]", wb: "I1: LOAD R1, [A]",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode", "pipe-node-exec", "pipe-node-wb"], forwardingActive: true,
-                consoleTop: "SYMPHONY IN MOTION • CLOCK CYCLE 4",
-                consoleMid: "All four stages hum simultaneously. I1 writes back R1 and retires.",
-                consoleSub: "The instruction throughput engine reaches full steady-state velocity.",
-                inlinePreview: "<strong>Full Throttle:</strong> All four pipeline stages are now humming simultaneously! Instruction <code>I1</code> writes its loaded data into register <code>R1</code> and successfully retires.",
-                what: "All pipeline stages are occupied. I1 commits its results to the register file and retires.",
-                why: "Once fully primed, a pipelined architecture successfully retires one instruction per clock cycle."
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 4 (FULL PIPELINE)",
+                consoleMid: "I1 writes back R1 and retires. All stages occupied.",
+                consoleSub: "Pipeline reaches full steady-state utilization (1.0 IPC).",
+                inlinePreview: "<strong>Symphony in Motion:</strong> All four pipeline stages hum simultaneously! Instruction <code>I1</code> completes writeback, committing its loaded value into register <code>R1</code> and officially retiring from active duty.",
+                what: "All 4 stages are occupied. I1 writes back to R1 and retires. I4 enters Fetch.",
+                why: "From this point forward, the core retires one instruction every clock cycle."
               },
               {
-                cycle: "Cycle 5", phase: "The Multiplication Array", retired: "2 / 4", ipc: "0.40 IPC", hazard: "Forwarding Active",
+                cycle: "Cycle 5", phase: "Pipeline Drain & Multiply", retired: "2 / 4", ipc: "0.40 IPC", hazard: "Forwarding Active",
                 fetch: "Drained", decode: "I4: ADD R4, R4, R3", exec: "I3: MUL R3, R1, R2", wb: "I2: LOAD R2, [B]",
                 activeStages: ["pipe-node-decode", "pipe-node-exec", "pipe-node-wb"], forwardingActive: true,
-                consoleTop: "CRUNCHING NUMBERS • CLOCK CYCLE 5",
-                consoleMid: "I2 retires; I3 enters the heavy multiplier array in the ALU.",
-                consoleSub: "Multiplication units execute deep pipelined arithmetic.",
-                inlinePreview: "<strong>Heavy Computation:</strong> Instruction <code>I2</code> retires via writeback. Instruction <code>I3</code> plunges into the ALU's multiplier array to calculate <code>R1 &times; R2</code> utilizing the forwarded data.",
-                what: "I2 writes back and retires while I3 performs vector multiplication in the arithmetic logic unit.",
-                why: "Complex arithmetic operations like multiplication require dedicated multi-stage execution logic."
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 5",
+                consoleMid: "I2 writes back R2; I3 multiplies R1*R2 in ALU.",
+                consoleSub: "Remaining operations drain down the pipe.",
+                inlinePreview: "<strong>Crunching Numbers:</strong> Instruction <code>I2</code> writes back and retires. Simultaneously, instruction <code>I3</code> plunges into the ALU's multiplier array to compute <code>R1 &times; R2</code> utilizing the forwarded register data.",
+                what: "I2 writes back and retires. I3 enters the ALU multiplier array to compute R1 * R2.",
+                why: "Multiplication circuits are deeply pipelined to maintain high clock frequencies."
               },
               {
-                cycle: "Cycle 6", phase: "Accumulating the Sum", retired: "3 / 4", ipc: "0.50 IPC", hazard: "None",
+                cycle: "Cycle 6", phase: "Pipeline Drain & Accumulate", retired: "3 / 4", ipc: "0.50 IPC", hazard: "None",
                 fetch: "Drained", decode: "Drained", exec: "I4: ADD R4, R4, R3", wb: "I3: MUL R3, R1, R2",
                 activeStages: ["pipe-node-exec", "pipe-node-wb"], forwardingActive: false,
-                consoleTop: "THE CRESCENT ACCUMULATOR • CLOCK CYCLE 6",
-                consoleMid: "I3 writes product R3; I4 accumulates into final sum R4.",
-                consoleSub: "The vector dot product loop nears its culmination.",
-                inlinePreview: "<strong>Accumulation:</strong> Instruction <code>I3</code> writes its product into <code>R3</code> and retires. Immediately, <code>I4</code> takes that product and adds it into accumulator register <code>R4</code>.",
-                what: "I3 commits its multiplication product to R3 and retires. I4 adds R3 into the running sum register R4.",
-                why: "Accumulator loops rely on tight chaining between multiplication products and sum registers."
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 6",
+                consoleMid: "I3 writes back R3; I4 adds R4 + R3.",
+                consoleSub: "Accumulator stage computing final sum.",
+                inlinePreview: "<strong>The Accumulator Chain:</strong> Instruction <code>I3</code> writes its multiplication product into <code>R3</code> and retires. Instantly, instruction <code>I4</code> takes that product and adds it into running accumulator register <code>R4</code>.",
+                what: "I3 writes its product into R3 and retires. I4 adds R3 into accumulator R4.",
+                why: "Forwarding allowed I4 to begin execution immediately following I3's ALU phase."
               },
               {
-                cycle: "Cycle 7", phase: "Grand Finale: Workload Complete", retired: "4 / 4", ipc: "0.57 IPC", hazard: "None",
+                cycle: "Cycle 7", phase: "Workload Complete", retired: "4 / 4", ipc: "0.57 IPC", hazard: "None",
                 fetch: "Idle", decode: "Idle", exec: "Idle", wb: "I4: ADD R4, R4, R3",
                 activeStages: ["pipe-node-wb"], forwardingActive: false,
-                consoleTop: "MISSION ACCOMPLISHED • CLOCK CYCLE 7",
-                consoleMid: "I4 writes back final sum R4. All 4 instructions successfully retired.",
-                consoleSub: "The vector calculation concludes with high hardware efficiency.",
-                inlinePreview: "<strong>Mission Accomplished:</strong> Instruction <code>I4</code> commits the final sum to <code>R4</code> and retires. Four instructions completed in just 7 cycles instead of 16 unpipelined cycles!",
-                what: "I4 completes writeback and retires. The vector multiply-accumulate sequence successfully terminates.",
-                why: "Hardware pipelining achieves dramatic performance multipliers without requiring higher clock frequencies."
+                consoleTop: "STANDARD 4-STAGE PIPELINE • CLOCK CYCLE 7 (COMPLETE)",
+                consoleMid: "I4 writes back final sum to R4. All 4 instructions retired.",
+                consoleSub: "Total execution: 7 cycles for 4 instructions.",
+                inlinePreview: "<strong>Mission Accomplished:</strong> Instruction <code>I4</code> completes writeback, committing the final sum to register <code>R4</code> and retiring. All four instructions finish triumphantly in 7 clock cycles!",
+                what: "I4 writes back to R4 and retires. Total execution took 7 cycles vs 16 unpipelined cycles.",
+                why: "Pipelining achieves nearly a 400% speedup over sequential execution for vector loops."
               }
             ],
             superscalar: [
               {
-                cycle: "Cycle 1", phase: "Dual-Issue Ignition", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                cycle: "Cycle 1", phase: "Dual-Issue Fetch", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
                 fetch: "I1 & I2 (Dual-Issue)", decode: "Idle (Bubble)", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
                 activeStages: ["pipe-node-fetch"], forwardingActive: false,
-                consoleTop: "WIDE-BODY FETCH • CLOCK CYCLE 1",
-                consoleMid: "The wide instruction fetcher pulls both I1 and I2 simultaneously.",
-                consoleSub: "Two instructions enter the execution pipeline in lockstep.",
-                inlinePreview: "<strong>Dual-Issue Ignition:</strong> Instead of fetching a single instruction, the wide superscalar fetcher pulls both <code>I1</code> and <code>I2</code> simultaneously in a single clock tick.",
-                what: "The wide instruction cache fetches two independent instructions concurrently.",
-                why: "Superscalar architectures duplicate execution pathways to break the single-instruction-per-cycle barrier."
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 1",
+                consoleMid: "Wide fetcher reads both I1 and I2 simultaneously.",
+                consoleSub: "Dual instruction queues primed.",
+                inlinePreview: "<strong>Wide-Body Ignition:</strong> The wide superscalar fetcher shatters single-issue limits by pulling both <code>I1</code> and <code>I2</code> simultaneously from the instruction cache in a single clock tick.",
+                what: "The wide instruction fetch unit pulls both I1 and I2 simultaneously in a single cycle.",
+                why: "Superscalar processors build parallel pipelines side-by-side, achieving IPC > 1.0."
               },
               {
-                cycle: "Cycle 2", phase: "Parallel Scoreboarding", retired: "0 / 4", ipc: "0.00 IPC", hazard: "Scoreboard Validated",
+                cycle: "Cycle 2", phase: "Dual Decode & Fetch", retired: "0 / 4", ipc: "0.00 IPC", hazard: "Scoreboard Validated",
                 fetch: "I3 & I4 (Dual-Issue)", decode: "I1 & I2 (Dual Decode)", exec: "Idle (Bubble)", wb: "Idle (Bubble)",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode"], forwardingActive: false,
-                consoleTop: "PARALLEL DECODE • CLOCK CYCLE 2",
-                consoleMid: "Dual decoders verify register independence while I3 & I4 fetch.",
-                consoleSub: "The hardware scoreboard checks for structural hazards.",
-                inlinePreview: "<strong>Independent Tracks:</strong> Dual decoders analyze <code>I1</code> and <code>I2</code> in parallel while the fetch engine grabs <code>I3</code> and <code>I4</code>. The hardware scoreboard confirms zero register collisions.",
-                what: "Dual instruction decoders process two streams concurrently while checking dependency scoreboards.",
-                why: "Parallel decoding ensures instructions sharing no dependencies can execute without waiting."
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 2",
+                consoleMid: "I1 & I2 decode simultaneously; I3 & I4 fetched.",
+                consoleSub: "Scoreboard validates register independence.",
+                inlinePreview: "<strong>Parallel Tracks:</strong> Dual decoders process <code>I1</code> and <code>I2</code> side-by-side while the fetch unit grabs <code>I3</code> and <code>I4</code>. The internal hardware scoreboard verifies zero register collisions.",
+                what: "Dual decoders process I1 and I2 in parallel while I3 and I4 are fetched side-by-side.",
+                why: "Dependency matrices confirm I1 and I2 target different registers and execute concurrently."
               },
               {
-                cycle: "Cycle 3", phase: "Dual Memory Ports", retired: "2 / 4", ipc: "1.00 IPC", hazard: "Dual Load Active",
+                cycle: "Cycle 3", phase: "Dual Memory Load", retired: "2 / 4", ipc: "1.00 IPC", hazard: "Dual Load Active",
                 fetch: "Drained", decode: "I3 & I4 (Dual Decode)", exec: "I1 & I2 (Dual Load)", wb: "Idle (Bubble)",
                 activeStages: ["pipe-node-decode", "pipe-node-exec"], forwardingActive: true,
-                consoleTop: "DUAL MEMORY BUS • CLOCK CYCLE 3",
-                consoleMid: "Dual load execution units fetch both operands in parallel.",
-                consoleSub: "Cache banking feeds twin execution channels.",
-                inlinePreview: "<strong>Twin Load Ports:</strong> Dual execution units simultaneously service <code>I1</code> and <code>I2</code>, pulling memory inputs across split cache banks with zero bus contention.",
-                what: "Twin execution ports execute memory loads for both instructions simultaneously.",
-                why: "Multi-ported cache architectures prevent memory bottlenecks during wide instruction dispatch."
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 3",
+                consoleMid: "Dual execution units service I1 & I2.",
+                consoleSub: "Reorder Buffer tracks in-flight instructions.",
+                inlinePreview: "<strong>Twin Load Ports:</strong> Dual memory read channels execute simultaneously across split cache banks, fetching both input numbers from memory in a single clock tick.",
+                what: "Dual memory read channels retrieve both input numbers from memory at the exact same moment.",
+                why: "Partitioning L1 caches into multiple banks prevents memory bottlenecks."
               },
               {
-                cycle: "Cycle 4", phase: "Simultaneous Retirement", retired: "4 / 4", ipc: "1.00 IPC", hazard: "None",
+                cycle: "Cycle 4", phase: "Dual Retirement", retired: "4 / 4", ipc: "1.00 IPC", hazard: "None",
                 fetch: "Idle", decode: "Idle", exec: "I3 (MUL) & I4 (ADD)", wb: "I1 & I2 Retired",
                 activeStages: ["pipe-node-exec", "pipe-node-wb"], forwardingActive: false,
-                consoleTop: "SUPERSCALAR TRIUMPH • CLOCK CYCLE 4 (COMPLETE)",
-                consoleMid: "All instructions finish and retire in pairs. Total: 4 cycles.",
-                consoleSub: "Maximum instruction-level parallelism achieved.",
-                inlinePreview: "<strong>Superscalar Triumph:</strong> Instructions <code>I3</code> and <code>I4</code> complete their math and retire alongside their peers. The entire workload finishes in a blistering 4 cycles!",
-                what: "Instructions complete execution in parallel pairs and retire through the Reorder Buffer.",
-                why: "Superscalar execution maximizes silicon utilization by dispatching multiple instructions per clock cycle."
+                consoleTop: "DUAL-ISSUE SUPERSCALAR • CLOCK CYCLE 4 (COMPLETE)",
+                consoleMid: "I3 and I4 finish execution and retire simultaneously.",
+                consoleSub: "Total execution: 4 clock cycles.",
+                inlinePreview: "<strong>Superscalar Triumph:</strong> Instructions <code>I3</code> and <code>I4</code> complete their arithmetic and retire together through the Reorder Buffer. The entire workload concludes in a blistering 4 cycles!",
+                what: "I3 and I4 complete execution and retire together through the Reorder Buffer in 4 cycles.",
+                why: "Parallel dispatching overcomes single-issue pipeline throughput limits."
               }
             ],
             multicore: [
               {
-                cycle: "Cycle 1", phase: "Spawning Across Dies", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                cycle: "Cycle 1", phase: "Thread Partitioning", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
                 fetch: "Core 0: I1 | Core 1: I2", decode: "Empty", exec: "Empty", wb: "Empty",
                 activeStages: ["pipe-node-fetch"], forwardingActive: false,
-                consoleTop: "SMP MULTIPROCESSOR • CLOCK CYCLE 1",
-                consoleMid: "The OS scheduler dispatches Iteration A to Core 0 and Iteration B to Core 1.",
-                consoleSub: "True hardware multitasking across separate silicon dies.",
-                inlinePreview: "<strong>Dividing the Realm:</strong> The operating system scheduler splits the workload, assigning iteration <code>I1</code> to <strong>Core 0</strong> and iteration <code>I2</code> to <strong>Core 1</strong> simultaneously.",
-                what: "The operating system kernel assigns distinct thread workloads to separate physical processor cores.",
-                why: "Multicore architectures achieve true thread-level parallelism (TLP) rather than relying solely on instruction-level tricks."
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 1",
+                consoleMid: "OS dispatches Iteration A to Core 0 and Iteration B to Core 1.",
+                consoleSub: "Two independent silicon cores with private caches.",
+                inlinePreview: "<strong>Dividing the Realm:</strong> The operating system scheduler splits the workload, dispatching loop iteration <code>I1</code> to <strong>Core 0</strong> and iteration <code>I2</code> to <strong>Core 1</strong> across separate silicon dies.",
+                what: "The OS divides the workload across two separate CPU cores.",
+                why: "Multicore systems feature completely separate execution pipelines, eliminating dependency stalls."
               },
               {
-                cycle: "Cycle 2", phase: "Independent Execution Dies", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
+                cycle: "Cycle 2", phase: "Parallel Core Decoding", retired: "0 / 4", ipc: "0.00 IPC", hazard: "None",
                 fetch: "Core 0: I3 | Core 1: I4", decode: "Core 0: I1 | Core 1: I2", exec: "Empty", wb: "Empty",
                 activeStages: ["pipe-node-fetch", "pipe-node-decode"], forwardingActive: false,
-                consoleTop: "SMP MULTIPROCESSOR • CLOCK CYCLE 2",
-                consoleMid: "Both cores decode their assigned thread instructions in parallel.",
-                consoleSub: "Private L1 instruction caches operate independently.",
-                inlinePreview: "<strong>Autonomous Realms:</strong> Both cores decode their respective instructions in parallel using dedicated private L1 caches, completely isolated from each other's execution quirks.",
-                what: "Both physical cores execute decode stages independently using private on-die resources.",
-                why: "Private core caches eliminate cross-core resource contention and bus arbitration delays."
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 2",
+                consoleMid: "Both cores decode simultaneously.",
+                consoleSub: "MESI cache coherency protocol active.",
+                inlinePreview: "<strong>Autonomous Execution:</strong> Both physical cores decode their respective thread instructions in parallel, relying on dedicated private L1 caches without interfering with each other.",
+                what: "Both cores decode their instructions simultaneously using dedicated L1 caches.",
+                why: "Private L1 caches prevent memory access contention between cores."
               },
               {
-                cycle: "Cycle 3", phase: "Parallel Memory Operations", retired: "2 / 4", ipc: "0.67 IPC", hazard: "MESI Coherent",
+                cycle: "Cycle 3", phase: "Parallel Memory Loads", retired: "2 / 4", ipc: "0.67 IPC", hazard: "MESI Clean",
                 fetch: "Drained", decode: "Core 0: I3 | Core 1: I4", exec: "Core 0: I1 | Core 1: I2", wb: "Empty",
                 activeStages: ["pipe-node-decode", "pipe-node-exec"], forwardingActive: false,
-                consoleTop: "SMP MULTIPROCESSOR • CLOCK CYCLE 3",
-                consoleMid: "Core 0 and Core 1 complete memory loads concurrently.",
-                consoleSub: "Cache coherency bus snooping ensures data consistency.",
-                inlinePreview: "<strong>Concurrent Memory:</strong> Core 0 and Core 1 both complete their memory loads at the exact same moment. Hardware bus snooping maintains a unified view of system memory.",
-                what: "Both cores execute memory load operations in parallel while cache controllers maintain coherency.",
-                why: "Symmetric multiprocessing scales computational throughput linearly with physical core count."
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 3",
+                consoleMid: "Core 0 and Core 1 retire loads simultaneously.",
+                consoleSub: "Cache coherence snoops shared interconnect.",
+                inlinePreview: "<strong>Concurrent Memory Access:</strong> Core 0 and Core 1 both complete their memory loads concurrently. Hardware bus snooping monitors the shared interconnect to maintain cache consistency.",
+                what: "Both cores complete memory loads in parallel and retire their initial instructions.",
+                why: "Multicore architectures scale throughput without increasing clock frequencies."
               },
               {
                 cycle: "Cycle 4", phase: "Multiprocessing Complete", retired: "4 / 4", ipc: "1.00 IPC", hazard: "None",
                 fetch: "Idle", decode: "Idle", exec: "Core 0: I3 | Core 1: I4", wb: "Core 0 & Core 1 Retired",
                 activeStages: ["pipe-node-exec", "pipe-node-wb"], forwardingActive: false,
-                consoleTop: "SMP MULTIPROCESSOR • CLOCK CYCLE 4 (COMPLETE)",
-                consoleMid: "Both physical cores finish their workloads in unison.",
-                consoleSub: "Maximum multi-core efficiency achieved.",
-                inlinePreview: "<strong>Multicore Harmony:</strong> Core 0 and Core 1 complete their calculations and retire their threads together. True multi-threaded execution triumphs!",
-                what: "Both processor cores finalize calculations and commit thread retirement states simultaneously.",
-                why: "Multicore parallelism delivers massive computing power for concurrent operating system environments."
+                consoleTop: "DUAL-CORE SMP MULTIPROCESSOR • CLOCK CYCLE 4 (COMPLETE)",
+                consoleMid: "Core 0 and Core 1 complete workloads in parallel.",
+                consoleSub: "True thread-level parallelism (TLP) achieved.",
+                inlinePreview: "<strong>Multicore Harmony:</strong> Core 0 and Core 1 finalize their calculations and retire their thread workloads in unison, demonstrating true multi-core thread-level parallelism.",
+                what: "Core 0 and Core 1 complete arithmetic calculations and retire threads in 4 cycles.",
+                why: "True hardware parallelism enables high system throughput across multithreaded apps."
               }
             ]
           };
