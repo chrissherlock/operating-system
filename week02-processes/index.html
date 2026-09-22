@@ -3,90 +3,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 02: Processes — Curriculum Portal</title>
+  <title>Week 2: Processes, Concurrency &amp; CPU Virtualization | COSC240</title>
   <style>
     :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
-      --border-dark: #94a3b8;
       --accent: #0284c7;
+      --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
-      --badge-active-bg: #ecfdf5;
-      --badge-active-color: #059669;
-      --badge-active-border: #a7f3d0;
-      --badge-plan-bg: #f1f5f9;
-      --badge-plan-color: #64748b;
-      --badge-plan-border: #cbd5e1;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; overflow-wrap: break-word; word-break: break-word; }
     body {
-      background-color: var(--bg);
+      font-family: var(--font-sans);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
     }
-    .container { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
-    header { border-bottom: 2px solid var(--border); padding-bottom: 16px; }
-    .week-label { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
-    h1 { font-size: 1.8rem; font-weight: 700; color: var(--text); margin: 4px 0 8px 0; }
-    p.description { color: var(--text-muted); font-size: 1rem; line-height: 1.5; }
-    .lesson-grid { display: flex; flex-direction: column; gap: 12px; }
-    .lesson-card {
-      background-color: var(--card-bg);
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px 20px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .module-nav-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .module-nav-bar.bottom {
+      margin-top: 36px;
+      margin-bottom: 0;
+      padding-top: 16px;
+      padding-bottom: 0;
+      border-bottom: none;
+      border-top: 1px solid var(--border);
+    }
+    .module-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
       text-decoration: none;
-      color: inherit;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    }
-    .lesson-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-      border-color: var(--border-dark);
-    }
-    .lesson-info { display: flex; flex-direction: column; gap: 4px; }
-    .lesson-title { font-size: 1.05rem; font-weight: 600; color: var(--text); }
-    .lesson-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
-    .badge {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
       font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 9999px;
-      border: 1px solid transparent;
-      text-transform: uppercase;
-      flex-shrink: 0;
+      font-size: 0.85rem;
+      font-family: var(--font-sans);
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
-    .badge.active { background-color: var(--badge-active-bg); color: var(--badge-active-color); border-color: var(--badge-active-border); }
-    .badge.draft { background-color: var(--badge-plan-bg); color: var(--badge-plan-color); border-color: var(--badge-plan-border); }
+    .module-nav-btn:hover {
+      background-color: #f8fafc;
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    header {
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+    h2 {
+      font-size: 1.3rem;
+      color: #0369a1;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 28px;
+      margin-bottom: 12px;
+    }
+    h3 {
+      font-size: 1.15rem;
+      color: #1e293b;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+    ul, ol {
+      margin-left: 20px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      background-color: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #0369a1;
+    }
+    .diagram-container {
+      display: flex;
+      justify-content: center;
+      margin: 24px 0;
+      width: 100%;
+      overflow-x: auto;
+    }
+    .aside-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 20px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.92rem;
+      background: #ffffff;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
-  <div class="nav-back">
-    <a href="../index.html">&larr; Back to Course Hub</a>
-  </div>
   <div class="container">
+
+    <nav class="module-nav-bar">
+      <div>
+        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: OS Concepts</a>
+      </div>
+      <div>
+        <span style="font-size: 0.85rem; font-weight: 600; color: #334155;">COSC240 Operating Systems</span>
+      </div>
+      <div>
+        <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">Week 2 Index</span>
+      </div>
+    </nav>
+
     <header>
-      <div class="week-label">Week 02</div>
-      <h1>Processes</h1>
-      <p class="description">Process Control Blocks (PCBs), lifecycle states, context switching, and address space layouts.</p>
+      <h1>Week 2: Processes, Concurrency &amp; CPU Virtualization</h1>
+      <p class="subtitle">Limited Direct Execution, Process APIs, CPU Scheduling Metrics, and Multi-Level Feedback Queues.</p>
     </header>
-    <main class="lesson-grid">
-      <p style='text-align:center; color:var(--text-muted);'>Curriculum modules in development.</p>
-    </main>
+
+    <article class="module-body">
+      <p>
+        Building upon the hardware and foundational concepts explored in Week 1, Week 2 dives deep into how operating systems virtualize the Central Processing Unit (CPU). Grounded in the pedagogical frameworks of <em>Operating Systems: Three Easy Pieces</em> (OSTEP) and Andrew Tanenbaum's <em>Modern Operating Systems</em>, this week examines how the kernel multiplexes a finite number of physical CPU cores across dozens of concurrent processes using <strong>Limited Direct Execution (LDE)</strong>, rigorous process creation APIs, and sophisticated scheduling algorithms.
+      </p>
+
+      <h2>Week 2 Module Overview</h2>
+      <ul>
+        <li><strong>Module 01: The Abstraction &amp; Limited Direct Execution (LDE)</strong> — How the OS runs code directly on the bare CPU while retaining absolute control via hardware traps and timer interrupts.</li>
+        <li><strong>Module 02: Process APIs &amp; Lifecycle Control</strong> — Exploring POSIX process creation (<code>fork()</code>, <code>exec()</code>, <code>wait()</code>) and process teardown.</li>
+        <li><strong>Module 03: CPU Scheduling Metrics &amp; Classical Algorithms</strong> — Evaluating turnaround time, response time, FIFO, SJF, STCF, and Round Robin scheduling.</li>
+        <li><strong>Module 04: Advanced Scheduling: Multi-Level Feedback Queues (MLFQ)</strong> — How production kernels balance interactive responsiveness and batch throughput without a priori job length knowledge.</li>
+      </ul>
+
+      <div class="aside-box" style="border-left-color: #0284c7; background: #f0f9ff;">
+        <strong style="color: #0369a1; font-size: 1rem;">OSTEP Core Tenet: Virtualizing the CPU</strong>
+        <p style="margin-top: 8px; color: #334155; line-height: 1.55;">
+          As Remzi Arpaci-Dusseau emphasizes in OSTEP, the OS creates the illusion of an infinite number of CPUs by virtualizing the physical processor. To achieve this with minimal performance degradation, the kernel employs <strong>Limited Direct Execution</strong>—allowing programs to execute directly on the hardware silicon until hardware-enforced traps or timer interrupts wrest control back to supervisor mode.
+        </p>
+      </div>
+
+    </article>
+
+    <nav class="module-nav-bar bottom">
+      <div>
+        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: OS Concepts</a>
+      </div>
+      <div>
+        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&#127968; Week 1 Root</a>
+      </div>
+      <div>
+        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Week 2 In Progress</span>
+      </div>
+    </nav>
+
   </div>
 </body>
 </html>
