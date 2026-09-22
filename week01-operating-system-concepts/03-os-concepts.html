@@ -83,7 +83,7 @@
     <h2>03. Operating System Concepts</h2>
     <p>At the heart of every computer system lies a collection of powerful architectural abstractions designed to turn raw hardware into a programmable, secure, and intuitive environment. this module examines the core conceptual pillars that define modern operating systems.</p>
 
-        <h3>1. The Process Abstraction</h3>
+    <h3>1. The Process Abstraction</h3>
     <p>
       At the foundation of operating system design is the <strong>process</strong>: an abstraction representing an active program in execution. While a <em>program</em> is a lifeless, passive collection of machine instructions and static data stored on non-volatile media (such as an ELF binary or Windows PE file on an NVMe SSD), a <em>process</em> is a dynamic, living computational entity with an active execution context managed by the kernel.
     </p>
@@ -164,7 +164,7 @@
       </svg>
     </div>
 
-        <h4>The Process Control Block (PCB): Cross-Platform Realities</h4>
+    <h4>The Process Control Block (PCB): Cross-Platform Realities</h4>
     <p>
       Because CPU cores can execute only one sequence of instructions at any given instant, the operating system kernel maintains a centralized control structure—the <strong>Process Control Block (PCB)</strong>—to manage identity, ownership, security bounds, and hardware state for every active execution entity.
     </p>
@@ -238,7 +238,7 @@
       <li><strong>Blocked (Waiting):</strong> The process cannot proceed—even if a CPU core is idle—because it is waiting for an external event to finish, such as reading disk sectors, receiving network packets, or waiting on a timer.</li>
     </ol>
 
-        <!-- Diagram 2: Three-State Process Lifecycle -->
+    <!-- Diagram 2: Three-State Process Lifecycle -->
     <div style="display: flex; justify-content: center; margin: 28px 0;">
       <svg viewBox="0 0 760 300" width="100%" height="100%" style="max-width: 760px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -302,7 +302,6 @@
       </svg>
     </div>
 
-        
     <h4>Lifecycle Boundaries: The Classical Five-State Model</h4>
     <p>
       While the three-state model captures the dynamic scheduling loop on the CPU, production operating systems must also manage process inception, admission control, and resource reclamation upon exit. The <strong>Five-State Process Model</strong> extends the execution loop by adding formal entry and exit boundaries:
@@ -402,12 +401,12 @@
         <g transform="translate(750, 115)" filter="url(#node5-shadow)">
           <circle cx="0" cy="0" r="44" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
           <text x="0" y="-4" fill="#92400e" font-size="10.5" font-weight="700" text-anchor="middle">TERMINATED</text>
-          <text x="0" y="12" fill="#78350f" font-size="8" text-anchor="middle">Zombie / Exit</text>
+          <text x="0" y="12" fill="#78350f" font-size="8" text-anchor="middle">Zombie</text>
         </g>
       </svg>
     </div>
 
-        <h4>Virtual Memory Realities: The Seven-State Process Model</h4>
+    <h4>Virtual Memory Realities: The Seven-State Process Model</h4>
     <p>
       While the 5-state model accounts for lifecycle boundaries, it implicitly assumes that all active processes reside permanently in physical RAM. In reality, modern systems frequently face memory overcommitment—where the aggregate virtual address spaces of all runnable and blocked processes exceed physical DRAM capacity.
     </p>
@@ -566,8 +565,7 @@
       <li><strong>Swapping Policy Trade-offs:</strong> The OS prioritizes swapping out <em>Blocked</em> processes over <em>Ready</em> ones, as blocked jobs cannot utilize CPU cycles anyway. However, if severe memory starvation persists, even Ready processes are suspended to allow remaining tasks to finish without destructive page thrashing.</li>
     </ul>
 
-    
-            <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
+    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
     <div id="interactive-process-stepper" style="margin: 36px 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
         <div>
@@ -680,9 +678,9 @@
           <button type="button" id="btn-reset-step" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; border-radius: 5px; cursor: pointer;">Reset</button>
         </div>
 
-        <!-- Inline Preview of Next Action -->
+        <!-- Inline Preview of Active Step (Stage Explanation) -->
         <div style="font-size: 0.85rem; color: #334155;">
-          <span style="color: #64748b; font-weight: 600;">UPCOMING TRANSITION:</span> <span id="preview-text" style="font-weight: 700; color: #0284c7;">Scheduler dispatches PID 4092 onto CPU Core 1</span>
+          <span style="color: #64748b; font-weight: 600;">Stage Explanation:</span> <span id="preview-text" style="font-weight: 700; color: #0284c7;">Scheduler dispatches PID 4092 onto CPU Core 1</span>
         </div>
       </div>
 
@@ -701,7 +699,7 @@
         </div>
       </div>
 
-      <!-- Dedicated Contextual Definitions Section (Underneath on its own) -->
+      <!-- Dedicated Contextual Definitions Section -->
       <div style="border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; padding: 16px;">
         <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Contextual Definitions &amp; System Concepts</div>
         <div id="pane-definitions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;"></div>
@@ -1050,7 +1048,6 @@
       })();
     </script>
 
-
     <h3>2. Address Spaces &amp; Virtual Memory: Diverse Architectures</h3>
     <p>
       To prevent concurrent programs from corrupting one another's data and to decouple software from the limits of physical RAM, operating systems provide the <strong>address space</strong> abstraction. While contemporary systems predominantly utilize flat, paged virtual memory architectures, operating system design encompasses three distinct structural paradigms:
@@ -1124,9 +1121,6 @@
         </g>
       </svg>
     </div>
-
-    <!-- Section 3 remains intact before Section 4 -->
-
 
     <h3>3. Files &amp; Hierarchical Directories: Diverse Paradigms</h3>
     <p>
@@ -1273,7 +1267,7 @@
       </table>
     </div>
 
-        <h3>4. Input/Output (I/O) Subsystems</h3>
+    <h3>4. Input/Output (I/O) Subsystems</h3>
     <p>
       The primary role of the I/O subsystem is to bridge the massive speed and interface discrepancies between the high-speed CPU memory bus and heterogeneous external peripherals. Operating systems differ substantially in how they model, schedule, and notify applications of completed I/O transactions:
     </p>

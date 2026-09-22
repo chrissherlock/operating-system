@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Update Process Lifecycle Walkthrough preview label
+# fix.py: Fully overwrite Module 3 with standardized Stage Explanation label
 # =====================================================================
 import os
-import re
 import subprocess
 
 TARGET_FILE = os.path.join(
@@ -11,37 +10,1370 @@ TARGET_FILE = os.path.join(
     "03-os-concepts.html"
 )
 
-def fix_lifecycle_preview_label():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} not found.")
-        return
+FULL_HTML_CONTENT = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. Operating System Concepts | Week 1: Operating System Concepts</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3 {
+      color: #0f172a;
+    }
+    h2 {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-top: 28px;
+    }
+    h3 {
+      margin-top: 20px;
+      margin-bottom: 8px;
+      color: #0284c7;
+      font-size: 1.15rem;
+    }
+    p {
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    ul, ol {
+      margin-left: 20px;
+      color: #475569;
+      margin-bottom: 12px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    code {
+      font-family: var(--font-mono);
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      color: #0369a1;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Navigation Bar -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="02-hardware-review.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Hardware Review</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <a href="04-os-structure.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. OS Structure &rarr;</a>
+    </nav>
 
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
+    <h2>03. Operating System Concepts</h2>
+    <p>At the heart of every computer system lies a collection of powerful architectural abstractions designed to turn raw hardware into a programmable, secure, and intuitive environment. this module examines the core conceptual pillars that define modern operating systems.</p>
 
-    # Replace "Upcoming Transition:" or variants with "Stage Explanation:" in Module 3
-    new_label = '<div style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700; color: #0369a1; text-transform: uppercase;">Stage Explanation:</div>'
+    <h3>1. The Process Abstraction</h3>
+    <p>
+      At the foundation of operating system design is the <strong>process</strong>: an abstraction representing an active program in execution. While a <em>program</em> is a lifeless, passive collection of machine instructions and static data stored on non-volatile media (such as an ELF binary or Windows PE file on an NVMe SSD), a <em>process</em> is a dynamic, living computational entity with an active execution context managed by the kernel.
+    </p>
 
-    updated_content = re.sub(
-        r'<div[^>]*>(?:Upcoming Transition|Upcoming State|Next State)[^<]*</div>',
-        new_label,
-        content,
-        flags=re.IGNORECASE
-    )
+    <h4>Process vs. Program: The Core Distinction</h4>
+    <p>
+      A single program can correspond to multiple distinct processes running concurrently. For example, if two users launch separate instances of the text editor <code>nano</code>, or if a user opens three independent terminal shells, each instance constitutes a separate process. Although both instances share the exact same underlying machine code in memory, each maintains completely isolated memory registers, dynamic heap buffers, execution state flags, and private call stacks.
+    </p>
 
-    if updated_content != content:
-        with open(TARGET_FILE, "w", encoding="utf-8") as f:
-            f.write(updated_content)
-        print(f"--> Successfully updated lifecycle simulator label in {TARGET_FILE}.")
-    else:
-        print("--> Notice: Label pattern already updated or not found in Module 3.")
+    <h4>Anatomy of a Process in Memory</h4>
+    <p>
+      When an operating system loads a binary executable into physical RAM to execute, it constructs a private virtual address space organized into standardized logical segments:
+    </p>
+    <ul>
+      <li><strong>Text Segment (Code):</strong> The read-only region containing raw machine instructions executed by the CPU. Marking this region read-only prevents self-modifying code vulnerabilities and allows multiple concurrent instances of the same binary to share physical code pages in memory.</li>
+      <li><strong>Data Segment (Initialized):</strong> Stores global and static variables explicitly initialized by the programmer before execution (e.g., <code>int max_retries = 5;</code>).</li>
+      <li><strong>BSS Segment (Uninitialized):</strong> Block Started by Symbol; holds uninitialized global and static variables. Rather than bloating binary disk images with zeroes, the kernel simply records the size of the BSS section and zeroes out physical pages on demand upon allocation.</li>
+      <li><strong>Heap:</strong> A dynamic memory pool managed at runtime by allocators (such as <code>malloc()</code> or <code>new</code>). The heap grows upward from lower virtual memory addresses toward higher addresses as dynamic allocations expand.</li>
+      <li><strong>Stack:</strong> A Last-In, First-Out (LIFO) scratchpad region storing active execution frames. Each stack frame houses function arguments, return addresses, saved CPU registers, and local automatic variables. In typical x86 and ARM architectures, the stack originates near the top of the virtual address space and grows downward toward the heap.</li>
+    </ul>
+
+    <!-- Diagram 1: Process Memory Layout -->
+    <div style="display: flex; justify-content: center; margin: 24px 0;">
+      <svg viewBox="0 0 680 340" width="100%" height="100%" style="max-width: 680px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="mem-arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#ef4444" />
+          </marker>
+          <marker id="mem-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+          </marker>
+        </defs>
+
+        <!-- Outer Boundary -->
+        <rect x="180" y="20" width="320" height="300" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+
+        <!-- High Memory Address Label -->
+        <text x="170" y="32" fill="#64748b" font-size="9" text-anchor="end">0x7FFFFFFFFFFF</text>
+        <text x="170" y="44" fill="#94a3b8" font-size="8" text-anchor="end">(High Addresses)</text>
+
+        <!-- Stack Box -->
+        <rect x="190" y="28" width="300" height="48" rx="4" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5" />
+        <text x="340" y="48" fill="#991b1b" font-size="11" font-weight="700" text-anchor="middle">Stack Segment</text>
+        <text x="340" y="64" fill="#b91c1c" font-size="8.5" text-anchor="middle">Function Frames • Local Variables • Return Pointers</text>
+
+        <!-- Stack Growth Arrow -->
+        <path d="M 340,76 L 340,96" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#mem-arrow-red)" />
+        <text x="350" y="90" fill="#ef4444" font-size="8" font-style="italic">Grows Downward</text>
+
+        <!-- Free Address Space Zone -->
+        <rect x="190" y="102" width="300" height="60" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-dasharray="4,4" />
+        <text x="340" y="136" fill="#94a3b8" font-size="9.5" text-anchor="middle">Unallocated Virtual Address Space</text>
+
+        <!-- Heap Growth Arrow -->
+        <path d="M 340,190 L 340,170" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#mem-arrow-blue)" />
+        <text x="350" y="180" fill="#0284c7" font-size="8" font-style="italic">Grows Upward</text>
+
+        <!-- Heap Box -->
+        <rect x="190" y="190" width="300" height="42" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
+        <text x="340" y="208" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">Heap Segment</text>
+        <text x="340" y="222" fill="#0284c7" font-size="8.5" text-anchor="middle">Dynamic Memory (malloc / brk / mmap)</text>
+
+        <!-- BSS Box -->
+        <rect x="190" y="236" width="300" height="26" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1" />
+        <text x="340" y="253" fill="#334155" font-size="9.5" font-weight="600" text-anchor="middle">BSS Segment (Zero-Initialized Globals)</text>
+
+        <!-- Data Box -->
+        <rect x="190" y="266" width="300" height="26" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1" />
+        <text x="340" y="283" fill="#92400e" font-size="9.5" font-weight="600" text-anchor="middle">Data Segment (Initialized Globals &amp; Statics)</text>
+
+        <!-- Text Box -->
+        <rect x="190" y="296" width="300" height="20" rx="3" fill="#ecfdf5" stroke="#059669" stroke-width="1" />
+        <text x="340" y="310" fill="#065f46" font-size="9" font-weight="700" text-anchor="middle">Text Segment (Read-Only Machine Code)</text>
+
+        <!-- Low Memory Address Label -->
+        <text x="170" y="310" fill="#64748b" font-size="9" text-anchor="end">0x000000000000</text>
+        <text x="170" y="322" fill="#94a3b8" font-size="8" text-anchor="end">(Low Addresses)</text>
+      </svg>
+    </div>
+
+    <h4>The Process Control Block (PCB): Cross-Platform Realities</h4>
+    <p>
+      Because CPU cores can execute only one sequence of instructions at any given instant, the operating system kernel maintains a centralized control structure—the <strong>Process Control Block (PCB)</strong>—to manage identity, ownership, security bounds, and hardware state for every active execution entity.
+    </p>
+    <p>
+      However, the internal implementation of a PCB varies substantially between operating system families:
+    </p>
+
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; background: #ffffff;">
+        <thead>
+          <tr style="background: #f1f5f9; color: #1e293b;">
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Design Dimension</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Linux / Unix (<code>struct task_struct</code>)</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Windows NT (<code>EPROCESS</code> / <code>KPROCESS</code>)</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Microkernels (e.g., seL4 / QNX)</th>
+          </tr>
+        </thead>
+        <tbody style="color: #334155;">
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Entity Philosophy</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Unified scheduler entity. Processes and threads are both represented by <code>task_struct</code>, sharing resources via <code>clone()</code> flags.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Strict container abstraction. An <code>EPROCESS</code> represents address space and resources; execution is delegated entirely to threads (<code>ETHREAD</code>).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Minimalist capability model. The kernel tracks Thread Control Blocks (TCBs) and capability nodes (Cnodes); process concepts live in user space.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Identification</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Process ID (PID) and Thread Group ID (TGID).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Unique Process ID (<code>UniqueProcessId</code>) and Client ID.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Kernel capability references or badge tokens.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Hardware Register Context</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Stored within kernel stack and <code>thread_struct</code> embedded directly in <code>task_struct</code>.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Absent from <code>EPROCESS</code>; saved exclusively inside individual <code>KTHREAD</code> context frames.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Stored directly in the hardware-mapped register block of the TCB.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">I/O &amp; Object Tracking</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Zero-indexed file descriptor table (<code>struct files_struct</code>) mapping integers to open file descriptions.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Kernel Object Handle Table (<code>ObjectTable</code>) mapping opaque <code>HANDLE</code> pointers with explicit security ACLs.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">IPC endpoint capabilities and notification slots; no internal device or file tables.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Memory Context Pointer</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;"><code>mm_struct</code> pointer referencing the PML4 root and Virtual Memory Areas (VMAs).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;"><code>DirectoryTableBase</code> in <code>KPROCESS</code> storing CR3, alongside a Virtual Address Descriptor (VAD) tree.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Page directory capability (VSpace root).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Key Elements Universal to All PCBs</h4>
+    <p>
+      Despite naming differences across kernel architectures, any production operating system maintains the following core invariants inside or associated with its process control tracking:
+    </p>
+    <ul>
+      <li><strong>Architectural Root Anchor:</strong> A hardware-mandated pointer to the top-level page table (e.g., <code>CR3</code> on x86-64, <code>TTBR0</code> on ARM64) enabling the MMU to swap address spaces during context switches.</li>
+      <li><strong>Execution State Tracking:</strong> Flags denoting whether the entity is active, ready to run, sleeping on a synchronization primitive, or in a zombie/terminated state awaiting cleanup.</li>
+      <li><strong>Security Token &amp; Credentials:</strong> User/group identifiers (POSIX UID/GID) or Windows Access Tokens specifying privileges, security identifiers (SIDs), and audit policies.</li>
+      <li><strong>Resource Descriptors &amp; Limits:</strong> Quotas and references to system resources, including CPU affinity masks, memory working-set limits, and tables mapping private application references to underlying kernel objects.</li>
+    </ul>
+
+    <h4>Process State Transitions: The Three-State Model</h4>
+    <p>
+      Throughout its lifecycle, a process transitions between three core execution states:
+    </p>
+    <ol>
+      <li><strong>Running:</strong> The process currently occupies a physical CPU core and its instructions are executing in hardware.</li>
+      <li><strong>Ready:</strong> The process possesses all prerequisites to execute, but is temporarily stopped waiting for the CPU scheduler to allocate a core.</li>
+      <li><strong>Blocked (Waiting):</strong> The process cannot proceed—even if a CPU core is idle—because it is waiting for an external event to finish, such as reading disk sectors, receiving network packets, or waiting on a timer.</li>
+    </ol>
+
+    <!-- Diagram 2: Three-State Process Lifecycle -->
+    <div style="display: flex; justify-content: center; margin: 28px 0;">
+      <svg viewBox="0 0 760 300" width="100%" height="100%" style="max-width: 760px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="trans-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+          </marker>
+          <marker id="trans-arrow-slate" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#64748b" />
+          </marker>
+          <marker id="trans-arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#ef4444" />
+          </marker>
+          <marker id="trans-arrow-green" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#059669" />
+          </marker>
+          <filter id="state-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06" />
+          </filter>
+        </defs>
+
+        <!-- 1. Ready State Circle (Left) -->
+        <g transform="translate(150, 75)" filter="url(#state-shadow)">
+          <circle cx="0" cy="0" r="52" fill="#eff6ff" stroke="#0284c7" stroke-width="2" />
+          <text x="0" y="-4" fill="#0369a1" font-size="12" font-weight="700" text-anchor="middle">READY</text>
+          <text x="0" y="14" fill="#64748b" font-size="8.5" text-anchor="middle">In Run Queue</text>
+        </g>
+
+        <!-- 2. Running State Circle (Right) -->
+        <g transform="translate(610, 75)" filter="url(#state-shadow)">
+          <circle cx="0" cy="0" r="52" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+          <text x="0" y="-4" fill="#065f46" font-size="12" font-weight="700" text-anchor="middle">RUNNING</text>
+          <text x="0" y="14" fill="#047857" font-size="8.5" text-anchor="middle">Executing on CPU</text>
+        </g>
+
+        <!-- 3. Blocked State Circle (Bottom Center) -->
+        <g transform="translate(380, 225)" filter="url(#state-shadow)">
+          <circle cx="0" cy="0" r="52" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
+          <text x="0" y="-4" fill="#991b1b" font-size="12" font-weight="700" text-anchor="middle">BLOCKED</text>
+          <text x="0" y="14" fill="#b91c1c" font-size="8.5" text-anchor="middle">Waiting for I/O</text>
+        </g>
+
+        <!-- PATH 1: Ready -> Running (Scheduler Dispatch - Top Forward) -->
+        <path d="M 204,60 C 310,25 450,25 554,60" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#trans-arrow-blue)" />
+        <rect x="305" y="16" width="150" height="20" rx="3" fill="#ffffff" stroke="#bae6fd" />
+        <text x="380" y="30" fill="#0369a1" font-size="8.5" font-weight="700" text-anchor="middle">1. Scheduler Dispatch</text>
+
+        <!-- PATH 2: Running -> Ready (Timer Preempted - Bottom Return) -->
+        <path d="M 554,90 C 450,125 310,125 206,90" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#trans-arrow-slate)" />
+        <rect x="295" y="102" width="170" height="20" rx="3" fill="#ffffff" stroke="#cbd5e1" />
+        <text x="380" y="116" fill="#475569" font-size="8.5" font-weight="600" text-anchor="middle">2. Timer Expiry (Preempted)</text>
+
+        <!-- PATH 3: Running -> Blocked (Initiate I/O) -->
+        <path d="M 576,112 C 540,175 480,215 435,223" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#trans-arrow-red)" />
+        <rect x="495" y="170" width="130" height="20" rx="3" fill="#ffffff" stroke="#fca5a5" />
+        <text x="560" y="184" fill="#b91c1c" font-size="8.5" font-weight="700" text-anchor="middle">3. Blocked for I/O</text>
+
+        <!-- PATH 4: Blocked -> Ready (I/O Complete Interrupt) -->
+        <path d="M 326,223 C 280,215 220,175 184,112" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#trans-arrow-green)" />
+        <rect x="135" y="170" width="130" height="20" rx="3" fill="#ffffff" stroke="#86efac" />
+        <text x="200" y="184" fill="#065f46" font-size="8.5" font-weight="700" text-anchor="middle">4. I/O Completed</text>
+      </svg>
+    </div>
+
+    <h4>Lifecycle Boundaries: The Classical Five-State Model</h4>
+    <p>
+      While the three-state model captures the dynamic scheduling loop on the CPU, production operating systems must also manage process inception, admission control, and resource reclamation upon exit. The <strong>Five-State Process Model</strong> extends the execution loop by adding formal entry and exit boundaries:
+    </p>
+    <ul>
+      <li><strong>New (Created):</strong> The process is being instantiated (e.g., via <code>fork()</code> in POSIX, <code>CreateProcess()</code> in Windows, or an OS batch loader). The kernel has allocated the Process Control Block (PCB) and assigned a unique PID, but memory translation structures and page mappings are not yet admitted to the active scheduling queue.</li>
+      <li><strong>Terminated (Exit / Zombie):</strong> The process has completed execution (via <code>exit()</code>, <code>ExitProcess()</code>, or a terminating signal like <code>SIGKILL</code>). The operating system reclaims its virtual address space, file descriptor tables, and allocated heap memory. However, the PCB remains in the system process table as a <em>zombie</em> until the parent process issues a synchronization call (such as <code>wait()</code> or <code>waitpid()</code>) to collect its exit status code.</li>
+    </ul>
+
+    <!-- Diagram 2b: Five-State Process Lifecycle -->
+    <div style="display: flex; justify-content: center; margin: 28px 0;">
+      <svg viewBox="0 0 860 320" width="100%" height="100%" style="max-width: 860px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="trans5-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+          </marker>
+          <marker id="trans5-arrow-slate" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#64748b" />
+          </marker>
+          <marker id="trans5-arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#ef4444" />
+          </marker>
+          <marker id="trans5-arrow-green" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#059669" />
+          </marker>
+          <marker id="trans5-arrow-amber" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#d97706" />
+          </marker>
+          <filter id="node5-shadow" x="-8%" y="-8%" width="116%" height="116%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08" />
+          </filter>
+        </defs>
+
+        <!-- Title Header -->
+        <text x="430" y="24" fill="#0f172a" font-size="13" font-weight="700" text-anchor="middle">CLASSICAL FIVE-STATE PROCESS LIFECYCLE MODEL</text>
+        <text x="430" y="42" fill="#64748b" font-size="9.5" text-anchor="middle">Creation &rarr; Active Scheduling Core &rarr; Termination / Zombie Teardown</text>
+
+        <!-- 1. NEW STATE (Far Left) -->
+        <g transform="translate(90, 115)" filter="url(#node5-shadow)">
+          <circle cx="0" cy="0" r="44" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" />
+          <text x="0" y="-4" fill="#334155" font-size="11.5" font-weight="700" text-anchor="middle">NEW</text>
+          <text x="0" y="12" fill="#64748b" font-size="8" text-anchor="middle">fork / create</text>
+        </g>
+
+        <!-- Transition: New -> Ready (Admit) -->
+        <path d="M 134,115 L 216,115" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#trans5-arrow-blue)" />
+        <rect x="145" y="90" width="60" height="18" rx="3" fill="#ffffff" stroke="#bae6fd" />
+        <text x="175" y="103" fill="#0369a1" font-size="8" font-weight="700" text-anchor="middle">Admit</text>
+
+        <!-- 2. READY STATE -->
+        <g transform="translate(265, 115)" filter="url(#node5-shadow)">
+          <circle cx="0" cy="0" r="46" fill="#eff6ff" stroke="#0284c7" stroke-width="2" />
+          <text x="0" y="-4" fill="#0369a1" font-size="11.5" font-weight="700" text-anchor="middle">READY</text>
+          <text x="0" y="12" fill="#64748b" font-size="8" text-anchor="middle">In Run Queue</text>
+        </g>
+
+        <!-- 3. RUNNING STATE -->
+        <g transform="translate(565, 115)" filter="url(#node5-shadow)">
+          <circle cx="0" cy="0" r="46" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+          <text x="0" y="-4" fill="#065f46" font-size="11.5" font-weight="700" text-anchor="middle">RUNNING</text>
+          <text x="0" y="12" fill="#047857" font-size="8" text-anchor="middle">On CPU Core</text>
+        </g>
+
+        <!-- Transition: Ready -> Running (Dispatch - Top Arc) -->
+        <path d="M 307,95 C 380,60 450,60 523,95" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#trans5-arrow-blue)" />
+        <rect x="360" y="54" width="110" height="18" rx="3" fill="#ffffff" stroke="#bae6fd" />
+        <text x="415" y="67" fill="#0369a1" font-size="8" font-weight="700" text-anchor="middle">Scheduler Dispatch</text>
+
+        <!-- Transition: Running -> Ready (Preempt - Bottom Return Arc) -->
+        <path d="M 523,135 C 450,170 380,170 307,135" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#trans5-arrow-slate)" />
+        <rect x="355" y="158" width="120" height="18" rx="3" fill="#ffffff" stroke="#cbd5e1" />
+        <text x="415" y="171" fill="#475569" font-size="8" font-weight="600" text-anchor="middle">Timer Preemption</text>
+
+        <!-- 4. BLOCKED STATE (Bottom Center) -->
+        <g transform="translate(415, 255)" filter="url(#node5-shadow)">
+          <circle cx="0" cy="0" r="46" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
+          <text x="0" y="-4" fill="#991b1b" font-size="11.5" font-weight="700" text-anchor="middle">BLOCKED</text>
+          <text x="0" y="12" fill="#b91c1c" font-size="8" text-anchor="middle">I/O / Sleep</text>
+        </g>
+
+        <!-- Transition: Running -> Blocked (I/O Wait) -->
+        <path d="M 545,155 C 520,205 480,240 463,250" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#trans5-arrow-red)" />
+        <rect x="495" y="205" width="95" height="18" rx="3" fill="#ffffff" stroke="#fca5a5" />
+        <text x="542" y="218" fill="#b91c1c" font-size="8" font-weight="700" text-anchor="middle">Block for Event</text>
+
+        <!-- Transition: Blocked -> Ready (I/O Complete) -->
+        <path d="M 367,250 C 350,240 310,205 285,155" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#trans5-arrow-green)" />
+        <rect x="240" y="205" width="95" height="18" rx="3" fill="#ffffff" stroke="#86efac" />
+        <text x="287" y="218" fill="#065f46" font-size="8" font-weight="700" text-anchor="middle">Event Occurred</text>
+
+        <!-- Transition: Running -> Terminated (Exit) -->
+        <path d="M 611,115 L 702,115" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#trans5-arrow-amber)" />
+        <rect x="625" y="90" width="65" height="18" rx="3" fill="#ffffff" stroke="#fde68a" />
+        <text x="657" y="103" fill="#92400e" font-size="8" font-weight="700" text-anchor="middle">Exit / Kill</text>
+
+        <!-- 5. TERMINATED STATE (Far Right) -->
+        <g transform="translate(750, 115)" filter="url(#node5-shadow)">
+          <circle cx="0" cy="0" r="44" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
+          <text x="0" y="-4" fill="#92400e" font-size="10.5" font-weight="700" text-anchor="middle">TERMINATED</text>
+          <text x="0" y="12" fill="#78350f" font-size="8" text-anchor="middle">Zombie</text>
+        </g>
+      </svg>
+    </div>
+
+    <h4>Virtual Memory Realities: The Seven-State Process Model</h4>
+    <p>
+      While the 5-state model accounts for lifecycle boundaries, it implicitly assumes that all active processes reside permanently in physical RAM. In reality, modern systems frequently face memory overcommitment—where the aggregate virtual address spaces of all runnable and blocked processes exceed physical DRAM capacity.
+    </p>
+    <p>
+      To prevent the system from crashing under memory exhaustion, the operating system introduces a <strong>Medium-Term Scheduler (The Swapper)</strong>. The swapper moves dormant or blocked processes from physical RAM to secondary backing stores (a swap partition, swapfile, or pagefile), introducing two distinct <strong>suspended states</strong> and giving rise to the classical <strong>Seven-State Model</strong>:
+    </p>
+
+    <ul>
+      <li><strong>Ready (In-Memory):</strong> The process resides in physical DRAM and is ready for the dispatcher to schedule onto an available CPU core.</li>
+      <li><strong>Blocked (In-Memory):</strong> The process resides in physical DRAM, but is waiting for an external event (I/O completion, timer, mutex).</li>
+      <li><strong>Blocked / Suspended (On Disk):</strong> The process was waiting for an event and, to relieve severe memory pressure, the OS swapped its address space out to disk. It cannot run even if a CPU is idle.</li>
+      <li><strong>Ready / Suspended (On Disk):</strong> The event the process was waiting for has completed, or a runnable process was swapped to disk. The process is ready to execute instructions immediately once the OS swaps its working set back into physical DRAM.</li>
+    </ul>
+
+    <!-- Diagram 2c: Seven-State Process Lifecycle -->
+    <div style="display: flex; justify-content: center; margin: 28px 0;">
+      <svg viewBox="0 0 860 480" width="100%" height="100%" style="max-width: 860px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="trans7-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+          </marker>
+          <marker id="trans7-arrow-slate" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#64748b" />
+          </marker>
+          <marker id="trans7-arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#ef4444" />
+          </marker>
+          <marker id="trans7-arrow-green" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#059669" />
+          </marker>
+          <marker id="trans7-arrow-amber" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#d97706" />
+          </marker>
+          <marker id="trans7-arrow-purple" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#9333ea" />
+          </marker>
+          <filter id="node7-shadow" x="-8%" y="-8%" width="116%" height="116%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08" />
+          </filter>
+        </defs>
+
+        <!-- Canvas Background Zones -->
+        <!-- In-Memory Zone -->
+        <rect x="15" y="40" width="830" height="230" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="4,4" />
+        <text x="30" y="60" fill="#475569" font-size="9" font-weight="700">PRIMARY MEMORY (PHYSICAL RAM - ACTIVE)</text>
+
+        <!-- Swapped Backing Store Zone -->
+        <rect x="15" y="290" width="830" height="170" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-dasharray="4,4" />
+        <text x="30" y="310" fill="#475569" font-size="9" font-weight="700">SECONDARY STORAGE (SWAPFILE / BACKING STORE - SUSPENDED)</text>
+
+        <!-- 1. NEW STATE -->
+        <g transform="translate(75, 135)" filter="url(#node7-shadow)">
+          <circle cx="0" cy="0" r="38" fill="#ffffff" stroke="#94a3b8" stroke-width="2" />
+          <text x="0" y="-4" fill="#334155" font-size="11" font-weight="700" text-anchor="middle">NEW</text>
+          <text x="0" y="10" fill="#64748b" font-size="7.5" text-anchor="middle">Created</text>
+        </g>
+
+        <!-- Transition: New -> Ready -->
+        <path d="M 113,135 L 182,135" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#trans7-arrow-blue)" />
+        <text x="147" y="127" fill="#0369a1" font-size="7.5" font-weight="700" text-anchor="middle">Admit</text>
+
+        <!-- Transition: New -> Ready/Suspended (Direct Admit to Swap) -->
+        <path d="M 95,168 C 115,225 150,335 202,370" fill="none" stroke="#9333ea" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#trans7-arrow-purple)" />
+        <text x="125" y="270" fill="#7e22ce" font-size="7" font-weight="600">Admit (Overcommit)</text>
+
+        <!-- 2. READY STATE (In-Memory) -->
+        <g transform="translate(225, 135)" filter="url(#node7-shadow)">
+          <circle cx="0" cy="0" r="42" fill="#eff6ff" stroke="#0284c7" stroke-width="2" />
+          <text x="0" y="-4" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">READY</text>
+          <text x="0" y="10" fill="#64748b" font-size="7.5" text-anchor="middle">In Memory</text>
+        </g>
+
+        <!-- 3. RUNNING STATE -->
+        <g transform="translate(500, 135)" filter="url(#node7-shadow)">
+          <circle cx="0" cy="0" r="42" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+          <text x="0" y="-4" fill="#065f46" font-size="11" font-weight="700" text-anchor="middle">RUNNING</text>
+          <text x="0" y="10" fill="#047857" font-size="7.5" text-anchor="middle">On CPU Core</text>
+        </g>
+
+        <!-- Transition: Ready -> Running (Dispatch) -->
+        <path d="M 264,120 C 330,95 395,95 461,120" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#trans7-arrow-blue)" />
+        <text x="362" y="96" fill="#0369a1" font-size="8" font-weight="700" text-anchor="middle">Dispatch</text>
+
+        <!-- Transition: Running -> Ready (Preempt) -->
+        <path d="M 461,150 C 395,175 330,175 264,150" fill="none" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,4" marker-end="url(#trans7-arrow-slate)" />
+        <text x="362" y="180" fill="#475569" font-size="8" font-weight="600" text-anchor="middle">Timeout / Preempt</text>
+
+        <!-- 4. BLOCKED STATE (In-Memory) -->
+        <g transform="translate(670, 135)" filter="url(#node7-shadow)">
+          <circle cx="0" cy="0" r="42" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
+          <text x="0" y="-4" fill="#991b1b" font-size="11" font-weight="700" text-anchor="middle">BLOCKED</text>
+          <text x="0" y="10" fill="#b91c1c" font-size="7.5" text-anchor="middle">In Memory</text>
+        </g>
+
+        <!-- Transition: Running -> Blocked -->
+        <path d="M 542,135 L 626,135" fill="none" stroke="#ef4444" stroke-width="1.8" marker-end="url(#trans7-arrow-red)" />
+        <text x="584" y="127" fill="#b91c1c" font-size="7.5" font-weight="700" text-anchor="middle">Event Wait</text>
+
+        <!-- Transition: Blocked -> Ready -->
+        <path d="M 660,95 C 630,60 310,40 240,96" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#trans7-arrow-green)" />
+        <text x="450" y="58" fill="#065f46" font-size="7.5" font-weight="700" text-anchor="middle">Event Occurred</text>
+
+        <!-- Transition: Running -> Terminated -->
+        <path d="M 500,93 L 500,45 C 500,30 750,30 775,88" fill="none" stroke="#d97706" stroke-width="1.8" marker-end="url(#trans7-arrow-amber)" />
+        <text x="740" y="44" fill="#92400e" font-size="7.5" font-weight="700" text-anchor="middle">Exit / Release</text>
+
+        <!-- 5. TERMINATED STATE -->
+        <g transform="translate(780, 135)" filter="url(#node7-shadow)">
+          <circle cx="0" cy="0" r="38" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
+          <text x="0" y="-4" fill="#92400e" font-size="10.5" font-weight="700" text-anchor="middle">TERMINATED</text>
+          <text x="0" y="10" fill="#78350f" font-size="7" text-anchor="middle">Zombie</text>
+        </g>
+
+        <!-- ==================== SWAPPED STATES (LOWER TIER) ==================== -->
+
+        <!-- 6. READY / SUSPENDED -->
+        <g transform="translate(245, 385)" filter="url(#node7-shadow)">
+          <circle cx="0" cy="0" r="44" fill="#faf5ff" stroke="#9333ea" stroke-width="2" />
+          <text x="0" y="-10" fill="#7e22ce" font-size="9.5" font-weight="700" text-anchor="middle">READY /</text>
+          <text x="0" y="4" fill="#7e22ce" font-size="9.5" font-weight="700" text-anchor="middle">SUSPENDED</text>
+          <text x="0" y="18" fill="#6b21a8" font-size="7" text-anchor="middle">(On Disk)</text>
+        </g>
+
+        <!-- 7. BLOCKED / SUSPENDED -->
+        <g transform="translate(670, 385)" filter="url(#node7-shadow)">
+          <circle cx="0" cy="0" r="44" fill="#fff1f2" stroke="#e11d48" stroke-width="2" />
+          <text x="0" y="-10" fill="#be123c" font-size="9.5" font-weight="700" text-anchor="middle">BLOCKED /</text>
+          <text x="0" y="4" fill="#be123c" font-size="9.5" font-weight="700" text-anchor="middle">SUSPENDED</text>
+          <text x="0" y="18" fill="#9f1239" font-size="7" text-anchor="middle">(On Disk)</text>
+        </g>
+
+        <!-- Vertical Swap Transitions: Ready <-> Ready/Suspended -->
+        <path d="M 215,177 L 215,340" fill="none" stroke="#9333ea" stroke-width="1.8" marker-end="url(#trans7-arrow-purple)" />
+        <text x="180" y="255" fill="#7e22ce" font-size="7.5" font-weight="700" text-anchor="middle">Suspend (Swap Out)</text>
+
+        <path d="M 245,340 L 245,178" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#trans7-arrow-blue)" />
+        <text x="282" y="255" fill="#0369a1" font-size="7.5" font-weight="700" text-anchor="middle">Activate (Swap In)</text>
+
+        <!-- Vertical Swap Transitions: Blocked <-> Blocked/Suspended -->
+        <path d="M 660,177 L 660,340" fill="none" stroke="#e11d48" stroke-width="1.8" marker-end="url(#trans7-arrow-red)" />
+        <text x="625" y="255" fill="#be123c" font-size="7.5" font-weight="700" text-anchor="middle">Suspend (Swap Out)</text>
+
+        <path d="M 685,340 L 685,178" fill="none" stroke="#059669" stroke-width="1.8" marker-end="url(#trans7-arrow-green)" />
+        <text x="722" y="255" fill="#065f46" font-size="7.5" font-weight="700" text-anchor="middle">Activate (Swap In)</text>
+
+        <!-- Horizontal Transition on Disk: Blocked/Suspended -> Ready/Suspended -->
+        <path d="M 625,385 L 291,385" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#trans7-arrow-green)" />
+        <rect x="405" y="375" width="115" height="18" rx="3" fill="#ffffff" stroke="#86efac" />
+        <text x="462" y="388" fill="#065f46" font-size="7.5" font-weight="700" text-anchor="middle">Event Occurs (While Swapped)</text>
+      </svg>
+    </div>
+
+    <h4>Key Swapping Dynamics in the Seven-State Model</h4>
+    <ul>
+      <li><strong>Autonomous Event Completion in Storage:</strong> Notice the horizontal transition from <code>Blocked/Suspended</code> to <code>Ready/Suspended</code>. When a hardware I/O request finishes for a swapped-out process, the interrupt service routine updates the PCB in kernel memory immediately—moving it to the Ready/Suspended queue without requiring an expensive page-in until memory pressure subsides.</li>
+      <li><strong>Swapping Policy Trade-offs:</strong> The OS prioritizes swapping out <em>Blocked</em> processes over <em>Ready</em> ones, as blocked jobs cannot utilize CPU cycles anyway. However, if severe memory starvation persists, even Ready processes are suspended to allow remaining tasks to finish without destructive page thrashing.</li>
+    </ul>
+
+    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
+    <div id="interactive-process-stepper" style="margin: 36px 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+          <h3 style="margin: 0; color: #0284c7; font-size: 1.25rem;">Interactive Simulator: Process Lifecycle Walkthrough</h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #64748b;">Scenario: Database query report execution (PID 4092) under severe memory contention and storage I/O.</p>
+        </div>
+
+        <!-- Comparative Dimension Toggles -->
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="model-toggle active" data-model="3" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; cursor: pointer;">3-State</button>
+          <button type="button" class="model-toggle" data-model="5" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">5-State</button>
+          <button type="button" class="model-toggle" data-model="7" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">7-State</button>
+        </div>
+      </div>
+
+      <!-- Live State Telemetry Status Bar -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px; margin-bottom: 18px; font-family: var(--font-mono); font-size: 0.8rem;">
+        <div><span style="color: #64748b;">CURRENT STATE:</span> <strong id="telemetry-state" style="color: #0284c7;">READY</strong></div>
+        <div><span style="color: #64748b;">RESIDENCE:</span> <strong id="telemetry-residence" style="color: #059669;">PHYSICAL DRAM</strong></div>
+        <div><span style="color: #64748b;">ACTIVE CPU:</span> <strong id="telemetry-cpu" style="color: #475569;">NONE (IN QUEUE)</strong></div>
+        <div><span style="color: #64748b;">PENDING I/O:</span> <strong id="telemetry-io" style="color: #475569;">NONE</strong></div>
+      </div>
+
+      <!-- Synchronized Visual Canvas -->
+      <div style="display: flex; justify-content: center; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 6px; padding: 12px; margin-bottom: 18px;">
+        <svg id="stepper-svg" viewBox="0 0 820 340" width="100%" height="100%" style="max-width: 820px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="step-arrow-default" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#94a3b8" />
+            </marker>
+            <marker id="step-arrow-active" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+            </marker>
+            <filter id="active-glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#0284c7" flood-opacity="0.6" />
+            </filter>
+          </defs>
+
+          <!-- Bounds Guide -->
+          <rect id="dram-zone" x="10" y="20" width="800" height="175" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-dasharray="4,4" />
+          <text id="dram-label" x="25" y="38" fill="#94a3b8" font-size="8.5" font-weight="700">PRIMARY MEMORY (PHYSICAL RAM)</text>
+
+          <rect id="disk-zone" x="10" y="215" width="800" height="110" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="4,4" style="display: none;" />
+          <text id="disk-label" x="25" y="232" fill="#94a3b8" font-size="8.5" font-weight="700" style="display: none;">SECONDARY STORAGE (SWAPFILE ON DISK)</text>
+
+          <!-- Clean Tangential Vector Paths -->
+          <path id="path-admit" d="M 106,105 L 170,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+          <path id="path-dispatch" d="M 245,90 C 315,55 410,55 478,90" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
+          <path id="path-preempt" d="M 480,122 C 410,155 315,155 246,122" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#step-arrow-default)" />
+          <path id="path-block" d="M 554,105 L 660,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
+          <path id="path-event" d="M 690,70 C 640,30 280,30 220,70" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
+          <path id="path-exit" d="M 535,74 C 585,35 710,35 750,75" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+
+          <path id="path-swapout-ready" d="M 200,144 L 218,232" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+          <path id="path-swapin-ready" d="M 235,232 L 217,146" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+          <path id="path-swapout-blocked" d="M 690,144 L 690,232" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+          <path id="path-swapin-blocked" d="M 712,232 L 712,146" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+          <path id="path-event-disk" d="M 662,270 L 268,270" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+
+          <!-- Circular State Nodes -->
+          <g id="node-NEW" transform="translate(70, 105)" style="display: none;">
+            <circle cx="0" cy="0" r="35" fill="#ffffff" stroke="#94a3b8" stroke-width="2" />
+            <text x="0" y="-3" fill="#334155" font-size="10.5" font-weight="700" text-anchor="middle">NEW</text>
+            <text x="0" y="11" fill="#64748b" font-size="7.5" text-anchor="middle">Creating</text>
+          </g>
+
+          <g id="node-READY" transform="translate(210, 105)">
+            <circle cx="0" cy="0" r="38" fill="#eff6ff" stroke="#0284c7" stroke-width="2" />
+            <text x="0" y="-3" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">READY</text>
+            <text x="0" y="11" fill="#64748b" font-size="7.5" text-anchor="middle">Run Queue</text>
+          </g>
+
+          <g id="node-RUNNING" transform="translate(515, 105)">
+            <circle cx="0" cy="0" r="38" fill="#ecfdf5" stroke="#059669" stroke-width="2" />
+            <text x="0" y="-3" fill="#065f46" font-size="11" font-weight="700" text-anchor="middle">RUNNING</text>
+            <text x="0" y="11" fill="#047857" font-size="7.5" text-anchor="middle">CPU Core 1</text>
+          </g>
+
+          <g id="node-BLOCKED" transform="translate(700, 105)">
+            <circle cx="0" cy="0" r="38" fill="#fef2f2" stroke="#ef4444" stroke-width="2" />
+            <text x="0" y="-3" fill="#991b1b" font-size="11" font-weight="700" text-anchor="middle">BLOCKED</text>
+            <text x="0" y="11" fill="#b91c1c" font-size="7.5" text-anchor="middle">Wait on I/O</text>
+          </g>
+
+          <g id="node-TERMINATED" transform="translate(770, 105)" style="display: none;">
+            <circle cx="0" cy="0" r="32" fill="#fffbeb" stroke="#d97706" stroke-width="2" />
+            <text x="0" y="-2" fill="#92400e" font-size="9.5" font-weight="700" text-anchor="middle">EXIT</text>
+            <text x="0" y="10" fill="#78350f" font-size="7" text-anchor="middle">Zombie</text>
+          </g>
+
+          <g id="node-READY_SUSP" transform="translate(230, 270)" style="display: none;">
+            <circle cx="0" cy="0" r="36" fill="#faf5ff" stroke="#9333ea" stroke-width="2" />
+            <text x="0" y="-6" fill="#7e22ce" font-size="8" font-weight="700" text-anchor="middle">READY /</text>
+            <text x="0" y="6" fill="#7e22ce" font-size="8" font-weight="700" text-anchor="middle">SUSPENDED</text>
+          </g>
+
+          <g id="node-BLOCKED_SUSP" transform="translate(700, 270)" style="display: none;">
+            <circle cx="0" cy="0" r="36" fill="#fff1f2" stroke="#e11d48" stroke-width="2" />
+            <text x="0" y="-6" fill="#be123c" font-size="8" font-weight="700" text-anchor="middle">BLOCKED /</text>
+            <text x="0" y="6" fill="#be123c" font-size="8" font-weight="700" text-anchor="middle">SUSPENDED</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Foreshadowed Navigation & Controls -->
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px;">
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="btn-prev-step" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; border-radius: 5px; cursor: pointer;">&larr; Prev</button>
+          <button type="button" id="btn-next-step" style="padding: 6px 14px; font-weight: 600; font-size: 0.85rem; border: 1px solid #0284c7; background: #0284c7; color: #ffffff; border-radius: 5px; cursor: pointer;">Next Step &rarr;</button>
+          <button type="button" id="btn-reset-step" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; border-radius: 5px; cursor: pointer;">Reset</button>
+        </div>
+
+        <!-- Inline Preview of Active Step (Stage Explanation) -->
+        <div style="font-size: 0.85rem; color: #334155;">
+          <span style="color: #64748b; font-weight: 600;">Stage Explanation:</span> <span id="preview-text" style="font-weight: 700; color: #0284c7;">Scheduler dispatches PID 4092 onto CPU Core 1</span>
+        </div>
+      </div>
+
+      <!-- Paired Analytical Panes (Strict Mechanics vs. Rationale) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <!-- Pane 1: Mechanics -->
+        <div style="border: 1px solid #bae6fd; background: #f0f9ff; border-radius: 6px; padding: 16px;">
+          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">1. What Is Happening (Low-Level Mechanics)</div>
+          <div id="pane-mechanics" style="font-size: 0.9rem; color: #1e293b; line-height: 1.5;"></div>
+        </div>
+
+        <!-- Pane 2: Rationale -->
+        <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 16px;">
+          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #92400e; text-transform: uppercase; margin-bottom: 6px;">2. Why The System Does This (Design Rationale)</div>
+          <div id="pane-rationale" style="font-size: 0.9rem; color: #78350f; line-height: 1.5;"></div>
+        </div>
+      </div>
+
+      <!-- Dedicated Contextual Definitions Section -->
+      <div style="border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; padding: 16px;">
+        <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; margin-bottom: 8px;">Contextual Definitions &amp; System Concepts</div>
+        <div id="pane-definitions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;"></div>
+      </div>
+    </div>
+
+    <!-- Stepper Logic Script -->
+    <script>
+      (function() {
+        const scenarios = {
+          "3": [
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "NONE",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler allocates time slice on CPU Core 1",
+              mechanics: "PID 4092 resides in the kernel run queue. The scheduler selects it, loads its saved registers (RIP, RSP, RAX) from its Process Control Block into the CPU, and executes return-from-trap.",
+              rationale: "Separates policy (which job to schedule) from mechanism (context switch execution). Allows CPU time-sharing among multiple resident tasks without program modification.",
+              definitions: [
+                { term: "Context Switch", desc: "Low-level assembly procedure that saves hardware CPU registers of the interrupted process and restores the register state of the scheduled process." },
+                { term: "Policy vs. Mechanism", desc: "A foundational OS design rule: mechanisms specify 'how' a task is executed, while policies determine 'which' decisions are made." }
+              ]
+            },
+            {
+              state: "RUNNING",
+              residence: "PHYSICAL DRAM",
+              cpu: "CORE 1 (EXECUTING)",
+              io: "NONE",
+              node: "node-RUNNING",
+              activePath: "path-block",
+              preview: "Database query issues read() for table index on NVMe SSD",
+              mechanics: "The program executes user-space arithmetic until encountering an un-cached database index. It invokes the read() system call, executing a trap instruction to switch from user mode to kernel mode.",
+              rationale: "Limited Direct Execution guarantees native hardware execution speed while preventing unprivileged software from issuing arbitrary commands directly to raw hardware devices.",
+              definitions: [
+                { term: "Trap Instruction", desc: "A privileged hardware instruction that elevates CPU privilege from Ring 3 (User) to Ring 0 (Kernel) and jumps to a pre-registered trap table address." },
+                { term: "Limited Direct Execution (LDE)", desc: "The operating system runs programs directly on the bare CPU hardware while maintaining strict control via hardware trap tables and timer interrupts." }
+              ]
+            },
+            {
+              state: "BLOCKED",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (YIELDED)",
+              io: "PENDING (NVMe READ)",
+              node: "node-BLOCKED",
+              activePath: "path-event",
+              preview: "Storage controller raises interrupt upon finishing data transfer",
+              mechanics: "The kernel marks PID 4092 as BLOCKED, moves its PCB from the active run queue into the NVMe controller's wait queue, and triggers a context switch to run another ready process.",
+              rationale: "Maximizes CPU utilization. Reading from storage takes thousands to millions of CPU clock cycles; yielding the core prevents the processor from stalling on idle wait loops.",
+              definitions: [
+                { term: "Device Wait Queue", desc: "An in-kernel linked list tracking blocked processes awaiting hardware signals from a specific peripheral controller." },
+                { term: "I/O Overlapping", desc: "Maximizing system efficiency by interleaving CPU computation of ready tasks with asynchronous hardware transfers of blocked tasks." }
+              ]
+            },
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "COMPLETED",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler picks PID 4092 to resume processing the read buffer",
+              mechanics: "The NVMe controller asserts an interrupt line. The kernel's Interrupt Service Routine (ISR) copies data into the buffer and transitions PID 4092 back to the READY run queue.",
+              rationale: "Interrupt-driven event loops eliminate busy-waiting polling, allowing the OS to wake only the exact processes whose prerequisite events have finished.",
+              definitions: [
+                { term: "Interrupt Service Routine (ISR)", desc: "A pre-compiled kernel handler invoked directly by hardware interrupts to service asynchronous peripheral events." },
+                { term: "Asynchronous Notification", desc: "Hardware event signalling that wakes waiting tasks without demanding constant CPU polling." }
+              ]
+            }
+          ],
+          "5": [
+            {
+              state: "NEW",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (CREATING)",
+              io: "NONE",
+              node: "node-NEW",
+              activePath: "path-admit",
+              preview: "Kernel admits initialized process into scheduler run queue",
+              mechanics: "Parent process calls fork()/CreateProcess(). The OS allocates a new PCB (PID 4092), initializes virtual memory page tables, loads the binary executable header, but has not yet placed it on the run queue.",
+              rationale: "Prevents half-initialized tasks from being picked by the dispatcher before address bounds and security tokens are fully established.",
+              definitions: [
+                { term: "Process Control Block (PCB)", desc: "The central kernel data structure holding process identification, register context, memory root pointers, and open file tables." },
+                { term: "Admission Control", desc: "The policy phase governing when a newly constructed task is permitted to compete for system resources." }
+              ]
+            },
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "NONE",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler dispatches PID 4092 onto CPU Core 1",
+              mechanics: "The process is admitted to the run queue. The scheduler selects PID 4092 and switches the MMU CR3 pointer to its page table root.",
+              rationale: "Ensures uniform scheduling competition alongside other active system tasks.",
+              definitions: [
+                { term: "Page Table Base (CR3/TTBR0)", desc: "The hardware register storing the physical base address of the active virtual-to-physical memory mapping hierarchy." },
+                { term: "Address Space Virtualization", desc: "Presenting each process with an illusion of contiguous private memory while sharing underlying physical RAM." }
+              ]
+            },
+            {
+              state: "RUNNING",
+              residence: "PHYSICAL DRAM",
+              cpu: "CORE 1 (EXECUTING)",
+              io: "NONE",
+              node: "node-RUNNING",
+              activePath: "path-exit",
+              preview: "Report finishes and process executes exit(0) system call",
+              mechanics: "Query processes all database records, formats the text report to standard output, and executes the exit() system call.",
+              rationale: "Explicit exit boundaries allow applications to signal completion and return numeric status codes to the parent process.",
+              definitions: [
+                { term: "exit() System Call", desc: "The termination entrypoint where an application requests kernel deallocation of its execution context." },
+                { term: "Lifecycle Finalization", desc: "Structured teardown that ensures shared locks, memory, and devices are reliably recovered." }
+              ]
+            },
+            {
+              state: "TERMINATED",
+              residence: "RELEASED (DRAM FREED)",
+              cpu: "NONE (DEAD)",
+              io: "NONE",
+              node: "node-TERMINATED",
+              activePath: "",
+              preview: "Parent calls wait() to reap zombie PCB entry",
+              mechanics: "The OS deallocates virtual address space pages, closes open file descriptors, and retains only the PCB entry (Zombie state) containing the exit status until parent reaps it.",
+              rationale: "Preserves the exit return code until the creator process can collect it; prevents leaking PID table slots once wait() completes.",
+              definitions: [
+                { term: "Zombie / Defunct Process", desc: "A terminated process whose address space is freed but whose PCB remains to store the exit status code." },
+                { term: "Parent Synchronization", desc: "Enabling ancestor tasks to verify child job success or failure before finalizing accounting records." }
+              ]
+            }
+          ],
+          "7": [
+            {
+              state: "RUNNING",
+              residence: "PHYSICAL DRAM",
+              cpu: "CORE 1 (EXECUTING)",
+              io: "NONE",
+              node: "node-RUNNING",
+              activePath: "path-block",
+              preview: "Task issues blocking I/O while system memory reaches 99% capacity",
+              mechanics: "PID 4092 issues an I/O request. Simultaneously, severe system-wide memory exhaustion triggers the Medium-Term Scheduler (Swapper).",
+              rationale: "Operating systems must actively protect against memory thrashing when total active working sets exceed physical RAM.",
+              definitions: [
+                { term: "Medium-Term Scheduler", desc: "The kernel subsystem responsible for moving entire process working sets between physical DRAM and backing storage." },
+                { term: "Memory Overcommitment", desc: "Allocating more virtual memory than physically exists, relying on swapping to handle peaks." }
+              ]
+            },
+            {
+              state: "BLOCKED",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (BLOCKED)",
+              io: "PENDING",
+              node: "node-BLOCKED",
+              activePath: "path-swapout-blocked",
+              preview: "Swapper selects dormant blocked task and migrates memory to disk",
+              mechanics: "Because PID 4092 is blocked waiting on I/O, the swapper writes its private heap and stack pages out to the swap partition, reclaiming DRAM frames for active tasks.",
+              rationale: "Swapping out a blocked process frees RAM immediately without hurting current throughput, since the task cannot execute anyway until I/O completes.",
+              definitions: [
+                { term: "Swap Space / Backing Store", desc: "A dedicated raw disk partition or filesystem pagefile allocated for paging out process frames." },
+                { term: "Working-Set Eviction", desc: "Paging out memory of idle or waiting processes to prioritize resident space for CPU-active tasks." }
+              ]
+            },
+            {
+              state: "BLOCKED / SUSPENDED",
+              residence: "SECONDARY DISK",
+              cpu: "NONE (SWAPPED)",
+              io: "PENDING (ON DISK)",
+              node: "node-BLOCKED_SUSP",
+              activePath: "path-event-disk",
+              preview: "Storage I/O completes while process memory is still on disk",
+              mechanics: "The storage controller asserts an interrupt signaling completion. The kernel marks the I/O as done in the PCB without paging memory back into RAM immediately.",
+              rationale: "Prevents wasteful premature page-ins. The kernel simply transitions the process from Blocked/Suspended to Ready/Suspended.",
+              definitions: [
+                { term: "Asynchronous Event Resolution", desc: "Updating kernel PCB metadata to reflect device completion without requiring memory restoration." },
+                { term: "Deferred Allocation", desc: "Avoiding expensive I/O transfers until the target resource is strictly guaranteed to run." }
+              ]
+            },
+            {
+              state: "READY / SUSPENDED",
+              residence: "SECONDARY DISK",
+              cpu: "NONE (READY ON DISK)",
+              io: "COMPLETED",
+              node: "node-READY_SUSP",
+              activePath: "path-swapin-ready",
+              preview: "Memory pressure eases; swapper pages working set back to DRAM",
+              mechanics: "Another high-memory job terminates. The medium-term scheduler detects available physical RAM and pages PID 4092's working set back into physical DRAM.",
+              rationale: "Balances memory allocation demand, moving the process to in-memory Ready so the short-term dispatcher can schedule it.",
+              definitions: [
+                { term: "Demand Page-In", desc: "Reading process frames back from swap disk into newly allocated physical DRAM page frames." },
+                { term: "Two-Tier Scheduling", desc: "Separating long-term memory residence control from millisecond-level CPU quantum dispatching." }
+              ]
+            },
+            {
+              state: "READY",
+              residence: "PHYSICAL DRAM",
+              cpu: "NONE (IN QUEUE)",
+              io: "COMPLETED",
+              node: "node-READY",
+              activePath: "path-dispatch",
+              preview: "Scheduler dispatches reloaded process to complete calculation",
+              mechanics: "PID 4092 is fully restored in physical RAM and queued on the active run queue.",
+              rationale: "Completes the medium-term scheduling recovery loop with zero data loss or application crashes.",
+              definitions: [
+                { term: "Run Queue Enqueue", desc: "Appending a fully resident task structure to the active per-CPU scheduler run list." },
+                { term: "Fault Transparency", desc: "Providing the application with the complete illusion of uninterrupted execution despite memory paging." }
+              ]
+            }
+          ]
+        };
+
+        let currentModel = "3";
+        let currentStep = 0;
+
+        function refreshView() {
+          const modelData = scenarios[currentModel];
+          if (currentStep >= modelData.length) currentStep = 0;
+          const stepData = modelData[currentStep];
+
+          // 1. Update Telemetry
+          document.getElementById("telemetry-state").textContent = stepData.state;
+          document.getElementById("telemetry-residence").textContent = stepData.residence;
+          document.getElementById("telemetry-cpu").textContent = stepData.cpu;
+          document.getElementById("telemetry-io").textContent = stepData.io;
+
+          // 2. Update Narrative Panes
+          document.getElementById("preview-text").textContent = stepData.preview;
+          document.getElementById("pane-mechanics").textContent = stepData.mechanics;
+          document.getElementById("pane-rationale").textContent = stepData.rationale;
+
+          // 3. Render Dedicated Definitions Container
+          const defsContainer = document.getElementById("pane-definitions");
+          defsContainer.innerHTML = "";
+          stepData.definitions.forEach(item => {
+            const card = document.createElement("div");
+            card.style.background = "#ffffff";
+            card.style.border = "1px solid #cbd5e1";
+            card.style.borderRadius = "4px";
+            card.style.padding = "10px 12px";
+            card.innerHTML = `<div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #0284c7; margin-bottom: 4px;">${item.term}</div><div style="font-size: 0.85rem; color: #475569; line-height: 1.4;">${item.desc}</div>`;
+            defsContainer.appendChild(card);
+          });
+
+          // 4. Update Model Specific Elements Visibility
+          const is7 = currentModel === "7";
+          const is5or7 = currentModel === "5" || currentModel === "7";
+
+          document.getElementById("disk-zone").style.display = is7 ? "block" : "none";
+          document.getElementById("disk-label").style.display = is7 ? "block" : "none";
+          document.getElementById("node-NEW").style.display = is5or7 ? "block" : "none";
+          document.getElementById("node-TERMINATED").style.display = is5or7 ? "block" : "none";
+          document.getElementById("path-admit").style.display = is5or7 ? "block" : "none";
+          document.getElementById("path-exit").style.display = is5or7 ? "block" : "none";
+
+          document.getElementById("node-READY_SUSP").style.display = is7 ? "block" : "none";
+          document.getElementById("node-BLOCKED_SUSP").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapout-ready").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapin-ready").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapout-blocked").style.display = is7 ? "block" : "none";
+          document.getElementById("path-swapin-blocked").style.display = is7 ? "block" : "none";
+          document.getElementById("path-event-disk").style.display = is7 ? "block" : "none";
+
+          // 5. Highlight Active Node
+          const allNodes = ["node-NEW", "node-READY", "node-RUNNING", "node-BLOCKED", "node-TERMINATED", "node-READY_SUSP", "node-BLOCKED_SUSP"];
+          allNodes.forEach(nid => {
+            const el = document.getElementById(nid);
+            if (el) {
+              const circle = el.querySelector("circle");
+              if (circle) {
+                circle.removeAttribute("filter");
+                circle.style.strokeWidth = "2px";
+              }
+            }
+          });
+
+          const activeNodeEl = document.getElementById(stepData.node);
+          if (activeNodeEl) {
+            const circle = activeNodeEl.querySelector("circle");
+            if (circle) {
+              circle.setAttribute("filter", "url(#active-glow)");
+              circle.style.strokeWidth = "3.5px";
+            }
+          }
+
+          // 6. Highlight Active Transition Path & Marker
+          const allPaths = [
+            "path-admit", "path-dispatch", "path-preempt", "path-block", "path-event", "path-exit",
+            "path-swapout-ready", "path-swapin-ready", "path-swapout-blocked", "path-swapin-blocked", "path-event-disk"
+          ];
+          allPaths.forEach(pid => {
+            const pel = document.getElementById(pid);
+            if (pel) {
+              pel.style.stroke = "#cbd5e1";
+              pel.style.strokeWidth = "2px";
+              pel.setAttribute("marker-end", "url(#step-arrow-default)");
+            }
+          });
+
+          if (stepData.activePath) {
+            const activePathEl = document.getElementById(stepData.activePath);
+            if (activePathEl) {
+              activePathEl.style.stroke = "#0284c7";
+              activePathEl.style.strokeWidth = "3.5px";
+              activePathEl.setAttribute("marker-end", "url(#step-arrow-active)");
+            }
+          }
+        }
+
+        // Event Listeners for Model Toggles
+        document.querySelectorAll(".model-toggle").forEach(btn => {
+          btn.addEventListener("click", function() {
+            document.querySelectorAll(".model-toggle").forEach(b => {
+              b.style.background = "#ffffff";
+              b.style.color = "#475569";
+              b.style.borderColor = "#cbd5e1";
+            });
+            this.style.background = "#0284c7";
+            this.style.color = "#ffffff";
+            this.style.borderColor = "#0284c7";
+            currentModel = this.getAttribute("data-model");
+            currentStep = 0;
+            refreshView();
+          });
+        });
+
+        // Navigation Stepper Buttons
+        document.getElementById("btn-next-step").addEventListener("click", function() {
+          currentStep = (currentStep + 1) % scenarios[currentModel].length;
+          refreshView();
+        });
+
+        document.getElementById("btn-prev-step").addEventListener("click", function() {
+          currentStep = (currentStep - 1 + scenarios[currentModel].length) % scenarios[currentModel].length;
+          refreshView();
+        });
+
+        document.getElementById("btn-reset-step").addEventListener("click", function() {
+          currentStep = 0;
+          refreshView();
+        });
+
+        // Initial render
+        refreshView();
+      })();
+    </script>
+
+    <h3>2. Address Spaces &amp; Virtual Memory: Diverse Architectures</h3>
+    <p>
+      To prevent concurrent programs from corrupting one another's data and to decouple software from the limits of physical RAM, operating systems provide the <strong>address space</strong> abstraction. While contemporary systems predominantly utilize flat, paged virtual memory architectures, operating system design encompasses three distinct structural paradigms:
+    </p>
+
+    <h4>Memory Architectures Across Operating Systems</h4>
+    <ul>
+      <li><strong>Flat Paged Virtual Memory (Linux, Windows NT, macOS):</strong> Memory is partitioned into fixed-size chunks called <em>pages</em> (typically 4 KiB, with 2 MiB / 1 GiB huge pages). The hardware Memory Management Unit (MMU) consults multi-level page tables (e.g., x86-64 4-level or 5-level paging, ARM64 translation tables) to translate virtual addresses into physical frames dynamically. Paging enables fine-grained protection flags (read, write, execute), copy-on-write sharing, and demand paging to swap space or page files.</li>
+      <li><strong>Segmented Memory (x86 Protected Mode, Multics, OS/2):</strong> Instead of a uniform flat array, memory is divided into variable-length, semantically meaningful logical blocks called <em>segments</em> (e.g., Code Segment, Data Segment, Stack Segment). Each address consists of a segment selector and an offset. While pure segmentation fell out of favor on 64-bit consumer systems due to fragmentation, it provided hardware-enforced bounds checking and capabilities natively.</li>
+      <li><strong>Single-Level Store &amp; Single Address Space (IBM OS/400 / IBM i):</strong> Rather than maintaining private, isolated address spaces per program, systems like IBM i treat all storage—volatile DRAM and non-volatile disk arrays—as one enormous, globally addressed 64-bit or 128-bit virtual address space. Programs, files, and database records reside permanently within this unified store, accessed via hardware-enforced 16-byte capability pointers rather than traditional file path opens.</li>
+    </ul>
+
+    <!-- Diagram: Address Space Architectures -->
+    <div style="display: flex; justify-content: center; margin: 24px 0;">
+      <svg viewBox="0 0 760 250" width="100%" height="100%" style="max-width: 760px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="mem-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06" />
+          </filter>
+        </defs>
+
+        <!-- Left Box: Isolated Virtual Address Spaces -->
+        <g transform="translate(30, 20)" filter="url(#mem-shadow)">
+          <rect width="335" height="210" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+          <rect width="335" height="28" rx="6" fill="#f0f9ff" />
+          <line x1="0" y1="28" x2="335" y2="28" stroke="#bae6fd" />
+          <text x="167" y="19" fill="#0369a1" font-size="10" font-weight="700" text-anchor="middle">Isolated Address Spaces (Linux / Windows NT)</text>
+
+          <!-- Space A -->
+          <rect x="25" y="45" width="125" height="75" rx="4" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="87" y="62" fill="#0f172a" font-size="9" font-weight="700" text-anchor="middle">Process A</text>
+          <text x="87" y="76" fill="#64748b" font-size="7.5" text-anchor="middle">0x0000..0xFFFF</text>
+          <rect x="35" y="85" width="105" height="25" rx="3" fill="#e0f2fe" stroke="#0284c7" />
+          <text x="87" y="101" fill="#0369a1" font-size="8" text-anchor="middle">Private Page Map</text>
+
+          <!-- Space B -->
+          <rect x="185" y="45" width="125" height="75" rx="4" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="247" y="62" fill="#0f172a" font-size="9" font-weight="700" text-anchor="middle">Process B</text>
+          <text x="247" y="76" fill="#64748b" font-size="7.5" text-anchor="middle">0x0000..0xFFFF</text>
+          <rect x="195" y="85" width="105" height="25" rx="3" fill="#e0f2fe" stroke="#0284c7" />
+          <text x="247" y="101" fill="#0369a1" font-size="8" text-anchor="middle">Private Page Map</text>
+
+          <!-- Shared Physical RAM Bottom -->
+          <rect x="25" y="145" width="285" height="48" rx="4" fill="#ecfdf5" stroke="#059669" stroke-width="1.2" />
+          <text x="167" y="165" fill="#065f46" font-size="9.5" font-weight="700" text-anchor="middle">Shared Physical DRAM Frames</text>
+          <text x="167" y="180" fill="#047857" font-size="8" text-anchor="middle">MMU swaps page roots on context switch</text>
+        </g>
+
+        <!-- Right Box: Single-Level Store -->
+        <g transform="translate(395, 20)" filter="url(#mem-shadow)">
+          <rect width="335" height="210" rx="6" fill="#ffffff" stroke="#d97706" stroke-width="1.5" />
+          <rect width="335" height="28" rx="6" fill="#fffbeb" />
+          <line x1="0" y1="28" x2="335" y2="28" stroke="#fde68a" />
+          <text x="167" y="19" fill="#92400e" font-size="10" font-weight="700" text-anchor="middle">Single-Level Store (IBM i / OS/400)</text>
+
+          <!-- Unified continuous space -->
+          <rect x="25" y="45" width="285" height="148" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="4,4" />
+          <text x="167" y="65" fill="#1e293b" font-size="9.5" font-weight="700" text-anchor="middle">Universal 128-Bit Virtual Address Space</text>
+
+          <rect x="40" y="80" width="115" height="42" rx="3" fill="#fef3c7" stroke="#d97706" />
+          <text x="97" y="98" fill="#92400e" font-size="8.5" font-weight="600" text-anchor="middle">Objects &amp; Data</text>
+          <text x="97" y="112" fill="#78350f" font-size="7.5" text-anchor="middle">Permanent Storage</text>
+
+          <rect x="180" y="80" width="115" height="42" rx="3" fill="#eff6ff" stroke="#0284c7" />
+          <text x="237" y="98" fill="#0369a1" font-size="8.5" font-weight="600" text-anchor="middle">Active Programs</text>
+          <text x="237" y="112" fill="#1e40af" font-size="7.5" text-anchor="middle">Volatile DRAM</text>
+
+          <rect x="40" y="136" width="255" height="44" rx="3" fill="#ffffff" stroke="#94a3b8" />
+          <text x="167" y="154" fill="#334155" font-size="8.5" font-weight="700" text-anchor="middle">Hardware Capability Pointers</text>
+          <text x="167" y="168" fill="#64748b" font-size="7.5" text-anchor="middle">No file open/close; accessed via direct memory pointer</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>3. Files &amp; Hierarchical Directories: Diverse Paradigms</h3>
+    <p>
+      The <strong>file</strong> abstraction provides a persistent, named container for information that survives process termination and power outages. While contemporary developers frequently assume the Unix model—a linear, untyped byte stream anchored in a single unified directory tree—operating system history reflects fundamentally different approaches to structuring persistent storage.
+    </p>
+
+    <h4>File Structuring Models: Byte Streams vs. Record Datasets</h4>
+    <p>
+      Operating systems categorize the internal structure of files into three primary models:
+    </p>
+    <ul>
+      <li><strong>Unstructured Byte Sequences (POSIX / Windows):</strong> The OS treats the file as an arbitrary sequence of 8-bit bytes. The kernel imposes no internal boundaries, record structures, or record keys; interpreting the contents is left entirely to user applications.</li>
+      <li><strong>Multi-Stream &amp; Forked Files (macOS HFS / Windows NTFS):</strong> Files can house multiple discrete data streams attached to a single directory entry. Apple's classic HFS utilized a <em>Data Fork</em> (raw content) and a <em>Resource Fork</em> (compiled icons, menus, and localization strings). Similarly, NTFS supports <strong>Alternate Data Streams (ADS)</strong>, allowing metadata (such as web origin tags like <code>Zone.Identifier</code>) to adhere silently to a file.</li>
+      <li><strong>Record-Oriented Datasets (IBM z/OS / MVS / VMS):</strong> The operating system defines and enforces internal record structures. Files are sequences of fixed-length (Fixed Blocked) or variable-length records. In Indexed Sequential Access Method (ISAM) or VSAM datasets, the OS kernel itself manages indexed key searches to fetch specific customer or account records without requiring database middleware.</li>
+    </ul>
+
+    <h4>Namespace Topologies: Unified Trees vs. Per-Volume Roots</h4>
+    <p>
+      How an operating system organizes and accesses multiple physical disk volumes varies dramatically:
+    </p>
+    <ul>
+      <li><strong>Unified Virtual File System (POSIX / Unix):</strong> Every physical disk, network share, and pseudo-filesystem is spliced into a single root tree starting at <code>/</code> using the <code>mount</code> operation. Physical boundaries are completely transparent to userspace paths (e.g., <code>/home/user/docs</code> might reside across three distinct NVMe and NFS storage devices).</li>
+      <li><strong>Drive Letters &amp; The NT Object Manager (Windows):</strong> Exposed to users as segmented per-drive root directories (<code>C:\</code>, <code>D:\</code>). Internally, the Windows NT Object Manager maintains a unified root namespace (<code>\GLOBAL??\C:</code> symlinked to <code>\Device\HarddiskVolume1</code>), with Win32 path prefixes providing compatibility.</li>
+      <li><strong>Flat Cataloged Namespaces (IBM Mainframes):</strong> Traditional z/OS does not use hierarchical directory trees for datasets. Instead, datasets use dotted qualifiers (e.g., <code>USER1.COBOL.SOURCE(MAIN)</code>) tracked via a centralized system catalog (Master and User Catalogs) mapping names to volume serial identifiers (VOLSERs).</li>
+    </ul>
+
+    <!-- Diagram 3: Namespace Topologies Comparison -->
+    <div style="display: flex; justify-content: center; margin: 24px 0;">
+      <svg viewBox="0 0 760 260" width="100%" height="100%" style="max-width: 760px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="tree-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+          </marker>
+          <filter id="box-shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06" />
+          </filter>
+        </defs>
+
+        <!-- Left: POSIX Unified Hierarchy -->
+        <g transform="translate(40, 20)" filter="url(#box-shadow)">
+          <rect width="320" height="220" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+          <rect width="320" height="28" rx="6" fill="#f0f9ff" />
+          <line x1="0" y1="28" x2="320" y2="28" stroke="#bae6fd" />
+          <text x="160" y="19" fill="#0369a1" font-size="10.5" font-weight="700" text-anchor="middle">POSIX Unified Namespace</text>
+
+          <!-- Tree Nodes -->
+          <circle cx="160" cy="55" r="14" fill="#0284c7" />
+          <text x="160" y="60" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">/</text>
+
+          <line x1="148" y1="67" x2="80" y2="105" stroke="#94a3b8" stroke-width="1.5" />
+          <line x1="160" y1="69" x2="160" y2="105" stroke="#94a3b8" stroke-width="1.5" />
+          <line x1="172" y1="67" x2="240" y2="105" stroke="#94a3b8" stroke-width="1.5" />
+
+          <rect x="50" y="105" width="60" height="22" rx="3" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="80" y="120" fill="#334155" font-size="9" text-anchor="middle">/bin</text>
+
+          <rect x="130" y="105" width="60" height="22" rx="3" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="160" y="120" fill="#334155" font-size="9" text-anchor="middle">/etc</text>
+
+          <rect x="210" y="105" width="60" height="22" rx="3" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
+          <text x="240" y="120" fill="#0369a1" font-size="9" font-weight="700" text-anchor="middle">/mnt/usb</text>
+
+          <!-- Mount boundary label -->
+          <path d="M 240, 130 L 240, 160" stroke="#0284c7" stroke-dasharray="3,3" stroke-width="1.5" marker-end="url(#tree-arrow)" />
+          <rect x="180" y="165" width="120" height="34" rx="4" fill="#eff6ff" stroke="#93c5fd" />
+          <text x="240" y="180" fill="#1e40af" font-size="8" font-weight="700" text-anchor="middle">Volume Mounted In-Tree</text>
+          <text x="240" y="192" fill="#64748b" font-size="7.5" text-anchor="middle">Seamless /dev/sdb1 splice</text>
+        </g>
+
+        <!-- Right: Windows Drive Letters / NT Namespace -->
+        <g transform="translate(400, 20)" filter="url(#box-shadow)">
+          <rect width="320" height="220" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" />
+          <rect width="320" height="28" rx="6" fill="#f8fafc" />
+          <line x1="0" y1="28" x2="320" y2="28" stroke="#e2e8f0" />
+          <text x="160" y="19" fill="#334155" font-size="10.5" font-weight="700" text-anchor="middle">Windows NT Namespace</text>
+
+          <!-- Independent Roots -->
+          <rect x="50" y="45" width="90" height="32" rx="4" fill="#ecfdf5" stroke="#059669" stroke-width="1.2" />
+          <text x="95" y="65" fill="#065f46" font-size="11" font-weight="700" text-anchor="middle">C:\ (NVMe)</text>
+
+          <rect x="180" y="45" width="90" height="32" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.2" />
+          <text x="225" y="65" fill="#92400e" font-size="11" font-weight="700" text-anchor="middle">D:\ (USB)</text>
+
+          <line x1="95" y1="77" x2="95" y2="105" stroke="#94a3b8" stroke-width="1.5" />
+          <line x1="225" y1="77" x2="225" y2="105" stroke="#94a3b8" stroke-width="1.5" />
+
+          <rect x="40" y="105" width="110" height="22" rx="3" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="95" y="120" fill="#334155" font-size="8.5" text-anchor="middle">\Windows\System32</text>
+
+          <rect x="180" y="105" width="90" height="22" rx="3" fill="#f8fafc" stroke="#cbd5e1" />
+          <text x="225" y="120" fill="#334155" font-size="8.5" text-anchor="middle">\Backups</text>
+
+          <!-- NT Object Manager callout -->
+          <rect x="30" y="150" width="260" height="50" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="3,3" />
+          <text x="160" y="168" fill="#475569" font-size="8.5" font-weight="700" text-anchor="middle">Underlying NT Object Manager:</text>
+          <text x="160" y="184" fill="#0369a1" font-size="8" text-anchor="middle">\GLOBAL??\C: &rarr; \Device\HarddiskVolume1</text>
+        </g>
+      </svg>
+    </div>
+
+    <h4>Architectural Comparison of File System Implementations</h4>
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; background: #ffffff;">
+        <thead>
+          <tr style="background: #f1f5f9; color: #1e293b;">
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Design Attribute</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">POSIX / Linux (ext4, XFS)</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Windows NT (NTFS, ReFS)</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">IBM Mainframes (z/OS VSAM)</th>
+          </tr>
+        </thead>
+        <tbody style="color: #334155;">
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Data Model</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Unstructured byte array.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Unstructured byte array + Alternate Data Streams (ADS).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Structured records (Fixed, Variable, or Key-Sequenced).</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Metadata Container</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Index Node (<strong>inode</strong>) storing pointers to extent/block maps, size, ownership, and mode flags.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Master File Table (<strong>MFT</strong>) row storing attributes (small files fit directly inside the MFT record).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Volume Table of Contents (<strong>VTOC</strong>) containing Data Set Control Blocks (DSCBs).</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Access Security</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Classic User/Group/Other <code>rwx</code> bits + POSIX 1e ACLs.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Granular Security Descriptors (DACLs/SACLs) with inheritance.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">System Authorization Facility (SAF) / RACF profiles.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Case Sensitivity</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Strictly case-sensitive (<code>file.txt</code> &ne; <code>File.txt</code>).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Case-preserving but case-insensitive by default in Win32.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Strictly uppercase alphanumeric characters only.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">File Locking Semantics</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Advisory locking by default (<code>fcntl</code> / <code>flock</code>).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Mandatory sharing/locking modes enforced on <code>CreateFile</code>.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Exclusive system-enforced enqueue (ENQ) locks per dataset.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4. Input/Output (I/O) Subsystems</h3>
+    <p>
+      The primary role of the I/O subsystem is to bridge the massive speed and interface discrepancies between the high-speed CPU memory bus and heterogeneous external peripherals. Operating systems differ substantially in how they model, schedule, and notify applications of completed I/O transactions:
+    </p>
+
+    <h4>I/O Notification &amp; Completion Models</h4>
+    <ul>
+      <li><strong>Synchronous Blocking &amp; Readiness Polling (Classic POSIX):</strong> The calling thread initiates an I/O call (e.g., <code>read()</code>) and transitions into a Blocked state until physical hardware completes the transfer. Multiplexing primitives like <code>select()</code>, <code>poll()</code>, and Linux <code>epoll()</code> or BSD <code>kqueue</code> signal when a file descriptor is <em>ready</em> to perform a non-blocking read or write.</li>
+      <li><strong>Asynchronous Completion Ports (Windows IOCP):</strong> Instead of waiting for readiness, Windows applications initiate genuine asynchronous operations (via <code>ReadFileEx</code> or overlapped I/O) and specify an <strong>I/O Completion Port (IOCP)</strong>. The NT kernel queues completion packets onto the port as hardware finishes data transfers into application-owned buffers, allowing a small pool of worker threads to service thousands of concurrent sockets without polling.</li>
+      <li><strong>Shared Ring-Buffer Submission (Linux <code>io_uring</code>):</strong> Modern Linux bridges the gap with twin circular ring buffers (Submission Queue and Completion Queue) shared between user space and kernel space. Applications submit batches of I/O requests without issuing individual system calls, minimizing context switches for high-throughput NVMe and networking workloads.</li>
+      <li><strong>Mainframe Channel Architecture (IBM z/Architecture):</strong> Mainframes completely decouple I/O execution from the main CPUs using dedicated auxiliary coprocessors called <strong>Channel Subsystems</strong>. The CPU simply executes a <code>START SUBCHANNEL</code> instruction pointing to a sequence of <strong>Channel Command Words (CCWs)</strong> in memory; the channel hardware manages bus negotiation, device handshakes, and memory transfers autonomously before raising an I/O interrupt.</li>
+    </ul>
+
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; background: #ffffff;">
+        <thead>
+          <tr style="background: #f1f5f9; color: #1e293b;">
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Platform</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Dominant High-Performance Paradigm</th>
+            <th style="padding: 10px 14px; border: 1px solid #cbd5e1;">Hardware Handshake Mechanism</th>
+          </tr>
+        </thead>
+        <tbody style="color: #334155;">
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">POSIX / Linux</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Readiness notification (<code>epoll</code>) or shared lockless submission rings (<code>io_uring</code>).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Kernel drivers issue MMIO register writes and service hardware IRQs.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Windows NT</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Asynchronous completion packet queues (I/O Completion Ports - IOCP).</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">I/O Request Packets (IRPs) passed down layered driver stacks.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">Microkernels (QNX / seL4)</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Synchronous message passing (IPC) to user-space driver server processes.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Kernel converts IRQs into IPC notification events delivered to driver threads.</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0; font-weight: 600;">IBM Mainframes</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Autonomous Channel Subsystem executing Channel Command Word (CCW) programs.</td>
+            <td style="padding: 10px 14px; border: 1px solid #e2e8f0;">Specialized auxiliary I/O processors transfer data directly to/from memory.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>5. Protection &amp; Security: Authorization Paradigms</h3>
+    <p>
+      Operating system protection mechanisms ensure that executing software accesses only authorized resources (memory segments, files, devices, network endpoints). Broadly, three distinct authorization and boundary paradigms are employed across systems:
+    </p>
+
+    <h4>Three Core Security Architectures</h4>
+    <ul>
+      <li><strong>Discretionary Access Control (DAC):</strong> The resource owner dictates access permissions. Traditional Unix uses numerical User IDs (UID), Group IDs (GID), and permission bits (<code>rwxrwxrwx</code>). Windows NT expands this via <strong>Discretionary Access Control Lists (DACLs)</strong> composed of individual Access Control Entries (ACEs) granting or denying specific Security Identifiers (SIDs) fine-grained rights like <code>FILE_APPEND_DATA</code> or <code>WRITE_OWNER</code>.</li>
+      <li><strong>Mandatory Access Control (MAC):</strong> Centralized security policy enforced by the kernel regardless of user preferences. Frameworks like <strong>SELinux</strong>, <strong>AppArmor</strong>, and <strong>Windows Mandatory Integrity Control (MIC)</strong> assign security labels to subjects and objects (e.g., Low, Medium, High, System integrity levels in Windows, or Type Enforcement domains in SELinux), isolating processes even if compromised by zero-day exploits.</li>
+      <li><strong>Capability-Based Security (seL4, Fuchsia, KeyKOS):</strong> In pure capability systems, access is granted not by matching identity strings against access lists, but through unforgeable cryptographic or kernel-held tokens called <em>capabilities</em>. Possessing a valid capability grants the holder the authority to perform operations on an object directly, eliminating confused deputy vulnerabilities.</li>
+    </ul>
+
+    <h3>6. The Command Interpreter: Text, Objects, and Batch Job Control</h3>
+    <p>
+      The command interpreter provides the direct interface through which users and automation scripts interact with operating system facilities. Far from being a uniform shell environment, modern and historical command systems reflect contrasting philosophies of data exchange and execution control:
+    </p>
+
+    <h4>Command Line Paradigms Compared</h4>
+    <ul>
+      <li><strong>Text Stream &amp; Pipeline Shells (sh, bash, zsh):</strong> Built around the Unix philosophy of small tools connected via linear ASCII/UTF-8 byte streams. Commands read from standard input and emit unstructured text to standard output, requiring external utilities (such as <code>grep</code>, <code>awk</code>, <code>sed</code>) to parse textual fields. Process creation relies on the classical <code>fork()</code> and <code>exec()</code> primitives.</li>
+      <li><strong>Object-Oriented Shells (PowerShell):</strong> Instead of untyped byte streams, PowerShell pipelines transmit strongly-typed .NET CLI objects. Commands (called <em>cmdlets</em>) receive and emit structured objects possessing properties and methods, eliminating brittle string scraping and regex parsing. On Windows, execution launches through the Win32 <code>CreateProcess()</code> system call, which creates the address space, initial thread, and handles in a single atomic invocation rather than a split fork/exec.</li>
+      <li><strong>Job Control Language (IBM JCL):</strong> In mainframe batch computing, user interaction occurs through structured declarative control cards specifying computational jobs, required program binaries, datasets, and volume dependencies (e.g., <code>//JOB</code>, <code>//EXEC</code>, <code>//DD</code> cards). The operating system's Job Entry Subsystem (JES2/JES3) evaluates resource allocations, queues the job, schedules CPU allocation, and handles spooling without requiring interactive shell sessions.</li>
+    </ul>
+
+    <!-- Navigation Bar Bottom -->
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="02-hardware-review.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Hardware Review</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 1: Operating System Concepts</a>
+      <a href="04-os-structure.html" class="module-nav-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. OS Structure &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+def overwrite_module_three():
+    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
+    with open(TARGET_FILE, "w", encoding="utf-8") as f:
+        f.write(FULL_HTML_CONTENT.strip() + "\n")
+
+    print(f"--> Successfully regenerated {TARGET_FILE} with standardized Stage Explanation label.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Change Upcoming Transition to Stage Explanation in lifecycle simulator\n\n"
-            "Update 03-os-concepts.html so the interactive Process Lifecycle Walkthrough\n"
-            "uses 'Stage Explanation:' instead of 'Upcoming Transition:'."
+            "Change UPCOMING TRANSITION to Stage Explanation in Module 3 HTML\n\n"
+            "Update the static status bar markup in 03-os-concepts.html to use\n"
+            "'Stage Explanation:' instead of 'UPCOMING TRANSITION:'."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -50,4 +1382,4 @@ def fix_lifecycle_preview_label():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    fix_lifecycle_preview_label()
+    overwrite_module_three()
