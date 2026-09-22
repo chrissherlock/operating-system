@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>03. CPU Scheduling Metrics &amp; Algorithms | Week 2: Processes &amp; Concurrency</title>
+  <title>03. CPU Scheduling &amp; Real-World Trade-offs | Week 2</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -43,17 +43,16 @@
       <a href="04-mlfq.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. MLFQ &rarr;</a>
     </nav>
 
-    <h2>03. CPU Scheduling Metrics &amp; Algorithms</h2>
+    <h2>03. CPU Scheduling &amp; Real-World Trade-offs</h2>
     <p>
-      Once processes are ready to execute, the <strong>CPU Scheduler</strong> determines which process gets assigned to physical hardware cores. OSTEP structures scheduling evaluation around two primary metrics: <em>Turnaround Time</em> (completion time minus arrival time) and <em>Response Time</em> (time from arrival to first scheduling execution).
+      Integrating OSTEP's evaluation metrics with Tanenbaum's structural classification highlights how schedulers must balance batch throughput against interactive responsiveness and multi-core cache affinity.
     </p>
 
-    <h3>Classical Scheduling Policies</h3>
+    <h3>Scheduling Categories Across Environments</h3>
     <ul>
-      <li><strong>First-In, First-Out (FIFO):</strong> Simple queue execution. Suffers from the <em>convoy effect</em>, where short jobs wait behind long-running tasks.</li>
-      <li><strong>Shortest Job First (SJF):</strong> Executes shortest tasks first, optimizing turnaround time. However, it fails if jobs arrive asynchronously.</li>
-      <li><strong>Shortest Time-to-Completion First (STCF):</strong> A preemptive variant of SJF that interrupts running tasks when a shorter job arrives.</li>
-      <li><strong>Round Robin (RR):</strong> Alternates tasks in fixed time slices, prioritizing stellar interactive response time at the cost of increased turnaround time.</li>
+      <li><strong>Batch Systems:</strong> Prioritize high throughput and low turnaround time (e.g., FIFO, SJF).</li>
+      <li><strong>Interactive Systems:</strong> Require guaranteed low response time and fairness via round-robin and priority scheduling.</li>
+      <li><strong>Real-Time Systems:</strong> Demand strict deterministic deadlines (Hard vs. Soft real-time scheduling).</li>
     </ul>
 
     <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
