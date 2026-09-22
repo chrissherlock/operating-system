@@ -220,10 +220,10 @@
 
     <h3>2. Layered Systems &amp; Hierarchical Protection Rings</h3>
     <p>
-      Pioneered by Edsger Dijkstra's <strong>THE multiprogramming system</strong> (1968), the layered approach organizes the operating system as a strict hierarchy of functional layers, numbered from $0$ (the hardware core) to $N$ (the user interface).
+      Pioneered by Edsger Dijkstra's <strong>THE multiprogramming system</strong> (1968), the layered approach organizes the operating system as a strict hierarchy of functional layers, numbered from 0 (the hardware core) to N (the user interface).
     </p>
     <p>
-      Under a strict layered discipline, layer $M$ can invoke routines and inspect data structures exclusively in layer $M-1$, and cannot access services in layer $M+1$.
+      Under a strict layered discipline, layer <em>M</em> can invoke routines and inspect data structures exclusively in layer <em>M</em> &minus; 1, and cannot access services in layer <em>M</em> + 1.
     </p>
 
     <!-- Classic THE Multiprogramming Layers -->
