@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add Interactive Pedagogical Stepper for Process Models
+# fix.py: Correct SVG arrow orientations and integrate contextual definitions
 # =====================================================================
 import os
 import subprocess
@@ -10,8 +10,8 @@ TARGET_FILE = os.path.join(
     "03-os-concepts.html"
 )
 
-INTERACTIVE_STEPPER_HTML = r"""
-    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
+# Revised interactive widget block with normalized tangents and active markers
+REVISED_INTERACTIVE_BLOCK = r"""    <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->
     <div id="interactive-process-stepper" style="margin: 36px 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #ffffff; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
         <div>
@@ -39,8 +39,12 @@ INTERACTIVE_STEPPER_HTML = r"""
       <div style="display: flex; justify-content: center; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 6px; padding: 12px; margin-bottom: 18px;">
         <svg id="stepper-svg" viewBox="0 0 820 340" width="100%" height="100%" style="max-width: 820px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <marker id="step-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-              <polygon points="0 1, 6 3.5, 0 6" fill="#94a3b8" id="arrow-polygon" />
+            <!-- Normalized Auto-Orienting Markers -->
+            <marker id="step-arrow-default" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#94a3b8" />
+            </marker>
+            <marker id="step-arrow-active" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
             </marker>
             <filter id="active-glow" x="-20%" y="-20%" width="140%" height="140%">
               <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#0284c7" flood-opacity="0.6" />
@@ -54,21 +58,36 @@ INTERACTIVE_STEPPER_HTML = r"""
           <rect id="disk-zone" x="10" y="215" width="800" height="110" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="4,4" style="display: none;" />
           <text id="disk-label" x="25" y="232" fill="#94a3b8" font-size="8.5" font-weight="700" style="display: none;">SECONDARY STORAGE (SWAPFILE ON DISK)</text>
 
-          <!-- SVG Paths for Transitions -->
-          <!-- 3-State / 5-State / 7-State Top Flow -->
-          <path id="path-admit" d="M 105,105 L 180,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
-          <path id="path-dispatch" d="M 245,90 C 315,60 415,60 485,90" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" />
-          <path id="path-preempt" d="M 485,120 C 415,150 315,150 245,120" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#step-arrow)" />
-          <path id="path-block" d="M 545,115 C 575,130 635,160 670,165" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" />
-          <path id="path-event" d="M 680,105 C 640,40 310,35 235,80" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" />
-          <path id="path-exit" d="M 545,90 C 585,45 680,45 745,85" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
+          <!-- Clean Tangential Vector Paths -->
+          <!-- 1. Admit: New (cx=70, cy=105) -> Ready (cx=210, cy=105) -->
+          <path id="path-admit" d="M 106,105 L 170,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
 
-          <!-- 7-State Paths -->
-          <path id="path-swapout-ready" d="M 210,145 L 210,240" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
-          <path id="path-swapin-ready" d="M 235,240 L 235,145" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
-          <path id="path-swapout-blocked" d="M 690,145 L 690,240" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
-          <path id="path-swapin-blocked" d="M 715,240 L 715,145" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
-          <path id="path-event-disk" d="M 660,270 L 275,270" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow)" style="display: none;" />
+          <!-- 2. Dispatch: Ready (cx=210, cy=105) -> Running (cx=515, cy=105) [Upper Arc] -->
+          <path id="path-dispatch" d="M 245,90 C 315,55 410,55 478,90" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
+
+          <!-- 3. Preempt: Running (cx=515, cy=105) -> Ready (cx=210, cy=105) [Lower Return Arc] -->
+          <path id="path-preempt" d="M 480,122 C 410,155 315,155 246,122" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#step-arrow-default)" />
+
+          <!-- 4. Block: Running (cx=515, cy=105) -> Blocked (cx=700, cy=105) [Direct Horizontal Forward] -->
+          <path id="path-block" d="M 554,105 L 660,105" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
+
+          <!-- 5. Event: Blocked (cx=700, cy=105) -> Ready (cx=210, cy=105) [Wide High Return Arc] -->
+          <path id="path-event" d="M 690,70 C 640,30 280,30 220,70" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" />
+
+          <!-- 6. Exit: Running (cx=515, cy=105) -> Terminated (cx=770, cy=105) [Over Blocked Node] -->
+          <path id="path-exit" d="M 535,74 C 585,35 710,35 750,75" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+
+          <!-- 7-State Cross-Zone Vertical Paths -->
+          <!-- Ready <-> Ready/Suspended (cx=210 vs cx=230) -->
+          <path id="path-swapout-ready" d="M 200,144 L 218,232" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+          <path id="path-swapin-ready" d="M 235,232 L 217,146" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+
+          <!-- Blocked <-> Blocked/Suspended (cx=700) -->
+          <path id="path-swapout-blocked" d="M 690,144 L 690,232" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+          <path id="path-swapin-blocked" d="M 712,232 L 712,146" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
+
+          <!-- Event On Disk: Blocked/Susp (cx=700, cy=270) -> Ready/Susp (cx=230, cy=270) [Horizontal Leftward] -->
+          <path id="path-event-disk" d="M 662,270 L 268,270" fill="none" stroke="#cbd5e1" stroke-width="2" marker-end="url(#step-arrow-default)" style="display: none;" />
 
           <!-- Circular State Nodes -->
           <!-- NEW -->
@@ -137,20 +156,20 @@ INTERACTIVE_STEPPER_HTML = r"""
         </div>
       </div>
 
-      <!-- Paired Analytical Panes -->
+      <!-- Paired Analytical Panes with Dynamic Definitions -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <!-- Pane 1: Mechanics -->
         <div style="border: 1px solid #bae6fd; background: #f0f9ff; border-radius: 6px; padding: 16px;">
-          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">1. What Is Happening (Mechanics &amp; Data Flow)</div>
-          <div id="pane-mechanics" style="font-size: 0.9rem; color: #1e293b; line-height: 1.5;">
-            PID 4092 sits in the ready queue. The kernel scheduler issues a context switch, popping register state and loading the CR3 page directory base onto CPU Core 1.
-          </div>
+          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #0369a1; text-transform: uppercase; margin-bottom: 6px;">1. What Is Happening (Low-Level Mechanics)</div>
+          <div id="pane-mechanics" style="font-size: 0.9rem; color: #1e293b; line-height: 1.5; margin-bottom: 12px;"></div>
+          <div id="pane-mechanics-def" style="background: #ffffff; border: 1px solid #bae6fd; border-radius: 4px; padding: 8px 12px; font-size: 0.82rem; color: #0369a1;"></div>
         </div>
 
+        <!-- Pane 2: Rationale -->
         <div style="border: 1px solid #fde68a; background: #fffbeb; border-radius: 6px; padding: 16px;">
-          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #92400e; text-transform: uppercase; margin-bottom: 6px;">2. Why The System Does This (Rationale &amp; Trade-offs)</div>
-          <div id="pane-rationale" style="font-size: 0.9rem; color: #78350f; line-height: 1.5;">
-            Decouples CPU allocation policy from program execution. The dispatcher prioritizes interactive responsiveness and turnaround fairness without requiring the program to know when it gets executed.
-          </div>
+          <div style="font-family: var(--font-mono); font-weight: 700; font-size: 0.85rem; color: #92400e; text-transform: uppercase; margin-bottom: 6px;">2. Why The System Does This (Design Rationale)</div>
+          <div id="pane-rationale" style="font-size: 0.9rem; color: #78350f; line-height: 1.5; margin-bottom: 12px;"></div>
+          <div id="pane-rationale-def" style="background: #ffffff; border: 1px solid #fde68a; border-radius: 4px; padding: 8px 12px; font-size: 0.82rem; color: #92400e;"></div>
         </div>
       </div>
     </div>
@@ -158,7 +177,6 @@ INTERACTIVE_STEPPER_HTML = r"""
     <!-- Stepper Logic Script -->
     <script>
       (function() {
-        // Scenarios for 3-State, 5-State, and 7-State Models
         const scenarios = {
           "3": [
             {
@@ -170,7 +188,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-dispatch",
               preview: "Scheduler allocates time slice on CPU Core 1",
               mechanics: "PID 4092 resides in the kernel run queue. The scheduler selects it, loads its saved registers (RIP, RSP, RAX) from its Process Control Block into the CPU, and executes return-from-trap.",
-              rationale: "Separates policy (which job to schedule) from mechanism (context switch execution). Allows CPU time-sharing among multiple resident tasks."
+              mechanicsDef: "<strong>Context Switch:</strong> Low-level assembly procedure that saves hardware CPU registers of the interrupted process and restores the register state of the scheduled process.",
+              rationale: "Separates policy (which job to schedule) from mechanism (context switch execution). Allows CPU time-sharing among multiple resident tasks without program modification.",
+              rationaleDef: "<strong>Policy vs. Mechanism:</strong> A foundational OS design rule: mechanisms specify 'how' a task is executed, while policies determine 'which' decisions are made."
             },
             {
               state: "RUNNING",
@@ -180,8 +200,10 @@ INTERACTIVE_STEPPER_HTML = r"""
               node: "node-RUNNING",
               activePath: "path-block",
               preview: "Database query issues read() for table index on NVMe SSD",
-              mechanics: "The program executes user-space arithmetic. It then encounters a database index lookup not cached in memory, prompting a read() system call that traps into kernel mode.",
-              rationale: "Limited Direct Execution allows native CPU speed during calculations while preventing unrestricted peripheral hardware access by trapping into Ring 0."
+              mechanics: "The program executes user-space arithmetic until encountering an un-cached database index. It invokes the read() system call, executing a trap instruction to switch from user mode to kernel mode.",
+              mechanicsDef: "<strong>Trap Instruction:</strong> A privileged hardware instruction that elevates CPU privilege from Ring 3 (User) to Ring 0 (Kernel) and jumps to a pre-registered trap table address.",
+              rationale: "Limited Direct Execution guarantees native hardware execution speed while preventing unprivileged software from issuing arbitrary commands directly to raw hardware devices.",
+              rationaleDef: "<strong>Limited Direct Execution (LDE):</strong> The operating system runs programs directly on the bare CPU hardware while maintaining strict control via hardware trap tables and timer interrupts."
             },
             {
               state: "BLOCKED",
@@ -191,8 +213,10 @@ INTERACTIVE_STEPPER_HTML = r"""
               node: "node-BLOCKED",
               activePath: "path-event",
               preview: "Storage controller raises interrupt upon finishing data transfer",
-              mechanics: "The kernel marks PID 4092 as BLOCKED, moves it from the run queue to the NVMe device wait queue, and dispatches another ready task to keep the CPU 100% utilized.",
-              rationale: "Maximizes CPU utilization. Waiting synchronously for storage takes millions of CPU cycles; the OS immediately swaps in another task to overlap computation with I/O."
+              mechanics: "The kernel marks PID 4092 as BLOCKED, moves its PCB from the active run queue into the NVMe controller's wait queue, and triggers a context switch to run another ready process.",
+              mechanicsDef: "<strong>Device Wait Queue:</strong> An in-kernel linked list tracking blocked processes awaiting hardware signals from a specific peripheral controller.",
+              rationale: "Maximizes CPU utilization. Reading from storage takes thousands to millions of CPU clock cycles; yielding the core prevents the processor from stalling on idle wait loops.",
+              rationaleDef: "<strong>I/O Overlapping:</strong> Maximizing system efficiency by interleaving CPU computation of ready tasks with asynchronous hardware transfers of blocked tasks."
             },
             {
               state: "READY",
@@ -202,8 +226,10 @@ INTERACTIVE_STEPPER_HTML = r"""
               node: "node-READY",
               activePath: "path-dispatch",
               preview: "Scheduler picks PID 4092 to resume processing the read buffer",
-              mechanics: "The storage controller asserts an interrupt line. The kernel's Interrupt Service Routine (ISR) copies data into the buffer and transitions PID 4092 back to the READY run queue.",
-              rationale: "Interrupt-driven event loops eliminate busy-waiting polling, allowing the OS to wake only the exact processes whose prerequisite events have finished."
+              mechanics: "The NVMe controller asserts an interrupt line. The kernel's Interrupt Service Routine (ISR) copies data into the buffer and transitions PID 4092 back to the READY run queue.",
+              mechanicsDef: "<strong>Interrupt Service Routine (ISR):</strong> A pre-compiled kernel handler invoked directly by hardware interrupts to service asynchronous peripheral events.",
+              rationale: "Interrupt-driven event loops eliminate busy-waiting polling, allowing the OS to wake only the exact processes whose prerequisite events have finished.",
+              rationaleDef: "<strong>Asynchronous Notification:</strong> Event signalling that wakes waiting tasks without demanding constant CPU polling."
             }
           ],
           "5": [
@@ -216,7 +242,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-admit",
               preview: "Kernel admits initialized process into scheduler run queue",
               mechanics: "Parent process calls fork()/CreateProcess(). The OS allocates a new PCB (PID 4092), initializes virtual memory page tables, loads the binary executable header, but has not yet placed it on the run queue.",
-              rationale: "Prevents half-initialized tasks from being picked by the dispatcher before address bounds and security tokens are fully established."
+              mechanicsDef: "<strong>Process Control Block (PCB):</strong> The central kernel data structure holding process identification, register context, memory root pointers, and open file tables.",
+              rationale: "Prevents half-initialized tasks from being picked by the dispatcher before address bounds and security tokens are fully established.",
+              rationaleDef: "<strong>Admission Control:</strong> The policy phase governing when a newly constructed task is permitted to compete for system resources."
             },
             {
               state: "READY",
@@ -227,7 +255,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-dispatch",
               preview: "Scheduler dispatches PID 4092 onto CPU Core 1",
               mechanics: "The process is admitted to the run queue. The scheduler selects PID 4092 and switches the MMU CR3 pointer to its page table root.",
-              rationale: "Ensures uniform scheduling competition alongside other active system tasks."
+              mechanicsDef: "<strong>Page Table Base (CR3/TTBR0):</strong> The hardware register storing the physical base address of the active virtual-to-physical memory mapping hierarchy.",
+              rationale: "Ensures uniform scheduling competition alongside other active system tasks.",
+              rationaleDef: "<strong>Address Space Virtualization:</strong> Presenting each process with an illusion of contiguous private memory while sharing underlying physical RAM."
             },
             {
               state: "RUNNING",
@@ -238,7 +268,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-exit",
               preview: "Report finishes and process executes exit(0) system call",
               mechanics: "Query processes all database records, formats the text report to standard output, and executes the exit() system call.",
-              rationale: "Explicit exit boundaries allow applications to signal completion and return numeric status codes to the parent process."
+              mechanicsDef: "<strong>exit() System Call:</strong> The termination entrypoint where an application requests kernel deallocation of its execution context.",
+              rationale: "Explicit exit boundaries allow applications to signal completion and return numeric status codes to the parent process.",
+              rationaleDef: "<strong>Lifecycle Finalization:</strong> Structured teardown that ensures shared locks, memory, and devices are reliably recovered."
             },
             {
               state: "TERMINATED",
@@ -249,7 +281,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "",
               preview: "Parent calls wait() to reap zombie PCB entry",
               mechanics: "The OS deallocates virtual address space pages, closes open file descriptors, and retains only the PCB entry (Zombie state) containing the exit status until parent reaps it.",
-              rationale: "Preserves the exit return code until the creator process can collect it; prevents leaking PID table slots once wait() completes."
+              mechanicsDef: "<strong>Zombie / Defunct Process:</strong> A terminated process whose address space is freed but whose PCB remains to store the exit status code.",
+              rationale: "Preserves the exit return code until the creator process can collect it; prevents leaking PID table slots once wait() completes.",
+              rationaleDef: "<strong>Parent Synchronization:</strong> Enabling ancestor tasks to verify child job success or failure before finalizing accounting records."
             }
           ],
           "7": [
@@ -262,7 +296,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-block",
               preview: "Task issues blocking I/O while system memory reaches 99% capacity",
               mechanics: "PID 4092 issues an I/O request. Simultaneously, severe system-wide memory exhaustion triggers the Medium-Term Scheduler (Swapper).",
-              rationale: "Operating systems must actively protect against memory thrashing when total active working sets exceed physical RAM."
+              mechanicsDef: "<strong>Medium-Term Scheduler:</strong> The kernel subsystem responsible for moving entire process working sets between physical DRAM and backing storage.",
+              rationale: "Operating systems must actively protect against memory thrashing when total active working sets exceed physical RAM.",
+              rationaleDef: "<strong>Memory Overcommitment:</strong> Allocating more virtual memory than physically exists, relying on swapping to handle peaks."
             },
             {
               state: "BLOCKED",
@@ -273,7 +309,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-swapout-blocked",
               preview: "Swapper selects dormant blocked task and migrates memory to disk",
               mechanics: "Because PID 4092 is blocked waiting on I/O, the swapper writes its private heap and stack pages out to the swap partition, reclaiming DRAM frames for active tasks.",
-              rationale: "Swapping out a blocked process frees RAM immediately without hurting current throughput, since the task cannot execute anyway until I/O completes."
+              mechanicsDef: "<strong>Swap Space / Backing Store:</strong> A dedicated raw disk partition or filesystem pagefile allocated for paging out process frames.",
+              rationale: "Swapping out a blocked process frees RAM immediately without hurting current throughput, since the task cannot execute anyway until I/O completes.",
+              rationaleDef: "<strong>Working-Set Eviction:</strong> Paging out memory of idle or waiting processes to prioritize resident space for CPU-active tasks."
             },
             {
               state: "BLOCKED / SUSPENDED",
@@ -284,7 +322,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-event-disk",
               preview: "Storage I/O completes while process memory is still on disk",
               mechanics: "The storage controller asserts an interrupt signaling completion. The kernel marks the I/O as done in the PCB without paging memory back into RAM immediately.",
-              rationale: "Prevents wasteful premature page-ins. The kernel simply transitions the process from Blocked/Suspended to Ready/Suspended."
+              mechanicsDef: "<strong>Asynchronous Event Resolution:</strong> Updating kernel PCB metadata to reflect device completion without requiring memory restoration.",
+              rationale: "Prevents wasteful premature page-ins. The kernel simply transitions the process from Blocked/Suspended to Ready/Suspended.",
+              rationaleDef: "<strong>Deferred Allocation:</strong> Avoiding expensive I/O transfers until the target resource is strictly guaranteed to run."
             },
             {
               state: "READY / SUSPENDED",
@@ -295,7 +335,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-swapin-ready",
               preview: "Memory pressure eases; swapper pages working set back to DRAM",
               mechanics: "Another high-memory job terminates. The medium-term scheduler detects available physical RAM and pages PID 4092's working set back into physical DRAM.",
-              rationale: "Balances memory allocation demand, moving the process to in-memory Ready so the short-term dispatcher can schedule it."
+              mechanicsDef: "<strong>Demand Page-In:</strong> Reading process frames back from swap disk into newly allocated physical DRAM page frames.",
+              rationale: "Balances memory allocation demand, moving the process to in-memory Ready so the short-term dispatcher can schedule it.",
+              rationaleDef: "<strong>Two-Tier Scheduling:</strong> Separating long-term memory residence control from millisecond-level CPU quantum dispatching."
             },
             {
               state: "READY",
@@ -306,7 +348,9 @@ INTERACTIVE_STEPPER_HTML = r"""
               activePath: "path-dispatch",
               preview: "Scheduler dispatches reloaded process to complete calculation",
               mechanics: "PID 4092 is fully restored in physical RAM and queued on the active run queue.",
-              rationale: "Completes the medium-term scheduling recovery loop with zero data loss or application crashes."
+              mechanicsDef: "<strong>Run Queue Enqueue:</strong> Appending a fully resident task structure to the active per-CPU scheduler run list.",
+              rationale: "Completes the medium-term scheduling recovery loop with zero data loss or application crashes.",
+              rationaleDef: "<strong>Fault Transparency:</strong> Providing the application with the complete illusion of uninterrupted execution despite memory paging."
             }
           ]
         };
@@ -325,10 +369,12 @@ INTERACTIVE_STEPPER_HTML = r"""
           document.getElementById("telemetry-cpu").textContent = stepData.cpu;
           document.getElementById("telemetry-io").textContent = stepData.io;
 
-          // 2. Update Narrative Panes
+          // 2. Update Narrative Panes & Context Definitions
           document.getElementById("preview-text").textContent = stepData.preview;
           document.getElementById("pane-mechanics").textContent = stepData.mechanics;
+          document.getElementById("pane-mechanics-def").innerHTML = stepData.mechanicsDef;
           document.getElementById("pane-rationale").textContent = stepData.rationale;
+          document.getElementById("pane-rationale-def").innerHTML = stepData.rationaleDef;
 
           // 3. Update Model Specific Elements Visibility
           const is7 = currentModel === "7";
@@ -371,7 +417,7 @@ INTERACTIVE_STEPPER_HTML = r"""
             }
           }
 
-          // 5. Highlight Active Transition Path
+          // 5. Highlight Active Transition Path & Marker
           const allPaths = [
             "path-admit", "path-dispatch", "path-preempt", "path-block", "path-event", "path-exit",
             "path-swapout-ready", "path-swapin-ready", "path-swapout-blocked", "path-swapin-blocked", "path-event-disk"
@@ -381,6 +427,7 @@ INTERACTIVE_STEPPER_HTML = r"""
             if (pel) {
               pel.style.stroke = "#cbd5e1";
               pel.style.strokeWidth = "2px";
+              pel.setAttribute("marker-end", "url(#step-arrow-default)");
             }
           });
 
@@ -389,11 +436,12 @@ INTERACTIVE_STEPPER_HTML = r"""
             if (activePathEl) {
               activePathEl.style.stroke = "#0284c7";
               activePathEl.style.strokeWidth = "3.5px";
+              activePathEl.setAttribute("marker-end", "url(#step-arrow-active)");
             }
           }
         }
 
-        // Event Listeners for Toggles
+        // Event Listeners for Model Toggles
         document.querySelectorAll(".model-toggle").forEach(btn => {
           btn.addEventListener("click", function() {
             document.querySelectorAll(".model-toggle").forEach(b => {
@@ -426,13 +474,13 @@ INTERACTIVE_STEPPER_HTML = r"""
           refreshView();
         });
 
-        // Initial paint
+        // Initial render
         refreshView();
       })();
     </script>
 """
 
-def insert_interactive_stepper():
+def apply_stepper_fix():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -440,34 +488,36 @@ def insert_interactive_stepper():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Place the interactive stepper right after the Seven-State Model section
-    # and directly before Section 2: Address Spaces
-    sec2_start = "<h3>2. Address Spaces &amp; Virtual Memory"
-    if sec2_start not in content:
-        print(f"Error: Could not find '{sec2_start}' in {TARGET_FILE}.")
+    start_tag = "<!-- INTERACTIVE PEDAGOGICAL AID: DIRECTED NARRATIVE STEPPER -->"
+    end_tag = "<h3>2. Address Spaces &amp; Virtual Memory"
+
+    if start_tag not in content or end_tag not in content:
+        print("--> Error: Could not locate existing interactive stepper boundaries.")
         return
 
-    parts = content.split(sec2_start, 1)
-    updated_content = f"{parts[0]}{INTERACTIVE_STEPPER_HTML}\n\n    {sec2_start}{parts[1]}"
+    part_before = content.split(start_tag)[0]
+    part_after = content.split(end_tag)[1]
+
+    updated_content = f"{part_before}{REVISED_INTERACTIVE_BLOCK}\n\n    {end_tag}{part_after}"
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully integrated Interactive Pedagogical Stepper into {TARGET_FILE}.")
+    print(f"--> Successfully replaced interactive stepper in {TARGET_FILE}.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add interactive process lifecycle stepper to Module 3\n\n"
-            "Implement an interactive Directed Narrative Stepper in 03-os-concepts.html\n"
-            "supporting 3-state, 5-state, and 7-state models with live telemetry,\n"
-            "synchronized SVG nodes, and paired mechanical/rationale panes."
+            "Fix SVG arrow directions and markers in interactive process stepper\n\n"
+            "Recalculate bezier curve control points and tangents for accurate node\n"
+            "entry angles, add dynamic active marker coloring, and include context-\n"
+            "based definitions across analytical panes in 03-os-concepts.html."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully for Interactive Stepper!")
+        print("--> Git sync completed successfully!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    insert_interactive_stepper()
+    apply_stepper_fix()
