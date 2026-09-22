@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Embed Manchester Atlas image into Module 2 historical aside
+# fix.py: Update Manchester Atlas image caption with full attribution
 # =====================================================================
 import os
 import subprocess
@@ -10,18 +10,20 @@ TARGET_FILE = os.path.join(
     "02-hardware-review.html"
 )
 
-ATLAS_IMAGE_HTML = """        <div style="margin-top: 14px; display: flex; justify-content: center;">
+UPDATED_ATLAS_IMAGE_HTML = """        <div style="margin-top: 14px; display: flex; justify-content: center;">
           <div class="image-card" style="max-width: 380px; width: 100%;">
-            <img src="../images/university-of-manchester-atlas.jpg" alt="University of Manchester Atlas Computer">
+            <img src="../images/university-of-manchester-atlas.jpg" alt="University of Manchester Atlas Computer, January 1963">
             <span>
-              <strong>University of Manchester Atlas (1962)</strong><br>
+              <strong>University of Manchester Atlas (January 1963)</strong><br>
               Pioneered virtual memory paging and hardware interrupts.<br>
-              <small><a href="https://en.wikipedia.org/wiki/Atlas_(computer)" target="_blank" rel="noopener">Wikipedia: Atlas Computer</a></small>
+              <small><a href="https://en.wikipedia.org/wiki/Atlas_(computer)" target="_blank" rel="noopener">Wikipedia: Atlas Computer</a></small><br>
+              <small><a href="https://commons.wikimedia.org/w/index.php?title=File:University_of_Manchester_Atlas,_January_1963.JPG&oldid=1143384475" target="_blank" rel="noopener">Wikimedia Commons File Record</a></small><br>
+              <small>Author: Iain MacCallum / Wikimedia Commons contributors</small>
             </span>
           </div>
         </div>"""
 
-def insert_atlas_image():
+def update_atlas_attribution():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -29,35 +31,35 @@ def insert_atlas_image():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    target_anchor = "Pioneer Insight: The Manchester Atlas &amp; The Invention of the Hardware Trap</strong>"
-    if target_anchor not in content:
-        print("Error: Could not locate Manchester Atlas aside anchor in Module 2.")
+    if "university-of-manchester-atlas.jpg" not in content:
+        print("Error: Manchester Atlas image card not found in Module 2.")
         return
 
-    # Check if image is already embedded
-    if "university-of-manchester-atlas.jpg" in content:
-        print("Notice: Manchester Atlas image is already embedded.")
-        return
-
-    # Find the closing </div> of the Atlas aside paragraph and insert the image HTML right before it
-    parts = content.split(target_anchor, 1)
-    # Find the end of the first paragraph inside this aside box
-    aside_content_parts = parts[1].split("</p>", 1)
-
-    updated_aside_content = f"{aside_content_parts[0]}</p>\n{ATLAS_IMAGE_HTML}\n{aside_content_parts[1]}"
-    updated_full_content = f"{parts[0]}{target_anchor}{updated_aside_content}"
+    # Replace the existing image block with the fully attributed version
+    # We locate the card container for this image
+    old_block_start = '<div style="margin-top: 14px; display: flex; justify-content: center;">'
+    if old_block_start in content:
+        parts = content.split(old_block_start)
+        # Find the specific part containing the atlas image
+        for i, part in enumerate(parts):
+            if "university-of-manchester-atlas.jpg" in part:
+                # Reconstruct up to this block, insert updated HTML, and append remainder
+                remainder = part.split("</div>\n          </div>\n        </div>", 1)[1]
+                parts[i] = f"{UPDATED_ATLAS_IMAGE_HTML}{remainder}"
+                content = old_block_start.join(parts)
+                break
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(updated_full_content)
+        f.write(content)
 
-    print(f"--> Successfully embedded Manchester Atlas image into {TARGET_FILE}.")
+    print(f"--> Successfully updated Manchester Atlas attribution in {TARGET_FILE}.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add Manchester Atlas computer image to historical aside in Module 2\n\n"
-            "Embed images/university-of-manchester-atlas.jpg into the Manchester Atlas\n"
-            "research aside box in 02-hardware-review.html with clean card styling."
+            "Update Manchester Atlas image caption with complete Wikimedia attribution\n\n"
+            "Revise the image card caption in 02-hardware-review.html to include\n"
+            "author attribution (Iain MacCallum), source, and permanent Wikimedia URL."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -66,4 +68,4 @@ def insert_atlas_image():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    insert_atlas_image()
+    update_atlas_attribution()
