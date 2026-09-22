@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01. Limited Direct Execution (LDE) | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Back to Week 2 Index</a>
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 02. Process APIs &rarr;</a>
+    </nav>
+
+    <h2>01. Limited Direct Execution (LDE)</h2>
+    <p>
+      To virtualize the CPU efficiently without incurring catastrophic virtualization overhead, operating systems employ a technique known as <strong>Limited Direct Execution (LDE)</strong>. As detailed in <em>Operating Systems: Three Easy Pieces</em> (OSTEP), "direct execution" means the OS simply runs the program directly on the bare CPU hardware. However, without limitations, a running program could execute infinite loops, access forbidden memory addresses, or hog the CPU indefinitely.
+    </p>
+
+    <h3>The Dual Role: Efficiency vs. Control</h3>
+    <p>
+      To reconcile bare-metal speed with absolute system protection, the kernel relies on two foundational hardware mechanisms:
+    </p>
+    <ul>
+      <li><strong>Dual-Mode Operation:</strong> Modern CPUs support at least two execution modes—<strong>User Mode</strong> (Ring 3), where applications run with restricted privileges, and <strong>Kernel Mode</strong> (Ring 0 / Supervisor Mode), where the OS has unhindered access to physical memory, hardware registers, and privileged instructions.</li>
+      <li><strong>Hardware Traps &amp; System Calls:</strong> When a user-space application needs to perform a privileged operation (such as reading from disk or allocating memory), it executes a <code>trap</code> or <code>syscall</code> instruction. This hardware gate elevates privilege from Ring 3 to Ring 0 and jumps safely into a pre-registered kernel entry point.</li>
+    </ul>
+
+    <h3>Collaborative vs. Preemptive Scheduling</h3>
+    <p>
+      A major historical challenge in operating system design was regaining control of the CPU from a running program. In early <em>collaborative multitasking</em> systems (such as early Windows and Mac OS), the OS trusted programs to periodically yield the CPU back to the kernel via voluntary system calls. If a rogue application entered an infinite loop, the entire machine locked up.
+    </p>
+    <p>
+      Modern systems enforce <strong>preemptive multitasking</strong> via hardware <strong>timer interrupts</strong>. A timer chip triggers periodic interrupts at fixed intervals (e.g., every 10 milliseconds). When the timer expires, the hardware suspends the current program, saves its register state onto the kernel stack, and transfers control to the OS interrupt handler, allowing the scheduler to switch tasks.
+    </p>
+
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Back to Week 2 Index</a>
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 02. Process APIs &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>

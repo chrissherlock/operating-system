@@ -1,176 +1,312 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create week02-processes/index.html matching Week 1 card index
+# fix.py: Generate all four Week 2 sub-modules
 # =====================================================================
 import os
 import subprocess
 
 TARGET_DIR = "week02-processes"
-TARGET_FILE = os.path.join(TARGET_DIR, "index.html")
 
-WEEK02_CARD_INDEX_HTML = r"""<!DOCTYPE html>
+MODULE_1_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>COSC240: Chapter 2 - Processes &amp; Concurrency</title>
+  <title>01. Limited Direct Execution (LDE) | Week 2: Processes &amp; Concurrency</title>
   <style>
     :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --border-dark: #94a3b8;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --text: #0f172a;
-      --text-muted: #475569;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
     }
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 1100px;
-    }
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      transition: transform 0.15s ease, border-color 0.15s ease;
-      text-decoration: none;
-      color: inherit;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-    .card h2 {
-      font-size: 1.2rem;
-      color: var(--accent);
-    }
-    .card p {
-      font-size: 0.92rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .card .link-text {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin-top: 6px;
-    }
-    .card:hover .link-text {
-      text-decoration: underline;
-    }
-    .nav-back {
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto 6px auto;
-      padding: 0 4px;
-      display: flex;
-    }
-    .nav-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      text-decoration: none;
-      color: #0f172a;
-      background-color: #ffffff;
-      border: 1px solid #bae6fd;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .nav-back a:hover {
-      background-color: #0f172a;
-      color: #ffffff;
-    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
   </style>
 </head>
 <body>
-  <div class="nav-back">
-    <a href="../index.html">&larr; Back to Course Overview</a>
-  </div>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Back to Week 2 Index</a>
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 02. Process APIs &rarr;</a>
+    </nav>
 
-  <header>
-    <h1>Chapter 2: Processes &amp; Concurrency</h1>
-    <p class="subtitle">CPU Virtualization, Limited Direct Execution, Process APIs, and Scheduling Foundations</p>
-  </header>
+    <h2>01. Limited Direct Execution (LDE)</h2>
+    <p>
+      To virtualize the CPU efficiently without incurring catastrophic virtualization overhead, operating systems employ a technique known as <strong>Limited Direct Execution (LDE)</strong>. As detailed in <em>Operating Systems: Three Easy Pieces</em> (OSTEP), "direct execution" means the OS simply runs the program directly on the bare CPU hardware. However, without limitations, a running program could execute infinite loops, access forbidden memory addresses, or hog the CPU indefinitely.
+    </p>
 
-  <div class="main-container">
+    <h3>The Dual Role: Efficiency vs. Control</h3>
+    <p>
+      To reconcile bare-metal speed with absolute system protection, the kernel relies on two foundational hardware mechanisms:
+    </p>
+    <ul>
+      <li><strong>Dual-Mode Operation:</strong> Modern CPUs support at least two execution modes—<strong>User Mode</strong> (Ring 3), where applications run with restricted privileges, and <strong>Kernel Mode</strong> (Ring 0 / Supervisor Mode), where the OS has unhindered access to physical memory, hardware registers, and privileged instructions.</li>
+      <li><strong>Hardware Traps &amp; System Calls:</strong> When a user-space application needs to perform a privileged operation (such as reading from disk or allocating memory), it executes a <code>trap</code> or <code>syscall</code> instruction. This hardware gate elevates privilege from Ring 3 to Ring 0 and jumps safely into a pre-registered kernel entry point.</li>
+    </ul>
 
-    <!-- Module 01 -->
-    <a href="01-limited-direct-execution.html" class="card">
-      <h2>01. Limited Direct Execution (LDE)</h2>
-      <p>Examine how operating systems virtualize the CPU by running user code directly on bare silicon while retaining absolute control via hardware traps, return-from-trap assembly routines, and timer interrupts.</p>
-      <span class="link-text">Launch Module &rarr;</span>
-    </a>
+    <h3>Collaborative vs. Preemptive Scheduling</h3>
+    <p>
+      A major historical challenge in operating system design was regaining control of the CPU from a running program. In early <em>collaborative multitasking</em> systems (such as early Windows and Mac OS), the OS trusted programs to periodically yield the CPU back to the kernel via voluntary system calls. If a rogue application entered an infinite loop, the entire machine locked up.
+    </p>
+    <p>
+      Modern systems enforce <strong>preemptive multitasking</strong> via hardware <strong>timer interrupts</strong>. A timer chip triggers periodic interrupts at fixed intervals (e.g., every 10 milliseconds). When the timer expires, the hardware suspends the current program, saves its register state onto the kernel stack, and transfers control to the OS interrupt handler, allowing the scheduler to switch tasks.
+    </p>
 
-    <!-- Module 02 -->
-    <a href="02-process-api.html" class="card">
-      <h2>02. Process APIs &amp; Lifecycle Control</h2>
-      <p>Explore POSIX process creation primitives (<code>fork()</code>, <code>exec()</code>, <code>wait()</code>, <code>exit()</code>) alongside process tree hierarchies and teardown mechanics.</p>
-      <span class="link-text">Launch Module &rarr;</span>
-    </a>
-
-    <!-- Module 03 -->
-    <a href="03-cpu-scheduling.html" class="card">
-      <h2>03. CPU Scheduling Metrics &amp; Algorithms</h2>
-      <p>Evaluate core scheduling metrics (turnaround time, response time, fairness) and classical algorithms including FIFO, SJF, STCF, and Round Robin.</p>
-      <span class="link-text">Launch Module &rarr;</span>
-    </a>
-
-    <!-- Module 04 -->
-    <a href="04-mlfq.html" class="card">
-      <h2>04. Multi-Level Feedback Queues (MLFQ)</h2>
-      <p>Analyze how production kernels balance interactive responsiveness and batch throughput dynamically without requiring a priori job length knowledge.</p>
-      <span class="link-text">Launch Module &rarr;</span>
-    </a>
-
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Back to Week 2 Index</a>
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 02. Process APIs &rarr;</a>
+    </nav>
   </div>
 </body>
 </html>
 """
 
-def generate_week_two_card_index():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(WEEK02_CARD_INDEX_HTML.strip() + "\n")
+MODULE_2_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02. Process APIs &amp; Lifecycle Control | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. LDE</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Week 2 Index</a>
+      <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 03. Scheduling &rarr;</a>
+    </nav>
 
-    print(f"--> Successfully created {TARGET_FILE} following Week 1 card structure.")
+    <h2>02. Process APIs &amp; Lifecycle Control</h2>
+    <p>
+      How do operating systems spawn new programs and manage active tasks? In POSIX-compliant Unix environments (Linux, macOS), process creation is governed by a distinct split-phase API: <code>fork()</code>, <code>exec()</code>, and <code>wait()</code>.
+    </p>
+
+    <h3>The Anatomy of POSIX Process Creation</h3>
+    <ul>
+      <li><strong><code>fork()</code>:</strong> The system call that duplicates the calling process. Tanenbaum and OSTEP highlight its unique design: it returns twice—once in the parent process (returning the child's PID) and once in the newly created child process (returning <code>0</code>). The child receives an exact, independent copy of the parent's address space, open file descriptors, and register context.</li>
+      <li><strong><code>exec()</code>:</strong> Typically called immediately after <code>fork()</code> in the child process. It loads a new binary executable image from disk into the current address space, resetting the text, data, heap, and stack segments and beginning execution at Tanenbaum's designated Tanenbaum entry point (e.g., <code>main()</code>).</li>
+      <li><strong><code>wait()</code>:</strong> Enables parent processes to synchronize execution by blocking until a child process terminates, preventing orphaned tasks and collecting exit status codes.</li>
+    </ul>
+
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. LDE</a>
+      <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 03. Scheduling &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+MODULE_3_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. CPU Scheduling Metrics &amp; Algorithms | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Process APIs</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Week 2 Index</a>
+      <a href="04-mlfq.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. MLFQ &rarr;</a>
+    </nav>
+
+    <h2>03. CPU Scheduling Metrics &amp; Algorithms</h2>
+    <p>
+      Once processes are ready to execute, the <strong>CPU Scheduler</strong> determines which process gets assigned to physical hardware cores. OSTEP structures scheduling evaluation around two primary metrics: <em>Turnaround Time</em> (completion time minus arrival time) and <em>Response Time</em> (time from arrival to first scheduling execution).
+    </p>
+
+    <h3>Classical Scheduling Policies</h3>
+    <ul>
+      <li><strong>First-In, First-Out (FIFO):</strong> Simple queue execution. Suffers from the <em>convoy effect</em>, where short jobs wait behind long-running tasks.</li>
+      <li><strong>Shortest Job First (SJF):</strong> Executes shortest tasks first, optimizing turnaround time. However, it fails if jobs arrive asynchronously.</li>
+      <li><strong>Shortest Time-to-Completion First (STCF):</strong> A preemptive variant of SJF that interrupts running tasks when a shorter job arrives.</li>
+      <li><strong>Round Robin (RR):</strong> Alternates tasks in fixed time slices, prioritizing stellar interactive response time at the cost of increased turnaround time.</li>
+    </ul>
+
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Process APIs</a>
+      <a href="04-mlfq.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. MLFQ &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+MODULE_4_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04. Multi-Level Feedback Queues (MLFQ) | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 03. Scheduling</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Week 2 Index</a>
+      <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">End of Week 2</span>
+    </nav>
+
+    <h2>04. Multi-Level Feedback Queues (MLFQ)</h2>
+    <p>
+      In real-world operating systems, the kernel rarely knows how long a job will run in advance. To solve this, Fernando Corbató pioneered the <strong>Multi-Level Feedback Queue (MLFQ)</strong>, a scheduling architecture that learns job behavior dynamically based on past execution history.
+    </p>
+
+    <h3>Core MLFQ Rules</h3>
+    <ul>
+      <li><strong>Rule 1:</strong> If Priority(A) &gt; Priority(B), A runs (B does not).</li>
+      <li><strong>Rule 2:</strong> If Priority(A) == Priority(B), A &amp; B run in Round Robin.</li>
+      <li><strong>Rule 3:</strong> When a job enters the system, it is placed at the highest priority queue.</li>
+      <li><strong>Rule 4:</strong> If a job uses up its time allotment while running, its priority is reduced (moved down one queue).</li>
+      <li><strong>Rule 5:</strong> After some time period <em>S</em>, move all jobs in the system to the topmost queue (preventing starvation).</li>
+    </ul>
+
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 03. Scheduling</a>
+      <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">End of Week 2</span>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+def generate_week_two_modules():
+    os.makedirs(TARGET_DIR, exist_ok=True)
+
+    files = {
+        "01-limited-direct-execution.html": MODULE_1_HTML,
+        "02-process-api.html": MODULE_2_HTML,
+        "03-cpu-scheduling.html": MODULE_3_HTML,
+        "04-mlfq.html": MODULE_4_HTML
+    }
+
+    added_paths = ["fix.py"]
+    for filename, content in files.items():
+        filepath = os.path.join(TARGET_DIR, filename)
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content.strip() + "\n")
+        added_paths.append(filepath)
+        print(f"--> Created {filepath}")
 
     try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        subprocess.run(["git", "add"] + added_paths, check=True)
         commit_msg = (
-            "Create week02-processes/index.html matching Week 1 card index structure\n\n"
-            "Establish the Week 2 landing page using the exact card layout, styling,\n"
-            "and navigation format of week01-operating-system-concepts/index.html."
+            "Create all four Week 2 sub-modules for processes and CPU virtualization\n\n"
+            "Generate 01 through 04 HTML files under week02-processes/ adhering to\n"
+            "OSTEP/Tanenbaum principles and interactive pedagogical standards."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -179,4 +315,4 @@ def generate_week_two_card_index():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    generate_week_two_card_index()
+    generate_week_two_modules()

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. CPU Scheduling Metrics &amp; Algorithms | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Process APIs</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Week 2 Index</a>
+      <a href="04-mlfq.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. MLFQ &rarr;</a>
+    </nav>
+
+    <h2>03. CPU Scheduling Metrics &amp; Algorithms</h2>
+    <p>
+      Once processes are ready to execute, the <strong>CPU Scheduler</strong> determines which process gets assigned to physical hardware cores. OSTEP structures scheduling evaluation around two primary metrics: <em>Turnaround Time</em> (completion time minus arrival time) and <em>Response Time</em> (time from arrival to first scheduling execution).
+    </p>
+
+    <h3>Classical Scheduling Policies</h3>
+    <ul>
+      <li><strong>First-In, First-Out (FIFO):</strong> Simple queue execution. Suffers from the <em>convoy effect</em>, where short jobs wait behind long-running tasks.</li>
+      <li><strong>Shortest Job First (SJF):</strong> Executes shortest tasks first, optimizing turnaround time. However, it fails if jobs arrive asynchronously.</li>
+      <li><strong>Shortest Time-to-Completion First (STCF):</strong> A preemptive variant of SJF that interrupts running tasks when a shorter job arrives.</li>
+      <li><strong>Round Robin (RR):</strong> Alternates tasks in fixed time slices, prioritizing stellar interactive response time at the cost of increased turnaround time.</li>
+    </ul>
+
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 02. Process APIs</a>
+      <a href="04-mlfq.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 04. MLFQ &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>

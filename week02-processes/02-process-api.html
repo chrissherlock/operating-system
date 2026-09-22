@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02. Process APIs &amp; Lifecycle Control | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. LDE</a>
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Week 2 Index</a>
+      <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 03. Scheduling &rarr;</a>
+    </nav>
+
+    <h2>02. Process APIs &amp; Lifecycle Control</h2>
+    <p>
+      How do operating systems spawn new programs and manage active tasks? In POSIX-compliant Unix environments (Linux, macOS), process creation is governed by a distinct split-phase API: <code>fork()</code>, <code>exec()</code>, and <code>wait()</code>.
+    </p>
+
+    <h3>The Anatomy of POSIX Process Creation</h3>
+    <ul>
+      <li><strong><code>fork()</code>:</strong> The system call that duplicates the calling process. Tanenbaum and OSTEP highlight its unique design: it returns twice—once in the parent process (returning the child's PID) and once in the newly created child process (returning <code>0</code>). The child receives an exact, independent copy of the parent's address space, open file descriptors, and register context.</li>
+      <li><strong><code>exec()</code>:</strong> Typically called immediately after <code>fork()</code> in the child process. It loads a new binary executable image from disk into the current address space, resetting the text, data, heap, and stack segments and beginning execution at Tanenbaum's designated Tanenbaum entry point (e.g., <code>main()</code>).</li>
+      <li><strong><code>wait()</code>:</strong> Enables parent processes to synchronize execution by blocking until a child process terminates, preventing orphaned tasks and collecting exit status codes.</li>
+    </ul>
+
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. LDE</a>
+      <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 03. Scheduling &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
