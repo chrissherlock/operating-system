@@ -1275,11 +1275,15 @@
       <div class="diagram-container" style="margin: 24px 0;">
         <svg viewBox="0 0 880 580" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 880px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
           <defs>
-            <marker id="arrow-down" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 1 1 L 5 8 L 9 1 z" fill="#0284c7" />
+            <!-- Normalized directional arrowheads: point right, auto-rotates with path -->
+            <marker id="io-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
             </marker>
-            <marker id="arrow-up" viewBox="0 0 10 10" refX="5" refY="2" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 1 9 L 5 2 L 9 9 z" fill="#059669" />
+            <marker id="io-arrow-green" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#059669" />
+            </marker>
+            <marker id="io-arrow-amber" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+              <polygon points="0 1, 6 3.5, 0 6" fill="#d97706" />
             </marker>
             <filter id="io-card-shadow" x="-3%" y="-3%" width="106%" height="106%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06" />
@@ -1305,7 +1309,7 @@
           </g>
 
           <!-- Transition Arrow: System Call -->
-          <path d="M 440, 135 L 440, 160" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow-down)" />
+          <path d="M 440, 135 L 440, 160" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#io-arrow-blue)" />
           <text x="450" y="152" fill="#0284c7" font-size="8.5" font-weight="700">System Call Trap (syscall / sysenter)</text>
 
           <!-- TIER 2: KERNEL SUBSYSTEM & DRIVERS -->
@@ -1332,8 +1336,8 @@
           </g>
 
           <!-- Transition Arrows: Bus Interface -->
-          <path d="M 360, 285 L 360, 318" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow-down)" />
-          <path d="M 520, 318 L 520, 285" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrow-up)" />
+          <path d="M 360, 285 L 360, 318" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#io-arrow-blue)" />
+          <path d="M 520, 325 L 520, 292" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#io-arrow-green)" />
           <text x="350" y="306" fill="#0284c7" font-size="8.5" font-weight="700" text-anchor="end">Programmed I/O (MMIO / PMIO)</text>
           <text x="530" y="306" fill="#059669" font-size="8.5" font-weight="700" text-anchor="start">Hardware Interrupt Line (IRQ)</text>
 
@@ -1372,7 +1376,7 @@
           </g>
 
           <!-- Transition Arrow: Low-Level Signals -->
-          <path d="M 440, 440 L 440, 475" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#arrow-down)" />
+          <path d="M 440, 440 L 440, 474" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#io-arrow-amber)" />
           <text x="450" y="462" fill="#b45309" font-size="8.5" font-weight="700">Proprietary Physical Bus Signaling (PCIe PHY, NVMe, SATA, USB)</text>
 
           <!-- TIER 4: PHYSICAL DEVICE -->
