@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Expand 01-limited-direct-execution.html with rich technical depth
+# fix.py: Update 01-limited-direct-execution.html with full Tanenbaum depth
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week02-processes", "01-limited-direct-execution.html")
 
-EXPANDED_MODULE_1 = r"""<!DOCTYPE html>
+FULL_MODULE_1 = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -63,33 +63,30 @@ EXPANDED_MODULE_1 = r"""<!DOCTYPE html>
 
     <h2>01. Limited Direct Execution &amp; Process Tables</h2>
     <p>
-      At the core of operating system design lies a fundamental tension: how to achieve maximum execution performance while enforcing absolute system protection. As explored in <em>Operating Systems: Three Easy Pieces</em> (OSTEP), running programs directly on the bare CPU hardware yields peak execution speeds. However, without strict oversight, unconstrained user applications could monopolize the processor, corrupt memory, or execute unauthorized I/O operations.
-    </p>
-    <p>
-      To resolve this, operating systems implement <strong>Limited Direct Execution (LDE)</strong>. Synthesizing OSTEP's virtualization mechanics with Andrew Tanenbaum's structural focus on kernel data structures reveals how hardware protection rings, interrupt vectors, process tables, and assembly-level context switches form the foundation of CPU virtualization.
+      At the core of operating system design lies a fundamental tension: how to achieve maximum execution performance while enforcing absolute system protection[cite: 1]. As explored in <em>Operating Systems: Three Easy Pieces</em> (OSTEP) and Andrew S. Tanenbaum's <em>Modern Operating Systems</em>, running programs directly on the bare CPU hardware yields peak execution speeds[cite: 1]. However, without strict oversight, unconstrained user applications could monopolize the processor, corrupt memory, or execute unauthorized I/O operations[cite: 1].
     </p>
 
     <h3>1. The Mechanics of Limited Direct Execution</h3>
     <p>
-      Direct execution means the CPU fetches, decodes, and executes user instructions natively without kernel intervention for every instruction. To maintain control, the OS must limit this direct execution across two distinct phases: <em>boot-time setup</em> and <em>runtime interposition</em>.
+      Direct execution means the CPU fetches, decodes, and executes user instructions natively without kernel intervention for every instruction[cite: 1]. To maintain control, the OS must limit this direct execution across two distinct phases: <em>boot-time setup</em> and <em>runtime interposition</em>[cite: 1].
     </p>
     <ul>
-      <li><strong>Boot-Time Initialization:</strong> When the machine boots, the kernel initializes trap tables, configures interrupt descriptor tables (IDT), and sets up hardware memory protection registers. The CPU is instructed where to jump when hardware traps or timer interrupts occur.</li>
-      <li><strong>Runtime Interposition:</strong> Once a user program is launched, the CPU switches to unprivileged User Mode (Ring 3). The program executes instructions directly until it either attempts a restricted operation or a hardware timer interrupt fires.</li>
+      <li><strong>Boot-Time Initialization:</strong> When the machine boots, the kernel initializes trap tables, configures interrupt descriptor tables (IDT), and sets up hardware memory protection registers[cite: 1]. The CPU is instructed where to jump when hardware traps or timer interrupts occur[cite: 1].</li>
+      <li><strong>Runtime Interposition:</strong> Once a user program is launched, the CPU switches to unprivileged User Mode (Ring 3)[cite: 1]. The program executes instructions directly until it either attempts a restricted operation or a hardware timer interrupt fires[cite: 1].</li>
     </ul>
 
     <h3>2. Dual-Mode Operation and Privilege Rings</h3>
     <p>
-      Hardware protection relies on hierarchical privilege levels, commonly referred to as <strong>rings</strong>. On x86-64 architectures, Ring 0 represents Supervisor Mode (Kernel Mode), while Ring 3 represents User Mode.
+      Hardware protection relies on hierarchical privilege levels, commonly referred to as <strong>rings</strong>[cite: 1]. On x86-64 architectures, Ring 0 represents Supervisor Mode (Kernel Mode), while Ring 3 represents User Mode[cite: 1].
     </p>
     <ul>
-      <li><strong>Privileged Instructions:</strong> Operations such as disabling interrupts, modifying page table root pointers (<code>CR3</code>), altering power states, or issuing direct disk I/O commands can only be executed in Ring 0. Attempting these instructions in Ring 3 triggers an immediate hardware exception (General Protection Fault).</li>
-      <li><strong>The Trap Gate:</strong> When a user program requires kernel services (e.g., reading a file or allocating memory), it executes a <code>syscall</code> or <code>int 0x80</code> instruction. This hardware instruction acts as a controlled gateway, elevating privilege levels and transferring control to a verified kernel entry address.</li>
+      <li><strong>Privileged Instructions:</strong> Operations such as disabling interrupts, modifying page table root pointers (<code>CR3</code>), altering power states, or issuing direct disk I/O commands can only be executed in Ring 0[cite: 1]. Attempting these instructions in Ring 3 triggers an immediate hardware exception[cite: 1].</li>
+      <li><strong>The Trap Gate:</strong> When a user program requires kernel services (e.g., reading a file or allocating memory), it executes a <code>syscall</code> or trap instruction[cite: 1]. This hardware instruction acts as a controlled gateway, elevating privilege levels and transferring control to a verified kernel entry address[cite: 1].</li>
     </ul>
 
     <h3>3. Tanenbaum's View: Process Tables and Interrupt Vectors</h3>
     <p>
-      Andrew Tanenbaum emphasizes the exact kernel data structures required to manage this lifecycle. The central repository for process metadata is the <strong>Process Table</strong>, an array or linked list of Process Control Blocks (PCBs) maintained in kernel memory.
+      Andrew Tanenbaum emphasizes the exact kernel data structures required to manage this lifecycle[cite: 1]. The central repository for process metadata is the <strong>Process Table</strong>, an array or linked list of Process Control Blocks (PCBs) maintained in kernel memory[cite: 1].
     </p>
     <pre>struct process_control_block {
     int pid;
@@ -99,21 +96,24 @@ EXPANDED_MODULE_1 = r"""<!DOCTYPE html>
     struct file_descriptor_table files;
 };</pre>
     <p>
-      When an interrupt or trap occurs, the CPU hardware consults the <strong>Interrupt Vector Table</strong>. The low-level assembly sequence executes the following steps:
+      When an interrupt or trap occurs, the CPU hardware consults the <strong>Interrupt Vector Table</strong>[cite: 1]. As Tanenbaum outlines, the low-level interrupt handling sequence proceeds through distinct phases[cite: 1]:
     </p>
     <ol>
-      <li>Hardware saves the program counter (RIP), stack pointer (RSP), and flags (RFLAGS) onto the kernel stack.</li>
-      <li>The interrupt vector indexes into the IDT, jumping to the appropriate assembly stub.</li>
-      <li>The assembly stub saves general-purpose registers (RAX, RBX, RCX, etc.) into the active process table entry.</li>
-      <li>The kernel C service routine executes to handle the trap or schedule a new task.</li>
+      <li>Hardware stacks the program counter (RIP), program status word (PSW), and general registers[cite: 1].</li>
+      <li>Hardware loads a new program counter from the interrupt vector into the CPU[cite: 1].</li>
+      <li>An assembly-language procedure saves the remaining registers into the process table entry[cite: 1].</li>
+      <li>The assembly-language procedure sets up a new stack for kernel execution[cite: 1].</li>
+      <li>The C interrupt service routine runs to handle the event (e.g., buffering input or servicing a timer tick)[cite: 1].</li>
+      <li>The scheduler decides which process is to run next[cite: 1].</li>
     </ol>
 
-    <h3>4. Context Switching: The Cost of Virtualization</h3>
+    <h3>4. Modeling Multiprogramming Efficiency</h3>
     <p>
-      When the scheduler decides to stop running Process A and run Process B, it performs a <strong>context switch</strong>. This low-level operation involves saving Process A's register context, loading Process B's saved registers into CPU hardware, and swapping the MMU page table base register (<code>CR3</code>) to switch address spaces.
+      Tanenbaum utilizes a probabilistic model to demonstrate how multiprogramming improves CPU utilization[cite: 1]. If a process spends a fraction $p$ of its time waiting for I/O, the probability that $n$ processes in memory are simultaneously waiting for I/O is $p^n$[cite: 1]. Thus, CPU utilization is expressed as:
     </p>
+    <pre>CPU Utilization = 1 - p^n</pre>
     <p>
-      While essential for multitasking, context switches incur non-trivial overhead. CPU caches (L1/L2/L3) and Translation Lookaside Buffers (TLB) may experience cache pollution and TLB flushes when address spaces change, highlighting why modern kernel design carefully balances quantum lengths.
+      This mathematical formulation proves that increasing the degree of multiprogramming is essential to mask I/O latency and prevent expensive CPU cores from sitting idle[cite: 1].
     </p>
 
     <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
@@ -125,19 +125,19 @@ EXPANDED_MODULE_1 = r"""<!DOCTYPE html>
 </html>
 """
 
-def expand_module_one():
+def update_expanded_module():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(EXPANDED_MODULE_1.strip() + "\n")
+        f.write(FULL_MODULE_1.strip() + "\n")
 
-    print(f"--> Successfully expanded {TARGET_FILE}")
+    print(f"--> Successfully updated {TARGET_FILE} with Tanenbaum text details.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand 01-limited-direct-execution.html with OSTEP and Tanenbaum depth\n\n"
-            "Provide a thorough, long-form technical examination of Limited Direct\n"
-            "Execution, interrupt vector routing, process tables, and context switching."
+            "Expand 01-limited-direct-execution.html with Tanenbaum text details\n\n"
+            "Incorporate Tanenbaum's detailed descriptions of interrupt vectors, process\n"
+            "tables, assembly-level save routines, and multiprogramming probability models."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -146,4 +146,4 @@ def expand_module_one():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    expand_module_one()
+    update_expanded_module()
