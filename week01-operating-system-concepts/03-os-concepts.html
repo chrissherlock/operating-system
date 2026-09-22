@@ -109,11 +109,11 @@
     <div style="display: flex; justify-content: center; margin: 24px 0;">
       <svg viewBox="0 0 680 340" width="100%" height="100%" style="max-width: 680px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <marker id="arrowUp" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-            <path d="M3,6 L0,0 L6,0 Z" fill="#0284c7" />
+          <marker id="mem-arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#ef4444" />
           </marker>
-          <marker id="arrowDown" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-            <path d="M3,0 L0,6 L6,6 Z" fill="#0284c7" />
+          <marker id="mem-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
           </marker>
         </defs>
 
@@ -130,7 +130,7 @@
         <text x="340" y="64" fill="#b91c1c" font-size="8.5" text-anchor="middle">Function Frames • Local Variables • Return Pointers</text>
 
         <!-- Stack Growth Arrow -->
-        <path d="M 340,78 L 340,94" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowDown)" />
+        <path d="M 340,76 L 340,96" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#mem-arrow-red)" />
         <text x="350" y="90" fill="#ef4444" font-size="8" font-style="italic">Grows Downward</text>
 
         <!-- Free Address Space Zone -->
@@ -138,7 +138,7 @@
         <text x="340" y="136" fill="#94a3b8" font-size="9.5" text-anchor="middle">Unallocated Virtual Address Space</text>
 
         <!-- Heap Growth Arrow -->
-        <path d="M 340,186 L 340,170" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arrowUp)" />
+        <path d="M 340,190 L 340,170" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#mem-arrow-blue)" />
         <text x="350" y="180" fill="#0284c7" font-size="8" font-style="italic">Grows Upward</text>
 
         <!-- Heap Box -->

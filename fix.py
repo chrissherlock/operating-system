@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Correct SVG markers and arrow vectors in 02-hardware-review.html
+# fix.py: Correct SVG markers in Anatomy of a Process in Memory diagram
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join(
     "week01-operating-system-concepts",
-    "02-hardware-review.html"
+    "03-os-concepts.html"
 )
 
-def fix_diagram_arrows():
+def fix_process_memory_arrows():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return
@@ -18,78 +18,55 @@ def fix_diagram_arrows():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # 1. Replace the marker defs in the I/O hierarchy diagram
-    old_defs = """          <defs>
-            <marker id="arrow-down" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 1 1 L 5 8 L 9 1 z" fill="#0284c7" />
-            </marker>
-            <marker id="arrow-up" viewBox="0 0 10 10" refX="5" refY="2" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 1 9 L 5 2 L 9 9 z" fill="#059669" />
-            </marker>
-            <filter id="io-card-shadow" x="-3%" y="-3%" width="106%" height="106%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06" />
-            </filter>
-          </defs>"""
+    # Old defs and path snippet in Diagram 1
+    old_snippet = """        <defs>
+          <marker id="arrowUp" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M3,6 L0,0 L6,0 Z" fill="#0284c7" />
+          </marker>
+          <marker id="arrowDown" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M3,0 L0,6 L6,6 Z" fill="#0284c7" />
+          </marker>
+        </defs>"""
 
-    new_defs = """          <defs>
-            <!-- Normalized directional arrowheads: point right, auto-rotates with path -->
-            <marker id="io-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-              <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
-            </marker>
-            <marker id="io-arrow-green" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-              <polygon points="0 1, 6 3.5, 0 6" fill="#059669" />
-            </marker>
-            <marker id="io-arrow-amber" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-              <polygon points="0 1, 6 3.5, 0 6" fill="#d97706" />
-            </marker>
-            <filter id="io-card-shadow" x="-3%" y="-3%" width="106%" height="106%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06" />
-            </filter>
-          </defs>"""
+    new_snippet = """        <defs>
+          <marker id="mem-arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#ef4444" />
+          </marker>
+          <marker id="mem-arrow-blue" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+            <polygon points="0 1, 6 3.5, 0 6" fill="#0284c7" />
+          </marker>
+        </defs>"""
 
-    if old_defs in content:
-        content = content.replace(old_defs, new_defs)
-        print("--> Replaced old marker definitions.")
+    if old_snippet in content:
+        content = content.replace(old_snippet, new_snippet)
+        print("--> Updated marker definitions in memory layout diagram.")
     else:
-        print("--> Note: Exact old defs block not found; checking for partial match.")
+        print("--> Note: Exact old marker block not found; replacing individually if present.")
+        content = content.replace('marker id="arrowUp"', 'marker id="mem-arrow-blue"')
+        content = content.replace('marker id="arrowDown"', 'marker id="mem-arrow-red"')
 
-    # 2. Update the path markers and adjust vertical coordinates to prevent stroke overlap
-    # Path 1: User space to Kernel space
+    # Update the path usages for Stack and Heap growth
     content = content.replace(
-        '<path d="M 440, 135 L 440, 160" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow-down)" />',
-        '<path d="M 440, 135 L 440, 160" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#io-arrow-blue)" />'
+        '<path d="M 340,78 L 340,94" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowDown)" />',
+        '<path d="M 340,76 L 340,96" fill="none" stroke="#ef4444" stroke-width="2" marker-end="url(#mem-arrow-red)" />'
     )
-
-    # Path 2: Kernel space down to Controller (MMIO)
     content = content.replace(
-        '<path d="M 360, 285 L 360, 318" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow-down)" />',
-        '<path d="M 360, 285 L 360, 318" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#io-arrow-blue)" />'
-    )
-
-    # Path 3: Controller up to Kernel (IRQ)
-    content = content.replace(
-        '<path d="M 520, 318 L 520, 285" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arrow-up)" />',
-        '<path d="M 520, 325 L 520, 292" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#io-arrow-green)" />'
-    )
-
-    # Path 4: Controller down to Physical Device
-    content = content.replace(
-        '<path d="M 440, 440 L 440, 475" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#arrow-down)" />',
-        '<path d="M 440, 440 L 440, 474" fill="none" stroke="#d97706" stroke-width="2" marker-end="url(#io-arrow-amber)" />'
+        '<path d="M 340,186 L 340,170" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arrowUp)" />',
+        '<path d="M 340,190 L 340,170" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#mem-arrow-blue)" />'
     )
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"--> Saved cleanly aligned arrow markers to {TARGET_FILE}")
+    print(f"--> Saved corrected memory arrows to {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Fix distorted arrow markers and path endpoints in I/O diagram\n\n"
-            "Normalize SVG marker definitions to standard auto-orienting vectors\n"
-            "and adjust path coordinates in 02-hardware-review.html so arrows point\n"
-            "cleanly without clipping or inverted polygons."
+            "Fix distorted arrows and marker colors in process memory diagram\n\n"
+            "Normalize SVG marker definitions to standard auto-orienting vectors and\n"
+            "separate stack (red) and heap (blue) marker IDs in 03-os-concepts.html\n"
+            "so directional arrows render straight and cleanly aligned."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -98,4 +75,4 @@ def fix_diagram_arrows():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    fix_diagram_arrows()
+    fix_process_memory_arrows()
