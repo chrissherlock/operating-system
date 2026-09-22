@@ -1,46 +1,149 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Recursively remove bracketed citation markers from HTML files
+# fix.py: Rewrite 01-limited-direct-execution.html cleanly from scratch
 # =====================================================================
 import os
-import re
 import subprocess
 
-def clean_html_files():
-    updated_files = []
-    for root, dirs, files in os.walk("."):
-        if ".git" in root:
-            continue
-        for file in files:
-            if file.endswith(".html"):
-                filepath = os.path.join(root, file)
-                with open(filepath, "r", encoding="utf-8") as f:
-                    content = f.read()
+TARGET_FILE = os.path.join("week02-processes", "01-limited-direct-execution.html")
 
-                # Remove citation tags like[cite: 1] or[cite: 1] cleanly
-                cleaned = re.sub(r'\s*\]+\]', '', content)
+CLEAN_MODULE_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01. Limited Direct Execution &amp; Process Tables | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&#127968; Week 2 Index</a>
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 02. Process APIs &rarr;</a>
+    </nav>
 
-                if cleaned != content:
-                    with open(filepath, "w", encoding="utf-8") as f:
-                        f.write(cleaned)
-                    updated_files.append(filepath)
-                    print(f"--> Stripped citations from {filepath}")
+    <h2>01. Limited Direct Execution &amp; Process Tables</h2>
+    <p>
+      At the core of operating system design lies a fundamental architectural tension: how to achieve maximum execution performance while enforcing absolute system protection. Running programs directly on bare silicon yields peak execution speeds. However, without strict oversight, unconstrained user applications could monopolize the processor, corrupt memory bounds, or execute unauthorized I/O operations.
+    </p>
+    <p>
+      To resolve this challenge, operating systems implement <strong>Limited Direct Execution (LDE)</strong>. By combining virtualization principles with structural kernel models, we can examine how hardware protection rings, interrupt vectors, process control blocks, and assembly-level context switches form the foundation of CPU virtualization.
+    </p>
 
-    if updated_files:
-        try:
-            subprocess.run(["git", "add", "fix.py"] + updated_files, check=True)
-            commit_msg = (
-                "Remove citation markers from all course HTML files\n\n"
-                "Recursively strip all bracketed citation tags () from all\n"
-                "HTML modules across the repository to maintain clean course materials."
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully!")
-        except Exception as e:
-            print(f"Git execution note: {e}")
-    else:
-        print("--> No citation markers found in any HTML files.")
+    <h3>1. The Mechanics of Limited Direct Execution</h3>
+    <p>
+      Direct execution means the CPU fetches, decodes, and executes user instructions natively without kernel intervention for every instruction. To maintain control, the OS must limit direct execution across two distinct phases: <em>boot-time setup</em> and <em>runtime interposition</em>.
+    </p>
+    <ul>
+      <li><strong>Boot-Time Initialization:</strong> When the machine boots, the kernel initializes trap tables, configures interrupt descriptor tables (IDT), and sets up hardware memory protection registers, establishing safe entry points for hardware traps and timer interrupts.</li>
+      <li><strong>Runtime Interposition:</strong> Once a user program is launched, the CPU switches to unprivileged User Mode. The program executes instructions directly until it either attempts a restricted operation or a hardware timer interrupt fires.</li>
+    </ul>
+
+    <h3>2. Dual-Mode Operation and Privilege Rings</h3>
+    <p>
+      Hardware protection relies on hierarchical privilege levels, commonly referred to as <strong>rings</strong>. On x86-64 architectures, Ring 0 represents Supervisor Mode (Kernel Mode), while Ring 3 represents User Mode.
+    </p>
+    <ul>
+      <li><strong>Privileged Instructions:</strong> Operations such as disabling interrupts, modifying page table root pointers (<code>CR3</code>), altering power states, or issuing direct disk I/O commands can only be executed in Ring 0. Attempting these instructions in Ring 3 triggers an immediate hardware exception.</li>
+      <li><strong>The Trap Gate:</strong> When a user program requires kernel services, such as reading a file or allocating memory, it executes a <code>syscall</code> or trap instruction. This hardware instruction acts as a controlled gateway, elevating privilege levels and transferring control to a verified kernel entry address.</li>
+    </ul>
+
+    <h3>3. Process Tables and Interrupt Vectors</h3>
+    <p>
+      Operating systems rely on precise kernel data structures to manage task execution. The central repository for process metadata is the <strong>Process Table</strong>, structured as an array or linked list of Process Control Blocks (PCBs) maintained in kernel memory.
+    </p>
+    <pre>struct process_control_block {
+    int pid;
+    enum process_state state;
+    struct cpu_registers saved_regs;
+    uint64_t cr3_page_table_root;
+    struct file_descriptor_table files;
+};</pre>
+    <p>
+      When an interrupt or trap occurs, the CPU hardware consults the <strong>Interrupt Vector Table</strong>. The low-level execution sequence proceeds through distinct phases:
+    </p>
+    <ol>
+      <li>Hardware stacks the program counter, program status word, and general registers.</li>
+      <li>Hardware loads a new program counter from the interrupt vector into the CPU.</li>
+      <li>An assembly-language procedure saves remaining general registers into the process table entry.</li>
+      <li>The assembly-language procedure sets up a new stack for kernel execution.</li>
+      <li>The C interrupt service routine runs to service the event, such as buffering input or acknowledging a timer tick.</li>
+      <li>The scheduler evaluates runnable tasks to determine which process executes next.</li>
+    </ol>
+
+    <h3>4. Modeling Multiprogramming Efficiency</h3>
+    <p>
+      To evaluate CPU utilization under multiprogramming, operating systems analyze workloads probabilistically. If a process spends a fraction of its execution time waiting for I/O, the probability that multiple independent processes in memory are simultaneously waiting for I/O decreases exponentially with the degree of multiprogramming, allowing the system to mask latency and keep CPU cores saturated.
+    </p>
+
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&#127968; Week 2 Index</a>
+      <a href="02-process-api.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 02. Process APIs &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+def write_module_file():
+    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
+    with open(TARGET_FILE, "w", encoding="utf-8") as f:
+        f.write(CLEAN_MODULE_HTML.strip() + "\n")
+
+    print(f"--> Successfully rewrote {TARGET_FILE} from scratch without citations.")
+
+    try:
+        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        commit_msg = (
+            "Rewrite Week 2 LDE module from scratch without any source citations\n\n"
+            "Recreate week02-processes/01-limited-direct-execution.html via script\n"
+            "with comprehensive OSTEP and Tanenbaum architectural details, strictly\n"
+            "omitting all reference citation tags."
+        )
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        print("--> Git sync completed successfully!")
+    except Exception as e:
+        print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    clean_html_files()
+    write_module_file()
