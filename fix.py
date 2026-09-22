@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create week02-processes/index.html matching Week 1 index structure
+# fix.py: Create week02-processes/index.html matching Week 1 card index
 # =====================================================================
 import os
 import subprocess
@@ -8,201 +8,169 @@ import subprocess
 TARGET_DIR = "week02-processes"
 TARGET_FILE = os.path.join(TARGET_DIR, "index.html")
 
-WEEK02_INDEX_HTML = r"""<!DOCTYPE html>
+WEEK02_CARD_INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 2: Processes &amp; Concurrency -- COSC240</title>
+  <title>COSC240: Chapter 2 - Processes &amp; Concurrency</title>
   <style>
     :root {
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
+      --border-dark: #94a3b8;
       --accent: #0284c7;
       --accent-hover: #0369a1;
       --text: #0f172a;
       --text-muted: #475569;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; overflow-wrap: break-word; word-break: break-word; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--font-sans);
-      color: var(--text);
       background-color: var(--bg);
-      margin: 0;
-      padding: 32px 16px;
-      line-height: 1.6;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: var(--card-bg);
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .card {
+      background-color: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 40px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .module-nav-bar {
+      padding: 20px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+      text-decoration: none;
+      color: inherit;
     }
-    .module-nav-bar.bottom {
-      margin-top: 36px;
-      margin-bottom: 0;
-      padding-top: 16px;
-      padding-bottom: 0;
-      border-bottom: none;
-      border-top: 1px solid var(--border);
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
-    .module-nav-btn {
+    .card h2 {
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+    .card p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card .link-text {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: #334155;
-      text-decoration: none;
-      font-weight: 600;
       font-size: 0.85rem;
-      font-family: var(--font-sans);
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    }
-    .module-nav-btn:hover {
-      background-color: #f8fafc;
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-    header {
-      margin-bottom: 24px;
-    }
-    h1 {
-      font-size: 1.8rem;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-    p.subtitle {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-    h2 {
-      font-size: 1.3rem;
-      color: #0369a1;
-      border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 8px;
-      margin-top: 28px;
-      margin-bottom: 12px;
-    }
-    p {
-      color: var(--text-muted);
-      line-height: 1.6;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
-    }
-    ul, ol {
-      margin-left: 20px;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
-    li {
-      margin-bottom: 8px;
-    }
-    a.module-link {
-      color: var(--accent);
-      text-decoration: none;
       font-weight: 600;
+      color: var(--accent);
+      margin-top: 6px;
     }
-    a.module-link:hover {
+    .card:hover .link-text {
       text-decoration: underline;
-      color: var(--accent-hover);
+    }
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 6px auto;
+      padding: 0 4px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: #0f172a;
+      background-color: #ffffff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="nav-back">
+    <a href="../index.html">&larr; Back to Course Overview</a>
+  </div>
 
-    <nav class="module-nav-bar">
-      <div>
-        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: Operating System Concepts</a>
-      </div>
-      <div>
-        <span style="font-size: 0.85rem; font-weight: 600; color: #334155;">COSC240 Operating Systems</span>
-      </div>
-      <div>
-        <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">Week 2 Index</span>
-      </div>
-    </nav>
+  <header>
+    <h1>Chapter 2: Processes &amp; Concurrency</h1>
+    <p class="subtitle">CPU Virtualization, Limited Direct Execution, Process APIs, and Scheduling Foundations</p>
+  </header>
 
-    <header>
-      <h1>Week 2: Processes &amp; Concurrency</h1>
-      <p class="subtitle">CPU Virtualization, Limited Direct Execution, Process APIs, and Scheduling Foundations.</p>
-    </header>
+  <div class="main-container">
 
-    <article class="module-body">
-      <p>
-        Welcome to Week 2 of COSC240. Following our review of computer hardware and architectural abstractions in Week 1, this week investigates how operating systems virtualize the CPU to support concurrent execution. Grounded in the pedagogical frameworks of <em>Operating Systems: Three Easy Pieces</em> (OSTEP) and Andrew Tanenbaum's <em>Modern Operating Systems</em>, these modules explore how kernels multiplex physical hardware across multiple active processes.
-      </p>
+    <!-- Module 01 -->
+    <a href="01-limited-direct-execution.html" class="card">
+      <h2>01. Limited Direct Execution (LDE)</h2>
+      <p>Examine how operating systems virtualize the CPU by running user code directly on bare silicon while retaining absolute control via hardware traps, return-from-trap assembly routines, and timer interrupts.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
 
-      <h2>Week 2 Module Directory</h2>
-      <ul>
-        <li>
-          <strong>01. <a href="01-limited-direct-execution.html" class="module-link">Limited Direct Execution (LDE)</a>:</strong>
-          Examines how the OS runs programs directly on bare silicon while retaining absolute control via hardware traps, return-from-trap assembly routines, and timer interrupts.
-        </li>
-        <li>
-          <strong>02. <a href="02-process-api.html" class="module-link">Process APIs &amp; Lifecycle Control</a>:</strong>
-          Explores POSIX process creation primitives (<code>fork()</code>, <code>exec()</code>, <code>wait()</code>, <code>exit()</code>) and process teardown dynamics.
-        </li>
-        <li>
-          <strong>03. <a href="03-cpu-scheduling.html" class="module-link">CPU Scheduling Metrics &amp; Algorithms</a>:</strong>
-          Evaluates core performance metrics (turnaround time, response time, fairness) and classical scheduling algorithms including FIFO, SJF, STCF, and Round Robin.
-        </li>
-        <li>
-          <strong>04. <a href="04-mlfq.html" class="module-link">Multi-Level Feedback Queues (MLFQ)</a>:</strong>
-          Analyzes how production schedulers balance interactive responsiveness and batch throughput dynamically without requiring a priori job length knowledge.
-        </li>
-      </ul>
-    </article>
+    <!-- Module 02 -->
+    <a href="02-process-api.html" class="card">
+      <h2>02. Process APIs &amp; Lifecycle Control</h2>
+      <p>Explore POSIX process creation primitives (<code>fork()</code>, <code>exec()</code>, <code>wait()</code>, <code>exit()</code>) alongside process tree hierarchies and teardown mechanics.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
 
-    <nav class="module-nav-bar bottom">
-      <div>
-        <a href="../week01-operating-system-concepts/index.html" class="module-nav-btn">&larr; Week 1: Operating System Concepts</a>
-      </div>
-      <div>
-        <span style="font-size: 0.85rem; font-weight: 600; color: #334155;">Week 2: Processes &amp; Concurrency</span>
-      </div>
-      <div>
-        <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Next Week &rarr;</span>
-      </div>
-    </nav>
+    <!-- Module 03 -->
+    <a href="03-cpu-scheduling.html" class="card">
+      <h2>03. CPU Scheduling Metrics &amp; Algorithms</h2>
+      <p>Evaluate core scheduling metrics (turnaround time, response time, fairness) and classical algorithms including FIFO, SJF, STCF, and Round Robin.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
+
+    <!-- Module 04 -->
+    <a href="04-mlfq.html" class="card">
+      <h2>04. Multi-Level Feedback Queues (MLFQ)</h2>
+      <p>Analyze how production kernels balance interactive responsiveness and batch throughput dynamically without requiring a priori job length knowledge.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
 
   </div>
 </body>
 </html>
 """
 
-def generate_week_two_index():
+def generate_week_two_card_index():
     os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(WEEK02_INDEX_HTML.strip() + "\n")
+        f.write(WEEK02_CARD_INDEX_HTML.strip() + "\n")
 
-    print(f"--> Successfully created {TARGET_FILE} matching Week 1 index structure.")
+    print(f"--> Successfully created {TARGET_FILE} following Week 1 card structure.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Create week02-processes/index.html matching Week 1 module index structure\n\n"
-            "Establish the Week 2 landing page with standard card layout, module links,\n"
-            "and OSTEP/Tanenbaum alignment."
+            "Create week02-processes/index.html matching Week 1 card index structure\n\n"
+            "Establish the Week 2 landing page using the exact card layout, styling,\n"
+            "and navigation format of week01-operating-system-concepts/index.html."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -211,4 +179,4 @@ def generate_week_two_index():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    generate_week_two_index()
+    generate_week_two_card_index()
