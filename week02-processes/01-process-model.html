@@ -29,6 +29,7 @@
     h1, h2, h3, h4 { color: #0f172a; }
     h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
     h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    h4 { margin-top: 16px; margin-bottom: 6px; color: #334155; font-size: 1.0rem; }
     p { color: #475569; margin-bottom: 12px; }
     ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
     li { margin-bottom: 6px; }
@@ -80,22 +81,46 @@
 
     <h2>01. The Process Model &amp; States</h2>
     <p>
-      At the heart of operating system design lies the <strong>process abstraction</strong>: a fundamental model representing a running program in execution. Modern computers frequently perform multiple computational tasks simultaneously—such as rendering web pages, receiving network packets, playing audio streams, and maintaining background daemons. Without proper conceptual tooling, managing these concurrent activities on a single physical processor would be unmanageable.
-    </p>
-    <p>
-      The process abstraction transforms a single physical CPU into multiple virtual CPUs through rapid time-multiplexing, creating the illusion of parallel execution known as <strong>pseudoparallelism</strong>.
+      At the heart of modern operating system architecture lies the <strong>process abstraction</strong>: a software model representing a program in execution. Modern hardware frequently juggles dozens to hundreds of concurrent activities—including network listeners, background daemons, audio decoders, and user interfaces. Even when a machine possesses only a single CPU core, the operating system manages these simultaneous tasks by rapidly switching the processor among them, establishing the illusion of simultaneous execution known as <strong>pseudoparallelism</strong>.
     </p>
 
     <h3>1. The Conceptual Process Model</h3>
     <p>
-      A process is an active execution container that encapsulates all the runtime information required to execute a program. It is crucial to distinguish a process from a static program:
+      In this model, all runnable software is organized into a collection of sequential processes. Conceptually, every process operates with its own virtual CPU and its own private flow of control. While the physical hardware switches between tasks every few milliseconds, viewing each running program as an independent sequential process makes system behavior and concurrency far easier to reason about.
+    </p>
+
+    <h4>Distinguishing the Program from the Process</h4>
+    <p>
+      The distinction between a program and a process is subtle yet foundational:
     </p>
     <ul>
-      <li><strong>The Program:</strong> A passive, static file stored on a disk or flash drive containing compiled machine instructions and initial data.</li>
-      <li><strong>The Process:</strong> An active, dynamic entity consisting of the program in execution, its current program counter, register values, stack frame, address space, open file descriptors, and associated system resources.</li>
+      <li><strong>The Program:</strong> A passive sequence of bytes stored on stable storage (such as an ELF binary or PE executable file on an SSD). It encompasses compiled instructions, static constants, and variable declarations, but performs no actions on its own.</li>
+      <li><strong>The Process:</strong> An active execution context. It represents the actual execution of those instructions over time, complete with dynamic state: current program counter (PC), CPU registers, stack pointers, open file descriptors, allocated physical memory pages, and child linkages.</li>
     </ul>
     <p>
-      Conceptually, each process runs independently with its own logical program counter. In reality, a uniprocessor system has only one physical program counter. When the scheduler switches tasks, the physical program counter is saved into the active process table entry, and the logical program counter of the incoming process is loaded into hardware.
+      A classic analogy makes this boundary intuitive. Consider a computer scientist baking a cake in a kitchen:
+    </p>
+    <ul>
+      <li><strong>The Recipe:</strong> Represents the <em>program</em>—the static algorithm written down step-by-step.</li>
+      <li><strong>The Ingredients:</strong> Represent the <em>input data</em>—flour, sugar, and eggs ready to be transformed.</li>
+      <li><strong>The Baker:</strong> Represents the <em>processor (CPU)</em>—the active engine capable of fetching instructions and executing steps.</li>
+      <li><strong>The Process:</strong> The dynamic <em>activity</em> of following the recipe, measuring ingredients, and mixing the batter over time.</li>
+    </ul>
+    <p>
+      If an urgent interruption occurs (such as a medical emergency), the baker saves their place in the recipe, stores current measurements on a notepad (saving CPU registers and state), and shifts attention to a first-aid manual (an interrupt routine or higher-priority process). Once the emergency is resolved, the baker reloads the saved state and resumes baking exactly where they left off.
+    </p>
+
+    <h4>Multiple Instances and Shared Code</h4>
+    <p>
+      Running the same program multiple times produces distinct, isolated processes. If two users launch the text editor <code>vim</code> simultaneously, or if a single user opens two independent instances of a terminal shell, each execution constitutes an independent process. Each instance possesses its own unique process identifier (PID), private memory space, independent stack, and distinct file handles.
+    </p>
+    <p>
+      Underneath, modern operating systems optimize memory usage through virtual memory mechanisms: while each process maintains private writable data and stack segments, the immutable text segment (the compiled executable machine code) can be shared among all running instances, preventing redundant allocations in physical RAM.
+    </p>
+
+    <h4>Independent Rates of Progress</h4>
+    <p>
+      Because the operating system dynamically schedules processes based on timer interrupts, system calls, and varying I/O completion times, programs cannot assume a constant or predictable rate of execution. A loop that counts to one million might complete in a fraction of a millisecond on one run, but take substantially longer on another run if the kernel switches CPU time to a competing process mid-loop. As a result, software must never rely on CPU idle loops for timing or synchronization; robust systems rely on kernel timers, event notifications, and formal synchronization primitives.
     </p>
 
     <h3>2. The Three-State Process Model</h3>
