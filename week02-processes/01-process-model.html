@@ -8,11 +8,19 @@
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
     }
+    * { box-sizing: border-box; }
     body {
       font-family: var(--font-sans);
-      color: #1e293b;
-      background: #f8fafc;
+      color: var(--text);
+      background: var(--bg);
       margin: 0;
       padding: 32px 16px;
       line-height: 1.6;
@@ -20,18 +28,18 @@
     .container {
       max-width: 900px;
       margin: 0 auto;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 40px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     h1, h2, h3, h4 { color: #0f172a; }
     h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
-    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
-    h4 { margin-top: 16px; margin-bottom: 6px; color: #334155; font-size: 1.0rem; }
-    p { color: #475569; margin-bottom: 12px; }
-    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
     li { margin-bottom: 6px; }
     code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
     pre {
@@ -50,7 +58,7 @@
       align-items: center;
       margin-bottom: 24px;
       padding-bottom: 12px;
-      border-bottom: 1px solid #cbd5e1;
+      border-bottom: 1px solid var(--border);
     }
     .nav-bar a {
       display: inline-flex;
@@ -58,7 +66,7 @@
       gap: 6px;
       padding: 6px 12px;
       background: #ffffff;
-      border: 1px solid #cbd5e1;
+      border: 1px solid var(--border);
       border-radius: 6px;
       color: #334155;
       text-decoration: none;
@@ -69,6 +77,183 @@
     .nav-bar a:hover {
       background-color: #0f172a;
       color: #ffffff;
+    }
+
+    /* Interactive Stepper Visualizer */
+    .stepper-container {
+      margin: 28px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+    .stepper-header {
+      padding: 12px 16px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .stepper-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #0f172a;
+    }
+    .perspective-toggles {
+      display: flex;
+      gap: 6px;
+    }
+    .toggle-btn {
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .toggle-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .telemetry-bar {
+      padding: 10px 16px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .telemetry-item span {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .stepper-canvas {
+      background: #ffffff;
+      padding: 24px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .stepper-nav {
+      padding: 12px 16px;
+      background: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .stepper-controls {
+      display: flex;
+      gap: 8px;
+    }
+    .stepper-btn {
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .stepper-btn:hover:not(:disabled) {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    .stepper-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .preview-panel {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .preview-panel strong {
+      color: var(--accent);
+    }
+    .panes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+    }
+    @media (max-width: 680px) {
+      .panes-grid { grid-template-columns: 1fr; }
+    }
+    .pane {
+      background: #ffffff;
+      padding: 16px;
+    }
+    .pane-header {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pane-header.what { color: #0284c7; }
+    .pane-header.why { color: #059669; }
+    .pane p {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin: 0;
+      color: #334155;
+    }
+
+    /* State Diagram SVG Styles */
+    .state-node {
+      transition: all 0.3s ease;
+      cursor: default;
+    }
+    .state-node.active rect {
+      stroke: #0284c7;
+      stroke-width: 3;
+      fill: #e0f2fe;
+    }
+    .state-node.active text.node-label {
+      fill: #0369a1;
+      font-weight: 700;
+    }
+    .transition-path {
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      fill: none;
+      transition: all 0.3s ease;
+    }
+    .transition-path.active {
+      stroke: #0284c7;
+      stroke-width: 3.5;
+      filter: drop-shadow(0 0 4px rgba(2, 132, 199, 0.4));
+    }
+    .transition-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      fill: #64748b;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .transition-label.active {
+      fill: #0284c7;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -125,16 +310,193 @@
 
     <h3>2. The Three-State Process Model</h3>
     <p>
-      During its lifetime, a process transitions between distinct operational states as it competes for processor time and waits for external events:
+      While an active process executes instructions sequentially, its real-world progression is neither instantaneous nor uninterrupted. Because computer workloads continually alternate between computationally intensive bursts and unbuffered peripheral access, a process cannot remain continuously pinned to a CPU core. To orchestrate multiple tasks fairly and efficiently, the operating system kernel assigns every active process to one of <strong>three primary operational states</strong>:
     </p>
+
     <ul>
-      <li><strong>Running:</strong> The process currently holds the physical CPU and is actively executing instructions. Only one process can be in this state per core at any given instant.</li>
-      <li><strong>Ready:</strong> The process is fully runnable and logically willing to execute, but is temporarily suspended because the scheduler allocated the CPU to another task.</li>
-      <li><strong>Blocked:</strong> The process cannot execute, even if the CPU is completely idle, because it is waiting for an external event to occur (such as keyboard input arriving, a network packet being received, or a disk block read completing).</li>
+      <li><strong>Running:</strong> The process currently owns a physical CPU core and its machine instructions are actively fetched, decoded, and executed by hardware registers. On a uniprocessor system, exactly one process can reside in the Running state at any given microsecond. On a multicore processor with $m$ cores, at most $m$ processes can run concurrently.</li>
+      <li><strong>Ready:</strong> The process possesses everything it requires to execute—its address space is mapped, its execution context is saved in its Process Control Block (PCB), and all input dependencies are satisfied. It is temporarily idle solely because the operating system scheduler has assigned the physical CPU core to another competing task.</li>
+      <li><strong>Blocked (or Waiting):</strong> The process is structurally incapable of executing instructions, even if all CPU cores sit completely idle. It is suspended awaiting the resolution of an external event—such as a disk block read completing, a network packet arriving from an Ethernet controller, an inter-process communication (IPC) pipe buffer becoming writable, or a sleep timer expiring.</li>
     </ul>
+
+    <h4>The Four Fundamental State Transitions</h4>
     <p>
-      State transitions occur dynamically: a running process becomes blocked when it issues an I/O request; a blocked process transitions to ready when its awaited event completes; and a ready process transitions to running when selected by the CPU scheduler.
+      As processes execute, perform system calls, and encounter hardware interrupts, they move deterministically through four core transitions:
     </p>
+
+    <div class="stepper-container">
+      <div class="stepper-header">
+        <div class="stepper-title">Interactive Walkthrough: The 4 Process State Transitions</div>
+        <div class="perspective-toggles">
+          <button class="toggle-btn active" id="toggle-monolithic" onclick="switchPerspective('standard')">Standard OS</button>
+          <button class="toggle-btn" id="toggle-realtime" onclick="switchPerspective('realtime')">Real-Time / Preemptive</button>
+        </div>
+      </div>
+
+      <div class="telemetry-bar">
+        <div class="telemetry-item">Active State: <span id="telem-state">Running</span></div>
+        <div class="telemetry-item">Transition: <span id="telem-trans">Initial Execution</span></div>
+        <div class="telemetry-item">Trigger Mechanism: <span id="telem-trigger">Hardware CPU Dispatch</span></div>
+        <div class="telemetry-item">CPU Core Status: <span id="telem-cpu">Occupied (PID 1042)</span></div>
+      </div>
+
+      <div class="stepper-canvas">
+        <svg id="state-diagram" width="620" height="220" viewBox="0 0 620 220">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+            </marker>
+            <marker id="arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+
+          <!-- Paths -->
+          <!-- Transition 1: Running -> Blocked -->
+          <path id="path-t1" class="transition-path" d="M 470 125 L 340 180" marker-end="url(#arrow)" />
+          <!-- Transition 2: Running -> Ready -->
+          <path id="path-t2" class="transition-path" d="M 450 70 C 370 15, 250 15, 170 70" marker-end="url(#arrow)" />
+          <!-- Transition 3: Ready -> Running -->
+          <path id="path-t3" class="transition-path" d="M 170 95 C 250 135, 370 135, 450 95" marker-end="url(#arrow)" />
+          <!-- Transition 4: Blocked -> Ready -->
+          <path id="path-t4" class="transition-path" d="M 280 180 L 150 125" marker-end="url(#arrow)" />
+
+          <!-- Path Labels -->
+          <text id="label-t1" class="transition-label" x="430" y="170">1. Block (I/O Wait)</text>
+          <text id="label-t2" class="transition-label" x="260" y="32">2. Preempt (Timer Tick)</text>
+          <text id="label-t3" class="transition-label" x="265" y="115">3. Scheduler Dispatch</text>
+          <text id="label-t4" class="transition-label" x="120" y="170">4. Event Occurs (I/O Done)</text>
+
+          <!-- State Nodes -->
+          <!-- READY -->
+          <g id="node-ready" class="state-node" transform="translate(70, 60)">
+            <rect width="110" height="60" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+            <text class="node-label" x="55" y="35" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">READY</text>
+          </g>
+
+          <!-- RUNNING -->
+          <g id="node-running" class="state-node active" transform="translate(440, 60)">
+            <rect width="110" height="60" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+            <text class="node-label" x="55" y="35" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">RUNNING</text>
+          </g>
+
+          <!-- BLOCKED -->
+          <g id="node-blocked" class="state-node" transform="translate(255, 150)">
+            <rect width="110" height="55" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+            <text class="node-label" x="55" y="33" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">BLOCKED</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="stepper-nav">
+        <div class="stepper-controls">
+          <button class="stepper-btn" id="btn-prev" onclick="stepTransition(-1)" disabled>&larr; Previous</button>
+          <button class="stepper-btn" id="btn-next" onclick="stepTransition(1)">Next Step &rarr;</button>
+          <button class="stepper-btn" id="btn-reset" onclick="resetStepper()">Reset</button>
+        </div>
+        <div class="preview-panel">
+          <span>Next Action:</span>
+          <strong id="preview-text">Transition 1: Running &rarr; Blocked (Process requests disk read)</strong>
+        </div>
+      </div>
+
+      <div class="panes-grid">
+        <div class="pane">
+          <div class="pane-header what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p id="pane-what">The process is currently running on the CPU in user mode, executing user-level instructions natively until it needs external resources or its quantum expires.</p>
+        </div>
+        <div class="pane">
+          <div class="pane-header why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p id="pane-why">Direct execution ensures that applications run at full native hardware speed without software interpretation overhead, using hardware privilege rings to retain control.</p>
+        </div>
+      </div>
+    </div>
+
+    <h4>In-Depth Breakdown of Each Transition</h4>
+    <ol>
+      <li>
+        <strong>Transition 1: Running &rarr; Blocked (Voluntary Suspension)</strong>
+        <p>
+          This transition occurs when a running process discovers that it cannot continue without external intervention. It executes a supervisor trap instruction (such as <code>syscall</code> or <code>int 0x80</code>) requesting an unbuffered service—such as reading a file block from disk, waiting for an incoming TCP socket packet, or locking an already acquired mutex.
+        </p>
+        <p>
+          Because mechanical disks or network round trips can take millions of CPU cycles, the operating system immediately moves the calling process into the <code>Blocked</code> queue. It marks the process status in its Process Control Block (PCB) and yields the CPU core so other computational work can proceed.
+        </p>
+      </li>
+      <li>
+        <strong>Transition 2: Running &rarr; Ready (Involuntary Preemption)</strong>
+        <p>
+          Unlike Transition 1, Transition 2 is initiated by the operating system kernel rather than by the running process itself. To prevent rogue or compute-heavy loops from monopolizing the CPU indefinitely, the motherboard features an independent, periodic hardware timer.
+        </p>
+        <p>
+          When the timer chip fires, it triggers a hardware interrupt, cleanly halting user-space execution and vectoring the CPU into the kernel's interrupt service routine. If the scheduler determines that the current process has exhausted its allocated time slice (quantum), the kernel saves its register state into the PCB, shifts its state label from <code>Running</code> to <code>Ready</code>, and moves it to the back of the ready list.
+        </p>
+      </li>
+      <li>
+        <strong>Transition 3: Ready &rarr; Running (Scheduler Dispatch)</strong>
+        <p>
+          Whenever the CPU core becomes free—due to the previous occupant blocking or being preempted—the kernel invokes the <strong>scheduler</strong> and <strong>dispatcher</strong>. The scheduler evaluates all candidate processes sitting in the <code>Ready</code> queue according to its scheduling policy (such as Round Robin, Priority Scheduling, or Multi-Level Feedback Queues).
+        </p>
+        <p>
+          Once a candidate is chosen, the dispatcher restores the saved registers, stack pointers, and address space base pointer (e.g., loading the page table root into register <code>CR3</code>) from the selected PCB, resets the hardware timer quantum, executes a return-from-trap instruction (such as <code>sysret</code> or <code>iret</code>), and drops privilege levels to user mode.
+        </p>
+      </li>
+      <li>
+        <strong>Transition 4: Blocked &rarr; Ready (Asynchronous Event Arrival)</strong>
+        <p>
+          When the external entity that caused the suspension finally completes its task—for example, the hard drive controller finishes DMA transfer of the requested file block into physical memory, or a network interface card receives a packet—it issues an asynchronous hardware interrupt to the CPU.
+        </p>
+        <p>
+          The kernel's interrupt handler acknowledges the device, identifies the sleeping process waiting on that specific event, and updates its state in the PCB from <code>Blocked</code> to <code>Ready</code>. Note that the process does <em>not</em> jump straight back into the <code>Running</code> state; it must join the queue of runnable candidates and await selection by the scheduler via Transition 3.
+        </p>
+      </li>
+    </ol>
+
+    <h4>Summary Matrix of State Transitions</h4>
+    <div style="overflow-x: auto; margin: 18px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px;">Transition</th>
+            <th style="padding: 10px 14px;">Initiator</th>
+            <th style="padding: 10px 14px;">Primary Cause</th>
+            <th style="padding: 10px 14px;">Nature</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">1. Running &rarr; Blocked</td>
+            <td style="padding: 10px 14px;">Running Process</td>
+            <td style="padding: 10px 14px;">Synchronous System Call (I/O request, lock wait)</td>
+            <td style="padding: 10px 14px; color: #0284c7; font-weight: 600;">Voluntary</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">2. Running &rarr; Ready</td>
+            <td style="padding: 10px 14px;">OS Kernel / Hardware Timer</td>
+            <td style="padding: 10px 14px;">Time quantum expiration, higher-priority task wakeup</td>
+            <td style="padding: 10px 14px; color: #dc2626; font-weight: 600;">Involuntary</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">3. Ready &rarr; Running</td>
+            <td style="padding: 10px 14px;">CPU Scheduler</td>
+            <td style="padding: 10px 14px;">Scheduler selection and context restoration</td>
+            <td style="padding: 10px 14px; color: #059669; font-weight: 600;">Kernel Decision</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">4. Blocked &rarr; Ready</td>
+            <td style="padding: 10px 14px;">Hardware Controller / External Event</td>
+            <td style="padding: 10px 14px;">I/O completion interrupt, signal delivery, timer expiry</td>
+            <td style="padding: 10px 14px; color: #7c3aed; font-weight: 600;">Asynchronous</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>3. Modeling Multiprogramming Efficiency</h3>
     <p>
@@ -148,10 +510,223 @@
       This mathematical model demonstrates why increasing the degree of multiprogramming is vital for masking I/O latency and keeping processor cores saturated.
     </p>
 
-    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid #cbd5e1; padding-top: 16px;">
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="index.html">&#127968; Week 2 Index</a>
       <a href="02-process-lifecycle.html">Next: 02. Process Lifecycle &rarr;</a>
     </nav>
   </div>
+
+  <script>
+    // Step Definitions for Directed Narrative Stepper
+    const stepData = {
+      standard: [
+        {
+          state: "Running",
+          trans: "Execution Phase",
+          trigger: "CPU Execution",
+          cpu: "Occupied (PID 1042)",
+          activeNode: "node-running",
+          activePath: null,
+          activeLabel: null,
+          nextAction: "Transition 1: Running \u2192 Blocked (Process issues read() system call)",
+          what: "Process 1042 is executing user instructions on CPU core 0. It executes regular arithmetic and logic until reaching a read() system call requesting data from disk.",
+          why: "Direct execution ensures optimal compute performance, letting instructions run on hardware until a privileged I/O operation is encountered."
+        },
+        {
+          state: "Transitioning (1)",
+          trans: "1. Running \u2192 Blocked",
+          trigger: "Trap Instruction (syscall)",
+          cpu: "Yielded (Context Saved)",
+          activeNode: "node-blocked",
+          activePath: "path-t1",
+          activeLabel: "label-t1",
+          nextAction: "Transition 3: Ready \u2192 Running (Scheduler picks next process to execute)",
+          what: "The kernel captures the trap, switches the CPU into supervisor mode, saves registers into PID 1042's PCB, and places PID 1042 into the I/O wait queue.",
+          why: "Because physical disk reads take milliseconds (millions of cycles), relinquishing the CPU prevents CPU cycles from being wasted in busy-wait polling."
+        },
+        {
+          state: "Running (New Task)",
+          trans: "3. Ready \u2192 Running",
+          trigger: "Dispatcher Restore",
+          cpu: "Occupied (PID 2085)",
+          activeNode: "node-running",
+          activePath: "path-t3",
+          activeLabel: "label-t3",
+          nextAction: "Transition 2: Running \u2192 Ready (Timer interrupt preempts PID 2085)",
+          what: "The scheduler examines the Ready queue, chooses PID 2085, restores its registers from its PCB, and returns to user space via an iret/sysret instruction.",
+          why: "The core design goal of multiprogramming is zero CPU downtime: whenever one task blocks, another runnable task immediately saturates the core."
+        },
+        {
+          state: "Preempting (2)",
+          trans: "2. Running \u2192 Ready",
+          trigger: "Hardware Timer Interrupt",
+          cpu: "Preempted to Kernel",
+          activeNode: "node-ready",
+          activePath: "path-t2",
+          activeLabel: "label-t2",
+          nextAction: "Transition 4: Blocked \u2192 Ready (Disk controller signals DMA completion)",
+          what: "The programmable interval timer (PIT) decrements to zero, triggering interrupt vector 32. The kernel detects that PID 2085 expired its quantum and places it in the Ready queue.",
+          why: "Preemption enforces fairness and prevents uncooperative or infinite loops from monopolizing interactive user responsiveness."
+        },
+        {
+          state: "Event Handling (4)",
+          trans: "4. Blocked \u2192 Ready",
+          trigger: "Disk Interrupt (IRQ 14)",
+          cpu: "Ready Queue Enqueued",
+          activeNode: "node-ready",
+          activePath: "path-t4",
+          activeLabel: "label-t4",
+          nextAction: "Sequence Complete: Click Reset to run from start",
+          what: "The disk controller completes the sector read into memory via DMA and fires an IRQ. The ISR moves PID 1042 from the Blocked queue back to the Ready queue.",
+          why: "The process cannot jump directly back to Running because another process currently holds the CPU; it must await regular scheduler dispatch."
+        }
+      ],
+      realtime: [
+        {
+          state: "Running (RT Task)",
+          trans: "Deterministic Execution",
+          trigger: "Hard Deadline Core",
+          cpu: "Occupied (RT-PID 12)",
+          activeNode: "node-running",
+          activePath: null,
+          activeLabel: null,
+          nextAction: "Transition 1: Running \u2192 Blocked (Sensor frame synchronization)",
+          what: "High-priority real-time task executes periodic sensor sampling with fixed, bounded worst-case execution time (WCET).",
+          why: "Real-time systems prioritize strict timing predictability and latency bounds over general-purpose throughput."
+        },
+        {
+          state: "Suspended (1)",
+          trans: "1. Running \u2192 Blocked",
+          trigger: "Clock Sleep / Barrier",
+          cpu: "Surrendered Immediately",
+          activeNode: "node-blocked",
+          activePath: "path-t1",
+          activeLabel: "label-t1",
+          nextAction: "Transition 3: Ready \u2192 Running (Background logger scheduled)",
+          what: "Task suspends itself waiting for the next 10ms hardware clock tick or external GPIO trigger.",
+          why: "Yielding early frees the processor for non-critical background maintenance tasks."
+        },
+        {
+          state: "Background Run",
+          trans: "3. Ready \u2192 Running",
+          trigger: "Priority Scheduler",
+          cpu: "Occupied (Low-Priority Logger)",
+          activeNode: "node-running",
+          activePath: "path-t3",
+          activeLabel: "label-t3",
+          nextAction: "Transition 2: Immediate Preemption on Interrupt",
+          what: "A low-priority telemetry logging task executes while the real-time sensor task sleeps.",
+          why: "Idle cycles are used for secondary work, but must remain instantaneously preemptible."
+        },
+        {
+          state: "Instant Preemption (2)",
+          trans: "2. Running \u2192 Ready",
+          trigger: "Priority Preemption",
+          cpu: "Preempted Within 5\u03bcs",
+          activeNode: "node-ready",
+          activePath: "path-t2",
+          activeLabel: "label-t2",
+          nextAction: "Transition 4: Sensor interrupt wakes high-priority RT task",
+          what: "Timer or sensor interrupt fires. The kernel immediately halts the low-priority logger without waiting for a standard quantum to elapse.",
+          why: "Real-time kernels maintain ultra-low dispatch latency to avoid missing mission-critical deadlines."
+        },
+        {
+          state: "Wakeup & Re-arm (4)",
+          trans: "4. Blocked \u2192 Ready",
+          trigger: "Hardware Sensor IRQ",
+          cpu: "Priority Preemption Path",
+          activeNode: "node-ready",
+          activePath: "path-t4",
+          activeLabel: "label-t4",
+          nextAction: "Sequence Complete: Click Reset to run from start",
+          what: "The real-time task transitions from Blocked to Ready, immediately triggering a context switch that preempts any lower-priority task.",
+          why: "Strict priority preemptive scheduling ensures the highest-priority ready thread always possesses the CPU."
+        }
+      ]
+    };
+
+    let activePerspective = "standard";
+    let currentStep = 0;
+
+    function renderActiveStep() {
+      const steps = stepData[activePerspective];
+      const step = steps[currentStep];
+
+      // Update Telemetry
+      document.getElementById("telem-state").textContent = step.state;
+      document.getElementById("telem-trans").textContent = step.trans;
+      document.getElementById("telem-trigger").textContent = step.trigger;
+      document.getElementById("telem-cpu").textContent = step.cpu;
+
+      // Update SVG Nodes
+      ["node-ready", "node-running", "node-blocked"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("active");
+      });
+      if (step.activeNode) {
+        const activeEl = document.getElementById(step.activeNode);
+        if (activeEl) activeEl.classList.add("active");
+      }
+
+      // Update SVG Paths
+      ["path-t1", "path-t2", "path-t3", "path-t4"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("active");
+          el.setAttribute("marker-end", "url(#arrow)");
+        }
+      });
+      if (step.activePath) {
+        const activePathEl = document.getElementById(step.activePath);
+        if (activePathEl) {
+          activePathEl.classList.add("active");
+          activePathEl.setAttribute("marker-end", "url(#arrow-active)");
+        }
+      }
+
+      // Update SVG Labels
+      ["label-t1", "label-t2", "label-t3", "label-t4"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("active");
+      });
+      if (step.activeLabel) {
+        const activeLabelEl = document.getElementById(step.activeLabel);
+        if (activeLabelEl) activeLabelEl.classList.add("active");
+      }
+
+      // Update Navigation & Foreshadowed Preview
+      document.getElementById("preview-text").textContent = step.nextAction;
+      document.getElementById("btn-prev").disabled = (currentStep === 0);
+      document.getElementById("btn-next").disabled = (currentStep === steps.length - 1);
+
+      // Update Explanatory Panes
+      document.getElementById("pane-what").textContent = step.what;
+      document.getElementById("pane-why").textContent = step.why;
+    }
+
+    function stepTransition(delta) {
+      const steps = stepData[activePerspective];
+      currentStep = Math.max(0, Math.min(steps.length - 1, currentStep + delta));
+      renderActiveStep();
+    }
+
+    function resetStepper() {
+      currentStep = 0;
+      renderActiveStep();
+    }
+
+    function switchPerspective(mode) {
+      activePerspective = mode;
+      currentStep = 0;
+      document.getElementById("toggle-monolithic").classList.toggle("active", mode === "standard");
+      document.getElementById("toggle-realtime").classList.toggle("active", mode === "realtime");
+      renderActiveStep();
+    }
+
+    // Initialize stepper on page load
+    document.addEventListener("DOMContentLoaded", () => {
+      renderActiveStep();
+    });
+  </script>
 </body>
 </html>
