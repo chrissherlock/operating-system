@@ -1,47 +1,166 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Remove unused Week 2 modules and placeholders
+# fix.py: Expand 01-process-model.html with rich depth and standard nav
 # =====================================================================
 import os
 import subprocess
 
-TARGET_DIR = "week02-processes"
+TARGET_FILE = os.path.join("week02-processes", "01-process-model.html")
 
-OBSOLETE_FILES = [
-    "01-limited-direct-execution.html",
-    "02-process-api.html",
-    "03-cpu-scheduling.html",
-    "04-mlfq.html",
-    "placeholder.html"
-]
+EXPANDED_MODULE_1 = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01. The Process Model &amp; States | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      color: #1e293b;
+      background: #f8fafc;
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <a href="02-process-lifecycle.html">Next: 02. Process Lifecycle &rarr;</a>
+    </nav>
 
-def remove_obsolete_files():
-    removed_paths = ["fix.py"]
-    for filename in OBSOLETE_FILES:
-        filepath = os.path.join(TARGET_DIR, filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
-            removed_paths.append(filepath)
-            print(f"--> Removed obsolete file: {filepath}")
-        else:
-            print(f"--> File not found (already removed): {filepath}")
+    <h2>01. The Process Model &amp; States</h2>
+    <p>
+      At the heart of operating system design lies the <strong>process abstraction</strong>: a fundamental model representing a running program in execution. Modern computers frequently perform multiple computational tasks simultaneously—such as rendering web pages, receiving network packets, playing audio streams, and maintaining background daemons. Without proper conceptual tooling, managing these concurrent activities on a single physical processor would be unmanageable.
+    </p>
+    <p>
+      The process abstraction transforms a single physical CPU into multiple virtual CPUs through rapid time-multiplexing, creating the illusion of parallel execution known as <strong>pseudoparallelism</strong>.
+    </p>
+
+    <h3>1. The Conceptual Process Model</h3>
+    <p>
+      A process is an active execution container that encapsulates all the runtime information required to execute a program. It is crucial to distinguish a process from a static program:
+    </p>
+    <ul>
+      <li><strong>The Program:</strong> A passive, static file stored on a disk or flash drive containing compiled machine instructions and initial data.</li>
+      <li><strong>The Process:</strong> An active, dynamic entity consisting of the program in execution, its current program counter, register values, stack frame, address space, open file descriptors, and associated system resources.</li>
+    </ul>
+    <p>
+      Conceptually, each process runs independently with its own logical program counter. In reality, a uniprocessor system has only one physical program counter. When the scheduler switches tasks, the physical program counter is saved into the active process table entry, and the logical program counter of the incoming process is loaded into hardware.
+    </p>
+
+    <h3>2. The Three-State Process Model</h3>
+    <p>
+      During its lifetime, a process transitions between distinct operational states as it competes for processor time and waits for external events:
+    </p>
+    <ul>
+      <li><strong>Running:</strong> The process currently holds the physical CPU and is actively executing instructions. Only one process can be in this state per core at any given instant.</li>
+      <li><strong>Ready:</strong> The process is fully runnable and logically willing to execute, but is temporarily suspended because the scheduler allocated the CPU to another task.</li>
+      <li><strong>Blocked:</strong> The process cannot execute, even if the CPU is completely idle, because it is waiting for an external event to occur (such as keyboard input arriving, a network packet being received, or a disk block read completing).</li>
+    </ul>
+    <p>
+      State transitions occur dynamically: a running process becomes blocked when it issues an I/O request; a blocked process transitions to ready when its awaited event completes; and a ready process transitions to running when selected by the CPU scheduler.
+    </p>
+
+    <h3>3. Modeling Multiprogramming Efficiency</h3>
+    <p>
+      Multiprogramming aims to maximize CPU utilization by keeping multiple processes in memory. If a compute-bound process spends only a fraction of its time executing before waiting for I/O, a uniprocessor would otherwise sit idle. We can model CPU utilization probabilistically:
+    </p>
+    <p>
+      Let <code>p</code> represent the fraction of time a process spends waiting for I/O. If <code>n</code> independent processes reside in memory simultaneously, the probability that all <code>n</code> processes are waiting for I/O concurrently is <code>p^n</code>. Consequently, the estimated aggregate CPU utilization is expressed as:
+    </p>
+    <pre>CPU Utilization = 1 - p^n</pre>
+    <p>
+      This mathematical model demonstrates why increasing the degree of multiprogramming is vital for masking I/O latency and keeping processor cores saturated.
+    </p>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid #cbd5e1; padding-top: 16px;">
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <a href="02-process-lifecycle.html">Next: 02. Process Lifecycle &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+def expand_module_one():
+    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
+    with open(TARGET_FILE, "w", encoding="utf-8") as f:
+        f.write(EXPANDED_MODULE_1.strip() + "\n")
+
+    print(f"--> Successfully expanded and updated {TARGET_FILE}")
 
     try:
-        subprocess.run(["git", "add", "fix.py"], check=True)
-        for filepath in removed_paths:
-            if filepath != "fix.py":
-                subprocess.run(["git", "rm", filepath], check=True)
-
+        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Remove obsolete Week 2 modules and placeholders\n\n"
-            "Clean up week02-processes directory by removing unused sub-modules and\n"
-            "placeholders, leaving the precise four-module MOS 2.1-2.2 and OSTEP Ch 4 set."
+            "Expand 01-process-model.html and unify module navigation buttons\n\n"
+            "Provide long-form technical depth on the process model, pseudoparallelism,\n"
+            "three-state lifecycle, and multiprogramming probability models while\n"
+            "updating navigation headers and footers to match course standards."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git cleanup and sync completed successfully!")
+        print("--> Git sync completed successfully!")
     except Exception as e:
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    remove_obsolete_files()
+    expand_module_one()
