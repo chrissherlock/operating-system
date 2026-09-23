@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 2 in 01-process-model.html
+# fix.py: Remove raw LaTeX delimiters from 01-process-model.html
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week02-processes", "01-process-model.html")
 
-EXPANDED_MODULE_HTML = r"""<!DOCTYPE html>
+CLEANED_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -323,7 +323,7 @@ EXPANDED_MODULE_HTML = r"""<!DOCTYPE html>
     </p>
 
     <ul>
-      <li><strong>Running:</strong> The process currently owns a physical CPU core and its machine instructions are actively fetched, decoded, and executed by hardware registers. On a uniprocessor system, exactly one process can reside in the Running state at any given microsecond. On a multicore processor with $m$ cores, at most $m$ processes can run concurrently.</li>
+      <li><strong>Running:</strong> The process currently owns a physical CPU core and its machine instructions are actively fetched, decoded, and executed by hardware registers. On a uniprocessor system, exactly one process can reside in the Running state at any given microsecond. On a multicore processor with <i>m</i> cores, at most <i>m</i> processes can run concurrently.</li>
       <li><strong>Ready:</strong> The process possesses everything it requires to execute—its address space is mapped, its execution context is saved in its Process Control Block (PCB), and all input dependencies are satisfied. It is temporarily idle solely because the operating system scheduler has assigned the physical CPU core to another competing task.</li>
       <li><strong>Blocked (or Waiting):</strong> The process is structurally incapable of executing instructions, even if all CPU cores sit completely idle. It is suspended awaiting the resolution of an external event—such as a disk block read completing, a network packet arriving from an Ethernet controller, an inter-process communication (IPC) pipe buffer becoming writable, or a sleep timer expiring.</li>
     </ul>
@@ -512,7 +512,7 @@ EXPANDED_MODULE_HTML = r"""<!DOCTYPE html>
       Multiprogramming aims to maximize CPU utilization by keeping multiple processes in memory. If a compute-bound process spends only a fraction of its time executing before waiting for I/O, a uniprocessor would otherwise sit idle. We can model CPU utilization probabilistically:
     </p>
     <p>
-      Let <code>p</code> represent the fraction of time a process spends waiting for I/O. If <code>n</code> independent processes reside in memory simultaneously, the probability that all <code>n</code> processes are waiting for I/O concurrently is <code>p^n</code>. Consequently, the estimated aggregate CPU utilization is expressed as:
+      Let <i>p</i> represent the fraction of time a process spends waiting for I/O. If <i>n</i> independent processes reside in memory simultaneously, the probability that all <i>n</i> processes are waiting for I/O concurrently is <i>p</i><sup><i>n</i></sup>. Consequently, the estimated aggregate CPU utilization is expressed as:
     </p>
     <pre>CPU Utilization = 1 - p^n</pre>
     <p>
@@ -732,7 +732,6 @@ EXPANDED_MODULE_HTML = r"""<!DOCTYPE html>
       renderActiveStep();
     }
 
-    // Initialize stepper on page load
     document.addEventListener("DOMContentLoaded", () => {
       renderActiveStep();
     });
@@ -741,19 +740,19 @@ EXPANDED_MODULE_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def update_module_file():
+def apply_latex_fix():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(EXPANDED_MODULE_HTML.strip() + "\n")
+        f.write(CLEANED_HTML.strip() + "\n")
 
-    print(f"--> Successfully expanded Section 2 and added stepper in {TARGET_FILE}")
+    print(f"--> Successfully replaced raw LaTeX delimiters in {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand three-state process model and add interactive transition stepper\n\n"
-            "Enrich Section 2 of 01-process-model.html with in-depth state transition\n"
-            "mechanics, scheduler dispatch details, and an interactive state visualizer."
+            "Replace raw LaTeX delimiters with native HTML formatting\n\n"
+            "Strip raw mathematical dollar signs from 01-process-model.html and replace\n"
+            "with standard semantic HTML tags (<i>m</i> and <sup>) to prevent text leaks."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -762,4 +761,4 @@ def update_module_file():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_module_file()
+    apply_latex_fix()
