@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>02. Process APIs &amp; Hierarchical Trees | Week 2</title>
+  <title>02. The Classical Thread Model | Week 2</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -38,24 +38,30 @@
 <body>
   <div class="container">
     <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
-      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. LDE</a>
+      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. Process Model</a>
       <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&#127968; Week 2 Index</a>
       <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 03. Scheduling &rarr;</a>
     </nav>
 
-    <h2>02. Process APIs &amp; Hierarchical Trees</h2>
+    <h2>02. The Classical Thread Model</h2>
     <p>
-      Examining process creation through both POSIX and Tanenbaum’s architectural lenses reveals how operating systems organize tasks into structured relationships.
+      As outlined in Tanenbaum Chapter 2.2, traditional processes group related resources together, while the <strong>thread</strong> serves as the entity scheduled for execution on the CPU.
     </p>
 
-    <h3>Hierarchical Process Trees vs. Flat Object Models</h3>
+    <h3>Resource Grouping vs. Execution</h3>
     <ul>
-      <li><strong>POSIX Parent-Child Trees:</strong> In UNIX and Linux, processes form an strict tree hierarchy rooted at <code>init</code> (or <code>systemd</code>). Every process has a parent PID (PPID). When a child terminates, its exit status is preserved until the parent collects it via <code>wait()</code>.</li>
-      <li><strong>Windows Object Handle Model:</strong> In contrast, Windows NT employs a flat process model where processes are peer entities created via <code>CreateProcess()</code>, which returns an opaque handle with explicit security descriptors rather than relying on strict parent-child ownership trees.</li>
+      <li><strong>Shared Process Resources:</strong> Address space, global variables, open files, child processes, and signals are shared across all threads within a process.</li>
+      <li><strong>Private Thread Resources:</strong> Each thread maintains its own program counter, register set, execution state, and private stack.</li>
+    </ul>
+
+    <h3>Thread Implementation Strategies</h3>
+    <ul>
+      <li><strong>User-Space Threads:</strong> Implemented via a run-time library. Extremely fast creation and context switching, but blocked system calls can stall the entire process unless wrappers are used.</li>
+      <li><strong>Kernel-Space Threads Managed by OS:</strong> The kernel maintains thread tables. Slower to create and manage due to system call overhead, but allows other threads in the process to continue running if one triggers a page fault or blocks.</li>
     </ul>
 
     <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
-      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. LDE</a>
+      <a href="01-limited-direct-execution.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&larr; Previous: 01. Process Model</a>
       <a href="03-cpu-scheduling.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">Next: 03. Scheduling &rarr;</a>
     </nav>
   </div>
