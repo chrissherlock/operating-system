@@ -1,109 +1,161 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Correct title and header in week02-processes/index.html
+# fix.py: Update week02-processes/index.html to match Week 1 design
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week02-processes", "index.html")
 
-CORRECTED_INDEX_HTML = r"""<!DOCTYPE html>
+WEEK_2_INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 2: Processes and Threads | COSC240</title>
+  <title>COSC240: Week 2 - Processes and Threads (MOS &amp; OSTEP)</title>
   <style>
     :root {
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --border-dark: #94a3b8;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --text: #0f172a;
+      --text-muted: #475569;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--font-sans);
-      color: #1e293b;
-      background: #f8fafc;
-      margin: 0;
-      padding: 32px 16px;
-      line-height: 1.6;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      padding: 40px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    h1, h2, h3, h4 { color: #0f172a; }
-    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
-    p { color: #475569; margin-bottom: 16px; }
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    header { text-align: center; max-width: 900px; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
+    .main-container {
+      display: flex;
+      flex-direction: column;
       gap: 16px;
-      margin-top: 24px;
+      width: 100%;
+      max-width: 1100px;
     }
     .card {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: transform 0.15s ease, border-color 0.15s ease;
       text-decoration: none;
       color: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
     }
     .card:hover {
-      border-color: #0284c7;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
-    .card h3 {
-      margin-top: 0;
-      color: #0284c7;
-      font-size: 1.1rem;
+    .card h2 {
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+    .card p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card .link-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 6px;
+    }
+    .card:hover .link-text {
+      text-decoration: underline;
+    }
+    .nav-back {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 6px auto;
+      padding: 0 4px;
+      display: flex;
+    }
+    .nav-back a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      color: #0f172a;
+      background-color: #ffffff;
+      border: 1px solid #bae6fd;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-back a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
-      <a href="../index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem;">&#127968; Course Index</a>
-      <span style="color: #64748b; font-size: 0.85rem; font-weight: 600;">COSC240 Operating Systems</span>
-    </nav>
+  <div class="nav-back">
+    <a href="../index.html">&#127968; Back to Course Overview</a>
+  </div>
 
+  <header>
     <h1>Week 2: Processes and Threads</h1>
-    <p>
-      Exploring core process abstractions, lifecycle states, process APIs, and the classical thread model, aligned with Modern Operating Systems (Chapters 2.1-2.2) and OSTEP (Chapter 4).
-    </p>
+    <p class="subtitle">Modern Operating Systems (Chapters 2.1-2.2) &amp; OSTEP (Chapter 4)</p>
+  </header>
 
-    <div class="card-grid">
-      <a href="01-limited-direct-execution.html" class="card">
-        <h3>01. The Process Model &amp; States</h3>
-        <p>Examine the process abstraction, pseudoparallelism, lifecycle events, and the three-state model (Running, Ready, Blocked).</p>
-      </a>
-      <a href="02-process-api.html" class="card">
-        <h3>02. The Classical Thread Model</h3>
-        <p>Explore resource grouping versus execution, per-thread stacks, and user-space versus kernel-space thread implementations.</p>
-      </a>
-    </div>
+  <div class="main-container">
+
+    <!-- Module 01 -->
+    <a href="01-limited-direct-execution.html" class="card">
+      <h2>01. The Process Model &amp; States</h2>
+      <p>Explore the process abstraction, pseudoparallelism, process creation and termination, process hierarchies, the three-state model (Running, Ready, Blocked), and multiprogramming probabilities.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
+
+    <!-- Module 02 -->
+    <a href="02-process-api.html" class="card">
+      <h2>02. The Classical Thread Model</h2>
+      <p>Examine thread usage in applications, the separation of resource grouping and execution, per-thread stacks, and Pthreads implementation models.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
+
   </div>
 </body>
 </html>
 """
 
-def update_index_file():
+def update_week2_index():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(CORRECTED_INDEX_HTML.strip() + "\n")
+        f.write(WEEK_2_INDEX_HTML.strip() + "\n")
 
-    print(f"--> Successfully updated title and header in {TARGET_FILE}.")
+    print(f"--> Successfully updated {TARGET_FILE} with correct layout.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Correct title and header in week02-processes/index.html\n\n"
-            "Update the page title and heading of the Week 2 landing page to accurately\n"
-            "reflect Processes and Threads (MOS Chapter 2.1-2.2 and OSTEP Chapter 4)."
+            "Align Week 2 index HTML structure with Week 1 design standard\n\n"
+            "Recreate week02-processes/index.html using the exact card layout, CSS variables,\n"
+            "and navigation bar style from Week 1, covering MOS 2.1-2.2 and OSTEP Ch 4."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -112,4 +164,4 @@ def update_index_file():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_index_file()
+    update_week2_index()
