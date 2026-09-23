@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. The Classical Thread Model | Week 2</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="02-process-lifecycle.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 02. Lifecycle</a>
+      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
+      <a href="04-thread-implementation.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 04. Implementation &rarr;</a>
+    </nav>
+    <h2>03. The Classical Thread Model</h2>
+    <p>Covering MOS Chapter 2.2, traditional processes group related resources together, while the <strong>thread</strong> serves as the individual unit of CPU execution.</p>
+    <h3>Resource Grouping vs. Execution</h3>
+    <ul>
+      <li><strong>Shared Resources:</strong> Address space, global variables, open files, child processes, and signals.</li>
+      <li><strong>Private Thread Resources:</strong> Program counter, register set, execution state, and private stack.</li>
+    </ul>
+    <h3>Thread Usage in Applications</h3>
+    <p>Threads simplify programming models in applications requiring concurrent activities, such as word processors maintaining background reformatting and auto-save threads, or Web servers handling simultaneous client requests.</p>
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="02-process-lifecycle.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 02. Lifecycle</a>
+      <a href="04-thread-implementation.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 04. Implementation &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02. Process Creation, Termination &amp; Hierarchies | Week 2</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="01-process-model.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 01. Process Model</a>
+      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
+      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 03. Threads &rarr;</a>
+    </nav>
+    <h2>02. Process Creation, Termination &amp; Hierarchies</h2>
+    <p>Examining how operating systems instantiate and manage the process lifecycle through system calls and process control blocks.</p>
+    <h3>Process Creation Events</h3>
+    <ul>
+      <li>System initialization (daemons and background services).</li>
+      <li>Execution of process creation system calls (e.g., UNIX <code>fork()</code>).</li>
+      <li>User requests to start programs.</li>
+      <li>Initiation of batch jobs.</li>
+    </ul>
+    <h3>Process Hierarchies &amp; Termination</h3>
+    <p>Processes form parent-child tree structures in UNIX (rooted at <code>init</code> or <code>systemd</code>), whereas Windows employs flat object models with handles. Processes terminate via normal exit, error exit, fatal errors, or external termination.</p>
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="01-process-model.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 01. Process Model</a>
+      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 03. Threads &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>

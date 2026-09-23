@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Update week02-processes/index.html to match Week 1 design
+# fix.py: Generate four comprehensive modules and index for Week 2
 # =====================================================================
 import os
 import subprocess
 
-TARGET_FILE = os.path.join("week02-processes", "index.html")
+TARGET_DIR = "week02-processes"
 
-WEEK_2_INDEX_HTML = r"""<!DOCTYPE html>
+INDEX_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -125,16 +125,30 @@ WEEK_2_INDEX_HTML = r"""<!DOCTYPE html>
   <div class="main-container">
 
     <!-- Module 01 -->
-    <a href="01-limited-direct-execution.html" class="card">
+    <a href="01-process-model.html" class="card">
       <h2>01. The Process Model &amp; States</h2>
-      <p>Explore the process abstraction, pseudoparallelism, process creation and termination, process hierarchies, the three-state model (Running, Ready, Blocked), and multiprogramming probabilities.</p>
+      <p>Examine the process abstraction, pseudoparallelism, the three-state process model (Running, Ready, Blocked), and multiprogramming probabilities.</p>
       <span class="link-text">Launch Module &rarr;</span>
     </a>
 
     <!-- Module 02 -->
-    <a href="02-process-api.html" class="card">
-      <h2>02. The Classical Thread Model</h2>
-      <p>Examine thread usage in applications, the separation of resource grouping and execution, per-thread stacks, and Pthreads implementation models.</p>
+    <a href="02-process-lifecycle.html" class="card">
+      <h2>02. Process Creation, Termination &amp; Hierarchies</h2>
+      <p>Explore events causing process creation, exit conditions, UNIX process trees, process groups, and process control block implementations.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
+
+    <!-- Module 03 -->
+    <a href="03-classical-threads.html" class="card">
+      <h2>03. The Classical Thread Model</h2>
+      <p>Understand why threads are needed, the separation of resource grouping from execution, per-thread stacks, and thread usage in applications.</p>
+      <span class="link-text">Launch Module &rarr;</span>
+    </a>
+
+    <!-- Module 04 -->
+    <a href="04-thread-implementation.html" class="card">
+      <h2>04. Thread Implementation &amp; Pthreads</h2>
+      <p>Compare user-space threads versus kernel-space threads, hybrid multiplexing, and POSIX Pthreads application interfaces.</p>
       <span class="link-text">Launch Module &rarr;</span>
     </a>
 
@@ -143,19 +157,216 @@ WEEK_2_INDEX_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def update_week2_index():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(WEEK_2_INDEX_HTML.strip() + "\n")
+MOD_1 = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01. The Process Model &amp; States | Week 2</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
+      <a href="02-process-lifecycle.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 02. Lifecycle &rarr;</a>
+    </nav>
+    <h2>01. The Process Model &amp; States</h2>
+    <p>Following MOS Chapter 2.1 and OSTEP Chapter 4, the process abstraction turns a single physical CPU into multiple virtual CPUs through pseudoparallelism.</p>
+    <h3>The Process Model</h3>
+    <p>A process is an instance of an executing program, including its program counter, registers, and variables. The processor switches rapidly among processes, giving the illusion of true parallel execution.</p>
+    <h3>Three-State Process Model</h3>
+    <ul>
+      <li><strong>Running:</strong> The process currently holds the CPU and executes instructions.</li>
+      <li><strong>Ready:</strong> The process is runnable but temporarily stopped while another process uses the CPU.</li>
+      <li><strong>Blocked:</strong> The process cannot run because it is waiting for an external event (such as I/O).</li>
+    </ul>
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
+      <a href="02-process-lifecycle.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 02. Lifecycle &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
 
-    print(f"--> Successfully updated {TARGET_FILE} with correct layout.")
+MOD_2 = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02. Process Creation, Termination &amp; Hierarchies | Week 2</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="01-process-model.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 01. Process Model</a>
+      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
+      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 03. Threads &rarr;</a>
+    </nav>
+    <h2>02. Process Creation, Termination &amp; Hierarchies</h2>
+    <p>Examining how operating systems instantiate and manage the process lifecycle through system calls and process control blocks.</p>
+    <h3>Process Creation Events</h3>
+    <ul>
+      <li>System initialization (daemons and background services).</li>
+      <li>Execution of process creation system calls (e.g., UNIX <code>fork()</code>).</li>
+      <li>User requests to start programs.</li>
+      <li>Initiation of batch jobs.</li>
+    </ul>
+    <h3>Process Hierarchies &amp; Termination</h3>
+    <p>Processes form parent-child tree structures in UNIX (rooted at <code>init</code> or <code>systemd</code>), whereas Windows employs flat object models with handles. Processes terminate via normal exit, error exit, fatal errors, or external termination.</p>
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="01-process-model.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 01. Process Model</a>
+      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 03. Threads &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+MOD_3 = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. The Classical Thread Model | Week 2</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="02-process-lifecycle.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 02. Lifecycle</a>
+      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
+      <a href="04-thread-implementation.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 04. Implementation &rarr;</a>
+    </nav>
+    <h2>03. The Classical Thread Model</h2>
+    <p>Covering MOS Chapter 2.2, traditional processes group related resources together, while the <strong>thread</strong> serves as the individual unit of CPU execution.</p>
+    <h3>Resource Grouping vs. Execution</h3>
+    <ul>
+      <li><strong>Shared Resources:</strong> Address space, global variables, open files, child processes, and signals.</li>
+      <li><strong>Private Thread Resources:</strong> Program counter, register set, execution state, and private stack.</li>
+    </ul>
+    <h3>Thread Usage in Applications</h3>
+    <p>Threads simplify programming models in applications requiring concurrent activities, such as word processors maintaining background reformatting and auto-save threads, or Web servers handling simultaneous client requests.</p>
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="02-process-lifecycle.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 02. Lifecycle</a>
+      <a href="04-thread-implementation.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 04. Implementation &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+MOD_4 = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04. Thread Implementation &amp; Pthreads | Week 2</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
+    p { color: #475569; margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
+      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 03. Threads</a>
+      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
+      <span style="color: #94a3b8; font-weight: 600;">End of Week 2</span>
+    </nav>
+    <h2>04. Thread Implementation &amp; Pthreads</h2>
+    <p>Exploring how threads are implemented in user space versus kernel space, alongside standard POSIX thread APIs.</p>
+    <h3>User-Space vs. Kernel-Space Threads</h3>
+    <ul>
+      <li><strong>User-Space Threads:</strong> Managed entirely by a run-time library. Extremely fast switching, but blocking system calls can stall the entire process.</li>
+      <li><strong>Kernel-Space Threads:</strong> Managed directly by the operating system kernel. Slower context switching overhead, but allows other threads to run when one blocks or incurs a page fault.</li>
+    </ul>
+    <h3>POSIX Pthreads API</h3>
+    <p>Standardized thread management calls including <code>pthread_create</code>, <code>pthread_exit</code>, <code>pthread_join</code>, and <code>pthread_yield</code>.</p>
+    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
+      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 03. Threads</a>
+      <span style="color: #94a3b8; font-weight: 600;">End of Week 2</span>
+    </nav>
+  </div>
+</body>
+</html>
+"""
+
+def generate_week2_files():
+    os.makedirs(TARGET_DIR, exist_ok=True)
+    files = {
+        "index.html": INDEX_HTML,
+        "01-process-model.html": MOD_1,
+        "02-process-lifecycle.html": MOD_2,
+        "03-classical-threads.html": MOD_3,
+        "04-thread-implementation.html": MOD_4
+    }
+
+    updated_paths = ["fix.py"]
+    for filename, content in files.items():
+        filepath = os.path.join(TARGET_DIR, filename)
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(content.strip() + "\n")
+        updated_paths.append(filepath)
+        print(f"--> Created/Updated {filepath}")
 
     try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        subprocess.run(["git", "add"] + updated_paths, check=True)
         commit_msg = (
-            "Align Week 2 index HTML structure with Week 1 design standard\n\n"
-            "Recreate week02-processes/index.html using the exact card layout, CSS variables,\n"
-            "and navigation bar style from Week 1, covering MOS 2.1-2.2 and OSTEP Ch 4."
+            "Expand Week 2 index and modules to four full sub-modules\n\n"
+            "Recreate week02-processes/index.html and generate all four core sub-modules\n"
+            "covering MOS Chapters 2.1-2.2 and OSTEP Chapter 4 in complete detail."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -164,4 +375,4 @@ def update_week2_index():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_week2_index()
+    generate_week2_files()
