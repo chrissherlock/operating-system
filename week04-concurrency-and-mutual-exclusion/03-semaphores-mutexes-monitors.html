@@ -1250,6 +1250,101 @@
       <li>Once the owner releases the lock via <code>FUTEX_UNLOCK_PI</code>, the kernel drops the owner's priority back to its nominal level.</li>
     </ul>
 
+    
+    <h4>The Windows Equivalent: From CRITICAL_SECTION to WaitOnAddress</h4>
+    <p>
+      While Linux unified user-space blocking synchronization under the <code>futex</code> system call, Windows developed a parallel evolution of user-mode primitives to eliminate kernel transitions:
+    </p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+      <div style="background: #ffffff; border: 1px solid var(--border); border-left: 4px solid #0284c7; border-radius: 6px; padding: 16px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a;">1. CRITICAL_SECTION &amp; SRWLock</h4>
+        <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
+          <strong>CRITICAL_SECTION:</strong> A user-mode hybrid lock that pre-dates futexes. On multiprocessor machines, it can be configured with an adaptive spin-count (<code>InitializeCriticalSectionAndSpinCount</code>) to spin in user space before creating or waiting on a kernel auto-reset event object.
+          <br><br>
+          <strong>SRWLock (Slim Reader/Writer Lock):</strong> Introduced in Windows Vista. Consumes only pointer-sized storage (4 or 8 bytes), requires no dynamic cleanup (<code>Destroy</code>), and provides high-speed user-mode atomic acquisition with shared (reader) and exclusive (writer) modes.
+        </p>
+      </div>
+
+      <div style="background: #ffffff; border: 1px solid var(--border); border-left: 4px solid #16a34a; border-radius: 6px; padding: 16px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a;">2. WaitOnAddress &amp; WakeByAddress</h4>
+        <p style="margin: 0; font-size: 0.88rem; color: #475569; line-height: 1.5;">
+          Introduced in Windows 8 and Windows Server 2012, <strong><code>WaitOnAddress()</code></strong> is the direct architectural counterpart to Linux <code>futex(FUTEX_WAIT)</code>.
+          <br><br>
+          It turns any 1, 2, 4, or 8-byte variable in user-space memory into a synchronized wait target. The thread compares the memory against an <em>undesirable value</em>; if equal, the kernel deschedules the thread onto a lock-free internal hash bucket queue until awakened by <code>WakeByAddressSingle()</code> or <code>WakeByAddressAll()</code>.
+        </p>
+      </div>
+    </div>
+
+    <h4>Cross-Platform Comparison: Linux Futex vs. Windows WaitOnAddress</h4>
+    <div style="overflow-x: auto; margin: 20px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 12px; width: 25%;">Feature / Metric</th>
+            <th style="padding: 10px 12px; width: 37%;">Linux (futex)</th>
+            <th style="padding: 10px 12px; width: 38%;">Windows (WaitOnAddress / SRW)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">Wait Primitive</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">syscall(SYS_futex, uaddr, FUTEX_WAIT, val, ...)</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">WaitOnAddress(addr, &amp;undesired, size, timeout)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">Wake Single Waiter</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">syscall(SYS_futex, uaddr, FUTEX_WAKE, 1, ...)</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">WakeByAddressSingle(addr)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">Wake All Waiters</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">syscall(SYS_futex, uaddr, FUTEX_WAKE, INT_MAX, ...)</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">WakeByAddressAll(addr)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">Supported Target Sizes</td>
+            <td style="padding: 10px 12px;">Strictly 32-bit (FUTEX2 adds 8, 16, 64-bit)</td>
+            <td style="padding: 10px 12px;">1, 2, 4, or 8 bytes natively</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">Cross-Process Support</td>
+            <td style="padding: 10px 12px; color: #059669; font-weight: 600;">Yes (FUTEX_SHARED via shared memory)</td>
+            <td style="padding: 10px 12px; color: #dc2626; font-weight: 600;">No (Intra-process only; use CreateMutex)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
+            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">C++20 Standard Mapping</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">std::atomic::wait() / notify_one()</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">std::atomic::wait() / notify_one()</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <pre><code><span class="syn-cmt">/* Windows WaitOnAddress Mutex Implementation */</span>
+<span class="syn-kw">#include</span> <span class="syn-str">&lt;windows.h&gt;</span>
+<span class="syn-kw">#include</span> <span class="syn-str">&lt;synchapi.h&gt;</span>
+
+<span class="syn-kw">typedef struct</span> {
+    <span class="syn-kw">LONG</span> state; <span class="syn-cmt">/* 0 = Free, 1 = Held */</span>
+} win_mutex_t;
+
+<span class="syn-kw">void</span> win_mutex_lock(win_mutex_t *m) {
+    <span class="syn-cmt">/* 1. Fast path: Atomic CAS in user space */</span>
+    <span class="syn-kw">while</span> (InterlockedCompareExchange(&amp;m-&gt;state, <span class="syn-num">1</span>, <span class="syn-num">0</span>) != <span class="syn-num">0</span>) {
+        <span class="syn-cmt">/* 2. Slow path: Sleep in kernel while state is 1 (undesired value) */</span>
+        <span class="syn-kw">LONG</span> undesired = <span class="syn-num">1</span>;
+        WaitOnAddress(&amp;m-&gt;state, &amp;undesired, <span class="syn-kw">sizeof</span>(<span class="syn-kw">LONG</span>), INFINITE);
+    }
+}
+
+<span class="syn-kw">void</span> win_mutex_unlock(win_mutex_t *m) {
+    <span class="syn-cmt">/* Reset state to 0 and wake one sleeping waiter */</span>
+    InterlockedExchange(&amp;m-&gt;state, <span class="syn-num">0</span>);
+    WakeByAddressSingle(&amp;m-&gt;state);
+}</code></pre>
+
+
     <!-- Interactive Aid: Linux Futex Fast-Path vs Slow-Path -->
     <div class="aid-wrapper">
       <div class="aid-header">

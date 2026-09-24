@@ -648,6 +648,52 @@ semaphore db_mutex = <span class="syn-num">1</span>; <span class="syn-cmt">/* Ex
     </ul>
 
     
+    
+    <h4>Windows Readers-Writers &amp; Dispatcher Objects</h4>
+    <p>
+      In the Windows NT architecture, thread synchronization spans two distinct layers: <strong>Kernel Dispatcher Objects</strong> and lightweight <strong>User-Mode SRW Locks</strong>.
+    </p>
+
+    <h5>1. Slim Reader/Writer (SRW) Locks</h5>
+    <p>
+      The Windows Win32 API provides native support for the Readers-Writers problem via <strong>SRWLOCK</strong>:
+    </p>
+    <pre><code><span class="syn-cmt">/* Windows SRWLock Implementation (Clean &amp; Fast) */</span>
+<span class="syn-kw">#include</span> <span class="syn-str">&lt;windows.h&gt;</span>
+
+SRWLOCK rw_lock = SRWLOCK_INIT; <span class="syn-cmt">/* Pointer-sized allocation */</span>
+
+<span class="syn-kw">void</span> read_worker(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">AcquireSRWLockShared</span>(&amp;rw_lock); <span class="syn-cmt">/* Shared access for multiple readers */</span>
+    <span class="syn-fn">read_database</span>();
+    <span class="syn-fn">ReleaseSRWLockShared</span>(&amp;rw_lock);
+}
+
+<span class="syn-kw">void</span> write_worker(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">AcquireSRWLockExclusive</span>(&amp;rw_lock); <span class="syn-cmt">/* Exclusive access for writers */</span>
+    <span class="syn-fn">write_database</span>();
+    <span class="syn-fn">ReleaseSRWLockExclusive</span>(&amp;rw_lock);
+}</code></pre>
+    <p>
+      Unlike POSIX reader-writer locks which can be prone to recursion bugs, <strong>SRW locks are explicitly non-reentrant</strong>. Acquiring an exclusive SRW lock recursively will trigger a dead stop or access failure, dramatically simplifying internal lock state and reducing the structure to a single machine pointer.
+    </p>
+
+    <h5>2. Windows Kernel Dispatcher Objects &amp; WaitForMultipleObjects</h5>
+    <p>
+      When synchronization must cross process boundaries or coordinate complex multi-resource graphs, Windows uses <strong>Kernel Dispatcher Objects</strong>:
+    </p>
+    <ul>
+      <li><strong>Mutex Objects (<code>CreateMutex</code>):</strong> Kernel-managed mutexes that provide cross-process synchronization and automatic dead-owner recovery (abandoned mutex notifications).</li>
+      <li><strong>Semaphore Objects (<code>CreateSemaphore</code>):</strong> Counting semaphores maintained directly within kernel executive structures.</li>
+      <li><strong>Event Objects (<code>CreateEvent</code>):</strong> Synchronization signals available in Manual-Reset (broadcast signaling) or Auto-Reset (single-thread release) modes.</li>
+      <li>
+        <strong>The WaitForMultipleObjects Advantage:</strong> A powerful architectural feature unique to Windows. A thread can atomically wait on up to <code>MAXIMUM_WAIT_OBJECTS</code> (64) heterogeneous synchronization objects simultaneously:
+        <pre><code>DWORD wait_status = <span class="syn-fn">WaitForMultipleObjects</span>(count, object_array, bWaitAll, timeout);</code></pre>
+        This solves multi-resource allocation deadlocks (such as Dining Philosophers) by allowing a thread to request all needed utensils simultaneously in an atomic kernel operation.
+      </li>
+    </ul>
+
+
     <!-- Interactive Aid: Readers-Writers Starvation vs Fair Turnstile -->
     <div class="aid-wrapper">
       <div class="aid-header">
