@@ -1,20 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create Module 04 (04-raid-architectures.html) and update Index
-# =====================================================================
-import os
-import subprocess
-
-TARGET_FILE = os.path.join(
-    "week05-io-and-disk-scheduling",
-    "04-raid-architectures.html"
-)
-INDEX_FILE = os.path.join(
-    "week05-io-and-disk-scheduling",
-    "index.html"
-)
-
-MODULE_HTML = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -943,50 +927,3 @@ D<sub>0</sub> &oplus; D<sub>1</sub> &oplus; D<sub>2</sub> &oplus; P = 0</code></
   </script>
 </body>
 </html>
-"""
-
-def generate_module_four():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-    print(f"--> Successfully created {TARGET_FILE}")
-
-def update_week5_hub_card():
-    if not os.path.exists(INDEX_FILE):
-        return
-
-    with open(INDEX_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    # Update Module 04 button to active complete state
-    content = content.replace(
-        '<span class="module-tag pending-tag">Module 04 &bull; Upcoming</span>',
-        '<span class="module-tag">Module 04</span>'
-    )
-    content = content.replace(
-        '<span class="card-btn pending-btn">Upcoming Module</span>',
-        '<span class="card-btn">Open Module &rarr;</span>'
-    )
-
-    with open(INDEX_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
-    print(f"--> Successfully activated Module 04 in {INDEX_FILE}")
-
-def run_git_sync():
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE, INDEX_FILE], check=True)
-        commit_msg = (
-            "Add Module 04 RAID Architectures & Reliability in Week 5\n\n"
-            "Cover RAID 0-6, RAID 10, XOR parity math, MTTDL modeling, URE rebuild\n"
-            "hazards, write-hole defenses, and an interactive RAID rebuild stepper."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    generate_module_four()
-    update_week5_hub_card()
-    run_git_sync()
