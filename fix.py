@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Add Windows I/O model and IRP architecture to Module 01
+# fix.py: Deeply expand Section 2 in 01-io-hardware-device-controllers.html
 # =====================================================================
 import os
 import subprocess
@@ -10,244 +10,314 @@ TARGET_FILE = os.path.join(
     "01-io-hardware-device-controllers.html"
 )
 
-WINDOWS_IO_SECTION = r"""    <h4>The Windows Contrast: Object Namespace, DeviceIoControl, and IRPs</h4>
+EXPANDED_SECTION_TWO = r"""    <h3>2. Device Controllers: The Electronic Bridge</h3>
     <p>
-      While Unix and POSIX adhere to the design tenet <em>"everything is a file"</em>, Windows NT implements a fundamentally different abstraction: <strong>"everything is an executive object"</strong>.
+      Computer systems do not connect central processing units directly to physical mechanical motors, laser diodes, or flash silicon cells. Doing so would paralyze the processor: CPU registers cannot interpret the millivolt-level analog variations of an optical sensor, nor can instruction decoders accommodate the physical delay of a spinning magnetic platter.
     </p>
     <p>
-      In Windows, peripheral devices do not exist as special filesystem inode nodes within a root mount directory (like <code>/dev/sda</code> or <code>/dev/ttyS0</code>). Instead, the <strong>Windows Object Manager</strong> maintains an internal, kernel-level hierarchical object directory namespace:
+      Instead, modern I/O systems enforce a strict architectural partition between two components:
     </p>
-    <ul>
-      <li>Kernel hardware devices reside under the internal <code>\Device\</code> directory (e.g. <code>\Device\Harddisk0\DR0</code> or <code>\Device\Serial0</code>).</li>
-      <li>Because user-space Win32 applications cannot access the <code>\Device\</code> namespace directly, device drivers create <strong>Symbolic Links</strong> inside the <code>\DosDevices\</code> (or <code>\??\</code>) directory, exposing devices through the Win32 device namespace using the <strong><code>\\.\</code> prefix</strong>.</li>
-    </ul>
+    <ol>
+      <li><strong>The Physical / Mechanical Unit:</strong> The transducer or peripheral medium itself (e.g. glass platter surfaces, read/write heads, voice-coil actuators, silicon NAND flash floating gates, optical fiber transceivers, or keyboard matrix contact switches).</li>
+      <li><strong>The Electronic Controller (Host Adapter):</strong> A specialized silicon chip, PCIe add-in card, or motherboard chipset module that presents a standardized digital register interface to the system bus while generating raw, timing-critical electrical signals to drive the physical peripheral.</li>
+    </ol>
 
-    <!-- Structural Diagram: POSIX vs Windows I/O Subsystem Architecture -->
+    <!-- Structural Diagram: Deep Controller Microarchitecture -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 1.0b: POSIX Direct File Descriptor Path vs. Windows Layered IRP Pipeline</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How Unix dispatches directly through driver function pointers while Windows routes I/O Request Packets through layered driver stacks.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 1.1: Internal Microarchitecture of an Enterprise Device Controller</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How the controller decouples high-speed host bus protocol logic from physical-layer bitstream deserialization and error correction.</div>
 
-      <svg viewBox="0 0 760 270" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <svg viewBox="0 0 760 280" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <defs>
-          <marker id="win-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="dc2-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
           </marker>
-          <marker id="win-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="dc2-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
           </marker>
-          <marker id="win-arr-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#7c3aed" />
+          <marker id="dc2-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
           </marker>
         </defs>
 
-        <!-- Left: POSIX Model -->
-        <g transform="translate(20, 20)">
-          <rect width="330" height="230" rx="8" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="165" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0284c7">POSIX / LINUX I/O MODEL</text>
-          <text x="165" y="38" text-anchor="middle" font-size="7.5" fill="#64748b">Direct Call &bull; Synchronous In-Thread Dispatch</text>
+        <!-- System Bus Domain (Left) -->
+        <g transform="translate(15, 20)">
+          <rect width="130" height="240" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="65" y="24" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">SYSTEM BUS</text>
+          <text x="65" y="38" text-anchor="middle" font-size="7" fill="#64748b">(PCIe 5.0 / AXI / CXL)</text>
 
-          <rect x="20" y="50" width="290" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="30" y="66" font-size="8" font-weight="700" fill="#334155">USER SPACE: int fd = open("/dev/nvme0n1", ...);</text>
-          <text x="30" y="77" font-family="var(--font-mono)" font-size="7.5" fill="#0284c7">read(fd, buf, len); ioctl(fd, NVME_CMD, ...);</text>
+          <rect x="10" y="52" width="110" height="30" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="65" y="71" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">Address Bus</text>
 
-          <line x1="165" y1="84" x2="165" y2="102" stroke="#0284c7" stroke-width="2" marker-end="url(#win-arr-blue)"/>
+          <rect x="10" y="90" width="110" height="30" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="65" y="109" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">Data Bus (64-bit)</text>
 
-          <rect x="20" y="104" width="290" height="42" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="30" y="120" font-size="8" font-weight="700" fill="#0369a1">VFS &amp; BLOCK LAYER (VFS Inode Indexing)</text>
-          <text x="30" y="134" font-size="7.5" fill="#0284c7">Resolves file struct &rarr; file_operations table</text>
+          <rect x="10" y="128" width="110" height="30" rx="3" fill="#f1f5f9" stroke="#cbd5e1"/>
+          <text x="65" y="147" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#475569">Control Lines</text>
 
-          <line x1="165" y1="146" x2="165" y2="164" stroke="#0284c7" stroke-width="2" marker-end="url(#win-arr-blue)"/>
+          <rect x="10" y="166" width="110" height="30" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="65" y="185" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#991b1b">MSI-X / IRQ Line</text>
 
-          <rect x="20" y="166" width="290" height="45" rx="4" fill="#ffffff" stroke="#94a3b8"/>
-          <text x="30" y="182" font-size="8" font-weight="700" fill="#0f172a">DEVICE DRIVER: struct file_operations</text>
-          <text x="30" y="196" font-family="var(--font-mono)" font-size="7.5" fill="#475569">.read = nvme_read, .unlocked_ioctl = nvme_ioctl</text>
+          <rect x="10" y="204" width="110" height="24" rx="3" fill="#dcfce7" stroke="#16a34a"/>
+          <text x="65" y="220" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#166534">DMA Master Lines</text>
         </g>
 
-        <!-- Right: Windows NT Model -->
-        <g transform="translate(390, 20)">
-          <rect width="350" height="230" rx="8" fill="#f8fafc" stroke="#059669" stroke-width="1.5"/>
-          <text x="175" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">WINDOWS NT I/O SUBSYSTEM</text>
-          <text x="175" y="38" text-anchor="middle" font-size="7.5" fill="#64748b">Packet-Driven &bull; Layered Driver Stack</text>
+        <!-- Interconnect Arrow -->
+        <line x1="145" y1="140" x2="175" y2="140" stroke="#0284c7" stroke-width="2" marker-end="url(#dc2-arr-blue)"/>
 
-          <rect x="20" y="50" width="310" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="30" y="66" font-size="8" font-weight="700" fill="#334155">USER SPACE: CreateFileW(L"\\\\.\\PhysicalDrive0", ...);</text>
-          <text x="30" y="77" font-family="var(--font-mono)" font-size="7.5" fill="#059669">ReadFile(...); DeviceIoControl(hDev, FSCTL_..., ...);</text>
+        <!-- The Device Controller Box (Center) -->
+        <g transform="translate(180, 20)">
+          <rect width="380" height="240" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+          <text x="20" y="24" font-size="10.5" font-weight="700" fill="#0284c7">DEVICE CONTROLLER (HOST ADAPTER ASIC)</text>
 
-          <line x1="175" y1="84" x2="175" y2="102" stroke="#059669" stroke-width="2" marker-end="url(#win-arr-green)"/>
+          <!-- Register Block -->
+          <g transform="translate(15, 38)">
+            <rect width="165" height="185" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text x="82" y="18" text-anchor="middle" font-size="8" font-weight="700" fill="#334155">HOST-ACCESSIBLE REGISTERS</text>
 
-          <rect x="20" y="104" width="310" height="42" rx="4" fill="#dcfce7" stroke="#16a34a"/>
-          <text x="30" y="120" font-size="8" font-weight="700" fill="#166534">I/O MANAGER: Allocates IRP Object</text>
-          <text x="30" y="134" font-size="7.5" fill="#15803d">Creates I/O Request Packet with per-driver stack locations</text>
+            <rect x="10" y="26" width="145" height="24" rx="2" fill="#ffffff" stroke="#94a3b8"/>
+            <text x="18" y="42" font-family="var(--font-mono)" font-size="7.5" fill="#0f172a">STATUS (RO):</text>
+            <text x="145" y="42" text-anchor="end" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#dc2626">BUSY|DRQ|ERR</text>
 
-          <line x1="175" y1="146" x2="175" y2="164" stroke="#059669" stroke-width="2" marker-end="url(#win-arr-green)"/>
+            <rect x="10" y="56" width="145" height="24" rx="2" fill="#ffffff" stroke="#94a3b8"/>
+            <text x="18" y="72" font-family="var(--font-mono)" font-size="7.5" fill="#0f172a">CONTROL (WO):</text>
+            <text x="145" y="72" text-anchor="end" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#0284c7">READ|WRITE|RST</text>
 
-          <!-- Layered Driver Stack -->
-          <rect x="20" y="166" width="310" height="45" rx="4" fill="#ffffff" stroke="#94a3b8"/>
-          <text x="30" y="182" font-size="8" font-weight="700" fill="#0f172a">LAYERED DRIVER STACK (Class &rarr; Port &rarr; Miniport)</text>
-          <text x="30" y="196" font-size="7.5" fill="#475569">Volume Manager &rarr; Disk.sys &rarr; Storport.sys &rarr; NVMe Driver</text>
+            <rect x="10" y="86" width="145" height="24" rx="2" fill="#ffffff" stroke="#94a3b8"/>
+            <text x="18" y="102" font-family="var(--font-mono)" font-size="7.5" fill="#0f172a">DATA FIFO PORT:</text>
+            <text x="145" y="102" text-anchor="end" font-family="var(--font-mono)" font-size="7" fill="#64748b">In/Out Window</text>
+
+            <rect x="10" y="116" width="145" height="24" rx="2" fill="#ffffff" stroke="#94a3b8"/>
+            <text x="18" y="132" font-family="var(--font-mono)" font-size="7.5" fill="#0f172a">DMA TARGET ADDR:</text>
+            <text x="145" y="132" text-anchor="end" font-family="var(--font-mono)" font-size="7" fill="#059669">0x7FFF0000</text>
+
+            <rect x="10" y="146" width="145" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+            <text x="18" y="160" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">TRANSFER COUNT:</text>
+            <text x="145" y="160" text-anchor="end" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#0284c7">4096 Bytes</text>
+            <text x="82" y="172" text-anchor="middle" font-size="6.5" fill="#64748b">(Mapped via PMIO / MMIO BAR)</text>
+          </g>
+
+          <!-- Controller Internal Processing Engines -->
+          <g transform="translate(195, 38)">
+            <!-- Embedded CPU / Firmware -->
+            <rect width="170" height="52" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text x="85" y="18" text-anchor="middle" font-size="8" font-weight="700" fill="#334155">EMBEDDED PROCESSOR</text>
+            <text x="85" y="32" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0284c7">ARM Cortex-R / RISC-V Core</text>
+            <text x="85" y="44" text-anchor="middle" font-size="7" fill="#64748b">Runs controller firmware / FTL</text>
+
+            <!-- On-Board SRAM/DRAM Buffer -->
+            <rect y="60" width="170" height="56" rx="4" fill="#f0fdf4" stroke="#16a34a"/>
+            <text x="85" y="78" text-anchor="middle" font-size="8" font-weight="700" fill="#166534">ON-BOARD RAM BUFFER (FIFO)</text>
+            <text x="85" y="92" text-anchor="middle" font-size="7" fill="#15803d">&bull; Absorbs mechanical jitter &amp; bursts</text>
+            <text x="85" y="104" text-anchor="middle" font-size="7" fill="#15803d">&bull; Speed matching: Bus &harr; Device</text>
+
+            <!-- SerDes & Hardware ECC/LDPC -->
+            <rect y="124" width="170" height="56" rx="4" fill="#fef2f2" stroke="#dc2626"/>
+            <text x="85" y="142" text-anchor="middle" font-size="8" font-weight="700" fill="#991b1b">ECC &amp; SERDES PHY ENGINE</text>
+            <text x="85" y="156" text-anchor="middle" font-size="7" fill="#7f1d1d">&bull; LDPC error correction engine</text>
+            <text x="85" y="168" text-anchor="middle" font-size="7" fill="#7f1d1d">&bull; Serial-to-parallel bit converter</text>
+          </g>
+        </g>
+
+        <!-- PHY to Device Arrow -->
+        <line x1="560" y1="140" x2="590" y2="140" stroke="#059669" stroke-width="2" marker-end="url(#dc2-arr-green)"/>
+
+        <!-- Physical Peripheral Device Domain (Right) -->
+        <g transform="translate(595, 20)">
+          <rect width="150" height="240" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="75" y="24" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">RAW PERIPHERAL</text>
+          <text x="75" y="38" text-anchor="middle" font-size="7" fill="#64748b">(Mechanical / Physical)</text>
+
+          <rect x="10" y="52" width="130" height="52" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="75" y="70" text-anchor="middle" font-size="7.5" font-weight="700" fill="#334155">TRANSDUCERS</text>
+          <text x="75" y="84" text-anchor="middle" font-size="7" fill="#64748b">Platter read heads</text>
+          <text x="75" y="96" text-anchor="middle" font-size="7" fill="#64748b">Optocouplers, photodetectors</text>
+
+          <rect x="10" y="112" width="130" height="52" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="75" y="130" text-anchor="middle" font-size="7.5" font-weight="700" fill="#334155">RAW SERIAL MEDIA</text>
+          <text x="75" y="144" text-anchor="middle" font-size="7" fill="#64748b">Analog voltage flux lines</text>
+          <text x="75" y="156" text-anchor="middle" font-size="7" fill="#64748b">Unframed serial bitstream</text>
+
+          <rect x="10" y="172" width="130" height="56" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="75" y="190" text-anchor="middle" font-size="7.5" font-weight="700" fill="#dc2626">ELECTROMECHANICAL</text>
+          <text x="75" y="204" text-anchor="middle" font-size="7" fill="#7f1d1d">Voice-coil arm motors</text>
+          <text x="75" y="216" text-anchor="middle" font-size="7" fill="#7f1d1d">Spindle motor tachometers</text>
         </g>
       </svg>
     </div>
 
-    <h4>Interfacing with Hardware in Win32: CreateFile and Device Namespaces</h4>
+    <h4>Internal Architecture of the Device Controller</h4>
     <p>
-      To communicate with block drives, serial ports, or volume controllers in Windows, user applications call <strong><code>CreateFileW</code></strong> using specialized device namespace syntax:
-    </p>
-    <ul>
-      <li><strong>Physical Block Storage:</strong> <code>L"\\\\.\\PhysicalDrive0"</code> opens the raw physical disk directly (analogous to <code>/dev/sda</code> in Linux).</li>
-      <li><strong>Volume Partitions:</strong> <code>L"\\\\.\\C:"</code> opens the volume partition container directly (analogous to <code>/dev/sda1</code>).</li>
-      <li><strong>Character Ports:</strong> <code>L"\\\\.\\COM1"</code> opens physical serial UART port 1 (analogous to <code>/dev/ttyS0</code>).</li>
-      <li><strong>Console Streams:</strong> <code>L"CONIN$"</code> and <code>L"CONOUT$"</code> access the raw keyboard input and display output buffers (analogous to <code>/dev/stdin</code> and <code>/dev/stdout</code>).</li>
-    </ul>
-
-    <pre><code><span class="syn-cmt">/* Interfacing with Raw Hardware in Windows via Win32 */</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;windows.h&gt;</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;winioctl.h&gt;</span>
-
-<span class="syn-cmt">/* 1. Open raw physical disk block device */</span>
-HANDLE hDisk = <span class="syn-fn">CreateFileW</span>(
-    <span class="syn-str">L"\\\\.\\PhysicalDrive0"</span>,
-    GENERIC_READ | GENERIC_WRITE,
-    FILE_SHARE_READ | FILE_SHARE_WRITE,
-    NULL,
-    OPEN_EXISTING,
-    FILE_FLAG_NO_BUFFERING | FILE_FLAG_WRITE_THROUGH, <span class="syn-cmt">/* O_DIRECT equivalent */</span>
-    NULL
-);
-
-<span class="syn-cmt">/* 2. Read physical block into aligned memory */</span>
-BYTE buffer[<span class="syn-num">4096</span>];
-DWORD bytesRead;
-<span class="syn-fn">ReadFile</span>(hDisk, buffer, <span class="syn-kw">sizeof</span>(buffer), &amp;bytesRead, NULL);</code></pre>
-
-    <h4>The Out-of-Band Escape Hatch: ioctl() vs. DeviceIoControl()</h4>
-    <p>
-      In Section 1, we examined how Unix systems use <code>ioctl()</code> to send device-specific control commands. The Windows direct architectural equivalent is <strong><code>DeviceIoControl()</code></strong>:
+      An enterprise device controller is essentially a self-contained embedded computer dedicated to managing peripheral physics. Its internal layout incorporates four key subsystems:
     </p>
 
-    <pre><code><span class="syn-kw">BOOL</span> DeviceIoControl(
-    HANDLE          hDevice,              <span class="syn-cmt">/* Handle returned by CreateFile */</span>
-    <span class="syn-kw">DWORD</span>           dwIoControlCode,      <span class="syn-cmt">/* Structured 32-bit IOCTL code */</span>
-    <span class="syn-kw">LPVOID</span>          lpInBuffer,           <span class="syn-cmt">/* Input parameter buffer */</span>
-    <span class="syn-kw">DWORD</span>           nInBufferSize,        <span class="syn-cmt">/* Size of input buffer */</span>
-    <span class="syn-kw">LPVOID</span>          lpOutBuffer,          <span class="syn-cmt">/* Output data buffer */</span>
-    <span class="syn-kw">DWORD</span>           nOutBufferSize,       <span class="syn-cmt">/* Size of output buffer */</span>
-    <span class="syn-kw">LPDWORD</span>         lpBytesReturned,      <span class="syn-cmt">/* Bytes populated by driver */</span>
-    LPOVERLAPPED    lpOverlapped          <span class="syn-cmt">/* Asynchronous I/O structure */</span>
-);</code></pre>
-
-    <div class="math-callout">
-      <strong>Engineering Contrast: Why DeviceIoControl is Structurally Safer than Unix ioctl()</strong>
-      <br>
-      Unix <code>ioctl()</code> accepts a single untyped variadic pointer (<code>...</code>), which is notoriously vulnerable to buffer overflow vulnerabilities, pointer confusion, and architecture mismatch bugs (e.g. 32-bit user space calling 64-bit kernel).
-      <br><br>
-      In contrast, Windows <strong><code>DeviceIoControl</code> enforces a strict typed contract</strong>:
-      <ol>
-        <li><strong>Structured 32-bit Control Code:</strong> Every <code>dwIoControlCode</code> (built with the <code>CTL_CODE</code> macro) encodes:
-          <ul>
-            <li><em>Device Type</em> (16 bits, e.g. <code>FILE_DEVICE_DISK</code>, <code>FILE_DEVICE_NETWORK</code>).</li>
-            <li><em>Required Access</em> (2 bits: Read, Write, or Any). The I/O Manager rejects calls before reaching the driver if the caller lacks permission.</li>
-            <li><em>Transfer Method</em> (2 bits: <code>METHOD_BUFFERED</code>, <code>METHOD_IN_DIRECT</code>, <code>METHOD_OUT_DIRECT</code>, or <code>METHOD_NEITHER</code>), instructing the kernel how to lock and validate memory buffers automatically.</li>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+      <!-- Embedded Microcontroller Card -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">1. Embedded Processor &amp; Firmware</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          Controllers contain multi-core embedded processors (typically ARM Cortex-R real-time cores or RISC-V cores) running dedicated proprietary firmware.
+          <br><br>
+          <em>Key Responsibilities:</em>
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li><strong>Solid-State Drives (SSDs):</strong> Executes the <strong>Flash Translation Layer (FTL)</strong>, translating logical block addresses (LBAs) to physical NAND flash dies, managing wear-leveling algorithms, and running garbage collection.</li>
+            <li><strong>Mechanical Drives (HDDs):</strong> Computes servo acceleration curves for the voice-coil actuator arm and tracks thermal expansion head calibration.</li>
+            <li><strong>Network Controllers (NICs):</strong> Parses packet headers, computes TCP/UDP checksum offloads, and classifies flows across receive-side scaling (RSS) hardware queues.</li>
           </ul>
-        </li>
-        <li><strong>Separate Input and Output Buffers:</strong> Input parameters (command arguments) and output payloads (sensor readings, disk geometry metadata) use independent, bounds-checked buffers with explicit size parameters verified by the I/O Manager.</li>
-      </ol>
+        </p>
+      </div>
+
+      <!-- Elastic RAM Buffers Card -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">2. On-Board Elastic RAM Buffers (FIFO)</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          Peripherals operate under strict physical timing constraints: once a rotating disk platter passes underneath a read head, data bits must be captured instantaneously or they are lost until the next revolution.
+          <br><br>
+          <em>Why Elastic Buffering is Mandatory:</em>
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li><strong>Speed Matching:</strong> Bridges the mismatch between high-speed burst bus transfers (PCIe at 32 GB/s) and slower, fluctuating peripheral media rates.</li>
+            <li><strong>Preventing Overrun/Underrun Errors:</strong> If the host PCIe bus is momentarily congested with graphics traffic, incoming network packets or disk sectors are buffered safely in on-controller SRAM/DRAM without data loss.</li>
+            <li><strong>Transactional Integrity:</strong> Data is not presented to the OS until an entire block or packet is buffered and verified.</li>
+          </ul>
+        </p>
+      </div>
+
+      <!-- SerDes and PHY Card -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--warning); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">3. The SerDes &amp; PHY Layer</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          Internal computer buses are wide, parallel channels (64-bit or 128-bit data buses). In contrast, high-speed physical cables (SATA, SAS, PCIe lanes, Ethernet) are serial differential links to prevent electromagnetic interference and clock skew.
+          <br><br>
+          <em>Role of the Serializer/Deserializer (SerDes):</em>
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li>Deserializes raw high-frequency serial pulses into parallel 32-bit or 64-bit words for the controller bus.</li>
+            <li>Uses <strong>Phase-Locked Loops (PLLs)</strong> to extract and synchronize clock signals directly from the incoming data transitions (clock recovery).</li>
+            <li>Performs physical line code decoding (e.g. 8b/10b, 64b/66b, or 128b/130b encoding) to maintain DC balance on copper traces.</li>
+          </ul>
+        </p>
+      </div>
+
+      <!-- Hardware ECC & LDPC Engine -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">4. Error Detection &amp; Correction (ECC)</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          Physical transmission media are inherently noisy and imperfect. Platter magnetic domains degrade over time, and NAND flash memory gates leak charge.
+          <br><br>
+          <em>Autonomous Hardware Error Correction:</em>
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li>Controllers append <strong>Error-Correcting Code (ECC)</strong> symbols (such as Reed-Solomon or <strong>Low-Density Parity-Check / LDPC</strong> matrices) to every block written.</li>
+            <li>Upon read, the controller's dedicated hardware math engine evaluates parity syndrome equations.</li>
+            <li>If bit errors occur, the hardware <strong>corrects the flipped bits in real-time</strong> inside the FIFO buffer. The operating system is completely shielded from hardware noise unless the error exceeds the unrecoverable ECC threshold.</li>
+          </ul>
+        </p>
+      </div>
     </div>
 
-    <h4>The Core Architectural Difference: The I/O Request Packet (IRP)</h4>
+    <h4>The Four Canonical Hardware Register Types</h4>
     <p>
-      The deepest divergence between POSIX and Windows NT lies in how requests travel through the operating system:
+      Software device drivers communicate with controllers by reading and writing four primary functional classes of hardware registers:
     </p>
-    <ul>
-      <li>
-        <strong>POSIX (Call-Based):</strong> In Unix, a system call typically executes synchronously down through the Virtual File System (VFS) and directly invokes driver callbacks in the calling thread's context. The thread descends into kernel space, reaches the driver, and blocks or returns.
-      </li>
-      <li>
-        <strong>Windows NT (Packet-Driven):</strong> In Windows, <strong>all I/O operations are packet-based and natively asynchronous</strong>.
-        <br>
-        When an application issues <code>ReadFile</code> or <code>DeviceIoControl</code>, the Windows <strong>I/O Manager</strong> allocates an <strong>I/O Request Packet (IRP)</strong> from a non-paged kernel pool:
-        <ul>
-          <li>An IRP is an independent, dynamic data structure containing operational metadata, caller credentials, buffer pointers, and an array of <strong>I/O Stack Locations</strong> (<code>IO_STACK_LOCATION</code>).</li>
-          <li>Each layer in a driver stack (e.g., File System Filter Driver &rarr; File System Driver &rarr; Volume Manager &rarr; Disk Class Driver &rarr; Storage Port Driver) receives its own dedicated stack location in the IRP.</li>
-          <li>A driver inspects its parameters, performs its work, and either passes the IRP down to the next lower driver via <code>IoCallDriver()</code> or completes it via <code>IoCompleteRequest()</code>.</li>
-          <li>Because the request is self-contained in a discrete packet, <strong>the calling thread never needs to block inside the driver</strong>. The driver can enqueue the IRP onto an asynchronous hardware queue and return immediately!</li>
-        </ul>
-      </li>
-    </ul>
-
-    <h4>Asynchronous Completion: POSIX epoll/io_uring vs. Windows IOCP</h4>
-    <p>
-      Because Windows was designed from inception around packet-driven asynchronous I/O, its multi-threaded scalability model differs markedly from Unix:
-    </p>
-
     <div style="overflow-x: auto; margin: 18px 0;">
       <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
         <thead>
           <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 12px; width: 22%;">Dimension</th>
-            <th style="padding: 10px 12px; width: 39%;">POSIX / Linux</th>
-            <th style="padding: 10px 12px; width: 39%;">Windows NT</th>
+            <th style="padding: 10px 12px; width: 22%;">Register Type</th>
+            <th style="padding: 10px 12px; width: 18%;">Access Mode</th>
+            <th style="padding: 10px 12px; width: 60%;">Operational Functionality</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">Device Addressing</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">Filesystem path: /dev/sda, /dev/ttyS0</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">Device namespace: \\.\PhysicalDrive0, \\.\COM1</td>
+            <td style="padding: 10px 12px; font-weight: 700;">Status Register</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); color: #0284c7;">Read-Only</td>
+            <td style="padding: 10px 12px;">Reflects the controller's real-time state flags. Contains bits such as <code>BUSY</code> (controller is executing command), <code>DRQ</code> (Data Request: FIFO ready to transfer), <code>READY</code> (device is spun up and idle), and <code>ERROR</code>.</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">Device Control Hook</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">ioctl(fd, request, ...)</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">DeviceIoControl(h, code, in, in_len, out, out_len, ...)</td>
+            <td style="padding: 10px 12px; font-weight: 700;">Control / Command Register</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); color: #dc2626;">Write-Only (or R/W)</td>
+            <td style="padding: 10px 12px;">Accepts operational opcodes from the device driver. Writing an opcode (such as <code>CMD_SEEK</code>, <code>CMD_READ_SECTORS</code>, <code>CMD_FLUSH_CACHE</code>, or <code>ENABLE_INTERRUPTS</code>) immediately transitions the controller out of idle and kicks off physical operations.</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">Driver Request Model</td>
-            <td style="padding: 10px 12px;">Direct function pointers (file_operations)</td>
-            <td style="padding: 10px 12px; color: #059669; font-weight: 600;">Packet-driven: I/O Request Packets (IRPs)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">Asynchronous Paradigm</td>
-            <td style="padding: 10px 12px;"><strong>Readiness-based:</strong> epoll notifies when fd is ready to read without blocking (io_uring modernizes to submission/completion rings).</td>
-            <td style="padding: 10px 12px; color: #059669; font-weight: 600;"><strong>Completion-based:</strong> Overlapped I/O executes in background; notifies only after data is transferred into RAM.</td>
+            <td style="padding: 10px 12px; font-weight: 700;">Data In / Data Out Register</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); color: #059669;">Read / Write</td>
+            <td style="padding: 10px 12px;">A memory window or I/O port providing direct access to the controller's internal FIFO buffer. In Programmed I/O (PIO), the driver reads or writes this register in a tight loop to move words between the controller buffer and host RAM.</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
-            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">High-Concurrency Engine</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">epoll_wait() / io_uring_enter()</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">I/O Completion Ports (IOCP) via GetQueuedCompletionStatus()</td>
+            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">DMA Parameter Registers</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); color: #166534;">Read / Write</td>
+            <td style="padding: 10px 12px;">Configures autonomous bus mastering. Includes the <strong>Base Memory Address Register</strong> (physical 64-bit DRAM address) and the <strong>Transfer Length Register</strong> (byte count). Modern controllers accept pointers to circular submission/completion queues in host memory.</td>
           </tr>
         </tbody>
       </table>
-    </div>"""
+    </div>
 
-def integrate_windows_io():
+    <h4>The Device Driver &amp; Controller Handshake Protocol</h4>
+    <p>
+      When an operating system driver initiates a hardware operation, the driver and controller engage in a synchronized, hardware-level <strong>handshake sequence</strong>:
+    </p>
+
+    <pre><code><span class="syn-cmt">/* Example: Standard Driver-to-Controller Command Handshake */</span>
+
+<span class="syn-cmt">/* 1. Driver waits until controller is not busy */</span>
+<span class="syn-kw">while</span> (*reg_status &amp; STATUS_BUSY) {
+    <span class="syn-cmt">/* Wait for controller to clear BUSY flag */</span>
+}
+
+<span class="syn-cmt">/* 2. Driver loads command parameters into device registers */</span>
+*reg_dma_addr = target_physical_ram_address;
+*reg_sector   = target_lba_sector;
+*reg_count    = <span class="syn-num">8</span>; <span class="syn-cmt">/* Request 8 sectors (4096 bytes) */</span>
+
+<span class="syn-cmt">/* 3. Driver writes operational opcode to command register (KICKS OFF HARDWARE) */</span>
+*reg_command = CMD_READ_WITH_DMA;
+
+<span class="syn-cmt">/* 4. Controller autonomously executes:
+      - Sets STATUS_BUSY = 1
+      - Commands mechanical heads to seek
+      - Reads bits into on-board FIFO, runs ECC checks
+      - Bus-masters DMA payload across PCIe directly to target_physical_ram_address
+      - Clears STATUS_BUSY = 0
+      - Asserts electrical interrupt line (or fires MSI-X message to APIC)
+*/</span>
+
+<span class="syn-cmt">/* 5. CPU receives interrupt, invokes Driver ISR to verify completion */</span>
+<span class="syn-kw">if</span> (*reg_status &amp; STATUS_ERROR) {
+    <span class="syn-cmt">/* Read controller error details */</span>
+    <span class="syn-kw">uint32_t</span> err = *reg_error;
+    <span class="syn-fn">log_device_fault</span>(err);
+} <span class="syn-kw">else</span> {
+    <span class="syn-fn">notify_io_completion</span>(request_token); <span class="syn-cmt">/* Wake sleeping user thread */</span>
+}</code></pre>"""
+
+def update_section_two():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    target_marker = "<h3>2. Device Controllers: The Electronic Bridge</h3>"
-    if target_marker not in content:
-        print("Error: Could not locate Section 2 marker in Module 01.")
+    start_marker = "<h3>2. Device Controllers: The Electronic Bridge</h3>"
+    end_marker = "<h3>3. Communicating with Controllers: PMIO vs. MMIO</h3>"
+
+    start_idx = content.find(start_marker)
+    end_idx = content.find(end_marker)
+
+    if start_idx == -1 or end_idx == -1:
+        print("Error: Could not find Section 2 boundaries in Module 01.")
         return False
 
-    if "The Windows Contrast: Object Namespace, DeviceIoControl, and IRPs" in content:
-        print("Notice: Windows section already exists in Module 01. Skipping.")
-        return True
-
-    idx = content.find(target_marker)
-    updated_content = content[:idx] + WINDOWS_IO_SECTION + "\n\n    " + content[idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully integrated Windows I/O and IRP architecture into {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Add Windows I/O model and IRP architecture comparison to Module 01\n\n"
-            "Contrast POSIX /dev and ioctl with Win32 CreateFile, DeviceIoControl,\n"
-            "layered Driver Objects, I/O Request Packets (IRPs), and IOCP completion."
+            "Expand Section 2 in Module 01 on Device Controllers and PHY interfaces\n\n"
+            "Detail SerDes, FTL firmware microcontrollers, FIFO elastic buffers,\n"
+            "ECC/LDPC hardware engines, and register handshaking with an SVG diagram."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -256,5 +326,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if integrate_windows_io():
+    if update_section_two():
         run_git_sync()
