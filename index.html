@@ -29,7 +29,7 @@
       line-height: 1.6;
     }
     .container {
-      max-width: 1040px;
+      max-width: 1060px;
       margin: 0 auto;
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -98,10 +98,10 @@
     }
     .status-badge.complete { background: #dcfce7; color: #166534; }
     .status-badge.active { background: #e0f2fe; color: #0369a1; }
-    .status-badge.upcoming { background: #f1f5f9; color: #64748b; }
+    .status-badge.ready { background: #fef3c7; color: #b45309; }
 
     .week-title {
-      font-size: 1.18rem;
+      font-size: 1.16rem;
       font-weight: 700;
       color: #0f172a;
       margin: 0 0 8px 0;
@@ -172,19 +172,13 @@
       background: var(--accent-hover);
       border-color: var(--accent-hover);
     }
-    .hub-link.disabled {
-      background: #f8fafc;
-      color: #94a3b8;
-      border-color: #e2e8f0;
-      cursor: not-allowed;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>COSC240: Operating Systems</h1>
-      <p class="subtitle">Interactive Pedagogical Modules &amp; Hardware Systems Engineering Curriculum</p>
+      <p class="subtitle">Interactive Pedagogical Modules &amp; Systems Engineering Curriculum</p>
     </header>
 
     <div class="curriculum-grid">
@@ -192,19 +186,20 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 01</span>
-          <span class="status-badge complete">Complete</span>
+          <span class="status-badge complete">4 Modules</span>
         </div>
-        <h2 class="week-title">Introduction to Operating Systems</h2>
+        <h2 class="week-title">Operating System Concepts &amp; Architecture</h2>
         <p class="week-desc">
-          The hardware-software interface, system call dispatch mechanisms, dual-mode protection rings, and trap vector tables.
+          The hardware-software interface, system call dispatch mechanisms, dual-mode protection rings, and trap handling.
         </p>
         <ul class="module-links">
-          <li><a href="week01-intro/index.html">Week 1 Overview &amp; Architecture</a></li>
-          <li>Dual-Mode Protection &amp; Hardware Rings</li>
-          <li>System Call Traps &amp; Context Transition</li>
+          <li><a href="week01-operating-system-concepts/01-what-is-an-os-and-history.html">01. What is an OS &amp; History</a></li>
+          <li><a href="week01-operating-system-concepts/02-hardware-review.html">02. Hardware Review &amp; CPU Modes</a></li>
+          <li><a href="week01-operating-system-concepts/03-os-concepts.html">03. Fundamental OS Concepts</a></li>
+          <li><a href="week01-operating-system-concepts/04-os-structure.html">04. OS Structure &amp; Kernel Models</a></li>
         </ul>
         <div class="week-card-footer">
-          <a href="week01-intro/index.html" class="hub-link">&#127968; Open Week 1 Hub &rarr;</a>
+          <a href="week01-operating-system-concepts/index.html" class="hub-link">&#127968; Open Week 1 Hub &rarr;</a>
         </div>
       </div>
 
@@ -212,17 +207,17 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 02</span>
-          <span class="status-badge complete">Complete</span>
+          <span class="status-badge complete">4 Modules</span>
         </div>
         <h2 class="week-title">Processes &amp; Threads</h2>
         <p class="week-desc">
-          Virtual address space anatomy, Process Control Blocks (PCB), Linux task_struct, POSIX lifecycle, and context switching.
+          Address space anatomy, Process Control Blocks (PCB), Linux task_struct, lifecycle transitions, and kernel threading models.
         </p>
         <ul class="module-links">
-          <li><a href="week02-processes/index.html">Week 2 Overview &amp; Architecture</a></li>
-          <li>Process Control Blocks &amp; Linux task_struct</li>
-          <li>POSIX Process Creation (fork, exec, wait)</li>
-          <li>Thread Models (1:1, N:1, M:N) &amp; Race Hazards</li>
+          <li><a href="week02-processes/01-process-model.html">01. The Process Model &amp; Memory Layout</a></li>
+          <li><a href="week02-processes/02-process-lifecycle.html">02. Process Lifecycle &amp; State Transitions</a></li>
+          <li><a href="week02-processes/03-classical-threads.html">03. Classical Thread Concepts</a></li>
+          <li><a href="week02-processes/04-thread-implementation.html">04. Thread Implementation &amp; POSIX APIs</a></li>
         </ul>
         <div class="week-card-footer">
           <a href="week02-processes/index.html" class="hub-link">&#127968; Open Week 2 Hub &rarr;</a>
@@ -233,14 +228,14 @@
       <div class="week-card" style="border-color: var(--accent);">
         <div class="week-card-header">
           <span class="week-number" style="color: var(--accent);">Week 03</span>
-          <span class="status-badge active">Modules 01&ndash;04 Complete</span>
+          <span class="status-badge active">4 Modules</span>
         </div>
         <h2 class="week-title" style="color: var(--accent);">CPU Scheduling &amp; Resource Allocation</h2>
         <p class="week-desc">
           Burst distributions, dispatch latency, batch algorithms, multi-level feedback queues (MLFQ), and real-time multiprocessor systems.
         </p>
         <ul class="module-links">
-          <li><a href="week03-process-scheduling/01-scheduling-introduction.html">01. Intro to Scheduling (CR3, Dispatch Latency)</a></li>
+          <li><a href="week03-process-scheduling/01-scheduling-introduction.html">01. Intro to Scheduling (CR3, Latency)</a></li>
           <li><a href="week03-process-scheduling/02-batch-scheduling.html">02. Batch Scheduling (FCFS, SJF, SRTN, HRRN)</a></li>
           <li><a href="week03-process-scheduling/03-interactive-scheduling.html">03. Interactive Scheduling (RR, MLFQ, Stride)</a></li>
           <li><a href="week03-process-scheduling/04-realtime-multiprocessor.html">04. Real-Time &amp; SMP (RMS, EDF, Work Stealing)</a></li>
@@ -254,20 +249,19 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 04</span>
-          <span class="status-badge complete">Available</span>
+          <span class="status-badge ready">Hub Ready</span>
         </div>
-        <h2 class="week-title">Concurrency &amp; Synchronization</h2>
+        <h2 class="week-title">Concurrency &amp; Mutual Exclusion</h2>
         <p class="week-desc">
-          Critical sections, atomic hardware primitives (Test-and-Set, Compare-and-Swap), mutexes, semaphores, and condition variables.
+          Race conditions, critical regions, software solutions (Peterson's), hardware atomic instructions (TSL, CAS), and spinlocks.
         </p>
         <ul class="module-links">
-          <li><a href="week04-concurrency/index.html">Week 4 Overview &amp; Architecture</a></li>
-          <li>Race Conditions &amp; Mutual Exclusion</li>
-          <li>Hardware Primitives &amp; Spinlocks</li>
-          <li>Semaphores, Monitors &amp; Classical Dilemmas</li>
+          <li><a href="week04-concurrency-and-mutual-exclusion/index.html">Week 4 Overview &amp; Learning Objectives</a></li>
+          <li>Shared State Hazards &amp; Non-Atomic Code</li>
+          <li>The 4 Conditions for Mutual Exclusion</li>
         </ul>
         <div class="week-card-footer">
-          <a href="week04-concurrency/index.html" class="hub-link">&#127968; Open Week 4 Hub &rarr;</a>
+          <a href="week04-concurrency-and-mutual-exclusion/index.html" class="hub-link">&#127968; Open Week 4 Hub &rarr;</a>
         </div>
       </div>
 
@@ -275,19 +269,19 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 05</span>
-          <span class="status-badge upcoming">Upcoming</span>
+          <span class="status-badge ready">Hub Ready</span>
         </div>
-        <h2 class="week-title">Deadlocks &amp; Resource Allocation</h2>
+        <h2 class="week-title">I/O Systems &amp; Disk Scheduling</h2>
         <p class="week-desc">
-          Coffman conditions, resource allocation graphs (RAG), deadlock detection, prevention, and Dijkstra's Banker's Algorithm.
+          Device controllers, polling vs. interrupts, Direct Memory Access (DMA), disk geometry, and rotational media arm scheduling.
         </p>
         <ul class="module-links">
-          <li>Coffman Necessary Conditions</li>
-          <li>Deadlock Prevention &amp; Avoidance</li>
-          <li>Banker's Algorithm &amp; Safety Proofs</li>
+          <li><a href="week05-io-and-disk-scheduling/index.html">Week 5 Overview &amp; Architecture</a></li>
+          <li>Device Controllers &amp; DMA Hardware</li>
+          <li>Rotational Head Scheduling (SSTF, SCAN, C-SCAN)</li>
         </ul>
         <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 5</span>
+          <a href="week05-io-and-disk-scheduling/index.html" class="hub-link">&#127968; Open Week 5 Hub &rarr;</a>
         </div>
       </div>
 
@@ -295,59 +289,20 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 06</span>
-          <span class="status-badge upcoming">Upcoming</span>
+          <span class="status-badge complete">4 Interactive Aids</span>
         </div>
-        <h2 class="week-title">Physical Memory Management</h2>
+        <h2 class="week-title">Synchronization &amp; Deadlocks</h2>
         <p class="week-desc">
-          Contiguous allocation, fixed/dynamic partitioning, base &amp; bounds hardware translation, internal/external fragmentation, and compaction.
+          Semaphores, condition variables, Coffman conditions, Resource Allocation Graphs, and classical deadlock sandboxes.
         </p>
         <ul class="module-links">
-          <li>Base and Bounds Translation</li>
-          <li>Free Space Management (First/Best/Worst Fit)</li>
-          <li>Buddy Allocation Systems</li>
+          <li><a href="week06-synchronisation-and-deadlock/deadlock-detector.html">Deadlock Detector &amp; RAG Simulator</a></li>
+          <li><a href="week06-synchronisation-and-deadlock/dining-philosophers.html">Dining Philosophers Problem Sandbox</a></li>
+          <li><a href="week06-synchronisation-and-deadlock/ipc-deadlock.html">IPC Deadlock &amp; Mutex Analysis</a></li>
+          <li><a href="week06-synchronisation-and-deadlock/database-deadlock.html">Database Two-Phase Locking Deadlock</a></li>
         </ul>
         <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 6</span>
-        </div>
-      </div>
-
-      <!-- Week 7 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 07</span>
-          <span class="status-badge upcoming">Upcoming</span>
-        </div>
-        <h2 class="week-title">Virtual Memory: Paging &amp; TLBs</h2>
-        <p class="week-desc">
-          Linear page tables, Translation Lookaside Buffers (TLB), multi-level hierarchical paging, and hardware page table walkers.
-        </p>
-        <ul class="module-links">
-          <li>Page Table Structures &amp; CR3 Registers</li>
-          <li>TLB Hits, Misses &amp; Shootdown Costs</li>
-          <li>Multi-Level &amp; Inverted Page Tables</li>
-        </ul>
-        <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 7</span>
-        </div>
-      </div>
-
-      <!-- Week 8 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 08</span>
-          <span class="status-badge upcoming">Upcoming</span>
-        </div>
-        <h2 class="week-title">Page Replacement Algorithms</h2>
-        <p class="week-desc">
-          Demand paging, page fault handling sequences, Belady's Anomaly, FIFO, Optimal (MIN), LRU, Clock, and Working Set models.
-        </p>
-        <ul class="module-links">
-          <li>Page Fault Interrupt Flow</li>
-          <li>Belady's Anomaly Proofs</li>
-          <li>LRU Approximations (Clock &amp; Second Chance)</li>
-        </ul>
-        <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 8</span>
+          <a href="week06-synchronisation-and-deadlock/index.html" class="hub-link">&#127968; Open Week 6 Hub &rarr;</a>
         </div>
       </div>
 
@@ -355,19 +310,21 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 09</span>
-          <span class="status-badge upcoming">Upcoming</span>
+          <span class="status-badge complete">15+ Modules &amp; Aids</span>
         </div>
-        <h2 class="week-title">I/O Systems &amp; Storage Devices</h2>
+        <h2 class="week-title">Memory Management &amp; Virtual Memory</h2>
         <p class="week-desc">
-          Device controllers, polling vs. interrupts, Direct Memory Access (DMA), disk geometry, and rotational media scheduling.
+          Physical allocation, buddy allocator, address translation, page tables, TLBs, page faults, and replacement algorithms.
         </p>
         <ul class="module-links">
-          <li>Device Controllers &amp; DMA Engines</li>
-          <li>Interrupt Handling Pipelines</li>
-          <li>Disk Arm Scheduling (SSTF, SCAN, C-SCAN)</li>
+          <li><a href="week09-memory-management/buddy-allocator-tutorial.html">Buddy Allocator Interactive Tutorial</a></li>
+          <li><a href="week09-memory-management/pte-sandbox.html">Page Table Entry (PTE) Sandbox</a></li>
+          <li><a href="week09-memory-management/tlb-sandbox.html">Translation Lookaside Buffer (TLB) Tracer</a></li>
+          <li><a href="week09-memory-management/08-aging-algorithm.html">Page Replacement: Aging Algorithm</a></li>
+          <li><a href="week09-memory-management/wsclock.html">Working Set &amp; WSClock Sandboxes</a></li>
         </ul>
         <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 9</span>
+          <a href="week09-memory-management/index.html" class="hub-link">&#127968; Open Week 9 Hub &rarr;</a>
         </div>
       </div>
 
@@ -375,19 +332,20 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 10</span>
-          <span class="status-badge upcoming">Upcoming</span>
+          <span class="status-badge complete">4 Modules</span>
         </div>
-        <h2 class="week-title">File System Architecture</h2>
+        <h2 class="week-title">File System Architecture &amp; Implementation</h2>
         <p class="week-desc">
-          File attributes, directory structures, inode-based allocation, FAT, ext4 block groups, and virtual file system (VFS) layers.
+          File abstractions, directory hierarchies, Unix inodes, extent trees, free space management, and performance caching.
         </p>
         <ul class="module-links">
-          <li>The Virtual File System (VFS) Layer</li>
-          <li>Unix Inodes &amp; Extent Trees</li>
-          <li>Free Space Bitmaps &amp; Block Allocation</li>
+          <li><a href="week10-file-management/01-files-abstraction.html">01. The File Abstraction</a></li>
+          <li><a href="week10-file-management/02-directories.html">02. Directories &amp; Hierarchical Paths</a></li>
+          <li><a href="week10-file-management/03-filesystem-implementation.html">03. File System Implementation (Inodes)</a></li>
+          <li><a href="week10-file-management/04-management-optimization.html">04. Reliability, Layout &amp; Optimization</a></li>
         </ul>
         <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 10</span>
+          <a href="week10-file-management/index.html" class="hub-link">&#127968; Open Week 10 Hub &rarr;</a>
         </div>
       </div>
 
@@ -395,19 +353,21 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 11</span>
-          <span class="status-badge upcoming">Upcoming</span>
+          <span class="status-badge complete">5 Modules</span>
         </div>
-        <h2 class="week-title">File System Reliability &amp; RAID</h2>
+        <h2 class="week-title">Multiprocessor Systems &amp; Distributed Computing</h2>
         <p class="week-desc">
-          Crash consistency, journaling states (Write-Ahead Logging), copy-on-write (ZFS/Btrfs), fsck mechanics, and RAID 0/1/5/6/10.
+          SMP cache coherency (MESI), multicomputers, Remote Procedure Calls (RPC), Distributed Shared Memory (DSM), and middleware.
         </p>
         <ul class="module-links">
-          <li>Crash Consistency &amp; Journaling Modes</li>
-          <li>Copy-on-Write (CoW) File Systems</li>
-          <li>RAID Data Striping &amp; Parity Calculations</li>
+          <li><a href="week11-multiprocessors/01-multiprocessor-hardware.html">01. Multiprocessor Hardware &amp; Caches</a></li>
+          <li><a href="week11-multiprocessors/02-multiprocessor-scheduling.html">02. Multiprocessor Scheduling &amp; Affinity</a></li>
+          <li><a href="week11-multiprocessors/03-multicomputers-interconnects.html">03. Multicomputers &amp; Interconnects</a></li>
+          <li><a href="week11-multiprocessors/04-rpc-dsm-load-balancing.html">04. Distributed Shared Memory &amp; RPC</a></li>
+          <li><a href="week11-multiprocessors/05-distributed-systems-middleware.html">05. Distributed Systems Middleware</a></li>
         </ul>
         <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 11</span>
+          <a href="week11-multiprocessors/index.html" class="hub-link">&#127968; Open Week 11 Hub &rarr;</a>
         </div>
       </div>
 
@@ -415,19 +375,19 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 12</span>
-          <span class="status-badge upcoming">Upcoming</span>
+          <span class="status-badge ready">Hub Ready</span>
         </div>
-        <h2 class="week-title">Virtualization &amp; OS Security</h2>
+        <h2 class="week-title">Operating System Security &amp; Protection</h2>
         <p class="week-desc">
-          Hypervisors (Type 1 vs. Type 2), hardware-assisted virtualization (Intel VT-x/AMD-V), container cgroups/namespaces, and security rings.
+          Security environments, access control lists (ACLs), capabilities, protection rings, buffer overflows, and hardware containment.
         </p>
         <ul class="module-links">
-          <li>CPU &amp; Memory Virtualization (EPT/NPT)</li>
-          <li>Linux Containers (Namespaces &amp; Cgroups)</li>
-          <li>Access Control Lists (ACLs) &amp; Capabilities</li>
+          <li><a href="week12-security/index.html">Week 12 Overview &amp; Learning Objectives</a></li>
+          <li>Access Matrix &amp; Protection Domains</li>
+          <li>Security Vulnerabilities &amp; Containment</li>
         </ul>
         <div class="week-card-footer">
-          <span class="hub-link disabled">Available in Week 12</span>
+          <a href="week12-security/index.html" class="hub-link">&#127968; Open Week 12 Hub &rarr;</a>
         </div>
       </div>
     </div>
