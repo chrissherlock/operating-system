@@ -3,42 +3,803 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>04. Thread Implementation &amp; Pthreads | Week 2</title>
+  <title>04. Thread Implementation &amp; Pthreads | Week 2: Processes &amp; Concurrency</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
     }
-    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
-    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    h1, h2, h3, h4 { color: #0f172a; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4, h5 { color: #0f172a; }
     h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
-    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
-    p { color: #475569; margin-bottom: 12px; }
-    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
-    li { margin-bottom: 4px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    h5 { margin-top: 14px; margin-bottom: 4px; color: #475569; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+    }
+
+    /* Code Syntax Highlighting Tokens */
+    .syn-kwd { color: #f43f5e; font-weight: 700; }
+    .syn-fn  { color: #38bdf8; font-weight: 600; }
+    .syn-cmt { color: #94a3b8; font-style: italic; }
+    .syn-var { color: #f8fafc; font-weight: 500; }
+    .syn-punc{ color: #cbd5e1; }
+    .syn-type{ color: #4ade80; font-weight: 600; }
+
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+    /* Directed Narrative Stepper Layout */
+    .aid-wrapper {
+      margin: 32px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      overflow: hidden;
+    }
+    .aid-header {
+      background: #f1f5f9;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .aid-header h4 {
+      margin: 0;
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .dimension-toggles {
+      display: flex;
+      gap: 6px;
+    }
+    .dim-btn {
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .dim-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .scenario-banner {
+      background: #f8fafc;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scenario-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .telemetry-strip {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .telemetry-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .telemetry-label {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .telemetry-val {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .telemetry-val.highlight { color: #4ade80; }
+    .telemetry-val.alert { color: #f87171; }
+
+    .canvas-container {
+      background: #ffffff;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    svg.thread-canvas {
+      width: 100%;
+      max-width: 720px;
+      height: auto;
+      overflow: visible;
+    }
+
+    .controls-narrative-strip {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 18px;
+    }
+    @media (max-width: 720px) {
+      .controls-narrative-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+    .stepper-btn-group {
+      display: flex;
+      gap: 8px;
+      align-self: center;
+    }
+    .btn-step {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn-step:hover:not(:disabled) {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    .btn-step:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .narrative-preview-panel {
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      padding: 10px 14px;
+    }
+    .narrative-preview-panel strong {
+      color: #0f172a;
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .analytical-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--border);
+      gap: 1px;
+    }
+    @media (max-width: 720px) {
+      .analytical-grid { grid-template-columns: 1fr; }
+    }
+    .pane-card {
+      background: #ffffff;
+      padding: 18px;
+    }
+    .pane-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pane-title.what { color: var(--accent); }
+    .pane-title.why { color: var(--success); }
+    .pane-content {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #334155;
+      margin: 0;
+    }
+
+    /* Diagram Nodes & Shapes */
+    .boundary-line {
+      stroke: #94a3b8;
+      stroke-dasharray: 6 4;
+      stroke-width: 1.5;
+    }
+    .node-box {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      transition: all 0.3s ease;
+    }
+    .node-box.active {
+      stroke: #0284c7;
+      stroke-width: 2.5;
+      fill: #f0f9ff;
+    }
+    .node-box.blocked {
+      stroke: #d97706;
+      stroke-width: 2.5;
+      fill: #fef3c7;
+    }
+    .flow-edge {
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      fill: none;
+      transition: all 0.3s ease;
+    }
+    .flow-edge.active {
+      stroke: #0284c7;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.4));
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
-      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 03. Threads</a>
-      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
-      <span style="color: #94a3b8; font-weight: 600;">End of Week 2</span>
+    <nav class="nav-bar">
+      <a href="03-classical-threads.html">&larr; Previous: 03. Classical Threads</a>
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Module 04 (End of Week 2)</span>
     </nav>
+
     <h2>04. Thread Implementation &amp; Pthreads</h2>
-    <p>Exploring how threads are implemented in user space versus kernel space, alongside standard POSIX thread APIs.</p>
-    <h3>User-Space vs. Kernel-Space Threads</h3>
+    <p>
+      While the conceptual thread model establishes threads as lightweight units of execution within a shared address space, the critical engineering decision is <em>where</em> those threads are implemented and scheduled: purely in <strong>user space</strong>, directly within the <strong>operating system kernel</strong>, or through a <strong>hybrid</strong> combination of both.
+    </p>
+
+    <h3>1. User-Level Threads (ULT: Many-to-One Model)</h3>
+    <p>
+      In a pure user-level thread implementation, the operating system kernel is completely unaware of multithreading. The kernel treats the entire process as a single, traditional thread of control with a single Process Control Block (PCB).
+    </p>
+    <p>
+      Multithreading is managed entirely in user space by a runtime library (such as historical GNU Portable Threads or early Java "Green Threads"):
+    </p>
     <ul>
-      <li><strong>User-Space Threads:</strong> Managed entirely by a run-time library. Extremely fast switching, but blocking system calls can stall the entire process.</li>
-      <li><strong>Kernel-Space Threads:</strong> Managed directly by the operating system kernel. Slower context switching overhead, but allows other threads to run when one blocks or incurs a page fault.</li>
+      <li><strong>User-Space Thread Table:</strong> The runtime library maintains its own private Thread Control Blocks (TCBs) in user memory, tracking the Program Counter, registers, stack pointer, and state (Running, Ready, Blocked) for each thread.</li>
+      <li><strong>User-Space Context Switching:</strong> When a thread yields control (e.g., via <code>thread_yield()</code>), the runtime library saves CPU registers into the thread's user-space TCB, selects another ready thread from its queue, and restores the new thread's registers using machine routines similar to <code>setjmp()</code> and <code>longjmp()</code>.</li>
+      <li><strong>Extreme Context-Switch Economy:</strong> Because the switch involves no supervisor traps, no privilege ring transitions (Ring 3 to Ring 0), and no kernel scheduler invocations, switching threads requires only a handful of CPU assembly instructions, completing in nanoseconds.</li>
     </ul>
-    <h3>POSIX Pthreads API</h3>
-    <p>Standardized thread management calls including <code>pthread_create</code>, <code>pthread_exit</code>, <code>pthread_join</code>, and <code>pthread_yield</code>.</p>
-    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
-      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 03. Threads</a>
-      <span style="color: #94a3b8; font-weight: 600;">End of Week 2</span>
+
+    <h4>The Two Fatal Flaws of User-Level Threads</h4>
+    <ol>
+      <li>
+        <strong>The Blocking System Call Problem:</strong> If Thread 1 issues a blocking system call (such as a synchronous disk <code>read()</code> or network <code>recv()</code>), the CPU traps into kernel mode. Because the kernel sees only a single monolithic process, <em>the entire process is transitioned to the Blocked state</em>. Even though Threads 2 and 3 in user space are fully ready to perform calculations, the kernel will not schedule the process until the I/O finishes.
+      </li>
+      <li>
+        <strong>Inability to Exploit Multicore Hardware:</strong> Because the kernel allocates only one physical execution slot to the process, all user-level threads must time-share that single kernel thread. Even on a 64-core processor, a user-level multithreaded application can saturate at most one physical CPU core.
+      </li>
+    </ol>
+
+    <h3>2. Kernel-Level Threads (KLT: One-to-One Model)</h3>
+    <p>
+      In a kernel-level thread model, the operating system kernel directly recognizes, creates, and manages every thread of execution. Every user-level thread is mapped one-to-one to an independent kernel scheduling entity.
+    </p>
+    <ul>
+      <li><strong>Kernel TCB Management:</strong> The kernel maintains both the process table and an official kernel thread table. Scheduling, prioritization, and preemption are handled directly by the kernel's CPU scheduler.</li>
+      <li><strong>True Hardware Parallelism:</strong> If a process spawns four threads on a quad-core processor, the kernel scheduler assigns each thread to a distinct physical core, executing all four threads simultaneously in silicon.</li>
+      <li><strong>Independent Blocking:</strong> If Thread 1 blocks waiting on disk I/O, the kernel suspends only Thread 1. The kernel scheduler immediately switches the CPU core to Thread 2 or Thread 3 of the same process, preventing the application from freezing.</li>
+      <li><strong>The Context-Switch Tax:</strong> Creating a thread or switching between threads requires a supervisor system call trap (entering Ring 0), saving kernel stack states, and invoking the kernel dispatcher. While substantially cheaper than a full process context switch (because virtual memory page tables remain unchanged), it is orders of magnitude slower than a user-space thread switch.</li>
+    </ul>
+
+    <!-- Directed Narrative Stepper Standard: Thread Implementation Models -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Thread Implementation Architectures in Action</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="dim-ult" onclick="setImplDim('ult')">User-Level Threads (Many-to-One)</button>
+          <button class="dim-btn" id="dim-klt" onclick="setImplDim('klt')">Kernel-Level Threads (One-to-One)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Scenario Arc</span>
+        <span id="impl-scenario-text">Thread 1 runs compute, Thread 2 issues a blocking disk read(), and Thread 3 is ready to execute. Observing how different implementation models respond to blocking I/O.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Active Phase</span>
+          <span class="telemetry-val highlight" id="m-telem-phase">1. Thread 1 Compute Execution</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Scheduling Entity</span>
+          <span class="telemetry-val" id="m-telem-sched">User-Space Runtime Library</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Kernel Privilege Level</span>
+          <span class="telemetry-val" id="m-telem-ring">Ring 3 (Unprivileged User Mode)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Core Saturation</span>
+          <span class="telemetry-val" id="m-telem-cores">1 Physical Core (Bound to Process)</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="thread-canvas" viewBox="0 0 720 260">
+          <defs>
+            <marker id="arrhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+            </marker>
+            <marker id="arrhead-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+
+          <!-- User Space vs Kernel Space Boundary -->
+          <line class="boundary-line" x1="20" y1="130" x2="700" y2="130" />
+          <text x="30" y="24" font-family="system-ui" font-size="11" font-weight="700" fill="#64748b">USER SPACE (Ring 3)</text>
+          <text x="30" y="148" font-family="system-ui" font-size="11" font-weight="700" fill="#64748b">KERNEL SPACE (Ring 0)</text>
+
+          <!-- User Space Threads -->
+          <g id="box-ut1" transform="translate(60, 40)">
+            <rect class="node-box active" width="130" height="65" rx="6"/>
+            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">User Thread 1</text>
+            <text id="ut1-sub" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#0284c7">Compute Burst</text>
+          </g>
+
+          <g id="box-ut2" transform="translate(295, 40)">
+            <rect class="node-box" width="130" height="65" rx="6"/>
+            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">User Thread 2</text>
+            <text id="ut2-sub" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#64748b">Ready to Read</text>
+          </g>
+
+          <g id="box-ut3" transform="translate(530, 40)">
+            <rect class="node-box" width="130" height="65" rx="6"/>
+            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">User Thread 3</text>
+            <text id="ut3-sub" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#64748b">Ready Queue</text>
+          </g>
+
+          <!-- Mapping Edges -->
+          <path id="map-edge-1" class="flow-edge active" d="M 125 105 L 360 170" marker-end="url(#arrhead-act)" />
+          <path id="map-edge-2" class="flow-edge" d="M 360 105 L 360 170" marker-end="url(#arrhead)" />
+          <path id="map-edge-3" class="flow-edge" d="M 595 105 L 360 170" marker-end="url(#arrhead)" />
+
+          <!-- Kernel Space Entities -->
+          <g id="box-kt-shared" transform="translate(260, 170)">
+            <rect id="rect-kt-shared" class="node-box active" width="200" height="65" rx="6"/>
+            <text id="txt-kt-title" x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">1 Kernel Thread (PCB 401)</text>
+            <text id="txt-kt-status" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#0284c7">Allocated to CPU Core 0</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Stepper Controls & Current Step Summary Panel -->
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="m-btn-prev" onclick="stepImpl(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="m-btn-next" onclick="stepImpl(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="m-btn-reset" onclick="resetImpl()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="m-txt-narrative">User Thread 1 executes arithmetic instructions inside the user-space runtime. The kernel schedules the single underlying process thread onto CPU Core 0, completely unaware that multiple sub-threads exist.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="m-txt-what">User Thread 1 executes instructions on the CPU via the single kernel thread assigned to this process. Threads 2 and 3 sit inside the user runtime library's ready list.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="m-txt-why">User-level threads allow applications to implement custom scheduling policies without kernel support, achieving near-zero overhead switches when operations remain non-blocking.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>3. Hybrid Threading Models (M:N &amp; Two-Level)</h3>
+    <p>
+      To combine the nanosecond context-switch speed of user-level threads with the multicore parallelism and non-blocking robustness of kernel-level threads, computer scientists developed the <strong>M:N hybrid model</strong> (historically implemented in Solaris Light-Weight Processes and modern language runtimes such as Go's goroutine scheduler):
+    </p>
+    <ul>
+      <li>$M$ user-level application threads are dynamically multiplexed over a smaller pool of $N$ kernel-level worker threads.</li>
+      <li>If a user thread executes compute-bound code, it switches in user space without entering the kernel.</li>
+      <li>If a user thread issues a blocking I/O system call, the kernel blocks only that specific underlying kernel worker thread. The user-space runtime immediately migrates the remaining runnable user threads to other surviving kernel worker threads.</li>
+      <li><strong>Scheduler Activations &amp; Upcalls:</strong> To coordinate state between user space and kernel space without polling, the kernel uses <em>upcalls</em>—the kernel signals the user runtime when a thread blocks or unblocks, allowing the user scheduler to rebalance work dynamically.</li>
+    </ul>
+
+    <h3>4. The POSIX Threads (Pthreads) Standard</h3>
+    <p>
+      To ensure source-code portability across diverse UNIX and POSIX-compliant operating systems, the IEEE standardized the <strong>POSIX 1003.1c standard</strong>, commonly known as <strong>Pthreads</strong>. Pthreads defines an explicit C language interface for thread creation, lifecycle synchronization, and mutual exclusion.
+    </p>
+
+    <h4>Core Pthreads Lifecycle API</h4>
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px;">Function Prototype</th>
+            <th style="padding: 10px 14px;">Operational Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;"><code>int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);</code></td>
+            <td style="padding: 10px 14px;">Spawns a new thread executing <code>start_routine(arg)</code> with configurable stack and scheduling attributes.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;"><code>int pthread_join(pthread_t thread, void **retval);</code></td>
+            <td style="padding: 10px 14px;">Blocks calling thread until the target <code>thread</code> terminates, reaping its return pointer and resources (similar to <code>waitpid</code>).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;"><code>int pthread_detach(pthread_t thread);</code></td>
+            <td style="padding: 10px 14px;">Marks thread as detached; its storage is automatically reclaimed by the runtime immediately upon termination without requiring a join.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;"><code>void pthread_exit(void *retval);</code></td>
+            <td style="padding: 10px 14px;">Terminates the calling thread voluntarily, passing <code>retval</code> to any waiting <code>pthread_join()</code> invocation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Concrete Pthreads Implementation Example</h4>
+    <p>
+      The following C program demonstrates thread creation, argument passing via heap structures, thread synchronization via joining, and mutual exclusion locking:
+    </p>
+    <pre><code><span class="syn-kwd">#include</span> <span class="syn-var">&lt;stdio.h&gt;</span>
+<span class="syn-kwd">#include</span> <span class="syn-var">&lt;stdlib.h&gt;</span>
+<span class="syn-kwd">#include</span> <span class="syn-var">&lt;pthread.h&gt;</span>
+
+<span class="syn-type">pthread_mutex_t</span> <span class="syn-var">lock</span> <span class="syn-punc">=</span> <span class="syn-var">PTHREAD_MUTEX_INITIALIZER</span><span class="syn-punc">;</span>
+<span class="syn-type">long</span> <span class="syn-var">shared_counter</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
+
+<span class="syn-type">void</span> <span class="syn-punc">*</span><span class="syn-fn">worker_routine</span><span class="syn-punc">(</span><span class="syn-type">void</span> <span class="syn-punc">*</span><span class="syn-var">arg</span><span class="syn-punc">) {</span>
+    <span class="syn-type">long</span> <span class="syn-var">iterations</span> <span class="syn-punc">= *(</span><span class="syn-type">long</span> <span class="syn-punc">*)</span><span class="syn-var">arg</span><span class="syn-punc">;</span>
+    <span class="syn-kwd">for</span> <span class="syn-punc">(</span><span class="syn-type">long</span> <span class="syn-var">i</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span> <span class="syn-var">i</span> <span class="syn-punc">&lt;</span> <span class="syn-var">iterations</span><span class="syn-punc">;</span> <span class="syn-var">i</span><span class="syn-punc">++) {</span>
+        <span class="syn-fn">pthread_mutex_lock</span><span class="syn-punc">(&amp;</span><span class="syn-var">lock</span><span class="syn-punc">);</span>
+        <span class="syn-var">shared_counter</span><span class="syn-punc">++;</span>  <span class="syn-cmt">/* Critical section guarded by mutex */</span>
+        <span class="syn-fn">pthread_mutex_unlock</span><span class="syn-punc">(&amp;</span><span class="syn-var">lock</span><span class="syn-punc">);</span>
+    <span class="syn-punc">}</span>
+    <span class="syn-kwd">return</span> <span class="syn-var">NULL</span><span class="syn-punc">;</span>
+<span class="syn-punc">}</span>
+
+<span class="syn-type">int</span> <span class="syn-fn">main</span><span class="syn-punc">() {</span>
+    <span class="syn-type">pthread_t</span> <span class="syn-var">t1</span><span class="syn-punc">,</span> <span class="syn-var">t2</span><span class="syn-punc">;</span>
+    <span class="syn-type">long</span> <span class="syn-var">counts</span> <span class="syn-punc">=</span> <span class="syn-var">1000000</span><span class="syn-punc">;</span>
+
+    <span class="syn-fn">pthread_create</span><span class="syn-punc">(&amp;</span><span class="syn-var">t1</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">worker_routine</span><span class="syn-punc">, &amp;</span><span class="syn-var">counts</span><span class="syn-punc">);</span>
+    <span class="syn-fn">pthread_create</span><span class="syn-punc">(&amp;</span><span class="syn-var">t2</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">worker_routine</span><span class="syn-punc">, &amp;</span><span class="syn-var">counts</span><span class="syn-punc">);</span>
+
+    <span class="syn-fn">pthread_join</span><span class="syn-punc">(</span><span class="syn-var">t1</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
+    <span class="syn-fn">pthread_join</span><span class="syn-punc">(</span><span class="syn-var">t2</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
+
+    <span class="syn-fn">printf</span><span class="syn-punc">(</span><span class="syn-var">"Final Counter: %ld\n"</span><span class="syn-punc">,</span> <span class="syn-var">shared_counter</span><span class="syn-punc">);</span>
+    <span class="syn-kwd">return</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
+<span class="syn-punc">}</span></code></pre>
+
+    <h4>5. Linux Native POSIX Thread Library (NPTL) &amp; clone(2)</h4>
+    <p>
+      Linux implements Pthreads using the Native POSIX Thread Library (NPTL). Underneath the POSIX wrapper, the Linux kernel does not have a separate data structure for threads versus processes. Instead, every execution context is represented uniformly by a <code>struct task_struct</code>.
+    </p>
+    <p>
+      The <code>pthread_create()</code> library function invokes the versatile Linux <strong><code>clone(2)</code></strong> system call, supplying explicit sharing flags that govern resource inheritance:
+    </p>
+    <pre><code><span class="syn-type">int</span> <span class="syn-var">tid</span> <span class="syn-punc">=</span> <span class="syn-fn">clone</span><span class="syn-punc">(</span><span class="syn-var">worker_func</span><span class="syn-punc">,</span> <span class="syn-var">child_stack_top</span><span class="syn-punc">,</span>
+                <span class="syn-var">CLONE_VM</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FS</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FILES</span> <span class="syn-punc">|</span>
+                <span class="syn-var">CLONE_SIGHAND</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_THREAD</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_SYSVSEM</span><span class="syn-punc">,</span>
+                <span class="syn-var">arg</span><span class="syn-punc">);</span></code></pre>
+
+    <ul>
+      <li><code>CLONE_VM</code>: The new task shares the exact same virtual memory page tables as the caller, pointing to the same Memory Descriptor (<code>mm_struct</code>).</li>
+      <li><code>CLONE_FILES</code>: The new task shares the file descriptor table; an <code>open()</code> or <code>close()</code> in one thread is immediately visible to all other threads.</li>
+      <li><code>CLONE_FS</code>: The new task shares filesystem attributes (working directory, root directory, umask).</li>
+      <li><code>CLONE_SIGHAND</code>: The new task shares signal handlers and dispositions.</li>
+      <li><code>CLONE_THREAD</code>: The new task is placed in the same thread group as the caller, assigning it the same visible Process ID (PID) while retaining its own unique Thread ID (TID).</li>
+    </ul>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="03-classical-threads.html">&larr; Previous: 03. Classical Threads</a>
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Module 04 (End of Week 2)</span>
     </nav>
   </div>
+
+  <script>
+    const implSteps = {
+      ult: [
+        {
+          phase: "1. Thread 1 Compute Execution",
+          sched: "User Runtime Library",
+          ring: "Ring 3 (Unprivileged User Mode)",
+          cores: "1 Physical Core (Bound to Process)",
+          ut1State: "Compute Burst",
+          ut2State: "Ready to Read",
+          ut3State: "Ready Queue",
+          ktTitle: "1 Kernel Thread (PCB 401)",
+          ktStatus: "Allocated to CPU Core 0",
+          ut1BoxClass: "node-box active",
+          ut2BoxClass: "node-box",
+          ut3BoxClass: "node-box",
+          ktBoxClass: "node-box active",
+          activeEdge: "map-edge-1",
+          narrative: "User Thread 1 executes arithmetic instructions inside the user-space runtime. The kernel schedules the single underlying process thread onto CPU Core 0, completely unaware that multiple sub-threads exist.",
+          what: "User Thread 1 executes instructions on the CPU via the single kernel thread assigned to this process. Threads 2 and 3 sit inside the user runtime library's ready list.",
+          why: "User-level threads allow applications to implement custom scheduling policies without kernel support, achieving near-zero overhead switches when operations remain non-blocking."
+        },
+        {
+          phase: "2. Thread 2 Issues Blocking read()",
+          sched: "System Call Trap to Kernel",
+          ring: "Ring 0 Trap (Supervisor Mode)",
+          cores: "Core 0 Stalled on I/O Trap",
+          ut1State: "Yielded to T2",
+          ut2State: "TRAPPED: read() Syscall",
+          ut3State: "Ready Queue",
+          ktTitle: "1 Kernel Thread (PCB 401)",
+          ktStatus: "Trapped in sys_read()",
+          ut1BoxClass: "node-box",
+          ut2BoxClass: "node-box active",
+          ut3BoxClass: "node-box",
+          ktBoxClass: "node-box active",
+          activeEdge: "map-edge-2",
+          narrative: "User Thread 2 issues a blocking disk read() system call. The CPU transitions into Ring 0 supervisor mode. Because the kernel only knows about PCB 401, it prepares to suspend the entire process.",
+          what: "Thread 2 executes a syscall trap instruction. The kernel receives the request and issues an unbuffered block fetch command to the disk controller.",
+          why: "The kernel cannot selectively schedule user threads it cannot see. To the kernel, process 401 is a single execution stream that has just blocked."
+        },
+        {
+          phase: "3. Entire Process Blocked (Fatal ULT Flaw)",
+          sched: "Kernel Scheduler (Process Suspended)",
+          ring: "Kernel Mode Suspension",
+          cores: "0 Cores Active (Process Stalled)",
+          ut1State: "STALLED (Process Blocked)",
+          ut2State: "BLOCKED ON DISK",
+          ut3State: "STALLED (Starved in User Ready)",
+          ktTitle: "1 Kernel Thread (PCB 401)",
+          ktStatus: "BLOCKED in Wait Queue",
+          ut1BoxClass: "node-box blocked",
+          ut2BoxClass: "node-box blocked",
+          ut3BoxClass: "node-box blocked",
+          ktBoxClass: "node-box blocked",
+          activeEdge: "map-edge-2",
+          narrative: "The entire process is placed in the kernel's Blocked queue. Even though Thread 3 has compute work ready to execute, it cannot run because the process's sole kernel thread is suspended. This illustrates the primary vulnerability of pure user-level threads.",
+          what: "The kernel marks PCB 401 as BLOCKED and removes it from the CPU runqueue. All user threads are starved of CPU time.",
+          why: "Without scheduler activations or non-blocking system call wrappers, a blocking call in one thread inadvertently freezes all sibling threads."
+        }
+      ],
+      klt: [
+        {
+          phase: "1. Multi-Core Kernel Thread Execution",
+          sched: "Operating System Kernel Scheduler",
+          ring: "Hardware SMP Execution",
+          cores: "3 Physical Cores (Cores 0, 1, 2)",
+          ut1State: "Active on Core 0",
+          ut2State: "Active on Core 1",
+          ut3State: "Active on Core 2",
+          ktTitle: "3 Kernel Threads (TCB 1, 2, 3)",
+          ktStatus: "Mapped 1:1 to Hardware Cores",
+          ut1BoxClass: "node-box active",
+          ut2BoxClass: "node-box active",
+          ut3BoxClass: "node-box active",
+          ktBoxClass: "node-box active",
+          activeEdge: null,
+          narrative: "In a Kernel-Level Thread (KLT) model, all three threads are mapped 1:1 to official kernel TCBs. The kernel scheduler assigns Thread 1 to Core 0, Thread 2 to Core 1, and Thread 3 to Core 2, executing all three simultaneously in silicon.",
+          what: "Each thread has a dedicated entry in the kernel's task table. The operating system schedules them across available physical CPU cores simultaneously.",
+          why: "Kernel-level threads enable true symmetric multiprocessing (SMP) parallelism, allowing compute-bound applications to scale linearly with core counts."
+        },
+        {
+          phase: "2. Thread 2 Blocks on read() System Call",
+          sched: "Kernel Suspends Only TCB 2",
+          ring: "Selective Thread Suspension",
+          cores: "2 Cores Active (Cores 0 & 2 Running)",
+          ut1State: "RUNNING on Core 0",
+          ut2State: "BLOCKED on Disk I/O",
+          ut3State: "RUNNING on Core 2",
+          ktTitle: "TCB 1 (Run) | TCB 2 (Block) | TCB 3 (Run)",
+          ktStatus: "Core 0 & Core 2 Saturated",
+          ut1BoxClass: "node-box active",
+          ut2BoxClass: "node-box blocked",
+          ut3BoxClass: "node-box active",
+          ktBoxClass: "node-box active",
+          activeEdge: "map-edge-2",
+          narrative: "Thread 2 calls read() and blocks on disk I/O. The kernel suspends ONLY Thread 2. Threads 1 and 3 continue running at full speed on their respective CPU cores without interruption.",
+          what: "The kernel updates TCB 2 to BLOCKED and yields Core 1, while leaving TCB 1 and TCB 3 executing unimpeded on Core 0 and Core 2.",
+          why: "Because the kernel maintains independent execution state for every thread, blocking operations are isolated to the faulting thread alone."
+        },
+        {
+          phase: "3. I/O Done & Transparent Resumption",
+          sched: "Kernel Interrupt Handler",
+          ring: "IRQ Vector Wakeup & Dispatch",
+          cores: "All 3 Cores Active",
+          ut1State: "Compute Finished",
+          ut2State: "I/O Complete (Resumed)",
+          ut3State: "Processing Results",
+          ktTitle: "3 Kernel Threads (All Runnable)",
+          ktStatus: "Core 1 Re-dispatched",
+          ut1BoxClass: "node-box active",
+          ut2BoxClass: "node-box active",
+          ut3BoxClass: "node-box active",
+          ktBoxClass: "node-box active",
+          activeEdge: "map-edge-2",
+          narrative: "The disk controller raises an interrupt upon DMA completion. The kernel marks TCB 2 as Ready, dispatches it to an idle core, and all threads progress concurrently. This demonstrates the robustness of the 1:1 kernel thread model.",
+          what: "The kernel's disk interrupt handler moves TCB 2 from Blocked to Ready, restoring its execution context without user-space runtime intervention.",
+          why: "Kernel-level multithreading guarantees optimal CPU utilization and high responsiveness, forming the foundation of modern POSIX/Linux systems."
+        }
+      ]
+    };
+
+    let activeImplDim = "ult";
+    let activeImplStep = 0;
+
+    function renderImplStepper() {
+      const steps = implSteps[activeImplDim];
+      const step = steps[activeImplStep];
+
+      // Update Live Telemetry Strip
+      document.getElementById("m-telem-phase").textContent = step.phase;
+      document.getElementById("m-telem-sched").textContent = step.sched;
+      document.getElementById("m-telem-ring").textContent = step.ring;
+      document.getElementById("m-telem-cores").textContent = step.cores;
+
+      // Update Node Subtitles
+      document.getElementById("ut1-sub").textContent = step.ut1State;
+      document.getElementById("ut2-sub").textContent = step.ut2State;
+      document.getElementById("ut3-sub").textContent = step.ut3State;
+      document.getElementById("txt-kt-title").textContent = step.ktTitle;
+      document.getElementById("txt-kt-status").textContent = step.ktStatus;
+
+      // Update SVG Node Classes
+      document.getElementById("box-ut1").querySelector(".node-box").className.baseVal = step.ut1BoxClass;
+      document.getElementById("box-ut2").querySelector(".node-box").className.baseVal = step.ut2BoxClass;
+      document.getElementById("box-ut3").querySelector(".node-box").className.baseVal = step.ut3BoxClass;
+      document.getElementById("rect-kt-shared").className.baseVal = step.ktBoxClass;
+
+      // Update Edges
+      ["map-edge-1", "map-edge-2", "map-edge-3"].forEach(id => {
+        const edge = document.getElementById(id);
+        if (id === step.activeEdge) {
+          edge.className.baseVal = "flow-edge active";
+          edge.setAttribute("marker-end", "url(#arrhead-act)");
+        } else {
+          edge.className.baseVal = "flow-edge";
+          edge.setAttribute("marker-end", "url(#arrhead)");
+        }
+      });
+
+      // Update Dedicated Narrative Summary Panel
+      document.getElementById("m-txt-narrative").textContent = step.narrative;
+      document.getElementById("m-btn-prev").disabled = (activeImplStep === 0);
+      document.getElementById("m-btn-next").disabled = (activeImplStep === steps.length - 1);
+
+      // Update Analytical Panes
+      document.getElementById("m-txt-what").textContent = step.what;
+      document.getElementById("m-txt-why").textContent = step.why;
+    }
+
+    function stepImpl(delta) {
+      const steps = implSteps[activeImplDim];
+      activeImplStep = Math.max(0, Math.min(steps.length - 1, activeImplStep + delta));
+      renderImplStepper();
+    }
+
+    function resetImpl() {
+      activeImplStep = 0;
+      renderImplStepper();
+    }
+
+    function setImplDim(dim) {
+      activeImplDim = dim;
+      activeImplStep = 0;
+      document.getElementById("dim-ult").classList.toggle("active", dim === "ult");
+      document.getElementById("dim-klt").classList.toggle("active", dim === "klt");
+
+      const scenarioText = dim === "ult"
+        ? "Thread 1 runs compute, Thread 2 issues a blocking disk read(), and Thread 3 is ready to execute. In a Many-to-One model, one blocked call stalls the entire process."
+        : "Thread 1 runs compute on Core 0, Thread 2 blocks on read(), and Thread 3 runs on Core 2. In a One-to-One kernel model, blocking calls are isolated to the calling thread.";
+      document.getElementById("impl-scenario-text").innerHTML = scenarioText;
+
+      renderImplStepper();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderImplStepper();
+    });
+  </script>
 </body>
 </html>
