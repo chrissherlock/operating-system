@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 2 in Module 04
+# fix.py: Deeply expand Section 3 in Module 04
 # =====================================================================
 import os
 import subprocess
@@ -18,290 +18,295 @@ SYNTAX_CSS = r"""    /* Syntax Highlighting */
     .syn-str { color: #34d399; }
     .syn-cmt { color: #64748b; font-style: italic; }"""
 
-EXPANDED_SECTION_TWO = r"""    <h3>2. The Dining Philosophers Problem</h3>
+EXPANDED_SECTION_THREE = r"""    <h3>3. The Readers-Writers Problem</h3>
     <p>
-      Originally formulated by Edsger W. Dijkstra in 1965 as an examination problem on synchronizing tape drives, and later refined into its allegorical form by C. A. R. Hoare, the <strong>Dining Philosophers Problem</strong> is the definitive paradigm for resource allocation deadlocks in multi-threaded operating systems.
-    </p>
-    <p>
-      The problem models concurrent processes competing for limited, mutually exclusive non-preemptible resources (such as multiple disk spindles, database row locks, or memory channels).
-    </p>
-
-    <h4>Formal Specification</h4>
-    <p>
-      Five philosophers sit around a circular dining table:
+      Formulated by P. J. Courtois, F. Heymans, and D. L. Parnas in 1971, the <strong>Readers-Writers Problem</strong> models concurrent access to a shared resource&mdash;such as an in-memory database table, an operating system routing table, or a file system directory cache&mdash;where competing threads have asymmetric access requirements:
     </p>
     <ul>
-      <li>Each philosopher spends their entire life alternating between two internal states: <strong>Thinking</strong> and <strong>Eating</strong>.</li>
-      <li>In the center of the table lies a communal bowl of spaghetti. Between each pair of adjacent philosophers lies a single chopstick (or fork). There are 5 philosophers and <strong>exactly 5 chopsticks</strong>.</li>
-      <li>Eating spaghetti requires <strong>two chopsticks simultaneously</strong>: a philosopher must acquire both their left chopstick and their right chopstick.</li>
-      <li>A chopstick can only be held by one philosopher at a time. When a philosopher finishes eating, they put down both chopsticks and return to thinking.</li>
+      <li><strong>Readers:</strong> Execute read-only queries. They inspect or extract data without mutating state. Multiple readers may access the shared dataset <em>simultaneously</em> without hazard.</li>
+      <li><strong>Writers:</strong> Mutate, insert, or delete data. A writer must have <strong>strict exclusive access</strong>: when a writer is modifying the dataset, no other writer may write, and <strong>no reader may read</strong> (preventing torn reads, dirty reads, and memory corruption).</li>
     </ul>
 
-    <!-- Structural Diagram: Dining Philosophers Table Topology -->
-    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.2: Dining Philosophers Circular Topology &amp; The Circular Wait Hazard</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How simultaneous left-hand acquisition establishes the fatal circular dependency ring.</div>
+    <h4>The Concurrency Matrix</h4>
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: center;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 8px 12px; text-align: left;">Active Entity</th>
+            <th style="padding: 8px 12px;">Second Reader Arrives</th>
+            <th style="padding: 8px 12px;">Second Writer Arrives</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 12px; text-align: left; font-weight: 700;">Reader Active</td>
+            <td style="padding: 8px 12px; color: #059669; font-weight: 700;">&#10003; PERMITTED (Concurrent Reads)</td>
+            <td style="padding: 8px 12px; color: #dc2626; font-weight: 700;">&times; BLOCKED (Writer Must Wait)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 8px 12px; text-align: left; font-weight: 700;">Writer Active</td>
+            <td style="padding: 8px 12px; color: #dc2626; font-weight: 700;">&times; BLOCKED (Reader Must Wait)</td>
+            <td style="padding: 8px 12px; color: #dc2626; font-weight: 700;">&times; BLOCKED (Exclusive Access Only)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-      <svg viewBox="0 0 760 260" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <!-- Structural Diagram: Readers-Writers Arbitration Topology -->
+    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.3: Readers-Writers Database Access Modes and Fair Turnstile Queuing</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How an entry turnstile enforces FIFO queueing, preventing continuous reader arrivals from starving waiting writers.</div>
+
+      <svg viewBox="0 0 760 250" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <defs>
-          <marker id="dp-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
-          </marker>
-          <marker id="dp-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="rw-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
+          </marker>
+          <marker id="rw-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
+          </marker>
+          <marker id="rw-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
           </marker>
         </defs>
 
-        <!-- Circular Table Visual -->
-        <g transform="translate(190, 130)">
-          <!-- Main Table Rim -->
-          <circle cx="0" cy="0" r="110" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
-          <!-- Spaghetti Bowl -->
-          <circle cx="0" cy="0" r="45" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
-          <text x="0" y="4" text-anchor="middle" font-size="8.5" font-weight="700" fill="#92400e">SPAGHETTI</text>
+        <!-- Left: Incoming Threads / Turnstile Gate -->
+        <g transform="translate(20, 20)">
+          <rect width="210" height="210" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="14" y="24" font-size="10" font-weight="700" fill="#0f172a">ENTRY TURNSTILE GATE</text>
 
-          <!-- 5 Philosophers Placed in a Ring (R = 85) -->
-          <!-- P0 (Top: -90 deg) -->
-          <circle cx="0" cy="-80" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-          <text x="0" y="-76" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P0</text>
+          <rect x="12" y="38" width="186" height="45" rx="4" fill="#dcfce7" stroke="#16a34a"/>
+          <text x="105" y="56" text-anchor="middle" font-size="8.5" font-weight="700" fill="#166534">sem_t turnstile (Init 1)</text>
+          <text x="105" y="70" text-anchor="middle" font-size="7.5" fill="#166534">Enforces FIFO arrival order</text>
 
-          <!-- P1 (Top-Right: -18 deg) -->
-          <circle cx="76" cy="-25" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-          <text x="76" y="-21" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P1</text>
+          <!-- Queue Nodes -->
+          <rect x="12" y="94" width="186" height="102" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="20" y="112" font-size="8" font-weight="700" fill="#475569">THREAD ARRIVAL SEQUENCE:</text>
 
-          <!-- P2 (Bottom-Right: +54 deg) -->
-          <circle cx="47" cy="65" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-          <text x="47" y="69" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P2</text>
+          <rect x="20" y="122" width="170" height="20" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="105" y="136" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">Reader R1 &rarr; In Chamber</text>
 
-          <!-- P3 (Bottom-Left: +126 deg) -->
-          <circle cx="-47" cy="65" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-          <text x="-47" y="69" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P3</text>
+          <rect x="20" y="146" width="170" height="20" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="105" y="160" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#991b1b">Writer W1 &rarr; Queued at Gate</text>
 
-          <!-- P4 (Top-Left: +198 deg) -->
-          <circle cx="-76" cy="-25" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-          <text x="-76" y="-21" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P4</text>
-
-          <!-- 5 Chopsticks Placed in Interstices (R = 52) -->
-          <!-- C0 (between P4 and P0) -->
-          <rect x="-42" y="-62" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="-34" y="-51" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C0</text>
-
-          <!-- C1 (between P0 and P1) -->
-          <rect x="26" y="-62" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="34" y="-51" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C1</text>
-
-          <!-- C2 (between P1 and P2) -->
-          <rect x="58" y="16" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="66" y="27" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C2</text>
-
-          <!-- C3 (between P2 and P3) -->
-          <rect x="-8" y="70" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="0" y="81" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C3</text>
-
-          <!-- C4 (between P3 and P4) -->
-          <rect x="-74" y="16" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="-66" y="27" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C4</text>
+          <rect x="20" y="170" width="170" height="20" rx="3" fill="#f1f5f9" stroke="#cbd5e1"/>
+          <text x="105" y="184" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#64748b">Reader R2 &rarr; Blocked Behind W1</text>
         </g>
 
-        <!-- Right Panel: The 4 Coffman Deadlock Conditions -->
-        <g transform="translate(380, 20)">
-          <rect width="360" height="220" rx="8" fill="#f8fafc" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="16" y="24" font-size="10.5" font-weight="700" fill="#991b1b">THE COFFMAN DEADLOCK CONDITIONS</text>
+        <!-- Connecting Vector -->
+        <line x1="230" y1="125" x2="255" y2="125" stroke="#0284c7" stroke-width="2" marker-end="url(#rw-arr-blue)"/>
 
-          <rect x="14" y="38" width="332" height="36" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="22" y="52" font-size="8" font-weight="700" fill="#0f172a">1. Mutual Exclusion:</text>
-          <text x="22" y="65" font-size="7.5" fill="#475569">Chopsticks are non-shareable: exactly one philosopher per utensil.</text>
+        <!-- Middle: Shared Database Chamber -->
+        <g transform="translate(260, 20)">
+          <rect width="260" height="210" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+          <text x="130" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0284c7">SHARED DATABASE CHAMBER</text>
 
-          <rect x="14" y="78" width="332" height="36" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="22" y="92" font-size="8" font-weight="700" fill="#0f172a">2. Hold and Wait:</text>
-          <text x="22" y="105" font-size="7.5" fill="#475569">Philosopher holds their left chopstick while waiting for right.</text>
+          <!-- Dual Mode Chamber -->
+          <g transform="translate(15, 38)">
+            <!-- Mode 1: Concurrent Readers -->
+            <rect x="0" y="0" width="230" height="74" rx="5" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5"/>
+            <text x="15" y="18" font-size="8.5" font-weight="700" fill="#0369a1">SHARED READ CONCURRENCY:</text>
+            <rect x="15" y="28" width="58" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+            <text x="44" y="48" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">Reader 1</text>
 
-          <rect x="14" y="118" width="332" height="36" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="22" y="132" font-size="8" font-weight="700" fill="#0f172a">3. No Preemption:</text>
-          <text x="22" y="145" font-size="7.5" fill="#475569">Utensils cannot be forcibly confiscated from an adjacent peer.</text>
+            <rect x="85" y="28" width="58" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+            <text x="114" y="48" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">Reader 2</text>
 
-          <rect x="14" y="158" width="332" height="50" rx="4" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="22" y="174" font-size="8" font-weight="700" fill="#991b1b">4. Circular Wait (The Fatal Ring):</text>
-          <text x="22" y="188" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">P0 &rarr; C1 &rarr; P1 &rarr; C2 &rarr; P2 &rarr; C3 &rarr; P3 &rarr; C4 &rarr; P4 &rarr; C0 &rarr; P0</text>
-          <text x="22" y="200" font-size="7" fill="#7f1d1d">Closed directed cycle in Resource Allocation Graph!</text>
+            <rect x="155" y="28" width="58" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
+            <text x="184" y="48" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">Reader 3</text>
+          </g>
+
+          <g transform="translate(15, 122)">
+            <!-- Mode 2: Exclusive Writer -->
+            <rect x="0" y="0" width="230" height="74" rx="5" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="15" y="18" font-size="8.5" font-weight="700" fill="#991b1b">EXCLUSIVE WRITE MUTEX:</text>
+            <rect x="15" y="28" width="200" height="32" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="115" y="48" text-anchor="middle" font-size="8.5" font-weight="700" fill="#991b1b">WRITER (SOLE OCCUPANT)</text>
+          </g>
+        </g>
+
+        <!-- Right: Synchronization Registry & Telemetry -->
+        <g transform="translate(535, 20)">
+          <rect width="205" height="210" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="14" y="24" font-size="10" font-weight="700" fill="#0f172a">SYNCHRONIZATION STATE</text>
+
+          <rect x="12" y="38" width="181" height="48" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="20" y="54" font-size="8" font-weight="700" fill="#475569">READER COUNTER:</text>
+          <text x="20" y="72" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#0284c7">read_count = 1</text>
+
+          <rect x="12" y="94" width="181" height="48" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="20" y="110" font-size="8" font-weight="700" fill="#475569">RESOURCE LOCK:</text>
+          <text x="20" y="128" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="#dc2626">db_mutex = 0 (HELD)</text>
+
+          <rect x="12" y="150" width="181" height="48" rx="4" fill="#dcfce7" stroke="#16a34a"/>
+          <text x="20" y="168" font-size="8" font-weight="700" fill="#166534">FAIRNESS POLICY:</text>
+          <text x="20" y="184" font-size="7.5" font-weight="700" fill="#166534">&#10003; Fair Turnstile Active</text>
         </g>
       </svg>
     </div>
 
-    <h4>The Naive Implementation &amp; The Coffman Deadlock Conditions</h4>
+    <h4>The Three Classical Variations</h4>
     <p>
-      The naive solution maps each chopstick to an individual binary semaphore (<code>chopstick[5]</code>, each initialized to <code>1</code>). Each philosopher runs an identical, symmetric routine:
+      The core challenge in solving the Readers-Writers problem is not merely achieving mutual exclusion, but establishing an equitable <strong>priority policy</strong> between readers and writers.
     </p>
 
-    <pre><code><span class="syn-cmt">/* FLAWED: Naive Symmetric Philosopher Routine */</span>
-<span class="syn-kw">sem_t</span> chopstick[<span class="syn-num">5</span>]; <span class="syn-cmt">/* Initialized to 1 */</span>
+    <h5>1. First Readers-Writers (Reader-Preference)</h5>
+    <p>
+      In this classic implementation, readers are given priority over writers. If the database is currently open for reading, any newly arrived reader is permitted to enter immediately, regardless of whether a writer is waiting:
+    </p>
 
-<span class="syn-kw">void</span> philosopher_naive(<span class="syn-kw">int</span> i) {
-    <span class="syn-kw">while</span> (<span class="syn-kw">true</span>) {
-        <span class="syn-fn">think</span>();
-        <span class="syn-fn">sem_wait</span>(&amp;chopstick[i]);             <span class="syn-cmt">/* 1. Pick up left chopstick */</span>
-        <span class="syn-fn">sem_wait</span>(&amp;chopstick[(i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>]);   <span class="syn-cmt">/* 2. Pick up right chopstick */</span>
+    <pre><code><span class="syn-cmt">/* First Readers-Writers (Reader-Preference) */</span>
+<span class="syn-kw">#include</span> <span class="syn-str">&lt;semaphore.h&gt;</span>
 
-        <span class="syn-fn">eat</span>();
+<span class="syn-kw">int</span> read_count = <span class="syn-num">0</span>;
+<span class="syn-kw">sem_t</span> count_mutex; <span class="syn-cmt">/* Binary semaphore protecting read_count (init 1) */</span>
+<span class="syn-kw">sem_t</span> db_mutex;    <span class="syn-cmt">/* Binary semaphore protecting database access (init 1) */</span>
 
-        <span class="syn-fn">sem_post</span>(&amp;chopstick[i]);             <span class="syn-cmt">/* 3. Put down left chopstick */</span>
-        <span class="syn-fn">sem_post</span>(&amp;chopstick[(i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>]);   <span class="syn-cmt">/* 4. Put down right chopstick */</span>
+<span class="syn-kw">void</span> reader(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">sem_wait</span>(&amp;count_mutex);
+    read_count++;
+    <span class="syn-kw">if</span> (read_count == <span class="syn-num">1</span>) {
+        <span class="syn-fn">sem_wait</span>(&amp;db_mutex);   <span class="syn-cmt">/* First reader locks database against writers */</span>
     }
+    <span class="syn-fn">sem_post</span>(&amp;count_mutex);
+
+    <span class="syn-fn">read_database</span>();           <span class="syn-cmt">/* Reading is executed concurrently */</span>
+
+    <span class="syn-fn">sem_wait</span>(&amp;count_mutex);
+    read_count--;
+    <span class="syn-kw">if</span> (read_count == <span class="syn-num">0</span>) {
+        <span class="syn-fn">sem_post</span>(&amp;db_mutex);   <span class="syn-cmt">/* Last reader unlocks database for writers */</span>
+    }
+    <span class="syn-fn">sem_post</span>(&amp;count_mutex);
+}
+
+<span class="syn-kw">void</span> writer(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">sem_wait</span>(&amp;db_mutex);       <span class="syn-cmt">/* Exclusive lock: blocks all readers and writers */</span>
+    <span class="syn-fn">write_database</span>();
+    <span class="syn-fn">sem_post</span>(&amp;db_mutex);
 }</code></pre>
 
     <div class="math-callout">
-      <strong>Why the Naive Solution Triggers Total Deadlock:</strong>
+      <strong>The Pathological Defect: Indefinite Writer Starvation</strong>
       <br>
-      Suppose all five philosophers become hungry simultaneously. Each philosopher executes statement 1, grabbing their <strong>left chopstick</strong>:
-      <ul>
-        <li>Philosopher 0 grabs Chopstick 0.</li>
-        <li>Philosopher 1 grabs Chopstick 1.</li>
-        <li>Philosopher 2 grabs Chopstick 2.</li>
-        <li>Philosopher 3 grabs Chopstick 3.</li>
-        <li>Philosopher 4 grabs Chopstick 4.</li>
-      </ul>
-      Now, every philosopher executes statement 2, attempting to acquire their right chopstick:
-      <ul>
-        <li>Philosopher 0 demands Chopstick 1 (held by Philosopher 1) &rarr; BLOCKS.</li>
-        <li>Philosopher 1 demands Chopstick 2 (held by Philosopher 2) &rarr; BLOCKS.</li>
-        <li>Philosopher 2 demands Chopstick 3 (held by Philosopher 3) &rarr; BLOCKS.</li>
-        <li>Philosopher 3 demands Chopstick 4 (held by Philosopher 4) &rarr; BLOCKS.</li>
-        <li>Philosopher 4 demands Chopstick 0 (held by Philosopher 0) &rarr; BLOCKS.</li>
-      </ul>
-      This satisfies all four <strong>Coffman Conditions</strong>: Mutual Exclusion, Hold-and-Wait, No-Preemption, and Circular Wait. The system deadlocks permanently, and all five philosophers starve.
+      Suppose Reader 1 enters and claims <code>db_mutex</code>. While Reader 1 is reading, a Writer arrives and blocks on <code>sem_wait(&amp;db_mutex)</code>.
+      <br>
+      An instant later, Reader 2 arrives. Because <code>read_count</code> is already <code>1</code>, Reader 2 increments <code>read_count</code> to <code>2</code> and enters without touching <code>db_mutex</code>.
+      <br>
+      Before Reader 2 finishes, Reader 3 arrives. Then Reader 4 arrives. As long as a continuous stream of overlapping readers arrives, <strong><code>read_count</code> never drops to 0</strong>.
+      <br>
+      <strong>Result:</strong> The writer waits indefinitely in the queue, suffering permanent <strong>starvation</strong> (violating Condition 4: Bounded Waiting).
     </div>
 
-    <h4>Strategy 1: Asymmetric Resource Hierarchy (Dijkstra's Symmetry Breaking)</h4>
+    <h5>2. Second Readers-Writers (Writer-Preference)</h5>
     <p>
-      Deadlock can only occur if a closed circular dependency cycle exists. Dijkstra proved that establishing a <strong>strict total ordering</strong> over all resources mathematically guarantees freedom from deadlock.
-    </p>
-    <p>
-      Assign each chopstick a global numerical index from <code>0</code> to <code>4</code>. Establish a rule: <strong>every philosopher must always acquire their lower-numbered chopstick first, and their higher-numbered chopstick second</strong>:
+      To prevent writer starvation and ensure database updates are not delayed by an endless stream of reads, Courtois et al. designed the <strong>Writer-Preference</strong> variant:
     </p>
     <ul>
-      <li>For Philosophers 0, 1, 2, and 3: The left chopstick (<code>i</code>) is lower than the right chopstick (<code>i + 1</code>). They pick up <strong>left first, then right</strong>.</li>
-      <li>For Philosopher 4: The left chopstick is <code>4</code>, but the right chopstick is <code>(4 + 1) % 5 = 0</code>! Because <code>0 &lt; 4</code>, Philosopher 4 picks up <strong>right first (0), then left (4)</strong>.</li>
+      <li>When a writer announces its intent to write, newly arriving readers are <strong>prevented from entering</strong> the chamber, even if other readers are currently reading.</li>
+      <li>Existing readers are allowed to complete their read operations and exit.</li>
+      <li>As soon as the last active reader exits, the waiting writer claims the database immediately.</li>
+      <li><em>Trade-off:</em> While writer starvation is eliminated, a continuous stream of write operations will now cause <strong>reader starvation</strong>.</li>
     </ul>
 
-    <pre><code><span class="syn-cmt">/* Strategy 1: Asymmetric Symmetry Breaking */</span>
-<span class="syn-kw">void</span> philosopher_asymmetric(<span class="syn-kw">int</span> i) {
-    <span class="syn-kw">int</span> left = i;
-    <span class="syn-kw">int</span> right = (i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>;
+    <h5>3. Third Readers-Writers (Fair FIFO Turnstile / No Starvation)</h5>
+    <p>
+      To achieve genuine fairness where <em>neither</em> readers nor writers starve, the algorithm introduces an architectural <strong>Turnstile Semaphore</strong> (<code>turnstile</code>, initialized to <code>1</code>):
+    </p>
 
-    <span class="syn-kw">while</span> (<span class="syn-kw">true</span>) {
-        <span class="syn-fn">think</span>();
+    <pre><code><span class="syn-cmt">/* Third Readers-Writers (Fair Turnstile: Starvation-Free) */</span>
+<span class="syn-kw">int</span> read_count = <span class="syn-num">0</span>;
+<span class="syn-kw">sem_t</span> count_mutex; <span class="syn-cmt">/* Protects read_count (init 1) */</span>
+<span class="syn-kw">sem_t</span> db_mutex;    <span class="syn-cmt">/* Exclusive access to database (init 1) */</span>
+<span class="syn-kw">sem_t</span> turnstile;   <span class="syn-cmt">/* Fair entry turnstile gate (init 1) */</span>
 
-        <span class="syn-kw">if</span> (i % <span class="syn-num">2</span> == <span class="syn-num">0</span>) {
-            <span class="syn-cmt">/* Even philosophers: Left first, then Right */</span>
-            <span class="syn-fn">sem_wait</span>(&amp;chopstick[left]);
-            <span class="syn-fn">sem_wait</span>(&amp;chopstick[right]);
-        } <span class="syn-kw">else</span> {
-            <span class="syn-cmt">/* Odd philosophers: Right first, then Left */</span>
-            <span class="syn-fn">sem_wait</span>(&amp;chopstick[right]);
-            <span class="syn-fn">sem_wait</span>(&amp;chopstick[left]);
-        }
-
-        <span class="syn-fn">eat</span>();
-
-        <span class="syn-fn">sem_post</span>(&amp;chopstick[left]);
-        <span class="syn-fn">sem_post</span>(&amp;chopstick[right]);
+<span class="syn-kw">void</span> fair_reader(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">sem_wait</span>(&amp;turnstile);      <span class="syn-cmt">/* 1. Pass through entry turnstile */</span>
+    <span class="syn-fn">sem_wait</span>(&amp;count_mutex);
+    read_count++;
+    <span class="syn-kw">if</span> (read_count == <span class="syn-num">1</span>) {
+        <span class="syn-fn">sem_wait</span>(&amp;db_mutex);   <span class="syn-cmt">/* First reader locks database */</span>
     }
+    <span class="syn-fn">sem_post</span>(&amp;count_mutex);
+    <span class="syn-fn">sem_post</span>(&amp;turnstile);      <span class="syn-cmt">/* 2. Release turnstile for next thread in queue */</span>
+
+    <span class="syn-fn">read_database</span>();
+
+    <span class="syn-fn">sem_wait</span>(&amp;count_mutex);
+    read_count--;
+    <span class="syn-kw">if</span> (read_count == <span class="syn-num">0</span>) {
+        <span class="syn-fn">sem_post</span>(&amp;db_mutex);   <span class="syn-cmt">/* Last reader unlocks database */</span>
+    }
+    <span class="syn-fn">sem_post</span>(&amp;count_mutex);
+}
+
+<span class="syn-kw">void</span> fair_writer(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">sem_wait</span>(&amp;turnstile);      <span class="syn-cmt">/* 1. Claim turnstile gate: BLOCKS new readers */</span>
+    <span class="syn-fn">sem_wait</span>(&amp;db_mutex);       <span class="syn-cmt">/* 2. Await active readers to drain; claim database */</span>
+
+    <span class="syn-fn">write_database</span>();
+
+    <span class="syn-fn">sem_post</span>(&amp;turnstile);      <span class="syn-cmt">/* 3. Release turnstile gate */</span>
+    <span class="syn-fn">sem_post</span>(&amp;db_mutex);       <span class="syn-cmt">/* 4. Release database */</span>
 }</code></pre>
 
     <div class="math-callout">
-      <strong>Proof of Deadlock Freedom under Resource Hierarchy:</strong>
+      <strong>Why the Turnstile Prevents Writer Starvation:</strong>
       <br>
-      Suppose all five philosophers become hungry simultaneously:
+      When a writer arrives:
       <ol>
-        <li>Philosopher 0 and Philosopher 4 both compete for Chopstick 0 as their very first acquisition.</li>
-        <li>Exactly one of them wins (say, Philosopher 0 claims Chopstick 0).</li>
-        <li>Philosopher 4 blocks immediately on Chopstick 0 <em>before claiming Chopstick 4</em>!</li>
-        <li>Because Chopstick 4 is left untouched, Philosopher 3 successfully claims both Chopstick 3 and Chopstick 4, eats, and releases both.</li>
+        <li>The writer executes <code>sem_wait(&amp;turnstile)</code> and claims the turnstile gate.</li>
+        <li>If newly arriving readers appear, they attempt to execute <code>sem_wait(&amp;turnstile)</code> and <strong>block immediately at the gate behind the writer</strong>!</li>
+        <li>The readers currently inside the chamber complete their reads and exit. The last reader sets <code>read_count = 0</code> and executes <code>sem_post(&amp;db_mutex)</code>.</li>
+        <li>The writer acquires <code>db_mutex</code>, writes to the database, and releases both locks.</li>
       </ol>
-      The circular dependency cycle is broken. At least one philosopher is always guaranteed to eat.
+      Readers can no longer jump ahead of an already waiting writer. Both readers and writers experience <strong>strictly bounded waiting times</strong>.
     </div>
 
-    <h4>Strategy 2: Tanenbaum's State-Tracking Semaphore Array</h4>
+    <h4>Production Systems: POSIX pthread_rwlock_t</h4>
     <p>
-      While the asymmetric approach prevents deadlock, it can introduce unequal waiting times. Andrew Tanenbaum designed an elegant solution utilizing an explicit <strong>state machine array</strong> that allows a philosopher to eat only when <em>neither neighbor is eating</em>:
+      In POSIX C systems programming, developers rarely write raw semaphore turnstiles. Instead, the runtime provides native, highly optimized <strong>Read-Write Locks</strong> (<code>pthread_rwlock_t</code>):
     </p>
 
-    <pre><code><span class="syn-cmt">/* Strategy 2: Tanenbaum's State-Tracking Solution */</span>
-<span class="syn-kw">#define</span> N <span class="syn-num">5</span>
-<span class="syn-kw">#define</span> LEFT  ((i + N - <span class="syn-num">1</span>) % N)
-<span class="syn-kw">#define</span> RIGHT ((i + <span class="syn-num">1</span>) % N)
+    <pre><code><span class="syn-cmt">/* Production POSIX Read-Write Lock Usage */</span>
+<span class="syn-kw">#include</span> <span class="syn-str">&lt;pthread.h&gt;</span>
 
-<span class="syn-kw">typedef enum</span> { THINKING, HUNGRY, EATING } state_t;
+<span class="syn-kw">pthread_rwlock_t</span> rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
-state_t state[N];         <span class="syn-cmt">/* Tracks state of every philosopher */</span>
-<span class="syn-kw">sem_t</span> mutex;              <span class="syn-cmt">/* Binary mutex protecting state[] inspections */</span>
-<span class="syn-kw">sem_t</span> s[N];               <span class="syn-cmt">/* One private semaphore per philosopher (init 0) */</span>
-
-<span class="syn-kw">void</span> test_neighbors(<span class="syn-kw">int</span> i) {
-    <span class="syn-cmt">/* If I am hungry AND neither neighbor is eating, begin eating */</span>
-    <span class="syn-kw">if</span> (state[i] == HUNGRY &amp;&amp; state[LEFT] != EATING &amp;&amp; state[RIGHT] != EATING) {
-        state[i] = EATING;
-        <span class="syn-fn">sem_post</span>(&amp;s[i]);  <span class="syn-cmt">/* Wake myself up (increments s[i] from 0 to 1) */</span>
-    }
+<span class="syn-kw">void</span> posix_reader(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">pthread_rwlock_rdlock</span>(&amp;rwlock); <span class="syn-cmt">/* Shared lock: multiple readers */</span>
+    <span class="syn-fn">read_database</span>();
+    <span class="syn-fn">pthread_rwlock_unlock</span>(&amp;rwlock);
 }
 
-<span class="syn-kw">void</span> take_forks(<span class="syn-kw">int</span> i) {
-    <span class="syn-fn">sem_wait</span>(&amp;mutex);     <span class="syn-cmt">/* Enter critical section */</span>
-    state[i] = HUNGRY;
-    <span class="syn-fn">test_neighbors</span>(i);    <span class="syn-cmt">/* Attempt to claim both forks */</span>
-    <span class="syn-fn">sem_post</span>(&amp;mutex);     <span class="syn-cmt">/* Exit critical section */</span>
-
-    <span class="syn-fn">sem_wait</span>(&amp;s[i]);      <span class="syn-cmt">/* Block if forks were not available */</span>
-}
-
-<span class="syn-kw">void</span> put_forks(<span class="syn-kw">int</span> i) {
-    <span class="syn-fn">sem_wait</span>(&amp;mutex);     <span class="syn-cmt">/* Enter critical section */</span>
-    state[i] = THINKING;
-    <span class="syn-fn">test_neighbors</span>(LEFT); <span class="syn-cmt">/* Check if left neighbor can now eat */</span>
-    <span class="syn-fn">test_neighbors</span>(RIGHT);<span class="syn-cmt">/* Check if right neighbor can now eat */</span>
-    <span class="syn-fn">sem_post</span>(&amp;mutex);     <span class="syn-cmt">/* Exit critical section */</span>
+<span class="syn-kw">void</span> posix_writer(<span class="syn-kw">void</span>) {
+    <span class="syn-fn">pthread_rwlock_wrlock</span>(&amp;rwlock); <span class="syn-cmt">/* Exclusive lock: single writer */</span>
+    <span class="syn-fn">write_database</span>();
+    <span class="syn-fn">pthread_rwlock_unlock</span>(&amp;rwlock);
 }</code></pre>
 
-    <div class="math-callout">
-      <strong>Key Insights of Tanenbaum's Solution:</strong>
-      <ul>
-        <li><strong>Atomic Dual Acquisition:</strong> Forks are never claimed one at a time. The test <code>state[LEFT] != EATING &amp;&amp; state[RIGHT] != EATING</code> ensures both forks are claimed simultaneously under the protection of <code>mutex</code>.</li>
-        <li><strong>Self-Signaling via Private Semaphores:</strong> The private semaphore <code>s[i]</code> is initialized to <code>0</code>. If forks are available, <code>test_neighbors(i)</code> calls <code>sem_post(&amp;s[i])</code>, incrementing it to <code>1</code>. When the philosopher immediately follows with <code>sem_wait(&amp;s[i])</code>, they do not sleep. If forks were busy, <code>sem_post</code> is not called, and the philosopher blocks until an exiting neighbor calls <code>test_neighbors</code> on their behalf.</li>
-      </ul>
-    </div>
-
-    <h4>Strategy 3: Windows WaitForMultipleObjects</h4>
     <p>
-      On Windows NT platforms, the dining philosophers problem can be resolved using the kernel's native multi-handle wait capability:
+      Under the GNU C Library (glibc) on Linux, developers can configure the scheduling attribute via <code>pthread_rwlockattr_setkind_np</code>:
     </p>
+    <ul>
+      <li><code>PTHREAD_RWLOCK_PREFER_READER_NP</code>: Default behavior (Reader-preference). Fast for read-heavy workloads, but vulnerable to writer starvation.</li>
+      <li><code>PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP</code>: Writer-preference. Prevents writer starvation by immediately blocking subsequent readers when a writer queues.</li>
+    </ul>
 
-    <pre><code><span class="syn-cmt">/* Win32 Atomic Multi-Object Fork Acquisition */</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;windows.h&gt;</span>
-
-HANDLE hChopsticks[<span class="syn-num">5</span>]; <span class="syn-cmt">/* Mutex handles for each utensil */</span>
-
-<span class="syn-kw">void</span> philosopher_win32(<span class="syn-kw">int</span> i) {
-    HANDLE needed[<span class="syn-num">2</span>];
-    needed[<span class="syn-num">0</span>] = hChopsticks[i];
-    needed[<span class="syn-num">1</span>] = hChopsticks[(i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>];
-
-    <span class="syn-kw">while</span> (<span class="syn-kw">true</span>) {
-        <span class="syn-fn">think</span>();
-
-        <span class="syn-cmt">/* Atomically wait for BOTH mutexes simultaneously (bWaitAll = TRUE) */</span>
-        DWORD result = <span class="syn-fn">WaitForMultipleObjects</span>(<span class="syn-num">2</span>, needed, TRUE, INFINITE);
-        <span class="syn-kw">if</span> (result == WAIT_OBJECT_0) {
-            <span class="syn-fn">eat</span>();
-            <span class="syn-fn">ReleaseMutex</span>(needed[<span class="syn-num">0</span>]);
-            <span class="syn-fn">ReleaseMutex</span>(needed[<span class="syn-num">1</span>]);
-        }
-    }
-}</code></pre>
+    <h4>The Linux Kernel Revolution: Read-Copy-Update (RCU)</h4>
     <p>
-      Because <code>WaitForMultipleObjects(..., bWaitAll = TRUE)</code> is an <strong>atomic kernel-level operation</strong>, the operating system scheduler claims both handles together. If either utensil is held, the thread is suspended without claiming the other, eliminating the "Hold and Wait" Coffman condition.
-    </p>"""
+      In modern multi-core operating system kernels, traditional reader-writer locks have a fatal performance flaw: <strong>cacheline bouncing</strong>. Every time a reader acquires <code>rwlock</code>, it must atomically increment an internal reader counter. This atomic write forces cacheline invalidations across all CPU cores, degrading memory bus throughput.
+    </p>
+    <p>
+      To solve this, the Linux kernel relies heavily on <strong>Read-Copy-Update (RCU)</strong>:
+    </p>
+    <ul>
+      <li><strong>Zero-Overhead Readers:</strong> Readers execute with <strong>zero atomic instructions, zero locks, and zero memory bus traffic</strong>. Readers simply enter a read-side critical section by disabling local preemption (<code>rcu_read_lock()</code>).</li>
+      <li><strong>Copy-on-Write for Writers:</strong> When a writer mutates a data structure (such as a linked list node), it creates a private duplicate copy, modifies the copy, and atomically overwrites the shared pointer to point to the new node.</li>
+      <li><strong>Grace Period Reclamation:</strong> Existing readers continue reading the old node safely. The old memory node is freed only after a <strong>Grace Period</strong> has elapsed&mdash;when every core in the system has undergone at least one voluntary context switch, proving that all concurrent readers have completed.</li>
+    </ul>"""
 
-def update_section_two():
+def update_section_three():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -311,32 +316,32 @@ def update_section_two():
         if style_end != -1:
             content = content[:style_end] + "\n" + SYNTAX_CSS + "\n  " + content[style_end:]
 
-    # 2. Locate Section 2 boundaries
-    start_marker = "<h3>2. The Dining Philosophers Problem</h3>"
-    end_marker = "<h3>3. The Readers-Writers Problem</h3>"
+    # 2. Locate Section 3 boundaries
+    start_marker = "<h3>3. The Readers-Writers Problem</h3>"
+    end_marker = "<h4>Windows Readers-Writers &amp; Dispatcher Objects</h4>"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 2 boundaries in Module 04.")
+        print("Error: Could not locate Section 3 boundaries in Module 04.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_THREE + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded and syntax-highlighted Section 2 in {TARGET_FILE}")
+    print(f"--> Successfully expanded and syntax-highlighted Section 3 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 2 in Module 04 with Dining Philosophers architectures\n\n"
-            "Detail Coffman conditions, asymmetric symmetry breaking, Tanenbaum state\n"
-            "matrix, Chandy-Misra tokens, Win32 multi-wait, and add an SVG diagram."
+            "Expand Section 3 of Module 04 with Readers-Writers policies and RCU\n\n"
+            "Detail 1st/2nd/3rd variants, starvation proofs, POSIX pthread_rwlock_t,\n"
+            "Win32 SRWLOCK, Linux kernel RCU architecture, and add an SVG diagram."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -345,5 +350,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_two():
+    if update_section_three():
         run_git_sync()
