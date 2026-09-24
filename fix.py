@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Relocate Mars Pathfinder panorama image into Section 2.2
+# fix.py: Integrate Priority Inheritance Protocol section into Mars Pathfinder
 # =====================================================================
 import os
 import subprocess
@@ -10,7 +10,7 @@ TARGET_FILE = os.path.join(
     "01-concurrency-hazards-livelock-starvation.html"
 )
 
-CORRECTED_MODULE_01 = r"""<!DOCTYPE html>
+RESTRUCTURED_MODULE_01 = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -73,6 +73,7 @@ CORRECTED_MODULE_01 = r"""<!DOCTYPE html>
     h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
     h3 { font-size: 1.25rem; color: var(--primary); margin-top: 32px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
     h4 { font-size: 1.05rem; color: var(--primary); margin-top: 24px; }
+    h5 { font-size: 0.95rem; color: var(--primary); margin-top: 18px; }
     p, li { font-size: 0.95rem; color: var(--text); }
     .math-callout {
       background: #f8fafc;
@@ -255,28 +256,19 @@ CORRECTED_MODULE_01 = r"""<!DOCTYPE html>
         After a predetermined duration, the spacecraft's hardware <strong>watchdog timer</strong> noticed that the high-priority bus management task (<code>H</code>) had failed to check in within its mandated execution window. Assuming a fatal software deadlock or hardware lockup, the watchdog issued a hard reset command, rebooting the lander safely.
       </p>
 
-      <h5>Debugging on Earth &amp; The Remote Patch</h5>
+      <h5>Debugging on Earth &amp; The Remote Patch (The PIP Solution)</h5>
       <p>
         Back at NASA's Jet Propulsion Laboratory (JPL), engineers recreated the exact mission workload on a spacecraft replica rig in their lab with kernel event tracing enabled. After hours of tracing, an engineer running tests late into the night reproduced the system reset, confirming the priority inversion deadlock.
       </p>
       <p>
-        The fix was exceptionally elegant. VxWorks mutex objects accept an initialization parameter determining whether <strong>Priority Inheritance</strong> should be enforced. When created, this parameter had been left disabled (set to <code>FALSE</code>) for performance optimization.
+        The solution implemented was the <strong>Priority Inheritance Protocol (PIP)</strong>. VxWorks mutex objects accept an initialization parameter determining whether priority inheritance should be enforced. When created, this parameter had been left disabled (set to <code>FALSE</code>) for performance optimization.
       </p>
       <p>
         Rather than attempting to recompile and re-flash the flight software stack across 100 million miles of interplanetary space, JPL engineers exploited a built-in feature: VxWorks included an online <strong>C language interpreter</strong> compiled directly into the launch image for debugging. Because the initialization symbols were preserved in the spacecraft's global symbol table, engineers uploaded a short C script that changed the mutex configuration variables from <code>FALSE</code> to <code>TRUE</code>.
       </p>
       <p>
-        Once priority inheritance was active, whenever high-priority task <code>H</code> blocked on the mutex held by <code>L</code>, the kernel temporarily elevated <code>L</code>'s priority to match <code>H</code>. This prevents medium-priority task <code>M</code> from preempting <code>L</code>, allowing <code>L</code> to finish its critical section immediately, release the mutex, and unblock <code>H</code>. Zero further system resets occurred for the remainder of the mission.
+        Once priority inheritance was active, whenever high-priority task <code>H</code> blocked on the mutex held by <code>L</code>, the kernel temporarily elevated <code>L</code>'s priority to match <code>H</code>. This prevented medium-priority task <code>M</code> from preempting <code>L</code>, allowing <code>L</code> to finish its critical section immediately, release the mutex, and unblock <code>H</code>. Zero further system resets occurred for the remainder of the mission.
       </p>
-
-      <h4>3. The Priority Inheritance Protocol (PIP) Solution</h4>
-      <p>
-        Engineers diagnosed and fixed the bug remotely from Earth by uploading a one-line C patch via the onboard debugging interpreter to enable <strong>Priority Inheritance</strong>:
-      </p>
-      <ul>
-        <li>Under PIP, when a high-priority task blocks on a mutex held by a low-priority task, the kernel <strong>temporarily boosts the low-priority task's priority</strong> to match P_High.</li>
-        <li>This prevents medium-priority tasks (M) from preempting L. L finishes its critical section rapidly, releases the mutex, drops back to its base priority, and allows H to execute immediately.</li>
-      </ul>
 
       <p style="margin-top: 24px; font-weight: 600; color: var(--primary);">
         Visual Walkthrough &mdash; Priority Inversion &amp; Mars Pathfinder Analysis:
@@ -308,17 +300,17 @@ CORRECTED_MODULE_01 = r"""<!DOCTYPE html>
 def update_module_file():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(CORRECTED_MODULE_01.strip() + "\n")
-    print(f"--> Successfully updated Module 01 at {TARGET_FILE}")
+        f.write(RESTRUCTURED_MODULE_01.strip() + "\n")
+    print(f"--> Successfully restructured Module 01 at {TARGET_FILE}")
 
 if __name__ == "__main__":
     update_module_file()
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Relocate Mars Pathfinder panorama image into Section 2.2\n\n"
-            "Move the Mars Pathfinder landscape panorama and Wikimedia attribution block\n"
-            "from the top of Section 2 directly into the Mars Pathfinder subsection."
+            "Integrate Priority Inheritance Protocol section into Mars Pathfinder case study\n\n"
+            "Fold Section 3 (PIP Solution) directly into the Mars Pathfinder anomaly\n"
+            "subsection as its concluding architectural analysis."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
