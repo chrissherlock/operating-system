@@ -1,44 +1,1207 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Render proper superscripts for CPU utilization formula
+# fix.py: Update walkthroughs with current step narrative summaries
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week02-processes", "01-process-model.html")
 
-def update_superscript_formatting():
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
+MODULE_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01. The Process Model &amp; States | Week 2: Processes &amp; Concurrency</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
 
-    # Replace raw pre block with a styled formula display card
-    old_formula = "<pre>CPU Utilization = 1 - p^n</pre>"
-    new_formula = (
-        '<div style="background: #0f172a; color: #38bdf8; font-family: var(--font-mono); '
-        'font-size: 1.15rem; font-weight: 700; padding: 16px 20px; border-radius: 6px; '
-        'margin: 16px 0; text-align: center; letter-spacing: 0.03em;">'
-        'CPU Utilization = 1 &minus; <i>p</i><sup style="color: #4ade80; font-size: 0.85em;"><i>n</i></sup>'
-        '</div>'
-    )
-    content = content.replace(old_formula, new_formula)
+    /* Directed Narrative Stepper Layout */
+    .aid-wrapper {
+      margin: 32px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      overflow: hidden;
+    }
+    .aid-header {
+      background: #f1f5f9;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .aid-header h4 {
+      margin: 0;
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .dimension-toggles {
+      display: flex;
+      gap: 6px;
+    }
+    .dim-btn {
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .dim-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .scenario-banner {
+      background: #f8fafc;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scenario-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .telemetry-strip {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .telemetry-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .telemetry-label {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .telemetry-val {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .telemetry-val.highlight { color: #4ade80; }
+    .telemetry-val.alert { color: #f87171; }
 
-    # Replace text references like p^n with HTML or Unicode exponent in telemetry and script
-    content = content.replace("All-Waiting Probability (p^n)", "All-Waiting Probability (<i>p</i><sup><i>n</i></sup>)")
-    content = content.replace("0.80^2 = 0.64", "0.80² = 0.64")
-    content = content.replace("0.80^3 = 51.2%", "0.80³ = 51.2%")
-    content = content.replace("0.50^2 = 25%", "0.50² = 25%")
+    .canvas-container {
+      background: #ffffff;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    svg.state-canvas {
+      width: 100%;
+      max-width: 680px;
+      height: auto;
+      overflow: visible;
+    }
 
+    /* Stepper Controls & Current Step Mini-Paragraph Panel */
+    .controls-narrative-strip {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 18px;
+    }
+    @media (max-width: 720px) {
+      .controls-narrative-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+    .stepper-btn-group {
+      display: flex;
+      gap: 8px;
+      align-self: center;
+    }
+    .btn-step {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn-step:hover:not(:disabled) {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    .btn-step:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .narrative-preview-panel {
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      padding: 10px 14px;
+    }
+    .narrative-preview-panel strong {
+      color: #0f172a;
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .analytical-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--border);
+      gap: 1px;
+    }
+    @media (max-width: 720px) {
+      .analytical-grid { grid-template-columns: 1fr; }
+    }
+    .pane-card {
+      background: #ffffff;
+      padding: 18px;
+    }
+    .pane-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pane-title.what { color: var(--accent); }
+    .pane-title.why { color: var(--success); }
+    .pane-content {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #334155;
+      margin: 0;
+    }
+
+    /* Node & Edge Styles */
+    .node-box {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      transition: all 0.3s ease;
+    }
+    .node-group.active .node-box {
+      stroke: #0284c7;
+      stroke-width: 3;
+      fill: #f0f9ff;
+    }
+    .node-group.active text.node-title {
+      fill: #0369a1;
+      font-weight: 700;
+    }
+    .node-group.active text.node-sub {
+      fill: #0284c7;
+      font-weight: 600;
+    }
+    .svg-edge {
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      fill: none;
+      transition: all 0.3s ease;
+    }
+    .svg-edge.active {
+      stroke: #0284c7;
+      stroke-width: 3.5;
+      filter: drop-shadow(0 0 4px rgba(2, 132, 199, 0.4));
+    }
+    .edge-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      fill: #64748b;
+      transition: all 0.3s ease;
+    }
+    .edge-badge.active {
+      fill: #0284c7;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <a href="02-process-lifecycle.html">Next: 02. Process Lifecycle &rarr;</a>
+    </nav>
+
+    <h2>01. The Process Model &amp; States</h2>
+    <p>
+      At the heart of modern operating system architecture lies the <strong>process abstraction</strong>: a software model representing a program in execution. Modern hardware frequently juggles dozens to hundreds of concurrent activities—including network listeners, background daemons, audio decoders, and user interfaces. Even when a machine possesses only a single CPU core, the operating system manages these simultaneous tasks by rapidly switching the processor among them, establishing the illusion of simultaneous execution known as <strong>pseudoparallelism</strong>.
+    </p>
+
+    <h3>1. The Conceptual Process Model</h3>
+    <p>
+      In this model, all runnable software is organized into a collection of sequential processes. Conceptually, every process operates with its own virtual CPU and its own private flow of control. While the physical hardware switches between tasks every few milliseconds, viewing each running program as an independent sequential process makes system behavior and concurrency far easier to reason about.
+    </p>
+
+    <h4>Distinguishing the Program from the Process</h4>
+    <p>
+      The distinction between a program and a process is subtle yet foundational:
+    </p>
+    <ul>
+      <li><strong>The Program:</strong> A passive sequence of bytes stored on stable storage (such as an ELF binary or PE executable file on an SSD). It encompasses compiled instructions, static constants, and variable declarations, but performs no actions on its own.</li>
+      <li><strong>The Process:</strong> An active execution context. It represents the actual execution of those instructions over time, complete with dynamic state: current program counter (PC), CPU registers, stack pointers, open file descriptors, allocated physical memory pages, and child linkages.</li>
+    </ul>
+    <p>
+      A classic analogy makes this boundary intuitive. Consider a computer scientist baking a cake in a kitchen:
+    </p>
+    <ul>
+      <li><strong>The Recipe:</strong> Represents the <em>program</em>—the static algorithm written down step-by-step.</li>
+      <li><strong>The Ingredients:</strong> Represent the <em>input data</em>—flour, sugar, and eggs ready to be transformed.</li>
+      <li><strong>The Baker:</strong> Represents the <em>processor (CPU)</em>—the active engine capable of fetching instructions and executing steps.</li>
+      <li><strong>The Process:</strong> The dynamic <em>activity</em> of following the recipe, measuring ingredients, and mixing the batter over time.</li>
+    </ul>
+    <p>
+      If an urgent interruption occurs (such as a medical emergency), the baker saves their place in the recipe, stores current measurements on a notepad (saving CPU registers and state), and shifts attention to a first-aid manual (an interrupt routine or higher-priority process). Once the emergency is resolved, the baker reloads the saved state and resumes baking exactly where they left off.
+    </p>
+
+    <h4>Multiple Instances and Shared Code</h4>
+    <p>
+      Running the same program multiple times produces distinct, isolated processes. If two users launch the text editor <code>vim</code> simultaneously, or if a single user opens two independent instances of a terminal shell, each execution constitutes an independent process. Each instance possesses its own unique process identifier (PID), private memory space, independent stack, and distinct file handles.
+    </p>
+    <p>
+      Underneath, modern operating systems optimize memory usage through virtual memory mechanisms: while each process maintains private writable data and stack segments, the immutable text segment (the compiled executable machine code) can be shared among all running instances, preventing redundant allocations in physical RAM.
+    </p>
+
+    <h4>Independent Rates of Progress</h4>
+    <p>
+      Because the operating system dynamically schedules processes based on timer interrupts, system calls, and varying I/O completion times, programs cannot assume a constant or predictable rate of execution. A loop that counts to one million might complete in a fraction of a millisecond on one run, but take substantially longer on another run if the kernel switches CPU time to a competing process mid-loop. As a result, software must never rely on CPU idle loops for timing or synchronization; robust systems rely on kernel timers, event notifications, and formal synchronization primitives.
+    </p>
+
+    <h3>2. The Three-State Process Model</h3>
+    <p>
+      While an active process executes instructions sequentially, its real-world progression is neither instantaneous nor uninterrupted. Because computer workloads continually alternate between computationally intensive bursts and unbuffered peripheral access, a process cannot remain continuously pinned to a CPU core. To orchestrate multiple tasks fairly and efficiently, the operating system kernel assigns every active process to one of <strong>three primary operational states</strong>:
+    </p>
+
+    <ul>
+      <li><strong>Running:</strong> The process currently owns a physical CPU core and its machine instructions are actively fetched, decoded, and executed by hardware registers. On a uniprocessor system, exactly one process can reside in the Running state at any given microsecond. On a multicore processor with <i>m</i> cores, at most <i>m</i> processes can run concurrently.</li>
+      <li><strong>Ready:</strong> The process possesses everything it requires to execute—its address space is mapped, its execution context is saved in its Process Control Block (PCB), and all input dependencies are satisfied. It is temporarily idle solely because the operating system scheduler has assigned the physical CPU core to another competing task.</li>
+      <li><strong>Blocked (or Waiting):</strong> The process is structurally incapable of executing instructions, even if all CPU cores sit completely idle. It is suspended awaiting the resolution of an external event—such as a disk block read completing, a network packet arriving from an Ethernet controller, an inter-process communication (IPC) pipe buffer becoming writable, or a sleep timer expiring.</li>
+    </ul>
+
+    <!-- Stepper 1: Three-State Process Transitions -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Three-State Process Transitions</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="dim-desktop" onclick="setDimension('desktop')">Timesharing OS</button>
+          <button class="dim-btn" id="dim-rtos" onclick="setDimension('rtos')">Real-Time (RTOS)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Scenario Arc</span>
+        <span id="scenario-text">Tracking interactive text editor <code>nano</code> (PID 1042) reading an encrypted config file while a background build (PID 2085) competes for compute cycles.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Current Phase</span>
+          <span class="telemetry-val" id="telem-phase">1. Direct User Mode Execution</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Active PID &amp; Privilege</span>
+          <span class="telemetry-val highlight" id="telem-pid">PID 1042 (Ring 3: User)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Trap / IRQ Vector</span>
+          <span class="telemetry-val" id="telem-irq">None (User Execution)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">CPU Registers (PC / SP)</span>
+          <span class="telemetry-val" id="telem-regs">PC: 0x004012A0 | SP: 0x7FFF00</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="state-canvas" viewBox="0 0 680 240">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+            </marker>
+            <marker id="arr-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+
+          <!-- Edges -->
+          <path id="edge-t1" class="svg-edge" d="M 500 135 C 440 185, 390 190, 365 190" marker-end="url(#arr)" />
+          <path id="edge-t2" class="svg-edge" d="M 480 75 C 380 15, 260 15, 165 75" marker-end="url(#arr)" />
+          <path id="edge-t3" class="svg-edge" d="M 165 95 C 260 145, 380 145, 480 95" marker-end="url(#arr)" />
+          <path id="edge-t4" class="svg-edge" d="M 245 190 C 220 190, 170 185, 110 135" marker-end="url(#arr)" />
+
+          <!-- Labels -->
+          <text id="lbl-t1" class="edge-badge" x="435" y="180">1. Block (read() Syscall)</text>
+          <text id="lbl-t2" class="edge-badge" x="265" y="32">2. Preempt (Timer Tick)</text>
+          <text id="lbl-t3" class="edge-badge" x="270" y="125">3. Scheduler Dispatch</text>
+          <text id="lbl-t4" class="edge-badge" x="90" y="180">4. Event Done (Disk IRQ)</text>
+
+          <!-- State Nodes -->
+          <g id="grp-ready" class="node-group" transform="translate(60, 65)">
+            <rect class="node-box" width="120" height="65" rx="8" />
+            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">READY</text>
+            <text class="node-sub" id="sub-ready" x="60" y="50" text-anchor="middle" fill="#64748b" font-family="var(--font-mono)" font-size="11">Queue: PID 2085</text>
+          </g>
+
+          <g id="grp-running" class="node-group active" transform="translate(480, 65)">
+            <rect class="node-box" width="120" height="65" rx="8" />
+            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">RUNNING</text>
+            <text class="node-sub" id="sub-running" x="60" y="50" text-anchor="middle" fill="#0284c7" font-family="var(--font-mono)" font-size="11">CPU: PID 1042</text>
+          </g>
+
+          <g id="grp-blocked" class="node-group" transform="translate(245, 155)">
+            <rect class="node-box" width="120" height="65" rx="8" />
+            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">BLOCKED</text>
+            <text class="node-sub" id="sub-blocked" x="60" y="50" text-anchor="middle" fill="#64748b" font-family="var(--font-mono)" font-size="11">Waiting: [Empty]</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Stepper Controls Beside Dedicated Narrative Summary Panel -->
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="btn-backward" onclick="moveStep(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="btn-forward" onclick="moveStep(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="btn-restart" onclick="restartWalkthrough()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="txt-narrative">Process 1042 is running directly on physical hardware; user registers update in silicon without kernel overhead. The step aims to sustain native execution speed until an unbuffered resource request occurs.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="txt-what">Process 1042 holds the CPU core in unprivileged User Mode (Ring 3). The hardware program counter fetches instructions natively from its address space until a disk read call is encountered.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="txt-why">Direct execution ensures user programs run at the full speed of bare silicon without emulation overhead. Protection rings ensure user space cannot tamper with hardware or other processes.</p>
+        </div>
+      </div>
+    </div>
+
+    <h4>In-Depth Breakdown of Each Transition</h4>
+    <ol>
+      <li>
+        <strong>Transition 1: Running &rarr; Blocked (Voluntary Suspension)</strong>
+        <p>
+          This transition occurs when a running process discovers that it cannot continue without external intervention. It executes a supervisor trap instruction (such as <code>syscall</code> or <code>int 0x80</code>) requesting an unbuffered service—such as reading a file block from disk, waiting for an incoming TCP socket packet, or locking an already acquired mutex.
+        </p>
+        <p>
+          Because mechanical disks or network round trips can take millions of CPU cycles, the operating system immediately moves the calling process into the <code>Blocked</code> queue. It marks the process status in its Process Control Block (PCB) and yields the CPU core so other computational work can proceed.
+        </p>
+      </li>
+      <li>
+        <strong>Transition 2: Running &rarr; Ready (Involuntary Preemption)</strong>
+        <p>
+          Unlike Transition 1, Transition 2 is initiated by the operating system kernel rather than by the running process itself. To prevent rogue or compute-heavy loops from monopolizing the CPU indefinitely, the motherboard features an independent, periodic hardware timer.
+        </p>
+        <p>
+          When the timer chip fires, it triggers a hardware interrupt, cleanly halting user-space execution and vectoring the CPU into the kernel's interrupt service routine. If the scheduler determines that the current process has exhausted its allocated time slice (quantum), the kernel saves its register state into the PCB, shifts its state label from <code>Running</code> to <code>Ready</code>, and moves it to the back of the ready list.
+        </p>
+      </li>
+      <li>
+        <strong>Transition 3: Ready &rarr; Running (Scheduler Dispatch)</strong>
+        <p>
+          Whenever the CPU core becomes free—due to the previous occupant blocking or being preempted—the kernel invokes the <strong>scheduler</strong> and <strong>dispatcher</strong>. The scheduler evaluates all candidate processes sitting in the <code>Ready</code> queue according to its scheduling policy (such as Round Robin, Priority Scheduling, or Multi-Level Feedback Queues).
+        </p>
+        <p>
+          Once a candidate is chosen, the dispatcher restores the saved registers, stack pointers, and address space base pointer (e.g., loading the page table root into register <code>CR3</code>) from the selected PCB, resets the hardware timer quantum, executes a return-from-trap instruction (such as <code>sysret</code> or <code>iret</code>), and drops privilege levels to user mode.
+        </p>
+      </li>
+      <li>
+        <strong>Transition 4: Blocked &rarr; Ready (Asynchronous Event Arrival)</strong>
+        <p>
+          When the external entity that caused the suspension finally completes its task—for example, the hard drive controller finishes DMA transfer of the requested file block into physical memory, or a network interface card receives a packet—it issues an asynchronous hardware interrupt to the CPU.
+        </p>
+        <p>
+          The kernel's interrupt handler acknowledges the device, identifies the sleeping process waiting on that specific event, and updates its state in the PCB from <code>Blocked</code> to <code>Ready</code>. Note that the process does <em>not</em> jump straight back into the <code>Running</code> state; it must join the queue of runnable candidates and await selection by the scheduler via Transition 3.
+        </p>
+      </li>
+    </ol>
+
+    <h4>Summary Matrix of State Transitions</h4>
+    <div style="overflow-x: auto; margin: 18px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px;">Transition</th>
+            <th style="padding: 10px 14px;">Initiator</th>
+            <th style="padding: 10px 14px;">Primary Cause</th>
+            <th style="padding: 10px 14px;">Nature</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">1. Running &rarr; Blocked</td>
+            <td style="padding: 10px 14px;">Running Process</td>
+            <td style="padding: 10px 14px;">Synchronous System Call (I/O request, lock wait)</td>
+            <td style="padding: 10px 14px; color: #0284c7; font-weight: 600;">Voluntary</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">2. Running &rarr; Ready</td>
+            <td style="padding: 10px 14px;">OS Kernel / Hardware Timer</td>
+            <td style="padding: 10px 14px;">Time quantum expiration, higher-priority task wakeup</td>
+            <td style="padding: 10px 14px; color: #dc2626; font-weight: 600;">Involuntary</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">3. Ready &rarr; Running</td>
+            <td style="padding: 10px 14px;">CPU Scheduler</td>
+            <td style="padding: 10px 14px;">Scheduler selection and context restoration</td>
+            <td style="padding: 10px 14px; color: #059669; font-weight: 600;">Kernel Decision</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">4. Blocked &rarr; Ready</td>
+            <td style="padding: 10px 14px;">Hardware Controller / External Event</td>
+            <td style="padding: 10px 14px;">I/O completion interrupt, signal delivery, timer expiry</td>
+            <td style="padding: 10px 14px; color: #7c3aed; font-weight: 600;">Asynchronous</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>3. Modeling Multiprogramming Efficiency</h3>
+    <p>
+      Multiprogramming aims to maximize CPU utilization by keeping multiple processes resident in main memory simultaneously. If a compute-bound process spends only a fraction of its total lifetime executing before waiting for I/O, a uniprocessor system executing only that single program would sit idle for the vast majority of wall-clock time.
+    </p>
+    <p>
+      We model this phenomenon probabilistically. Suppose a typical process spends a fraction <i>p</i> of its time waiting for I/O operations to complete. If <i>n</i> independent processes reside in memory simultaneously, the probability that all <i>n</i> processes are simultaneously waiting for I/O is <i>p</i><sup><i>n</i></sup>. Assuming process activities are mutually independent, the aggregate CPU utilization is expressed by the formula:
+    </p>
+    <div style="background: #0f172a; color: #38bdf8; font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; padding: 16px 20px; border-radius: 6px; margin: 16px 0; text-align: center; letter-spacing: 0.03em;">
+      CPU Utilization = 1 &minus; <i>p</i><sup style="color: #4ade80; font-size: 0.85em;"><i>n</i></sup>
+    </div>
+    <p>
+      While real-world processes are not strictly independent (as multiple processes may contend for the same shared disk arm or network interface), this probabilistic model illustrates the core mathematical justification for multiprogramming: increasing the degree of multiprogramming <i>n</i> exponentially drives down idle waste and saturates CPU execution pipelines.
+    </p>
+
+    <!-- Stepper 2: Multiprogramming Efficiency Stepper -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Multiprogramming Scaling &amp; CPU Saturation</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="dim-io" onclick="setMultiDim('io')">I/O-Intensive (p = 0.80)</button>
+          <button class="dim-btn" id="dim-cpu" onclick="setMultiDim('compute')">Compute-Intensive (p = 0.50)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Workload Scenario</span>
+        <span id="multi-scenario-text">Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under an I/O wait fraction of 80% (typical web server or database workload).</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Degree of Multiprogramming (n)</span>
+          <span class="telemetry-val highlight" id="m-telem-n">n = 1 Process</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">I/O Wait Fraction (p)</span>
+          <span class="telemetry-val" id="m-telem-p">p = 0.80 (80% I/O Wait)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">All-Waiting Probability (p<sup>n</sup>)</span>
+          <span class="telemetry-val alert" id="m-telem-pn">0.8000 (80.0% CPU Idle)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">CPU Utilization (1 - p<sup>n</sup>)</span>
+          <span class="telemetry-val" id="m-telem-util">20.0% Utilization</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="state-canvas" viewBox="0 0 680 230">
+          <!-- Memory Allocation Grid -->
+          <rect x="30" y="20" width="340" height="190" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+          <text x="45" y="42" fill="#0f172a" font-family="system-ui" font-size="12" font-weight="700">PHYSICAL RAM SLOTS (n = Resident Processes)</text>
+
+          <!-- 6 Process Slots in RAM -->
+          <g id="slot-1" transform="translate(45, 55)">
+            <rect width="90" height="65" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0369a1">P1 (Active)</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#64748b">In RAM</text>
+          </g>
+
+          <g id="slot-2" transform="translate(150, 55)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P2</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-3" transform="translate(255, 55)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P3</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-4" transform="translate(45, 130)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P4</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-5" transform="translate(150, 130)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P5</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-6" transform="translate(255, 130)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P6</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <!-- CPU Saturation Meter -->
+          <rect x="400" y="20" width="250" height="190" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+          <text x="415" y="42" fill="#0f172a" font-family="system-ui" font-size="12" font-weight="700">AGGREGATE CPU UTILIZATION</text>
+
+          <!-- Vertical Gauge Track -->
+          <rect x="420" y="60" width="40" height="130" rx="4" fill="#e2e8f0" />
+          <rect id="gauge-fill" x="420" y="164" width="40" height="26" rx="4" fill="#0284c7" style="transition: all 0.4s ease;" />
+
+          <text x="475" y="80" font-family="var(--font-mono)" font-size="11" fill="#64748b">100% Saturation</text>
+          <text x="475" y="125" font-family="var(--font-mono)" font-size="11" fill="#64748b">50% Utilization</text>
+          <text x="475" y="190" font-family="var(--font-mono)" font-size="11" fill="#64748b">0% (Pure Idle)</text>
+
+          <text id="gauge-text" x="475" y="155" font-family="var(--font-mono)" font-size="18" font-weight="700" fill="#0284c7">20.0%</text>
+        </svg>
+      </div>
+
+      <!-- Stepper Controls Beside Dedicated Narrative Summary Panel -->
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="m-btn-prev" onclick="stepMulti(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="m-btn-next" onclick="stepMulti(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="m-btn-reset" onclick="resetMulti()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="m-txt-narrative">Currently evaluating single-process execution (n = 1). The system attempts to run a process that blocks 80% of the time, resulting in 80% processor downtime. This step demonstrates the inherent waste of uniprogramming.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="m-txt-what">A single process is loaded into memory (n = 1). Since this process spends 80% of its execution waiting for disk blocks or network packets, the physical CPU sits completely idle for 80% of total runtime.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="m-txt-why">Single-programmed batch execution leaves fast silicon starved by slow peripheral I/O. Without another process ready to consume CPU cycles, expensive processing capability is wasted.</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <a href="02-process-lifecycle.html">Next: 02. Process Lifecycle &rarr;</a>
+    </nav>
+  </div>
+
+  <script>
+    // --- Stepper 1 Script: Three-State Process Transitions ---
+    const stepperData = {
+      desktop: [
+        {
+          phase: "1. Direct User Mode Execution",
+          pid: "PID 1042 (Ring 3: User)",
+          irq: "None (User Execution)",
+          regs: "PC: 0x004012A0 | SP: 0x7FFF00",
+          activeNode: "grp-running",
+          activeEdge: null,
+          activeLabel: null,
+          subReady: "Queue: PID 2085 (gcc)",
+          subRunning: "CPU: PID 1042 (nano)",
+          subBlocked: "Waiting: [Empty]",
+          narrative: "Process 1042 is currently executing directly on bare silicon in User Mode (Ring 3). The CPU fetches instructions natively to achieve peak arithmetic speed without kernel intervention, and will proceed until an unbuffered system call or timer tick interrupts it.",
+          what: "Process 1042 (editor) executes user-level instructions in CPU registers. It executes until reaching a read() system call to load an encrypted configuration file.",
+          why: "Direct execution maximizes performance: user instructions run natively on silicon without software interpretation or kernel overhead."
+        },
+        {
+          phase: "2. Voluntary Trap to Kernel (Transition 1)",
+          pid: "PID 1042 -> Kernel (Ring 0)",
+          irq: "Vector 128 (Syscall Trap Gate)",
+          regs: "Saved into PCB 1042",
+          activeNode: "grp-blocked",
+          activeEdge: "edge-t1",
+          activeLabel: "lbl-t1",
+          subReady: "Queue: PID 2085 (gcc)",
+          subRunning: "CPU: Context Switching...",
+          subBlocked: "Disk Wait: PID 1042",
+          narrative: "Process 1042 has issued a read() system call to load file data. Because disk reads take millions of CPU cycles, the kernel voluntarily suspends PID 1042, saves its register context into its Process Control Block, and moves it to the Blocked queue so the CPU is not wasted in busy-waiting polling.",
+          what: "Hardware traps into Ring 0. The kernel interrupt routine saves registers (RAX, RSP, RIP) into PCB 1042, moves it to the Blocked queue, and issues an async read to the NVMe controller.",
+          why: "Disk reads require thousands of CPU cycles. Yielding the CPU avoids wasteful busy-waiting polling and lets other productive processes run."
+        },
+        {
+          phase: "3. Scheduler Dispatch (Transition 3)",
+          pid: "PID 2085 (Ring 3: User)",
+          irq: "None (Restored via iret)",
+          regs: "PC: 0x0045A100 | SP: 0x7FFE40",
+          activeNode: "grp-running",
+          activeEdge: "edge-t3",
+          activeLabel: "lbl-t3",
+          subReady: "Queue: [Empty]",
+          subRunning: "CPU: PID 2085 (gcc)",
+          subBlocked: "Disk Wait: PID 1042",
+          narrative: "With the CPU freed, the operating system scheduler selects compiler process PID 2085 from the Ready queue. The kernel restores PID 2085's saved register context and memory map root (CR3), executing an iret/sysret instruction to return to user mode and saturate the processor.",
+          what: "The kernel evaluates runnable candidates, selects PID 2085 (compiler) from the Ready queue, loads its page table root into CR3, restores registers, and executes sysret/iret.",
+          why: "Multiprogramming keeps CPU utilization near 100%. The moment one task blocks on I/O, the scheduler immediately saturates the core with another."
+        },
+        {
+          phase: "4. Timer Tick Preemption (Transition 2)",
+          pid: "PID 2085 -> Kernel (Preempted)",
+          irq: "IRQ 0 / Vector 32 (Timer Interrupt)",
+          regs: "Saved into PCB 2085",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t2",
+          activeLabel: "lbl-t2",
+          subReady: "Queue: PID 2085 (gcc)",
+          subRunning: "CPU: Kernel Scheduler",
+          subBlocked: "Disk Wait: PID 1042",
+          narrative: "The motherboard interval timer chip fires an involuntary hardware interrupt after PID 2085 exhausts its allocated time slice. The kernel intervenes, halts the compiler, saves its registers, and shifts it back to the Ready queue to prevent compute-bound loops from starving other applications.",
+          what: "The hardware interval timer fires interrupt vector 32. The kernel detects PID 2085 has consumed its 10ms quantum, saves its registers, and shifts its state from Running to Ready.",
+          why: "Preemptive timesharing guarantees fairness. Without involuntary preemption, a compute-heavy loop or buggy application could lock up the machine indefinitely."
+        },
+        {
+          phase: "5. Asynchronous I/O Completion (Transition 4)",
+          pid: "PID 1042 -> Ready Queue",
+          irq: "IRQ 14 (Disk Controller DMA Interrupt)",
+          regs: "PCB 1042 Marked Runnable",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t4",
+          activeLabel: "lbl-t4",
+          subReady: "Queue: PID 2085, PID 1042",
+          subRunning: "CPU: Selecting Next...",
+          subBlocked: "Waiting: [Empty]",
+          narrative: "The disk controller completes the sector transfer into RAM via DMA and raises an interrupt. The kernel identifies that PID 1042's I/O dependency is now satisfied and moves it from Blocked to Ready. It does not seize the CPU immediately, but enters the queue to await fair scheduling.",
+          what: "The disk controller completes the DMA transfer into memory and fires an interrupt. The ISR locates PCB 1042, moves it to the Ready queue, and notifies the scheduler.",
+          why: "The newly awakened process cannot jump directly onto the CPU because another task may have priority. It must join the Ready queue and await fair dispatch."
+        }
+      ],
+      rtos: [
+        {
+          phase: "1. Real-Time Periodic Execution",
+          pid: "RT-PID 12 (Hard Deadline Task)",
+          irq: "None (Deterministic Burst)",
+          regs: "PC: 0x00004200 | SP: 0x200010",
+          activeNode: "grp-running",
+          activeEdge: null,
+          activeLabel: null,
+          subReady: "Ready: Low-Pri Telemetry",
+          subRunning: "CPU: RT-PID 12 (Sensor)",
+          subBlocked: "Waiting: [Empty]",
+          narrative: "High-priority flight control task RT-PID 12 executes attitude sensor sampling directly on the CPU core. The system is operating within a strictly bounded worst-case execution time (WCET) window to satisfy its 1ms real-time control deadline.",
+          what: "The flight control task samples inertial measurement sensors and writes attitude corrections within a 1ms hard deadline window.",
+          why: "Hard real-time systems prioritize strict timing predictability and bounded latency above all else."
+        },
+        {
+          phase: "2. Self-Suspension on Barrier (Transition 1)",
+          pid: "RT-PID 12 -> Sleep Barrier",
+          irq: "Kernel Sleep System Call",
+          regs: "Saved into TCB 12",
+          activeNode: "grp-blocked",
+          activeEdge: "edge-t1",
+          activeLabel: "lbl-t1",
+          subReady: "Ready: Low-Pri Telemetry",
+          subRunning: "CPU: RTOS Scheduler",
+          subBlocked: "Timer Barrier: RT-PID 12",
+          narrative: "Having finished its control calculation in 200 microseconds, RT-PID 12 voluntarily calls sleep_until() to await the next 10ms hardware sampling barrier. It transitions to Blocked so that idle clock cycles can be reclaimed by background housekeeping tasks.",
+          what: "Having completed its processing in 200 microseconds, RT-PID 12 relinquishes the processor until the next hardware sampling interval.",
+          why: "Explicitly sleeping until the next period prevents CPU spinning and frees cycles for background maintenance."
+        },
+        {
+          phase: "3. Low-Priority Background Task (Transition 3)",
+          pid: "PID 99 (Telemetry Logger)",
+          irq: "None (Low-Priority Execution)",
+          regs: "PC: 0x00018020 | SP: 0x200080",
+          activeNode: "grp-running",
+          activeEdge: "edge-t3",
+          activeLabel: "lbl-t3",
+          subReady: "Ready: [Empty]",
+          subRunning: "CPU: PID 99 (Logger)",
+          subBlocked: "Timer Barrier: RT-PID 12",
+          narrative: "The RTOS scheduler dispatches the low-priority telemetry logging task (PID 99) to run on the processor. While non-critical data packets are transmitted, the kernel remains primed to preempt this task immediately if a sensor event or deadline arrives.",
+          what: "A low-priority logger task transmits telemetry data while higher-priority control tasks are blocked.",
+          why: "Idle cycles are repurposed for non-critical work, provided background tasks can be preempted with microsecond latency."
+        },
+        {
+          phase: "4. Immediate Priority Preemption (Transition 2)",
+          pid: "PID 99 -> Ready Queue (Preempted)",
+          irq: "Hardware Sensor Clock IRQ",
+          regs: "Saved within 3 microseconds",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t2",
+          activeLabel: "lbl-t2",
+          subReady: "Ready: PID 99 (Logger)",
+          subRunning: "CPU: Preempting to RT",
+          subBlocked: "Timer Barrier: RT-PID 12",
+          narrative: "The periodic hardware sensor timer triggers a priority interrupt. Unlike desktop timesharing, the RTOS does not wait for a time quantum to expire; it halts the background logger within microseconds to ensure real-time predictability.",
+          what: "The periodic hardware clock fires. The kernel halts the low-priority logger immediately without waiting for a time slice to elapse.",
+          why: "Real-time operating systems cannot tolerate time slicing delays when a mission-critical deadline arrives."
+        },
+        {
+          phase: "5. High-Priority Wakeup & Immediate Run (Transition 4)",
+          pid: "RT-PID 12 -> Preemptive Dispatch",
+          irq: "Vector 16 (Sensor Timer Acknowledge)",
+          regs: "Restored to RT-PID 12",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t4",
+          activeLabel: "lbl-t4",
+          subReady: "Ready: PID 99 (Logger)",
+          subRunning: "CPU: Dispatched RT-PID 12",
+          subBlocked: "Waiting: [Empty]",
+          narrative: "The RTOS unblocks RT-PID 12, moves it through Ready, and dispatches it immediately to the CPU due to its strict priority dominance. This eliminates scheduling jitter and guarantees zero delay for critical flight controls.",
+          what: "The RT task moves to Ready and, having the highest priority in the system, immediately preempts all other tasks to seize the CPU core.",
+          why: "Strict priority preemptive scheduling ensures zero jitter for safety-critical execution loops."
+        }
+      ]
+    };
+
+    let activeDimension = "desktop";
+    let activeStepIdx = 0;
+
+    function renderStepper() {
+      const steps = stepperData[activeDimension];
+      const step = steps[activeStepIdx];
+
+      document.getElementById("telem-phase").textContent = step.phase;
+      document.getElementById("telem-pid").textContent = step.pid;
+      document.getElementById("telem-irq").textContent = step.irq;
+      document.getElementById("telem-regs").textContent = step.regs;
+
+      document.getElementById("sub-ready").textContent = step.subReady;
+      document.getElementById("sub-running").textContent = step.subRunning;
+      document.getElementById("sub-blocked").textContent = step.subBlocked;
+
+      ["grp-ready", "grp-running", "grp-blocked"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("active");
+      });
+      if (step.activeNode) {
+        const activeNodeEl = document.getElementById(step.activeNode);
+        if (activeNodeEl) activeNodeEl.classList.add("active");
+      }
+
+      ["edge-t1", "edge-t2", "edge-t3", "edge-t4"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("active");
+          el.setAttribute("marker-end", "url(#arr)");
+        }
+      });
+      if (step.activeEdge) {
+        const activeEdgeEl = document.getElementById(step.activeEdge);
+        if (activeEdgeEl) {
+          activeEdgeEl.classList.add("active");
+          activeEdgeEl.setAttribute("marker-end", "url(#arr-active)");
+        }
+      }
+
+      ["lbl-t1", "lbl-t2", "lbl-t3", "lbl-t4"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("active");
+      });
+      if (step.activeLabel) {
+        const activeLabelEl = document.getElementById(step.activeLabel);
+        if (activeLabelEl) activeLabelEl.classList.add("active");
+      }
+
+      // Dedicated Narrative Mini-Paragraph
+      document.getElementById("txt-narrative").textContent = step.narrative;
+      document.getElementById("btn-backward").disabled = (activeStepIdx === 0);
+      document.getElementById("btn-forward").disabled = (activeStepIdx === steps.length - 1);
+
+      document.getElementById("txt-what").textContent = step.what;
+      document.getElementById("txt-why").textContent = step.why;
+    }
+
+    function moveStep(delta) {
+      const steps = stepperData[activeDimension];
+      activeStepIdx = Math.max(0, Math.min(steps.length - 1, activeStepIdx + delta));
+      renderStepper();
+    }
+
+    function restartWalkthrough() {
+      activeStepIdx = 0;
+      renderStepper();
+    }
+
+    function setDimension(dim) {
+      activeDimension = dim;
+      activeStepIdx = 0;
+      document.getElementById("dim-desktop").classList.toggle("active", dim === "desktop");
+      document.getElementById("dim-rtos").classList.toggle("active", dim === "rtos");
+
+      const scenarioText = dim === "desktop"
+        ? "Tracking interactive text editor nano (PID 1042) reading an encrypted config file while a background build (PID 2085) competes for compute cycles."
+        : "Tracking mission-critical periodic flight sensor task (RT-PID 12) with hard 1ms deadline preempting background telemetry logger (PID 99).";
+      document.getElementById("scenario-text").innerHTML = scenarioText;
+
+      renderStepper();
+    }
+
+    // --- Stepper 2 Script: Multiprogramming Efficiency ---
+    const multiSteps = {
+      io: [
+        {
+          n: 1,
+          p: 0.80,
+          pn: 0.80,
+          util: 20.0,
+          narrative: "Currently evaluating single-process uniprogramming (n = 1) under an 80% I/O wait workload. The process leaves the CPU completely idle 80% of the time, demonstrating how slow peripherals starve fast execution silicon when no alternative tasks reside in memory.",
+          what: "A single process is loaded into RAM (n = 1). Since it spends 80% of its time blocked on I/O, the processor executes instructions only 20% of the time.",
+          why: "Single-process execution forces the CPU to sit idle during unbuffered peripheral access, leaving fast silicon completely unutilized."
+        },
+        {
+          n: 2,
+          p: 0.80,
+          pn: 0.64,
+          util: 36.0,
+          narrative: "Admitting a second process into RAM (n = 2) allows the scheduler to overlap independent I/O delays. The joint probability of both processes being blocked simultaneously drops to 0.80² = 0.64, increasing CPU utilization from 20% to 36%.",
+          what: "Two processes reside in RAM (n = 2). The probability that both are simultaneously blocked on I/O drops to 0.64. CPU utilization rises from 20% to 36%.",
+          why: "Whenever Process 1 blocks on a disk read, the operating system immediately switches the CPU to Process 2, reducing wasted cycles."
+        },
+        {
+          n: 3,
+          p: 0.80,
+          pn: 0.512,
+          util: 48.8,
+          narrative: "Three concurrent processes (n = 3) are resident in physical memory. The likelihood of all three waiting simultaneously drops to 0.80³ = 51.2%, lifting aggregate CPU utilization to nearly 50% and doubling baseline throughput.",
+          what: "Three processes reside concurrently in memory (n = 3). CPU utilization reaches 48.8%, more than double single-process throughput.",
+          why: "Statistically overlapping independent I/O bursts across multiple processes progressively masks physical device latency."
+        },
+        {
+          n: 4,
+          p: 0.80,
+          pn: 0.4096,
+          util: 59.0,
+          narrative: "Four processes reside in RAM (n = 4). Joint idle probability decreases to 41.0%, achieving 59.0% CPU saturation. The operating system now spends the majority of wall-clock time executing instructions rather than idling.",
+          what: "Four concurrent processes (n = 4) are scheduled. Total CPU utilization reaches 59.04%.",
+          why: "The system approaches stable multi-tasking where compute capacity is actively occupied for the majority of execution time."
+        },
+        {
+          n: 5,
+          p: 0.80,
+          pn: 0.3277,
+          util: 67.2,
+          narrative: "Five concurrent processes (n = 5) push CPU utilization to 67.2%. While throughput continues to climb, each additional process yields diminishing returns as the curve flattens toward saturation.",
+          what: "Five processes reside in memory (n = 5). CPU utilization increases to 67.23%.",
+          why: "Increasing the degree of multiprogramming yields substantial gains, but begins showing diminishing returns per additional process."
+        },
+        {
+          n: 6,
+          p: 0.80,
+          pn: 0.2621,
+          util: 73.8,
+          narrative: "Six concurrent processes (n = 6) achieve approximately 74% processor utilization. In practice, operating systems cap the degree of multiprogramming here because allocating further resident sets risks exhausting physical RAM and inducing page thrashing.",
+          what: "Six processes in memory achieve 73.79% utilization. Adding further processes yields diminishing CPU returns while escalating memory consumption.",
+          why: "The system balances high CPU saturation against memory exhaustion; adding too many tasks risks thrashing physical page frames."
+        }
+      ],
+      compute: [
+        {
+          n: 1,
+          p: 0.50,
+          pn: 0.50,
+          util: 50.0,
+          narrative: "Evaluating a single compute-bound task (p = 0.50). Because the process spends half its cycles calculating in registers, baseline uniprogrammed CPU utilization starts at 50% without requiring any secondary processes.",
+          what: "With p = 0.50, a single process yields 50% utilization on its own since half its cycles are dedicated purely to math and CPU operations.",
+          why: "Compute-bound tasks spend less time waiting on external devices, producing higher baseline single-process efficiency."
+        },
+        {
+          n: 2,
+          p: 0.50,
+          pn: 0.25,
+          util: 75.0,
+          narrative: "Admitting a second compute process (n = 2) drops the joint idle probability to 0.50² = 25%. Aggregate CPU utilization rapidly reaches 75%, demonstrating that compute-intensive workloads saturate silicon with very few concurrent tasks.",
+          what: "Two compute-heavy processes in RAM (n = 2). Probability of simultaneous I/O wait is only 25%, pushing CPU utilization to 75%.",
+          why: "Because compute-bound tasks execute longer on-core bursts, having just two resident tasks satisfies most scheduler timeslots."
+        },
+        {
+          n: 3,
+          p: 0.50,
+          pn: 0.125,
+          util: 87.5,
+          narrative: "Three compute tasks (n = 3) reduce processor idle probability to 12.5%, achieving 87.5% CPU utilization. Compute-bound workloads achieve near-saturation at half the degree of multiprogramming required by I/O workloads.",
+          what: "Three compute tasks reside in RAM (n = 3). CPU utilization rises to 87.5%.",
+          why: "For compute-bound workloads, optimal CPU saturation is achieved with far fewer concurrent tasks than in I/O-heavy environments."
+        },
+        {
+          n: 4,
+          p: 0.50,
+          pn: 0.0625,
+          util: 93.8,
+          narrative: "Four compute processes (n = 4) push processor utilization to 93.8%. Idle cycles are reduced to just 6.25%, keeping the processor cores almost completely occupied with instructions.",
+          what: "Four compute tasks in RAM (n = 4). CPU utilization reaches 93.75%.",
+          why: "At this stage, the processor is virtually fully occupied; almost no idle cycles remain unharvested."
+        },
+        {
+          n: 5,
+          p: 0.50,
+          pn: 0.0312,
+          util: 96.9,
+          narrative: "Five compute tasks (n = 5) reach 96.9% utilization. The marginal throughput gain from admitting another process is now less than 3%, meaning further scaling produces negligible compute value.",
+          what: "Five tasks in RAM yield 96.88% utilization. CPU idle time is less than 3.2%.",
+          why: "Additional multiprogramming produces negligible compute gains while multiplying context-switching and cache-eviction overhead."
+        },
+        {
+          n: 6,
+          p: 0.50,
+          pn: 0.0156,
+          util: 98.4,
+          narrative: "Six compute tasks (n = 6) achieve 98.4% CPU utilization, representing complete practical hardware saturation. Attempting to schedule additional tasks beyond this threshold will degrade performance through context switch and cache eviction overhead.",
+          what: "Six tasks yield 98.44% CPU utilization. The processor core is continuously saturated with executable instructions.",
+          why: "Further multiprogramming beyond this point offers zero throughput gains and begins degrading interactive responsiveness."
+        }
+      ]
+    };
+
+    let activeMultiDim = "io";
+    let activeMultiStep = 0;
+
+    function renderMultiStepper() {
+      const steps = multiSteps[activeMultiDim];
+      const step = steps[activeMultiStep];
+
+      document.getElementById("m-telem-n").textContent = `n = ${step.n} Process${step.n > 1 ? 'es' : ''}`;
+      document.getElementById("m-telem-p").textContent = `p = ${step.p.toFixed(2)} (${(step.p * 100).toFixed(0)}% I/O Wait)`;
+      document.getElementById("m-telem-pn").textContent = `${step.pn.toFixed(4)} (${(step.pn * 100).toFixed(1)}% CPU Idle)`;
+      document.getElementById("m-telem-util").textContent = `${step.util.toFixed(1)}% Utilization`;
+
+      // Update RAM Slots
+      for (let i = 1; i <= 6; i++) {
+        const slotEl = document.getElementById(`slot-${i}`);
+        if (!slotEl) continue;
+        const rect = slotEl.querySelector("rect");
+        const t1 = slotEl.querySelectorAll("text")[0];
+        const t2 = slotEl.querySelectorAll("text")[1];
+
+        if (i <= step.n) {
+          slotEl.setAttribute("opacity", "1");
+          rect.setAttribute("fill", "#e0f2fe");
+          rect.setAttribute("stroke", "#0284c7");
+          rect.setAttribute("stroke-width", "2");
+          rect.removeAttribute("stroke-dasharray");
+          t1.setAttribute("fill", "#0369a1");
+          t1.textContent = `P${i} (Active)`;
+          t2.textContent = "In RAM";
+        } else {
+          slotEl.setAttribute("opacity", "0.3");
+          rect.setAttribute("fill", "#f1f5f9");
+          rect.setAttribute("stroke", "#94a3b8");
+          rect.setAttribute("stroke-width", "1.5");
+          rect.setAttribute("stroke-dasharray", "3 3");
+          t1.setAttribute("fill", "#475569");
+          t1.textContent = `P${i}`;
+          t2.textContent = "Unallocated";
+        }
+      }
+
+      // Update Gauge Bar Height & Text
+      const gaugeHeight = 130 * (step.util / 100);
+      const gaugeY = 190 - gaugeHeight;
+      const gaugeFill = document.getElementById("gauge-fill");
+      gaugeFill.setAttribute("y", gaugeY);
+      gaugeFill.setAttribute("height", gaugeHeight);
+
+      if (step.util > 85) {
+        gaugeFill.setAttribute("fill", "#059669");
+      } else if (step.util > 50) {
+        gaugeFill.setAttribute("fill", "#0284c7");
+      } else {
+        gaugeFill.setAttribute("fill", "#d97706");
+      }
+
+      document.getElementById("gauge-text").textContent = `${step.util.toFixed(1)}%`;
+      document.getElementById("gauge-text").setAttribute("fill", step.util > 85 ? "#059669" : "#0284c7");
+
+      // Dedicated Narrative Mini-Paragraph
+      document.getElementById("m-txt-narrative").textContent = step.narrative;
+      document.getElementById("m-btn-prev").disabled = (activeMultiStep === 0);
+      document.getElementById("m-btn-next").disabled = (activeMultiStep === steps.length - 1);
+
+      document.getElementById("m-txt-what").textContent = step.what;
+      document.getElementById("m-txt-why").textContent = step.why;
+    }
+
+    function stepMulti(delta) {
+      const steps = multiSteps[activeMultiDim];
+      activeMultiStep = Math.max(0, Math.min(steps.length - 1, activeMultiStep + delta));
+      renderMultiStepper();
+    }
+
+    function resetMulti() {
+      activeMultiStep = 0;
+      renderMultiStepper();
+    }
+
+    function setMultiDim(dim) {
+      activeMultiDim = dim;
+      activeMultiStep = 0;
+      document.getElementById("dim-io").classList.toggle("active", dim === "io");
+      document.getElementById("dim-cpu").classList.toggle("active", dim === "compute");
+
+      const scenarioText = dim === "io"
+        ? "Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under an I/O wait fraction of 80% (typical web server or database workload)."
+        : "Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under a compute-bound workload with 50% I/O wait (typical compiler or simulation task).";
+      document.getElementById("multi-scenario-text").innerHTML = scenarioText;
+
+      renderMultiStepper();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderStepper();
+      renderMultiStepper();
+    });
+  </script>
+</body>
+</html>
+"""
+
+def apply_narrative_update():
+    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
+        f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully updated superscript formatting in {TARGET_FILE}")
+    print(f"--> Successfully updated {TARGET_FILE} with current-step narrative panels.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Fix formula formatting in Section 3 to properly render superscript exponent\n\n"
-            "Replace raw caret notation in the multiprogramming formula block and telemetry\n"
-            "with styled HTML <sup> elements and Unicode superscripts across the module."
+            "Update walkthrough panels to provide current step narrative summaries\n\n"
+            "Refactor interactive steppers in 01-process-model.html so navigation panels\n"
+            "provide an inline narrative summary of the current step and its objective."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -47,4 +1210,4 @@ def update_superscript_formatting():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_superscript_formatting()
+    apply_narrative_update()

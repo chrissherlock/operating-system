@@ -82,7 +82,7 @@
       color: #ffffff;
     }
 
-    /* Directed Narrative Stepper Standards */
+    /* Directed Narrative Stepper Layout */
     .aid-wrapper {
       margin: 32px 0;
       border: 1px solid var(--border);
@@ -176,22 +176,6 @@
     .telemetry-val.highlight { color: #4ade80; }
     .telemetry-val.alert { color: #f87171; }
 
-    .status-explanation-banner {
-      background: #1e293b;
-      color: #e2e8f0;
-      padding: 8px 18px;
-      font-size: 0.82rem;
-      font-family: var(--font-mono);
-      border-bottom: 1px solid #334155;
-      display: flex;
-      gap: 8px;
-      align-items: baseline;
-    }
-    .status-explanation-banner strong {
-      color: #38bdf8;
-      white-space: nowrap;
-    }
-
     .canvas-container {
       background: #ffffff;
       padding: 20px;
@@ -207,22 +191,28 @@
       overflow: visible;
     }
 
-    .controls-preview-strip {
-      padding: 12px 18px;
+    /* Stepper Controls & Current Step Mini-Paragraph Panel */
+    .controls-narrative-strip {
+      padding: 14px 18px;
       background: #f8fafc;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: auto 1fr;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
+      gap: 18px;
+    }
+    @media (max-width: 720px) {
+      .controls-narrative-strip {
+        grid-template-columns: 1fr;
+      }
     }
     .stepper-btn-group {
       display: flex;
       gap: 8px;
+      align-self: center;
     }
     .btn-step {
-      padding: 6px 14px;
+      padding: 7px 14px;
       font-size: 0.82rem;
       font-weight: 600;
       border-radius: 6px;
@@ -231,6 +221,7 @@
       color: #334155;
       cursor: pointer;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
     .btn-step:hover:not(:disabled) {
       background: #0f172a;
@@ -240,24 +231,23 @@
       opacity: 0.4;
       cursor: not-allowed;
     }
-    .foreshadow-preview {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .foreshadow-preview span.preview-badge {
-      background: #e2e8f0;
+    .narrative-preview-panel {
+      font-size: 0.84rem;
+      line-height: 1.5;
       color: #334155;
-      padding: 2px 6px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
       border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
+      padding: 10px 14px;
     }
-    .foreshadow-preview strong {
-      color: var(--accent);
+    .narrative-preview-panel strong {
+      color: #0f172a;
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
     }
 
     .analytical-grid {
@@ -397,7 +387,7 @@
       <li><strong>Blocked (or Waiting):</strong> The process is structurally incapable of executing instructions, even if all CPU cores sit completely idle. It is suspended awaiting the resolution of an external event—such as a disk block read completing, a network packet arriving from an Ethernet controller, an inter-process communication (IPC) pipe buffer becoming writable, or a sleep timer expiring.</li>
     </ul>
 
-    <!-- Stepper 1: Process State Transitions -->
+    <!-- Stepper 1: Three-State Process Transitions -->
     <div class="aid-wrapper">
       <div class="aid-header">
         <h4>Interactive Stepper: Three-State Process Transitions</h4>
@@ -429,11 +419,6 @@
           <span class="telemetry-label">CPU Registers (PC / SP)</span>
           <span class="telemetry-val" id="telem-regs">PC: 0x004012A0 | SP: 0x7FFF00</span>
         </div>
-      </div>
-
-      <div class="status-explanation-banner">
-        <strong>Stage Explanation:</strong>
-        <span id="telem-explanation">Process 1042 is running directly on physical hardware; user registers update in silicon without kernel overhead.</span>
       </div>
 
       <div class="canvas-container">
@@ -480,15 +465,16 @@
         </svg>
       </div>
 
-      <div class="controls-preview-strip">
+      <!-- Stepper Controls Beside Dedicated Narrative Summary Panel -->
+      <div class="controls-narrative-strip">
         <div class="stepper-btn-group">
           <button class="btn-step" id="btn-backward" onclick="moveStep(-1)" disabled>&larr; Previous</button>
           <button class="btn-step" id="btn-forward" onclick="moveStep(1)">Next Step &rarr;</button>
           <button class="btn-step" id="btn-restart" onclick="restartWalkthrough()">Reset</button>
         </div>
-        <div class="foreshadow-preview">
-          <span class="preview-badge">Next Step</span>
-          <strong id="txt-preview">Transition 1: Process issues read() system call to load config file</strong>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="txt-narrative">Process 1042 is running directly on physical hardware; user registers update in silicon without kernel overhead. The step aims to sustain native execution speed until an unbuffered resource request occurs.</span>
         </div>
       </div>
 
@@ -597,12 +583,14 @@
     <p>
       We model this phenomenon probabilistically. Suppose a typical process spends a fraction <i>p</i> of its time waiting for I/O operations to complete. If <i>n</i> independent processes reside in memory simultaneously, the probability that all <i>n</i> processes are simultaneously waiting for I/O is <i>p</i><sup><i>n</i></sup>. Assuming process activities are mutually independent, the aggregate CPU utilization is expressed by the formula:
     </p>
-    <div style="background: #0f172a; color: #38bdf8; font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; padding: 16px 20px; border-radius: 6px; margin: 16px 0; text-align: center; letter-spacing: 0.03em;">CPU Utilization = 1 &minus; <i>p</i><sup style="color: #4ade80; font-size: 0.85em;"><i>n</i></sup></div>
+    <div style="background: #0f172a; color: #38bdf8; font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; padding: 16px 20px; border-radius: 6px; margin: 16px 0; text-align: center; letter-spacing: 0.03em;">
+      CPU Utilization = 1 &minus; <i>p</i><sup style="color: #4ade80; font-size: 0.85em;"><i>n</i></sup>
+    </div>
     <p>
       While real-world processes are not strictly independent (as multiple processes may contend for the same shared disk arm or network interface), this probabilistic model illustrates the core mathematical justification for multiprogramming: increasing the degree of multiprogramming <i>n</i> exponentially drives down idle waste and saturates CPU execution pipelines.
     </p>
 
-    <!-- Stepper 2: Multiprogramming Efficiency Standard Stepper -->
+    <!-- Stepper 2: Multiprogramming Efficiency Stepper -->
     <div class="aid-wrapper">
       <div class="aid-header">
         <h4>Interactive Stepper: Multiprogramming Scaling &amp; CPU Saturation</h4>
@@ -627,18 +615,13 @@
           <span class="telemetry-val" id="m-telem-p">p = 0.80 (80% I/O Wait)</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">All-Waiting Probability (<i>p</i><sup><i>n</i></sup>)</span>
+          <span class="telemetry-label">All-Waiting Probability (p<sup>n</sup>)</span>
           <span class="telemetry-val alert" id="m-telem-pn">0.8000 (80.0% CPU Idle)</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">CPU Utilization (1 - p^n)</span>
+          <span class="telemetry-label">CPU Utilization (1 - p<sup>n</sup>)</span>
           <span class="telemetry-val" id="m-telem-util">20.0% Utilization</span>
         </div>
-      </div>
-
-      <div class="status-explanation-banner">
-        <strong>Stage Explanation:</strong>
-        <span id="m-telem-explanation">With only 1 process in memory, the CPU sits completely idle 80% of the time whenever the program waits for disk or network I/O.</span>
       </div>
 
       <div class="canvas-container">
@@ -690,7 +673,6 @@
 
           <!-- Vertical Gauge Track -->
           <rect x="420" y="60" width="40" height="130" rx="4" fill="#e2e8f0" />
-          <!-- Dynamic Utilization Fill -->
           <rect id="gauge-fill" x="420" y="164" width="40" height="26" rx="4" fill="#0284c7" style="transition: all 0.4s ease;" />
 
           <text x="475" y="80" font-family="var(--font-mono)" font-size="11" fill="#64748b">100% Saturation</text>
@@ -701,15 +683,16 @@
         </svg>
       </div>
 
-      <div class="controls-preview-strip">
+      <!-- Stepper Controls Beside Dedicated Narrative Summary Panel -->
+      <div class="controls-narrative-strip">
         <div class="stepper-btn-group">
           <button class="btn-step" id="m-btn-prev" onclick="stepMulti(-1)" disabled>&larr; Previous</button>
           <button class="btn-step" id="m-btn-next" onclick="stepMulti(1)">Next Step &rarr;</button>
           <button class="btn-step" id="m-btn-reset" onclick="resetMulti()">Reset</button>
         </div>
-        <div class="foreshadow-preview">
-          <span class="preview-badge">Next Step</span>
-          <strong id="m-txt-preview">Increase n = 2: Admit second concurrent process into memory</strong>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="m-txt-narrative">Currently evaluating single-process execution (n = 1). The system attempts to run a process that blocks 80% of the time, resulting in 80% processor downtime. This step demonstrates the inherent waste of uniprogramming.</span>
         </div>
       </div>
 
@@ -746,14 +729,13 @@
           pid: "PID 1042 (Ring 3: User)",
           irq: "None (User Execution)",
           regs: "PC: 0x004012A0 | SP: 0x7FFF00",
-          explanation: "Process 1042 is running directly on physical hardware; user registers update in silicon without kernel overhead.",
           activeNode: "grp-running",
           activeEdge: null,
           activeLabel: null,
           subReady: "Queue: PID 2085 (gcc)",
           subRunning: "CPU: PID 1042 (nano)",
           subBlocked: "Waiting: [Empty]",
-          nextPreview: "Transition 1: PID 1042 requests disk read via syscall trap",
+          narrative: "Process 1042 is currently executing directly on bare silicon in User Mode (Ring 3). The CPU fetches instructions natively to achieve peak arithmetic speed without kernel intervention, and will proceed until an unbuffered system call or timer tick interrupts it.",
           what: "Process 1042 (editor) executes user-level instructions in CPU registers. It executes until reaching a read() system call to load an encrypted configuration file.",
           why: "Direct execution maximizes performance: user instructions run natively on silicon without software interpretation or kernel overhead."
         },
@@ -762,14 +744,13 @@
           pid: "PID 1042 -> Kernel (Ring 0)",
           irq: "Vector 128 (Syscall Trap Gate)",
           regs: "Saved into PCB 1042",
-          explanation: "Process 1042 executes syscall trap; kernel marks PCB 1042 as Blocked and puts it in the disk wait queue.",
           activeNode: "grp-blocked",
           activeEdge: "edge-t1",
           activeLabel: "lbl-t1",
           subReady: "Queue: PID 2085 (gcc)",
           subRunning: "CPU: Context Switching...",
           subBlocked: "Disk Wait: PID 1042",
-          nextPreview: "Transition 3: Kernel scheduler dispatches PID 2085 to CPU",
+          narrative: "Process 1042 has issued a read() system call to load file data. Because disk reads take millions of CPU cycles, the kernel voluntarily suspends PID 1042, saves its register context into its Process Control Block, and moves it to the Blocked queue so the CPU is not wasted in busy-waiting polling.",
           what: "Hardware traps into Ring 0. The kernel interrupt routine saves registers (RAX, RSP, RIP) into PCB 1042, moves it to the Blocked queue, and issues an async read to the NVMe controller.",
           why: "Disk reads require thousands of CPU cycles. Yielding the CPU avoids wasteful busy-waiting polling and lets other productive processes run."
         },
@@ -778,14 +759,13 @@
           pid: "PID 2085 (Ring 3: User)",
           irq: "None (Restored via iret)",
           regs: "PC: 0x0045A100 | SP: 0x7FFE40",
-          explanation: "Scheduler picks PID 2085 from Ready queue; hardware registers restored and CPU returns to user space.",
           activeNode: "grp-running",
           activeEdge: "edge-t3",
           activeLabel: "lbl-t3",
           subReady: "Queue: [Empty]",
           subRunning: "CPU: PID 2085 (gcc)",
           subBlocked: "Disk Wait: PID 1042",
-          nextPreview: "Transition 2: Hardware timer fires, preempting PID 2085",
+          narrative: "With the CPU freed, the operating system scheduler selects compiler process PID 2085 from the Ready queue. The kernel restores PID 2085's saved register context and memory map root (CR3), executing an iret/sysret instruction to return to user mode and saturate the processor.",
           what: "The kernel evaluates runnable candidates, selects PID 2085 (compiler) from the Ready queue, loads its page table root into CR3, restores registers, and executes sysret/iret.",
           why: "Multiprogramming keeps CPU utilization near 100%. The moment one task blocks on I/O, the scheduler immediately saturates the core with another."
         },
@@ -794,14 +774,13 @@
           pid: "PID 2085 -> Kernel (Preempted)",
           irq: "IRQ 0 / Vector 32 (Timer Interrupt)",
           regs: "Saved into PCB 2085",
-          explanation: "Hardware timer expires PID 2085's quantum; kernel involuntarily moves PID 2085 into the Ready queue.",
           activeNode: "grp-ready",
           activeEdge: "edge-t2",
           activeLabel: "lbl-t2",
           subReady: "Queue: PID 2085 (gcc)",
           subRunning: "CPU: Kernel Scheduler",
           subBlocked: "Disk Wait: PID 1042",
-          nextPreview: "Transition 4: NVMe disk controller finishes DMA transfer and interrupts CPU",
+          narrative: "The motherboard interval timer chip fires an involuntary hardware interrupt after PID 2085 exhausts its allocated time slice. The kernel intervenes, halts the compiler, saves its registers, and shifts it back to the Ready queue to prevent compute-bound loops from starving other applications.",
           what: "The hardware interval timer fires interrupt vector 32. The kernel detects PID 2085 has consumed its 10ms quantum, saves its registers, and shifts its state from Running to Ready.",
           why: "Preemptive timesharing guarantees fairness. Without involuntary preemption, a compute-heavy loop or buggy application could lock up the machine indefinitely."
         },
@@ -810,14 +789,13 @@
           pid: "PID 1042 -> Ready Queue",
           irq: "IRQ 14 (Disk Controller DMA Interrupt)",
           regs: "PCB 1042 Marked Runnable",
-          explanation: "Disk controller signals completion via hardware interrupt; kernel moves PID 1042 from Blocked to Ready.",
           activeNode: "grp-ready",
           activeEdge: "edge-t4",
           activeLabel: "lbl-t4",
           subReady: "Queue: PID 2085, PID 1042",
           subRunning: "CPU: Selecting Next...",
           subBlocked: "Waiting: [Empty]",
-          nextPreview: "Cycle Complete: Click Reset to run simulation from start",
+          narrative: "The disk controller completes the sector transfer into RAM via DMA and raises an interrupt. The kernel identifies that PID 1042's I/O dependency is now satisfied and moves it from Blocked to Ready. It does not seize the CPU immediately, but enters the queue to await fair scheduling.",
           what: "The disk controller completes the DMA transfer into memory and fires an interrupt. The ISR locates PCB 1042, moves it to the Ready queue, and notifies the scheduler.",
           why: "The newly awakened process cannot jump directly onto the CPU because another task may have priority. It must join the Ready queue and await fair dispatch."
         }
@@ -828,14 +806,13 @@
           pid: "RT-PID 12 (Hard Deadline Task)",
           irq: "None (Deterministic Burst)",
           regs: "PC: 0x00004200 | SP: 0x200010",
-          explanation: "High-priority flight sensor task runs within guaranteed deterministic worst-case execution time (WCET).",
           activeNode: "grp-running",
           activeEdge: null,
           activeLabel: null,
           subReady: "Ready: Low-Pri Telemetry",
           subRunning: "CPU: RT-PID 12 (Sensor)",
           subBlocked: "Waiting: [Empty]",
-          nextPreview: "Transition 1: RT task completes frame and sleeps until next clock barrier",
+          narrative: "High-priority flight control task RT-PID 12 executes attitude sensor sampling directly on the CPU core. The system is operating within a strictly bounded worst-case execution time (WCET) window to satisfy its 1ms real-time control deadline.",
           what: "The flight control task samples inertial measurement sensors and writes attitude corrections within a 1ms hard deadline window.",
           why: "Hard real-time systems prioritize strict timing predictability and bounded latency above all else."
         },
@@ -844,14 +821,13 @@
           pid: "RT-PID 12 -> Sleep Barrier",
           irq: "Kernel Sleep System Call",
           regs: "Saved into TCB 12",
-          explanation: "Sensor task finishes early and calls sleep_until(); kernel shifts it to Blocked to yield CPU.",
           activeNode: "grp-blocked",
           activeEdge: "edge-t1",
           activeLabel: "lbl-t1",
           subReady: "Ready: Low-Pri Telemetry",
           subRunning: "CPU: RTOS Scheduler",
           subBlocked: "Timer Barrier: RT-PID 12",
-          nextPreview: "Transition 3: RTOS schedules background telemetry logger",
+          narrative: "Having finished its control calculation in 200 microseconds, RT-PID 12 voluntarily calls sleep_until() to await the next 10ms hardware sampling barrier. It transitions to Blocked so that idle clock cycles can be reclaimed by background housekeeping tasks.",
           what: "Having completed its processing in 200 microseconds, RT-PID 12 relinquishes the processor until the next hardware sampling interval.",
           why: "Explicitly sleeping until the next period prevents CPU spinning and frees cycles for background maintenance."
         },
@@ -860,14 +836,13 @@
           pid: "PID 99 (Telemetry Logger)",
           irq: "None (Low-Priority Execution)",
           regs: "PC: 0x00018020 | SP: 0x200080",
-          explanation: "RTOS executes background logging task, but keeps processor armed for immediate preemption.",
           activeNode: "grp-running",
           activeEdge: "edge-t3",
           activeLabel: "lbl-t3",
           subReady: "Ready: [Empty]",
           subRunning: "CPU: PID 99 (Logger)",
           subBlocked: "Timer Barrier: RT-PID 12",
-          nextPreview: "Transition 2: Sensor hardware trigger fires immediate priority preemption",
+          narrative: "The RTOS scheduler dispatches the low-priority telemetry logging task (PID 99) to run on the processor. While non-critical data packets are transmitted, the kernel remains primed to preempt this task immediately if a sensor event or deadline arrives.",
           what: "A low-priority logger task transmits telemetry data while higher-priority control tasks are blocked.",
           why: "Idle cycles are repurposed for non-critical work, provided background tasks can be preempted with microsecond latency."
         },
@@ -876,14 +851,13 @@
           pid: "PID 99 -> Ready Queue (Preempted)",
           irq: "Hardware Sensor Clock IRQ",
           regs: "Saved within 3 microseconds",
-          explanation: "Hardware timer tick wakes high-priority RT task; logger is instantly preempted without waiting for quantum.",
           activeNode: "grp-ready",
           activeEdge: "edge-t2",
           activeLabel: "lbl-t2",
           subReady: "Ready: PID 99 (Logger)",
           subRunning: "CPU: Preempting to RT",
           subBlocked: "Timer Barrier: RT-PID 12",
-          nextPreview: "Transition 4: High-priority task moved to Ready and immediately dispatched",
+          narrative: "The periodic hardware sensor timer triggers a priority interrupt. Unlike desktop timesharing, the RTOS does not wait for a time quantum to expire; it halts the background logger within microseconds to ensure real-time predictability.",
           what: "The periodic hardware clock fires. The kernel halts the low-priority logger immediately without waiting for a time slice to elapse.",
           why: "Real-time operating systems cannot tolerate time slicing delays when a mission-critical deadline arrives."
         },
@@ -892,14 +866,13 @@
           pid: "RT-PID 12 -> Preemptive Dispatch",
           irq: "Vector 16 (Sensor Timer Acknowledge)",
           regs: "Restored to RT-PID 12",
-          explanation: "RT-PID 12 transitions Blocked -> Ready and instantly seizes the CPU via strict priority scheduling.",
           activeNode: "grp-ready",
           activeEdge: "edge-t4",
           activeLabel: "lbl-t4",
           subReady: "Ready: PID 99 (Logger)",
           subRunning: "CPU: Dispatched RT-PID 12",
           subBlocked: "Waiting: [Empty]",
-          nextPreview: "Cycle Complete: Click Reset to run simulation from start",
+          narrative: "The RTOS unblocks RT-PID 12, moves it through Ready, and dispatches it immediately to the CPU due to its strict priority dominance. This eliminates scheduling jitter and guarantees zero delay for critical flight controls.",
           what: "The RT task moves to Ready and, having the highest priority in the system, immediately preempts all other tasks to seize the CPU core.",
           why: "Strict priority preemptive scheduling ensures zero jitter for safety-critical execution loops."
         }
@@ -917,7 +890,6 @@
       document.getElementById("telem-pid").textContent = step.pid;
       document.getElementById("telem-irq").textContent = step.irq;
       document.getElementById("telem-regs").textContent = step.regs;
-      document.getElementById("telem-explanation").textContent = step.explanation;
 
       document.getElementById("sub-ready").textContent = step.subReady;
       document.getElementById("sub-running").textContent = step.subRunning;
@@ -956,7 +928,8 @@
         if (activeLabelEl) activeLabelEl.classList.add("active");
       }
 
-      document.getElementById("txt-preview").textContent = step.nextPreview;
+      // Dedicated Narrative Mini-Paragraph
+      document.getElementById("txt-narrative").textContent = step.narrative;
       document.getElementById("btn-backward").disabled = (activeStepIdx === 0);
       document.getElementById("btn-forward").disabled = (activeStepIdx === steps.length - 1);
 
@@ -997,8 +970,7 @@
           p: 0.80,
           pn: 0.80,
           util: 20.0,
-          explanation: "With only 1 process in memory, the CPU sits completely idle 80% of the time whenever the program waits for disk or network I/O.",
-          nextPreview: "Increase n = 2: Admit second concurrent process into memory",
+          narrative: "Currently evaluating single-process uniprogramming (n = 1) under an 80% I/O wait workload. The process leaves the CPU completely idle 80% of the time, demonstrating how slow peripherals starve fast execution silicon when no alternative tasks reside in memory.",
           what: "A single process is loaded into RAM (n = 1). Since it spends 80% of its time blocked on I/O, the processor executes instructions only 20% of the time.",
           why: "Single-process execution forces the CPU to sit idle during unbuffered peripheral access, leaving fast silicon completely unutilized."
         },
@@ -1007,8 +979,7 @@
           p: 0.80,
           pn: 0.64,
           util: 36.0,
-          explanation: "Admitting a second process reduces the probability of both being simultaneously blocked to 0.80² = 0.64 (64% idle).",
-          nextPreview: "Increase n = 3: Admit third concurrent process into memory",
+          narrative: "Admitting a second process into RAM (n = 2) allows the scheduler to overlap independent I/O delays. The joint probability of both processes being blocked simultaneously drops to 0.80² = 0.64, increasing CPU utilization from 20% to 36%.",
           what: "Two processes reside in RAM (n = 2). The probability that both are simultaneously blocked on I/O drops to 0.64. CPU utilization rises from 20% to 36%.",
           why: "Whenever Process 1 blocks on a disk read, the operating system immediately switches the CPU to Process 2, reducing wasted cycles."
         },
@@ -1017,8 +988,7 @@
           p: 0.80,
           pn: 0.512,
           util: 48.8,
-          explanation: "With 3 processes, the chance of all 3 being blocked drops to 0.80³ = 51.2%, pushing CPU utilization close to 50%.",
-          nextPreview: "Increase n = 4: Admit fourth concurrent process into memory",
+          narrative: "Three concurrent processes (n = 3) are resident in physical memory. The likelihood of all three waiting simultaneously drops to 0.80³ = 51.2%, lifting aggregate CPU utilization to nearly 50% and doubling baseline throughput.",
           what: "Three processes reside concurrently in memory (n = 3). CPU utilization reaches 48.8%, more than double single-process throughput.",
           why: "Statistically overlapping independent I/O bursts across multiple processes progressively masks physical device latency."
         },
@@ -1027,8 +997,7 @@
           p: 0.80,
           pn: 0.4096,
           util: 59.0,
-          explanation: "Four processes in memory reduce joint I/O wait probability to 41.0%, bringing CPU utilization up to 59.0%.",
-          nextPreview: "Increase n = 5: Admit fifth concurrent process into memory",
+          narrative: "Four processes reside in RAM (n = 4). Joint idle probability decreases to 41.0%, achieving 59.0% CPU saturation. The operating system now spends the majority of wall-clock time executing instructions rather than idling.",
           what: "Four concurrent processes (n = 4) are scheduled. Total CPU utilization reaches 59.04%.",
           why: "The system approaches stable multi-tasking where compute capacity is actively occupied for the majority of execution time."
         },
@@ -1037,8 +1006,7 @@
           p: 0.80,
           pn: 0.3277,
           util: 67.2,
-          explanation: "Five processes drive CPU utilization to 67.2%, with joint idle time dropping below one-third (32.8%).",
-          nextPreview: "Increase n = 6: Scale to high-density multiprogramming",
+          narrative: "Five concurrent processes (n = 5) push CPU utilization to 67.2%. While throughput continues to climb, each additional process yields diminishing returns as the curve flattens toward saturation.",
           what: "Five processes reside in memory (n = 5). CPU utilization increases to 67.23%.",
           why: "Increasing the degree of multiprogramming yields substantial gains, but begins showing diminishing returns per additional process."
         },
@@ -1047,8 +1015,7 @@
           p: 0.80,
           pn: 0.2621,
           util: 73.8,
-          explanation: "Six processes in memory achieve nearly 74% CPU utilization, recovering almost 4x the throughput of single-tasking.",
-          nextPreview: "Scale Max: Click Reset to run multiprogramming model from start",
+          narrative: "Six concurrent processes (n = 6) achieve approximately 74% processor utilization. In practice, operating systems cap the degree of multiprogramming here because allocating further resident sets risks exhausting physical RAM and inducing page thrashing.",
           what: "Six processes in memory achieve 73.79% utilization. Adding further processes yields diminishing CPU returns while escalating memory consumption.",
           why: "The system balances high CPU saturation against memory exhaustion; adding too many tasks risks thrashing physical page frames."
         }
@@ -1059,8 +1026,7 @@
           p: 0.50,
           pn: 0.50,
           util: 50.0,
-          explanation: "Compute-intensive tasks spend 50% of time computing; a single process yields 50% utilization immediately.",
-          nextPreview: "Increase n = 2: Double the degree of multiprogramming",
+          narrative: "Evaluating a single compute-bound task (p = 0.50). Because the process spends half its cycles calculating in registers, baseline uniprogrammed CPU utilization starts at 50% without requiring any secondary processes.",
           what: "With p = 0.50, a single process yields 50% utilization on its own since half its cycles are dedicated purely to math and CPU operations.",
           why: "Compute-bound tasks spend less time waiting on external devices, producing higher baseline single-process efficiency."
         },
@@ -1069,8 +1035,7 @@
           p: 0.50,
           pn: 0.25,
           util: 75.0,
-          explanation: "Admitting a second compute task drops joint idle time to 0.50² = 25%, rapidly reaching 75% utilization.",
-          nextPreview: "Increase n = 3: Approach 90% CPU saturation",
+          narrative: "Admitting a second compute process (n = 2) drops the joint idle probability to 0.50² = 25%. Aggregate CPU utilization rapidly reaches 75%, demonstrating that compute-intensive workloads saturate silicon with very few concurrent tasks.",
           what: "Two compute-heavy processes in RAM (n = 2). Probability of simultaneous I/O wait is only 25%, pushing CPU utilization to 75%.",
           why: "Because compute-bound tasks execute longer on-core bursts, having just two resident tasks satisfies most scheduler timeslots."
         },
@@ -1079,8 +1044,7 @@
           p: 0.50,
           pn: 0.125,
           util: 87.5,
-          explanation: "Three processes drive joint idle probability to 12.5%, achieving 87.5% CPU utilization.",
-          nextPreview: "Increase n = 4: Saturate CPU above 90%",
+          narrative: "Three compute tasks (n = 3) reduce processor idle probability to 12.5%, achieving 87.5% CPU utilization. Compute-bound workloads achieve near-saturation at half the degree of multiprogramming required by I/O workloads.",
           what: "Three compute tasks reside in RAM (n = 3). CPU utilization rises to 87.5%.",
           why: "For compute-bound workloads, optimal CPU saturation is achieved with far fewer concurrent tasks than in I/O-heavy environments."
         },
@@ -1089,8 +1053,7 @@
           p: 0.50,
           pn: 0.0625,
           util: 93.8,
-          explanation: "Four compute processes push CPU utilization to 93.8%, leaving the processor idle only 6.25% of the time.",
-          nextPreview: "Increase n = 5: Near-complete silicon saturation",
+          narrative: "Four compute processes (n = 4) push processor utilization to 93.8%. Idle cycles are reduced to just 6.25%, keeping the processor cores almost completely occupied with instructions.",
           what: "Four compute tasks in RAM (n = 4). CPU utilization reaches 93.75%.",
           why: "At this stage, the processor is virtually fully occupied; almost no idle cycles remain unharvested."
         },
@@ -1099,8 +1062,7 @@
           p: 0.50,
           pn: 0.0312,
           util: 96.9,
-          explanation: "Five compute tasks achieve 96.9% utilization; adding further tasks yields negligible CPU gains.",
-          nextPreview: "Increase n = 6: Maximum saturation limit",
+          narrative: "Five compute tasks (n = 5) reach 96.9% utilization. The marginal throughput gain from admitting another process is now less than 3%, meaning further scaling produces negligible compute value.",
           what: "Five tasks in RAM yield 96.88% utilization. CPU idle time is less than 3.2%.",
           why: "Additional multiprogramming produces negligible compute gains while multiplying context-switching and cache-eviction overhead."
         },
@@ -1109,8 +1071,7 @@
           p: 0.50,
           pn: 0.0156,
           util: 98.4,
-          explanation: "Six compute processes achieve 98.4% CPU utilization, representing near-perfect hardware saturation.",
-          nextPreview: "Scale Max: Click Reset to run multiprogramming model from start",
+          narrative: "Six compute tasks (n = 6) achieve 98.4% CPU utilization, representing complete practical hardware saturation. Attempting to schedule additional tasks beyond this threshold will degrade performance through context switch and cache eviction overhead.",
           what: "Six tasks yield 98.44% CPU utilization. The processor core is continuously saturated with executable instructions.",
           why: "Further multiprogramming beyond this point offers zero throughput gains and begins degrading interactive responsiveness."
         }
@@ -1124,14 +1085,12 @@
       const steps = multiSteps[activeMultiDim];
       const step = steps[activeMultiStep];
 
-      // Update Live Telemetry
       document.getElementById("m-telem-n").textContent = `n = ${step.n} Process${step.n > 1 ? 'es' : ''}`;
       document.getElementById("m-telem-p").textContent = `p = ${step.p.toFixed(2)} (${(step.p * 100).toFixed(0)}% I/O Wait)`;
       document.getElementById("m-telem-pn").textContent = `${step.pn.toFixed(4)} (${(step.pn * 100).toFixed(1)}% CPU Idle)`;
       document.getElementById("m-telem-util").textContent = `${step.util.toFixed(1)}% Utilization`;
-      document.getElementById("m-telem-explanation").textContent = step.explanation;
 
-      // Update RAM Slots in SVG
+      // Update RAM Slots
       for (let i = 1; i <= 6; i++) {
         const slotEl = document.getElementById(`slot-${i}`);
         if (!slotEl) continue;
@@ -1161,14 +1120,12 @@
       }
 
       // Update Gauge Bar Height & Text
-      // Total gauge height = 130px, base y = 190. Height = 130 * (util / 100). y = 190 - height.
       const gaugeHeight = 130 * (step.util / 100);
       const gaugeY = 190 - gaugeHeight;
       const gaugeFill = document.getElementById("gauge-fill");
       gaugeFill.setAttribute("y", gaugeY);
       gaugeFill.setAttribute("height", gaugeHeight);
 
-      // Color transition from blue to green as saturation approaches 90%+
       if (step.util > 85) {
         gaugeFill.setAttribute("fill", "#059669");
       } else if (step.util > 50) {
@@ -1180,12 +1137,11 @@
       document.getElementById("gauge-text").textContent = `${step.util.toFixed(1)}%`;
       document.getElementById("gauge-text").setAttribute("fill", step.util > 85 ? "#059669" : "#0284c7");
 
-      // Update Navigation & Foreshadowed Preview
-      document.getElementById("m-txt-preview").textContent = step.nextPreview;
+      // Dedicated Narrative Mini-Paragraph
+      document.getElementById("m-txt-narrative").textContent = step.narrative;
       document.getElementById("m-btn-prev").disabled = (activeMultiStep === 0);
       document.getElementById("m-btn-next").disabled = (activeMultiStep === steps.length - 1);
 
-      // Update Paired Analytical Panes
       document.getElementById("m-txt-what").textContent = step.what;
       document.getElementById("m-txt-why").textContent = step.why;
     }
