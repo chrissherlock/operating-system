@@ -1,16 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create 04-classical-synchronization.html in Week 4
-# =====================================================================
-import os
-import subprocess
-
-TARGET_FILE = os.path.join(
-    "week04-concurrency-and-mutual-exclusion",
-    "04-classical-synchronization.html"
-)
-
-MODULE_HTML = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -907,27 +895,3 @@ semaphore db_mutex = <span class="syn-num">1</span>; <span class="syn-cmt">/* Ex
   </script>
 </body>
 </html>
-"""
-
-def generate_module_four():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-
-    print(f"--> Successfully created {TARGET_FILE}")
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Add Module 04 Classical Synchronization Problems with stepper\n\n"
-            "Cover Bounded-Buffer semaphore ordering deadlocks, Dining Philosophers\n"
-            "symmetry breaking, Readers-Writers starvation, and an interactive aid."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    generate_module_four()
