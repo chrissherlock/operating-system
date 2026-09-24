@@ -269,60 +269,58 @@
             </div>
           </div>
 
-          <div class="visual-canvas">
+                    <div class="visual-canvas">
             <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 8px; color: var(--primary);">Synchronized Visual Canvas &mdash; RAG State</div>
 
-            <!-- SVG Step Graphics -->
-            <div id="step-1-gfx" style="display:block;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <circle cx="70" cy="80" r="22" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                <text x="70" y="85" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">P1</text>
-                <rect x="180" y="65" width="40" height="30" rx="4" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-                <text x="200" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">R1</text>
-                <line x1="92" y1="75" x2="178" y2="75" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
-                <text x="135" y="68" fill="#0284c7" font-size="9">Req</text>
-              </svg>
-            </div>
+            <!-- Unified Interactive SVG Canvas -->
+            <svg viewBox="0 0 300 180" style="width: 100%; max-width: 280px; height: auto; background: #0f172a; border-radius: 8px; padding: 10px;">
+              <defs>
+                <marker id="arrow-std" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 2 L 10 5 L 0 8 z" fill="#64748b"/>
+                </marker>
+                <marker id="arrow-active" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 2 L 10 5 L 0 8 z" fill="#38bdf8"/>
+                </marker>
+                <marker id="arrow-danger" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 2 L 10 5 L 0 8 z" fill="#ef4444"/>
+                </marker>
+              </defs>
 
-            <div id="step-2-gfx" style="display:none;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <circle cx="70" cy="50" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                <text x="70" y="54" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P1</text>
-                <circle cx="70" cy="110" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                <text x="70" y="114" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P2</text>
-                <rect x="180" y="65" width="40" height="30" rx="4" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-                <text x="200" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">R2</text>
-                <line x1="88" y1="55" x2="178" y2="72" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
-                <line x1="88" y1="105" x2="178" y2="88" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
-              </svg>
-            </div>
+              <!-- Edges (Rendered behind nodes) -->
+              <!-- Edge 1: P1 -> R1 (Top horizontal) -->
+              <line id="svg-edge-p1-r1" x1="75" y1="50" x2="205" y2="50" stroke="#334155" stroke-width="2" marker-end="url(#arrow-std)" />
+              <text id="svg-txt-p1-r1" x="140" y="42" fill="#64748b" font-size="8" text-anchor="middle" opacity="0">req</text>
 
-            <div id="step-3-gfx" style="display:none;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <circle cx="60" cy="80" r="18" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="60" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P1</text>
-                <circle cx="220" cy="80" r="18" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="220" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P2</text>
-                <rect x="125" y="30" width="30" height="24" rx="3" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="140" y="46" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">R1</text>
-                <rect x="125" y="110" width="30" height="24" rx="3" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="140" y="126" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">R2</text>
-                <line x1="75" y1="70" x2="125" y2="45" stroke="#dc2626" stroke-width="2"/>
-                <line x1="155" y1="45" x2="205" y2="70" stroke="#dc2626" stroke-width="2"/>
-                <line x1="205" y1="90" x2="155" y2="115" stroke="#dc2626" stroke-width="2"/>
-                <line x1="125" y1="115" x2="75" y2="90" stroke="#dc2626" stroke-width="2"/>
-              </svg>
-            </div>
+              <!-- Edge 2: R1 -> P2 (Right vertical) -->
+              <line id="svg-edge-r1-p2" x1="220" y1="65" x2="220" y2="115" stroke="#334155" stroke-width="2" marker-end="url(#arrow-std)" />
+              <text id="svg-txt-r1-p2" x="232" y="94" fill="#64748b" font-size="8" text-anchor="middle" opacity="0">alloc</text>
 
-            <div id="step-4-gfx" style="display:none;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <rect x="40" y="50" width="200" height="60" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
-                <text x="140" y="75" fill="#dc2626" font-size="12" font-weight="bold" text-anchor="middle">DEADLOCK DETECTED</text>
-                <text x="140" y="92" fill="#7f1d1d" font-size="10" text-anchor="middle">Cycle = Deadlock (Single-Instance)</text>
-              </svg>
-            </div>
+              <!-- Edge 3: P2 -> R2 (Bottom horizontal) -->
+              <line id="svg-edge-p2-r2" x1="205" y1="130" x2="75" y2="130" stroke="#334155" stroke-width="2" marker-end="url(#arrow-std)" />
+              <text id="svg-txt-p2-r2" x="140" y="142" fill="#64748b" font-size="8" text-anchor="middle" opacity="0">req</text>
+
+              <!-- Edge 4: R2 -> P1 (Left vertical) -->
+              <line id="svg-edge-r2-p1" x1="60" y1="115" x2="60" y2="65" stroke="#334155" stroke-width="2" marker-end="url(#arrow-std)" />
+              <text id="svg-txt-r2-p1" x="48" y="94" fill="#64748b" font-size="8" text-anchor="middle" opacity="0">alloc</text>
+
+              <!-- Nodes -->
+              <!-- P1 Node (Top-Left) -->
+              <circle id="svg-node-p1" cx="60" cy="50" r="18" fill="#1e293b" stroke="#475569" stroke-width="2" />
+              <text x="60" y="54" fill="#f8fafc" font-size="11" font-weight="bold" text-anchor="middle">P1</text>
+
+              <!-- R1 Node (Top-Right) -->
+              <rect id="svg-node-r1" x="205" y="35" width="30" height="30" rx="4" fill="#1e293b" stroke="#475569" stroke-width="2" />
+              <text x="220" y="54" fill="#fbbf24" font-size="10" font-weight="bold" text-anchor="middle">R1</text>
+
+              <!-- P2 Node (Bottom-Right) -->
+              <circle id="svg-node-p2" cx="220" cy="130" r="18" fill="#1e293b" stroke="#475569" stroke-width="2" />
+              <text x="220" y="134" fill="#f8fafc" font-size="11" font-weight="bold" text-anchor="middle">P2</text>
+
+              <!-- R2 Node (Bottom-Left) -->
+              <rect id="svg-node-r2" x="45" y="115" width="30" height="30" rx="4" fill="#1e293b" stroke="#475569" stroke-width="2" />
+              <text x="60" y="134" fill="#fbbf24" font-size="10" font-weight="bold" text-anchor="middle">R2</text>
+            </svg>
           </div>
-        </div>
 
         <div class="panes-grid">
           <div class="pane-box" style="border-left: 3px solid var(--success);">
@@ -472,9 +470,53 @@
       document.getElementById('pane-what').innerText = data.what;
       document.getElementById('pane-why').innerText = data.why;
 
-      for (let i = 1; i <= totalSteps; i++) {
-        const gfx = document.getElementById(`step-${i}-gfx`);
-        if (gfx) gfx.style.display = (i === currentStep) ? 'block' : 'none';
+      // Dynamic Unified SVG Canvas State Updates
+      const e1 = document.getElementById('svg-edge-p1-r1');
+      const e2 = document.getElementById('svg-edge-r1-p2');
+      const e3 = document.getElementById('svg-edge-p2-r2');
+      const e4 = document.getElementById('svg-edge-r2-p1');
+
+      const t1 = document.getElementById('svg-txt-p1-r1');
+      const t2 = document.getElementById('svg-txt-r1-p2');
+      const t3 = document.getElementById('svg-txt-p2-r2');
+      const t4 = document.getElementById('svg-txt-r2-p1');
+
+      // Reset all edges to default inactive state
+      [e1, e2, e3, e4].forEach(e => {
+        e.setAttribute('stroke', '#334155');
+        e.setAttribute('stroke-width', '2');
+        e.setAttribute('marker-end', 'url(#arrow-std)');
+      });
+      [t1, t2, t3, t4].forEach(t => t.style.opacity = '0');
+
+      if (currentStep === 1) {
+        // P1 -> R1
+        e1.setAttribute('stroke', '#38bdf8');
+        e1.setAttribute('stroke-width', '2.5');
+        e1.setAttribute('marker-end', 'url(#arrow-active)');
+        t1.style.opacity = '1';
+      } else if (currentStep === 2) {
+        // P1 -> R1 and R1 -> P2
+        e1.setAttribute('stroke', '#38bdf8');
+        e1.setAttribute('stroke-width', '2.5');
+        e1.setAttribute('marker-end', 'url(#arrow-active)');
+        t1.style.opacity = '1';
+
+        e2.setAttribute('stroke', '#38bdf8');
+        e2.setAttribute('stroke-width', '2.5');
+        e2.setAttribute('marker-end', 'url(#arrow-active)');
+        t2.style.opacity = '1';
+      } else if (currentStep === 3 || currentStep === 4) {
+        // Full closed cycle: P1 -> R1 -> P2 -> R2 -> P1 (Illuminated in danger/red)
+        [e1, e2, e3, e4].forEach(e => {
+          e.setAttribute('stroke', '#ef4444');
+          e.setAttribute('stroke-width', '3');
+          e.setAttribute('marker-end', 'url(#arrow-danger)');
+        });
+        [t1, t2, t3, t4].forEach(t => {
+          t.style.opacity = '1';
+          t.style.fill = '#fca5a5';
+        });
       }
 
       document.getElementById('prev-btn').disabled = (currentStep === 1);
