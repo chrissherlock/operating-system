@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Incorporate Database Deadlock Simulator into Week 6
+# fix.py: Incorporate IPC Message Passing Deadlock Simulator into Week 6
 # =====================================================================
 import os
 import subprocess
 
 TARGET_DIR = "week06-synchronization-and-deadlock"
-TARGET_FILE = os.path.join(TARGET_DIR, "database-deadlock.html")
+TARGET_FILE = os.path.join(TARGET_DIR, "ipc-deadlock.html")
 
 SIMULATOR_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database Deadlock Simulator - COSC240</title>
+    <title>IPC Message Passing Deadlock - COSC240</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -32,7 +32,7 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
             font-family: var(--font-sans);
             background-color: var(--bg);
             color: var(--text);
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 30px auto;
             padding: 20px;
             border-radius: 12px;
@@ -70,24 +70,29 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
             color: #991b1b;
             border: 1px solid #fecaca;
         }
-        #alert-banner.resolved {
-            background-color: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
+        .generator-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .grid-container {
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
+            align-items: stretch;
         }
         .column {
             flex: 1;
-            min-width: 300px;
+            min-width: 280px;
             background: #fdfefe;
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
         }
         .column h3 {
             margin-top: 0;
@@ -97,31 +102,59 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
             border-bottom: 2px solid var(--border);
             padding-bottom: 10px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        th, td {
-            border: 1px solid var(--border);
-            padding: 10px;
+        .thread-state {
             text-align: center;
-            font-size: 0.95em;
-        }
-        th {
-            background-color: #f1f5f9;
-            color: var(--primary);
+            margin-bottom: 15px;
             font-weight: 700;
+            font-size: 0.85em;
+            padding: 6px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            letter-spacing: 0.04em;
         }
-        .lock-status {
-            font-weight: 600;
+        .state-running { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .state-blocked { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .state-finished { background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+        .queue-container {
+            flex: 0.8;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            background: #f8fafc;
+        }
+        .queue-box {
+            border: 2px dashed var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            position: relative;
+        }
+        .queue-title {
+            font-weight: 700;
+            font-size: 0.82em;
             color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
-        .locked-a { background-color: #e0f2fe; color: #0369a1; font-weight: 700; }
-        .locked-b { background-color: #f3e8ff; color: #6b21a8; font-weight: 700; }
+        .message {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.82em;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            display: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #fde68a;
+        }
 
         .code-line {
             font-family: var(--font-mono);
@@ -137,7 +170,6 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
         .code-line.active-a { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700; }
         .code-line.active-b { background: #f3e8ff; color: #6b21a8; border-color: #e9d5ff; font-weight: 700; }
         .code-line.waiting { background: #fee2e2; color: #991b1b; border-color: #fecaca; font-weight: 700; border-style: dashed; }
-        .code-line.aborted { background: #f1f5f9; color: #94a3b8; text-decoration: line-through; }
         .code-line.success { background: #dcfce7; color: #166534; border-color: #bbf7d0; font-weight: 700; }
 
         .controls {
@@ -160,8 +192,11 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
         }
         button:hover { background-color: var(--accent); }
         button:disabled { background-color: #cbd5e1; cursor: not-allowed; }
-        button.btn-reset { background-color: #64748b; }
-        button.btn-reset:hover { background-color: #475569; }
+
+        .btn-safe { background-color: #16a34a; }
+        .btn-safe:hover { background-color: #15803d; }
+        .btn-deadlock { background-color: #dc2626; }
+        .btn-deadlock:hover { background-color: #b91c1c; }
 
         .module-nav-bar {
             display: flex;
@@ -195,192 +230,203 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
 <nav class="module-nav-bar">
     <a href="dining-philosophers.html" class="module-nav-btn">&larr; Dining Philosophers</a>
     <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid var(--border); border-radius: 6px; color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 6 Hub</a>
-    <a href="ipc-deadlock.html" class="module-nav-btn">IPC Deadlock &rarr;</a>
+    <span class="module-nav-placeholder">&nbsp;</span>
 </nav>
 
-    <h2>Database Transaction Deadlock Simulator</h2>
-    <p class="instruction">Step through time to watch two concurrent database transactions acquire row-level locks, enter a circular wait, and trigger a DBMS rollback.</p>
+    <h2>IPC Message Passing Deadlock</h2>
+    <p class="instruction">Step through a communication sequence to see how blocking receive calls can create a cyclic dependency over logical channels.</p>
 
-    <div id="alert-banner">Step 0: Transactions initialized. Click "Execute Next Time Step" to begin executing SQL statements.</div>
+    <div class="generator-controls">
+        <button class="btn-safe" onclick="loadScenario('safe')">Load Safe IPC Sequence</button>
+        <button class="btn-deadlock" onclick="loadScenario('deadlock')">Load Deadlock Sequence</button>
+    </div>
+
+    <div id="alert-banner">Select a scenario to begin.</div>
 
     <div class="grid-container">
-        <!-- Transaction A -->
+        <!-- Process A -->
         <div class="column" style="border-top: 4px solid #0284c7;">
-            <h3>Transaction A (Transfer $100)</h3>
-            <div id="ta-1" class="code-line">BEGIN TRANSACTION;</div>
-            <div id="ta-2" class="code-line">UPDATE Accounts SET bal = bal - 100 WHERE id = 101;</div>
-            <div id="ta-3" class="code-line">UPDATE Accounts SET bal = bal + 100 WHERE id = 102;</div>
-            <div id="ta-4" class="code-line">COMMIT;</div>
+            <h3>Process A</h3>
+            <div id="state-a" class="thread-state state-running">State: RUNNING</div>
+            <div id="code-a"></div>
         </div>
 
-        <!-- Database State -->
-        <div class="column">
-            <h3>Database: Accounts Table</h3>
-            <table>
-                <tr>
-                    <th>Account ID</th>
-                    <th>Balance</th>
-                    <th>Row Lock Status</th>
-                </tr>
-                <tr id="row-101">
-                    <td>101 (Alice)</td>
-                    <td id="bal-101">$500</td>
-                    <td id="lock-101" class="lock-status">Unlocked</td>
-                </tr>
-                <tr id="row-102">
-                    <td>102 (Bob)</td>
-                    <td id="bal-102">$500</td>
-                    <td id="lock-102" class="lock-status">Unlocked</td>
-                </tr>
-            </table>
+        <!-- IPC Channels (Middle) -->
+        <div class="column queue-container">
+            <h3>OS Message Queues</h3>
+
+            <div class="queue-box">
+                <div class="queue-title">Queue: A &rarr; B</div>
+                <div id="msg-a-to-b" class="message">"Data from A"</div>
+            </div>
+
+            <div class="queue-box">
+                <div class="queue-title">Queue: B &rarr; A</div>
+                <div id="msg-b-to-a" class="message">"Data from B"</div>
+            </div>
         </div>
 
-        <!-- Transaction B -->
+        <!-- Process B -->
         <div class="column" style="border-top: 4px solid #7c3aed;">
-            <h3>Transaction B (Transfer $50)</h3>
-            <div id="tb-1" class="code-line">BEGIN TRANSACTION;</div>
-            <div id="tb-2" class="code-line">UPDATE Accounts SET bal = bal - 50 WHERE id = 102;</div>
-            <div id="tb-3" class="code-line">UPDATE Accounts SET bal = bal + 50 WHERE id = 101;</div>
-            <div id="tb-4" class="code-line">COMMIT;</div>
+            <h3>Process B</h3>
+            <div id="state-b" class="thread-state state-running">State: RUNNING</div>
+            <div id="code-b"></div>
         </div>
     </div>
 
     <div class="controls">
-        <button id="btn-next" onclick="nextStep()">Execute Next Time Step &rarr;</button>
-        <button class="btn-reset" onclick="resetSim()">Reset Simulation</button>
+        <button id="btn-next" onclick="executeNextStep()">Execute Next Time Step &rarr;</button>
     </div>
 
 <script>
+    let currentMode = '';
     let step = 0;
 
-    function resetUI() {
-        document.querySelectorAll('.code-line').forEach(el => {
-            el.className = 'code-line';
-        });
+    const scenarios = {
+        safe: {
+            codeA: [
+                { id: "a1", text: "send(Queue_A_to_B, data);" },
+                { id: "a2", text: "msg = receive(Queue_B_to_A);" },
+                { id: "a3", text: "process(msg);" }
+            ],
+            codeB: [
+                { id: "b1", text: "msg = receive(Queue_A_to_B);" },
+                { id: "b2", text: "send(Queue_B_to_A, response);" },
+                { id: "b3", text: "process(msg);" }
+            ]
+        },
+        deadlock: {
+            codeA: [
+                { id: "a1", text: "msg = receive(Queue_B_to_A); // Blocks" },
+                { id: "a2", text: "send(Queue_A_to_B, data);" },
+                { id: "a3", text: "process(msg);" }
+            ],
+            codeB: [
+                { id: "b1", text: "msg = receive(Queue_A_to_B); // Blocks" },
+                { id: "b2", text: "send(Queue_B_to_A, response);" },
+                { id: "b3", text: "process(msg);" }
+            ]
+        }
+    };
 
-        document.getElementById('row-101').className = '';
-        document.getElementById('row-102').className = '';
-        document.getElementById('lock-101').innerText = 'Unlocked';
-        document.getElementById('lock-102').innerText = 'Unlocked';
-        document.getElementById('bal-101').innerText = '$500';
-        document.getElementById('bal-102').innerText = '$500';
+    function loadScenario(mode) {
+        currentMode = mode;
+        step = 0;
+
+        document.getElementById('msg-a-to-b').style.display = 'none';
+        document.getElementById('msg-b-to-a').style.display = 'none';
+        document.getElementById('btn-next').disabled = false;
+
+        updateThreadState('a', 'RUNNING');
+        updateThreadState('b', 'RUNNING');
 
         const banner = document.getElementById('alert-banner');
         banner.className = '';
-        banner.innerText = 'Step 0: Transactions initialized. Click "Execute Next Time Step" to begin.';
+        if (mode === 'safe') {
+            banner.innerText = "Safe Mode: Process A sends before receiving. Process B waits to receive before sending. Click Next Step.";
+        } else {
+            banner.innerText = "Deadlock Mode: Both processes attempt to receive a message before sending one. Click Next Step.";
+        }
 
-        document.getElementById('btn-next').disabled = false;
+        const codeDivA = document.getElementById('code-a');
+        const codeDivB = document.getElementById('code-b');
+        codeDivA.innerHTML = '';
+        codeDivB.innerHTML = '';
+
+        scenarios[mode].codeA.forEach(line => {
+            codeDivA.innerHTML += `<div id="${line.id}" class="code-line">${line.text}</div>`;
+        });
+        scenarios[mode].codeB.forEach(line => {
+            codeDivB.innerHTML += `<div id="${line.id}" class="code-line">${line.text}</div>`;
+        });
+    }
+
+    function updateThreadState(process, state) {
+        const el = document.getElementById(`state-${process}`);
+        el.className = 'thread-state';
+        if (state === 'RUNNING') el.classList.add('state-running');
+        if (state === 'BLOCKED') el.classList.add('state-blocked');
+        if (state === 'FINISHED') el.classList.add('state-finished');
+        el.innerText = `State: ${state}`;
     }
 
     function setLineState(id, stateClass) {
-        document.getElementById(id).classList.add(stateClass);
+        document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active-a', 'active-b', 'waiting', 'success'));
+        const el = document.getElementById(id);
+        if (el) el.classList.add(stateClass);
     }
 
-    function removeLineState(id, stateClass) {
-        document.getElementById(id).classList.remove(stateClass);
-    }
-
-    function nextStep() {
+    function executeNextStep() {
         step++;
         const banner = document.getElementById('alert-banner');
 
-        if (step === 1) {
-            setLineState('ta-1', 'active-a');
-            setLineState('tb-1', 'active-b');
-            banner.innerText = "Step 1: Both transactions begin concurrently.";
+        if (currentMode === 'safe') {
+            if (step === 1) {
+                setLineState('a1', 'active-a');
+                document.getElementById('b1').classList.add('waiting');
+                updateThreadState('b', 'BLOCKED');
+                document.getElementById('msg-a-to-b').style.display = 'block';
+                banner.innerText = "Step 1: Process A sends a message. Process B is blocked waiting for it.";
+            } else if (step === 2) {
+                setLineState('b1', 'active-b');
+                document.getElementById('msg-a-to-b').style.display = 'none';
+                updateThreadState('b', 'RUNNING');
+
+                document.getElementById('a2').classList.add('waiting');
+                updateThreadState('a', 'BLOCKED');
+                banner.innerText = "Step 2: Process B receives the message and unblocks. Process A now blocks waiting for a reply.";
+            } else if (step === 3) {
+                setLineState('b2', 'active-b');
+                document.getElementById('msg-b-to-a').style.display = 'block';
+                banner.innerText = "Step 3: Process B sends a reply back to Process A.";
+            } else if (step === 4) {
+                setLineState('a2', 'active-a');
+                document.getElementById('msg-b-to-a').style.display = 'none';
+                updateThreadState('a', 'RUNNING');
+                banner.innerText = "Step 4: Process A receives the reply and unblocks.";
+            } else if (step === 5) {
+                setLineState('a3', 'success');
+                setLineState('b3', 'success');
+                updateThreadState('a', 'FINISHED');
+                updateThreadState('b', 'FINISHED');
+                banner.innerText = "Step 5: Both processes complete successfully! No circular wait.";
+                document.getElementById('btn-next').disabled = true;
+            }
         }
-        else if (step === 2) {
-            removeLineState('ta-1', 'active-a');
-            removeLineState('tb-1', 'active-b');
+        else if (currentMode === 'deadlock') {
+            if (step === 1) {
+                setLineState('a1', 'waiting');
+                updateThreadState('a', 'BLOCKED');
+                banner.innerText = "Step 1: Process A calls receive() and suspends execution because the queue from B is empty.";
+            } else if (step === 2) {
+                document.getElementById('a1').classList.add('waiting');
+                document.getElementById('b1').classList.add('waiting');
+                updateThreadState('b', 'BLOCKED');
 
-            setLineState('ta-2', 'active-a');
-            document.getElementById('row-101').className = 'locked-a';
-            document.getElementById('lock-101').innerText = 'Exclusive Lock (Tx A)';
-            document.getElementById('bal-101').innerText = '$400';
-
-            banner.innerText = "Step 2: Transaction A locks Row 101 and deducts $100.";
-        }
-        else if (step === 3) {
-            removeLineState('ta-2', 'active-a');
-
-            setLineState('tb-2', 'active-b');
-            document.getElementById('row-102').className = 'locked-b';
-            document.getElementById('lock-102').innerText = 'Exclusive Lock (Tx B)';
-            document.getElementById('bal-102').innerText = '$450';
-
-            banner.innerText = "Step 3: Transaction B concurrently locks Row 102 and deducts $50.";
-        }
-        else if (step === 4) {
-            removeLineState('tb-2', 'active-b');
-
-            setLineState('ta-3', 'waiting');
-            banner.innerText = "Step 4: Transaction A attempts to lock Row 102, but must WAIT because Transaction B holds the lock.";
-        }
-        else if (step === 5) {
-            setLineState('tb-3', 'waiting');
-
-            banner.className = 'deadlock';
-            banner.innerText = "Step 5: DEADLOCK! Transaction B attempts to lock Row 101 but must WAIT on Transaction A. Circular wait detected.";
-        }
-        else if (step === 6) {
-            setLineState('tb-1', 'aborted');
-            setLineState('tb-2', 'aborted');
-            setLineState('tb-3', 'aborted');
-            setLineState('tb-4', 'aborted');
-            removeLineState('tb-3', 'waiting');
-
-            document.getElementById('row-102').className = '';
-            document.getElementById('lock-102').innerText = 'Unlocked';
-            document.getElementById('bal-102').innerText = '$500';
-
-            banner.className = 'resolved';
-            banner.innerText = "Step 6: DBMS Deadlock Detector intervenes! It ABORTS and ROLLS BACK Transaction B, releasing its locks.";
-        }
-        else if (step === 7) {
-            removeLineState('ta-3', 'waiting');
-            setLineState('ta-3', 'active-a');
-
-            document.getElementById('row-102').className = 'locked-a';
-            document.getElementById('lock-102').innerText = 'Exclusive Lock (Tx A)';
-            document.getElementById('bal-102').innerText = '$600';
-
-            banner.className = '';
-            banner.innerText = "Step 7: Because Row 102 is now free, Transaction A successfully acquires the lock and continues.";
-        }
-        else if (step === 8) {
-            removeLineState('ta-3', 'active-a');
-            setLineState('ta-4', 'success');
-
-            document.getElementById('row-101').className = '';
-            document.getElementById('row-102').className = '';
-            document.getElementById('lock-101').innerText = 'Unlocked';
-            document.getElementById('lock-102').innerText = 'Unlocked';
-
-            banner.innerText = "Step 8: Transaction A COMMITs successfully and releases all locks. Transaction B can now be safely retried.";
-            document.getElementById('btn-next').disabled = true;
+                banner.className = 'deadlock';
+                banner.innerText = "Step 2: DEADLOCK! Process B also calls receive() and suspends. Neither can proceed to their send() instructions. Both will wait forever.";
+                document.getElementById('btn-next').disabled = true;
+            }
         }
     }
 
-    function resetSim() {
-        step = 0;
-        resetUI();
-    }
+    loadScenario('safe');
 </script>
 
 <nav class="module-nav-bar bottom">
     <a href="dining-philosophers.html" class="module-nav-btn">&larr; Dining Philosophers</a>
     <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Week 6: Synchronization &amp; Deadlock</span>
-    <a href="deadlock-detector.html" class="module-nav-btn">Next: Deadlock Detector &rarr;</a>
+    <span class="module-nav-placeholder">&nbsp;</span>
 </nav>
 </body>
 </html>
 """
 
-def update_database_deadlock():
+def update_ipc():
     os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(SIMULATOR_HTML.strip() + "\n")
-    print(f"--> Successfully updated database deadlock simulator at {TARGET_FILE}")
+    print(f"--> Successfully updated IPC deadlock simulator at {TARGET_FILE}")
 
 def run_git_sync():
     status = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
@@ -391,9 +437,9 @@ def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Incorporate Database Deadlock Simulator sandbox into Week 6\n\n"
-            "Add interactive database transaction deadlock simulator illustrating row-level\n"
-            "locking, circular wait, DBMS deadlock detection, and transaction rollback."
+            "Incorporate IPC Message Passing Deadlock Simulator sandbox into Week 6\n\n"
+            "Add interactive IPC deadlock simulation illustrating blocking receive queues,\n"
+            "rendezvous communication, and circular wait dependencies between processes."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -402,5 +448,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_database_deadlock()
+    update_ipc()
     run_git_sync()
