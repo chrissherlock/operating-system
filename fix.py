@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Update walkthroughs with current step narrative summaries
+# fix.py: Expand week02-processes/02-process-lifecycle.html
 # =====================================================================
 import os
 import subprocess
 
-TARGET_FILE = os.path.join("week02-processes", "01-process-model.html")
+TARGET_FILE = os.path.join("week02-processes", "02-process-lifecycle.html")
 
 MODULE_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>01. The Process Model &amp; States | Week 2: Processes &amp; Concurrency</title>
+  <title>02. Process Creation, Termination &amp; Hierarchies | Week 2: Processes &amp; Concurrency</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -193,14 +193,13 @@ MODULE_HTML = r"""<!DOCTYPE html>
       align-items: center;
       border-bottom: 1px solid var(--border);
     }
-    svg.state-canvas {
+    svg.lifecycle-canvas {
       width: 100%;
-      max-width: 680px;
+      max-width: 720px;
       height: auto;
       overflow: visible;
     }
 
-    /* Stepper Controls & Current Step Mini-Paragraph Panel */
     .controls-narrative-strip {
       padding: 14px 18px;
       background: #f8fafc;
@@ -291,199 +290,172 @@ MODULE_HTML = r"""<!DOCTYPE html>
       margin: 0;
     }
 
-    /* Node & Edge Styles */
-    .node-box {
+    /* Diagram Nodes & Shapes */
+    .proc-box {
       fill: #ffffff;
       stroke: #cbd5e1;
       stroke-width: 2;
       transition: all 0.3s ease;
     }
-    .node-group.active .node-box {
+    .proc-group.active .proc-box {
       stroke: #0284c7;
-      stroke-width: 3;
+      stroke-width: 2.5;
       fill: #f0f9ff;
     }
-    .node-group.active text.node-title {
-      fill: #0369a1;
-      font-weight: 700;
+    .proc-group.zombie .proc-box {
+      stroke: #d97706;
+      stroke-width: 2.5;
+      fill: #fef3c7;
     }
-    .node-group.active text.node-sub {
-      fill: #0284c7;
-      font-weight: 600;
+    .proc-group.reaped .proc-box {
+      stroke: #94a3b8;
+      stroke-dasharray: 4 4;
+      fill: #f8fafc;
+      opacity: 0.4;
     }
-    .svg-edge {
+    .flow-line {
       stroke: #cbd5e1;
       stroke-width: 2;
       fill: none;
       transition: all 0.3s ease;
     }
-    .svg-edge.active {
+    .flow-line.active {
       stroke: #0284c7;
-      stroke-width: 3.5;
-      filter: drop-shadow(0 0 4px rgba(2, 132, 199, 0.4));
-    }
-    .edge-badge {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      fill: #64748b;
-      transition: all 0.3s ease;
-    }
-    .edge-badge.active {
-      fill: #0284c7;
-      font-weight: 700;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.4));
     }
   </style>
 </head>
 <body>
   <div class="container">
     <nav class="nav-bar">
+      <a href="01-process-model.html">&larr; Previous: 01. Process Model</a>
       <a href="index.html">&#127968; Week 2 Index</a>
-      <a href="02-process-lifecycle.html">Next: 02. Process Lifecycle &rarr;</a>
+      <a href="03-classical-threads.html">Next: 03. Classical Threads &rarr;</a>
     </nav>
 
-    <h2>01. The Process Model &amp; States</h2>
+    <h2>02. Process Creation, Termination &amp; Hierarchies</h2>
     <p>
-      At the heart of modern operating system architecture lies the <strong>process abstraction</strong>: a software model representing a program in execution. Modern hardware frequently juggles dozens to hundreds of concurrent activities—including network listeners, background daemons, audio decoders, and user interfaces. Even when a machine possesses only a single CPU core, the operating system manages these simultaneous tasks by rapidly switching the processor among them, establishing the illusion of simultaneous execution known as <strong>pseudoparallelism</strong>.
+      An operating system is not a static monolith; it is an active ecosystem where processes are continually spawned, coordinated, and torn down. To maintain system integrity, resource tracking, and security separation, the kernel provides standardized lifecycle mechanisms and formal relationship models.
     </p>
 
-    <h3>1. The Conceptual Process Model</h3>
+    <h3>1. Process Creation Mechanisms</h3>
     <p>
-      In this model, all runnable software is organized into a collection of sequential processes. Conceptually, every process operates with its own virtual CPU and its own private flow of control. While the physical hardware switches between tasks every few milliseconds, viewing each running program as an independent sequential process makes system behavior and concurrency far easier to reason about.
+      In modern computing environments, four primary events initiate the creation of a new process:
     </p>
+    <ol>
+      <li>
+        <strong>System Initialization:</strong> When an operating system boots, the kernel initializes hardware, builds core memory tables, and spawns the initial user-space root process (such as <code>init</code> or <code>systemd</code> on UNIX systems, with PID 1). This root process launches essential background services known as <em>daemons</em> (such as network managers, system loggers, and cron schedulers) as well as interactive login consoles.
+      </li>
+      <li>
+        <strong>Execution of a Process Creation System Call:</strong> A currently running process issues a dedicated kernel trap requesting the creation of a child process. For example, a web server listening on port 80 might spawn worker processes to handle incoming client connections concurrently.
+      </li>
+      <li>
+        <strong>User Request:</strong> An interactive user types a command into a terminal shell (such as <code>ls -la</code>) or double-clicks an icon on a graphical desktop. The underlying shell or window manager issues the appropriate system call on the user's behalf.
+      </li>
+      <li>
+        <strong>Initiation of a Batch Job:</strong> In mainframe, high-performance computing (HPC), or cloud batch systems, batch management daemons read job execution queues and instantiate processes as cluster compute resources become available.
+      </li>
+    </ol>
 
-    <h4>Distinguishing the Program from the Process</h4>
+    <h3>2. Process Hierarchies: UNIX Trees vs. Windows Flat Models</h3>
     <p>
-      The distinction between a program and a process is subtle yet foundational:
+      Operating systems differ fundamentally in how they track relationships between parent and child tasks:
     </p>
     <ul>
-      <li><strong>The Program:</strong> A passive sequence of bytes stored on stable storage (such as an ELF binary or PE executable file on an SSD). It encompasses compiled instructions, static constants, and variable declarations, but performs no actions on its own.</li>
-      <li><strong>The Process:</strong> An active execution context. It represents the actual execution of those instructions over time, complete with dynamic state: current program counter (PC), CPU registers, stack pointers, open file descriptors, allocated physical memory pages, and child linkages.</li>
-    </ul>
-    <p>
-      A classic analogy makes this boundary intuitive. Consider a computer scientist baking a cake in a kitchen:
-    </p>
-    <ul>
-      <li><strong>The Recipe:</strong> Represents the <em>program</em>—the static algorithm written down step-by-step.</li>
-      <li><strong>The Ingredients:</strong> Represent the <em>input data</em>—flour, sugar, and eggs ready to be transformed.</li>
-      <li><strong>The Baker:</strong> Represents the <em>processor (CPU)</em>—the active engine capable of fetching instructions and executing steps.</li>
-      <li><strong>The Process:</strong> The dynamic <em>activity</em> of following the recipe, measuring ingredients, and mixing the batter over time.</li>
-    </ul>
-    <p>
-      If an urgent interruption occurs (such as a medical emergency), the baker saves their place in the recipe, stores current measurements on a notepad (saving CPU registers and state), and shifts attention to a first-aid manual (an interrupt routine or higher-priority process). Once the emergency is resolved, the baker reloads the saved state and resumes baking exactly where they left off.
-    </p>
-
-    <h4>Multiple Instances and Shared Code</h4>
-    <p>
-      Running the same program multiple times produces distinct, isolated processes. If two users launch the text editor <code>vim</code> simultaneously, or if a single user opens two independent instances of a terminal shell, each execution constitutes an independent process. Each instance possesses its own unique process identifier (PID), private memory space, independent stack, and distinct file handles.
-    </p>
-    <p>
-      Underneath, modern operating systems optimize memory usage through virtual memory mechanisms: while each process maintains private writable data and stack segments, the immutable text segment (the compiled executable machine code) can be shared among all running instances, preventing redundant allocations in physical RAM.
-    </p>
-
-    <h4>Independent Rates of Progress</h4>
-    <p>
-      Because the operating system dynamically schedules processes based on timer interrupts, system calls, and varying I/O completion times, programs cannot assume a constant or predictable rate of execution. A loop that counts to one million might complete in a fraction of a millisecond on one run, but take substantially longer on another run if the kernel switches CPU time to a competing process mid-loop. As a result, software must never rely on CPU idle loops for timing or synchronization; robust systems rely on kernel timers, event notifications, and formal synchronization primitives.
-    </p>
-
-    <h3>2. The Three-State Process Model</h3>
-    <p>
-      While an active process executes instructions sequentially, its real-world progression is neither instantaneous nor uninterrupted. Because computer workloads continually alternate between computationally intensive bursts and unbuffered peripheral access, a process cannot remain continuously pinned to a CPU core. To orchestrate multiple tasks fairly and efficiently, the operating system kernel assigns every active process to one of <strong>three primary operational states</strong>:
-    </p>
-
-    <ul>
-      <li><strong>Running:</strong> The process currently owns a physical CPU core and its machine instructions are actively fetched, decoded, and executed by hardware registers. On a uniprocessor system, exactly one process can reside in the Running state at any given microsecond. On a multicore processor with <i>m</i> cores, at most <i>m</i> processes can run concurrently.</li>
-      <li><strong>Ready:</strong> The process possesses everything it requires to execute—its address space is mapped, its execution context is saved in its Process Control Block (PCB), and all input dependencies are satisfied. It is temporarily idle solely because the operating system scheduler has assigned the physical CPU core to another competing task.</li>
-      <li><strong>Blocked (or Waiting):</strong> The process is structurally incapable of executing instructions, even if all CPU cores sit completely idle. It is suspended awaiting the resolution of an external event—such as a disk block read completing, a network packet arriving from an Ethernet controller, an inter-process communication (IPC) pipe buffer becoming writable, or a sleep timer expiring.</li>
+      <li>
+        <strong>The UNIX Process Hierarchy:</strong> In UNIX and Linux, processes are strictly organized into a single rooted parent-child tree. When process A forks process B, process A is permanently recorded as B's parent (<code>PPID</code>). Processes form process groups and session hierarchies, enabling terminal control signals (such as <code>SIGINT</code> on Ctrl+C) to broadcast to an entire pipeline of child processes. If a parent terminates before its child, the orphaned child is re-parented to <code>init</code> (PID 1) or a modern user subreaper daemon.
+      </li>
+      <li>
+        <strong>The Windows Flat Model:</strong> Windows does not maintain an inherent, permanent tree hierarchy. When a parent process calls <code>CreateProcess</code>, it receives an opaque security handle to the newly created process. The parent can pass or duplicate this handle to other processes. Once created, the child exists as an independent system object in the Windows Executive; there is no formal concept of ancestry or automatic tree re-parenting in the kernel core.
+      </li>
     </ul>
 
-    <!-- Stepper 1: Three-State Process Transitions -->
+    <!-- Directed Narrative Stepper Standard: Process Lifecycle -->
     <div class="aid-wrapper">
       <div class="aid-header">
-        <h4>Interactive Stepper: Three-State Process Transitions</h4>
+        <h4>Interactive Stepper: The UNIX Fork-Exec-Wait Lifecycle</h4>
         <div class="dimension-toggles">
-          <button class="dim-btn active" id="dim-desktop" onclick="setDimension('desktop')">Timesharing OS</button>
-          <button class="dim-btn" id="dim-rtos" onclick="setDimension('rtos')">Real-Time (RTOS)</button>
+          <button class="dim-btn active" id="dim-unix" onclick="setLifecycleDim('unix')">UNIX Model (fork/exec/wait)</button>
+          <button class="dim-btn" id="dim-win" onclick="setLifecycleDim('windows')">Windows Model (CreateProcess)</button>
         </div>
       </div>
 
       <div class="scenario-banner">
         <span class="scenario-tag">Scenario Arc</span>
-        <span id="scenario-text">Tracking interactive text editor <code>nano</code> (PID 1042) reading an encrypted config file while a background build (PID 2085) competes for compute cycles.</span>
+        <span id="lifecycle-scenario-text">An interactive command shell (bash, PID 501) spawns an external utility (grep, PID 502) to search a file, waits for child completion, and reaps its exit status.</span>
       </div>
 
       <div class="telemetry-strip">
         <div class="telemetry-cell">
-          <span class="telemetry-label">Current Phase</span>
-          <span class="telemetry-val" id="telem-phase">1. Direct User Mode Execution</span>
+          <span class="telemetry-label">Active Phase</span>
+          <span class="telemetry-val highlight" id="l-telem-phase">1. Parent Running (Shell Prompt)</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">Active PID &amp; Privilege</span>
-          <span class="telemetry-val highlight" id="telem-pid">PID 1042 (Ring 3: User)</span>
+          <span class="telemetry-label">Parent PID &amp; State</span>
+          <span class="telemetry-val" id="l-telem-parent">PID 501 (bash): RUNNING</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">Trap / IRQ Vector</span>
-          <span class="telemetry-val" id="telem-irq">None (User Execution)</span>
+          <span class="telemetry-label">Child PID &amp; State</span>
+          <span class="telemetry-val" id="l-telem-child">None (Unspawned)</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">CPU Registers (PC / SP)</span>
-          <span class="telemetry-val" id="telem-regs">PC: 0x004012A0 | SP: 0x7FFF00</span>
+          <span class="telemetry-label">Syscall / Return Code</span>
+          <span class="telemetry-val" id="l-telem-trap">sys_read(stdin)</span>
         </div>
       </div>
 
       <div class="canvas-container">
-        <svg class="state-canvas" viewBox="0 0 680 240">
+        <svg class="lifecycle-canvas" viewBox="0 0 720 220">
           <defs>
-            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
             </marker>
-            <marker id="arr-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="arrowhead-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
             </marker>
           </defs>
 
-          <!-- Edges -->
-          <path id="edge-t1" class="svg-edge" d="M 500 135 C 440 185, 390 190, 365 190" marker-end="url(#arr)" />
-          <path id="edge-t2" class="svg-edge" d="M 480 75 C 380 15, 260 15, 165 75" marker-end="url(#arr)" />
-          <path id="edge-t3" class="svg-edge" d="M 165 95 C 260 145, 380 145, 480 95" marker-end="url(#arr)" />
-          <path id="edge-t4" class="svg-edge" d="M 245 190 C 220 190, 170 185, 110 135" marker-end="url(#arr)" />
-
-          <!-- Labels -->
-          <text id="lbl-t1" class="edge-badge" x="435" y="180">1. Block (read() Syscall)</text>
-          <text id="lbl-t2" class="edge-badge" x="265" y="32">2. Preempt (Timer Tick)</text>
-          <text id="lbl-t3" class="edge-badge" x="270" y="125">3. Scheduler Dispatch</text>
-          <text id="lbl-t4" class="edge-badge" x="90" y="180">4. Event Done (Disk IRQ)</text>
-
-          <!-- State Nodes -->
-          <g id="grp-ready" class="node-group" transform="translate(60, 65)">
-            <rect class="node-box" width="120" height="65" rx="8" />
-            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">READY</text>
-            <text class="node-sub" id="sub-ready" x="60" y="50" text-anchor="middle" fill="#64748b" font-family="var(--font-mono)" font-size="11">Queue: PID 2085</text>
+          <!-- Parent Process Card -->
+          <g id="card-parent" class="proc-group active" transform="translate(40, 35)">
+            <rect class="proc-box" width="220" height="150" rx="8" />
+            <text x="20" y="32" font-family="system-ui" font-size="13" font-weight="700" fill="#0f172a">PARENT (PID 501: bash)</text>
+            <text id="parent-ppid-text" x="20" y="52" font-family="var(--font-mono)" font-size="11" fill="#64748b">PPID: 1 (systemd)</text>
+            <rect x="20" y="65" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="parent-mem-text" x="30" y="83" font-family="var(--font-mono)" font-size="10" fill="#334155">Memory: /bin/bash Code</text>
+            <rect x="20" y="102" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="parent-fds-text" x="30" y="120" font-family="var(--font-mono)" font-size="10" fill="#334155">FD 0: stdin, FD 1: stdout</text>
+            <text id="parent-status-badge" x="20" y="145" font-family="system-ui" font-size="11" font-weight="700" fill="#0284c7">STATUS: RUNNING</text>
           </g>
 
-          <g id="grp-running" class="node-group active" transform="translate(480, 65)">
-            <rect class="node-box" width="120" height="65" rx="8" />
-            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">RUNNING</text>
-            <text class="node-sub" id="sub-running" x="60" y="50" text-anchor="middle" fill="#0284c7" font-family="var(--font-mono)" font-size="11">CPU: PID 1042</text>
-          </g>
+          <!-- Connecting Lifecycle Path -->
+          <path id="path-lifecycle" class="flow-line" d="M 260 110 L 460 110" marker-end="url(#arrowhead)" />
+          <text id="path-label" x="360" y="100" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="#64748b">Awaiting Command</text>
 
-          <g id="grp-blocked" class="node-group" transform="translate(245, 155)">
-            <rect class="node-box" width="120" height="65" rx="8" />
-            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">BLOCKED</text>
-            <text class="node-sub" id="sub-blocked" x="60" y="50" text-anchor="middle" fill="#64748b" font-family="var(--font-mono)" font-size="11">Waiting: [Empty]</text>
+          <!-- Child Process Card -->
+          <g id="card-child" class="proc-group reaped" transform="translate(460, 35)">
+            <rect class="proc-box" width="220" height="150" rx="8" />
+            <text id="child-title-text" x="20" y="32" font-family="system-ui" font-size="13" font-weight="700" fill="#0f172a">CHILD (Unspawned)</text>
+            <text id="child-ppid-text" x="20" y="52" font-family="var(--font-mono)" font-size="11" fill="#64748b">PPID: &mdash;</text>
+            <rect x="20" y="65" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="child-mem-text" x="30" y="83" font-family="var(--font-mono)" font-size="10" fill="#94a3b8">Address Space: None</text>
+            <rect x="20" y="102" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="child-fds-text" x="30" y="120" font-family="var(--font-mono)" font-size="10" fill="#94a3b8">File Descriptors: None</text>
+            <text id="child-status-badge" x="20" y="145" font-family="system-ui" font-size="11" font-weight="700" fill="#94a3b8">STATUS: UNBORN</text>
           </g>
         </svg>
       </div>
 
-      <!-- Stepper Controls Beside Dedicated Narrative Summary Panel -->
+      <!-- Stepper Controls & Current Step Summary Panel -->
       <div class="controls-narrative-strip">
         <div class="stepper-btn-group">
-          <button class="btn-step" id="btn-backward" onclick="moveStep(-1)" disabled>&larr; Previous</button>
-          <button class="btn-step" id="btn-forward" onclick="moveStep(1)">Next Step &rarr;</button>
-          <button class="btn-step" id="btn-restart" onclick="restartWalkthrough()">Reset</button>
+          <button class="btn-step" id="l-btn-prev" onclick="stepLifecycle(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="l-btn-next" onclick="stepLifecycle(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="l-btn-reset" onclick="resetLifecycle()">Reset</button>
         </div>
         <div class="narrative-preview-panel">
           <strong>Current Step Summary</strong>
-          <span id="txt-narrative">Process 1042 is running directly on physical hardware; user registers update in silicon without kernel overhead. The step aims to sustain native execution speed until an unbuffered resource request occurs.</span>
+          <span id="l-txt-narrative">The shell (PID 501) sits in user mode waiting for input. The system aims to accept user command string "grep pattern file.txt" from standard input before preparing to execute it as an independent process.</span>
         </div>
       </div>
 
@@ -493,715 +465,339 @@ MODULE_HTML = r"""<!DOCTYPE html>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             What Is Happening
           </div>
-          <p class="pane-content" id="txt-what">Process 1042 holds the CPU core in unprivileged User Mode (Ring 3). The hardware program counter fetches instructions natively from its address space until a disk read call is encountered.</p>
+          <p class="pane-content" id="l-txt-what">Parent process 501 executes the bash shell read loop in user mode. It listens on terminal file descriptor 0, parsing user keystrokes into command line arguments.</p>
         </div>
         <div class="pane-card">
           <div class="pane-title why">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
             Why The System Does This
           </div>
-          <p class="pane-content" id="txt-why">Direct execution ensures user programs run at the full speed of bare silicon without emulation overhead. Protection rings ensure user space cannot tamper with hardware or other processes.</p>
+          <p class="pane-content" id="l-txt-why">The shell operates strictly in unprivileged user space. By decoupling input parsing from process creation, the shell remains safe from malicious command arguments without risking kernel instability.</p>
         </div>
       </div>
     </div>
 
-    <h4>In-Depth Breakdown of Each Transition</h4>
+    <h3>3. Process Termination Conditions</h3>
+    <p>
+      Every running process eventually terminates, exiting through one of four conditions:
+    </p>
     <ol>
       <li>
-        <strong>Transition 1: Running &rarr; Blocked (Voluntary Suspension)</strong>
-        <p>
-          This transition occurs when a running process discovers that it cannot continue without external intervention. It executes a supervisor trap instruction (such as <code>syscall</code> or <code>int 0x80</code>) requesting an unbuffered service—such as reading a file block from disk, waiting for an incoming TCP socket packet, or locking an already acquired mutex.
-        </p>
-        <p>
-          Because mechanical disks or network round trips can take millions of CPU cycles, the operating system immediately moves the calling process into the <code>Blocked</code> queue. It marks the process status in its Process Control Block (PCB) and yields the CPU core so other computational work can proceed.
-        </p>
+        <strong>Normal Exit (Voluntary):</strong> The process finishes its task and invokes an exit system call (such as <code>exit(0)</code> in C/UNIX or <code>ExitProcess</code> on Windows). Compilers, text formatters, and utility programs terminate normally upon reaching end-of-file.
       </li>
       <li>
-        <strong>Transition 2: Running &rarr; Ready (Involuntary Preemption)</strong>
-        <p>
-          Unlike Transition 1, Transition 2 is initiated by the operating system kernel rather than by the running process itself. To prevent rogue or compute-heavy loops from monopolizing the CPU indefinitely, the motherboard features an independent, periodic hardware timer.
-        </p>
-        <p>
-          When the timer chip fires, it triggers a hardware interrupt, cleanly halting user-space execution and vectoring the CPU into the kernel's interrupt service routine. If the scheduler determines that the current process has exhausted its allocated time slice (quantum), the kernel saves its register state into the PCB, shifts its state label from <code>Running</code> to <code>Ready</code>, and moves it to the back of the ready list.
-        </p>
+        <strong>Error Exit (Voluntary):</strong> The process discovers an operational error—such as a missing configuration file or invalid command-line flags—and voluntarily calls <code>exit(2)</code> returning a non-zero diagnostic exit code.
       </li>
       <li>
-        <strong>Transition 3: Ready &rarr; Running (Scheduler Dispatch)</strong>
-        <p>
-          Whenever the CPU core becomes free—due to the previous occupant blocking or being preempted—the kernel invokes the <strong>scheduler</strong> and <strong>dispatcher</strong>. The scheduler evaluates all candidate processes sitting in the <code>Ready</code> queue according to its scheduling policy (such as Round Robin, Priority Scheduling, or Multi-Level Feedback Queues).
-        </p>
-        <p>
-          Once a candidate is chosen, the dispatcher restores the saved registers, stack pointers, and address space base pointer (e.g., loading the page table root into register <code>CR3</code>) from the selected PCB, resets the hardware timer quantum, executes a return-from-trap instruction (such as <code>sysret</code> or <code>iret</code>), and drops privilege levels to user mode.
-        </p>
+        <strong>Fatal Error (Involuntary):</strong> The program attempts an illegal hardware or memory operation—such as dividing by zero, executing an invalid opcode, or dereferencing an unmapped memory address (triggering a segmentation fault / <code>SIGSEGV</code>). The kernel hardware exception handler halts execution immediately.
       </li>
       <li>
-        <strong>Transition 4: Blocked &rarr; Ready (Asynchronous Event Arrival)</strong>
-        <p>
-          When the external entity that caused the suspension finally completes its task—for example, the hard drive controller finishes DMA transfer of the requested file block into physical memory, or a network interface card receives a packet—it issues an asynchronous hardware interrupt to the CPU.
-        </p>
-        <p>
-          The kernel's interrupt handler acknowledges the device, identifies the sleeping process waiting on that specific event, and updates its state in the PCB from <code>Blocked</code> to <code>Ready</code>. Note that the process does <em>not</em> jump straight back into the <code>Running</code> state; it must join the queue of runnable candidates and await selection by the scheduler via Transition 3.
-        </p>
+        <strong>Killed by Another Process (Involuntary):</strong> A process receives an external termination signal (such as <code>SIGKILL</code> via the <code>kill()</code> system call) sent by an authorized administrative shell or supervisory daemon. The receiving process is terminated unconditionally by the kernel.
       </li>
     </ol>
 
-    <h4>Summary Matrix of State Transitions</h4>
-    <div style="overflow-x: auto; margin: 18px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 14px;">Transition</th>
-            <th style="padding: 10px 14px;">Initiator</th>
-            <th style="padding: 10px 14px;">Primary Cause</th>
-            <th style="padding: 10px 14px;">Nature</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">1. Running &rarr; Blocked</td>
-            <td style="padding: 10px 14px;">Running Process</td>
-            <td style="padding: 10px 14px;">Synchronous System Call (I/O request, lock wait)</td>
-            <td style="padding: 10px 14px; color: #0284c7; font-weight: 600;">Voluntary</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">2. Running &rarr; Ready</td>
-            <td style="padding: 10px 14px;">OS Kernel / Hardware Timer</td>
-            <td style="padding: 10px 14px;">Time quantum expiration, higher-priority task wakeup</td>
-            <td style="padding: 10px 14px; color: #dc2626; font-weight: 600;">Involuntary</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">3. Ready &rarr; Running</td>
-            <td style="padding: 10px 14px;">CPU Scheduler</td>
-            <td style="padding: 10px 14px;">Scheduler selection and context restoration</td>
-            <td style="padding: 10px 14px; color: #059669; font-weight: 600;">Kernel Decision</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">4. Blocked &rarr; Ready</td>
-            <td style="padding: 10px 14px;">Hardware Controller / External Event</td>
-            <td style="padding: 10px 14px;">I/O completion interrupt, signal delivery, timer expiry</td>
-            <td style="padding: 10px 14px; color: #7c3aed; font-weight: 600;">Asynchronous</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3>3. Modeling Multiprogramming Efficiency</h3>
+    <h3>4. Zombies and Orphan Reaping</h3>
     <p>
-      Multiprogramming aims to maximize CPU utilization by keeping multiple processes resident in main memory simultaneously. If a compute-bound process spends only a fraction of its total lifetime executing before waiting for I/O, a uniprocessor system executing only that single program would sit idle for the vast majority of wall-clock time.
+      When a UNIX child process terminates via <code>exit()</code>, the kernel releases its physical memory pages, closes its open file descriptors, and detaches its address space. However, the kernel cannot immediately destroy its Process Control Block (PCB).
     </p>
     <p>
-      We model this phenomenon probabilistically. Suppose a typical process spends a fraction <i>p</i> of its time waiting for I/O operations to complete. If <i>n</i> independent processes reside in memory simultaneously, the probability that all <i>n</i> processes are simultaneously waiting for I/O is <i>p</i><sup><i>n</i></sup>. Assuming process activities are mutually independent, the aggregate CPU utilization is expressed by the formula:
+      The PCB must remain in the process table in a <strong>Zombie</strong> state until the parent calls <code>wait()</code> or <code>waitpid()</code> to collect the child's exit status code. If a parent terminates without calling <code>wait()</code>, the child becomes an <strong>orphan</strong> and is automatically adopted by <code>init</code> (PID 1), which periodically executes <code>wait()</code> to reap accumulated zombies and prevent kernel process table starvation.
     </p>
-    <div style="background: #0f172a; color: #38bdf8; font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; padding: 16px 20px; border-radius: 6px; margin: 16px 0; text-align: center; letter-spacing: 0.03em;">
-      CPU Utilization = 1 &minus; <i>p</i><sup style="color: #4ade80; font-size: 0.85em;"><i>n</i></sup>
-    </div>
-    <p>
-      While real-world processes are not strictly independent (as multiple processes may contend for the same shared disk arm or network interface), this probabilistic model illustrates the core mathematical justification for multiprogramming: increasing the degree of multiprogramming <i>n</i> exponentially drives down idle waste and saturates CPU execution pipelines.
-    </p>
-
-    <!-- Stepper 2: Multiprogramming Efficiency Stepper -->
-    <div class="aid-wrapper">
-      <div class="aid-header">
-        <h4>Interactive Stepper: Multiprogramming Scaling &amp; CPU Saturation</h4>
-        <div class="dimension-toggles">
-          <button class="dim-btn active" id="dim-io" onclick="setMultiDim('io')">I/O-Intensive (p = 0.80)</button>
-          <button class="dim-btn" id="dim-cpu" onclick="setMultiDim('compute')">Compute-Intensive (p = 0.50)</button>
-        </div>
-      </div>
-
-      <div class="scenario-banner">
-        <span class="scenario-tag">Workload Scenario</span>
-        <span id="multi-scenario-text">Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under an I/O wait fraction of 80% (typical web server or database workload).</span>
-      </div>
-
-      <div class="telemetry-strip">
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Degree of Multiprogramming (n)</span>
-          <span class="telemetry-val highlight" id="m-telem-n">n = 1 Process</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">I/O Wait Fraction (p)</span>
-          <span class="telemetry-val" id="m-telem-p">p = 0.80 (80% I/O Wait)</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">All-Waiting Probability (p<sup>n</sup>)</span>
-          <span class="telemetry-val alert" id="m-telem-pn">0.8000 (80.0% CPU Idle)</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">CPU Utilization (1 - p<sup>n</sup>)</span>
-          <span class="telemetry-val" id="m-telem-util">20.0% Utilization</span>
-        </div>
-      </div>
-
-      <div class="canvas-container">
-        <svg class="state-canvas" viewBox="0 0 680 230">
-          <!-- Memory Allocation Grid -->
-          <rect x="30" y="20" width="340" height="190" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
-          <text x="45" y="42" fill="#0f172a" font-family="system-ui" font-size="12" font-weight="700">PHYSICAL RAM SLOTS (n = Resident Processes)</text>
-
-          <!-- 6 Process Slots in RAM -->
-          <g id="slot-1" transform="translate(45, 55)">
-            <rect width="90" height="65" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0369a1">P1 (Active)</text>
-            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#64748b">In RAM</text>
-          </g>
-
-          <g id="slot-2" transform="translate(150, 55)" opacity="0.3">
-            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P2</text>
-            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
-          </g>
-
-          <g id="slot-3" transform="translate(255, 55)" opacity="0.3">
-            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P3</text>
-            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
-          </g>
-
-          <g id="slot-4" transform="translate(45, 130)" opacity="0.3">
-            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P4</text>
-            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
-          </g>
-
-          <g id="slot-5" transform="translate(150, 130)" opacity="0.3">
-            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P5</text>
-            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
-          </g>
-
-          <g id="slot-6" transform="translate(255, 130)" opacity="0.3">
-            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P6</text>
-            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
-          </g>
-
-          <!-- CPU Saturation Meter -->
-          <rect x="400" y="20" width="250" height="190" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
-          <text x="415" y="42" fill="#0f172a" font-family="system-ui" font-size="12" font-weight="700">AGGREGATE CPU UTILIZATION</text>
-
-          <!-- Vertical Gauge Track -->
-          <rect x="420" y="60" width="40" height="130" rx="4" fill="#e2e8f0" />
-          <rect id="gauge-fill" x="420" y="164" width="40" height="26" rx="4" fill="#0284c7" style="transition: all 0.4s ease;" />
-
-          <text x="475" y="80" font-family="var(--font-mono)" font-size="11" fill="#64748b">100% Saturation</text>
-          <text x="475" y="125" font-family="var(--font-mono)" font-size="11" fill="#64748b">50% Utilization</text>
-          <text x="475" y="190" font-family="var(--font-mono)" font-size="11" fill="#64748b">0% (Pure Idle)</text>
-
-          <text id="gauge-text" x="475" y="155" font-family="var(--font-mono)" font-size="18" font-weight="700" fill="#0284c7">20.0%</text>
-        </svg>
-      </div>
-
-      <!-- Stepper Controls Beside Dedicated Narrative Summary Panel -->
-      <div class="controls-narrative-strip">
-        <div class="stepper-btn-group">
-          <button class="btn-step" id="m-btn-prev" onclick="stepMulti(-1)" disabled>&larr; Previous</button>
-          <button class="btn-step" id="m-btn-next" onclick="stepMulti(1)">Next Step &rarr;</button>
-          <button class="btn-step" id="m-btn-reset" onclick="resetMulti()">Reset</button>
-        </div>
-        <div class="narrative-preview-panel">
-          <strong>Current Step Summary</strong>
-          <span id="m-txt-narrative">Currently evaluating single-process execution (n = 1). The system attempts to run a process that blocks 80% of the time, resulting in 80% processor downtime. This step demonstrates the inherent waste of uniprogramming.</span>
-        </div>
-      </div>
-
-      <div class="analytical-grid">
-        <div class="pane-card">
-          <div class="pane-title what">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            What Is Happening
-          </div>
-          <p class="pane-content" id="m-txt-what">A single process is loaded into memory (n = 1). Since this process spends 80% of its execution waiting for disk blocks or network packets, the physical CPU sits completely idle for 80% of total runtime.</p>
-        </div>
-        <div class="pane-card">
-          <div class="pane-title why">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            Why The System Does This
-          </div>
-          <p class="pane-content" id="m-txt-why">Single-programmed batch execution leaves fast silicon starved by slow peripheral I/O. Without another process ready to consume CPU cycles, expensive processing capability is wasted.</p>
-        </div>
-      </div>
-    </div>
 
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="01-process-model.html">&larr; Previous: 01. Process Model</a>
       <a href="index.html">&#127968; Week 2 Index</a>
-      <a href="02-process-lifecycle.html">Next: 02. Process Lifecycle &rarr;</a>
+      <a href="03-classical-threads.html">Next: 03. Classical Threads &rarr;</a>
     </nav>
   </div>
 
   <script>
-    // --- Stepper 1 Script: Three-State Process Transitions ---
-    const stepperData = {
-      desktop: [
+    const lifecycleSteps = {
+      unix: [
         {
-          phase: "1. Direct User Mode Execution",
-          pid: "PID 1042 (Ring 3: User)",
-          irq: "None (User Execution)",
-          regs: "PC: 0x004012A0 | SP: 0x7FFF00",
-          activeNode: "grp-running",
-          activeEdge: null,
-          activeLabel: null,
-          subReady: "Queue: PID 2085 (gcc)",
-          subRunning: "CPU: PID 1042 (nano)",
-          subBlocked: "Waiting: [Empty]",
-          narrative: "Process 1042 is currently executing directly on bare silicon in User Mode (Ring 3). The CPU fetches instructions natively to achieve peak arithmetic speed without kernel intervention, and will proceed until an unbuffered system call or timer tick interrupts it.",
-          what: "Process 1042 (editor) executes user-level instructions in CPU registers. It executes until reaching a read() system call to load an encrypted configuration file.",
-          why: "Direct execution maximizes performance: user instructions run natively on silicon without software interpretation or kernel overhead."
+          phase: "1. Parent Running (Shell Prompt)",
+          parentState: "PID 501 (bash): RUNNING",
+          childState: "None (Unspawned)",
+          trap: "sys_read(stdin)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: UNBORN",
+          childTitle: "CHILD (Unspawned)",
+          childPpid: "PPID: \u2014",
+          childMem: "Address Space: None",
+          childFds: "File Descriptors: None",
+          pathLabel: "Awaiting Command",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "The parent shell (PID 501) runs in user mode listening on standard input. The system aims to receive a user command before allocating any operating system resources for a child process.",
+          what: "Parent process 501 executes the bash shell read loop in user mode. It listens on terminal file descriptor 0, parsing user keystrokes into command line arguments.",
+          why: "The shell operates strictly in unprivileged user space. By decoupling input parsing from process creation, the shell remains safe from malicious command arguments without risking kernel instability."
         },
         {
-          phase: "2. Voluntary Trap to Kernel (Transition 1)",
-          pid: "PID 1042 -> Kernel (Ring 0)",
-          irq: "Vector 128 (Syscall Trap Gate)",
-          regs: "Saved into PCB 1042",
-          activeNode: "grp-blocked",
-          activeEdge: "edge-t1",
-          activeLabel: "lbl-t1",
-          subReady: "Queue: PID 2085 (gcc)",
-          subRunning: "CPU: Context Switching...",
-          subBlocked: "Disk Wait: PID 1042",
-          narrative: "Process 1042 has issued a read() system call to load file data. Because disk reads take millions of CPU cycles, the kernel voluntarily suspends PID 1042, saves its register context into its Process Control Block, and moves it to the Blocked queue so the CPU is not wasted in busy-waiting polling.",
-          what: "Hardware traps into Ring 0. The kernel interrupt routine saves registers (RAX, RSP, RIP) into PCB 1042, moves it to the Blocked queue, and issues an async read to the NVMe controller.",
-          why: "Disk reads require thousands of CPU cycles. Yielding the CPU avoids wasteful busy-waiting polling and lets other productive processes run."
+          phase: "2. fork() Invocation & Cloning",
+          parentState: "PID 501 (bash): TRAPPED",
+          childState: "PID 502: READY (Clone)",
+          trap: "sys_fork() [returns 502 to parent, 0 to child]",
+          parentStatusBadge: "STATUS: FORKING",
+          childStatusBadge: "STATUS: READY (CLONE)",
+          childTitle: "CHILD (PID 502: Clone)",
+          childPpid: "PPID: 501",
+          childMem: "Copy-on-Write Clone of PID 501",
+          childFds: "Inherited Duplicates of 0, 1, 2",
+          pathLabel: "fork() duplicate",
+          parentActive: true,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Parent executes fork(). The kernel duplicates the parent's PCB, copies page tables via Copy-on-Write (COW), and returns child PID 502 to the parent and 0 to the child. The step aims to create an isolated duplicate execution context without copying memory pages upfront.",
+          what: "The kernel allocates PCB 502, copies the parent's file descriptor table, and marks all memory pages as read-only Copy-on-Write in hardware page tables.",
+          why: "Copy-on-Write prevents duplicating megabytes of physical RAM when the child is likely to immediately replace its image via execve()."
         },
         {
-          phase: "3. Scheduler Dispatch (Transition 3)",
-          pid: "PID 2085 (Ring 3: User)",
-          irq: "None (Restored via iret)",
-          regs: "PC: 0x0045A100 | SP: 0x7FFE40",
-          activeNode: "grp-running",
-          activeEdge: "edge-t3",
-          activeLabel: "lbl-t3",
-          subReady: "Queue: [Empty]",
-          subRunning: "CPU: PID 2085 (gcc)",
-          subBlocked: "Disk Wait: PID 1042",
-          narrative: "With the CPU freed, the operating system scheduler selects compiler process PID 2085 from the Ready queue. The kernel restores PID 2085's saved register context and memory map root (CR3), executing an iret/sysret instruction to return to user mode and saturate the processor.",
-          what: "The kernel evaluates runnable candidates, selects PID 2085 (compiler) from the Ready queue, loads its page table root into CR3, restores registers, and executes sysret/iret.",
-          why: "Multiprogramming keeps CPU utilization near 100%. The moment one task blocks on I/O, the scheduler immediately saturates the core with another."
+          phase: "3. execve() Overlay",
+          parentState: "PID 501: Calling waitpid()",
+          childState: "PID 502 (grep): RUNNING",
+          trap: "sys_execve(\"/bin/grep\")",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: RUNNING (GREP)",
+          childTitle: "CHILD (PID 502: grep)",
+          childPpid: "PPID: 501",
+          childMem: "Overlaid with /bin/grep ELF",
+          childFds: "Preserved stdin/stdout",
+          pathLabel: "execve() image replace",
+          parentActive: false,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Child process 502 calls execve() with /bin/grep. The kernel tears down the cloned address space, loads the grep ELF binary into memory, resets registers to the ELF entry point, while preserving inherited file descriptors. The step aims to transform the clone into a completely new program.",
+          what: "The kernel releases old COW references, maps the grep text and data sections into physical RAM, initializes a fresh stack with argv/envp, and sets the instruction pointer to main().",
+          why: "Separating fork() from execve() gives the shell a critical window between cloning and execution to redirect file descriptors (e.g., pipes or < > redirections) without kernel intervention."
         },
         {
-          phase: "4. Timer Tick Preemption (Transition 2)",
-          pid: "PID 2085 -> Kernel (Preempted)",
-          irq: "IRQ 0 / Vector 32 (Timer Interrupt)",
-          regs: "Saved into PCB 2085",
-          activeNode: "grp-ready",
-          activeEdge: "edge-t2",
-          activeLabel: "lbl-t2",
-          subReady: "Queue: PID 2085 (gcc)",
-          subRunning: "CPU: Kernel Scheduler",
-          subBlocked: "Disk Wait: PID 1042",
-          narrative: "The motherboard interval timer chip fires an involuntary hardware interrupt after PID 2085 exhausts its allocated time slice. The kernel intervenes, halts the compiler, saves its registers, and shifts it back to the Ready queue to prevent compute-bound loops from starving other applications.",
-          what: "The hardware interval timer fires interrupt vector 32. The kernel detects PID 2085 has consumed its 10ms quantum, saves its registers, and shifts its state from Running to Ready.",
-          why: "Preemptive timesharing guarantees fairness. Without involuntary preemption, a compute-heavy loop or buggy application could lock up the machine indefinitely."
+          phase: "4. Child Termination -> Zombie State",
+          parentState: "PID 501: BLOCKED (WAIT)",
+          childState: "PID 502 (grep): ZOMBIE",
+          trap: "sys_exit(0) [Child Exit]",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: ZOMBIE (EXIT 0)",
+          childTitle: "CHILD (PID 502: Zombie)",
+          childPpid: "PPID: 501",
+          childMem: "Deallocated from RAM",
+          childFds: "Closed and Released",
+          pathLabel: "SIGCHLD sent to parent",
+          parentActive: false,
+          childClass: "zombie",
+          pathActive: true,
+          narrative: "Child finishes search and calls exit(0). The kernel deallocates its physical memory, closes all open files, but retains its PCB entry containing exit code 0. The step aims to preserve the termination record until the parent is ready to inspect it.",
+          what: "Child address space is reclaimed, but PCB 502 remains in the kernel process table marked as a Zombie. A SIGCHLD signal is dispatched to parent PID 501.",
+          why: "If the kernel destroyed the PCB immediately, the parent could never inspect whether the child succeeded, failed, or was terminated by a signal."
         },
         {
-          phase: "5. Asynchronous I/O Completion (Transition 4)",
-          pid: "PID 1042 -> Ready Queue",
-          irq: "IRQ 14 (Disk Controller DMA Interrupt)",
-          regs: "PCB 1042 Marked Runnable",
-          activeNode: "grp-ready",
-          activeEdge: "edge-t4",
-          activeLabel: "lbl-t4",
-          subReady: "Queue: PID 2085, PID 1042",
-          subRunning: "CPU: Selecting Next...",
-          subBlocked: "Waiting: [Empty]",
-          narrative: "The disk controller completes the sector transfer into RAM via DMA and raises an interrupt. The kernel identifies that PID 1042's I/O dependency is now satisfied and moves it from Blocked to Ready. It does not seize the CPU immediately, but enters the queue to await fair scheduling.",
-          what: "The disk controller completes the DMA transfer into memory and fires an interrupt. The ISR locates PCB 1042, moves it to the Ready queue, and notifies the scheduler.",
-          why: "The newly awakened process cannot jump directly onto the CPU because another task may have priority. It must join the Ready queue and await fair dispatch."
+          phase: "5. waitpid() Reaping & PCB Cleanup",
+          parentState: "PID 501 (bash): RUNNING",
+          childState: "PID 502: REAPED",
+          trap: "sys_waitpid(502, &status)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: DESTROYED",
+          childTitle: "CHILD (Reaped / Free)",
+          childPpid: "PPID: \u2014",
+          childMem: "Table Entry Freed",
+          childFds: "PCB Deallocated",
+          pathLabel: "Exit Status Reaped",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "Parent unblocks from waitpid(), reads the exit code (0), and prints the prompt. The kernel deallocates PCB 502 entirely from the process table. The step aims to complete the process lifecycle and reclaim the PID.",
+          what: "The kernel copies the exit code from PCB 502 into the parent's memory space, deletes PCB 502 from the process table, and marks PID 502 as available for future allocation.",
+          why: "Reaping clears dead entries from the finite kernel process table, preventing PID exhaustion and resource leaks."
         }
       ],
-      rtos: [
+      windows: [
         {
-          phase: "1. Real-Time Periodic Execution",
-          pid: "RT-PID 12 (Hard Deadline Task)",
-          irq: "None (Deterministic Burst)",
-          regs: "PC: 0x00004200 | SP: 0x200010",
-          activeNode: "grp-running",
-          activeEdge: null,
-          activeLabel: null,
-          subReady: "Ready: Low-Pri Telemetry",
-          subRunning: "CPU: RT-PID 12 (Sensor)",
-          subBlocked: "Waiting: [Empty]",
-          narrative: "High-priority flight control task RT-PID 12 executes attitude sensor sampling directly on the CPU core. The system is operating within a strictly bounded worst-case execution time (WCET) window to satisfy its 1ms real-time control deadline.",
-          what: "The flight control task samples inertial measurement sensors and writes attitude corrections within a 1ms hard deadline window.",
-          why: "Hard real-time systems prioritize strict timing predictability and bounded latency above all else."
+          phase: "1. Parent Initial State (cmd.exe)",
+          parentState: "PID 1100 (cmd.exe): RUNNING",
+          childState: "None (Unspawned)",
+          trap: "ReadFile(hStdIn)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: UNBORN",
+          childTitle: "CHILD (Unspawned)",
+          childPpid: "Parent Handle: None",
+          childMem: "Address Space: None",
+          childFds: "Handles: None",
+          pathLabel: "Awaiting Command",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "The Windows command interpreter (cmd.exe, PID 1100) sits in user mode waiting for input. The system aims to accept user input before preparing a Win32 process creation structure.",
+          what: "Parent process 1100 executes user-mode loop waiting on standard input handle hStdIn.",
+          why: "Decoupling user input parsing from process creation isolates command interpretation from kernel-level process object allocation."
         },
         {
-          phase: "2. Self-Suspension on Barrier (Transition 1)",
-          pid: "RT-PID 12 -> Sleep Barrier",
-          irq: "Kernel Sleep System Call",
-          regs: "Saved into TCB 12",
-          activeNode: "grp-blocked",
-          activeEdge: "edge-t1",
-          activeLabel: "lbl-t1",
-          subReady: "Ready: Low-Pri Telemetry",
-          subRunning: "CPU: RTOS Scheduler",
-          subBlocked: "Timer Barrier: RT-PID 12",
-          narrative: "Having finished its control calculation in 200 microseconds, RT-PID 12 voluntarily calls sleep_until() to await the next 10ms hardware sampling barrier. It transitions to Blocked so that idle clock cycles can be reclaimed by background housekeeping tasks.",
-          what: "Having completed its processing in 200 microseconds, RT-PID 12 relinquishes the processor until the next hardware sampling interval.",
-          why: "Explicitly sleeping until the next period prevents CPU spinning and frees cycles for background maintenance."
+          phase: "2. Single-Step CreateProcess()",
+          parentState: "PID 1100: Waiting on hProcess",
+          childState: "PID 1104 (find.exe): RUNNING",
+          trap: "CreateProcess(\"find.exe\")",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: RUNNING",
+          childTitle: "CHILD (PID 1104: find.exe)",
+          childPpid: "Creator PID: 1100",
+          childMem: "Loaded Directly from find.exe",
+          childFds: "Inherited Handle Table",
+          pathLabel: "CreateProcess Object Spawn",
+          parentActive: false,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Parent calls CreateProcess(). Unlike UNIX fork/exec, Windows creates an address space, loads the target PE executable, and spawns the initial thread in a single atomic system call. The parent receives an opaque process handle. The step aims to initialize the child directly without intermediate cloning.",
+          what: "The kernel Executive builds an EPROCESS object, maps the find.exe binary sections, constructs an initial ETHREAD, and returns an access handle (hProcess) to PID 1100.",
+          why: "Windows combines creation and program loading into one call, avoiding the overhead of creating temporary address space copies."
         },
         {
-          phase: "3. Low-Priority Background Task (Transition 3)",
-          pid: "PID 99 (Telemetry Logger)",
-          irq: "None (Low-Priority Execution)",
-          regs: "PC: 0x00018020 | SP: 0x200080",
-          activeNode: "grp-running",
-          activeEdge: "edge-t3",
-          activeLabel: "lbl-t3",
-          subReady: "Ready: [Empty]",
-          subRunning: "CPU: PID 99 (Logger)",
-          subBlocked: "Timer Barrier: RT-PID 12",
-          narrative: "The RTOS scheduler dispatches the low-priority telemetry logging task (PID 99) to run on the processor. While non-critical data packets are transmitted, the kernel remains primed to preempt this task immediately if a sensor event or deadline arrives.",
-          what: "A low-priority logger task transmits telemetry data while higher-priority control tasks are blocked.",
-          why: "Idle cycles are repurposed for non-critical work, provided background tasks can be preempted with microsecond latency."
+          phase: "3. Child Execution & Parent Sync",
+          parentState: "PID 1100: WaitForSingleObject",
+          childState: "PID 1104: Executing",
+          trap: "WaitForSingleObject(hProcess)",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: RUNNING",
+          childTitle: "CHILD (PID 1104: find.exe)",
+          childPpid: "Creator PID: 1100",
+          childMem: "find.exe Active Pages",
+          childFds: "Handles Open",
+          pathLabel: "Active Execution",
+          parentActive: false,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Child process 1104 executes its task while parent process 1100 blocks on WaitForSingleObject(hProcess). The step aims to allow child execution while keeping the parent synchronized with child completion.",
+          what: "Child process executes user-mode logic while the parent thread is placed on the wait queue of the kernel process object.",
+          why: "Kernel dispatcher objects allow parents to sleep efficiently until signaled, consuming zero CPU cycles while waiting."
         },
         {
-          phase: "4. Immediate Priority Preemption (Transition 2)",
-          pid: "PID 99 -> Ready Queue (Preempted)",
-          irq: "Hardware Sensor Clock IRQ",
-          regs: "Saved within 3 microseconds",
-          activeNode: "grp-ready",
-          activeEdge: "edge-t2",
-          activeLabel: "lbl-t2",
-          subReady: "Ready: PID 99 (Logger)",
-          subRunning: "CPU: Preempting to RT",
-          subBlocked: "Timer Barrier: RT-PID 12",
-          narrative: "The periodic hardware sensor timer triggers a priority interrupt. Unlike desktop timesharing, the RTOS does not wait for a time quantum to expire; it halts the background logger within microseconds to ensure real-time predictability.",
-          what: "The periodic hardware clock fires. The kernel halts the low-priority logger immediately without waiting for a time slice to elapse.",
-          why: "Real-time operating systems cannot tolerate time slicing delays when a mission-critical deadline arrives."
+          phase: "4. Child Termination & Signal State",
+          parentState: "PID 1100: Signaled by Object",
+          childState: "PID 1104: Terminated",
+          trap: "ExitProcess(0)",
+          parentStatusBadge: "STATUS: AWAKENING",
+          childStatusBadge: "STATUS: SIGNALED (DEAD)",
+          childTitle: "CHILD (PID 1104: Dead)",
+          childPpid: "Creator PID: 1100",
+          childMem: "Address Space Released",
+          childFds: "Handles Closed",
+          pathLabel: "hProcess Object Signaled",
+          parentActive: true,
+          childClass: "zombie",
+          pathActive: true,
+          narrative: "Child calls ExitProcess(0). The kernel releases the child's memory and sets the EPROCESS dispatcher object state to Signaled. However, the EPROCESS block is not freed because the parent still holds an open handle. The step aims to preserve the process object until all open handles are closed.",
+          what: "The child's threads and address space terminate, but the kernel retains the EPROCESS block as long as its handle reference count is greater than zero.",
+          why: "Windows uses reference-counted object security; as long as any process holds a valid handle, the underlying kernel object cannot be deleted."
         },
         {
-          phase: "5. High-Priority Wakeup & Immediate Run (Transition 4)",
-          pid: "RT-PID 12 -> Preemptive Dispatch",
-          irq: "Vector 16 (Sensor Timer Acknowledge)",
-          regs: "Restored to RT-PID 12",
-          activeNode: "grp-ready",
-          activeEdge: "edge-t4",
-          activeLabel: "lbl-t4",
-          subReady: "Ready: PID 99 (Logger)",
-          subRunning: "CPU: Dispatched RT-PID 12",
-          subBlocked: "Waiting: [Empty]",
-          narrative: "The RTOS unblocks RT-PID 12, moves it through Ready, and dispatches it immediately to the CPU due to its strict priority dominance. This eliminates scheduling jitter and guarantees zero delay for critical flight controls.",
-          what: "The RT task moves to Ready and, having the highest priority in the system, immediately preempts all other tasks to seize the CPU core.",
-          why: "Strict priority preemptive scheduling ensures zero jitter for safety-critical execution loops."
+          phase: "5. CloseHandle() & Object Deallocation",
+          parentState: "PID 1100 (cmd.exe): RUNNING",
+          childState: "PID 1104: DESTROYED",
+          trap: "CloseHandle(hProcess)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: DESTROYED",
+          childTitle: "CHILD (Destroyed)",
+          childPpid: "Creator PID: \u2014",
+          childMem: "EPROCESS Freed",
+          childFds: "Handle Released",
+          pathLabel: "Reference Count Zero",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "Parent retrieves the exit code via GetExitCodeProcess and calls CloseHandle(hProcess). The reference count on the EPROCESS block drops to zero, and the kernel deallocates the object. The step aims to reclaim the kernel object and finish synchronization.",
+          what: "Parent closes its handle, decrementing the EPROCESS reference count to 0, which triggers kernel garbage collection of the process structure.",
+          why: "Explicit handle closing prevents kernel memory leaks in long-running services and server applications."
         }
       ]
     };
 
-    let activeDimension = "desktop";
-    let activeStepIdx = 0;
+    let activeLifecycleDim = "unix";
+    let activeLifecycleStep = 0;
 
-    function renderStepper() {
-      const steps = stepperData[activeDimension];
-      const step = steps[activeStepIdx];
+    function renderLifecycleStepper() {
+      const steps = lifecycleSteps[activeLifecycleDim];
+      const step = steps[activeLifecycleStep];
 
-      document.getElementById("telem-phase").textContent = step.phase;
-      document.getElementById("telem-pid").textContent = step.pid;
-      document.getElementById("telem-irq").textContent = step.irq;
-      document.getElementById("telem-regs").textContent = step.regs;
+      // Update Live Telemetry
+      document.getElementById("l-telem-phase").textContent = step.phase;
+      document.getElementById("l-telem-parent").textContent = step.parentState;
+      document.getElementById("l-telem-child").textContent = step.childState;
+      document.getElementById("l-telem-trap").textContent = step.trap;
 
-      document.getElementById("sub-ready").textContent = step.subReady;
-      document.getElementById("sub-running").textContent = step.subRunning;
-      document.getElementById("sub-blocked").textContent = step.subBlocked;
+      // Update Parent SVG Card
+      const cardParent = document.getElementById("card-parent");
+      cardParent.className.baseVal = step.parentActive ? "proc-group active" : "proc-group";
+      document.getElementById("parent-status-badge").textContent = step.parentStatusBadge;
 
-      ["grp-ready", "grp-running", "grp-blocked"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove("active");
-      });
-      if (step.activeNode) {
-        const activeNodeEl = document.getElementById(step.activeNode);
-        if (activeNodeEl) activeNodeEl.classList.add("active");
-      }
+      // Update Child SVG Card
+      const cardChild = document.getElementById("card-child");
+      cardChild.className.baseVal = `proc-group ${step.childClass}`;
+      document.getElementById("child-title-text").textContent = step.childTitle;
+      document.getElementById("child-ppid-text").textContent = step.childPpid;
+      document.getElementById("child-mem-text").textContent = step.childMem;
+      document.getElementById("child-fds-text").textContent = step.childFds;
+      document.getElementById("child-status-badge").textContent = step.childStatusBadge;
 
-      ["edge-t1", "edge-t2", "edge-t3", "edge-t4"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.classList.remove("active");
-          el.setAttribute("marker-end", "url(#arr)");
-        }
-      });
-      if (step.activeEdge) {
-        const activeEdgeEl = document.getElementById(step.activeEdge);
-        if (activeEdgeEl) {
-          activeEdgeEl.classList.add("active");
-          activeEdgeEl.setAttribute("marker-end", "url(#arr-active)");
-        }
-      }
+      // Update Flow Path
+      const pathLine = document.getElementById("path-lifecycle");
+      pathLine.className.baseVal = step.pathActive ? "flow-line active" : "flow-line";
+      pathLine.setAttribute("marker-end", step.pathActive ? "url(#arrowhead-act)" : "url(#arrowhead)");
+      document.getElementById("path-label").textContent = step.pathLabel;
 
-      ["lbl-t1", "lbl-t2", "lbl-t3", "lbl-t4"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.remove("active");
-      });
-      if (step.activeLabel) {
-        const activeLabelEl = document.getElementById(step.activeLabel);
-        if (activeLabelEl) activeLabelEl.classList.add("active");
-      }
+      // Update Dedicated Narrative Summary Panel
+      document.getElementById("l-txt-narrative").textContent = step.narrative;
+      document.getElementById("l-btn-prev").disabled = (activeLifecycleStep === 0);
+      document.getElementById("l-btn-next").disabled = (activeLifecycleStep === steps.length - 1);
 
-      // Dedicated Narrative Mini-Paragraph
-      document.getElementById("txt-narrative").textContent = step.narrative;
-      document.getElementById("btn-backward").disabled = (activeStepIdx === 0);
-      document.getElementById("btn-forward").disabled = (activeStepIdx === steps.length - 1);
-
-      document.getElementById("txt-what").textContent = step.what;
-      document.getElementById("txt-why").textContent = step.why;
+      // Update Analytical Panes
+      document.getElementById("l-txt-what").textContent = step.what;
+      document.getElementById("l-txt-why").textContent = step.why;
     }
 
-    function moveStep(delta) {
-      const steps = stepperData[activeDimension];
-      activeStepIdx = Math.max(0, Math.min(steps.length - 1, activeStepIdx + delta));
-      renderStepper();
+    function stepLifecycle(delta) {
+      const steps = lifecycleSteps[activeLifecycleDim];
+      activeLifecycleStep = Math.max(0, Math.min(steps.length - 1, activeLifecycleStep + delta));
+      renderLifecycleStepper();
     }
 
-    function restartWalkthrough() {
-      activeStepIdx = 0;
-      renderStepper();
+    function resetLifecycle() {
+      activeLifecycleStep = 0;
+      renderLifecycleStepper();
     }
 
-    function setDimension(dim) {
-      activeDimension = dim;
-      activeStepIdx = 0;
-      document.getElementById("dim-desktop").classList.toggle("active", dim === "desktop");
-      document.getElementById("dim-rtos").classList.toggle("active", dim === "rtos");
+    function setLifecycleDim(dim) {
+      activeLifecycleDim = dim;
+      activeLifecycleStep = 0;
+      document.getElementById("dim-unix").classList.toggle("active", dim === "unix");
+      document.getElementById("dim-win").classList.toggle("active", dim === "windows");
 
-      const scenarioText = dim === "desktop"
-        ? "Tracking interactive text editor nano (PID 1042) reading an encrypted config file while a background build (PID 2085) competes for compute cycles."
-        : "Tracking mission-critical periodic flight sensor task (RT-PID 12) with hard 1ms deadline preempting background telemetry logger (PID 99).";
-      document.getElementById("scenario-text").innerHTML = scenarioText;
+      const scenarioText = dim === "unix"
+        ? "An interactive command shell (bash, PID 501) spawns an external utility (grep, PID 502) to search a file, waits for child completion, and reaps its exit status."
+        : "A Windows command console (cmd.exe, PID 1100) invokes CreateProcess to spawn find.exe (PID 1104), synchronizes via an object handle, and closes the handle.";
+      document.getElementById("lifecycle-scenario-text").innerHTML = scenarioText;
 
-      renderStepper();
-    }
-
-    // --- Stepper 2 Script: Multiprogramming Efficiency ---
-    const multiSteps = {
-      io: [
-        {
-          n: 1,
-          p: 0.80,
-          pn: 0.80,
-          util: 20.0,
-          narrative: "Currently evaluating single-process uniprogramming (n = 1) under an 80% I/O wait workload. The process leaves the CPU completely idle 80% of the time, demonstrating how slow peripherals starve fast execution silicon when no alternative tasks reside in memory.",
-          what: "A single process is loaded into RAM (n = 1). Since it spends 80% of its time blocked on I/O, the processor executes instructions only 20% of the time.",
-          why: "Single-process execution forces the CPU to sit idle during unbuffered peripheral access, leaving fast silicon completely unutilized."
-        },
-        {
-          n: 2,
-          p: 0.80,
-          pn: 0.64,
-          util: 36.0,
-          narrative: "Admitting a second process into RAM (n = 2) allows the scheduler to overlap independent I/O delays. The joint probability of both processes being blocked simultaneously drops to 0.80² = 0.64, increasing CPU utilization from 20% to 36%.",
-          what: "Two processes reside in RAM (n = 2). The probability that both are simultaneously blocked on I/O drops to 0.64. CPU utilization rises from 20% to 36%.",
-          why: "Whenever Process 1 blocks on a disk read, the operating system immediately switches the CPU to Process 2, reducing wasted cycles."
-        },
-        {
-          n: 3,
-          p: 0.80,
-          pn: 0.512,
-          util: 48.8,
-          narrative: "Three concurrent processes (n = 3) are resident in physical memory. The likelihood of all three waiting simultaneously drops to 0.80³ = 51.2%, lifting aggregate CPU utilization to nearly 50% and doubling baseline throughput.",
-          what: "Three processes reside concurrently in memory (n = 3). CPU utilization reaches 48.8%, more than double single-process throughput.",
-          why: "Statistically overlapping independent I/O bursts across multiple processes progressively masks physical device latency."
-        },
-        {
-          n: 4,
-          p: 0.80,
-          pn: 0.4096,
-          util: 59.0,
-          narrative: "Four processes reside in RAM (n = 4). Joint idle probability decreases to 41.0%, achieving 59.0% CPU saturation. The operating system now spends the majority of wall-clock time executing instructions rather than idling.",
-          what: "Four concurrent processes (n = 4) are scheduled. Total CPU utilization reaches 59.04%.",
-          why: "The system approaches stable multi-tasking where compute capacity is actively occupied for the majority of execution time."
-        },
-        {
-          n: 5,
-          p: 0.80,
-          pn: 0.3277,
-          util: 67.2,
-          narrative: "Five concurrent processes (n = 5) push CPU utilization to 67.2%. While throughput continues to climb, each additional process yields diminishing returns as the curve flattens toward saturation.",
-          what: "Five processes reside in memory (n = 5). CPU utilization increases to 67.23%.",
-          why: "Increasing the degree of multiprogramming yields substantial gains, but begins showing diminishing returns per additional process."
-        },
-        {
-          n: 6,
-          p: 0.80,
-          pn: 0.2621,
-          util: 73.8,
-          narrative: "Six concurrent processes (n = 6) achieve approximately 74% processor utilization. In practice, operating systems cap the degree of multiprogramming here because allocating further resident sets risks exhausting physical RAM and inducing page thrashing.",
-          what: "Six processes in memory achieve 73.79% utilization. Adding further processes yields diminishing CPU returns while escalating memory consumption.",
-          why: "The system balances high CPU saturation against memory exhaustion; adding too many tasks risks thrashing physical page frames."
-        }
-      ],
-      compute: [
-        {
-          n: 1,
-          p: 0.50,
-          pn: 0.50,
-          util: 50.0,
-          narrative: "Evaluating a single compute-bound task (p = 0.50). Because the process spends half its cycles calculating in registers, baseline uniprogrammed CPU utilization starts at 50% without requiring any secondary processes.",
-          what: "With p = 0.50, a single process yields 50% utilization on its own since half its cycles are dedicated purely to math and CPU operations.",
-          why: "Compute-bound tasks spend less time waiting on external devices, producing higher baseline single-process efficiency."
-        },
-        {
-          n: 2,
-          p: 0.50,
-          pn: 0.25,
-          util: 75.0,
-          narrative: "Admitting a second compute process (n = 2) drops the joint idle probability to 0.50² = 25%. Aggregate CPU utilization rapidly reaches 75%, demonstrating that compute-intensive workloads saturate silicon with very few concurrent tasks.",
-          what: "Two compute-heavy processes in RAM (n = 2). Probability of simultaneous I/O wait is only 25%, pushing CPU utilization to 75%.",
-          why: "Because compute-bound tasks execute longer on-core bursts, having just two resident tasks satisfies most scheduler timeslots."
-        },
-        {
-          n: 3,
-          p: 0.50,
-          pn: 0.125,
-          util: 87.5,
-          narrative: "Three compute tasks (n = 3) reduce processor idle probability to 12.5%, achieving 87.5% CPU utilization. Compute-bound workloads achieve near-saturation at half the degree of multiprogramming required by I/O workloads.",
-          what: "Three compute tasks reside in RAM (n = 3). CPU utilization rises to 87.5%.",
-          why: "For compute-bound workloads, optimal CPU saturation is achieved with far fewer concurrent tasks than in I/O-heavy environments."
-        },
-        {
-          n: 4,
-          p: 0.50,
-          pn: 0.0625,
-          util: 93.8,
-          narrative: "Four compute processes (n = 4) push processor utilization to 93.8%. Idle cycles are reduced to just 6.25%, keeping the processor cores almost completely occupied with instructions.",
-          what: "Four compute tasks in RAM (n = 4). CPU utilization reaches 93.75%.",
-          why: "At this stage, the processor is virtually fully occupied; almost no idle cycles remain unharvested."
-        },
-        {
-          n: 5,
-          p: 0.50,
-          pn: 0.0312,
-          util: 96.9,
-          narrative: "Five compute tasks (n = 5) reach 96.9% utilization. The marginal throughput gain from admitting another process is now less than 3%, meaning further scaling produces negligible compute value.",
-          what: "Five tasks in RAM yield 96.88% utilization. CPU idle time is less than 3.2%.",
-          why: "Additional multiprogramming produces negligible compute gains while multiplying context-switching and cache-eviction overhead."
-        },
-        {
-          n: 6,
-          p: 0.50,
-          pn: 0.0156,
-          util: 98.4,
-          narrative: "Six compute tasks (n = 6) achieve 98.4% CPU utilization, representing complete practical hardware saturation. Attempting to schedule additional tasks beyond this threshold will degrade performance through context switch and cache eviction overhead.",
-          what: "Six tasks yield 98.44% CPU utilization. The processor core is continuously saturated with executable instructions.",
-          why: "Further multiprogramming beyond this point offers zero throughput gains and begins degrading interactive responsiveness."
-        }
-      ]
-    };
-
-    let activeMultiDim = "io";
-    let activeMultiStep = 0;
-
-    function renderMultiStepper() {
-      const steps = multiSteps[activeMultiDim];
-      const step = steps[activeMultiStep];
-
-      document.getElementById("m-telem-n").textContent = `n = ${step.n} Process${step.n > 1 ? 'es' : ''}`;
-      document.getElementById("m-telem-p").textContent = `p = ${step.p.toFixed(2)} (${(step.p * 100).toFixed(0)}% I/O Wait)`;
-      document.getElementById("m-telem-pn").textContent = `${step.pn.toFixed(4)} (${(step.pn * 100).toFixed(1)}% CPU Idle)`;
-      document.getElementById("m-telem-util").textContent = `${step.util.toFixed(1)}% Utilization`;
-
-      // Update RAM Slots
-      for (let i = 1; i <= 6; i++) {
-        const slotEl = document.getElementById(`slot-${i}`);
-        if (!slotEl) continue;
-        const rect = slotEl.querySelector("rect");
-        const t1 = slotEl.querySelectorAll("text")[0];
-        const t2 = slotEl.querySelectorAll("text")[1];
-
-        if (i <= step.n) {
-          slotEl.setAttribute("opacity", "1");
-          rect.setAttribute("fill", "#e0f2fe");
-          rect.setAttribute("stroke", "#0284c7");
-          rect.setAttribute("stroke-width", "2");
-          rect.removeAttribute("stroke-dasharray");
-          t1.setAttribute("fill", "#0369a1");
-          t1.textContent = `P${i} (Active)`;
-          t2.textContent = "In RAM";
-        } else {
-          slotEl.setAttribute("opacity", "0.3");
-          rect.setAttribute("fill", "#f1f5f9");
-          rect.setAttribute("stroke", "#94a3b8");
-          rect.setAttribute("stroke-width", "1.5");
-          rect.setAttribute("stroke-dasharray", "3 3");
-          t1.setAttribute("fill", "#475569");
-          t1.textContent = `P${i}`;
-          t2.textContent = "Unallocated";
-        }
-      }
-
-      // Update Gauge Bar Height & Text
-      const gaugeHeight = 130 * (step.util / 100);
-      const gaugeY = 190 - gaugeHeight;
-      const gaugeFill = document.getElementById("gauge-fill");
-      gaugeFill.setAttribute("y", gaugeY);
-      gaugeFill.setAttribute("height", gaugeHeight);
-
-      if (step.util > 85) {
-        gaugeFill.setAttribute("fill", "#059669");
-      } else if (step.util > 50) {
-        gaugeFill.setAttribute("fill", "#0284c7");
-      } else {
-        gaugeFill.setAttribute("fill", "#d97706");
-      }
-
-      document.getElementById("gauge-text").textContent = `${step.util.toFixed(1)}%`;
-      document.getElementById("gauge-text").setAttribute("fill", step.util > 85 ? "#059669" : "#0284c7");
-
-      // Dedicated Narrative Mini-Paragraph
-      document.getElementById("m-txt-narrative").textContent = step.narrative;
-      document.getElementById("m-btn-prev").disabled = (activeMultiStep === 0);
-      document.getElementById("m-btn-next").disabled = (activeMultiStep === steps.length - 1);
-
-      document.getElementById("m-txt-what").textContent = step.what;
-      document.getElementById("m-txt-why").textContent = step.why;
-    }
-
-    function stepMulti(delta) {
-      const steps = multiSteps[activeMultiDim];
-      activeMultiStep = Math.max(0, Math.min(steps.length - 1, activeMultiStep + delta));
-      renderMultiStepper();
-    }
-
-    function resetMulti() {
-      activeMultiStep = 0;
-      renderMultiStepper();
-    }
-
-    function setMultiDim(dim) {
-      activeMultiDim = dim;
-      activeMultiStep = 0;
-      document.getElementById("dim-io").classList.toggle("active", dim === "io");
-      document.getElementById("dim-cpu").classList.toggle("active", dim === "compute");
-
-      const scenarioText = dim === "io"
-        ? "Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under an I/O wait fraction of 80% (typical web server or database workload)."
-        : "Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under a compute-bound workload with 50% I/O wait (typical compiler or simulation task).";
-      document.getElementById("multi-scenario-text").innerHTML = scenarioText;
-
-      renderMultiStepper();
+      renderLifecycleStepper();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      renderStepper();
-      renderMultiStepper();
+      renderLifecycleStepper();
     });
   </script>
 </body>
 </html>
 """
 
-def apply_narrative_update():
+def execute_module_expansion():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully updated {TARGET_FILE} with current-step narrative panels.")
+    print(f"--> Successfully expanded {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Update walkthrough panels to provide current step narrative summaries\n\n"
-            "Refactor interactive steppers in 01-process-model.html so navigation panels\n"
-            "provide an inline narrative summary of the current step and its objective."
+            "Expand 02-process-lifecycle.html with comprehensive lifecycle stepper\n\n"
+            "Enrich Module 02 with detailed creation, termination, and hierarchy models,\n"
+            "featuring an interactive Directed Narrative Stepper for fork, exec, and wait."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -1210,4 +806,4 @@ def apply_narrative_update():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    apply_narrative_update()
+    execute_module_expansion()

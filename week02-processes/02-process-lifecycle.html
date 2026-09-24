@@ -3,44 +3,774 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>02. Process Creation, Termination &amp; Hierarchies | Week 2</title>
+  <title>02. Process Creation, Termination &amp; Hierarchies | Week 2: Processes &amp; Concurrency</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
     }
-    body { font-family: var(--font-sans); color: #1e293b; background: #f8fafc; margin: 0; padding: 32px 16px; line-height: 1.6; }
-    .container { max-width: 900px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
     h1, h2, h3, h4 { color: #0f172a; }
     h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
-    h3 { margin-top: 20px; margin-bottom: 8px; color: #0284c7; font-size: 1.15rem; }
-    p { color: #475569; margin-bottom: 12px; }
-    ul, ol { margin-left: 20px; color: #475569; margin-bottom: 12px; }
-    li { margin-bottom: 4px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+    /* Directed Narrative Stepper Layout */
+    .aid-wrapper {
+      margin: 32px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      overflow: hidden;
+    }
+    .aid-header {
+      background: #f1f5f9;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .aid-header h4 {
+      margin: 0;
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .dimension-toggles {
+      display: flex;
+      gap: 6px;
+    }
+    .dim-btn {
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .dim-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .scenario-banner {
+      background: #f8fafc;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scenario-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .telemetry-strip {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .telemetry-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .telemetry-label {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .telemetry-val {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .telemetry-val.highlight { color: #4ade80; }
+    .telemetry-val.alert { color: #f87171; }
+
+    .canvas-container {
+      background: #ffffff;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    svg.lifecycle-canvas {
+      width: 100%;
+      max-width: 720px;
+      height: auto;
+      overflow: visible;
+    }
+
+    .controls-narrative-strip {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 18px;
+    }
+    @media (max-width: 720px) {
+      .controls-narrative-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+    .stepper-btn-group {
+      display: flex;
+      gap: 8px;
+      align-self: center;
+    }
+    .btn-step {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn-step:hover:not(:disabled) {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    .btn-step:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .narrative-preview-panel {
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      padding: 10px 14px;
+    }
+    .narrative-preview-panel strong {
+      color: #0f172a;
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .analytical-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--border);
+      gap: 1px;
+    }
+    @media (max-width: 720px) {
+      .analytical-grid { grid-template-columns: 1fr; }
+    }
+    .pane-card {
+      background: #ffffff;
+      padding: 18px;
+    }
+    .pane-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pane-title.what { color: var(--accent); }
+    .pane-title.why { color: var(--success); }
+    .pane-content {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #334155;
+      margin: 0;
+    }
+
+    /* Diagram Nodes & Shapes */
+    .proc-box {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      transition: all 0.3s ease;
+    }
+    .proc-group.active .proc-box {
+      stroke: #0284c7;
+      stroke-width: 2.5;
+      fill: #f0f9ff;
+    }
+    .proc-group.zombie .proc-box {
+      stroke: #d97706;
+      stroke-width: 2.5;
+      fill: #fef3c7;
+    }
+    .proc-group.reaped .proc-box {
+      stroke: #94a3b8;
+      stroke-dasharray: 4 4;
+      fill: #f8fafc;
+      opacity: 0.4;
+    }
+    .flow-line {
+      stroke: #cbd5e1;
+      stroke-width: 2;
+      fill: none;
+      transition: all 0.3s ease;
+    }
+    .flow-line.active {
+      stroke: #0284c7;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.4));
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1;">
-      <a href="01-process-model.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 01. Process Model</a>
-      <a href="index.html" style="font-weight: 600; color: #334155; text-decoration: none;">&#127968; Week 2 Index</a>
-      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 03. Threads &rarr;</a>
+    <nav class="nav-bar">
+      <a href="01-process-model.html">&larr; Previous: 01. Process Model</a>
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <a href="03-classical-threads.html">Next: 03. Classical Threads &rarr;</a>
     </nav>
+
     <h2>02. Process Creation, Termination &amp; Hierarchies</h2>
-    <p>Examining how operating systems instantiate and manage the process lifecycle through system calls and process control blocks.</p>
-    <h3>Process Creation Events</h3>
+    <p>
+      An operating system is not a static monolith; it is an active ecosystem where processes are continually spawned, coordinated, and torn down. To maintain system integrity, resource tracking, and security separation, the kernel provides standardized lifecycle mechanisms and formal relationship models.
+    </p>
+
+    <h3>1. Process Creation Mechanisms</h3>
+    <p>
+      In modern computing environments, four primary events initiate the creation of a new process:
+    </p>
+    <ol>
+      <li>
+        <strong>System Initialization:</strong> When an operating system boots, the kernel initializes hardware, builds core memory tables, and spawns the initial user-space root process (such as <code>init</code> or <code>systemd</code> on UNIX systems, with PID 1). This root process launches essential background services known as <em>daemons</em> (such as network managers, system loggers, and cron schedulers) as well as interactive login consoles.
+      </li>
+      <li>
+        <strong>Execution of a Process Creation System Call:</strong> A currently running process issues a dedicated kernel trap requesting the creation of a child process. For example, a web server listening on port 80 might spawn worker processes to handle incoming client connections concurrently.
+      </li>
+      <li>
+        <strong>User Request:</strong> An interactive user types a command into a terminal shell (such as <code>ls -la</code>) or double-clicks an icon on a graphical desktop. The underlying shell or window manager issues the appropriate system call on the user's behalf.
+      </li>
+      <li>
+        <strong>Initiation of a Batch Job:</strong> In mainframe, high-performance computing (HPC), or cloud batch systems, batch management daemons read job execution queues and instantiate processes as cluster compute resources become available.
+      </li>
+    </ol>
+
+    <h3>2. Process Hierarchies: UNIX Trees vs. Windows Flat Models</h3>
+    <p>
+      Operating systems differ fundamentally in how they track relationships between parent and child tasks:
+    </p>
     <ul>
-      <li>System initialization (daemons and background services).</li>
-      <li>Execution of process creation system calls (e.g., UNIX <code>fork()</code>).</li>
-      <li>User requests to start programs.</li>
-      <li>Initiation of batch jobs.</li>
+      <li>
+        <strong>The UNIX Process Hierarchy:</strong> In UNIX and Linux, processes are strictly organized into a single rooted parent-child tree. When process A forks process B, process A is permanently recorded as B's parent (<code>PPID</code>). Processes form process groups and session hierarchies, enabling terminal control signals (such as <code>SIGINT</code> on Ctrl+C) to broadcast to an entire pipeline of child processes. If a parent terminates before its child, the orphaned child is re-parented to <code>init</code> (PID 1) or a modern user subreaper daemon.
+      </li>
+      <li>
+        <strong>The Windows Flat Model:</strong> Windows does not maintain an inherent, permanent tree hierarchy. When a parent process calls <code>CreateProcess</code>, it receives an opaque security handle to the newly created process. The parent can pass or duplicate this handle to other processes. Once created, the child exists as an independent system object in the Windows Executive; there is no formal concept of ancestry or automatic tree re-parenting in the kernel core.
+      </li>
     </ul>
-    <h3>Process Hierarchies &amp; Termination</h3>
-    <p>Processes form parent-child tree structures in UNIX (rooted at <code>init</code> or <code>systemd</code>), whereas Windows employs flat object models with handles. Processes terminate via normal exit, error exit, fatal errors, or external termination.</p>
-    <nav class="module-nav-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px; padding-top: 12px; border-top: 1px solid #cbd5e1;">
-      <a href="01-process-model.html" style="font-weight: 600; color: #334155; text-decoration: none;">&larr; Previous: 01. Process Model</a>
-      <a href="03-classical-threads.html" style="font-weight: 600; color: #334155; text-decoration: none;">Next: 03. Threads &rarr;</a>
+
+    <!-- Directed Narrative Stepper Standard: Process Lifecycle -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: The UNIX Fork-Exec-Wait Lifecycle</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="dim-unix" onclick="setLifecycleDim('unix')">UNIX Model (fork/exec/wait)</button>
+          <button class="dim-btn" id="dim-win" onclick="setLifecycleDim('windows')">Windows Model (CreateProcess)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Scenario Arc</span>
+        <span id="lifecycle-scenario-text">An interactive command shell (bash, PID 501) spawns an external utility (grep, PID 502) to search a file, waits for child completion, and reaps its exit status.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Active Phase</span>
+          <span class="telemetry-val highlight" id="l-telem-phase">1. Parent Running (Shell Prompt)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Parent PID &amp; State</span>
+          <span class="telemetry-val" id="l-telem-parent">PID 501 (bash): RUNNING</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Child PID &amp; State</span>
+          <span class="telemetry-val" id="l-telem-child">None (Unspawned)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Syscall / Return Code</span>
+          <span class="telemetry-val" id="l-telem-trap">sys_read(stdin)</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="lifecycle-canvas" viewBox="0 0 720 220">
+          <defs>
+            <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+            </marker>
+            <marker id="arrowhead-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+            </marker>
+          </defs>
+
+          <!-- Parent Process Card -->
+          <g id="card-parent" class="proc-group active" transform="translate(40, 35)">
+            <rect class="proc-box" width="220" height="150" rx="8" />
+            <text x="20" y="32" font-family="system-ui" font-size="13" font-weight="700" fill="#0f172a">PARENT (PID 501: bash)</text>
+            <text id="parent-ppid-text" x="20" y="52" font-family="var(--font-mono)" font-size="11" fill="#64748b">PPID: 1 (systemd)</text>
+            <rect x="20" y="65" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="parent-mem-text" x="30" y="83" font-family="var(--font-mono)" font-size="10" fill="#334155">Memory: /bin/bash Code</text>
+            <rect x="20" y="102" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="parent-fds-text" x="30" y="120" font-family="var(--font-mono)" font-size="10" fill="#334155">FD 0: stdin, FD 1: stdout</text>
+            <text id="parent-status-badge" x="20" y="145" font-family="system-ui" font-size="11" font-weight="700" fill="#0284c7">STATUS: RUNNING</text>
+          </g>
+
+          <!-- Connecting Lifecycle Path -->
+          <path id="path-lifecycle" class="flow-line" d="M 260 110 L 460 110" marker-end="url(#arrowhead)" />
+          <text id="path-label" x="360" y="100" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="#64748b">Awaiting Command</text>
+
+          <!-- Child Process Card -->
+          <g id="card-child" class="proc-group reaped" transform="translate(460, 35)">
+            <rect class="proc-box" width="220" height="150" rx="8" />
+            <text id="child-title-text" x="20" y="32" font-family="system-ui" font-size="13" font-weight="700" fill="#0f172a">CHILD (Unspawned)</text>
+            <text id="child-ppid-text" x="20" y="52" font-family="var(--font-mono)" font-size="11" fill="#64748b">PPID: &mdash;</text>
+            <rect x="20" y="65" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="child-mem-text" x="30" y="83" font-family="var(--font-mono)" font-size="10" fill="#94a3b8">Address Space: None</text>
+            <rect x="20" y="102" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text id="child-fds-text" x="30" y="120" font-family="var(--font-mono)" font-size="10" fill="#94a3b8">File Descriptors: None</text>
+            <text id="child-status-badge" x="20" y="145" font-family="system-ui" font-size="11" font-weight="700" fill="#94a3b8">STATUS: UNBORN</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Stepper Controls & Current Step Summary Panel -->
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="l-btn-prev" onclick="stepLifecycle(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="l-btn-next" onclick="stepLifecycle(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="l-btn-reset" onclick="resetLifecycle()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="l-txt-narrative">The shell (PID 501) sits in user mode waiting for input. The system aims to accept user command string "grep pattern file.txt" from standard input before preparing to execute it as an independent process.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="l-txt-what">Parent process 501 executes the bash shell read loop in user mode. It listens on terminal file descriptor 0, parsing user keystrokes into command line arguments.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="l-txt-why">The shell operates strictly in unprivileged user space. By decoupling input parsing from process creation, the shell remains safe from malicious command arguments without risking kernel instability.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>3. Process Termination Conditions</h3>
+    <p>
+      Every running process eventually terminates, exiting through one of four conditions:
+    </p>
+    <ol>
+      <li>
+        <strong>Normal Exit (Voluntary):</strong> The process finishes its task and invokes an exit system call (such as <code>exit(0)</code> in C/UNIX or <code>ExitProcess</code> on Windows). Compilers, text formatters, and utility programs terminate normally upon reaching end-of-file.
+      </li>
+      <li>
+        <strong>Error Exit (Voluntary):</strong> The process discovers an operational error—such as a missing configuration file or invalid command-line flags—and voluntarily calls <code>exit(2)</code> returning a non-zero diagnostic exit code.
+      </li>
+      <li>
+        <strong>Fatal Error (Involuntary):</strong> The program attempts an illegal hardware or memory operation—such as dividing by zero, executing an invalid opcode, or dereferencing an unmapped memory address (triggering a segmentation fault / <code>SIGSEGV</code>). The kernel hardware exception handler halts execution immediately.
+      </li>
+      <li>
+        <strong>Killed by Another Process (Involuntary):</strong> A process receives an external termination signal (such as <code>SIGKILL</code> via the <code>kill()</code> system call) sent by an authorized administrative shell or supervisory daemon. The receiving process is terminated unconditionally by the kernel.
+      </li>
+    </ol>
+
+    <h3>4. Zombies and Orphan Reaping</h3>
+    <p>
+      When a UNIX child process terminates via <code>exit()</code>, the kernel releases its physical memory pages, closes its open file descriptors, and detaches its address space. However, the kernel cannot immediately destroy its Process Control Block (PCB).
+    </p>
+    <p>
+      The PCB must remain in the process table in a <strong>Zombie</strong> state until the parent calls <code>wait()</code> or <code>waitpid()</code> to collect the child's exit status code. If a parent terminates without calling <code>wait()</code>, the child becomes an <strong>orphan</strong> and is automatically adopted by <code>init</code> (PID 1), which periodically executes <code>wait()</code> to reap accumulated zombies and prevent kernel process table starvation.
+    </p>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="01-process-model.html">&larr; Previous: 01. Process Model</a>
+      <a href="index.html">&#127968; Week 2 Index</a>
+      <a href="03-classical-threads.html">Next: 03. Classical Threads &rarr;</a>
     </nav>
   </div>
+
+  <script>
+    const lifecycleSteps = {
+      unix: [
+        {
+          phase: "1. Parent Running (Shell Prompt)",
+          parentState: "PID 501 (bash): RUNNING",
+          childState: "None (Unspawned)",
+          trap: "sys_read(stdin)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: UNBORN",
+          childTitle: "CHILD (Unspawned)",
+          childPpid: "PPID: \u2014",
+          childMem: "Address Space: None",
+          childFds: "File Descriptors: None",
+          pathLabel: "Awaiting Command",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "The parent shell (PID 501) runs in user mode listening on standard input. The system aims to receive a user command before allocating any operating system resources for a child process.",
+          what: "Parent process 501 executes the bash shell read loop in user mode. It listens on terminal file descriptor 0, parsing user keystrokes into command line arguments.",
+          why: "The shell operates strictly in unprivileged user space. By decoupling input parsing from process creation, the shell remains safe from malicious command arguments without risking kernel instability."
+        },
+        {
+          phase: "2. fork() Invocation & Cloning",
+          parentState: "PID 501 (bash): TRAPPED",
+          childState: "PID 502: READY (Clone)",
+          trap: "sys_fork() [returns 502 to parent, 0 to child]",
+          parentStatusBadge: "STATUS: FORKING",
+          childStatusBadge: "STATUS: READY (CLONE)",
+          childTitle: "CHILD (PID 502: Clone)",
+          childPpid: "PPID: 501",
+          childMem: "Copy-on-Write Clone of PID 501",
+          childFds: "Inherited Duplicates of 0, 1, 2",
+          pathLabel: "fork() duplicate",
+          parentActive: true,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Parent executes fork(). The kernel duplicates the parent's PCB, copies page tables via Copy-on-Write (COW), and returns child PID 502 to the parent and 0 to the child. The step aims to create an isolated duplicate execution context without copying memory pages upfront.",
+          what: "The kernel allocates PCB 502, copies the parent's file descriptor table, and marks all memory pages as read-only Copy-on-Write in hardware page tables.",
+          why: "Copy-on-Write prevents duplicating megabytes of physical RAM when the child is likely to immediately replace its image via execve()."
+        },
+        {
+          phase: "3. execve() Overlay",
+          parentState: "PID 501: Calling waitpid()",
+          childState: "PID 502 (grep): RUNNING",
+          trap: "sys_execve(\"/bin/grep\")",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: RUNNING (GREP)",
+          childTitle: "CHILD (PID 502: grep)",
+          childPpid: "PPID: 501",
+          childMem: "Overlaid with /bin/grep ELF",
+          childFds: "Preserved stdin/stdout",
+          pathLabel: "execve() image replace",
+          parentActive: false,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Child process 502 calls execve() with /bin/grep. The kernel tears down the cloned address space, loads the grep ELF binary into memory, resets registers to the ELF entry point, while preserving inherited file descriptors. The step aims to transform the clone into a completely new program.",
+          what: "The kernel releases old COW references, maps the grep text and data sections into physical RAM, initializes a fresh stack with argv/envp, and sets the instruction pointer to main().",
+          why: "Separating fork() from execve() gives the shell a critical window between cloning and execution to redirect file descriptors (e.g., pipes or < > redirections) without kernel intervention."
+        },
+        {
+          phase: "4. Child Termination -> Zombie State",
+          parentState: "PID 501: BLOCKED (WAIT)",
+          childState: "PID 502 (grep): ZOMBIE",
+          trap: "sys_exit(0) [Child Exit]",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: ZOMBIE (EXIT 0)",
+          childTitle: "CHILD (PID 502: Zombie)",
+          childPpid: "PPID: 501",
+          childMem: "Deallocated from RAM",
+          childFds: "Closed and Released",
+          pathLabel: "SIGCHLD sent to parent",
+          parentActive: false,
+          childClass: "zombie",
+          pathActive: true,
+          narrative: "Child finishes search and calls exit(0). The kernel deallocates its physical memory, closes all open files, but retains its PCB entry containing exit code 0. The step aims to preserve the termination record until the parent is ready to inspect it.",
+          what: "Child address space is reclaimed, but PCB 502 remains in the kernel process table marked as a Zombie. A SIGCHLD signal is dispatched to parent PID 501.",
+          why: "If the kernel destroyed the PCB immediately, the parent could never inspect whether the child succeeded, failed, or was terminated by a signal."
+        },
+        {
+          phase: "5. waitpid() Reaping & PCB Cleanup",
+          parentState: "PID 501 (bash): RUNNING",
+          childState: "PID 502: REAPED",
+          trap: "sys_waitpid(502, &status)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: DESTROYED",
+          childTitle: "CHILD (Reaped / Free)",
+          childPpid: "PPID: \u2014",
+          childMem: "Table Entry Freed",
+          childFds: "PCB Deallocated",
+          pathLabel: "Exit Status Reaped",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "Parent unblocks from waitpid(), reads the exit code (0), and prints the prompt. The kernel deallocates PCB 502 entirely from the process table. The step aims to complete the process lifecycle and reclaim the PID.",
+          what: "The kernel copies the exit code from PCB 502 into the parent's memory space, deletes PCB 502 from the process table, and marks PID 502 as available for future allocation.",
+          why: "Reaping clears dead entries from the finite kernel process table, preventing PID exhaustion and resource leaks."
+        }
+      ],
+      windows: [
+        {
+          phase: "1. Parent Initial State (cmd.exe)",
+          parentState: "PID 1100 (cmd.exe): RUNNING",
+          childState: "None (Unspawned)",
+          trap: "ReadFile(hStdIn)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: UNBORN",
+          childTitle: "CHILD (Unspawned)",
+          childPpid: "Parent Handle: None",
+          childMem: "Address Space: None",
+          childFds: "Handles: None",
+          pathLabel: "Awaiting Command",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "The Windows command interpreter (cmd.exe, PID 1100) sits in user mode waiting for input. The system aims to accept user input before preparing a Win32 process creation structure.",
+          what: "Parent process 1100 executes user-mode loop waiting on standard input handle hStdIn.",
+          why: "Decoupling user input parsing from process creation isolates command interpretation from kernel-level process object allocation."
+        },
+        {
+          phase: "2. Single-Step CreateProcess()",
+          parentState: "PID 1100: Waiting on hProcess",
+          childState: "PID 1104 (find.exe): RUNNING",
+          trap: "CreateProcess(\"find.exe\")",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: RUNNING",
+          childTitle: "CHILD (PID 1104: find.exe)",
+          childPpid: "Creator PID: 1100",
+          childMem: "Loaded Directly from find.exe",
+          childFds: "Inherited Handle Table",
+          pathLabel: "CreateProcess Object Spawn",
+          parentActive: false,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Parent calls CreateProcess(). Unlike UNIX fork/exec, Windows creates an address space, loads the target PE executable, and spawns the initial thread in a single atomic system call. The parent receives an opaque process handle. The step aims to initialize the child directly without intermediate cloning.",
+          what: "The kernel Executive builds an EPROCESS object, maps the find.exe binary sections, constructs an initial ETHREAD, and returns an access handle (hProcess) to PID 1100.",
+          why: "Windows combines creation and program loading into one call, avoiding the overhead of creating temporary address space copies."
+        },
+        {
+          phase: "3. Child Execution & Parent Sync",
+          parentState: "PID 1100: WaitForSingleObject",
+          childState: "PID 1104: Executing",
+          trap: "WaitForSingleObject(hProcess)",
+          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
+          childStatusBadge: "STATUS: RUNNING",
+          childTitle: "CHILD (PID 1104: find.exe)",
+          childPpid: "Creator PID: 1100",
+          childMem: "find.exe Active Pages",
+          childFds: "Handles Open",
+          pathLabel: "Active Execution",
+          parentActive: false,
+          childClass: "active",
+          pathActive: true,
+          narrative: "Child process 1104 executes its task while parent process 1100 blocks on WaitForSingleObject(hProcess). The step aims to allow child execution while keeping the parent synchronized with child completion.",
+          what: "Child process executes user-mode logic while the parent thread is placed on the wait queue of the kernel process object.",
+          why: "Kernel dispatcher objects allow parents to sleep efficiently until signaled, consuming zero CPU cycles while waiting."
+        },
+        {
+          phase: "4. Child Termination & Signal State",
+          parentState: "PID 1100: Signaled by Object",
+          childState: "PID 1104: Terminated",
+          trap: "ExitProcess(0)",
+          parentStatusBadge: "STATUS: AWAKENING",
+          childStatusBadge: "STATUS: SIGNALED (DEAD)",
+          childTitle: "CHILD (PID 1104: Dead)",
+          childPpid: "Creator PID: 1100",
+          childMem: "Address Space Released",
+          childFds: "Handles Closed",
+          pathLabel: "hProcess Object Signaled",
+          parentActive: true,
+          childClass: "zombie",
+          pathActive: true,
+          narrative: "Child calls ExitProcess(0). The kernel releases the child's memory and sets the EPROCESS dispatcher object state to Signaled. However, the EPROCESS block is not freed because the parent still holds an open handle. The step aims to preserve the process object until all open handles are closed.",
+          what: "The child's threads and address space terminate, but the kernel retains the EPROCESS block as long as its handle reference count is greater than zero.",
+          why: "Windows uses reference-counted object security; as long as any process holds a valid handle, the underlying kernel object cannot be deleted."
+        },
+        {
+          phase: "5. CloseHandle() & Object Deallocation",
+          parentState: "PID 1100 (cmd.exe): RUNNING",
+          childState: "PID 1104: DESTROYED",
+          trap: "CloseHandle(hProcess)",
+          parentStatusBadge: "STATUS: RUNNING",
+          childStatusBadge: "STATUS: DESTROYED",
+          childTitle: "CHILD (Destroyed)",
+          childPpid: "Creator PID: \u2014",
+          childMem: "EPROCESS Freed",
+          childFds: "Handle Released",
+          pathLabel: "Reference Count Zero",
+          parentActive: true,
+          childClass: "reaped",
+          pathActive: false,
+          narrative: "Parent retrieves the exit code via GetExitCodeProcess and calls CloseHandle(hProcess). The reference count on the EPROCESS block drops to zero, and the kernel deallocates the object. The step aims to reclaim the kernel object and finish synchronization.",
+          what: "Parent closes its handle, decrementing the EPROCESS reference count to 0, which triggers kernel garbage collection of the process structure.",
+          why: "Explicit handle closing prevents kernel memory leaks in long-running services and server applications."
+        }
+      ]
+    };
+
+    let activeLifecycleDim = "unix";
+    let activeLifecycleStep = 0;
+
+    function renderLifecycleStepper() {
+      const steps = lifecycleSteps[activeLifecycleDim];
+      const step = steps[activeLifecycleStep];
+
+      // Update Live Telemetry
+      document.getElementById("l-telem-phase").textContent = step.phase;
+      document.getElementById("l-telem-parent").textContent = step.parentState;
+      document.getElementById("l-telem-child").textContent = step.childState;
+      document.getElementById("l-telem-trap").textContent = step.trap;
+
+      // Update Parent SVG Card
+      const cardParent = document.getElementById("card-parent");
+      cardParent.className.baseVal = step.parentActive ? "proc-group active" : "proc-group";
+      document.getElementById("parent-status-badge").textContent = step.parentStatusBadge;
+
+      // Update Child SVG Card
+      const cardChild = document.getElementById("card-child");
+      cardChild.className.baseVal = `proc-group ${step.childClass}`;
+      document.getElementById("child-title-text").textContent = step.childTitle;
+      document.getElementById("child-ppid-text").textContent = step.childPpid;
+      document.getElementById("child-mem-text").textContent = step.childMem;
+      document.getElementById("child-fds-text").textContent = step.childFds;
+      document.getElementById("child-status-badge").textContent = step.childStatusBadge;
+
+      // Update Flow Path
+      const pathLine = document.getElementById("path-lifecycle");
+      pathLine.className.baseVal = step.pathActive ? "flow-line active" : "flow-line";
+      pathLine.setAttribute("marker-end", step.pathActive ? "url(#arrowhead-act)" : "url(#arrowhead)");
+      document.getElementById("path-label").textContent = step.pathLabel;
+
+      // Update Dedicated Narrative Summary Panel
+      document.getElementById("l-txt-narrative").textContent = step.narrative;
+      document.getElementById("l-btn-prev").disabled = (activeLifecycleStep === 0);
+      document.getElementById("l-btn-next").disabled = (activeLifecycleStep === steps.length - 1);
+
+      // Update Analytical Panes
+      document.getElementById("l-txt-what").textContent = step.what;
+      document.getElementById("l-txt-why").textContent = step.why;
+    }
+
+    function stepLifecycle(delta) {
+      const steps = lifecycleSteps[activeLifecycleDim];
+      activeLifecycleStep = Math.max(0, Math.min(steps.length - 1, activeLifecycleStep + delta));
+      renderLifecycleStepper();
+    }
+
+    function resetLifecycle() {
+      activeLifecycleStep = 0;
+      renderLifecycleStepper();
+    }
+
+    function setLifecycleDim(dim) {
+      activeLifecycleDim = dim;
+      activeLifecycleStep = 0;
+      document.getElementById("dim-unix").classList.toggle("active", dim === "unix");
+      document.getElementById("dim-win").classList.toggle("active", dim === "windows");
+
+      const scenarioText = dim === "unix"
+        ? "An interactive command shell (bash, PID 501) spawns an external utility (grep, PID 502) to search a file, waits for child completion, and reaps its exit status."
+        : "A Windows command console (cmd.exe, PID 1100) invokes CreateProcess to spawn find.exe (PID 1104), synchronizes via an object handle, and closes the handle.";
+      document.getElementById("lifecycle-scenario-text").innerHTML = scenarioText;
+
+      renderLifecycleStepper();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderLifecycleStepper();
+    });
+  </script>
 </body>
 </html>
