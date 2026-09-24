@@ -196,14 +196,14 @@
         The Coffman conditions are <strong>necessary</strong> for deadlock (every deadlock exhibits all four), but depending on resource multiplicity, circular wait is only sometimes <strong>sufficient</strong>. In systems with multiple identical units per resource type, a cycle in the resource allocation graph is a necessary condition for deadlock, but not always sufficient.
       </div>
 
-      <h3>3. Resource Allocation Graphs (RAGs) &amp; Cycle Detection</h3>
+            <h3>3. Resource Allocation Graphs (RAGs) &amp; Cycle Detection</h3>
       <p>
         To formally analyze and detect system deadlocks algorithmically, operating systems frequently model resource state as a directed graph known as a <strong>Resource Allocation Graph (RAG)</strong>. Invented by Holt (1972), RAGs provide a rigorous graphical and topological framework to visualize process dependencies and evaluate deadlock existence in real time.
       </p>
 
-      <h4>1. Formal Graph Structure &amp; Vertex Types</h4>
+      <h4>1. From Hardware Contention to Graph Topology</h4>
       <p>
-        Mathematically, a Resource Allocation Graph is defined as a directed graph $G = (V, E)$ where the vertex set $V$ is partitioned into two disjoint subsets representing processes and resources:
+        When multiple concurrent processes execute, they constantly request, acquire, and release system resources (such as database locks, memory regions, file descriptors, or hardware devices). Without a global view, an operating system sees only isolated system calls (e.g., <code>lock()</code> or <code>wait()</code>). An RAG aggregates these discrete state transitions into a holistic directed graph $G = (V, E)$:
       </p>
       <ul>
         <li>
@@ -212,34 +212,44 @@
         <li>
           <strong>Resource Vertices ($R$):</strong> Represented as rectangular boxes ($R_1, R_2, \dots, R_m$). Each resource box may contain one or more black dots (tokens) representing identical available instances of that resource type.
         </li>
+        <li>
+          <strong>Directed Edge Semantics ($E$):</strong> Capture runtime allocation and waiting states via <em>Request Edges</em> ($P_i \to R_j$, signifying a blocked petitioner waiting for allocation) and <em>Assignment Edges</em> ($R_j \to P_i$, signifying active ownership).
+        </li>
       </ul>
-
-      <h4>2. Directed Edge Semantics</h4>
       <p>
-        The edge set $E$ consists of two distinct directed edge types that capture runtime allocation and waiting states:
+        When a process issues a request for a resource it cannot immediately get, it transforms from a runnable entity into a trapped petitioner. The request edge is a graphical signature of <strong>Hold-and-Wait combined with Mutual Exclusion</strong>: the process is already holding resources elsewhere and is now indefinitely suspended.
+      </p>
+
+      <h4>2. The Anatomy of a Deadlock: Why Cycles Matter</h4>
+      <p>
+        The core reason RAGs are powerful for deadlock detection lies in the topological concept of a <strong>directed cycle</strong>. Imagine a circular chain of dependencies where Process $P_1$ holds Resource $R_1$ and requests $R_2$, while Process $P_2$ holds Resource $R_2$ and requests $R_1$:
+      </p>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Closed Dependency Cycle:</strong>
+        <br><br>
+        $$ P_1 \to R_2 \to P_2 \to R_1 \to P_1 $$
+      </div>
+      <p>
+        In operating systems terms, <strong>a cycle represents a closed loop of unfulfilled mutual dependencies</strong>. Because every process in the cycle is waiting for a resource held by the next process in the ring, no process can ever release its hold. They are mutually holding each other hostage, entering a terminal fixed point where forward progress is impossible.
+      </p>
+
+      <h4>3. Single-Instance vs. Multi-Instance Deadlock Theorems</h4>
+      <p>
+        A common point of confusion is whether a cycle <em>always</em> means a deadlock. RAG graph theory answers this through two foundational theorems:
       </p>
       <ul>
         <li>
-          <strong>Request Edge ($P_i \to R_j$):</strong> A directed edge originating from process $P_i$ and pointing to resource type $R_j$. This signifies that process $P_i$ has requested an instance of resource $R_j$ and is currently blocked waiting for allocation.
+          <strong>The Single-Instance Theorem (Necessity &amp; Sufficiency):</strong> If every resource type in your system has only <strong>one</strong> instance (e.g., one exclusive printer or mutex lock), then <strong>a cycle in the RAG is both necessary and sufficient for deadlock</strong>. If you see a cycle, a deadlock is guaranteed.
         </li>
         <li>
-          <strong>Assignment Edge ($R_j \to P_i$):</strong> A directed edge originating from a specific resource instance within box $R_j$ and pointing to process $P_i$. This signifies that an instance of resource $R_j$ has been allocated to process $P_i$.
+          <strong>The Multi-Instance Theorem (Necessity Only):</strong> If resource types have multiple identical units (e.g., a pool of 4 identical database worker threads), a cycle is still <em>necessary</em> (no deadlock occurs without a cycle), but it is <strong>not sufficient</strong>. A process outside the cycle might eventually finish, release its resource instances into the pool, and break the deadlock chain for processes trapped inside the loop.
         </li>
       </ul>
-
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">Graph Reduction &amp; Deadlock Theorems:</strong>
-        <br><br>
-        <ul>
-          <li><strong>Single-Instance Theorem:</strong> If a resource allocation graph contains <em>only single-instance resource types</em>, then a directed cycle in the graph is a <strong>necessary and sufficient condition</strong> for deadlock.</li>
-          <li><strong>Multi-Instance Theorem:</strong> If resource types contain multiple instances, a cycle is a <em>necessary</em> condition for deadlock, but <em>not sufficient</em>, because other non-deadlocked processes may release instances to break the wait chain.</li>
-        </ul>
-      </div>
 
       <!-- ================================================================= -->
       <!-- INTERACTIVE PEDAGOGICAL AID: RAG SIMULATION STEPPER WIDGET        -->
       <!-- ================================================================= -->
-            <div class="aid-wrapper">
+      <div class="aid-wrapper">
         <div class="aid-header">Interactive Walkthrough: RAG Construction &amp; Cycle Detection</div>
         <div class="aid-subtitle">Trace step-by-step how Resource Allocation Graph edges form dependency chains and trigger cycle detection.</div>
 
@@ -323,7 +333,6 @@
           </div>
         </div>
 
-        <!-- Paired Analytical Panes positioned correctly at the bottom of the aid wrapper -->
         <div class="panes-grid">
           <div class="pane-box" style="border-left: 3px solid var(--success);">
             <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
@@ -336,9 +345,17 @@
         </div>
       </div>
 
-      <h4>3. Algorithmic Cycle Detection (Python Implementation)</h4>
+      <h4>4. How Operating System Kernels Use RAGs in Practice</h4>
       <p>
-        Operating systems kernels implement cycle detection algorithms (such as Depth-First Search with recursion stack tracking) to inspect RAG adjacency lists periodically. Below is a complete, syntax-highlighted Python module demonstrating directed graph representation and cycle detection:
+        Operating system kernels rarely draw full RAGs visually; instead, they maintain internal <strong>adjacency matrices</strong> or <strong>wait-for graphs</strong> (a compressed version where resource vertices are eliminated, leaving direct process-to-process dependency edges like $P_1 \to P_2$).
+      </p>
+      <p>
+        Periodically or upon resource request failures, the OS deadlock-detection subsystem runs graph traversal algorithms (such as Depth-First Search with recursion stack tracking, as shown in the Python module below). If the algorithm detects a back-edge indicating a cycle, the kernel triggers its recovery protocol—aborting a deadlocked process or forcibly preempting a resource—to restore system liveness.
+      </p>
+
+      <h4>5. Algorithmic Cycle Detection (Python Implementation)</h4>
+      <p>
+        Below is a complete, syntax-highlighted Python module demonstrating directed graph representation and cycle detection:
       </p>
 
       <!-- Syntax Highlighted Code Box -->
@@ -388,8 +405,6 @@
 
     <span style="color: #c084fc;">print</span>(<span style="color: #34d399;">"Deadlock Detected:"</span>, rag.contains_deadlock())</pre>
       </div>
-
-    </div>
 
     <nav class="nav-bar">
       <a href="01-concurrency-hazards-livelock-starvation.html" class="nav-btn">&larr; Module 01</a>
