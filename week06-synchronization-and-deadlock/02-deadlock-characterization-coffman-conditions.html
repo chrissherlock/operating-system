@@ -127,6 +127,10 @@
       body { padding: 16px; }
     }
   </style>
+  <!-- KaTeX CSS & JS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
 </head>
 <body>
   <div class="container">
@@ -143,23 +147,23 @@
         Examine the formal mathematical conditions that define system deadlock. Analyze the Four Coffman Conditions, trace Resource Allocation Graphs (RAGs), and evaluate cycle detection algorithms in single-resource and multi-resource topologies.
       </p>
 
-                  <h3>1. Formal Definition of System Deadlock</h3>
+                      <h3>1. Formal Definition of System Deadlock</h3>
     <p>
       In operating systems and concurrent computing theory, a <strong>system deadlock</strong> is defined as a permanent blockade state where a set of two or more execution entities (threads or processes) are unable to make forward progress because each entity is waiting for a resource that is currently held by another entity in the set.
     </p>
 
     <h4>Formal Mathematical Formulation</h4>
     <p>
-      Let <i>P</i> = {<i>P</i><sub>1</sub>, <i>P</i><sub>2</sub>, ..., <i>P<sub>n</sub></i>} be a finite set of concurrent processes, and let <i>R</i> = {<i>R</i><sub>1</sub>, <i>R</i><sub>2</sub>, ..., <i>R<sub>m</sub></i>} represent the available resource types in the operating system, where each resource type <i>R<sub>j</sub></i> may consist of one or more identical instances.
+      Let $P = \{P_1, P_2, \dots, P_n\}$ be a finite set of concurrent processes, and let $R = \{R_1, R_2, \dots, R_m\}$ represent the available resource types in the operating system, where each resource type $R_j$ may consist of one or more identical instances.
     </p>
     <p>
-      A subset of processes <i>P'</i> &sub; <i>P</i> is said to be in a <strong>deadlock state</strong> if and only if every process <i>P<sub>i</sub></i> &isin; <i>P'</i> is indefinitely waiting for an event that can only be caused by another process <i>P<sub>k</sub></i> &isin; <i>P'</i> (where <i>k</i> &ne; <i>i</i>).
+      A subset of processes $P' \subset P$ is said to be in a <strong>deadlock state</strong> if and only if every process $P_i \in P'$ is indefinitely waiting for an event that can only be caused by another process $P_k \in P'$ (where $k \neq i$).
     </p>
 
     <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
       <strong style="color: var(--primary);">Closed-Set Deadlock Condition:</strong>
       <br><br>
-      &forall; <i>P<sub>i</sub></i> &isin; <i>P'</i>, &nbsp;&nbsp; State(<i>P<sub>i</sub></i>) = BLOCKED &nbsp;&nbsp; (waiting on resource <i>R<sub>j</sub></i> held by <i>P<sub>k</sub></i> &isin; <i>P'</i>)
+      $$ \forall P_i \in P', \quad \text{State}(P_i) = \text{BLOCKED} \quad (\text{waiting on resource } R_j \text{ held by } P_k \in P') $$
     </div>
 
     <p>
