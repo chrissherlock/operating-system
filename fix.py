@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create Module 04 on TLB Acceleration & Inverted Page Tables
+# fix.py: Create Module 01 on The File Abstraction in Week 10
 # =====================================================================
 import os
 import subprocess
 
-TARGET_DIR = "week07-memory-management-virtual-memory"
-TARGET_FILE = os.path.join(TARGET_DIR, "04-tlb-hardware-inverted-page-tables.html")
+TARGET_DIR = "week10-file-management"
+TARGET_FILE = os.path.join(TARGET_DIR, "01-files-abstraction.html")
 
-MODULE_FOUR_CONTENT = r"""<!DOCTYPE html>
+MODULE_CONTENT = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 04: TLB Acceleration &amp; Inverted Page Tables - COSC240</title>
+  <title>Module 01: The File Abstraction - COSC240</title>
   <style>
     :root {
       --primary: #0f172a;
@@ -146,117 +146,222 @@ MODULE_FOUR_CONTENT = r"""<!DOCTYPE html>
 <body>
   <div class="container">
     <nav class="nav-bar">
-      <a href="03-virtual-memory-paging-tables.html" class="nav-btn">&larr; Module 03</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 7 Hub</a>
-      <a href="../week09-memory-management/index.html" class="nav-btn">Week 9 Hub &rarr;</a>
+      <a href="index.html" class="nav-btn">&larr; Week 10 Hub</a>
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      <a href="02-directories.html" class="nav-btn">Module 02: Directories &rarr;</a>
     </nav>
 
     <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 04 &bull; COSC240</span>
-      <h1>TLB Acceleration &amp; Inverted Page Tables</h1>
+      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 01 &bull; COSC240</span>
+      <h1>The File Abstraction</h1>
       <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Examine how hardware engineers defeat the multi-level memory amplification penalty using Translation Lookaside Buffers (TLB), calculate Effective Memory Access Times (EMAT), contrast CISC vs. RISC walk models, and explore Inverted Page Table architectures.
+        Investigate how operating systems transform raw, physical non-volatile storage sectors into persistent, named, and structured byte streams. Examine file structures, metadata attributes, POSIX operational primitives, and the kernel's three-tier file table architecture.
       </p>
 
-      <h3>1. The Hardware TLB: Associative Cache Architecture</h3>
+      <h3>1. Motivation: Persistence &amp; Device Virtualization</h3>
       <p>
-        As established in Module 03, hierarchical paging introduces a severe latency penalty: every memory access requires traversing $3$, $4$, or $5$ levels of page tables in RAM before reading or writing data.
+        Process memory (the virtual address space covered in Week 07) is fundamentally <strong>ephemeral</strong>. When a process terminates, crashes, or when power drops, all state held in RAM volatile registers and dynamic page frames vanishes instantly. Furthermore, a single process's address space is strictly private; sharing vast datasets across distinct user accounts and lifetimes requires an external medium.
       </p>
       <p>
-        To eliminate this overhead, processor architects integrate a specialized, ultra-fast hardware cache directly into the Memory Management Unit (MMU): the <strong>Translation Lookaside Buffer (TLB)</strong>.
-      </p>
-
-      <h4>Content-Addressable Memory (CAM) Mechanics</h4>
-      <p>
-        Unlike standard SRAM or DRAM arrays that take a numeric address and return data, the TLB is constructed from <strong>Content-Addressable Memory (CAM)</strong>:
+        Physical non-volatile storage hardware (such as magnetic hard disks, NVMe SSDs, and flash arrays) presents an unforgiving interface:
       </p>
       <ul>
-        <li><strong>Parallel Tag Matching:</strong> Every slot in the CAM contains its own independent comparison logic. When the CPU emits a Virtual Page Number ($p$), the TLB hardware compares $p$ against <em>all cached entries simultaneously</em> in a single clock cycle ($< 1\text{ ns}$).</li>
-        <li><strong>Associativity:</strong> TLBs are typically fully-associative (any virtual page can occupy any TLB slot) or highly set-associative (e.g., 4-way to 8-way associative), containing between 64 and 2048 entries.</li>
-        <li><strong>Payload:</strong> Each TLB entry stores the Virtual Page Number (tag), corresponding Physical Frame Number ($f$), and caching/protection flags (Valid, Read/Write, User/Supervisor, Dirty).</li>
+        <li>Storage is partitioned into fixed-size physical sectors or Logical Block Addresses (LBAs, typically 512 bytes or 4 KB).</li>
+        <li>Devices accept only low-level commands: read block $k$, write block $k$, erase block $k$.</li>
+        <li>Storage media lack human-readable names, ownership protections, concurrency arbitration, and dynamic resizing.</li>
+      </ul>
+      <p>
+        The <strong>File Abstraction</strong> is the fundamental operating system construct that bridges this gap. A <strong>file</strong> is a named, logical collection of persistent information recorded on secondary storage, presented to user processes as a continuous, linear address space of bytes ($0 \dots N-1$).
+      </p>
+
+      <h3>2. File Structure Models</h3>
+      <p>
+        Historically, operating systems have differed significantly in how much internal structure the kernel imposes upon file contents. Three canonical models define this evolution:
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0;">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">1. Byte Sequence (UNIX / Windows)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            The file is an unformatted sequence of 8-bit bytes. The kernel imposes zero schema, record boundaries, or syntax:
+          </p>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); background: #ffffff; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
+            File = [ B0, B1, B2, ..., B(N-1) ]
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">
+            <strong>Philosophy:</strong> The OS provides raw byte storage; application software (compilers, database engines, media players) parses semantic meaning. This approach provides maximum architectural flexibility.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">2. Record Sequence (CP/M, VMS)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            The file is modeled as a sequence of fixed-length or variable-length records, reflecting 80-column punched-card heritage:
+          </p>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); background: #ffffff; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
+            read_record() &rarr; returns Record[i]
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">
+            <strong>Philosophy:</strong> The kernel's file subsystem understands record delimiters. Reading returns an exact record boundary rather than an arbitrary count of bytes.
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">3. Keyed Tree / ISAM (Mainframes)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            The file is structured internally as a B-tree or sorted index of keyed records (e.g., IBM VSAM):
+          </p>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); background: #ffffff; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
+            get_record("Smith") &rarr; O(log N)
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">
+            <strong>Philosophy:</strong> Fast key-based querying embedded into the operating system filesystem routines, common in banking mainframes before relational DBMS ubiquity.
+          </p>
+        </div>
+      </div>
+
+      <h3>3. Access Methods: Sequential vs. Random Access</h3>
+      <p>
+        Processes access files through two primary paradigms:
+      </p>
+      <ul>
+        <li>
+          <strong>Sequential Access:</strong> Bytes are read or written in strict chronological order from beginning to end ($B_0, B_1, B_2, \dots$). The kernel tracks an implicit <em>file offset pointer</em> that automatically advances with every read or write. This mirrors magnetic tape media and remains the standard for audio streams, loggers, and video playback.
+        </li>
+        <li>
+          <strong>Random / Direct Access:</strong> The application can read or write bytes at arbitrary offsets ($B_{4096}, B_{1024}, B_{0}$) in any sequence. Essential for relational databases, virtual machine disk images, and index structures. Implemented via system calls such as <code>lseek(fd, offset, whence)</code> or positional I/O (<code>pread</code> / <code>pwrite</code>).
+        </li>
       </ul>
 
+      <h3>4. File Attributes &amp; Inode Metadata</h3>
+      <p>
+        In addition to raw data bytes, every file possesses associated <strong>metadata</strong> (attributes) describing its administrative and physical storage properties. In UNIX/POSIX environments, metadata is encapsulated within the <code>struct stat</code> record retrieved via the <code>stat()</code> system call:
+      </p>
+
+      <!-- Syntax-Highlighted C Struct Box -->
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.84rem; overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);">
+        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+          c &bull; posix_stat.h
+        </div>
+        <pre style="margin: 0; line-height: 1.5;"><span style="color: #c084fc;">struct</span> <span style="color: #6ee7b7;">stat</span> {
+    <span style="color: #6ee7b7;">dev_t</span>     st_dev;         <span style="color: #94a3b8;">// ID of device containing file</span>
+    <span style="color: #6ee7b7;">ino_t</span>     st_ino;         <span style="color: #94a3b8;">// File serial number (Inode Number)</span>
+    <span style="color: #6ee7b7;">mode_t</span>    st_mode;        <span style="color: #94a3b8;">// File mode (type and permissions: rwxr-xr-x)</span>
+    <span style="color: #6ee7b7;">nlink_t</span>   st_nlink;       <span style="color: #94a3b8;">// Number of hard links</span>
+    <span style="color: #6ee7b7;">uid_t</span>     st_uid;         <span style="color: #94a3b8;">// User ID of owner</span>
+    <span style="color: #6ee7b7;">gid_t</span>     st_gid;         <span style="color: #94a3b8;">// Group ID of owner</span>
+    <span style="color: #6ee7b7;">off_t</span>     st_size;        <span style="color: #94a3b8;">// Total size in bytes</span>
+    <span style="color: #6ee7b7;">struct timespec</span> st_atim;  <span style="color: #94a3b8;">// Time of last access (atime)</span>
+    <span style="color: #6ee7b7;">struct timespec</span> st_mtim;  <span style="color: #94a3b8;">// Time of last data modification (mtime)</span>
+    <span style="color: #6ee7b7;">struct timespec</span> st_ctim;  <span style="color: #94a3b8;">// Time of last status/metadata change (ctime)</span>
+};</pre>
+      </div>
+
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Critical POSIX Distinctions:</strong>
+        <br><br>
+        <strong>1. <code>mtime</code> vs. <code>ctime</code>:</strong> Modification time (<code>mtime</code>) updates when file <em>data bytes</em> are written. Change time (<code>ctime</code>) updates when file <em>metadata</em> (such as permissions via <code>chmod</code> or ownership via <code>chown</code>) changes. <em>POSIX does not track creation time by default.</em>
+        <br><br>
+        <strong>2. The Inode Disconnect:</strong> The human-readable name of a file is <strong>not</strong> stored inside the file's inode or metadata! File names live strictly inside directory entry tables mapping strings to inode numbers ($\text{"thesis.pdf"} \to \text{Inode } 41209$).
+      </div>
+
+      <h3>5. The 3-Tier Kernel Architecture for Open Files</h3>
+      <p>
+        When an application executes <code>int fd = open("log.txt", O_RDWR);</code>, the operating system does not simply bind the integer file descriptor directly to a disk block. Instead, POSIX kernels coordinate <strong>three distinct layers of kernel tables</strong>:
+      </p>
+
+      <ol style="font-size: 0.92rem; line-height: 1.7;">
+        <li>
+          <strong>Per-Process File Descriptor Table:</strong> Each process control block (PCB) contains an array of descriptors indexed by small integers ($0, 1, 2, \dots$). Standard descriptors: $0$ (stdin), $1$ (stdout), $2$ (stderr). Each valid entry contains a pointer to an entry in the System-Wide Open File Table.
+        </li>
+        <li>
+          <strong>System-Wide Open File Description Table:</strong> Shared across the entire operating system. Contains an entry for every active `open()` handle. Stores the <strong>current byte offset</strong>, access mode flags (read-only, write-only, append), and an active reference count.
+        </li>
+        <li>
+          <strong>VFS Inode Table (Active Inode Cache):</strong> Contains in-memory vnodes/inodes representing actual physical files on disk. Stores file size, device identifiers, disk block pointers, and lock state.
+        </li>
+      </ol>
+
       <!-- ================================================================= -->
-      <!-- INTERACTIVE PEDAGOGICAL AID: TLB LOOKUP STEPPER                  -->
+      <!-- INTERACTIVE PEDAGOGICAL AID: 3-TIER FILE TABLE STEPPER           -->
       <!-- ================================================================= -->
       <div class="aid-wrapper">
-        <div class="aid-header">Interactive Walkthrough: Hardware TLB Associative Lookup &amp; Page Walk</div>
-        <div class="aid-subtitle">Trace step-by-step how the MMU evaluates CAM tags in parallel, achieving single-cycle translation on a TLB Hit, or falling back to a 4-level DRAM page walk on a TLB Miss.</div>
+        <div class="aid-header">Interactive Walkthrough: 3-Tier Kernel Table Resolution &amp; I/O Operations</div>
+        <div class="aid-subtitle">Trace step-by-step how a user-space read() or lseek() navigates the Per-Process FD Table, the System-Wide Open File Table, and the VFS Inode Table.</div>
 
         <div class="aid-grid">
           <div class="controls-panel">
-            <div class="preview-box" id="tlb-preview-text">
-              <strong>Step 1: Virtual Address Issued.</strong> CPU pipeline references virtual address <code>0x000034B8</code>. The MMU splits off Virtual Page Number $p=3$ and offset $d=\text{0x4B8}$.
+            <div class="preview-box" id="vfs-preview-text">
+              <strong>Step 1: File Opened.</strong> Process calls <code>open("data.bin")</code>. Kernel assigns descriptor <code>fd = 3</code> pointing to Open File Description #1 with offset = 0.
             </div>
 
             <div class="stepper-btns">
-              <button class="step-btn" id="tlb-prev-btn" onclick="changeTlbStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="tlb-next-btn" onclick="changeTlbStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetTlbStepper()" style="background:#64748b;">Reset</button>
+              <button class="step-btn" id="vfs-prev-btn" onclick="changeVfsStep(-1)" disabled>&larr; Prev</button>
+              <button class="step-btn" id="vfs-next-btn" onclick="changeVfsStep(1)">Next &rarr;</button>
+              <button class="step-btn" onclick="resetVfsStepper()" style="background:#64748b;">Reset</button>
             </div>
 
-            <div class="telemetry-bar" id="tlb-telemetry-bar">
-              <div><strong>Phase:</strong> <span id="tlb-tel-phase" style="color: #38bdf8;">1/4</span></div>
-              <div><strong>Page (p):</strong> <span id="tlb-tel-page">p = 3</span></div>
-              <div><strong>Latency:</strong> <span id="tlb-tel-lat">~1 ns</span></div>
-              <div><strong>Status:</strong> <span id="tlb-tel-status" style="color: #4ade80; font-weight: 700;">Associative Probe</span></div>
+            <div class="telemetry-bar" id="vfs-telemetry-bar">
+              <div><strong>Phase:</strong> <span id="vfs-tel-phase" style="color: #38bdf8;">1/4</span></div>
+              <div><strong>Descriptor:</strong> <span id="vfs-tel-fd">fd = 3</span></div>
+              <div><strong>Offset:</strong> <span id="vfs-tel-offset">0 bytes</span></div>
+              <div><strong>Status:</strong> <span id="vfs-tel-status" style="color: #4ade80; font-weight: 700;">Open (Ready)</span></div>
             </div>
 
             <div class="toggle-bar">
-              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">OUTCOME:</span>
-              <button class="toggle-btn active" id="tlb-btn-hit" onclick="setTlbMode('hit')">TLB Hit (Fast)</button>
-              <button class="toggle-btn" id="tlb-btn-miss" onclick="setTlbMode('miss')">TLB Miss (Walk)</button>
+              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">OPERATION:</span>
+              <button class="toggle-btn active" id="vfs-btn-seq" onclick="setVfsMode('seq')">Sequential Read</button>
+              <button class="toggle-btn" id="vfs-btn-seek" onclick="setVfsMode('seek')">lseek() Seek</button>
             </div>
           </div>
 
           <div class="visual-canvas">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; Associative CAM Matching &amp; Fallback</div>
+            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; Kernel 3-Tier Indirection Pipeline</div>
 
-            <!-- TLB Hardware Architecture SVG Canvas -->
+            <!-- 3-Tier Architecture SVG Canvas -->
             <svg viewBox="0 0 320 200" style="width: 100%; height: 100%; min-height: 200px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
-              <!-- Input Virtual Page Register -->
-              <rect x="10" y="25" width="60" height="30" rx="3" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
-              <text x="40" y="38" fill="#64748b" font-size="7" font-weight="bold" text-anchor="middle">VIRTUAL PAGE</text>
-              <text id="tlb-txt-inpage" x="40" y="49" fill="#0369a1" font-size="9" font-family="monospace" font-weight="bold" text-anchor="middle">p = 3</text>
+              <!-- Tier 1: Per-Process FD Table -->
+              <rect x="10" y="25" width="70" height="150" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+              <text x="45" y="18" fill="#0284c7" font-size="7" font-weight="bold" text-anchor="middle">PROCESS FD TABLE</text>
+              <rect x="12" y="30" width="66" height="18" fill="#f1f5f9" stroke="#cbd5e1" />
+              <text x="45" y="42" fill="#64748b" font-size="7.5" font-family="monospace" text-anchor="middle">fd 0: stdin</text>
+              <rect x="12" y="52" width="66" height="18" fill="#f1f5f9" stroke="#cbd5e1" />
+              <text x="45" y="64" fill="#64748b" font-size="7.5" font-family="monospace" text-anchor="middle">fd 1: stdout</text>
+              <rect x="12" y="74" width="66" height="18" fill="#f1f5f9" stroke="#cbd5e1" />
+              <text x="45" y="86" fill="#64748b" font-size="7.5" font-family="monospace" text-anchor="middle">fd 2: stderr</text>
+              <!-- Target FD 3 -->
+              <rect id="vfs-row-fd" x="12" y="96" width="66" height="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
+              <text x="45" y="110" fill="#0369a1" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">fd 3 &rarr; OFT</text>
 
-              <!-- Parallel Search Bus to TLB -->
-              <path d="M 70 40 L 95 40" fill="none" stroke="#0284c7" stroke-width="2" />
-              <path d="M 95 40 L 95 85 L 115 85" fill="none" stroke="#0284c7" stroke-width="1.5" />
+              <!-- Arrow: FD to Open File Table -->
+              <path id="vfs-arrow-1" d="M 78 107 L 115 107" fill="none" stroke="#0284c7" stroke-width="2" />
 
-              <!-- TLB CAM Array (Center Box) -->
-              <rect x="115" y="20" width="95" height="100" rx="4" fill="#ffffff" stroke="#334155" stroke-width="1.5" />
-              <text x="162" y="14" fill="#64748b" font-size="7" font-weight="bold" text-anchor="middle">TLB (CAM ARRAY)</text>
+              <!-- Tier 2: System-Wide Open File Table -->
+              <rect x="115" y="45" width="95" height="110" rx="3" fill="#ffffff" stroke="#d97706" stroke-width="1.5" />
+              <text x="162" y="38" fill="#d97706" font-size="7" font-weight="bold" text-anchor="middle">OPEN FILE TABLE</text>
+              <rect id="vfs-row-oft" x="118" y="75" width="89" height="50" rx="3" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+              <text x="162" y="90" fill="#b45309" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">Entry #1</text>
+              <text id="vfs-txt-offset" x="162" y="104" fill="#0f172a" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">Offset: 0</text>
+              <text x="162" y="117" fill="#64748b" font-size="7" font-family="monospace" text-anchor="middle">Mode: O_RDONLY</text>
 
-              <!-- CAM Entries -->
-              <rect x="118" y="24" width="89" height="16" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="162" y="35" fill="#94a3b8" font-size="7" font-family="monospace" text-anchor="middle">Tag: 0 &rarr; Frame: 4</text>
-              <rect x="118" y="43" width="89" height="16" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="162" y="54" fill="#94a3b8" font-size="7" font-family="monospace" text-anchor="middle">Tag: 1 &rarr; Frame: 9</text>
+              <!-- Arrow: OFT to Inode Table -->
+              <path id="vfs-arrow-2" d="M 210 100 L 235 100" fill="none" stroke="#d97706" stroke-width="2" />
 
-              <!-- Target CAM Entry (Tag: 3) -->
-              <rect id="tlb-cam-row" x="118" y="62" width="89" height="18" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
-              <text id="tlb-cam-txt" x="162" y="74" fill="#0369a1" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">Tag: 3 &rarr; Frame: 12</text>
-
-              <rect x="118" y="83" width="89" height="16" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="162" y="94" fill="#94a3b8" font-size="7" font-family="monospace" text-anchor="middle">Tag: 7 &rarr; Frame: 2</text>
-
-              <!-- Hit Path (Right from CAM) -->
-              <line id="tlb-hit-line" x1="210" y1="71" x2="245" y2="71" stroke="#16a34a" stroke-width="2" />
-              <rect id="tlb-hit-badge" x="245" y="58" width="65" height="26" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" />
-              <text id="tlb-hit-txt" x="277" y="74" fill="#15803d" font-size="8" font-weight="bold" text-anchor="middle">TLB HIT (1 ns)</text>
-
-              <!-- Miss Fallback Path (Down to Page Walk) -->
-              <path id="tlb-miss-line" d="M 162 120 L 162 145" fill="none" stroke="#cbd5e1" stroke-width="2" />
-              <rect id="tlb-walk-box" x="100" y="145" width="125" height="42" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="tlb-walk-title" x="162" y="159" fill="#94a3b8" font-size="7.5" font-weight="bold" text-anchor="middle">4-LEVEL PAGE WALK</text>
-              <text id="tlb-walk-sub" x="162" y="174" fill="#94a3b8" font-size="7" font-family="monospace" text-anchor="middle">PML4 &rarr; PDPT &rarr; PD &rarr; PT</text>
-
-              <!-- Arrow: Page Walk back up to fill TLB -->
-              <path id="tlb-refill-line" d="M 225 166 L 277 166 L 277 84" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3" />
+              <!-- Tier 3: Inode Table -->
+              <rect x="235" y="30" width="75" height="140" rx="3" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" />
+              <text x="272" y="22" fill="#16a34a" font-size="7" font-weight="bold" text-anchor="middle">VFS INODE TABLE</text>
+              <rect id="vfs-row-inode" x="238" y="55" width="69" height="90" rx="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" />
+              <text x="272" y="70" fill="#15803d" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">Inode 4120</text>
+              <text x="272" y="85" fill="#64748b" font-size="7" font-family="monospace" text-anchor="middle">Size: 4096B</text>
+              <text x="272" y="98" fill="#64748b" font-size="7" font-family="monospace" text-anchor="middle">Ref: 1</text>
+              <rect x="242" y="106" width="61" height="14" fill="#dcfce7" stroke="#86efac" />
+              <text x="272" y="116" fill="#166534" font-size="6.5" font-family="monospace" text-anchor="middle">Block #8902</text>
+              <rect x="242" y="124" width="61" height="14" fill="#dcfce7" stroke="#86efac" />
+              <text x="272" y="134" fill="#166534" font-size="6.5" font-family="monospace" text-anchor="middle">Block #9104</text>
             </svg>
 
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="tlb-canvas-banner">
-              TLB Hardware: <strong>Ready to step</strong>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="vfs-canvas-banner">
+              VFS Pipeline: <strong>Ready to step</strong>
             </div>
           </div>
         </div>
@@ -264,370 +369,176 @@ MODULE_FOUR_CONTENT = r"""<!DOCTYPE html>
         <div class="panes-grid">
           <div class="pane-box" style="border-left: 3px solid var(--success);">
             <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
-            <div id="tlb-pane-what" style="color: var(--text);">CPU issues virtual address 0x000034B8. The MMU presents virtual page number p=3 simultaneously across all TLB CAM tag comparators.</div>
+            <div id="vfs-pane-what" style="color: var(--text);">Process executes open(). Descriptor 3 is allocated in the PCB table, referencing a new Open File Table entry initialized at offset 0.</div>
           </div>
           <div class="pane-box" style="border-left: 3px solid var(--accent);">
             <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
-            <div id="tlb-pane-why" style="color: var(--text);">Parallel CAM tag comparison resolves address translation in a fraction of a nanosecond, eliminating physical DRAM table walk latency.</div>
+            <div id="vfs-pane-why" style="color: var(--text);">Separating file descriptors from open file objects allows child processes across fork() to share file offsets cooperatively.</div>
           </div>
         </div>
       </div>
 
-      <h3>2. Effective Memory Access Time (EMAT)</h3>
+      <h4>Why Three Tables? The <code>fork()</code> vs. <code>open()</code> Semantics</h4>
       <p>
-        The performance of a virtual memory architecture is quantified by the <strong>Effective Memory Access Time (EMAT)</strong>. EMAT represents the weighted harmonic average time required to complete a memory reference, factoring in cache hit probability.
-      </p>
-
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">Mathematical Formulation of EMAT:</strong>
-        <br><br>
-        Let:
-        <ul>
-          <li>$h$: The TLB hit ratio ($0 \le h \le 1$).</li>
-          <li>$t_{\text{TLB}}$: The associative TLB lookup latency (typically $\approx 1\text{ ns}$).</li>
-          <li>$t_{\text{RAM}}$: The physical DRAM read latency (typically $\approx 50\text{ ns}$).</li>
-          <li>$L$: The number of hierarchical page table levels ($L = 4$ for standard x86-64).</li>
-        </ul>
-        $$ \text{EMAT} = h \cdot (t_{\text{TLB}} + t_{\text{RAM}}) + (1 - h) \cdot \big(t_{\text{TLB}} + (L + 1) \cdot t_{\text{RAM}}\big) $$
-      </div>
-
-      <h4>Step-by-Step EMAT Numerical Walkthrough</h4>
-      <p>
-        Consider an x86-64 system with 4-level paging ($L = 4$), a TLB lookup time of $t_{\text{TLB}} = 1\text{ ns}$, and main memory latency of $t_{\text{RAM}} = 50\text{ ns}$:
-      </p>
-      <ol style="font-size: 0.92rem; line-height: 1.7;">
-        <li>
-          <strong>On a TLB Hit:</strong>
-          $$ t_{\text{hit}} = t_{\text{TLB}} + t_{\text{RAM}} = 1\text{ ns} + 50\text{ ns} = \mathbf{51\text{ ns}} $$
-          (1 TLB lookup to get frame, 1 RAM read to get actual data operand).
-        </li>
-        <li>
-          <strong>On a TLB Miss:</strong>
-          $$ t_{\text{miss}} = t_{\text{TLB}} + (4 \times 50\text{ ns}) + 50\text{ ns} = 1 + 200 + 50 = \mathbf{251\text{ ns}} $$
-          (1 TLB probe + 4 sequential page table DRAM reads + 1 RAM read for data).
-        </li>
-      </ol>
-
-      <h5>Scenario A: 98% TLB Hit Rate (Realistic Workload)</h5>
-      <p>
-        Because of strong <strong>temporal and spatial locality</strong> (loops accessing adjacent array elements and code instructions), real-world applications routinely achieve $h = 0.98$ (98% hit rate):
-      </p>
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--success);">
-        $$ \text{EMAT} = 0.98 \times (51\text{ ns}) + 0.02 \times (251\text{ ns}) = 49.98 + 5.02 = \mathbf{55\text{ ns}} $$
-        <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
-          Compared to the raw physical RAM speed of $50\text{ ns}$, virtual memory introduces only a <strong>$10\%$ slowdown</strong> ($55\text{ ns}$ vs $50\text{ ns}$), despite 4 levels of hierarchical tables!
-        </p>
-      </div>
-
-      <h5>Scenario B: 80% TLB Hit Rate (Thrashing Workload)</h5>
-      <p>
-        If an algorithm accesses memory in massive, non-local strides that thrash the TLB ($h = 0.80$):
-      </p>
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--danger);">
-        $$ \text{EMAT} = 0.80 \times (51\text{ ns}) + 0.20 \times (251\text{ ns}) = 40.8 + 50.2 = \mathbf{91\text{ ns}} $$
-        <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
-          Memory latency nearly doubles ($91\text{ ns}$ vs $50\text{ ns}$), illustrating why optimizing algorithms for TLB cache locality is paramount in high-performance computing.
-        </p>
-      </div>
-
-      <h3>3. Hardware vs. Software Managed TLBs</h3>
-      <p>
-        Operating system architectures diverge sharply in how TLB misses are serviced:
-      </p>
-
-      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.88rem;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Architectural Feature</th>
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Hardware-Walked TLBs (x86, ARMv8)</th>
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Software-Walked TLBs (MIPS, SPARC, Alpha)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: 600;">Miss Handling Entity</td>
-            <td style="padding: 10px; color: #0284c7;">Hardware MMU (Finite State Machine in silicon)</td>
-            <td style="padding: 10px; color: #d97706;">Operating System Kernel (Trap Handler Routine)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: 600;">Page Table Format</td>
-            <td style="padding: 10px;">Rigidly dictated by processor hardware (e.g., x86 CR3 hierarchy).</td>
-            <td style="padding: 10px; color: #16a34a;">Completely flexible; OS can choose inverted tables, radix trees, or hashes.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: 600;">Miss Latency Penalty</td>
-            <td style="padding: 10px; color: #16a34a;">Fast ($\approx 50\text{–}200\text{ ns}$): no pipeline flush or ring transition.</td>
-            <td style="padding: 10px; color: #dc2626;">Slower ($\approx 100\text{–}500\text{ ns}$): CPU raises trap, saves registers, switches to Ring 0.</td>
-          </tr>
-          <tr>
-            <td style="padding: 10px; font-weight: 600;">Hardware Complexity</td>
-            <td style="padding: 10px;">High: silicon contains complex multi-level walking logic.</td>
-            <td style="padding: 10px; color: #16a34a;">Minimal: simple CAM cache; keeps RISC CPU core clean and fast.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>4. Context Switching &amp; Address Space Identifiers (ASID)</h3>
-      <p>
-        Because virtual addresses are private to each process, Virtual Page Number $p = 5$ in Process $A$ maps to a completely different physical frame than $p = 5$ in Process $B$.
+        The separation between Per-Process Descriptors, Open File Descriptions, and Inodes is one of the most elegant architectural designs in UNIX:
       </p>
       <ul>
         <li>
-          <strong>The Naive Approach (TLB Invalidation):</strong> On every context switch, the OS flushes the entire TLB (e.g., reloading register <code>CR3</code> on early x86 chips). When the new process begins executing, every single memory access suffers a TLB miss until the cache warms up, causing massive context switch latency spikes.
+          <strong>Sharing Offset across <code>fork()</code>:</strong> When a parent process calls <code>fork()</code>, the child inherits an exact duplicate of the parent's file descriptor table. Both descriptors point to the <em>same</em> Open File Description. If the parent reads 100 bytes, the offset advances to 100; when the child subsequently reads, it reads from byte 100! This enables shell pipelines and shared logging.
         </li>
         <li>
-          <strong>The Modern Solution (ASID / PCID):</strong> Modern processors tag each TLB entry with an <strong>Address Space Identifier (ASID)</strong> (or Process-Context Identifier, PCID, in Intel x86). When matching a tag, the CAM hardware checks both $p$ and the active process's ASID:
-          $$ \text{Hit Condition: } (\text{VirtualPage} == \text{Tag}) \ \land \ (\text{ASID} == \text{ActiveASID}) $$
-          This allows entries from multiple distinct processes to coexist simultaneously in the TLB across context switches without cache flushes.
+          <strong>Independent Offsets across separate <code>open()</code> calls:</strong> If two unrelated processes independently call <code>open("data.bin")</code>, they each receive their own independent Open File Description entry with its own offset pointer, pointing to the <em>same</em> underlying VFS Inode. Both processes can read the file at their own pace without interfering with each other's offsets.
         </li>
       </ul>
-
-      <h3>5. Inverted Page Tables (IPT) &amp; Hash Anchors</h3>
-      <p>
-        In traditional forward-mapped paging, the table is indexed by virtual page number. In 64-bit systems, forward multi-level tables still consume significant memory for deeply nested structures.
-      </p>
-      <p>
-        An alternative architectural approach pioneered on IBM RS/6000 and PowerPC systems is the <strong>Inverted Page Table (IPT)</strong>:
-      </p>
-
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">The Inverted Principle:</strong>
-        <br><br>
-        Instead of indexing by Virtual Page, the Inverted Page Table is <strong>indexed strictly by Physical Frame Number ($f$)</strong>.
-        $$ \text{Total IPT Entries} = \text{Total Physical Frames in RAM} = \frac{\text{Physical RAM Size}}{\text{Page Size}} $$
-        <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
-          Each entry in the IPT stores the tuple: $\big(\text{Process ID}, \text{Virtual Page Number } p, \text{Flags}\big)$.
-        </p>
-      </div>
-
-      <h4>Scaling Superiority</h4>
-      <p>
-        Under an IPT, the memory occupied by the page table depends <strong>strictly on physical RAM size</strong>, completely independent of how massive the 64-bit virtual address space is:
-      </p>
-      <ul>
-        <li>For an 8 GB physical RAM system with 4 KB pages:
-          $$ \text{Total Frames} = \frac{8\text{ GB}}{4\text{ KB}} = 2{,}097{,}152\text{ frames} $$
-          At 16 bytes per IPT entry, the single global table consumes exactly <strong>32 MB of RAM</strong>, serving all concurrent processes in the entire operating system!
-        </li>
-      </ul>
-
-      <h4>Hash Anchor Tables (HAT) for $\mathcal{O}(1)$ Lookup</h4>
-      <p>
-        The drawback of an inverted table is that when the CPU issues a virtual address $(PID, p)$, the MMU cannot simply index into the table directly (since the table is indexed by physical frame $f$). Searching the IPT linearly would take $\mathcal{O}(\text{Frames})$ time—millions of comparisons per instruction.
-      </p>
-      <p>
-        To solve this, hardware and OS designers place a <strong>Hash Anchor Table (HAT)</strong> in front of the Inverted Page Table:
-      </p>
-      <ol style="font-size: 0.92rem; line-height: 1.7;">
-        <li>The MMU hashes the tuple $(PID, p)$ using a hardware hash function: $h = \text{Hash}(PID, p)$.</li>
-        <li>The hash value $h$ indexes directly into the Hash Anchor Table to retrieve a pointer to the head of a collision chain in the IPT.</li>
-        <li>The MMU follows the short collision chain (typically 1 to 2 entries) until it finds a matching $(PID, p)$ tag. The index of the matching node in the IPT is the <strong>Physical Frame Number ($f$)</strong>!</li>
-      </ol>
-
-      <p>
-        <strong>The Primary Limitation of Inverted Page Tables:</strong> IPTs make <strong>shared memory</strong> (multiple processes mapping distinct virtual pages to the exact same physical frame) extremely difficult. Because each physical frame has exactly one entry in the IPT, mapping multiple $(PID, p)$ aliases to one frame requires complex software alias tracking and reverse lookup chains.
-      </p>
     </div>
 
     <nav class="nav-bar">
-      <a href="03-virtual-memory-paging-tables.html" class="nav-btn">&larr; Module 03</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 7 Hub</a>
-      <a href="../week09-memory-management/index.html" class="nav-btn">Week 9 Hub &rarr;</a>
+      <a href="index.html" class="nav-btn">&larr; Week 10 Hub</a>
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      <a href="02-directories.html" class="nav-btn">Module 02: Directories &rarr;</a>
     </nav>
   </div>
 
   <script>
-    let tlbStep = 1;
-    const tlbTotalSteps = 4;
-    let tlbMode = 'hit';
+    let vfsStep = 1;
+    const vfsTotalSteps = 4;
+    let vfsMode = 'seq';
 
-    const tlbHitData = [
+    const vfsSeqData = [
       {
-        preview: "<strong>Step 1: Virtual Address Issued.</strong> CPU issues address <code>0x000034B8</code> ($p=3, d=\\text{0x4B8}$). MMU feeds $p=3$ to TLB CAM array.",
-        phase: "1/4", page: "p = 3", lat: "~1 ns", status: "Probing CAM", statusColor: "#38bdf8",
-        what: "MMU extracts page number p=3 and asserts tag lines across all TLB CAM comparators simultaneously.",
-        why: "Fully associative parallel lookup avoids sequential searching, testing all entries in parallel.",
-        banner: "Associative Probe: <strong>Page p=3 broadcast to all CAM tag comparators</strong>",
-        camFill: "#e0f2fe", camStroke: "#0284c7", camText: "Tag: 3 &rarr; Frame: 12",
-        hitOpacity: 1, hitText: "TLB HIT (1 ns)", hitFill: "#dcfce7", hitStroke: "#16a34a", hitTxtColor: "#15803d",
-        walkStroke: "#cbd5e1", walkFill: "#f8fafc", walkTitleColor: "#94a3b8", walkSubColor: "#94a3b8",
-        refillStroke: "#cbd5e1"
+        preview: "<strong>Step 1: File Opened.</strong> Process calls <code>open(\"data.bin\")</code>. Kernel allocates descriptor <code>fd = 3</code> pointing to Open File Table Entry #1 (offset = 0).",
+        phase: "1/4", fd: "fd = 3", offset: "0 bytes", status: "Open (Offset 0)", statusColor: "#38bdf8",
+        what: "Process requests handle for 'data.bin'. OS allocates descriptor 3. Inode 4120 referenced.",
+        why: "Initializing offset to 0 prepares the file stream for sequential reading from the beginning.",
+        banner: "Handle Active: <strong>Descriptor fd=3 mapped to Inode 4120 (Offset 0)</strong>",
+        offsetVal: "Offset: 0"
       },
       {
-        preview: "<strong>Step 2: Associative Tag Match.</strong> Slot 3 reports a positive match ($Tag == 3$). TLB Hit line triggers immediately in silicon ($< 1\\text{ ns}$).",
-        phase: "2/4", page: "p = 3", lat: "~1 ns", status: "TAG MATCHED", statusColor: "#4ade80",
-        what: "Comparator for Tag 3 asserts high. Frame Number 12 and protection bits are loaded into output latch.",
-        why: "Direct silicon hit avoids all physical DRAM page table accesses.",
-        banner: "Hit Verified: <strong>Tag 3 matched &rarr; Physical Frame f=12 retrieved in &lt;1 ns</strong>",
-        camFill: "#fef3c7", camStroke: "#d97706", camText: "Tag: 3 &rarr; Frame: 12",
-        hitOpacity: 1, hitText: "TLB HIT (1 ns)", hitFill: "#dcfce7", hitStroke: "#16a34a", hitTxtColor: "#15803d",
-        walkStroke: "#cbd5e1", walkFill: "#f8fafc", walkTitleColor: "#94a3b8", walkSubColor: "#94a3b8",
-        refillStroke: "#cbd5e1"
+        preview: "<strong>Step 2: First Read (512 Bytes).</strong> Process executes <code>read(3, buf, 512)</code>. Kernel reads bytes 0&ndash;511 from Block #8902 and advances offset to 512.",
+        phase: "2/4", fd: "fd = 3", offset: "512 bytes", status: "Read 512B", statusColor: "#38bdf8",
+        what: "Kernel reads 512 bytes from physical storage. Updates Open File Table offset to 512.",
+        why: "Automatic offset progression frees applications from manually tracking read pointers.",
+        banner: "I/O Active: <strong>Read 512 bytes &mdash; Offset auto-advanced to 512</strong>",
+        offsetVal: "Offset: 512"
       },
       {
-        preview: "<strong>Step 3: Physical Address Formed.</strong> MMU concatenates Frame ($f=12 = \\text{0x0000C}$) with Offset ($d=\\text{0x4B8}$) to assemble <code>0x0000C4B8</code>.",
-        phase: "3/4", page: "p = 3", lat: "~1 ns", status: "PA Assembled", statusColor: "#4ade80",
-        what: "Bitwise concatenation: (12 &lt;&lt; 12) | 0x4B8 = 0x0000C4B8.",
-        why: "Translation is completed in the same clock cycle as the instruction decode.",
-        banner: "Address Assembled: <strong>Physical Address 0x0000C4B8 generated</strong>",
-        camFill: "#dcfce7", camStroke: "#16a34a", camText: "Tag: 3 &rarr; Frame: 12",
-        hitOpacity: 1, hitText: "MATCHED", hitFill: "#dcfce7", hitStroke: "#16a34a", hitTxtColor: "#15803d",
-        walkStroke: "#cbd5e1", walkFill: "#f8fafc", walkTitleColor: "#94a3b8", walkSubColor: "#94a3b8",
-        refillStroke: "#cbd5e1"
+        preview: "<strong>Step 3: Second Read (1024 Bytes).</strong> Process executes <code>read(3, buf, 1024)</code>. Kernel reads bytes 512&ndash;1535 and advances offset to 1536.",
+        phase: "3/4", fd: "fd = 3", offset: "1536 bytes", status: "Read 1024B", statusColor: "#4ade80",
+        what: "Subsequent read begins exactly where the previous read left off. Offset advances to 1536.",
+        why: "Sequential access guarantees continuous streaming without repetitive seek commands.",
+        banner: "I/O Stream: <strong>Read 1024 bytes &mdash; Offset auto-advanced to 1536</strong>",
+        offsetVal: "Offset: 1536"
       },
       {
-        preview: "<strong>Step 4: Single-Cycle DRAM Access.</strong> RAM is read at <code>0x0000C4B8</code> in 50 ns. Total elapsed time: <strong>51 ns</strong>.",
-        phase: "4/4", page: "p = 3", lat: "51 ns total", status: "Read Complete", statusColor: "#16a34a",
-        what: "Data word returned to CPU register across data bus. No page table traversal occurred.",
-        why: "Demonstrates how high hit rates ($98\%$) preserve bare-metal execution speeds.",
-        banner: "Transaction Complete: <strong>Data retrieved in 51 ns (Zero page walk overhead)</strong>",
-        camFill: "#dcfce7", camStroke: "#16a34a", camText: "Tag: 3 &rarr; Frame: 12",
-        hitOpacity: 1, hitText: "SUCCESS (51 ns)", hitFill: "#dcfce7", hitStroke: "#16a34a", hitTxtColor: "#15803d",
-        walkStroke: "#cbd5e1", walkFill: "#f8fafc", walkTitleColor: "#94a3b8", walkSubColor: "#94a3b8",
-        refillStroke: "#cbd5e1"
+        preview: "<strong>Step 4: File Closed.</strong> Process calls <code>close(3)</code>. Descriptors and Open File Table reference counts decrement; buffer caches flush.",
+        phase: "4/4", fd: "Closed", offset: "1536 bytes", status: "Released", statusColor: "#16a34a",
+        what: "Descriptor 3 freed in process table. Reference count in Inode decrements to 0.",
+        why: "Releasing descriptors prevents kernel table exhaustion leaks.",
+        banner: "Complete: <strong>File closed &mdash; Kernel structures released cleanly</strong>",
+        offsetVal: "Offset: Closed"
       }
     ];
 
-    const tlbMissData = [
+    const vfsSeekData = [
       {
-        preview: "<strong>Step 1: Virtual Address Issued.</strong> CPU issues address <code>0x000054B8</code> ($p=5, d=\\text{0x4B8}$). MMU broadcasts $p=5$ to TLB CAM array.",
-        phase: "1/4", page: "p = 5", lat: "~1 ns", status: "Probing CAM", statusColor: "#38bdf8",
-        what: "Tag comparators evaluate p=5 across all TLB slots.",
-        why: "Hardware must verify cache absence before initiating expensive DRAM walks.",
-        banner: "Associative Probe: <strong>Page p=5 broadcast to all CAM tag comparators</strong>",
-        camFill: "#f8fafc", camStroke: "#e2e8f0", camText: "Tag: 3 &rarr; Frame: 12",
-        hitOpacity: 0, hitText: "TLB MISS", hitFill: "#fee2e2", hitStroke: "#dc2626", hitTxtColor: "#dc2626",
-        walkStroke: "#cbd5e1", walkFill: "#f8fafc", walkTitleColor: "#94a3b8", walkSubColor: "#94a3b8",
-        refillStroke: "#cbd5e1"
+        preview: "<strong>Step 1: File Opened.</strong> Process calls <code>open(\"data.bin\")</code>. Descriptor <code>fd = 3</code> allocated with initial offset = 0.",
+        phase: "1/4", fd: "fd = 3", offset: "0 bytes", status: "Open (Offset 0)", statusColor: "#38bdf8",
+        what: "File handle opened at offset 0.",
+        why: "Default access pointer begins at position 0.",
+        banner: "Handle Active: <strong>fd=3 opened at offset 0</strong>",
+        offsetVal: "Offset: 0"
       },
       {
-        preview: "<strong>Step 2: TLB Miss Detected.</strong> No CAM slot matches $Tag == 5$. The MMU triggers a TLB Miss signal.",
-        phase: "2/4", page: "p = 5", lat: "~1 ns", status: "TLB MISS", statusColor: "#dc2626",
-        what: "All tag comparators report low. Translation hardware activates the 4-level Page Walk engine.",
-        why: "A miss requires traversing the full hierarchical page table resident in physical DRAM.",
-        banner: "Hazard Active: <strong>TLB Miss! Initiating 4-Level Hardware Page Walk</strong>",
-        camFill: "#f8fafc", camStroke: "#cbd5e1", camText: "Tag: 3 &rarr; Frame: 12",
-        hitOpacity: 1, hitText: "TLB MISS", hitFill: "#fee2e2", hitStroke: "#dc2626", hitTxtColor: "#dc2626",
-        walkStroke: "#d97706", walkFill: "#fffbeb", walkTitleColor: "#b45309", walkSubColor: "#b45309",
-        refillStroke: "#cbd5e1"
+        preview: "<strong>Step 2: Arbitrary Repositioning via lseek().</strong> Process calls <code>lseek(3, 2048, SEEK_SET)</code>. Kernel sets offset directly to 2048 <em>without reading any disk blocks</em>.",
+        phase: "2/4", fd: "fd = 3", offset: "2048 bytes", status: "Offset Repositioned", statusColor: "#d97706",
+        what: "lseek modifies the integer offset in the Open File Table entry from 0 to 2048. Zero physical I/O occurs.",
+        why: "Direct access enables instant pointer relocation without transferring unneeded intermediate data across the bus.",
+        banner: "Seek Executed: <strong>Offset changed to 2048 (Zero disk I/O overhead)</strong>",
+        offsetVal: "Offset: 2048"
       },
       {
-        preview: "<strong>Step 3: 4-Level Page Walk in DRAM.</strong> MMU executes 4 sequential memory reads (PML4 &rarr; PDPT &rarr; PD &rarr; PT) consuming <strong>200 ns</strong>.",
-        phase: "3/4", page: "p = 5", lat: "~201 ns", status: "DRAM Walking", statusColor: "#d97706",
-        what: "Hardware walks CR3 hierarchy in physical RAM. Frame Number $f=19$ is retrieved from PTE.",
-        why: "Multi-level page tables save storage space at the cost of 4x memory read amplification.",
-        banner: "Memory Walk: <strong>4 DRAM reads executed (PML4 &rarr; PDPT &rarr; PD &rarr; PT) in 200 ns</strong>",
-        camFill: "#f8fafc", camStroke: "#cbd5e1", camText: "Tag: 3 &rarr; Frame: 12",
-        hitOpacity: 1, hitText: "WALKING DRAM", hitFill: "#fef3c7", hitStroke: "#d97706", hitTxtColor: "#b45309",
-        walkStroke: "#d97706", walkFill: "#fffbeb", walkTitleColor: "#b45309", walkSubColor: "#b45309",
-        refillStroke: "#0284c7"
+        preview: "<strong>Step 3: Direct Read from Offset 2048.</strong> Process calls <code>read(3, buf, 256)</code>. Kernel accesses byte offset 2048 (Block #8902) directly.",
+        phase: "3/4", fd: "fd = 3", offset: "2304 bytes", status: "Direct Read", statusColor: "#4ade80",
+        what: "Kernel reads bytes 2048&ndash;2303 directly. Offset updates to 2304.",
+        why: "Random access allows database engines to inspect B-tree records scattered across gigabyte files.",
+        banner: "I/O Active: <strong>Direct read executed at offset 2048 &rarr; advances to 2304</strong>",
+        offsetVal: "Offset: 2304"
       },
       {
-        preview: "<strong>Step 4: TLB Refill &amp; Data Access.</strong> MMU installs entry $(p=5 \to f=19)$ into TLB via LRU replacement and reads data. Total latency: <strong>251 ns</strong>.",
-        phase: "4/4", page: "p = 5", lat: "251 ns total", status: "Refilled &amp; Read", statusColor: "#16a34a",
-        what: "TLB updated with new translation. Future references to page 5 will hit in 1 ns.",
-        why: "Temporal locality ensures that the 200 ns walk penalty is amortized over thousands of future hits.",
-        banner: "Recovery: <strong>TLB Refilled &mdash; Total access latency: 251 ns</strong>",
-        camFill: "#dcfce7", camStroke: "#16a34a", camText: "Tag: 5 &rarr; Frame: 19",
-        hitOpacity: 1, hitText: "REFILLED (251 ns)", hitFill: "#dcfce7", hitStroke: "#16a34a", hitTxtColor: "#15803d",
-        walkStroke: "#cbd5e1", walkFill: "#f8fafc", walkTitleColor: "#94a3b8", walkSubColor: "#94a3b8",
-        refillStroke: "#16a34a"
+        preview: "<strong>Step 4: Seek to EOF.</strong> Process calls <code>lseek(3, 0, SEEK_END)</code>. Offset moves to byte 4096 (end of file) ready for append mode.",
+        phase: "4/4", fd: "fd = 3", offset: "4096 (EOF)", status: "At End of File", statusColor: "#16a34a",
+        what: "Kernel inspects Inode size (4096) and updates offset to match file length.",
+        why: "SEEK_END enables fast atomic appending without scanning file contents.",
+        banner: "Complete: <strong>Offset positioned at EOF (4096)</strong>",
+        offsetVal: "Offset: 4096"
       }
     ];
 
-    function changeTlbStep(dir) {
-      tlbStep += dir;
-      if (tlbStep < 1) tlbStep = 1;
-      if (tlbStep > tlbTotalSteps) tlbStep = tlbTotalSteps;
-      updateTlbUI();
+    function changeVfsStep(dir) {
+      vfsStep += dir;
+      if (vfsStep < 1) vfsStep = 1;
+      if (vfsStep > vfsTotalSteps) vfsStep = vfsTotalSteps;
+      updateVfsUI();
     }
 
-    function resetTlbStepper() {
-      tlbStep = 1;
-      updateTlbUI();
+    function resetVfsStepper() {
+      vfsStep = 1;
+      updateVfsUI();
     }
 
-    function setTlbMode(mode) {
-      tlbMode = mode;
-      document.getElementById('tlb-btn-hit').className = (mode === 'hit') ? 'toggle-btn active' : 'toggle-btn';
-      document.getElementById('tlb-btn-miss').className = (mode === 'miss') ? 'toggle-btn active' : 'toggle-btn';
-      document.getElementById('tlb-btn-hit').style.background = (mode === 'hit') ? '#e0f2fe' : '#f1f5f9';
-      document.getElementById('tlb-btn-miss').style.background = (mode === 'miss') ? '#e0f2fe' : '#f1f5f9';
-      tlbStep = 1;
-      updateTlbUI();
+    function setVfsMode(mode) {
+      vfsMode = mode;
+      document.getElementById('vfs-btn-seq').className = (mode === 'seq') ? 'toggle-btn active' : 'toggle-btn';
+      document.getElementById('vfs-btn-seek').className = (mode === 'seek') ? 'toggle-btn active' : 'toggle-btn';
+      document.getElementById('vfs-btn-seq').style.background = (mode === 'seq') ? '#e0f2fe' : '#f1f5f9';
+      document.getElementById('vfs-btn-seek').style.background = (mode === 'seek') ? '#e0f2fe' : '#f1f5f9';
+      vfsStep = 1;
+      updateVfsUI();
     }
 
-    function updateTlbUI() {
-      const dataset = (tlbMode === 'hit') ? tlbHitData : tlbMissData;
-      const data = dataset[tlbStep - 1];
+    function updateVfsUI() {
+      const dataset = (vfsMode === 'seq') ? vfsSeqData : vfsSeekData;
+      const data = dataset[vfsStep - 1];
 
-      document.getElementById('tlb-preview-text').innerHTML = data.preview;
-      document.getElementById('tlb-tel-phase').innerText = data.phase;
-      document.getElementById('tlb-tel-page').innerText = data.page;
-      document.getElementById('tlb-tel-lat').innerText = data.lat;
+      document.getElementById('vfs-preview-text').innerHTML = data.preview;
+      document.getElementById('vfs-tel-phase').innerText = data.phase;
+      document.getElementById('vfs-tel-fd').innerText = data.fd;
+      document.getElementById('vfs-tel-offset').innerText = data.offset;
 
-      const statusEl = document.getElementById('tlb-tel-status');
+      const statusEl = document.getElementById('vfs-tel-status');
       statusEl.innerText = data.status;
       statusEl.style.color = data.statusColor;
 
-      document.getElementById('tlb-pane-what').innerHTML = data.what;
-      document.getElementById('tlb-pane-why').innerHTML = data.why;
-      document.getElementById('tlb-canvas-banner').innerHTML = data.banner;
+      document.getElementById('vfs-pane-what').innerHTML = data.what;
+      document.getElementById('vfs-pane-why').innerHTML = data.why;
+      document.getElementById('vfs-canvas-banner').innerHTML = data.banner;
 
-      // Update SVG dynamic values
-      document.getElementById('tlb-txt-inpage').innerText = (tlbMode === 'hit') ? "p = 3" : "p = 5";
+      // Update SVG dynamic offset
+      document.getElementById('vfs-txt-offset').textContent = data.offsetVal;
 
-      const camRow = document.getElementById('tlb-cam-row');
-      const camTxt = document.getElementById('tlb-cam-txt');
-      camRow.setAttribute('fill', data.camFill);
-      camRow.setAttribute('stroke', data.camStroke);
-      camTxt.innerHTML = data.camText;
-
-      const hitBadge = document.getElementById('tlb-hit-badge');
-      const hitTxt = document.getElementById('tlb-hit-txt');
-      hitBadge.setAttribute('opacity', data.hitOpacity);
-      hitBadge.setAttribute('fill', data.hitFill);
-      hitBadge.setAttribute('stroke', data.hitStroke);
-      hitTxt.textContent = data.hitText;
-      hitTxt.setAttribute('fill', data.hitTxtColor);
-      hitTxt.setAttribute('opacity', data.hitOpacity);
-
-      const walkBox = document.getElementById('tlb-walk-box');
-      const walkTitle = document.getElementById('tlb-walk-title');
-      const walkSub = document.getElementById('tlb-walk-sub');
-      const missLine = document.getElementById('tlb-miss-line');
-      walkBox.setAttribute('fill', data.walkFill);
-      walkBox.setAttribute('stroke', data.walkStroke);
-      walkTitle.setAttribute('fill', data.walkTitleColor);
-      walkSub.setAttribute('fill', data.walkSubColor);
-      missLine.setAttribute('stroke', data.walkStroke);
-
-      const refillLine = document.getElementById('tlb-refill-line');
-      refillLine.setAttribute('stroke', data.refillStroke);
-
-      document.getElementById('tlb-prev-btn').disabled = (tlbStep === 1);
-      document.getElementById('tlb-next-btn').disabled = (tlbStep === tlbTotalSteps);
+      document.getElementById('vfs-prev-btn').disabled = (vfsStep === 1);
+      document.getElementById('vfs-next-btn').disabled = (vfsStep === vfsTotalSteps);
     }
   </script>
 </body>
 </html>
 """
 
-def create_module_four():
+def create_module_file_abstraction():
     os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_FOUR_CONTENT.strip() + "\n")
-    print(f"--> Successfully created Module 04 at {TARGET_FILE}")
+        f.write(MODULE_CONTENT.strip() + "\n")
+    print(f"--> Successfully created {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if create_module_four():
+    if create_module_file_abstraction():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Create Module 04 on TLB Acceleration and Inverted Page Tables\n\n"
-                "Implement associative CAM lookup, EMAT formulas, hardware vs software\n"
-                "walks, Inverted Page Tables, and an interactive TLB hit/miss stepper."
+                "Create Module 01 on The File Abstraction in Week 10\n\n"
+                "Implement byte sequences, record models, file attributes, 3-tier kernel\n"
+                "table architecture, and an interactive POSIX VFS descriptor stepper."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)

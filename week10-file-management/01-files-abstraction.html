@@ -3,816 +3,512 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>1. Files &amp; Naming Abstractions — COSC240 Week 10</title>
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)'
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Module 01: The File Abstraction - COSC240</title>
   <style>
     :root {
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --border-dark: #94a3b8;
+      --primary: #0f172a;
       --accent: #0284c7;
       --accent-hover: #0369a1;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --inspect-color: #d97706;
-      --success-color: #059669;
-      --danger-color: #dc2626;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --text: #334155;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #d97706;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     body {
-      background-color: var(--bg);
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
       padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
     }
-
-    .nav-back {
-      width: 100%;
-      max-width: 1100px;
-      display: flex;
-    }
-    .nav-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      text-decoration: none;
-      color: var(--accent);
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .nav-back a:hover { background-color: var(--accent); color: #fff; }
-
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.85rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      width: 100%;
-      max-width: 1100px;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .theory-section {
-      line-height: 1.7;
-      font-size: 0.95rem;
-      color: #334155;
-      display: block;
-    }
-    .theory-section h2 {
-      font-size: 1.25rem;
-      color: var(--text);
-      margin-top: 16px;
-      margin-bottom: 6px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 4px;
-    }
-    .theory-section p {
-      margin-bottom: 12px;
-    }
-
-    /* Horizontal Pioneers Grid Layout */
-    .pioneers-grid-card {
-      border-top: 4px solid var(--inspect-color);
-    }
-    .pioneers-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 16px;
-      margin-top: 8px;
-    }
-    .pioneer-col {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      font-size: 0.85rem;
-    }
-    .pioneer-header-row {
+    .container { max-width: 1040px; margin: 0 auto; }
+    .nav-bar {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-    }
-    .pioneer-name {
-      font-weight: 700;
-      color: var(--text);
-      font-size: 0.92rem;
-    }
-    .pioneer-wiki {
-      font-size: 0.75rem;
-      font-family: var(--font-mono);
-    }
-    .pioneer-wiki a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-weight: 600;
-    }
-    .pioneer-meta {
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-      margin-bottom: 4px;
-    }
-    .pioneer-col img {
-      width: 100%;
-      height: 150px;
-      object-fit: contain;
-      background-color: #f1f5f9;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-    }
-    .pioneer-col p {
-      color: var(--text-muted);
-      line-height: 1.4;
-      font-size: 0.8rem;
-    }
-    .pioneer-col a {
-      color: var(--accent);
-      text-decoration: underline;
-      font-weight: 600;
-    }
-
-    .figure-container {
-      width: 100%;
-      max-width: 860px;
-      margin: 10px auto;
-      display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 8px;
       background: #ffffff;
       border: 1px solid var(--border);
+      padding: 12px 20px;
       border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
+      margin-bottom: 24px;
     }
-
-    .kernel-sandbox {
-      background: #0f172a;
-      color: #ffffff;
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .sticky-control-bar {
-      position: sticky;
-      top: 10px;
-      z-index: 100;
-      background: #020617;
-      border: 1px solid #38bdf8;
-      border-radius: 6px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-    .inspector-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 14px;
-    }
-    .inspector-panel {
-      background: #020617;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-    }
-    .inspector-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #38bdf8;
-      text-transform: uppercase;
-      border-bottom: 1px solid #1e293b;
-      padding-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-    }
-    .inspector-row {
-      display: flex;
-      justify-content: space-between;
-      color: #ffffff;
-      padding: 3px 0;
-      border-bottom: 1px dashed #1e293b;
-    }
-    .inspector-row span.highlight { color: #34d399; font-weight: 700; }
-    .inspector-row span.alert { color: #f87171; font-weight: 700; }
-
-    .sandbox-controls {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    button {
-      background-color: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
+    .nav-btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-    }
-    button:hover { background-color: var(--accent-hover); }
-    button.btn-sec { background-color: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
-    button.btn-sec:hover { background-color: #e2e8f0; }
-    button.btn-danger { background-color: var(--danger-color); color: #ffffff; }
-    button.btn-danger:hover { background-color: #b91c1c; }
-    button.btn-active-action { background-color: #34d399 !important; color: #0f172a !important; font-weight: 800; border: 1px solid #059669; }
-
-    .kernel-console {
-      background-color: #020617;
-      color: #38bdf8;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      padding: 14px;
-      border-radius: 6px;
-      min-height: 90px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      border: 1px solid #1e293b;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
+      color: var(--accent);
+      text-decoration: none;
       font-size: 0.88rem;
-      margin-top: 8px;
-      margin-bottom: 8px;
-    }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      text-align: left;
-    }
-    th {
-      background-color: #f1f5f9;
-      color: var(--text);
       font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
     }
-    td {
-      color: #334155;
+    .nav-btn:hover { background: #f0f9ff; }
+    .content-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-
+    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
+    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    h4 { font-size: 1.05rem; color: var(--primary); margin-top: 20px; }
+    p, li { font-size: 0.95rem; color: var(--text); }
+    .math-callout {
+      background: #f8fafc;
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 18px 0;
+      font-size: 0.92rem;
+    }
     pre {
-      background-color: #0f172a;
-      color: #f8fafc;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
+      background: #0f172a;
+      color: #e2e8f0;
       padding: 16px;
       border-radius: 6px;
       overflow-x: auto;
-      line-height: 1.6;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      margin: 16px 0;
     }
-    .c-kw { color: #f472b6; font-weight: 600; }
-    .c-type { color: #38bdf8; font-weight: 600; }
-    .c-fn { color: #6ee7b7; font-weight: 600; }
-    .c-prep { color: #c084fc; font-weight: 600; }
-    .c-num { color: #fbbf24; }
-    .c-comm { color: #64748b; font-style: italic; }
+    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
+    pre code { background: none; padding: 0; color: inherit; }
 
-    /* State Machine Diagram Styles */
-    .sm-state { transition: all 0.25s ease; }
-    .sm-box { fill: #0f172a; stroke: #38bdf8; stroke-width: 2px; rx: 6px; }
-    .sm-text { font-size: 10px; font-weight: 700; fill: #38bdf8; text-anchor: middle; font-family: var(--font-mono); }
-    .sm-subtext { font-size: 8px; fill: #ffffff; text-anchor: middle; }
-    .active-state .sm-box { fill: #0284c7; stroke: #38bdf8; stroke-width: 3px; filter: drop-shadow(0 4px 8px rgba(2,132,199,0.4)); }
-    .active-state .sm-text { fill: #ffffff; }
-    .active-state .sm-subtext { fill: #e0f2fe; }
+    /* Interactive Pedagogical Aid Styles */
+    .aid-wrapper {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin: 28px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
+    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
+    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
+    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.86rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; height: 150px; max-height: 150px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
+    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
+    .step-btn {
+      flex: 1;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .step-btn:hover { background: var(--accent); }
+    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.75rem; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
+    .visual-canvas { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 240px; }
+    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
+    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .toggle-bar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .toggle-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
+    .toggle-btn.active { background: #e0f2fe; color: var(--accent); border-color: #bae6fd; }
+    @media (max-width: 768px) {
+      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
+      body { padding: 16px; }
+    }
   </style>
-  <!-- MathJax Configuration for LaTeX Rendering -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)',
-        displayMath: [['$$', '$$'], ['\\[', '\\]'
-      }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-<style id="module-nav-styles">
-  .module-nav-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto 16px auto;
-    gap: 12px;
-    box-sizing: border-box;
-  }
-  .module-nav-bar.bottom {
-    margin-top: 24px;
-    margin-bottom: 24px;
-  }
-  .module-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    text-decoration: none;
-    color: #0284c7;
-    background-color: #f0f9ff;
-    border: 1px solid #bae6fd;
-    padding: 7px 13px;
-    border-radius: 6px;
-    transition: all 0.15s ease;
-  }
-  .module-nav-btn:hover {
-    background-color: #0284c7;
-    color: #ffffff;
-  }
-  .module-nav-placeholder {
-    visibility: hidden;
-    padding: 7px 13px;
-    font-size: 0.85rem;
-  }
-</style>
-
+  <!-- KaTeX CSS & JS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
 </head>
 <body>
-<nav class="module-nav-bar">
-  <span class="module-nav-placeholder">&larr; Previous</span>
-  <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&#127968; Week 10: File Management</a>
-  <a href="02-directories.html" class="module-nav-btn">Next: 02. Directory Systems &amp; Hierarchies &rarr;</a>
-</nav>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="index.html" class="nav-btn">&larr; Week 10 Hub</a>
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      <a href="02-directories.html" class="nav-btn">Module 02: Directories &rarr;</a>
+    </nav>
 
-  
-
-  <header>
-    <h1>1. Files &amp; Naming Abstractions</h1>
-    <p class="subtitle">Tanenbaum Chapter 4.1: Comprehensive Reference on File Naming, Structures, Types, Access, Attributes, and POSIX System Calls.</p>
-  </header>
-
-  <div class="main-container">
-
-    <!-- 1. THEORY SECTION -->
-    <div class="card">
-      <div class="theory-section">
-        <h2>4.1.1 File Naming &amp; Structural Abstractions</h2>
-        <p>
-          File naming serves as the fundamental abstraction mechanism for identifying and retrieving stored information across execution contexts. When a context creates a file, it assigns a unique name; when that context terminates, the file persists and remains accessible to other contexts using that same name. Modern operating systems support extended identifiers up to 255 characters, balancing case sensitivity models across UNIX and Windows environments.
-        </p>
-
-        <h2>4.1.2 File Structure &amp; Organization</h2>
-        <p>
-          File organization models dictate how the operating system or applications perceive and structure internal data layouts. Three primary file structures have historically been utilized: unstructured byte streams (standard across UNIX and Windows), fixed-length record sequences, and key-indexed trees.
-        </p>
-
-        <h2>4.1.3 File Types &amp; Classifications</h2>
-        <p>
-          Operating systems recognize regular files (ASCII and binary), system-managed hierarchical directories, character special files for serial I/O devices, and block special files for disk storage drives.
-        </p>
-
-        <h2>4.1.4 File Access &amp; Positioning Mechanisms</h2>
-        <p>
-          Access models evolved from early sequential magnetic tape traversal to random-access files supported by direct-access storage devices. To specify positions, operating systems utilize separate seek operations (such as <code>lseek</code>) to manipulate logical byte offset pointers before executing stream reads or writes.
-        </p>
-      </div>
-
-      <!-- Figure: File Control Block / I-Node Metadata Layout -->
-      <div class="figure-container" style="max-width: 860px; align-items: stretch;">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; margin-bottom: 4px;">Figure: File Control Block (FCB) / I-Node Metadata Layout</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 190" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <rect x="150" y="15" width="400" height="160" fill="#f8fafc" stroke="#0284c7" stroke-width="2" rx="6"/>
-          <text x="350" y="38" font-size="12" font-weight="700" fill="#0284c7" text-anchor="middle">File Control Block / I-Node Metadata Structure</text>
-
-          <rect x="170" y="50" width="360" height="24" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1" rx="3"/>
-          <text x="180" y="66" font-size="10" font-weight="600" fill="#0369a1">Protection Modes &amp; Owner UID/GID</text>
-
-          <rect x="170" y="79" width="360" height="24" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1" rx="3"/>
-          <text x="180" y="95" font-size="10" font-weight="600" fill="#047857">Flags (Hidden, Read-Only, Archive, Lock)</text>
-
-          <rect x="170" y="108" width="360" height="24" fill="#fffbeb" stroke="#fde68a" stroke-width="1" rx="3"/>
-          <text x="180" y="124" font-size="10" font-weight="600" fill="#b45309">Timestamps (Creation, Access, Modification)</text>
-
-          <rect x="170" y="137" width="360" height="24" fill="#fef2f2" stroke="#fecaca" stroke-width="1" rx="3"/>
-          <text x="180" y="153" font-size="10" font-weight="600" fill="#b91c1c">File Size &amp; Disk Block Address Pointers</text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- HORIZONTAL PIONEERS INFOBOX (Placed under Section 4.1.4) -->
-    <div class="card pioneers-grid-card">
-      <h3 style="font-size: 1rem; color: var(--inspect-color); text-transform: uppercase; font-family: var(--font-mono); border-bottom: 1px solid var(--border); padding-bottom: 6px;">File System Pioneers</h3>
-      <div class="pioneers-container">
-
-        <!-- Ken Thompson -->
-        <div class="pioneer-col">
-          <div class="pioneer-header-row">
-            <div class="pioneer-name">Ken Thompson</div>
-            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">[Wiki]</a></div>
-          </div>
-          <div class="pioneer-meta"><strong>Born:</strong> Feb 4, 1943<br>UC Berkeley | Bell Labs</div>
-          <img src="../images/thompson.jpg" alt="Ken Thompson">
-          <p>Co-creator of Unix at Bell Labs. Thompson designed the core i-node architecture, hierarchical namespace structures, and byte-stream abstractions that govern modern operating systems. You can find out more on <a href="https://en.wikipedia.org/wiki/Ken_Thompson" target="_blank">Wikipedia</a>.</p>
-        </div>
-
-        <!-- Dennis Ritchie -->
-        <div class="pioneer-col">
-          <div class="pioneer-header-row">
-            <div class="pioneer-name">Dennis Ritchie</div>
-            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">[Wiki]</a></div>
-          </div>
-          <div class="pioneer-meta"><strong>Born:</strong> Sep 9, 1941 — <strong>Died:</strong> Oct 12, 2011<br>Harvard | Bell Labs</div>
-          <img src="../images/ritchie.jpg" alt="Dennis Ritchie">
-          <p>Creator of the C programming language and co-creator of Unix. Ritchie established portable systems programming standards built around robust POSIX system call abstractions. You can find out more on <a href="https://en.wikipedia.org/wiki/Dennis_Ritchie" target="_blank">Wikipedia</a>.</p>
-        </div>
-
-        <!-- Andrew S. Tanenbaum -->
-        <div class="pioneer-col">
-          <div class="pioneer-header-row">
-            <div class="pioneer-name">Andrew S. Tanenbaum</div>
-            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">[Wiki]</a></div>
-          </div>
-          <div class="pioneer-meta"><strong>Born:</strong> Mar 16, 1944<br>MIT / Vrije Universiteit</div>
-          <img src="../images/tanenbaum.jpg" alt="Andrew S. Tanenbaum">
-          <p>Renowned educator and author of definitive operating systems literature. Tanenbaum designed MINIX as an educational kernel to teach low-level storage management and system principles. You can find out more on <a href="https://en.wikipedia.org/wiki/Andrew_S._Tanenbaum" target="_blank">Wikipedia</a>.</p>
-        </div>
-
-        <!-- Marshall Kirk McKusick -->
-        <div class="pioneer-col">
-          <div class="pioneer-header-row">
-            <div class="pioneer-name">Marshall Kirk McKusick</div>
-            <div class="pioneer-wiki"><a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">[Wiki]</a></div>
-          </div>
-          <div class="pioneer-meta"><strong>Born:</strong> Jan 19, 1954<br>Cornell / UC Berkeley</div>
-          <img src="../images/mckusick.jpg" alt="Marshall Kirk McKusick">
-          <p>Key contributor to BSD Unix who engineered the Berkeley Fast File System (FFS). McKusick dramatically accelerated disk retrieval speeds through cylinder group optimization and intelligent block allocation. You can find out more on <a href="https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick" target="_blank">Wikipedia</a>.</p>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- 2. INTERACTIVE KERNEL TABLE INSPECTOR & STATE MACHINE SANDBOX -->
-    <div class="card kernel-sandbox" id="sandboxSection">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div style="font-weight: 700; font-size: 1.1rem; color: #ffffff;">3. Interactive Kernel Table Inspector &amp; State Machine</div>
-      </div>
-
-      <!-- Sticky Action Control Bar (Pinned at top of sandbox) -->
-      <div class="sticky-control-bar">
-        <div style="font-weight: 700; color: #fbbf24; font-size: 0.8rem; text-transform: uppercase; font-family: var(--font-mono);">System Call Action Controls:</div>
-        <div class="sandbox-controls">
-          <button onclick="runInspectionOp('creat')" id="btn-creat" style="font-size: 0.8rem; padding: 6px 12px;">creat()</button>
-          <button onclick="runInspectionOp('open')" id="btn-open" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">open()</button>
-          <button onclick="runInspectionOp('read')" id="btn-read" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">read()</button>
-          <button onclick="runInspectionOp('write')" id="btn-write" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">write()</button>
-          <button onclick="runInspectionOp('seek')" id="btn-seek" class="btn-sec" style="font-size: 0.8rem; padding: 6px 12px;">lseek()</button>
-          <button onclick="runInspectionOp('close')" id="btn-close" class="btn-sec btn-danger" style="font-size: 0.8rem; padding: 6px 12px;">close()</button>
-        </div>
-      </div>
-
-      <!-- Detailed Instructional Breakdown -->
-      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.88rem; color: #ffffff; line-height: 1.6;">
-        <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.8rem; font-family: var(--font-mono);">How to Use This Kernel Inspector &amp; What You Are Seeing:</div>
-        <p style="color: #cbd5e1;">
-          This interactive sandbox simulates how the operating system kernel maintains state across execution contexts during POSIX file operations. Use the sticky system call action buttons (locked above for convenience) to trigger state transitions and examine how the interface updates across three synchronized telemetry views:
-        </p>
-        <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px; color: #cbd5e1;">
-          <li><strong style="color: #ffffff;">1. The State Machine Diagram (Below):</strong> Visually tracks the active lifecycle state of your file descriptor in real time.</li>
-          <li><strong style="color: #ffffff;">2. The Three Kernel Tables (Below):</strong>
-            <ul style="padding-left: 18px; margin-top: 2px; color: #94a3b8;">
-              <li><em style="color: #cbd5e1;">Process FD Table:</em> Shows private per-context file descriptor integer slots (e.g., slot <code>3</code>).</li>
-              <li><em style="color: #cbd5e1;">Open File Table:</em> Tracks shared kernel telemetry including access mode flags, active reference counts, and the live byte offset pointer.</li>
-              <li><em style="color: #cbd5e1;">Buffer Cache &amp; i-Node:</em> Monitors volatile RAM block residency, dirty cache status, and file size metrics before persistent disk synchronization.</li>
-            </ul>
-          </li>
-          <li><strong style="color: #ffffff;">3. The Kernel Console &amp; Challenges (Bottom):</strong> Reports exact kernel return codes (such as success or <code>EBADF</code> faults) and lets you test real-world debugging challenges.</li>
-        </ul>
-      </div>
-
-      <!-- Embedded Interactive State Machine Diagram -->
-      <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px;">
-        <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #38bdf8; text-transform: uppercase;">Live File Descriptor Lifecycle State Machine</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 120" width="100%" height="100%" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-          <g id="sm-state-0" class="sm-state active-state">
-            <rect x="20" y="25" width="110" height="55" class="sm-box"/>
-            <text x="75" y="48" class="sm-text">UNALLOCATED</text>
-            <text x="75" y="64" class="sm-subtext">Context Closed</text>
-          </g>
-          <path d="M 130 52 L 180 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="155" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">creat/open()</text>
-
-          <g id="sm-state-1" class="sm-state">
-            <rect x="180" y="25" width="120" height="55" class="sm-box"/>
-            <text x="240" y="48" class="sm-text">FD_ALLOCATED</text>
-            <text x="240" y="64" class="sm-subtext">fd slot bound</text>
-          </g>
-          <path d="M 300 52 L 350 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="325" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">read()</text>
-
-          <g id="sm-state-2" class="sm-state">
-            <rect x="350" y="25" width="110" height="55" class="sm-box"/>
-            <text x="405" y="48" class="sm-text">OFT_BOUND</text>
-            <text x="405" y="64" class="sm-subtext">Offset advancing</text>
-          </g>
-          <path d="M 460 52 L 510 52" stroke="#38bdf8" stroke-width="2" marker-end="url(#smarrow)"/>
-          <text x="485" y="42" font-size="8" fill="#38bdf8" font-weight="600" text-anchor="middle">lseek()</text>
-
-          <g id="sm-state-3" class="sm-state">
-            <rect x="510" y="25" width="110" height="55" class="sm-box"/>
-            <text x="565" y="48" class="sm-text">RAM_CACHED</text>
-            <text x="565" y="64" class="sm-subtext">Random Access</text>
-          </g>
-
-          <path d="M 565 80 L 565 102 L 75 102 L 75 80" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#smarrow-close)"/>
-          <text x="320" y="112" font-size="8" fill="#fbbf24" font-weight="700" text-anchor="middle">close() [Flushes Cache &amp; Deallocates FD]</text>
-
-          <defs>
-            <marker id="smarrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
-            </marker>
-            <marker id="smarrow-close" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#d97706" />
-            </marker>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- Detailed State Glossary & Explanatory Card -->
-      <div style="background: #020617; border: 1px solid #334155; border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: #cbd5e1; line-height: 1.5;">
-        <div style="font-weight: 700; color: #38bdf8; text-transform: uppercase; font-size: 0.78rem; font-family: var(--font-mono);">Kernel State Machine Glossary &amp; Technical Breakdown:</div>
-        <ul style="padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #94a3b8;">
-          <li><strong style="color: #38bdf8;">UNALLOCATED (Initial State):</strong> No file descriptor exists for this file in the table. Any attempt to read or write without opening returns an <code style="color: #f87171;">EBADF</code> error.</li>
-          <li><strong style="color: #38bdf8;">FD_ALLOCATED (Triggered by creat() / open()):</strong> The kernel has successfully validated permissions, loaded the i-node into RAM, and bound a small integer index (e.g., `fd = 3`) in the descriptor table.</li>
-          <li><strong style="color: #38bdf8;">OFT_BOUND (Triggered by read() / write()):</strong> The shared Open File Table entry is actively tracking access mode flags, reference counts, and the live byte offset pointer as data flows between storage and buffers.</li>
-          <li><strong style="color: #38bdf8;">RAM_CACHED (Triggered by write() / lseek()):</strong> Data resides in memory-resident buffer cache blocks (`DIRTY` until synced). Calling `close()` flushes blocks to disk and returns the state to `UNALLOCATED`.</li>
-        </ul>
-      </div>
-
-      <!-- Side-by-Side Kernel Table Panels -->
-      <div class="inspector-grid">
-        <div class="inspector-panel">
-          <div class="inspector-title"><span>Process FD Table</span><span>(Private)</span></div>
-          <div class="inspector-row"><span>fd [0]:</span><span>stdin (keyboard)</span></div>
-          <div class="inspector-row"><span>fd [1]:</span><span>stdout (terminal)</span></div>
-          <div class="inspector-row"><span>fd [2]:</span><span>stderr (terminal)</span></div>
-          <div class="inspector-row"><span>fd [3]:</span><span id="insp-fd3" class="alert">-- UNUSED --</span></div>
-        </div>
-
-        <div class="inspector-panel">
-          <div class="inspector-title"><span>Open File Table</span><span>(Shared Kernel)</span></div>
-          <div class="inspector-row"><span>Target File:</span><span id="insp-filename">None</span></div>
-          <div class="inspector-row"><span>Access Flags:</span><span id="insp-flags">--</span></div>
-          <div class="inspector-row"><span>Reference Count:</span><span id="insp-ref">0</span></div>
-          <div class="inspector-row"><span>Byte Offset Pointer:</span><span id="insp-offset" class="highlight">0 Bytes</span></div>
-        </div>
-
-        <div class="inspector-panel">
-          <div class="inspector-title"><span>Buffer Cache &amp; i-Node</span><span>(RAM / Disk)</span></div>
-          <div class="inspector-row"><span>Active i-Node:</span><span id="insp-inode">None</span></div>
-          <div class="inspector-row"><span>Cache Block:</span><span id="insp-block">None</span></div>
-          <div class="inspector-row"><span>Buffer Status:</span><span id="insp-dirty" class="highlight">CLEAN</span></div>
-          <div class="inspector-row"><span>File Size:</span><span id="insp-size">0 Bytes</span></div>
-        </div>
-      </div>
-
-      <!-- Guided Debugging Challenge Panel -->
-      <div style="background: #020617; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-        <div style="font-size: 0.78rem; font-weight: 700; color: #fbbf24; text-transform: uppercase; font-family: var(--font-mono);">Guided Debugging Challenge</div>
-        <div style="font-size: 0.85rem; color: #cbd5e1;" id="challengeDesc">
-          <strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> before initializing a file descriptor. Observe how the kernel traps invalid file descriptor references.
-        </div>
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <button onclick="loadChallenge(1)" style="font-size: 0.72rem; padding: 4px 8px;">1. Missing Open Bug</button>
-          <button onclick="loadChallenge(2)" class="btn-sec" style="font-size: 0.72rem; padding: 4px 8px;">2. Shared Offset Trap</button>
-          <button onclick="loadChallenge(3)" class="btn-sec" style="font-size: 0.72rem; padding: 4px 8px;">3. Unflushed Cache Risk</button>
-        </div>
-      </div>
-
-      <div id="inspectorConsole" class="kernel-console">$ sandbox telemetry initialized. Ready for system calls...</div>
-    </div>
-
-    <!-- 3. EXAMPLE PROGRAM (SYNTAX HIGHLIGHTED) -->
-    <div class="card">
-      <h2>4.1.7 Example: POSIX File-Copy Program</h2>
-      <p>
-        Below is a standard POSIX C implementation illustrating file descriptor error checking and block-by-block streaming using <code>open</code>, <code>creat</code>, <code>read</code>, <code>write</code>, and <code>close</code>:
+    <div class="content-card">
+      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 01 &bull; COSC240</span>
+      <h1>The File Abstraction</h1>
+      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
+        Investigate how operating systems transform raw, physical non-volatile storage sectors into persistent, named, and structured byte streams. Examine file structures, metadata attributes, POSIX operational primitives, and the kernel's three-tier file table architecture.
       </p>
-      <pre><span class="c-prep">#include &lt;sys/types.h&gt;</span>
-<span class="c-prep">#include &lt;fcntl.h&gt;</span>
-<span class="c-prep">#include &lt;stdlib.h&gt;</span>
-<span class="c-prep">#include &lt;unistd.h&gt;</span>
 
-<span class="c-prep">#define BUF_SIZE 4096</span>
-<span class="c-prep">#define OUTPUT_MODE 0700</span>
+      <h3>1. Motivation: Persistence &amp; Device Virtualization</h3>
+      <p>
+        Process memory (the virtual address space covered in Week 07) is fundamentally <strong>ephemeral</strong>. When a process terminates, crashes, or when power drops, all state held in RAM volatile registers and dynamic page frames vanishes instantly. Furthermore, a single process's address space is strictly private; sharing vast datasets across distinct user accounts and lifetimes requires an external medium.
+      </p>
+      <p>
+        Physical non-volatile storage hardware (such as magnetic hard disks, NVMe SSDs, and flash arrays) presents an unforgiving interface:
+      </p>
+      <ul>
+        <li>Storage is partitioned into fixed-size physical sectors or Logical Block Addresses (LBAs, typically 512 bytes or 4 KB).</li>
+        <li>Devices accept only low-level commands: read block $k$, write block $k$, erase block $k$.</li>
+        <li>Storage media lack human-readable names, ownership protections, concurrency arbitration, and dynamic resizing.</li>
+      </ul>
+      <p>
+        The <strong>File Abstraction</strong> is the fundamental operating system construct that bridges this gap. A <strong>file</strong> is a named, logical collection of persistent information recorded on secondary storage, presented to user processes as a continuous, linear address space of bytes ($0 \dots N-1$).
+      </p>
 
-<span class="c-type">int</span> <span class="c-fn">main</span>(<span class="c-type">int</span> argc, <span class="c-type">char</span> *argv[]) {
-    <span class="c-type">int</span> in_fd, out_fd, rd_count, wt_count;
-    <span class="c-type">char</span> buffer[BUF_SIZE];
+      <h3>2. File Structure Models</h3>
+      <p>
+        Historically, operating systems have differed significantly in how much internal structure the kernel imposes upon file contents. Three canonical models define this evolution:
+      </p>
 
-    <span class="c-kw">if</span> (argc != <span class="c-num">3</span>) <span class="c-fn">exit</span>(<span class="c-num">1</span>); <span class="c-comm">// Syntax error</span>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0;">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">1. Byte Sequence (UNIX / Windows)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            The file is an unformatted sequence of 8-bit bytes. The kernel imposes zero schema, record boundaries, or syntax:
+          </p>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); background: #ffffff; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
+            File = [ B0, B1, B2, ..., B(N-1) ]
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">
+            <strong>Philosophy:</strong> The OS provides raw byte storage; application software (compilers, database engines, media players) parses semantic meaning. This approach provides maximum architectural flexibility.
+          </p>
+        </div>
 
-    in_fd = <span class="c-fn">open</span>(argv[<span class="c-num">1</span>], O_RDONLY);
-    <span class="c-kw">if</span> (in_fd &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">2</span>); <span class="c-comm">// Source open failed</span>
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">2. Record Sequence (CP/M, VMS)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            The file is modeled as a sequence of fixed-length or variable-length records, reflecting 80-column punched-card heritage:
+          </p>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); background: #ffffff; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
+            read_record() &rarr; returns Record[i]
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">
+            <strong>Philosophy:</strong> The kernel's file subsystem understands record delimiters. Reading returns an exact record boundary rather than an arbitrary count of bytes.
+          </p>
+        </div>
 
-    out_fd = <span class="c-fn">creat</span>(argv[<span class="c-num">2</span>], OUTPUT_MODE);
-    <span class="c-kw">if</span> (out_fd &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">3</span>); <span class="c-comm">// Destination creation failed</span>
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">3. Keyed Tree / ISAM (Mainframes)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            The file is structured internally as a B-tree or sorted index of keyed records (e.g., IBM VSAM):
+          </p>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); background: #ffffff; border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; margin-top: 8px;">
+            get_record("Smith") &rarr; O(log N)
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 8px;">
+            <strong>Philosophy:</strong> Fast key-based querying embedded into the operating system filesystem routines, common in banking mainframes before relational DBMS ubiquity.
+          </p>
+        </div>
+      </div>
 
-    <span class="c-kw">while</span> (<span class="c-num">1</span>) {
-        rd_count = <span class="c-fn">read</span>(in_fd, buffer, BUF_SIZE);
-        <span class="c-kw">if</span> (rd_count &lt; <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">4</span>); <span class="c-comm">// Read error</span>
-        <span class="c-kw">if</span> (rd_count == <span class="c-num">0</span>) <span class="c-kw">break</span>; <span class="c-comm">// EOF reached</span>
+      <h3>3. Access Methods: Sequential vs. Random Access</h3>
+      <p>
+        Processes access files through two primary paradigms:
+      </p>
+      <ul>
+        <li>
+          <strong>Sequential Access:</strong> Bytes are read or written in strict chronological order from beginning to end ($B_0, B_1, B_2, \dots$). The kernel tracks an implicit <em>file offset pointer</em> that automatically advances with every read or write. This mirrors magnetic tape media and remains the standard for audio streams, loggers, and video playback.
+        </li>
+        <li>
+          <strong>Random / Direct Access:</strong> The application can read or write bytes at arbitrary offsets ($B_{4096}, B_{1024}, B_{0}$) in any sequence. Essential for relational databases, virtual machine disk images, and index structures. Implemented via system calls such as <code>lseek(fd, offset, whence)</code> or positional I/O (<code>pread</code> / <code>pwrite</code>).
+        </li>
+      </ul>
 
-        wt_count = <span class="c-fn">write</span>(out_fd, buffer, rd_count);
-        <span class="c-kw">if</span> (wt_count &lt;= <span class="c-num">0</span>) <span class="c-fn">exit</span>(<span class="c-num">5</span>); <span class="c-comm">// Write error</span>
-    }
+      <h3>4. File Attributes &amp; Inode Metadata</h3>
+      <p>
+        In addition to raw data bytes, every file possesses associated <strong>metadata</strong> (attributes) describing its administrative and physical storage properties. In UNIX/POSIX environments, metadata is encapsulated within the <code>struct stat</code> record retrieved via the <code>stat()</code> system call:
+      </p>
 
-    <span class="c-fn">close</span>(in_fd);
-    <span class="c-fn">close</span>(out_fd);
-    <span class="c-fn">exit</span>(<span class="c-0">0</span>);
-}</pre>
+      <!-- Syntax-Highlighted C Struct Box -->
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.84rem; overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);">
+        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+          c &bull; posix_stat.h
+        </div>
+        <pre style="margin: 0; line-height: 1.5;"><span style="color: #c084fc;">struct</span> <span style="color: #6ee7b7;">stat</span> {
+    <span style="color: #6ee7b7;">dev_t</span>     st_dev;         <span style="color: #94a3b8;">// ID of device containing file</span>
+    <span style="color: #6ee7b7;">ino_t</span>     st_ino;         <span style="color: #94a3b8;">// File serial number (Inode Number)</span>
+    <span style="color: #6ee7b7;">mode_t</span>    st_mode;        <span style="color: #94a3b8;">// File mode (type and permissions: rwxr-xr-x)</span>
+    <span style="color: #6ee7b7;">nlink_t</span>   st_nlink;       <span style="color: #94a3b8;">// Number of hard links</span>
+    <span style="color: #6ee7b7;">uid_t</span>     st_uid;         <span style="color: #94a3b8;">// User ID of owner</span>
+    <span style="color: #6ee7b7;">gid_t</span>     st_gid;         <span style="color: #94a3b8;">// Group ID of owner</span>
+    <span style="color: #6ee7b7;">off_t</span>     st_size;        <span style="color: #94a3b8;">// Total size in bytes</span>
+    <span style="color: #6ee7b7;">struct timespec</span> st_atim;  <span style="color: #94a3b8;">// Time of last access (atime)</span>
+    <span style="color: #6ee7b7;">struct timespec</span> st_mtim;  <span style="color: #94a3b8;">// Time of last data modification (mtime)</span>
+    <span style="color: #6ee7b7;">struct timespec</span> st_ctim;  <span style="color: #94a3b8;">// Time of last status/metadata change (ctime)</span>
+};</pre>
+      </div>
+
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Critical POSIX Distinctions:</strong>
+        <br><br>
+        <strong>1. <code>mtime</code> vs. <code>ctime</code>:</strong> Modification time (<code>mtime</code>) updates when file <em>data bytes</em> are written. Change time (<code>ctime</code>) updates when file <em>metadata</em> (such as permissions via <code>chmod</code> or ownership via <code>chown</code>) changes. <em>POSIX does not track creation time by default.</em>
+        <br><br>
+        <strong>2. The Inode Disconnect:</strong> The human-readable name of a file is <strong>not</strong> stored inside the file's inode or metadata! File names live strictly inside directory entry tables mapping strings to inode numbers ($\text{"thesis.pdf"} \to \text{Inode } 41209$).
+      </div>
+
+      <h3>5. The 3-Tier Kernel Architecture for Open Files</h3>
+      <p>
+        When an application executes <code>int fd = open("log.txt", O_RDWR);</code>, the operating system does not simply bind the integer file descriptor directly to a disk block. Instead, POSIX kernels coordinate <strong>three distinct layers of kernel tables</strong>:
+      </p>
+
+      <ol style="font-size: 0.92rem; line-height: 1.7;">
+        <li>
+          <strong>Per-Process File Descriptor Table:</strong> Each process control block (PCB) contains an array of descriptors indexed by small integers ($0, 1, 2, \dots$). Standard descriptors: $0$ (stdin), $1$ (stdout), $2$ (stderr). Each valid entry contains a pointer to an entry in the System-Wide Open File Table.
+        </li>
+        <li>
+          <strong>System-Wide Open File Description Table:</strong> Shared across the entire operating system. Contains an entry for every active `open()` handle. Stores the <strong>current byte offset</strong>, access mode flags (read-only, write-only, append), and an active reference count.
+        </li>
+        <li>
+          <strong>VFS Inode Table (Active Inode Cache):</strong> Contains in-memory vnodes/inodes representing actual physical files on disk. Stores file size, device identifiers, disk block pointers, and lock state.
+        </li>
+      </ol>
+
+      <!-- ================================================================= -->
+      <!-- INTERACTIVE PEDAGOGICAL AID: 3-TIER FILE TABLE STEPPER           -->
+      <!-- ================================================================= -->
+      <div class="aid-wrapper">
+        <div class="aid-header">Interactive Walkthrough: 3-Tier Kernel Table Resolution &amp; I/O Operations</div>
+        <div class="aid-subtitle">Trace step-by-step how a user-space read() or lseek() navigates the Per-Process FD Table, the System-Wide Open File Table, and the VFS Inode Table.</div>
+
+        <div class="aid-grid">
+          <div class="controls-panel">
+            <div class="preview-box" id="vfs-preview-text">
+              <strong>Step 1: File Opened.</strong> Process calls <code>open("data.bin")</code>. Kernel assigns descriptor <code>fd = 3</code> pointing to Open File Description #1 with offset = 0.
+            </div>
+
+            <div class="stepper-btns">
+              <button class="step-btn" id="vfs-prev-btn" onclick="changeVfsStep(-1)" disabled>&larr; Prev</button>
+              <button class="step-btn" id="vfs-next-btn" onclick="changeVfsStep(1)">Next &rarr;</button>
+              <button class="step-btn" onclick="resetVfsStepper()" style="background:#64748b;">Reset</button>
+            </div>
+
+            <div class="telemetry-bar" id="vfs-telemetry-bar">
+              <div><strong>Phase:</strong> <span id="vfs-tel-phase" style="color: #38bdf8;">1/4</span></div>
+              <div><strong>Descriptor:</strong> <span id="vfs-tel-fd">fd = 3</span></div>
+              <div><strong>Offset:</strong> <span id="vfs-tel-offset">0 bytes</span></div>
+              <div><strong>Status:</strong> <span id="vfs-tel-status" style="color: #4ade80; font-weight: 700;">Open (Ready)</span></div>
+            </div>
+
+            <div class="toggle-bar">
+              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">OPERATION:</span>
+              <button class="toggle-btn active" id="vfs-btn-seq" onclick="setVfsMode('seq')">Sequential Read</button>
+              <button class="toggle-btn" id="vfs-btn-seek" onclick="setVfsMode('seek')">lseek() Seek</button>
+            </div>
+          </div>
+
+          <div class="visual-canvas">
+            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; Kernel 3-Tier Indirection Pipeline</div>
+
+            <!-- 3-Tier Architecture SVG Canvas -->
+            <svg viewBox="0 0 320 200" style="width: 100%; height: 100%; min-height: 200px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
+              <!-- Tier 1: Per-Process FD Table -->
+              <rect x="10" y="25" width="70" height="150" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+              <text x="45" y="18" fill="#0284c7" font-size="7" font-weight="bold" text-anchor="middle">PROCESS FD TABLE</text>
+              <rect x="12" y="30" width="66" height="18" fill="#f1f5f9" stroke="#cbd5e1" />
+              <text x="45" y="42" fill="#64748b" font-size="7.5" font-family="monospace" text-anchor="middle">fd 0: stdin</text>
+              <rect x="12" y="52" width="66" height="18" fill="#f1f5f9" stroke="#cbd5e1" />
+              <text x="45" y="64" fill="#64748b" font-size="7.5" font-family="monospace" text-anchor="middle">fd 1: stdout</text>
+              <rect x="12" y="74" width="66" height="18" fill="#f1f5f9" stroke="#cbd5e1" />
+              <text x="45" y="86" fill="#64748b" font-size="7.5" font-family="monospace" text-anchor="middle">fd 2: stderr</text>
+              <!-- Target FD 3 -->
+              <rect id="vfs-row-fd" x="12" y="96" width="66" height="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
+              <text x="45" y="110" fill="#0369a1" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">fd 3 &rarr; OFT</text>
+
+              <!-- Arrow: FD to Open File Table -->
+              <path id="vfs-arrow-1" d="M 78 107 L 115 107" fill="none" stroke="#0284c7" stroke-width="2" />
+
+              <!-- Tier 2: System-Wide Open File Table -->
+              <rect x="115" y="45" width="95" height="110" rx="3" fill="#ffffff" stroke="#d97706" stroke-width="1.5" />
+              <text x="162" y="38" fill="#d97706" font-size="7" font-weight="bold" text-anchor="middle">OPEN FILE TABLE</text>
+              <rect id="vfs-row-oft" x="118" y="75" width="89" height="50" rx="3" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
+              <text x="162" y="90" fill="#b45309" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">Entry #1</text>
+              <text id="vfs-txt-offset" x="162" y="104" fill="#0f172a" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">Offset: 0</text>
+              <text x="162" y="117" fill="#64748b" font-size="7" font-family="monospace" text-anchor="middle">Mode: O_RDONLY</text>
+
+              <!-- Arrow: OFT to Inode Table -->
+              <path id="vfs-arrow-2" d="M 210 100 L 235 100" fill="none" stroke="#d97706" stroke-width="2" />
+
+              <!-- Tier 3: Inode Table -->
+              <rect x="235" y="30" width="75" height="140" rx="3" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" />
+              <text x="272" y="22" fill="#16a34a" font-size="7" font-weight="bold" text-anchor="middle">VFS INODE TABLE</text>
+              <rect id="vfs-row-inode" x="238" y="55" width="69" height="90" rx="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" />
+              <text x="272" y="70" fill="#15803d" font-size="7.5" font-family="monospace" font-weight="bold" text-anchor="middle">Inode 4120</text>
+              <text x="272" y="85" fill="#64748b" font-size="7" font-family="monospace" text-anchor="middle">Size: 4096B</text>
+              <text x="272" y="98" fill="#64748b" font-size="7" font-family="monospace" text-anchor="middle">Ref: 1</text>
+              <rect x="242" y="106" width="61" height="14" fill="#dcfce7" stroke="#86efac" />
+              <text x="272" y="116" fill="#166534" font-size="6.5" font-family="monospace" text-anchor="middle">Block #8902</text>
+              <rect x="242" y="124" width="61" height="14" fill="#dcfce7" stroke="#86efac" />
+              <text x="272" y="134" fill="#166534" font-size="6.5" font-family="monospace" text-anchor="middle">Block #9104</text>
+            </svg>
+
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="vfs-canvas-banner">
+              VFS Pipeline: <strong>Ready to step</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="panes-grid">
+          <div class="pane-box" style="border-left: 3px solid var(--success);">
+            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
+            <div id="vfs-pane-what" style="color: var(--text);">Process executes open(). Descriptor 3 is allocated in the PCB table, referencing a new Open File Table entry initialized at offset 0.</div>
+          </div>
+          <div class="pane-box" style="border-left: 3px solid var(--accent);">
+            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
+            <div id="vfs-pane-why" style="color: var(--text);">Separating file descriptors from open file objects allows child processes across fork() to share file offsets cooperatively.</div>
+          </div>
+        </div>
+      </div>
+
+      <h4>Why Three Tables? The <code>fork()</code> vs. <code>open()</code> Semantics</h4>
+      <p>
+        The separation between Per-Process Descriptors, Open File Descriptions, and Inodes is one of the most elegant architectural designs in UNIX:
+      </p>
+      <ul>
+        <li>
+          <strong>Sharing Offset across <code>fork()</code>:</strong> When a parent process calls <code>fork()</code>, the child inherits an exact duplicate of the parent's file descriptor table. Both descriptors point to the <em>same</em> Open File Description. If the parent reads 100 bytes, the offset advances to 100; when the child subsequently reads, it reads from byte 100! This enables shell pipelines and shared logging.
+        </li>
+        <li>
+          <strong>Independent Offsets across separate <code>open()</code> calls:</strong> If two unrelated processes independently call <code>open("data.bin")</code>, they each receive their own independent Open File Description entry with its own offset pointer, pointing to the <em>same</em> underlying VFS Inode. Both processes can read the file at their own pace without interfering with each other's offsets.
+        </li>
+      </ul>
     </div>
 
+    <nav class="nav-bar">
+      <a href="index.html" class="nav-btn">&larr; Week 10 Hub</a>
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      <a href="02-directories.html" class="nav-btn">Module 02: Directories &rarr;</a>
+    </nav>
   </div>
 
   <script>
-    let kernelState = {
-      isOpen: false,
-      fd: "-- UNUSED --",
-      filename: "None",
-      flags: "--",
-      ref: 0,
-      offset: 0,
-      inode: "None",
-      block: "None",
-      dirty: "CLEAN",
-      size: 0,
-      stateIndex: 0
-    };
+    let vfsStep = 1;
+    const vfsTotalSteps = 4;
+    let vfsMode = 'seq';
 
-    const actionButtons = ['creat', 'open', 'read', 'write', 'seek', 'close'];
-
-    function refreshInspectionUI(consoleMsg, activeCmd = null) {
-      const fdEl = document.getElementById("insp-fd3");
-      fdEl.textContent = kernelState.fd;
-      fdEl.className = kernelState.isOpen ? "highlight" : "alert";
-
-      document.getElementById("insp-filename").textContent = kernelState.filename;
-      document.getElementById("insp-flags").textContent = kernelState.flags;
-      document.getElementById("insp-ref").textContent = kernelState.ref;
-      document.getElementById("insp-offset").textContent = kernelState.offset + " Bytes";
-      document.getElementById("insp-inode").textContent = kernelState.inode;
-      document.getElementById("insp-block").textContent = kernelState.block;
-
-      const dirtyEl = document.getElementById("insp-dirty");
-      dirtyEl.textContent = kernelState.dirty;
-      dirtyEl.className = kernelState.dirty === "DIRTY" ? "alert" : "highlight";
-
-      document.getElementById("insp-size").textContent = kernelState.size + " Bytes";
-      document.getElementById("inspectorConsole").textContent = consoleMsg;
-
-      for (let i = 0; i < 4; i++) {
-        const node = document.getElementById(`sm-state-${i}`);
-        if (i === kernelState.stateIndex) {
-          node.classList.add('active-state');
-        } else {
-          node.classList.remove('active-state');
-        }
+    const vfsSeqData = [
+      {
+        preview: "<strong>Step 1: File Opened.</strong> Process calls <code>open(\"data.bin\")</code>. Kernel allocates descriptor <code>fd = 3</code> pointing to Open File Table Entry #1 (offset = 0).",
+        phase: "1/4", fd: "fd = 3", offset: "0 bytes", status: "Open (Offset 0)", statusColor: "#38bdf8",
+        what: "Process requests handle for 'data.bin'. OS allocates descriptor 3. Inode 4120 referenced.",
+        why: "Initializing offset to 0 prepares the file stream for sequential reading from the beginning.",
+        banner: "Handle Active: <strong>Descriptor fd=3 mapped to Inode 4120 (Offset 0)</strong>",
+        offsetVal: "Offset: 0"
+      },
+      {
+        preview: "<strong>Step 2: First Read (512 Bytes).</strong> Process executes <code>read(3, buf, 512)</code>. Kernel reads bytes 0&ndash;511 from Block #8902 and advances offset to 512.",
+        phase: "2/4", fd: "fd = 3", offset: "512 bytes", status: "Read 512B", statusColor: "#38bdf8",
+        what: "Kernel reads 512 bytes from physical storage. Updates Open File Table offset to 512.",
+        why: "Automatic offset progression frees applications from manually tracking read pointers.",
+        banner: "I/O Active: <strong>Read 512 bytes &mdash; Offset auto-advanced to 512</strong>",
+        offsetVal: "Offset: 512"
+      },
+      {
+        preview: "<strong>Step 3: Second Read (1024 Bytes).</strong> Process executes <code>read(3, buf, 1024)</code>. Kernel reads bytes 512&ndash;1535 and advances offset to 1536.",
+        phase: "3/4", fd: "fd = 3", offset: "1536 bytes", status: "Read 1024B", statusColor: "#4ade80",
+        what: "Subsequent read begins exactly where the previous read left off. Offset advances to 1536.",
+        why: "Sequential access guarantees continuous streaming without repetitive seek commands.",
+        banner: "I/O Stream: <strong>Read 1024 bytes &mdash; Offset auto-advanced to 1536</strong>",
+        offsetVal: "Offset: 1536"
+      },
+      {
+        preview: "<strong>Step 4: File Closed.</strong> Process calls <code>close(3)</code>. Descriptors and Open File Table reference counts decrement; buffer caches flush.",
+        phase: "4/4", fd: "Closed", offset: "1536 bytes", status: "Released", statusColor: "#16a34a",
+        what: "Descriptor 3 freed in process table. Reference count in Inode decrements to 0.",
+        why: "Releasing descriptors prevents kernel table exhaustion leaks.",
+        banner: "Complete: <strong>File closed &mdash; Kernel structures released cleanly</strong>",
+        offsetVal: "Offset: Closed"
       }
+    ];
 
-      actionButtons.forEach(btnName => {
-        const btn = document.getElementById(`btn-${btnName}`);
-        if (btn) {
-          if (btnName === activeCmd) {
-            btn.classList.add('btn-active-action');
-          } else {
-            btn.classList.remove('btn-active-action');
-          }
-        }
-      });
+    const vfsSeekData = [
+      {
+        preview: "<strong>Step 1: File Opened.</strong> Process calls <code>open(\"data.bin\")</code>. Descriptor <code>fd = 3</code> allocated with initial offset = 0.",
+        phase: "1/4", fd: "fd = 3", offset: "0 bytes", status: "Open (Offset 0)", statusColor: "#38bdf8",
+        what: "File handle opened at offset 0.",
+        why: "Default access pointer begins at position 0.",
+        banner: "Handle Active: <strong>fd=3 opened at offset 0</strong>",
+        offsetVal: "Offset: 0"
+      },
+      {
+        preview: "<strong>Step 2: Arbitrary Repositioning via lseek().</strong> Process calls <code>lseek(3, 2048, SEEK_SET)</code>. Kernel sets offset directly to 2048 <em>without reading any disk blocks</em>.",
+        phase: "2/4", fd: "fd = 3", offset: "2048 bytes", status: "Offset Repositioned", statusColor: "#d97706",
+        what: "lseek modifies the integer offset in the Open File Table entry from 0 to 2048. Zero physical I/O occurs.",
+        why: "Direct access enables instant pointer relocation without transferring unneeded intermediate data across the bus.",
+        banner: "Seek Executed: <strong>Offset changed to 2048 (Zero disk I/O overhead)</strong>",
+        offsetVal: "Offset: 2048"
+      },
+      {
+        preview: "<strong>Step 3: Direct Read from Offset 2048.</strong> Process calls <code>read(3, buf, 256)</code>. Kernel accesses byte offset 2048 (Block #8902) directly.",
+        phase: "3/4", fd: "fd = 3", offset: "2304 bytes", status: "Direct Read", statusColor: "#4ade80",
+        what: "Kernel reads bytes 2048&ndash;2303 directly. Offset updates to 2304.",
+        why: "Random access allows database engines to inspect B-tree records scattered across gigabyte files.",
+        banner: "I/O Active: <strong>Direct read executed at offset 2048 &rarr; advances to 2304</strong>",
+        offsetVal: "Offset: 2304"
+      },
+      {
+        preview: "<strong>Step 4: Seek to EOF.</strong> Process calls <code>lseek(3, 0, SEEK_END)</code>. Offset moves to byte 4096 (end of file) ready for append mode.",
+        phase: "4/4", fd: "fd = 3", offset: "4096 (EOF)", status: "At End of File", statusColor: "#16a34a",
+        what: "Kernel inspects Inode size (4096) and updates offset to match file length.",
+        why: "SEEK_END enables fast atomic appending without scanning file contents.",
+        banner: "Complete: <strong>Offset positioned at EOF (4096)</strong>",
+        offsetVal: "Offset: 4096"
+      }
+    ];
+
+    function changeVfsStep(dir) {
+      vfsStep += dir;
+      if (vfsStep < 1) vfsStep = 1;
+      if (vfsStep > vfsTotalSteps) vfsStep = vfsTotalSteps;
+      updateVfsUI();
     }
 
-    function runInspectionOp(cmd) {
-      if (cmd === 'creat' || cmd === 'open') {
-        kernelState.isOpen = true;
-        kernelState.fd = "fd [3] (Active)";
-        kernelState.filename = cmd === 'creat' ? "app.conf (New)" : "access.log";
-        kernelState.flags = cmd === 'creat' ? "O_CREAT | O_WRONLY" : "O_RDWR | O_APPEND";
-        kernelState.ref = 1;
-        kernelState.offset = cmd === 'creat' ? 0 : 4096;
-        kernelState.inode = "i-node #512";
-        kernelState.block = "Block #104";
-        kernelState.dirty = "CLEAN";
-        kernelState.size = 256;
-        kernelState.stateIndex = 1; // FD_ALLOCATED
-        refreshInspectionUI(`$ ${cmd}() executed.\n[Kernel] Allocated fd=3 in Table. Created Open File Table entry & loaded i-node #512 into RAM.`, cmd);
-      } else if (cmd === 'read') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ read(3, buf, 4096);\n[Fault] EBADF: Bad file descriptor! You must call open() or creat() before reading.`, cmd);
-          return;
-        }
-        kernelState.offset += 4096;
-        kernelState.stateIndex = 2; // OFT_BOUND
-        refreshInspectionUI(`$ read(3, buf, 4096);\n[Kernel] Buffer cache hit. Copied 4096 bytes into space. Offset advanced to ${kernelState.offset} Bytes.`, cmd);
-      } else if (cmd === 'write') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ write(3, data, 64);\n[Fault] EBADF: Bad file descriptor! File descriptor is not open.`, cmd);
-          return;
-        }
-        kernelState.offset += 64;
-        kernelState.size += 64;
-        kernelState.dirty = "DIRTY";
-        kernelState.stateIndex = 3; // RAM_CACHED
-        refreshInspectionUI(`$ write(3, data, 64);\n[Kernel] Wrote 64 bytes into Block #104. Marked buffer as DIRTY. File size updated to ${kernelState.size} Bytes.`, cmd);
-      } else if (cmd === 'seek') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ lseek(3, 0, SEEK_SET);\n[Fault] EBADF: Bad file descriptor!`, cmd);
-          return;
-        }
-        kernelState.offset = 0;
-        kernelState.stateIndex = 2; // OFT_BOUND
-        refreshInspectionUI(`$ lseek(3, 0, SEEK_SET);\n[Kernel] Repositioned logical byte offset pointer to 0 Bytes. Zero disk I/O triggered.`, cmd);
-      } else if (cmd === 'close') {
-        if (!kernelState.isOpen) {
-          refreshInspectionUI(`$ close(3);\n[Fault] EBADF: File descriptor 3 is already closed or inactive.`, cmd);
-          return;
-        }
-        const flushed = kernelState.dirty === "DIRTY";
-        kernelState.isOpen = false;
-        kernelState.fd = "-- UNUSED --";
-        kernelState.filename = "None";
-        kernelState.flags = "--";
-        kernelState.ref = 0;
-        kernelState.offset = 0;
-        kernelState.inode = "None";
-        kernelState.block = "None";
-        kernelState.dirty = "CLEAN";
-        kernelState.stateIndex = 0; // UNALLOCATED
-        refreshInspectionUI(`$ close(3);\n[Kernel] ${flushed ? "Flushed DIRTY buffer cache blocks to physical disk." : ""} Released fd=3 and deallocated Open File Table entry.`, cmd);
-      }
+    function resetVfsStepper() {
+      vfsStep = 1;
+      updateVfsUI();
     }
 
-    function loadChallenge(id) {
-      const desc = document.getElementById("challengeDesc");
-      if (id === 1) {
-        desc.innerHTML = "<strong>Challenge 1 (The Missing Open Bug):</strong> Try clicking <code>read()</code> right now without opening a file. Notice how the kernel immediately catches the fault.";
-        runInspectionOp('close');
-      } else if (id === 2) {
-        desc.innerHTML = "<strong>Challenge 2 (The Shared Offset Trap):</strong> Click <code>open()</code>, then call <code>read()</code> to advance the offset. Notice how the offset pointer ticks upward. In real multi-context systems, shared open file tables cause coupled offsets!";
-        runInspectionOp('open');
-      } else if (id === 3) {
-        desc.innerHTML = "<strong>Challenge 3 (The Unflushed Cache Risk):</strong> Click <code>write()</code> to make the buffer <strong>DIRTY</strong>. Then notice how calling <code>close()</code> automatically flushes the volatile RAM cache to disk.";
-        runInspectionOp('open');
-        setTimeout(() => runInspectionOp('write'), 200);
-      }
+    function setVfsMode(mode) {
+      vfsMode = mode;
+      document.getElementById('vfs-btn-seq').className = (mode === 'seq') ? 'toggle-btn active' : 'toggle-btn';
+      document.getElementById('vfs-btn-seek').className = (mode === 'seek') ? 'toggle-btn active' : 'toggle-btn';
+      document.getElementById('vfs-btn-seq').style.background = (mode === 'seq') ? '#e0f2fe' : '#f1f5f9';
+      document.getElementById('vfs-btn-seek').style.background = (mode === 'seek') ? '#e0f2fe' : '#f1f5f9';
+      vfsStep = 1;
+      updateVfsUI();
+    }
+
+    function updateVfsUI() {
+      const dataset = (vfsMode === 'seq') ? vfsSeqData : vfsSeekData;
+      const data = dataset[vfsStep - 1];
+
+      document.getElementById('vfs-preview-text').innerHTML = data.preview;
+      document.getElementById('vfs-tel-phase').innerText = data.phase;
+      document.getElementById('vfs-tel-fd').innerText = data.fd;
+      document.getElementById('vfs-tel-offset').innerText = data.offset;
+
+      const statusEl = document.getElementById('vfs-tel-status');
+      statusEl.innerText = data.status;
+      statusEl.style.color = data.statusColor;
+
+      document.getElementById('vfs-pane-what').innerHTML = data.what;
+      document.getElementById('vfs-pane-why').innerHTML = data.why;
+      document.getElementById('vfs-canvas-banner').innerHTML = data.banner;
+
+      // Update SVG dynamic offset
+      document.getElementById('vfs-txt-offset').textContent = data.offsetVal;
+
+      document.getElementById('vfs-prev-btn').disabled = (vfsStep === 1);
+      document.getElementById('vfs-next-btn').disabled = (vfsStep === vfsTotalSteps);
     }
   </script>
-<nav class="module-nav-bar bottom">
-  <span class="module-nav-placeholder">&larr; Previous</span>
-  Week 10: File Management
-  <a href="02-directories.html" class="module-nav-btn">Next: 02. Directory Systems &amp; Hierarchies &rarr;</a>
-</nav>
 </body>
 </html>
