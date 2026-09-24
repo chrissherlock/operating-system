@@ -567,22 +567,153 @@
 
     <h3>3. The Linux NPTL Architecture &amp; clone(2)</h3>
     <p>
-      Linux approaches threading from an entirely different conceptual angle. Rather than distinguishing sharply between a "process" object and a "thread" object, the Linux kernel manages all execution contexts uniformly as <strong>tasks</strong>, represented by <code>struct task_struct</code>.
+      Linux approaches threading from an entirely unique conceptual angle. Rather than distinguishing sharply between a "process" container and a "thread" object, the Linux kernel manages all execution contexts uniformly as <strong>tasks</strong>, each represented internally by a <code>struct task_struct</code>.
     </p>
     <p>
-      In Linux, whether an execution entity acts as a separate process with complete memory isolation or as a thread sharing memory is simply a matter of configuration flags passed to the <strong><code>clone(2)</code></strong> system call:
+      Whether a task behaves as an independent, fully isolated process or as a cooperative thread sharing memory is simply a matter of configuration flags supplied to the <strong><code>clone(2)</code></strong> system call.
     </p>
-    <pre><code><span class="syn-type">int</span> <span class="syn-var">tid</span> <span class="syn-punc">=</span> <span class="syn-fn">clone</span><span class="syn-punc">(</span><span class="syn-var">worker_func</span><span class="syn-punc">,</span> <span class="syn-var">child_stack_top</span><span class="syn-punc">,</span>
-                <span class="syn-var">CLONE_VM</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FS</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FILES</span> <span class="syn-punc">|</span>
-                <span class="syn-var">CLONE_SIGHAND</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_THREAD</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_SYSVSEM</span><span class="syn-punc">,</span>
-                <span class="syn-var">arg</span><span class="syn-punc">);</span></code></pre>
 
+    <h4>1. Historical Evolution: From LinuxThreads to NPTL</h4>
+    <p>
+      Early Linux threading relied on the <strong>LinuxThreads</strong> library, which suffered from severe architectural flaws that violated the POSIX specification:
+    </p>
     <ul>
-      <li><code>CLONE_VM</code>: Both tasks share the exact same virtual memory address space (same page tables and same <code>mm_struct</code>).</li>
-      <li><code>CLONE_FILES</code>: Both tasks share the same open file descriptor table.</li>
-      <li><code>CLONE_SIGHAND</code>: Both tasks share signal actions and handlers.</li>
-      <li><code>CLONE_THREAD</code>: The new task joins the thread group of the caller. To userspace utilities (like <code>getpid()</code>), all threads in the group report the same Process ID (PID), while the kernel identifies each thread uniquely by its Thread ID (TID, retrieved via <code>gettid()</code>).</li>
+      <li><strong>The Manager Thread Bottleneck:</strong> A dedicated "manager thread" had to handle all thread creation, teardown, and signal handling in user space, creating severe scalability bottlenecks on multi-socket systems.</li>
+      <li><strong>Divergent Process IDs:</strong> Each thread had a distinct Process ID (PID) visible in <code>getpid()</code>. Two threads in the same application saw different PIDs, breaking POSIX compliance.</li>
+      <li><strong>Broken Signal Handling:</strong> Signals sent to the process (such as <code>SIGTERM</code> or <code>SIGKILL</code>) were delivered to only one specific thread rather than the entire thread group. Signal dispositions could not be synchronized reliably across threads.</li>
+      <li><strong>User/Group ID Discrepancies:</strong> Changing credentials (e.g., via <code>setuid()</code>) in one thread did not propagate to sibling threads, creating dangerous security vulnerabilities.</li>
     </ul>
+    <p>
+      To resolve these structural defects, the Linux kernel was fundamentally enhanced with the release of kernel 2.6. Ingo Molnar and Ulrich Drepper developed the <strong>Native POSIX Thread Library (NPTL)</strong>, enabled by three major kernel-level innovations:
+    </p>
+    <ol>
+      <li><strong>Thread Group ID (TGID) Architecture:</strong> Unifying all threads under a shared process identity in <code>struct task_struct</code>.</li>
+      <li><strong>Fast Userspace Mutexes (<code>futex</code>):</strong> Allowing synchronization locks to be acquired and released in user space without entering the kernel unless contention occurs.</li>
+      <li><strong>Enhanced <code>clone()</code> Flags:</strong> Providing fine-grained kernel mechanisms to synchronize thread credentials, signal queues, and lifecycle notifications.</li>
+    </ol>
+
+    <h4>2. The Unified Task Abstraction: PID vs. TGID</h4>
+    <p>
+      In modern Linux, every schedulable entity is an instance of <code>struct task_struct</code>. The kernel reconciles thread grouping through a dual-identity model:
+    </p>
+    <ul>
+      <li><strong>The Thread ID (<code>task-&gt;pid</code>):</strong> Every task receives a globally unique integer ID assigned by the kernel allocator. Within kernel space, this is called the task's <strong>PID</strong>, but to user-space applications, it is exposed as the <strong>Thread ID (TID)</strong>, queried via the <code>gettid()</code> system call.</li>
+      <li><strong>The Thread Group ID (<code>task-&gt;tgid</code>):</strong> When the first thread of a program (the main thread) is spawned via <code>fork()</code> or <code>execve()</code>, its <code>tgid</code> is set equal to its <code>pid</code>. This main thread becomes the <strong>Thread Group Leader</strong>.</li>
+      <li>When subsequent threads are spawned using <code>clone()</code> with the <code>CLONE_THREAD</code> flag, the kernel sets the child's <code>tgid</code> to match the parent's <code>tgid</code>:
+        <pre><code><span class="syn-cmt">/* Kernel representation inside task_struct: */</span>
+<span class="syn-type">pid_t</span> <span class="syn-var">pid</span><span class="syn-punc">;</span>   <span class="syn-cmt">/* Unique to this specific thread (TID) */</span>
+<span class="syn-type">pid_t</span> <span class="syn-var">tgid</span><span class="syn-punc">;</span>  <span class="syn-cmt">/* Shared across all threads in process (POSIX PID) */</span></code></pre>
+      </li>
+      <li>The standard POSIX <code>getpid()</code> system call returns <code>task-&gt;tgid</code>, ensuring that every thread in the application observes the exact same Process ID, fully satisfying POSIX compliance.</li>
+    </ul>
+
+    <h4>3. Deep Breakdown of clone(2) and clone3(2)</h4>
+    <p>
+      The core mechanism behind thread creation in NPTL is the <code>clone(2)</code> system call (and the modern 64-bit extensible <code>clone3(2)</code> system call). Unlike <code>fork()</code> which duplicates all resources, <code>clone()</code> accepts bitmask flags specifying exactly which resources should be <em>shared by reference</em> versus <em>copied</em>:
+    </p>
+
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px; width: 30%;">Clone Flag</th>
+            <th style="padding: 10px 14px; width: 70%;">Kernel Mechanism &amp; Resource Sharing Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_VM</code></td>
+            <td style="padding: 10px 14px;">The child task shares the caller's memory descriptor (<code>task-&gt;mm</code>). Both tasks point to the same page table directory root (CR3). Any memory allocation, deallocation, or page modification by one task is immediately visible to the other.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_FILES</code></td>
+            <td style="padding: 10px 14px;">The child shares the open file descriptor table (<code>task-&gt;files</code>). File descriptors opened or closed by one thread are instantly updated across all threads.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_FS</code></td>
+            <td style="padding: 10px 14px;">The child shares filesystem attributes (<code>task-&gt;fs</code>), including root directory, current working directory, and the file mode creation mask (<code>umask</code>).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_SIGHAND</code></td>
+            <td style="padding: 10px 14px;">The child shares signal dispositions and handlers (<code>task-&gt;sighand</code>). Calling <code>sigaction()</code> in one thread updates the signal handler for all sibling threads. Requires <code>CLONE_VM</code>.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_THREAD</code></td>
+            <td style="padding: 10px 14px;">The child is placed into the same thread group as the caller (inheriting the same <code>tgid</code>). The parent of the new thread is set to the parent of the calling thread, preventing deep hierarchical process trees. Requires <code>CLONE_SIGHAND</code>.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_SYSVSEM</code></td>
+            <td style="padding: 10px 14px;">The child shares System V semaphore undo values (<code>semundo</code>), preventing resource leaks when individual threads terminate.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_SETTLS</code></td>
+            <td style="padding: 10px 14px;">Instructs the kernel to load the architecture segment register (e.g., <code>%fs</code> base on x86-64) with the memory address of the new thread's Thread Control Block (TCB), establishing Thread-Local Storage during creation.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>CLONE_CHILD_CLEARTID</code></td>
+            <td style="padding: 10px 14px;">Directs the kernel to zero out a specified memory address in user space when the child terminates (<code>do_exit()</code>) and wake any waiting threads via a <code>futex</code> wake system call. This is the exact mechanism that enables non-polling <code>pthread_join()</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h5>Classical Process Spawning vs. Thread Creation in Terms of clone()</h5>
+    <p>
+      The flexibility of <code>clone()</code> unifies all process and thread creation across the entire Linux operating system:
+    </p>
+    <ul>
+      <li><strong>Standard <code>fork()</code>:</strong> Equivalent to calling <code>clone(SIGCHLD, 0)</code>—zero resource-sharing flags set; full Copy-on-Write page table duplication.</li>
+      <li><strong>Optimized <code>vfork()</code>:</strong> Equivalent to <code>clone(CLONE_VM | CLONE_VFORK | SIGCHLD, 0)</code>—shares the parent's memory space temporarily and suspends the parent until the child calls <code>execve()</code> or <code>_exit()</code>.</li>
+      <li><strong>POSIX <code>pthread_create()</code>:</strong> Implemented via NPTL by passing:
+        <pre><code><span class="syn-fn">clone</span><span class="syn-punc">(</span><span class="syn-var">CLONE_VM</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FS</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FILES</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_SIGHAND</span> <span class="syn-punc">|</span>
+      <span class="syn-var">CLONE_THREAD</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_SYSVSEM</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_SETTLS</span> <span class="syn-punc">|</span>
+      <span class="syn-var">CLONE_PARENT_SETTID</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_CHILD_CLEARTID</span><span class="syn-punc">,</span>
+      <span class="syn-var">child_stack</span><span class="syn-punc">,</span> <span class="syn-punc">&amp;</span><span class="syn-var">parent_tid</span><span class="syn-punc">,</span> <span class="syn-var">tls_ptr</span><span class="syn-punc">, &amp;</span><span class="syn-var">child_tid</span><span class="syn-punc">);</span></code></pre>
+      </li>
+    </ul>
+
+    <h4>4. Fast Userspace Mutexes (futex)</h4>
+    <p>
+      Prior to NPTL, acquiring a mutual exclusion lock required a system call to ask the kernel to verify lock state. Because lock acquisitions in well-engineered applications are rarely contested (i.e., the lock is free 99% of the time), forcing a supervisor trap into Ring 0 on every lock acquisition severely degraded CPU performance.
+    </p>
+    <p>
+      The <strong>futex (Fast Userspace Mutex)</strong> mechanism provides a high-performance hybrid locking primitive:
+    </p>
+    <ol>
+      <li><strong>Uncontended Fast Path (User Space):</strong> To acquire a lock, the thread executes an atomic hardware assembly instruction (such as <code>CMPXCHG</code> on x86-64). If the integer value in user memory was <code>0</code> (free), it atomically transitions to <code>1</code> (locked). <em>No system call occurs; the operation completes in nanoseconds entirely in user space.</em></li>
+      <li><strong>Contended Slow Path (Kernel Sleep):</strong> If another thread already holds the lock, the atomic compare-and-swap fails. The acquiring thread enters the kernel by issuing the <code>futex()</code> system call with the <code>FUTEX_WAIT</code> operation:
+        <pre><code><span class="syn-fn">syscall</span><span class="syn-punc">(</span><span class="syn-var">SYS_futex</span><span class="syn-punc">, &amp;</span><span class="syn-var">lock_val</span><span class="syn-punc">,</span> <span class="syn-var">FUTEX_WAIT</span><span class="syn-punc">,</span> <span class="syn-var">1</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">);</span></code></pre>
+        The kernel places the calling task into a wait hash table associated with the physical memory address of <code>lock_val</code> and shifts its state to <code>TASK_INTERRUPTIBLE</code> (Blocked).</li>
+      <li><strong>Release and Wakeup:</strong> When the lock holder finishes, it atomically decrements the lock integer. If it detects waiting threads, it invokes <code>futex(..., FUTEX_WAKE, 1)</code> to wake the next queued thread from the kernel sleep queue.</li>
+    </ol>
+
+    <h4>5. Signal Delivery Routing in NPTL</h4>
+    <p>
+      Under NPTL, signal dispatching distinguishes between <strong>process-directed signals</strong> and <strong>thread-directed signals</strong>:
+    </p>
+    <ul>
+      <li><strong>Process-Directed Signals:</strong> Signals sent to the general process (e.g., via <code>kill(pid, SIGINT)</code>) are added to the shared pending signal queue of the thread group. The kernel selects <em>exactly one</em> arbitrary thread in the group that does not currently have the signal blocked in its signal mask, interrupting that thread to execute the signal handler.</li>
+      <li><strong>Thread-Directed Signals:</strong> Hardware-generated exceptions tied to instruction execution (such as <code>SIGSEGV</code> on invalid memory access, <code>SIGFPE</code> on divide-by-zero, or explicit inter-thread signals via <code>pthread_kill(tid, sig)</code>) are placed into that specific thread's private pending signal queue. The faulting thread must handle the exception directly.</li>
+    </ul>
+
+    <h4>6. Thread Teardown and Reaping: How pthread_join() Works</h4>
+    <p>
+      When a process exits, the parent reaps its exit code via <code>waitpid()</code>. For threads, <code>pthread_join()</code> reaps the thread's return pointer. But how does <code>pthread_join()</code> know when a thread dies without constantly polling its state?
+    </p>
+    <p>
+      NPTL implements this via the <code>CLONE_CHILD_CLEARTID</code> flag:
+    </p>
+    <ol>
+      <li>When <code>pthread_create()</code> launches a thread, it passes the address of an internal integer field (<code>ctid</code>) inside the thread's Thread Control Block.</li>
+      <li>When the thread terminates—either by calling <code>pthread_exit()</code> or returning from its start function—it executes the <code>exit</code> system call (<code>sys_exit</code>).</li>
+      <li>Inside the kernel's <code>do_exit()</code> routine, the kernel checks whether <code>CLONE_CHILD_CLEARTID</code> was set. If so, the kernel:
+        <ul>
+          <li>Writes <code>0</code> directly into the user-space integer at <code>ctid</code>.</li>
+          <li>Executes an internal <code>futex_wake()</code> on that exact memory address.</li>
+        </ul>
+      </li>
+      <li>The joining thread, which had been suspended in <code>futex(..., FUTEX_WAIT, ...)</code> inside <code>pthread_join()</code>, is immediately awakened by the kernel, reads the return value from the thread's stack structure, and deallocates the thread stack.</li>
+    </ol>
 
     <h3>4. Direct Architectural Comparison: Windows vs. POSIX/Linux</h3>
     <div style="overflow-x: auto; margin: 20px 0;">
@@ -608,7 +739,7 @@
           <tr style="border-bottom: 1px solid var(--border);">
             <td style="padding: 10px 14px; font-weight: 600;">Synchronization Model</td>
             <td style="padding: 10px 14px;">Object Handles: <code>WaitForSingleObject</code>, <code>CRITICAL_SECTION</code>.</td>
-            <td style="padding: 10px 14px;">Pthreads Primitives: <code>pthread_mutex_t</code>, <code>pthread_cond_t</code>.</td>
+            <td style="padding: 10px 14px;">Pthreads Primitives: <code>pthread_mutex_t</code> (powered by <code>futex</code>).</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
             <td style="padding: 10px 14px; font-weight: 600;">Hardware TLS Register</td>
