@@ -1,422 +1,527 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create Module 03 on Deadlock Handling Strategies & Banker's Algorithm
+# fix.py: Incorporate Deadlock Detection Simulator into Week 6
 # =====================================================================
 import os
 import subprocess
 
 TARGET_DIR = "week06-synchronization-and-deadlock"
-TARGET_FILE = os.path.join(TARGET_DIR, "03-deadlock-handling-bankers-algorithm.html")
+TARGET_FILE = os.path.join(TARGET_DIR, "deadlock-detector.html")
 
-MODULE_HTML = r"""<!DOCTYPE html>
+SIMULATOR_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 03: Deadlock Handling Strategies &amp; The Banker's Algorithm - COSC240</title>
-  <style>
-    :root {
-      --primary: #0f172a;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --border: #e2e8f0;
-      --card-bg: #ffffff;
-      --text: #334155;
-      --text-muted: #64748b;
-      --bg: #f8fafc;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #d97706;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding: 24px;
-    }
-    .container { max-width: 1040px; margin: 0 auto; }
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-    }
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background 0.15s ease;
-    }
-    .nav-btn:hover { background: #f0f9ff; }
-    .content-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-      margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
-    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    h5 { font-size: 0.95rem; color: var(--primary); margin: 18px 0 6px 0; }
-    p, li { font-size: 0.95rem; color: var(--text); }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      margin: 16px 0;
-    }
-    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
-    pre code { background: none; padding: 0; color: inherit; }
-    .math-callout {
-      background: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 18px 0;
-      font-size: 0.92rem;
-    }
-    /* Interactive Stepper Widget Styles */
-    .aid-wrapper {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-      margin: 28px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
-    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
-    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.45; }
-    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
-    .step-btn {
-      flex: 1;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .step-btn:hover { background: var(--accent); }
-    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.72rem; padding: 10px; border-radius: 4px; }
-    .visual-canvas { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
-    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
-    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .toggle-bar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-    .toggle-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
-    .toggle-btn.active { background: #e0f2fe; color: var(--accent); border-color: #bae6fd; }
-    @media (max-width: 768px) {
-      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
-      body { padding: 16px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock Detection Simulator - COSC240</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --text: #334155;
+            --text-muted: #64748b;
+            --bg: #f8fafc;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--text);
+            max-width: 950px;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            background: #fff;
+            border: 1px solid var(--border);
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 5px;
+            font-size: 1.6rem;
+        }
+        p.instruction {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+        .generator-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .section-title {
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-size: 1.05em;
+        }
+        .tables-row {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 15px;
+        }
+        .table-container {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: center;
+            font-size: 0.95em;
+        }
+        th {
+            background: #f1f5f9;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .table-e th, .table-e td, .table-a th, .table-a td {
+            background-color: #f8fafc;
+            color: var(--primary);
+        }
+        .table-c td {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-weight: 600;
+        }
+        .table-r td {
+            background-color: #fef3c7;
+            color: #92400e;
+            font-weight: 600;
+        }
+        tr.clickable {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        tr.clickable:hover {
+            background-color: #bae6fd !important;
+        }
+        .green {
+            color: #166534 !important;
+            font-weight: bold;
+        }
+        .red {
+            color: #991b1b !important;
+            font-weight: bold;
+        }
+        .highlight-red {
+            background-color: #fee2e2 !important;
+            color: #991b1b;
+            font-weight: bold;
+        }
+        #status-box {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.05em;
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        #status-box.deadlock {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        #explanation-box {
+            margin-top: 12px;
+            padding: 14px;
+            border-radius: 6px;
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+            font-size: 0.95em;
+            display: none;
+            line-height: 1.5;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 0.95em;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.15s;
+        }
+        button:hover { background-color: var(--accent); }
+        button.gen-safe { background-color: #16a34a; }
+        button.gen-safe:hover { background-color: #15803d; }
+        button.gen-partial { background-color: #d97706; }
+        button.gen-partial:hover { background-color: #b45309; }
+        button.gen-deadlock { background-color: #dc2626; }
+        button.gen-deadlock:hover { background-color: #b91c1c; }
+
+        .module-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+        .module-nav-bar.bottom { margin-top: 30px; }
+        .module-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            text-decoration: none;
+            color: var(--accent);
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 7px 13px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .module-nav-btn:hover { background-color: var(--accent); color: #ffffff; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">&larr; Module 02</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="04-classic-synchronization-real-world-defenses.html" class="nav-btn">Module 04 &rarr;</a>
-    </nav>
+<nav class="module-nav-bar">
+    <a href="database-deadlock.html" class="module-nav-btn">&larr; Database Deadlock</a>
+    <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid var(--border); border-radius: 6px; color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 6 Hub</a>
+    <a href="dining-philosophers.html" class="module-nav-btn">Dining Philosophers &rarr;</a>
+</nav>
 
-    <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 03 &bull; COSC240</span>
-      <h1>Deadlock Handling Strategies &amp; The Banker's Algorithm</h1>
-      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Explore the four foundational operating system strategies for managing deadlock. Contrast the Ostrich algorithm with static prevention, dynamic detection and recovery, and Dijkstra's Banker's Algorithm for resource allocation avoidance.
-      </p>
+    <h2>Deadlock Detection Simulator</h2>
+    <p class="instruction">Click rows in the <strong>Currently Allocated (C)</strong> table to evaluate processes. Test safe, partial, and total deadlock states!</p>
 
-      <h3>1. The Four Strategic Deadlock Regimes</h3>
-      <p>
-        Operating systems address the threat of deadlock through four primary architectural philosophies, balancing runtime overhead against catastrophic failure risk:
-      </p>
-
-      <ul>
-        <li>
-          <strong>1. The Ostrich Algorithm (Ignorance):</strong>
-          Pretend that deadlocks never occur. If deadlocks happen only once a year, the performance cost of continuous prevention, detection, or avoidance outweighs the cost of occasional manual reboots or process termination. <em>(Used by Linux, macOS, and Windows for general user-space applications).</em>
-        </li>
-        <li>
-          <strong>2. Deadlock Prevention:</strong>
-          Ensure that the system <em>never enters deadlock</em> by structurally violating at least one of the four Coffman conditions beforehand.
-        </li>
-        <li>
-          <strong>3. Deadlock Detection &amp; Recovery:</strong>
-          Allow the system to enter deadlock freely. Periodically run background graph-reduction algorithms to detect cycles, then recover by aborting processes or rolling back transactions.
-        </li>
-        <li>
-          <strong>4. Deadlock Avoidance (The Banker's Algorithm):</strong>
-          Require processes to declare their maximum resource needs in advance. Dynamically evaluate every resource request to ensure the system never departs a <strong>Safe State</strong>.
-        </li>
-      </ul>
-
-      <!-- Directed Narrative Stepper: Banker's Algorithm Stepper -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Aid: Dijkstra's Banker's Algorithm Safety Stepper</div>
-        <div class="aid-subtitle">Scenario: Multi-process resource allocation engine verifying safety vectors before granting requests.</div>
-
-        <div class="aid-grid">
-          <!-- Controls & Preview Panel -->
-          <div class="controls-panel">
-            <div class="preview-box" id="preview-text">
-              <strong>Step 1: Initial State Inspection.</strong> Available Vector = [3, 3, 2]. Evaluating Process P0's maximum declared needs against available resources.
-            </div>
-            <div class="stepper-btns">
-              <button class="step-btn" id="prev-btn" onclick="changeStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="next-btn" onclick="changeStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetStepper()">Reset</button>
-            </div>
-            <div class="telemetry-bar" id="telemetry-bar">
-              PHASE: 1/4 | AVAILABLE: [3,3,2] | SAFE_SEQUENCE: P1 &rarr; P3 &rarr; P4 &rarr; P2 &rarr; P0
-            </div>
-          </div>
-
-          <!-- Visual Canvas -->
-          <div class="visual-canvas">
-            <svg id="stepper-svg" viewBox="0 0 420 180" style="width: 100%; height: auto;">
-              <rect width="420" height="180" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-              <!-- Step 1 Graphics -->
-              <g id="step-1-gfx">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
-                <text x="210" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">SYSTEM RESOURCE MATRIX</text>
-                <text x="50" y="70" font-family="var(--font-mono)" font-size="8" fill="#334155">Process | Allocation | Max | Need</text>
-                <text x="50" y="92" font-family="var(--font-mono)" font-size="8" fill="#0284c7">P0      | [0, 1, 0]  | [7,5,3]| [7,4,3]</text>
-                <text x="50" y="112" font-family="var(--font-mono)" font-size="8" fill="#166534">P1      | [2, 0, 0]  | [3,2,2]| [1,2,2] &larr; Satisfiable!</text>
-                <text x="50" y="132" font-family="var(--font-mono)" font-size="8" fill="#334155">Available: [3, 3, 2]</text>
-              </g>
-              <!-- Step 2 Graphics -->
-              <g id="step-2-gfx" style="display:none;">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#f0fdf4" stroke="#16a34a"/>
-                <text x="210" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="#166534">STEP 1: EXECUTE PROCESS P1</text>
-                <text x="50" y="75" font-family="var(--font-mono)" font-size="8.5" fill="#15803d">Need[P1] = [1, 2, 2] &le; Available [3, 3, 2] &rarr; PASS</text>
-                <text x="50" y="100" font-family="var(--font-mono)" font-size="8.5" fill="#15803d">Simulate Completion: P1 releases allocation [2, 0, 0]</text>
-                <text x="50" y="125" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#166534">New Available = [3,3,2] + [2,0,0] = [5, 3, 2]</text>
-              </g>
-              <!-- Step 3 Graphics -->
-              <g id="step-3-gfx" style="display:none;">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
-                <text x="210" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0369a1">STEP 2: EXECUTE P3 &rarr; P4 &rarr; P2</text>
-                <text x="40" y="75" font-family="var(--font-mono)" font-size="8" fill="#334155">P3 Need [0, 1, 1] &le; [5,3,2] &rarr; New Avail: [7, 4, 3]</text>
-                <text x="40" y="95" font-family="var(--font-mono)" font-size="8" fill="#334155">P4 Need [4, 3, 1] &le; [7,4,3] &rarr; New Avail: [7, 4, 5]</text>
-                <text x="40" y="115" font-family="var(--font-mono)" font-size="8" fill="#334155">P2 Need [6, 0, 0] &le; [7,4,5] &rarr; New Avail: [9, 0, 2]</text>
-                <text x="40" y="138" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#0284c7">All processes marked successfully!</text>
-              </g>
-              <!-- Step 4 Graphics -->
-              <g id="step-4-gfx" style="display:none;">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#dcfce7" stroke="#16a34a"/>
-                <text x="210" y="45" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">&#10003; SYSTEM IS IN A SAFE STATE</text>
-                <text x="210" y="75" text-anchor="middle" font-size="9" font-weight="700" fill="#15803d">Valid Safe Sequence Found:</text>
-                <text x="210" y="105" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0f172a">&lang; P1, P3, P4, P2, P0 &rang;</text>
-                <text x="210" y="135" text-anchor="middle" font-size="8" fill="#166534">Zero deadlock risk &bull; Request granted safely.</text>
-              </g>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Paired Analytical Panes -->
-        <div class="panes-grid">
-          <div class="pane-box">
-            <div class="pane-title" style="color: #0369a1;">1. What Is Happening</div>
-            <div id="pane-what" style="color: #334155;">
-              Inspecting the allocation and maximum demand matrices to verify if a safe execution sequence exists.
-            </div>
-          </div>
-          <div class="pane-box">
-            <div class="pane-title" style="color: #991b1b;">2. Why The System Does This</div>
-            <div id="pane-why" style="color: #334155;">
-              Dynamic avoidance prevents uncoordinated resource grants that would inevitably steer the system into an unsafe deadlocked region.
-            </div>
-          </div>
-        </div>
-
-        <div class="toggle-bar">
-          <span style="font-size: 0.75rem; font-weight: 700; align-self: center; margin-right: 4px;">Strategy:</span>
-          <button class="toggle-btn active" onclick="setStrategy('banker')">Banker's Algorithm</button>
-          <button class="toggle-btn" onclick="setStrategy('prevention')">Lock Ordering Prevention</button>
-        </div>
-      </div>
-
-      <h3>2. Deadlock Prevention: Violating Coffman Conditions</h3>
-      <p>
-        Deadlock prevention designs static architectural rules that guarantee at least one Coffman condition can never hold true:
-      </p>
-      <ul>
-        <li>
-          <strong>Violating Mutual Exclusion:</strong> Make resources shareable. For example, using spooling for printers so multiple processes write concurrently to disk buffers rather than seizing the printer device directly. (<em>Limitation:</em> Fundamental hardware resources like mutexes and write locks cannot be shared).
-        </li>
-        <li>
-          <strong>Violating Hold and Wait:</strong> Require each process to request and be allocated <strong>all</strong> its required resources at once before execution begins. (<em>Limitation:</em> Extremely poor resource utilization; resources sit idle while waiting for long-lived tasks).
-        </li>
-        <li>
-          <strong>Violating No Preemption:</strong> If a process holding certain resources requests another resource that cannot be immediately allocated to it, the OS forcibly preempts all currently held resources, releasing them back to the system.
-        </li>
-        <li>
-          <strong>Violating Circular Wait (Global Lock Ordering):</strong> Assign a strict numerical ordering to all resource types ($R_1 < R_2 < \dots < R_n$). Enforce a global rule that threads <strong>must acquire resources in strictly ascending numerical order</strong>. If Thread A holds $R_5$, it cannot request $R_2$. This mathematically eliminates circular wait cycles.
-        </li>
-      </ul>
-
-      <h3>3. Dijkstra's Banker's Algorithm (Deadlock Avoidance)</h3>
-      <p>
-        Proposed by Edsger Dijkstra, the <strong>Banker's Algorithm</strong> operates on the principle that the operating system acts like a banker managing cash liquidity with clients.
-      </p>
-      <div class="math-callout">
-        <strong>Mathematical Data Structures for Banker's Algorithm:</strong>
-        <br>
-        Let <i>n</i> be the number of processes and <i>m</i> be the number of resource types:
-        <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.85rem;">
-          <li><strong>Available Vector [m]:</strong> A vector of length <i>m</i> indicating how many free instances of each resource type are currently available.</li>
-          <li><strong>Max Matrix [n &times; m]:</strong> Defines the maximum demand of each process <i>i</i> for resource type <i>j</i>.</li>
-          <li><strong>Allocation Matrix [n &times; m]:</strong> Defines the number of resources of each type currently allocated to process <i>i</i>.</li>
-          <li><strong>Need Matrix [n &times; m]:</strong> Represents the remaining resource instances each process may still request:
-            <div style="font-family: var(--font-mono); margin-top: 4px; color: #0369a1;">
-              Need[<i>i</i>][<i>j</i>] = Max[<i>i</i>][<i>j</i>] - Allocation[<i>i</i>][<i>j</i>]
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <pre><code><span class="syn-cmt">/* Banker's Safety Algorithm Implementation */</span>
-<span class="syn-kw">bool</span> <span class="syn-fn">is_system_safe</span>(<span class="syn-kw">int</span> n, <span class="syn-kw">int</span> m, <span class="syn-kw">int</span> available[], <span class="syn-kw">int</span> max[][MAX_RES], <span class="syn-kw">int</span> alloc[][MAX_RES]) {
-    <span class="syn-kw">int</span> work[MAX_RES];
-    <span class="syn-fn">memcpy</span>(work, available, m * <span class="syn-kw">sizeof</span>(<span class="syn-kw">int</span>));
-    <span class="syn-kw">bool</span> finish[MAX_PROC] = { <span class="syn-num">false</span> };
-
-    <span class="syn-kw">int</span> safe_sequence[MAX_PROC];
-    <span class="syn-kw">int</span> count = <span class="syn-num">0</span>;
-
-    <span class="syn-kw">while</span> (count &lt; n) {
-        <span class="syn-kw">bool</span> found = <span class="syn-num">false</span>;
-        <span class="syn-kw">for</span> (<span class="syn-kw">int</span> i = <span class="syn-num">0</span>; i &lt; n; i++) {
-            <span class="syn-kw">if</span> (!finish[i]) {
-                <span class="syn-kw">bool</span> can_allocate = <span class="syn-num">true</span>;
-                <span class="syn-kw">for</span> (<span class="syn-kw">int</span> j = <span class="syn-num">0</span>; j &lt; m; j++) {
-                    <span class="syn-kw">if</span> ((max[i][j] - alloc[i][j]) &gt; work[j]) {
-                        can_allocate = <span class="syn-num">false</span>;
-                        <span class="syn-kw">break</span>;
-                    }
-                }
-                <span class="syn-kw">if</span> (can_allocate) {
-                    <span class="syn-kw">for</span> (<span class="syn-kw">int</span> j = <span class="syn-num">0</span>; j &lt; m; j++) {
-                        work[j] += alloc[i][j];
-                    }
-                    safe_sequence[count++] = i;
-                    finish[i] = <span class="syn-num">true</span>;
-                    found = <span class="syn-num">true</span>;
-                }
-            }
-        }
-        <span class="syn-kw">if</span> (!found) <span class="syn-kw">return</span> <span class="syn-num">false</span>; <span class="syn-cmt">/* Unsafe state! */</span>
-    }
-    <span class="syn-kw">return</span> <span class="syn-num">true</span>; <span class="syn-cmt">/* System is safe */</span>
-}</code></pre>
+    <div class="generator-controls">
+        <button class="gen-safe" onclick="generateScenario('safe')">Generate Safe Scenario</button>
+        <button class="gen-partial" onclick="generateScenario('partial')">Generate Non-Total Deadlock</button>
+        <button class="gen-deadlock" onclick="generateScenario('deadlock')">Generate Total Deadlock</button>
     </div>
 
-    <nav class="nav-bar">
-      <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">&larr; Module 02</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="04-classic-synchronization-real-world-defenses.html" class="nav-btn">Module 04 &rarr;</a>
-    </nav>
-  </div>
+    <!-- Existing Resources -->
+    <div class="section-title">E: Existing Resources ($E$)</div>
+    <table class="table-e">
+        <tr>
+            <th>Tape Drives</th>
+            <th>Plotters</th>
+            <th>Printers</th>
+            <th>CD ROMs</th>
+        </tr>
+        <tr>
+            <td id="e-tape">0</td>
+            <td id="e-plotter">0</td>
+            <td id="e-printer">0</td>
+            <td id="e-cd">0</td>
+        </tr>
+    </table>
 
-  <script>
-    let currentStep = 1;
-    const totalSteps = 4;
+    <!-- Side-by-Side Tables for C and R -->
+    <div class="tables-row">
+        <div class="table-container">
+            <div class="section-title">C: Currently Allocated ($C$ &mdash; Click Row to Run)</div>
+            <table class="table-c">
+                <thead>
+                    <tr>
+                        <th>Process</th>
+                        <th>Tape</th>
+                        <th>Plot</th>
+                        <th>Print</th>
+                        <th>CD</th>
+                    </tr>
+                </thead>
+                <tbody id="allocation-tbody"></tbody>
+            </table>
+        </div>
+        <div class="table-container">
+            <div class="section-title">R: Resources Still Needed ($R$)</div>
+            <table class="table-r">
+                <thead>
+                    <tr>
+                        <th>Process</th>
+                        <th>Tape</th>
+                        <th>Plot</th>
+                        <th>Print</th>
+                        <th>CD</th>
+                    </tr>
+                </thead>
+                <tbody id="needed-tbody"></tbody>
+            </table>
+        </div>
+    </div>
 
-    const stepsData = [
-      {
-        preview: "<strong>Step 1: Initial State Inspection.</strong> Available Vector = [3, 3, 2]. Evaluating Process P0's maximum declared needs against available resources.",
-        telemetry: "PHASE: 1/4 | AVAILABLE: [3,3,2] | SAFE_SEQUENCE: P1 &rarr; P3 &rarr; P4 &rarr; P2 &rarr; P0",
-        what: "Inspecting the allocation and maximum demand matrices to verify if a safe execution sequence exists.",
-        why: "Dynamic avoidance prevents uncoordinated resource grants that would inevitably steer the system into an unsafe deadlocked region."
-      },
-      {
-        preview: "<strong>Step 2: Evaluating Process P1.</strong> Need[P1] = [1, 2, 2] &le; Available [3, 3, 2]. P1 can finish and release its allocation [2, 0, 0]. New Available = [5, 3, 2].",
-        telemetry: "PHASE: 2/4 | ACTIVE: P1 | NEW_AVAIL: [5,3,2] | STATUS: Satisfied",
-        what: "Simulating process P1 execution, verifying that its remaining need can be fully satisfied by current available resources.",
-        why: "Granting resources to processes whose maximum needs are satisfiable guarantees forward progress."
-      },
-      {
-        preview: "<strong>Step 3: Processing P3, P4, and P2.</strong> Step-by-step simulation confirms P3, P4, and P2 can execute sequentially as available vector expands.",
-        telemetry: "PHASE: 3/4 | PROGRESS: 4/5 Complete | WORK_VECTOR: [9,0,2]",
-        what: "Iteratively testing remaining unfinished processes against the expanding work vector.",
-        why: "Determining whether a safe traversal order exists across all concurrent tasks."
-      },
-      {
-        preview: "<strong>Step 4: Safe State Verified.</strong> Valid safe sequence &lang; P1, P3, P4, P2, P0 &rang; established successfully. Request granted.",
-        telemetry: "PHASE: 4/4 | RESULT: Safe State | ACTION: Request Approved",
-        what: "All processes marked successfully without triggering deadlock thresholds.",
-        why: "The Banker's Algorithm ensures the system only grants resource requests that maintain at least one guaranteed safe execution trajectory."
-      }
-    ];
+    <!-- Available Resources -->
+    <div class="section-title">A: Available Resources ($A$)</div>
+    <table class="table-a">
+        <tr>
+            <th>Tape Drives</th>
+            <th>Plotters</th>
+            <th>Printers</th>
+            <th>CD ROMs</th>
+        </tr>
+        <tr>
+            <td id="a-tape">0</td>
+            <td id="a-plotter">0</td>
+            <td id="a-printer">0</td>
+            <td id="a-cd">0</td>
+        </tr>
+    </table>
 
-    function changeStep(dir) {
-      currentStep += dir;
-      if (currentStep < 1) currentStep = 1;
-      if (currentStep > totalSteps) currentStep = totalSteps;
-      updateUI();
+    <div id="status-box">System initialized. Click a scenario generator or select a process.</div>
+    <div id="explanation-box"></div>
+
+    <div class="controls">
+        <button onclick="resetCurrentScenario()">Reset Current Scenario</button>
+    </div>
+
+<script>
+    let state = { E: [], C: [], R: [], A: [] };
+    let initialSnapshot = null;
+    let completed = [false, false, false];
+    let deadlocked = false;
+    const resourceNames = ["Tape drives", "Plotters", "Printers", "CD ROMs"];
+
+    function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function resetStepper() {
-      currentStep = 1;
-      updateUI();
+    function generateScenario(type) {
+        completed = [false, false, false];
+        deadlocked = false;
+        document.getElementById('explanation-box').style.display = 'none';
+
+        let E, C, R, A;
+        let valid = false;
+
+        while (!valid) {
+            E = [rand(4, 7), rand(4, 7), rand(4, 7), rand(4, 7)];
+            C = [];
+            let totalC = [0, 0, 0, 0];
+            for (let i = 0; i < 3; i++) {
+                let pAlloc = [rand(0, 2), rand(0, 2), rand(0, 2), rand(0, 2)];
+                C.push(pAlloc);
+                for (let j = 0; j < 4; j++) totalC[j] += pAlloc[j];
+            }
+
+            let possibleE = true;
+            for (let j = 0; j < 4; j++) {
+                if (totalC[j] > E[j]) possibleE = false;
+            }
+            if (!possibleE) continue;
+
+            A = E.map((val, idx) => val - totalC[idx]);
+            R = [];
+            for (let i = 0; i < 3; i++) {
+                R.push([rand(0, 2), rand(0, 2), rand(0, 2), rand(0, 2)]);
+            }
+
+            let simA = [...A];
+            let simCompleted = [false, false, false];
+            let progress = true;
+
+            while (progress) {
+                progress = false;
+                for (let i = 0; i < 3; i++) {
+                    if (!simCompleted[i]) {
+                        let canRun = true;
+                        for (let j = 0; j < 4; j++) {
+                            if (R[i][j] > simA[j]) {
+                                canRun = false;
+                                break;
+                            }
+                        }
+                        if (canRun) {
+                            simCompleted[i] = true;
+                            for (let j = 0; j < 4; j++) simA[j] += C[i][j];
+                            progress = true;
+                        }
+                    }
+                }
+            }
+
+            let completedCount = simCompleted.filter(Boolean).length;
+
+            if (type === 'safe' && completedCount === 3) {
+                valid = true;
+            } else if (type === 'deadlock' && completedCount === 0) {
+                valid = true;
+            } else if (type === 'partial' && completedCount > 0 && completedCount < 3) {
+                valid = true;
+            }
+        }
+
+        state = { E, C, R, A };
+        initialSnapshot = JSON.parse(JSON.stringify(state));
+
+        const statusBox = document.getElementById('status-box');
+        statusBox.className = '';
+        if (type === 'safe') {
+            statusBox.innerText = "Safe Scenario generated! All processes can finish successfully.";
+        } else if (type === 'partial') {
+            statusBox.innerText = "Non-Total Deadlock generated! Some processes can finish, but others will lock up.";
+        } else {
+            statusBox.innerText = "Total Deadlock generated! Zero processes can run.";
+        }
+        render();
     }
 
-    function updateUI() {
-      document.getElementById('preview-text').innerHTML = stepsData[currentStep - 1].preview;
-      document.getElementById('telemetry-bar').innerText = stepsData[currentStep - 1].telemetry;
-      document.getElementById('pane-what').innerText = stepsData[currentStep - 1].what;
-      document.getElementById('pane-why').innerText = stepsData[currentStep - 1].why;
+    function render() {
+        document.getElementById('e-tape').innerText = state.E[0];
+        document.getElementById('e-plotter').innerText = state.E[1];
+        document.getElementById('e-printer').innerText = state.E[2];
+        document.getElementById('e-cd').innerText = state.E[3];
 
-      for (let i = 1; i <= totalSteps; i++) {
-        const gfx = document.getElementById(`step-${i}-gfx`);
-        if (gfx) gfx.style.display = (i === currentStep) ? 'block' : 'none';
-      }
+        const allocTbody = document.getElementById('allocation-tbody');
+        const neededTbody = document.getElementById('needed-tbody');
+        allocTbody.innerHTML = '';
+        neededTbody.innerHTML = '';
 
-      document.getElementById('prev-btn').disabled = (currentStep === 1);
-      document.getElementById('next-btn').disabled = (currentStep === totalSteps);
+        for (let i = 0; i < 3; i++) {
+            let trC = document.createElement('tr');
+            trC.className = 'clickable';
+            if (completed[i]) trC.style.opacity = '0.4';
+
+            let pNameC = document.createElement('td');
+            pNameC.innerText = `P${i+1}`;
+            if (completed[i]) pNameC.className = 'green';
+            trC.appendChild(pNameC);
+
+            for (let j = 0; j < 4; j++) {
+                let td = document.createElement('td');
+                td.innerText = state.C[i][j];
+                trC.appendChild(td);
+            }
+            trC.onclick = () => evaluateProcess(i);
+            allocTbody.appendChild(trC);
+
+            let trR = document.createElement('tr');
+            if (completed[i]) trR.style.opacity = '0.4';
+
+            let pNameR = document.createElement('td');
+            pNameR.innerText = `P${i+1}`;
+            trR.appendChild(pNameR);
+
+            for (let j = 0; j < 4; j++) {
+                let td = document.createElement('td');
+                td.innerText = state.R[i][j];
+                trR.appendChild(td);
+            }
+            neededTbody.appendChild(trR);
+        }
+
+        document.getElementById('a-tape').innerText = state.A[0];
+        document.getElementById('a-plotter').innerText = state.A[1];
+        document.getElementById('a-printer').innerText = state.A[2];
+        document.getElementById('a-cd').innerText = state.A[3];
     }
 
-    function setStrategy(strat) {
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
+    function evaluateProcess(index) {
+        if (completed[index] || deadlocked) return;
+
+        let canRun = true;
+        let failingResource = "";
+        for (let j = 0; j < 4; j++) {
+            if (state.R[index][j] > state.A[j]) {
+                canRun = false;
+                failingResource = resourceNames[j];
+                break;
+            }
+        }
+
+        const statusBox = document.getElementById('status-box');
+        const expBox = document.getElementById('explanation-box');
+        const allocRows = document.getElementById('allocation-tbody').children;
+
+        if (canRun) {
+            allocRows[index].children[0].className = 'green';
+            for (let j = 0; j < 4; j++) {
+                state.A[j] += state.C[index][j];
+            }
+            completed[index] = true;
+            render();
+            highlightAvailableRed();
+
+            if (completed.every(val => val === true)) {
+                statusBox.className = '';
+                statusBox.innerText = "All processes completed successfully. No deadlock detected!";
+                expBox.style.display = 'none';
+            } else {
+                statusBox.className = '';
+                statusBox.innerText = `Process P${index+1} executed successfully and released resources! Check remaining active processes.`;
+            }
+        } else {
+            deadlocked = true;
+            allocRows[index].className = 'highlight-red';
+            statusBox.className = 'deadlock';
+            statusBox.innerText = `STUCK / DEADLOCK DETECTED! Process P${index+1} cannot run.`;
+
+            let neededVal = state.R[index][["Tape drives", "Plotters", "Printers", "CD ROMs"].indexOf(failingResource)];
+            let availVal = state.A[["Tape drives", "Plotters", "Printers", "CD ROMs"].indexOf(failingResource)];
+            expBox.style.display = 'block';
+            expBox.innerHTML = `<strong>Why it failed:</strong> Process P${index+1} requires <strong>${neededVal} ${failingResource}</strong>, but the system only has <strong>${availVal}</strong> available in pool <strong>A</strong>. Because no other runnable processes can free up resources to help this process, it represents an unresolvable block.`;
+        }
     }
-  </script>
+
+    function highlightAvailableRed() {
+        const ids = ['a-tape', 'a-plotter', 'a-printer', 'a-cd'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            el.className = 'red';
+            setTimeout(() => { el.className = ''; }, 800);
+        });
+    }
+
+    function resetCurrentScenario() {
+        if (!initialSnapshot) return;
+        state = JSON.parse(JSON.stringify(initialSnapshot));
+        completed = [false, false, false];
+        deadlocked = false;
+        const statusBox = document.getElementById('status-box');
+        statusBox.className = '';
+        statusBox.innerText = "Scenario reset.";
+        document.getElementById('explanation-box').style.display = 'none';
+        render();
+    }
+
+    generateScenario('safe');
+</script>
+
+<nav class="module-nav-bar bottom">
+    <a href="database-deadlock.html" class="module-nav-btn">&larr; Database Deadlock</a>
+    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Week 6: Synchronization &amp; Deadlock</span>
+    <a href="dining-philosophers.html" class="module-nav-btn">Dining Philosophers &rarr;</a>
+</nav>
 </body>
 </html>
 """
 
-def create_module_three():
+def update_detector():
     os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-    print(f"--> Successfully created Module 03 at {TARGET_FILE}")
+        f.write(SIMULATOR_HTML.strip() + "\n")
+    print(f"--> Successfully updated deadlock detector at {TARGET_FILE}")
 
 def run_git_sync():
     status = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
@@ -427,9 +532,9 @@ def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Create Module 03 on Deadlock Handling Strategies and Banker's Algorithm\n\n"
-            "Detail Ostrich algorithm, prevention via lock ordering, detection/recovery,\n"
-            "Dijkstra's Banker's algorithm matrices, safe states, and an SVG stepper."
+            "Incorporate Deadlock Detection Simulator sandbox into Week 6\n\n"
+            "Add interactive deadlock detection simulator supporting safe, partial,\n"
+            "and total deadlock scenarios with resource matrix evaluation."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -438,5 +543,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    create_module_three()
+    update_detector()
     run_git_sync()

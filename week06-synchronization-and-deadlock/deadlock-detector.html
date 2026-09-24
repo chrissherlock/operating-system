@@ -3,39 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deadlock Detection Simulator</title>
+    <title>Deadlock Detection Simulator - COSC240</title>
     <style>
+        :root {
+            --primary: #0f172a;
+            --accent: #0284c7;
+            --accent-hover: #0369a1;
+            --border: #e2e8f0;
+            --card-bg: #ffffff;
+            --text: #334155;
+            --text-muted: #64748b;
+            --bg: #f8fafc;
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+        }
+        * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #fcfcfc;
-            color: #333;
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--text);
             max-width: 950px;
             margin: 30px auto;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
             background: #fff;
-        }
-        .nav-back {
-            margin-bottom: 15px;
-        }
-        .nav-back a {
-            text-decoration: none;
-            color: #2980b9;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .nav-back a:hover {
-            text-decoration: underline;
+            border: 1px solid var(--border);
         }
         h2 {
             text-align: center;
-            color: #4a4033;
+            color: var(--primary);
             margin-top: 5px;
+            font-size: 1.6rem;
         }
         p.instruction {
             text-align: center;
-            color: #666;
+            color: var(--text-muted);
             font-size: 0.95em;
             margin-bottom: 20px;
         }
@@ -43,14 +46,14 @@
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
         }
         .section-title {
-            font-weight: bold;
+            font-weight: 700;
             margin-top: 20px;
-            margin-bottom: 6px;
-            color: #4a4033;
+            margin-bottom: 8px;
+            color: var(--primary);
             font-size: 1.05em;
         }
         .tables-row {
@@ -65,58 +68,53 @@
             width: 100%;
             border-collapse: collapse;
             background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
         }
         th, td {
-            border: 1px solid #fff;
-            padding: 9px;
+            border: 1px solid var(--border);
+            padding: 10px;
             text-align: center;
             font-size: 0.95em;
         }
-
-        /* Slide Color Palette Mapping */
+        th {
+            background: #f1f5f9;
+            color: var(--primary);
+            font-weight: 700;
+        }
         .table-e th, .table-e td, .table-a th, .table-a td {
-            background-color: #dcd3c2;
-            color: #2c251e;
+            background-color: #f8fafc;
+            color: var(--primary);
         }
-        .table-c th, .table-c td {
-            background-color: #7b9ba6;
-            color: #fff;
-        }
-        .table-r th, .table-r td {
-            background-color: #d1c57d;
-            color: #2c251e;
-        }
-
         .table-c td {
-            background-color: #92b0bc;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-weight: 600;
         }
         .table-r td {
-            background-color: #e2d794;
-            color: #111;
+            background-color: #fef3c7;
+            color: #92400e;
+            font-weight: 600;
         }
-        .table-e td, .table-a td {
-            background-color: #eae3d5;
-            font-weight: bold;
-        }
-
         tr.clickable {
             cursor: pointer;
-            transition: filter 0.2s;
+            transition: background 0.15s;
         }
         tr.clickable:hover {
-            filter: brightness(0.95);
+            background-color: #bae6fd !important;
         }
         .green {
-            color: #145a32 !important;
+            color: #166534 !important;
             font-weight: bold;
         }
         .red {
-            color: #922b21 !important;
+            color: #991b1b !important;
             font-weight: bold;
         }
         .highlight-red {
-            background-color: #f5b7b1 !important;
-            color: #78281f;
+            background-color: #fee2e2 !important;
+            color: #991b1b;
             font-weight: bold;
         }
         #status-box {
@@ -124,123 +122,85 @@
             padding: 15px;
             border-radius: 6px;
             text-align: center;
-            font-weight: bold;
-            font-size: 1.1em;
-            background-color: #e8f8f5;
-            color: #117a65;
-            border: 1px solid #a3e4d7;
+            font-weight: 600;
+            font-size: 1.05em;
+            background-color: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
         }
         #status-box.deadlock {
-            background-color: #f5b7b1;
-            color: #78281f;
-            border: 1px solid #e6b0aa;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
         }
         #explanation-box {
-            margin-top: 10px;
-            padding: 12px;
+            margin-top: 12px;
+            padding: 14px;
             border-radius: 6px;
-            background-color: #fdf2e9;
-            color: #7e5109;
-            border: 1px solid #f5cba7;
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
             font-size: 0.95em;
             display: none;
+            line-height: 1.5;
         }
         .controls {
             text-align: center;
             margin-top: 20px;
         }
         button {
-            background-color: #5c6b73;
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 10px 18px;
             font-size: 0.95em;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
+            font-weight: 600;
+            transition: background 0.15s;
         }
-        button:hover {
-            background-color: #434f56;
+        button:hover { background-color: var(--accent); }
+        button.gen-safe { background-color: #16a34a; }
+        button.gen-safe:hover { background-color: #15803d; }
+        button.gen-partial { background-color: #d97706; }
+        button.gen-partial:hover { background-color: #b45309; }
+        button.gen-deadlock { background-color: #dc2626; }
+        button.gen-deadlock:hover { background-color: #b91c1c; }
+
+        .module-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+            gap: 12px;
+            box-sizing: border-box;
         }
-        button.gen-safe {
-            background-color: #27ae60;
+        .module-nav-bar.bottom { margin-top: 30px; }
+        .module-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            text-decoration: none;
+            color: var(--accent);
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 7px 13px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
         }
-        button.gen-safe:hover {
-            background-color: #1e8449;
-        }
-        button.gen-partial {
-            background-color: #d35400;
-        }
-        button.gen-partial:hover {
-            background-color: #ba4a00;
-        }
-        button.gen-deadlock {
-            background-color: #c0392b;
-        }
-        button.gen-deadlock:hover {
-            background-color: #a93226;
-        }
+        .module-nav-btn:hover { background-color: var(--accent); color: #ffffff; }
     </style>
-  <!-- Configure MathJax to recognize single dollar signs for inline math -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)'
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-<style id="module-nav-styles">
-  .module-nav-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto 16px auto;
-    gap: 12px;
-    box-sizing: border-box;
-  }
-  .module-nav-bar.bottom {
-    margin-top: 24px;
-    margin-bottom: 24px;
-  }
-  .module-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    text-decoration: none;
-    color: #0284c7;
-    background-color: #f0f9ff;
-    border: 1px solid #bae6fd;
-    padding: 7px 13px;
-    border-radius: 6px;
-    transition: all 0.15s ease;
-  }
-  .module-nav-btn:hover {
-    background-color: #0284c7;
-    color: #ffffff;
-  }
-  .module-nav-placeholder {
-    visibility: hidden;
-    padding: 7px 13px;
-    font-size: 0.85rem;
-  }
-</style>
-
 </head>
 <body>
 <nav class="module-nav-bar">
-  <a href="database-deadlock.html" class="module-nav-btn">&larr; Previous: Database Deadlock Simulator</a>
-  <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; color: #334155; text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.15s ease;">&#127968; Week 6: Synchronisation & Deadlock</a>
-  <a href="dining-philosophers.html" class="module-nav-btn">Next: Dining Philosophers Simulator (Tanenbaum vs. Deadlock) &rarr;</a>
+    <a href="database-deadlock.html" class="module-nav-btn">&larr; Database Deadlock</a>
+    <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid var(--border); border-radius: 6px; color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 6 Hub</a>
+    <a href="dining-philosophers.html" class="module-nav-btn">Dining Philosophers &rarr;</a>
 </nav>
-
-    
 
     <h2>Deadlock Detection Simulator</h2>
     <p class="instruction">Click rows in the <strong>Currently Allocated (C)</strong> table to evaluate processes. Test safe, partial, and total deadlock states!</p>
@@ -252,10 +212,10 @@
     </div>
 
     <!-- Existing Resources -->
-    <div class="section-title">E: Existing resources</div>
+    <div class="section-title">E: Existing Resources ($E$)</div>
     <table class="table-e">
         <tr>
-            <th>Tape drives</th>
+            <th>Tape Drives</th>
             <th>Plotters</th>
             <th>Printers</th>
             <th>CD ROMs</th>
@@ -271,7 +231,7 @@
     <!-- Side-by-Side Tables for C and R -->
     <div class="tables-row">
         <div class="table-container">
-            <div class="section-title">C: Currently allocated (Click row to test)</div>
+            <div class="section-title">C: Currently Allocated ($C$ &mdash; Click Row to Run)</div>
             <table class="table-c">
                 <thead>
                     <tr>
@@ -286,7 +246,7 @@
             </table>
         </div>
         <div class="table-container">
-            <div class="section-title">R: Resources still needed</div>
+            <div class="section-title">R: Resources Still Needed ($R$)</div>
             <table class="table-r">
                 <thead>
                     <tr>
@@ -303,10 +263,10 @@
     </div>
 
     <!-- Available Resources -->
-    <div class="section-title">A: Available resources</div>
+    <div class="section-title">A: Available Resources ($A$)</div>
     <table class="table-a">
         <tr>
-            <th>Tape drives</th>
+            <th>Tape Drives</th>
             <th>Plotters</th>
             <th>Printers</th>
             <th>CD ROMs</th>
@@ -367,7 +327,6 @@
                 R.push([rand(0, 2), rand(0, 2), rand(0, 2), rand(0, 2)]);
             }
 
-            // Test completion simulation
             let simA = [...A];
             let simCompleted = [false, false, false];
             let progress = true;
@@ -399,7 +358,7 @@
             } else if (type === 'deadlock' && completedCount === 0) {
                 valid = true;
             } else if (type === 'partial' && completedCount > 0 && completedCount < 3) {
-                valid = true; // Non-total deadlock (some can finish, but others get stuck)
+                valid = true;
             }
         }
 
@@ -496,7 +455,7 @@
 
             if (completed.every(val => val === true)) {
                 statusBox.className = '';
-                statusBox.innerText = "All processes completed successfully. No deadlock processes!";
+                statusBox.innerText = "All processes completed successfully. No deadlock detected!";
                 expBox.style.display = 'none';
             } else {
                 statusBox.className = '';
@@ -540,9 +499,9 @@
 </script>
 
 <nav class="module-nav-bar bottom">
-  <a href="database-deadlock.html" class="module-nav-btn">&larr; Previous: Database Deadlock Simulator</a>
-  Week 6: Synchronisation & Deadlock
-  <a href="dining-philosophers.html" class="module-nav-btn">Next: Dining Philosophers Simulator (Tanenbaum vs. Deadlock) &rarr;</a>
+    <a href="database-deadlock.html" class="module-nav-btn">&larr; Database Deadlock</a>
+    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Week 6: Synchronization &amp; Deadlock</span>
+    <a href="dining-philosophers.html" class="module-nav-btn">Dining Philosophers &rarr;</a>
 </nav>
 </body>
 </html>
