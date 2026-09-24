@@ -143,115 +143,46 @@
         Examine the formal mathematical conditions that define system deadlock. Analyze the Four Coffman Conditions, trace Resource Allocation Graphs (RAGs), and evaluate cycle detection algorithms in single-resource and multi-resource topologies.
       </p>
 
-      <h3>1. Formal Definition of System Deadlock</h3>
-      <p>
-        A <strong>deadlock</strong> is defined formally in operating systems theory as a permanent state where a set of processes or threads is blocked because each process is holding a resource and waiting for another resource that is being held by some other process in the set.
-      </p>
-      <p>
-        Unlike busy-waiting loops or CPU starvation, a deadlocked thread consumes zero CPU cycles. It rests permanently in a sleep or blocked state (e.g., <code>TASK_UNINTERRUPTIBLE</code> in Linux or waiting on a kernel dispatcher object in Windows) until external administrative intervention or a watchdog timer destroys the process.
-      </p>
+          <h3>1. Formal Definition of System Deadlock</h3>
+    <p>
+      In operating systems and concurrent computing theory, a <strong>system deadlock</strong> is defined as a permanent blockade state where a set of two or more execution entities (threads or processes) are unable to make forward progress because each entity is waiting for a resource that is currently held by another entity in the set.
+    </p>
 
-      <!-- Directed Narrative Stepper: Coffman Conditions & RAG Stepper -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Aid: Resource Allocation Graph &amp; Coffman Cycle Stepper</div>
-        <div class="aid-subtitle">Scenario: Transaction engine allocating database tables (R1) and file locks (R2) across threads P1 and P2.</div>
+    <h4>Formal Mathematical Formulation</h4>
+    <p>
+      Let <code>P = {P_1, P_2, ..., P_n}</code> be a finite set of concurrent processes, and let <code>R = {R_1, R_2, ..., R_m}</code> represent the available resource types in the operating system, where each resource type <code>R_j</code> may consist of one or more identical instances.
+    </p>
+    <p>
+      A subset of processes <code>P' &subset; P</code> is said to be in a <strong>deadlock state</strong> if and only if every process <code>P_i &isin; P'</code> is indefinitely waiting for an event that can only be caused by another process <code>P_k &isin; P'</code> (where <code>k &ne; i</code>).
+    </p>
 
-        <div class="aid-grid">
-          <!-- Controls & Preview Panel -->
-          <div class="controls-panel">
-            <div class="preview-box" id="preview-text">
-              <strong>Step 1: Mutual Exclusion &amp; Hold-and-Wait.</strong> Process P1 acquires Resource R1 non-shareably and requests Resource R2.
-            </div>
-            <div class="stepper-btns">
-              <button class="step-btn" id="prev-btn" onclick="changeStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="next-btn" onclick="changeStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetStepper()">Reset</button>
-            </div>
-            <div class="telemetry-bar" id="telemetry-bar">
-              PHASE: 1/4 | RAG_EDGES: P1&rarr;R2, R1&rarr;P1 | CYCLE: None | STATE: Safe
-            </div>
-          </div>
+    <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+      <strong style="color: var(--primary);">Closed-Set Deadlock Condition:</strong>
+      <br>
+      <code>&forall; P_i &isin; P', \quad State(P_i) = BLOCKED \quad \text{waiting on resource } R_j \text{ held by } P_k &isin; P'</code>
+    </div>
 
-          <!-- Visual Canvas -->
-          <div class="visual-canvas">
-            <svg id="stepper-svg" viewBox="0 0 420 180" style="width: 100%; height: auto;">
-              <rect width="420" height="180" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-              <!-- Step 1 Graphics -->
-              <g id="step-1-gfx">
-                <circle cx="80" cy="90" r="24" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-                <text x="80" y="94" text-anchor="middle" font-size="11" font-weight="700" fill="#0369a1">P1</text>
-                <rect x="280" y="70" width="60" height="40" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
-                <text x="310" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="#b45309">R1</text>
-                <!-- Assignment edge R1 -> P1 -->
-                <line x1="280" y1="90" x2="110" y2="90" stroke="#16a34a" stroke-width="2" stroke-dasharray="4 2"/>
-                <text x="195" y="80" text-anchor="middle" font-size="8" fill="#166534">Assigned</text>
-              </g>
-              <!-- Step 2 Graphics -->
-              <g id="step-2-gfx" style="display:none;">
-                <circle cx="80" cy="50" r="20" fill="#e0f2fe" stroke="#0284c7"/>
-                <text x="80" y="54" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">P1</text>
-                <circle cx="80" cy="130" r="20" fill="#fee2e2" stroke="#dc2626"/>
-                <text x="80" y="134" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">P2</text>
-                <rect x="280" y="40" width="50" height="30" rx="3" fill="#fef3c7" stroke="#d97706"/>
-                <text x="305" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">R1</text>
-                <rect x="280" y="110" width="50" height="30" rx="3" fill="#fef3c7" stroke="#d97706"/>
-                <text x="305" y="128" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">R2</text>
-                <line x1="280" y1="55" x2="102" y2="50" stroke="#16a34a" stroke-width="1.5"/>
-                <line x1="100" y1="65" x2="280" y2="120" stroke="#dc2626" stroke-width="1.5"/>
-                <text x="190" y="80" text-anchor="middle" font-size="7.5" fill="#334155">Hold &amp; Wait established</text>
-              </g>
-              <!-- Step 3 Graphics -->
-              <g id="step-3-gfx" style="display:none;">
-                <circle cx="90" cy="50" r="18" fill="#e0f2fe" stroke="#0284c7"/>
-                <text x="90" y="54" text-anchor="middle" font-size="9" font-weight="700" fill="#0369a1">P1</text>
-                <circle cx="90" cy="130" r="18" fill="#fee2e2" stroke="#dc2626"/>
-                <text x="90" y="134" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">P2</text>
-                <rect x="260" y="50" width="45" height="28" rx="2" fill="#fef3c7" stroke="#d97706"/>
-                <text x="282" y="68" text-anchor="middle" font-size="8.5" font-weight="700">R1</text>
-                <rect x="260" y="110" width="45" height="28" rx="2" fill="#fef3c7" stroke="#d97706"/>
-                <text x="282" y="128" text-anchor="middle" font-size="8.5" font-weight="700">R2</text>
-                <!-- Circular Loop -->
-                <path d="M 260 60 L 108 50" fill="none" stroke="#16a34a" stroke-width="2"/>
-                <path d="M 108 62 L 260 115" fill="none" stroke="#dc2626" stroke-width="2"/>
-                <path d="M 260 125 L 108 130" fill="none" stroke="#16a34a" stroke-width="2"/>
-                <path d="M 108 118 L 260 55" fill="none" stroke="#dc2626" stroke-width="2"/>
-                <text x="210" y="22" text-anchor="middle" font-size="8.5" font-weight="700" fill="#dc2626">&#9888; CLOSED CYCLE DETECTED</text>
-              </g>
-              <!-- Step 4 Graphics -->
-              <g id="step-4-gfx" style="display:none;">
-                <rect x="80" y="45" width="260" height="90" rx="6" fill="#dcfce7" stroke="#16a34a"/>
-                <text x="210" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">DEADLOCK THEOREM RESOLUTION</text>
-                <text x="210" y="90" text-anchor="middle" font-size="8.5" fill="#15803d">Single resource per type + Cycle &rArr; Absolute Deadlock.</text>
-                <text x="210" y="108" text-anchor="middle" font-size="8.5" fill="#15803d">Multiple resources per type + Cycle &rArr; Possible Deadlock.</text>
-              </g>
-            </svg>
-          </div>
-        </div>
+    <p>
+      Because every entity in the closed chain is blocked waiting for a predecessor or successor, no process can ever release its currently allocated resources. Consequently, the entire set remains frozen indefinitely unless an external agent intervenes (such as a kernel detection-and-recovery subsystem or a watchdog timer).
+    </p>
 
-        <!-- Paired Analytical Panes -->
-        <div class="panes-grid">
-          <div class="pane-box">
-            <div class="pane-title" style="color: #0369a1;">1. What Is Happening</div>
-            <div id="pane-what" style="color: #334155;">
-              Process P1 acquires R1 and requests R2, establishing mutual exclusion and hold-and-wait semantics.
-            </div>
-          </div>
-          <div class="pane-box">
-            <div class="pane-title" style="color: #991b1b;">2. Why The System Does This</div>
-            <div id="pane-why" style="color: #334155;">
-              Hardware peripherals and database rows require exclusive locks to prevent data corruption during concurrent modification.
-            </div>
-          </div>
-        </div>
+    <p style="margin-top: 20px;">
+      For a comprehensive video walkthrough explaining these theoretical conditions and how system deadlocks manifest in practice, review the <a href="https://www.youtube.com/watch?v=e8gMbYOmGr0" target="_blank" style="color: var(--accent); font-weight: 600; text-decoration: none;">Coffman Conditions video overview &rarr;</a>
+    </p>
 
-        <div class="toggle-bar">
-          <span style="font-size: 0.75rem; font-weight: 700; align-self: center; margin-right: 4px;">Topology:</span>
-          <button class="toggle-btn active" onclick="setTopology('single')">Single-Unit Resources</button>
-          <button class="toggle-btn" onclick="setTopology('multi')">Multi-Unit Resources</button>
-        </div>
+    <!-- YouTube Thumbnail Card -->
+    <a href="https://www.youtube.com/watch?v=e8gMbYOmGr0" target="_blank" style="display: block; position: relative; max-width: 640px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; background: #000; margin: 16px 0; transition: transform 0.15s ease, box-shadow 0.15s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06)';">
+      <img src="https://img.youtube.com/vi/e8gMbYOmGr0/hqdefault.jpg" alt="Coffman Conditions Explained Thumbnail" style="width: 100%; display: block; opacity: 0.9; transition: opacity 0.15s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.9';">
+      <!-- Play Button Overlay -->
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 48px; background: rgba(23, 23, 23, 0.85); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        <div style="width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid #ffffff; margin-left: 3px;"></div>
       </div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: #fff; font-size: 0.88rem; font-weight: 600;">
+        Watch Video: Coffman Conditions &amp; Deadlock Theory &rarr;
+      </div>
+    </a>
 
-      <h3>2. The Four Coffman Conditions</h3>
+    <h3>2. The Four Coffman Conditions</h3>
       <p>
         In 1971, Edward G. Coffman Jr., Michael J. Elphick, and Arie Shoshani established the foundational theorem proving that a system can enter a deadlocked state if and only if <strong>all four of the following conditions occur simultaneously</strong>:
       </p>
