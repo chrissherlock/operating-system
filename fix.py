@@ -1,188 +1,182 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Expand Section 2 in 01-race-conditions-critical-regions.html
+# fix.py: Expand Section 3 in 01-race-conditions-critical-regions.html
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week04-concurrency-and-mutual-exclusion", "01-race-conditions-critical-regions.html")
 
-EXPANDED_SECTION_TWO = r"""    <h3>2. Assembly-Level Non-Atomicity</h3>
+EXPANDED_SECTION_THREE = r"""    <h3>3. Critical Regions &amp; Mutual Exclusion</h3>
     <p>
-      At the high-level language level (C, C++, Rust, Java, or Python), statements like <code>counter++</code> or <code>balance += 100</code> appear as single, indivisible operations. This syntactic simplicity fosters a dangerous cognitive trap: programmers assume that because an operation occupies a single line of code, the hardware executes it as an indivisible, atomic transaction.
+      The discovery of non-atomic assembly execution reveals an unavoidable systems dilemma: to avoid race hazards, concurrent execution flows must be prevented from reading or writing shared mutable data simultaneously.
     </p>
     <p>
-      In physical computer hardware, this assumption is false. Central Processing Units (CPUs) do not perform arithmetic directly across silicon DRAM capacitors. Arithmetic Logic Units (ALUs) operate strictly on internal registers located within the processor core. Consequently, every mutation of shared memory requires a multi-stage <strong>Load-Modify-Store</strong> sequence.
+      This requirement leads directly to the core abstraction of concurrent programming: the <strong>Critical Region</strong> (often termed the <em>Critical Section</em>).
     </p>
 
-    <h4>The Anatomy of the Load-Modify-Store Sequence</h4>
+    <h4>Formal Definition: The Critical Region</h4>
     <p>
-      When an optimizing compiler lowers <code>counter++</code> into target machine code, it decomposes the operation into three distinct assembly instructions:
+      A <strong>Critical Region</strong> is a contiguous segment of code in which a thread or process accesses one or more shared mutable resources&mdash;such as global variables, heap structures, hardware device registers, or shared file pointers&mdash;whose consistency depends on atomic execution.
     </p>
-
-    <pre><code><span class="syn-cmt">; --- Disassembly of counter++ (x86-64 Architecture) ---</span>
-<span class="syn-kw">mov</span> eax, [<span class="syn-num">0x7fff0040</span>]   <span class="syn-cmt">; 1. LOAD: Read 32 bits from shared memory address into register EAX</span>
-<span class="syn-kw">add</span> eax, <span class="syn-num">1</span>              <span class="syn-cmt">; 2. MODIFY: ALU increments the private value in EAX by 1</span>
-<span class="syn-kw">mov</span> [<span class="syn-num">0x7fff0040</span>], eax   <span class="syn-cmt">; 3. STORE: Write the updated EAX register back across the bus to RAM</span></code></pre>
-
     <p>
-      Each of these three instructions executes at a distinct point in physical time:
+      The operational objective of synchronization is to enforce <strong>Mutual Exclusion</strong>:
     </p>
-    <ol>
-      <li><strong>The Load Phase (<code>mov eax, [addr]</code>):</strong> The CPU core issues a read request across the system interconnect. The memory controller fetches the cache line containing the target address into the core's private L1/L2 data cache, and the 32-bit integer is loaded into the general-purpose register <code>%eax</code>.</li>
-      <li><strong>The Modify Phase (<code>add eax, 1</code>):</strong> The core's execution unit passes the contents of <code>%eax</code> through the ALU, computes the addition, and latches the incremented result back into <code>%eax</code>. At this instant, the updated value exists <em>only inside the core's private register</em>. Physical RAM still holds the old, unincremented value.</li>
-      <li><strong>The Store Phase (<code>mov [addr], eax</code>):</strong> The core issues a write request, flushing the contents of <code>%eax</code> through its internal store buffer into the L1 cache, eventually writing it back to shared physical memory.</li>
-    </ol>
+    <blockquote style="border-left: 4px solid var(--accent); padding: 8px 16px; margin: 16px 0; background: #f8fafc; color: #334155; font-style: italic;">
+      <strong>The Mutual Exclusion Invariant:</strong> At any physical instant in time <i>t</i>, if Process <i>A</i> is executing within its critical region, all other processes must be strictly barred from entering their critical regions for that same shared resource.
+    </blockquote>
 
-    <!-- Structural Diagram: CPU Core Pipeline & Shared Memory Bus -->
+    <h4>The Canonical Four-Stage Execution Lifecycle</h4>
+    <p>
+      Any concurrent thread accessing shared state can be decomposed into four distinct execution phases:
+    </p>
+
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 1.2: Microarchitectural State During Load-Modify-Store Interleaving</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">The vulnerable window between register modification inside the core and retirement to shared RAM.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 1.3: The Canonical Four-Stage Synchronization Lifecycle</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">The mandatory gating sequence surrounding any operation on shared mutable state.</div>
 
-      <svg viewBox="0 0 760 220" style="width: 100%; height: auto; font-family: system-ui, -apple-system, sans-serif;">
+      <svg viewBox="0 0 760 130" style="width: 100%; height: auto; font-family: system-ui, -apple-system, sans-serif;">
         <defs>
-          <marker id="asm-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="cs-arr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
-          </marker>
-          <marker id="asm-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
           </marker>
         </defs>
 
-        <!-- CPU Core 0 Box -->
-        <g transform="translate(20, 15)">
-          <rect width="330" height="190" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="14" y="24" font-size="10.5" font-weight="700" fill="#0f172a">CPU CORE 0 (Thread 1 Context)</text>
+        <!-- 1. Entry Section -->
+        <rect x="15" y="30" width="165" height="60" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="97" y="52" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">1. ENTRY SECTION</text>
+        <text x="97" y="68" text-anchor="middle" font-size="8" fill="#64748b">acquire(&amp;lock)</text>
+        <text x="97" y="80" text-anchor="middle" font-size="7.5" fill="#0284c7">Requests permission</text>
 
-          <!-- Register File -->
-          <rect x="15" y="38" width="140" height="60" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="22" y="54" font-size="8.5" font-weight="700" fill="#64748b">REGISTER FILE</text>
-          <text x="22" y="74" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0284c7">%eax = 1000</text>
-          <text x="22" y="88" font-size="7.5" fill="#94a3b8">Private to Core 0</text>
+        <line x1="180" y1="60" x2="208" y2="60" stroke="#0284c7" stroke-width="2" marker-end="url(#cs-arr)"/>
 
-          <!-- ALU -->
-          <polygon points="175,40 245,40 255,65 245,90 175,90 185,65" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="215" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#0369a1">ALU (+100)</text>
+        <!-- 2. Critical Region -->
+        <rect x="210" y="24" width="180" height="72" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2.5"/>
+        <text x="300" y="50" text-anchor="middle" font-size="10.5" font-weight="700" fill="#991b1b">2. CRITICAL REGION</text>
+        <text x="300" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="#dc2626">balance += 100;</text>
+        <text x="300" y="82" text-anchor="middle" font-size="7.5" font-weight="700" fill="#991b1b">[EXCLUSIVE ACCESS]</text>
 
-          <!-- Timer Interrupt Trap -->
-          <rect x="15" y="115" width="295" height="55" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="24" y="133" font-size="9.5" font-weight="700" fill="#991b1b">&times; TIMER INTERRUPT FIRES HERE!</text>
-          <text x="24" y="148" font-size="8" fill="#7f1d1d">&bull; Involuntary Context Switch triggered by Local APIC timer.</text>
-          <text x="24" y="159" font-size="8" fill="#7f1d1d">&bull; EAX (1100) saved to PCB; Shared RAM remains stale at 1000!</text>
-        </g>
+        <line x1="390" y1="60" x2="418" y2="60" stroke="#0284c7" stroke-width="2" marker-end="url(#cs-arr)"/>
 
-        <!-- Interconnect Bus Vectors -->
-        <g transform="translate(360, 40)">
-          <!-- Load Path -->
-          <line x1="85" y1="25" x2="5" y2="25" stroke="#0284c7" stroke-width="2" marker-end="url(#asm-arr-blue)"/>
-          <text x="45" y="18" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#0284c7">1. LOAD (1000)</text>
+        <!-- 3. Exit Section -->
+        <rect x="420" y="30" width="165" height="60" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="502" y="52" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">3. EXIT SECTION</text>
+        <text x="502" y="68" text-anchor="middle" font-size="8" fill="#64748b">release(&amp;lock)</text>
+        <text x="502" y="80" text-anchor="middle" font-size="7.5" fill="#059669">Signals waiting threads</text>
 
-          <!-- Interrupted Store Path -->
-          <line x1="5" y1="90" x2="80" y2="90" stroke="#dc2626" stroke-width="2" stroke-dasharray="3 3"/>
-          <text x="45" y="82" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">3. STORE (BLOCKED)</text>
-          <circle cx="85" cy="90" r="4" fill="#dc2626"/>
-        </g>
+        <line x1="585" y1="60" x2="613" y2="60" stroke="#0284c7" stroke-width="2" marker-end="url(#cs-arr)"/>
 
-        <!-- Physical Memory Box -->
-        <g transform="translate(460, 15)">
-          <rect width="280" height="190" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="14" y="24" font-size="10.5" font-weight="700" fill="#0284c7">SHARED PHYSICAL RAM</text>
-
-          <!-- Address Cell -->
-          <rect x="15" y="42" width="250" height="75" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-          <text x="25" y="62" font-size="8.5" font-weight="700" fill="#64748b">PHYSICAL ADDRESS: 0x7FFF0040</text>
-          <text x="25" y="80" font-family="var(--font-mono)" font-size="8" fill="#475569">Variable: balance</text>
-          <text x="25" y="104" font-family="var(--font-mono)" font-size="18" font-weight="700" fill="#0f172a">Value: $1000</text>
-
-          <rect x="15" y="130" width="250" height="42" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
-          <text x="25" y="148" font-size="8" font-weight="700" fill="#475569">Cache Line State: Shared</text>
-          <text x="25" y="160" font-size="7.5" fill="#64748b">Vulnerable to uncoordinated reads from Core 1</text>
-        </g>
+        <!-- 4. Remainder Section -->
+        <rect x="615" y="30" width="130" height="60" rx="5" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="680" y="52" text-anchor="middle" font-size="9.5" font-weight="700" fill="#166534">4. REMAINDER</text>
+        <text x="680" y="68" text-anchor="middle" font-size="8" fill="#15803d">Non-critical work</text>
+        <text x="680" y="80" text-anchor="middle" font-size="7.5" fill="#64748b">Local computations</text>
       </svg>
     </div>
 
-    <h4>Hardware Context Switching Across Instruction Boundaries</h4>
-    <p>
-      An operating system's preemptive scheduler uses a hardware timer (such as the x86 Local APIC timer) programmed to generate periodic interrupts at fixed frequencies (typically 100 Hz to 1000 Hz).
-    </p>
-    <p>
-      When the timer interrupt fires, the CPU hardware completes whichever single assembly instruction is currently in-flight, saves the current Instruction Pointer (<code>%rip</code>) and Processor Flags (<code>%rflags</code>) onto the kernel stack, and transfers execution to the kernel interrupt handler.
-    </p>
-    <div class="math-callout">
-      <strong>The Preemption Vulnerability Window:</strong>
-      <br>
-      The scheduler has zero knowledge of program semantics. It cannot know that instructions 1, 2, and 3 form a logically atomic transaction. If the interrupt fires:
-      <ul>
-        <li><strong>Between Instruction 1 and 2:</strong> <code>%eax</code> holds the old value. The thread is descheduled before the ALU can even compute the update.</li>
-        <li><strong>Between Instruction 2 and 3:</strong> <code>%eax</code> holds the newly calculated value, but physical RAM has not been updated. The kernel saves <code>%eax</code> to the thread's PCB. If a second thread is dispatched and reads the same memory address, it reads the <em>stale, pre-incremented</em> value from RAM.</li>
-      </ul>
-    </div>
-
-    <h4>Why Single CISC Instructions Are Still Non-Atomic</h4>
-    <p>
-      Students often point out that the x86 architecture features CISC instructions that operate directly on memory addresses, such as:
-    </p>
-    <pre><code><span class="syn-kw">add</span> dword ptr [counter], <span class="syn-num">1</span>   <span class="syn-cmt">; Single x86 instruction increments memory directly!</span></code></pre>
-    <p>
-      <em>Is this single instruction atomic?</em> <strong>No.</strong>
-    </p>
-    <p>
-      Even though it appears as a single assembly line, the CPU microarchitecture decodes this instruction into multiple <strong>micro-operations (&mu;ops)</strong>:
-    </p>
     <ol>
-      <li><code>&mu;op 1:</code> Memory read (Load into internal micro-register).</li>
-      <li><code>&mu;op 2:</code> ALU addition.</li>
-      <li><code>&mu;op 3:</code> Memory write (Store).</li>
+      <li>
+        <strong>The Entry Section:</strong> The gateway protocol where a thread requests permission to access the shared resource. If another thread currently holds the critical region, the entry section must block the requesting thread (suspending it on a wait queue) or spin until the lock is vacated.
+      </li>
+      <li>
+        <strong>The Critical Section:</strong> The isolated execution block containing the actual read-modify-write operations on the shared resource. While a thread is here, mutual exclusion is active.
+      </li>
+      <li>
+        <strong>The Exit Section:</strong> The exit protocol executed immediately upon finishing shared state mutations. It releases ownership of the critical region, unblocks waiting threads, and updates internal lock metadata.
+      </li>
+      <li>
+        <strong>The Remainder Section:</strong> The remainder of the program's code, performing independent computations on local variables, private stack memory, or unshared resources.
+      </li>
     </ol>
-    <p>
-      On a single-core system, a timer interrupt will not interrupt a single instruction midway through its micro-operations. <strong>However, on modern multi-core SMP systems, multiple execution cores share the same memory bus.</strong> Core 1 can execute a memory read simultaneously while Core 0 is between &mu;op 1 and &mu;op 3, reading stale data.
-    </p>
-    <p>
-      To make even a single instruction atomic across multiple hardware cores, the instruction must be explicitly prefixed with the x86 hardware bus lock:
-    </p>
-    <pre><code><span class="syn-kw">lock add</span> dword ptr [counter], <span class="syn-num">1</span>   <span class="syn-cmt">; ATOMIC: Locks cache line across all CPU cores</span></code></pre>
-    <p>
-      The <code>lock</code> prefix asserts a hardware lock on the processor's memory cache line (via cache coherency protocols like MESI), forcing all other CPU cores to stall if they attempt to access that memory line until the entire Load-Modify-Store operation completes.
-    </p>
 
-    <h4>Atomicity vs. Memory Visibility</h4>
+    <h4>The Principle of Minimal Critical Section Scope</h4>
     <p>
-      Writing correct concurrent systems requires understanding two distinct hardware properties:
+      A cardinal rule of operating system engineering is to keep the critical section <strong>as small as humanly possible</strong>.
+    </p>
+    <p>
+      Critical sections serialize execution: while Thread <i>A</i> is inside, no other core can make progress on that shared data. If an application holds a lock while performing disk I/O, network requests, or heavy cryptographic hashing:
     </p>
     <ul>
-      <li><strong>Atomicity:</strong> Guarantees that a series of operations execute as an all-or-nothing unit. Intermediate states cannot be observed or interrupted by any concurrent thread.</li>
-      <li><strong>Visibility:</strong> Guarantees that when one thread modifies shared state, the new value is immediately committed through private core store buffers and visible to caches on other physical cores (governed by <em>memory barriers</em> and <em>memory consistency models</em>).</li>
-    </ul>"""
+      <li>All other execution cores stall or sleep waiting for the lock, destroying multicore parallelism.</li>
+      <li>According to <strong>Amdahl's Law</strong>, the maximum theoretical speedup of a program on an infinite number of processor cores is strictly limited by the fraction of execution time spent inside serialized critical sections:
+        <pre><code>Speedup &le; 1 / Serial_Fraction</code></pre>
+      </li>
+      <li><strong>Engineering Invariant:</strong> Never perform I/O, allocate system memory, or execute long-running loops inside a critical section unless that exact I/O channel is the shared resource being protected.</li>
+    </ul>
 
-def update_section_two():
+    <h4>The Naive Software Lock Paradox</h4>
+    <p>
+      Why can't we solve mutual exclusion with a simple software integer flag?
+    </p>
+    <p>
+      Consider the most intuitive attempt by a programmer to protect a critical region using a shared variable <code>lock</code> (initialized to <code>0</code>, meaning unlocked):
+    </p>
+
+    <pre><code><span class="syn-cmt">/* NAIVE ATTEMPT: Flawed Software Lock Variable */</span>
+<span class="syn-kw">int</span> lock = <span class="syn-num">0</span>; <span class="syn-cmt">/* 0 = unlocked, 1 = locked */</span>
+
+<span class="syn-kw">void</span> worker() {
+    <span class="syn-cmt">/* Entry Section */</span>
+    <span class="syn-kw">while</span> (lock == <span class="syn-num">1</span>) {
+        <span class="syn-cmt">/* Spin and wait until lock becomes 0 */</span>
+    }
+    lock = <span class="syn-num">1</span>; <span class="syn-cmt">/* Claim the lock */</span>
+
+    <span class="syn-cmt">/* Critical Section */</span>
+    balance += <span class="syn-num">100</span>;
+
+    <span class="syn-cmt">/* Exit Section */</span>
+    lock = <span class="syn-num">0</span>; <span class="syn-cmt">/* Release the lock */</span>
+}</code></pre>
+
+    <div class="math-callout">
+      <strong>Why This Flawed Attempt Fails Catastrophically:</strong>
+      <br>
+      Notice the fatal circular dependency: <strong>the lock variable itself is a shared mutable resource!</strong>
+      <br>
+      Look at the preemption window between the <code>while</code> check and setting <code>lock = 1</code>:
+      <ol>
+        <li>Thread 1 checks <code>lock == 1</code>. It evaluates to <code>false</code> (lock is <code>0</code>).</li>
+        <li><strong>Context Switch:</strong> Right before Thread 1 can execute <code>lock = 1</code>, the timer interrupt fires and deschedules Thread 1.</li>
+        <li>Thread 2 is dispatched. It checks <code>lock == 1</code>. Because Thread 1 was preempted before setting the flag, <code>lock</code> is <em>still 0</em>!</li>
+        <li>Thread 2 proceeds past the <code>while</code> loop, sets <code>lock = 1</code>, and enters the Critical Section.</li>
+        <li>Thread 1 is rescheduled. It resumes execution at the instruction immediately following the <code>while</code> loop. It executes <code>lock = 1</code> and enters the Critical Section.</li>
+      </ol>
+      <strong>Result:</strong> Both Thread 1 and Thread 2 are now executing inside the Critical Section simultaneously! The flawed software lock suffers from the exact same race condition it was designed to prevent.
+    </div>
+    <p>
+      This fundamental bootstrapping problem proves that software flags alone cannot guarantee mutual exclusion without underlying <strong>hardware atomic primitives</strong> or formal coordination algorithms (such as Peterson's Algorithm).
+    </p>"""
+
+def update_section_three():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>2. Assembly-Level Non-Atomicity</h3>"
-    end_marker = "<!-- Directed Narrative Stepper: Assembly Interleaving -->"
+    start_marker = "<h3>3. Critical Regions &amp; Mutual Exclusion</h3>"
+    end_marker = "<h3>4. The Four Mandatory Conditions for Mutual Exclusion</h3>"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 2 markers.")
+        print("Error: Could not locate Section 3 markers.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_THREE + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 2 in Module 01 with x86 assembly and hardware atomicity\n\n"
-            "Break down Load-Modify-Store sequences, x86 lock prefix semantics, CPU\n"
-            "core pipeline state during context switches, and add an ALU/bus diagram."
+            "Expand Section 3 in Module 01 with critical region lifecycle and locks\n\n"
+            "Detail the four-stage execution lifecycle, the minimal critical region\n"
+            "principle, the flawed software lock paradox, and add a timeline diagram."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -191,5 +185,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_two():
+    if update_section_three():
         run_git_sync()
