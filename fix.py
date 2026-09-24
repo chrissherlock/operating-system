@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Update root index.html with Week 4 and Week 5 module links
+# fix.py: Update root index.html to remove lab links from Week 6
 # =====================================================================
 import os
 import subprocess
@@ -300,7 +300,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 06</span>
-          <span class="status-badge complete">4 Modules &amp; Labs</span>
+          <span class="status-badge complete">4 Modules</span>
         </div>
         <h2 class="week-title">Synchronization &amp; Deadlocks</h2>
         <p class="week-desc">
@@ -311,10 +311,6 @@ INDEX_HTML = r"""<!DOCTYPE html>
           <li><a href="week06-synchronization-and-deadlock/02-deadlock-characterization-coffman-conditions.html">02. Coffman Conditions &amp; RAGs</a></li>
           <li><a href="week06-synchronization-and-deadlock/03-deadlock-handling-bankers-algorithm.html">03. Banker's Algorithm &amp; Prevention</a></li>
           <li><a href="week06-synchronization-and-deadlock/04-classic-synchronization-real-world-defenses.html">04. Classic Problems &amp; Defenses</a></li>
-          <li><a href="week06-synchronization-and-deadlock/deadlock-detector.html">Lab: Deadlock Detector Simulator</a></li>
-          <li><a href="week06-synchronization-and-deadlock/dining-philosophers.html">Lab: Dining Philosophers Simulator</a></li>
-          <li><a href="week06-synchronization-and-deadlock/database-deadlock.html">Lab: Database 2PL Simulator</a></li>
-          <li><a href="week06-synchronization-and-deadlock/ipc-deadlock.html">Lab: IPC Deadlock Simulator</a></li>
         </ul>
         <div class="week-card-footer">
           <a href="week06-synchronization-and-deadlock/index.html" class="hub-link">&#127968; Open Week 6 Hub &rarr;</a>
@@ -425,9 +421,9 @@ def run_git_sync():
             return
 
         commit_msg = (
-            "Update root index.html to link individual Week 4 and Week 5 modules\n\n"
-            "Expose direct links for all modules across Week 4 and Week 5 in the\n"
-            "COSC240 course index grid."
+            "Remove lab links from Week 6 card in root course index\n\n"
+            "Streamline Week 6 card in the root course index by removing standalone\n"
+            "lab links and displaying only modules 01 through 04."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
