@@ -134,7 +134,7 @@
         Examine classic concurrency coordination models including the Dining Philosophers and Readers-Writers problems. Analyze deadlock recovery protocols, starvation aging defenses, and modern kernel implementation patterns.
       </p>
 
-            <h3>1. Classic Synchronization Hazards</h3>
+                  <h3>1. Classic Synchronization Hazards</h3>
       <p>
         Operating systems and concurrent applications encounter recurring structural coordination challenges that highlight the delicate balance between throughput, mutual exclusion, and deadlock avoidance. Among these, classic synchronization problems serve as canonical architectural testbeds.
       </p>
@@ -161,6 +161,46 @@
       <p>
         This creates a strict <strong>circular wait</strong> dependency chain: Philosopher 0 waits for Philosopher 1's left chopstick, Philosopher 1 waits for Philosopher 2's, and so on, closing the loop back to Philosopher 0. All four Coffman conditions are satisfied simultaneously, plunging the entire table into permanent deadlock where no philosopher ever eats.
       </p>
+
+      <h5>Monitor Solution &amp; State Transition Pseudocode</h5>
+      <p>
+        To solve the dining philosophers hazard without deadlocking or starving, operating systems use monitor constructs with condition variables. Below is the classical state-based monitor design where a philosopher only enters the eating state if both neighbors are not currently eating:
+      </p>
+
+      <!-- Syntax Highlighted Pseudocode Box -->
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border);">
+        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+          monitor &bull; DiningPhilosophersMonitor.pseudo
+        </div>
+        <pre style="margin: 0; line-height: 1.5;"><span style="color: #c084fc;">monitor</span> DiningPhilosophers {
+    <span style="color: #6ee7b7;">enum</span> State { THINKING, HUNGRY, EATING };
+    State state[<span style="color: #f43f5e;">5</span>];
+    Condition self[<span style="color: #f43f5e;">5</span>];
+
+    <span style="color: #c084fc;">void</span> <span style="color: #60a5fa;">pickup</span>(<span style="color: #6ee7b7;">int</span> i) {
+        state[i] = HUNGRY;
+        test(i);
+        <span style="color: #c084fc;">if</span> (state[i] != EATING) {
+            self[i].wait();
+        }
+    }
+
+    <span style="color: #c084fc;">void</span> <span style="color: #60a5fa;">putdown</span>(<span style="color: #6ee7b7;">int</span> i) {
+        state[i] = THINKING;
+        test((i + <span style="color: #f43f5e;">4</span>) % <span style="color: #f43f5e;">5</span>); <span style="color: #94a3b8;">// Test left neighbor</span>
+        test((i + <span style="color: #f43f5e;">1</span>) % <span style="color: #f43f5e;">5</span>); <span style="color: #94a3b8;">// Test right neighbor</span>
+    }
+
+    <span style="color: #c084fc;">void</span> <span style="color: #60a5fa;">test</span>(<span style="color: #6ee7b7;">int</span> i) {
+        <span style="color: #c084fc;">if</span> (state[(i + <span style="color: #f43f5e;">4</span>) % <span style="color: #f43f5e;">5</span>] != EATING &amp;&amp;
+            state[i] == HUNGRY &amp;&amp;
+            state[(i + <span style="color: #f43f5e;">1</span>) % <span style="color: #f43f5e;">5</span>] != EATING) {
+            state[i] = EATING;
+            self[i].signal();
+        }
+    }
+}</pre>
+      </div>
 
       <h5>Real-World Parallels &amp; Database Multi-Locking</h5>
       <p>
