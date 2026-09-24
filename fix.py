@@ -1,615 +1,288 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create Module 03 on Virtual Memory & Paging Architectures
+# fix.py: Deeply expand Multi-Level Hierarchical Page Tables in Module 03
 # =====================================================================
 import os
 import subprocess
 
-TARGET_DIR = "week07-memory-management-virtual-memory"
-TARGET_FILE = os.path.join(TARGET_DIR, "03-virtual-memory-paging-tables.html")
+TARGET_FILE = os.path.join(
+    "week07-memory-management-virtual-memory",
+    "03-virtual-memory-paging-tables.html"
+)
 
-MODULE_THREE_CONTENT = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 03: Virtual Memory &amp; Paging Architectures - COSC240</title>
-  <style>
-    :root {
-      --primary: #0f172a;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --border: #e2e8f0;
-      --card-bg: #ffffff;
-      --text: #334155;
-      --text-muted: #64748b;
-      --bg: #f8fafc;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #d97706;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding: 24px;
-    }
-    .container { max-width: 1040px; margin: 0 auto; }
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-    }
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background 0.15s ease;
-    }
-    .nav-btn:hover { background: #f0f9ff; }
-    .content-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-      margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
-    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    h4 { font-size: 1.05rem; color: var(--primary); margin-top: 20px; }
-    p, li { font-size: 0.95rem; color: var(--text); }
-    .math-callout {
-      background: #f8fafc;
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 18px 0;
-      font-size: 0.92rem;
-    }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      margin: 16px 0;
-    }
-    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
-    pre code { background: none; padding: 0; color: inherit; }
-
-    /* Interactive Pedagogical Aid Styles */
-    .aid-wrapper {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-      margin: 28px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
-    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
-    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.86rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; height: 150px; max-height: 150px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
-    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
-    .step-btn {
-      flex: 1;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .step-btn:hover { background: var(--accent); }
-    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.75rem; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
-    .visual-canvas { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 240px; }
-    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
-    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .toggle-bar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-    .toggle-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
-    .toggle-btn.active { background: #e0f2fe; color: var(--accent); border-color: #bae6fd; }
-    @media (max-width: 768px) {
-      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
-      body { padding: 16px; }
-    }
-  </style>
-  <!-- KaTeX CSS & JS CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
-</head>
-<body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="02-dynamic-partitioning-free-lists.html" class="nav-btn">&larr; Module 02</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 7 Hub</a>
-      <a href="04-tlb-hardware-inverted-page-tables.html" class="nav-btn">Module 04 &rarr;</a>
-    </nav>
-
-    <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 03 &bull; COSC240</span>
-      <h1>Virtual Memory &amp; Paging Architectures</h1>
-      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Examine the hardware and software architecture of virtual memory: address decomposition, Memory Management Unit (MMU) operation, Page Table Entry bitfields, and multi-level hierarchical paging structures.
-      </p>
-
-      <h3>1. Decoupling Virtual &amp; Physical Memory</h3>
+EXPANDED_MULTILEVEL_SECTION = r"""      <h3>4. Multi-Level Hierarchical Page Tables</h3>
       <p>
-        The fundamental limitation of Base and Limit dynamic relocation (Module 01) is that each process must still occupy a <strong>strictly contiguous block</strong> of physical memory. If an application requires 16 MB of RAM, and available memory is fragmented into four separate 4 MB holes, the program cannot run without expensive compaction.
-      </p>
-      <p>
-        Pioneered in 1962 on the University of Manchester Atlas computer, <strong>Virtual Memory via Paging</strong> completely breaks the contiguous allocation constraint:
-      </p>
-      <ul>
-        <li><strong>Virtual Address Space (Pages):</strong> The program's logical memory is divided into fixed-size contiguous chunks called <strong>Pages</strong> (typically 4 KB).</li>
-        <li><strong>Physical Memory (Frames):</strong> Physical RAM is partitioned into identical fixed-size blocks called <strong>Page Frames</strong>.</li>
-        <li><strong>Arbitrary Mapping:</strong> Any virtual page of a process can be placed in <em>any</em> physical frame anywhere in RAM, or held temporarily on disk backing store.</li>
-      </ul>
-      <p>
-        To the executing CPU core, the process appears to inhabit a massive, unbroken, contiguous array of linear addresses ($0 \dots 2^{64}-1$). In reality, the physical frames backing those pages are scattered arbitrarily throughout physical RAM. External fragmentation is completely eliminated.
+        While simple single-level paging successfully eliminates external memory fragmentation, it introduces a severe secondary challenge: <strong>the scaling crisis of page table memory overhead</strong>.
       </p>
 
-      <h3>2. The Mathematical Virtual Address Split</h3>
+      <h4>1. The Linear Page Table Scaling Crisis</h4>
       <p>
-        When the CPU emits a virtual memory address $VA$, the hardware <strong>Memory Management Unit (MMU)</strong> automatically splits the binary address into two distinct components:
+        In a flat (single-level) paging design, the operating system maintains a single monolithic array where every possible virtual page number corresponds to a contiguous slot in physical RAM.
       </p>
-      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 18px; font-family: var(--font-mono); font-size: 0.9rem; margin: 16px 0; text-align: center;">
-        Virtual Address (VA) = [ <span style="color: #38bdf8;">Page Number (p)</span> | <span style="color: #6ee7b7;">Offset (d)</span> ]
-      </div>
-      <p>
-        Let $S = 2^n$ be the page size in bytes. For an $m$-bit virtual address space:
-      </p>
-      <ul>
-        <li>The lower $n$ bits constitute the <strong>Page Offset ($d$)</strong>. The offset designates the exact byte location within the page. Because pages and frames are identical in size, the offset is transferred directly to the physical address without modification.</li>
-        <li>The upper $m - n$ bits constitute the <strong>Virtual Page Number ($p$)</strong>. The page number is used as an index into the process's <strong>Page Table</strong> to discover which physical frame holds that page.</li>
-      </ul>
 
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">Bitwise Address Translation Formulas:</strong>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--danger);">
+        <strong style="color: var(--danger);">The 32-Bit Linear Table Footprint:</strong>
         <br><br>
-        $$ p = \lfloor VA / 2^n \rfloor = VA \gg n $$
-        $$ d = VA \bmod 2^n = VA \ \& \ (2^n - 1) $$
-        $$ \text{Physical Address (PA)} = (f \times 2^n) + d = (f \ll n) \mid d $$
+        On a 32-bit processor ($2^{32}\text{ bytes} = 4\text{ GB}$ address space) with 4 KB ($2^{12}\text{ bytes}$) pages:
+        $$ \text{Total Virtual Pages} = \frac{2^{32}}{2^{12}} = 2^{20} = 1{,}048{,}576\text{ pages} $$
+        $$ \text{Page Table Size} = 2^{20}\text{ entries} \times 4\text{ bytes per PTE} = 4\text{ MB per process} $$
         <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
-          Where $f = \text{PageTable}[p].\text{FrameNumber}$ is the physical frame retrieved from the Page Table.
+          If a system runs $100$ concurrent processes, $400\text{ MB}$ of physical RAM is consumed solely by page table metadata. Crucially, each 4 MB table must be stored in <strong>strictly contiguous physical memory</strong> so the MMU can perform simple array index lookups ($Base + p \times 4$), re-introducing the contiguous allocation problem.
         </p>
       </div>
 
-      <h4>Concrete 32-bit Architecture Example</h4>
-      <p>
-        Consider a 32-bit system with standard 4 KB ($2^{12}\text{ bytes}$) pages:
-      </p>
-      <ul>
-        <li>Page size $S = 4096 \implies n = 12\text{ bits}$ for the Offset.</li>
-        <li>Virtual address width $m = 32 \implies 32 - 12 = 20\text{ bits}$ for the Virtual Page Number ($p$).</li>
-        <li>Virtual space accommodates $2^{20} = 1{,}048{,}576$ pages.</li>
-      </ul>
-      <p>
-        If the CPU references virtual address <code>0x0000840C</code>:
-      </p>
-      <pre><code>Virtual Address:  0x0000840C
-Binary:           0000 0000 0000 0000 1000 | 0100 0000 1100
-                  \______________________/   \____________/
-                   Page Number p = 8 (0x8)     Offset d = 0x40C (1036)</code></pre>
-      <p>
-        The MMU looks up index $8$ in the Page Table. If entry $8$ contains Frame Number $f = 2$ (<code>0x00002</code>), the Physical Address is formed by concatenating $f$ and $d$:
-        $$ \text{PA} = (0\text{x}00002 \ll 12) \mid 0\text{x}40C = 0\text{x}0000240C $$
-
-      <!-- ================================================================= -->
-      <!-- INTERACTIVE PEDAGOGICAL AID: MMU ADDRESS TRANSLATION STEPPER     -->
-      <!-- ================================================================= -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Walkthrough: Hardware MMU Paging Translation</div>
-        <div class="aid-subtitle">Step through how the Memory Management Unit extracts $(p, d)$, queries the Page Table Entry, checks permission flags, and forms the physical memory address.</div>
-
-        <div class="aid-grid">
-          <div class="controls-panel">
-            <div class="preview-box" id="pt-preview-text">
-              <strong>Step 1: Virtual Address Issued.</strong> CPU pipeline issues virtual address <code>0x000021A4</code> for an operand read instruction.
-            </div>
-
-            <div class="stepper-btns">
-              <button class="step-btn" id="pt-prev-btn" onclick="changePtStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="pt-next-btn" onclick="changePtStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetPtStepper()" style="background:#64748b;">Reset</button>
-            </div>
-
-            <div class="telemetry-bar" id="pt-telemetry-bar">
-              <div><strong>Phase:</strong> <span id="pt-tel-phase" style="color: #38bdf8;">1/4</span></div>
-              <div><strong>VA:</strong> <span id="pt-tel-va">0x000021A4</span></div>
-              <div><strong>Page/Offset:</strong> <span id="pt-tel-pd">p=2, d=0x1A4</span></div>
-              <div><strong>Status:</strong> <span id="pt-tel-status" style="color: #4ade80; font-weight: 700;">Valid (P=1)</span></div>
-            </div>
-
-            <div class="toggle-bar">
-              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">PTE STATE:</span>
-              <button class="toggle-btn active" id="pt-btn-valid" onclick="setPtMode('valid')">Valid (P=1)</button>
-              <button class="toggle-btn" id="pt-btn-fault" onclick="setPtMode('fault')">Page Fault (P=0)</button>
-            </div>
-          </div>
-
-          <div class="visual-canvas">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; MMU Address Bus &amp; Translation</div>
-
-            <!-- MMU Translation Diagram -->
-            <svg viewBox="0 0 320 200" style="width: 100%; height: 100%; min-height: 200px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
-              <!-- Virtual Address Register Split -->
-              <rect x="15" y="20" width="70" height="24" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
-              <text x="50" y="35" fill="#0369a1" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">p = 2</text>
-              <rect x="85" y="20" width="55" height="24" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" />
-              <text x="112" y="35" fill="#15803d" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">d = 1A4</text>
-              <text x="75" y="14" fill="#64748b" font-size="7" font-weight="bold" text-anchor="middle">VIRTUAL ADDRESS</text>
-
-              <!-- Arrow: p down to Page Table -->
-              <path id="pt-arrow-p" d="M 50 44 L 50 80 L 140 80" fill="none" stroke="#0284c7" stroke-width="1.5" marker-end="url(#pt-mkr)" />
-
-              <!-- Page Table (Center) -->
-              <rect x="140" y="40" width="75" height="90" rx="3" fill="#ffffff" stroke="#334155" stroke-width="1.5" />
-              <text x="177" y="32" fill="#64748b" font-size="7" font-weight="bold" text-anchor="middle">PAGE TABLE</text>
-              <!-- Rows -->
-              <rect x="142" y="44" width="71" height="14" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="177" y="54" fill="#94a3b8" font-size="7" font-family="monospace" text-anchor="middle">PTE 0: f=5 P=1</text>
-              <rect x="142" y="60" width="71" height="14" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="177" y="70" fill="#94a3b8" font-size="7" font-family="monospace" text-anchor="middle">PTE 1: f=8 P=1</text>
-              <!-- Target Row (PTE 2) -->
-              <rect id="pt-row-target" x="142" y="76" width="71" height="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
-              <text id="pt-txt-pte" x="177" y="88" fill="#0369a1" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">PTE 2: f=7 P=1</text>
-              <rect x="142" y="94" width="71" height="14" fill="#f8fafc" stroke="#e2e8f0" />
-              <text x="177" y="104" fill="#94a3b8" font-size="7" font-family="monospace" text-anchor="middle">PTE 3: f=0 P=0</text>
-
-              <!-- Arrow: Offset bypasses Page Table -->
-              <path d="M 112 44 L 112 165 L 235 165" fill="none" stroke="#16a34a" stroke-width="1.5" />
-
-              <!-- Physical Address Register Assembly -->
-              <rect id="pt-box-f" x="235" y="140" width="45" height="24" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
-              <text id="pt-txt-f" x="257" y="155" fill="#0369a1" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">f = 7</text>
-              <rect x="280" y="140" width="35" height="24" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" />
-              <text x="297" y="155" fill="#15803d" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">1A4</text>
-              <text x="277" y="132" fill="#64748b" font-size="7" font-weight="bold" text-anchor="middle">PHYSICAL ADDR</text>
-
-              <!-- Page Fault Box (Hidden by default) -->
-              <g id="pt-fault-box" opacity="0">
-                <rect x="140" y="140" width="80" height="25" rx="3" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" />
-                <text x="180" y="156" fill="#dc2626" font-size="7.5" font-weight="bold" text-anchor="middle">PAGE FAULT TRAP</text>
-              </g>
-            </svg>
-
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="pt-canvas-banner">
-              MMU Translation: <strong>Ready to step</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="panes-grid">
-          <div class="pane-box" style="border-left: 3px solid var(--success);">
-            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
-            <div id="pt-pane-what" style="color: var(--text);">CPU issues virtual address 0x000021A4. MMU extracts page number p=2 and offset d=0x1A4.</div>
-          </div>
-          <div class="pane-box" style="border-left: 3px solid var(--accent);">
-            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
-            <div id="pt-pane-why" style="color: var(--text);">Address decomposition allows contiguous virtual bytes to map into non-contiguous physical RAM frames.</div>
-          </div>
-        </div>
-      </div>
-
-      <h3>3. Anatomy of a Page Table Entry (PTE)</h3>
-      <p>
-        The Page Table is not merely an array of frame numbers; each <strong>Page Table Entry (PTE)</strong> contains critical hardware status and protection bitfields:
-      </p>
-
-      <!-- Bitfield Diagram -->
-      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 0.82rem; overflow-x: auto; margin: 16px 0;">
-        <div style="display: flex; gap: 4px; min-width: 600px; text-align: center;">
-          <div style="flex: 3; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #38bdf8; font-weight: bold;">Page Frame Number (PFN)</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Bits 31–12 (20 bits)</div>
-          </div>
-          <div style="flex: 1; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #fbbf24; font-weight: bold;">Flags / Unused</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Bits 11–9</div>
-          </div>
-          <div style="flex: 0.8; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #e2e8f0; font-weight: bold;">G</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Global</div>
-          </div>
-          <div style="flex: 0.8; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #e2e8f0; font-weight: bold;">D</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Dirty</div>
-          </div>
-          <div style="flex: 0.8; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #e2e8f0; font-weight: bold;">A</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Access</div>
-          </div>
-          <div style="flex: 0.8; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #e2e8f0; font-weight: bold;">U/S</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Privilege</div>
-          </div>
-          <div style="flex: 0.8; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #e2e8f0; font-weight: bold;">R/W</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Read/Write</div>
-          </div>
-          <div style="flex: 0.8; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #334155;">
-            <div style="color: #f43f5e; font-weight: bold;">P</div>
-            <div style="color: #94a3b8; font-size: 0.72rem;">Present</div>
-          </div>
-        </div>
-      </div>
-
-      <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.88rem;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Bit Field</th>
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Name</th>
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Hardware Function &amp; Purpose</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: bold; font-family: var(--font-mono);">Present (P / Valid)</td>
-            <td style="padding: 10px;">Bit 0</td>
-            <td style="padding: 10px;"><code>1</code> if page is resident in physical RAM. <code>0</code> if page is unmapped or on disk; accessing triggers an immediate <strong>Page Fault</strong>.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: bold; font-family: var(--font-mono);">Read/Write (R/W)</td>
-            <td style="padding: 10px;">Bit 1</td>
-            <td style="padding: 10px;"><code>0</code> = Read-Only (attempting to write triggers a protection fault). <code>1</code> = Read-Write. Used for code segment protection.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: bold; font-family: var(--font-mono);">User/Supervisor (U/S)</td>
-            <td style="padding: 10px;">Bit 2</td>
-            <td style="padding: 10px;"><code>0</code> = Kernel mode only (Ring 0). <code>1</code> = User space accessible (Ring 3). Prevents user code from touching kernel memory.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: bold; font-family: var(--font-mono);">Accessed (A / Ref)</td>
-            <td style="padding: 10px;">Bit 5</td>
-            <td style="padding: 10px;">Set to <code>1</code> by the hardware MMU on any read or write. Inspected by page replacement algorithms (such as Clock or LRU aging).</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: bold; font-family: var(--font-mono);">Dirty (D / Modified)</td>
-            <td style="padding: 10px;">Bit 6</td>
-            <td style="padding: 10px;">Set to <code>1</code> by the hardware MMU whenever a write occurs. When evicting the page, the OS knows it must write it back to disk.</td>
-          </tr>
-          <tr>
-            <td style="padding: 10px; font-weight: bold; font-family: var(--font-mono);">Page Frame Number</td>
-            <td style="padding: 10px;">Bits 31–12</td>
-            <td style="padding: 10px;">The upper physical address bits representing the physical RAM frame holding the page data.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>4. Multi-Level Hierarchical Page Tables</h3>
-      <p>
-        In a simple linear page table design, the entire page table must reside continuously in physical RAM. On a 32-bit architecture with 4 KB pages:
-        $$ 2^{20} \text{ entries} \times 4\text{ bytes per PTE} = 4\text{ MB per process} $$
-        If the OS runs 100 processes, 400 MB of physical RAM is consumed solely by page tables.
-      </p>
-      <p>
-        On a <strong>64-bit architecture</strong>, a flat linear page table is physically impossible:
-        $$ 2^{52} \text{ pages} \times 8\text{ bytes per PTE} \approx 33{,}554{,}432\text{ GB per process!} $$
-      </p>
-
-      <h4>The Hierarchical Solution</h4>
-      <p>
-        Real-world process address spaces are heavily <strong>sparse</strong>: an application typically uses a small code region at low memory, a small heap above it, and a small stack growing down from high memory. Gigabytes of address space in between are completely unmapped.
-      </p>
-      <p>
-        <strong>Multi-Level Page Tables</strong> solve the scaling dilemma by paging the page table itself:
-      </p>
-      <ul>
-        <li>Level 1 (Top Level / Page Directory): Contains pointers to Level 2 page tables.</li>
-        <li>Level 2: Contains pointers to actual physical page frames.</li>
-        <li><strong>Sparsity Benefit:</strong> If an entire region of virtual memory is unmapped, its top-level entry is marked Present = 0. <em>The underlying Level 2 page tables never need to be allocated in physical RAM.</em></li>
-      </ul>
-
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">x86-64 4-Level Paging Architecture:</strong>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--danger);">
+        <strong style="color: var(--danger);">The 64-Bit Mathematical Impossibility:</strong>
         <br><br>
-        x86-64 architectures implement 48-bit canonical virtual addressing using 4 hierarchical levels with 9 bits each, plus a 12-bit offset ($9 + 9 + 9 + 9 + 12 = 48\text{ bits}$):
-        $$ VA = [ \text{PML4 (9b)} \mid \text{PDPT (9b)} \mid \text{PD (9b)} \mid \text{PT (9b)} \mid \text{Offset (12b)} ] $$
+        On modern 64-bit architectures ($2^{64}\text{ bytes}$ address space) with 4 KB pages and 8-byte PTEs:
+        $$ \text{Total Virtual Pages} = \frac{2^{64}}{2^{12}} = 2^{52} \approx 4.5 \times 10^{15}\text{ pages} $$
+        $$ \text{Page Table Size} = 2^{52}\text{ entries} \times 8\text{ bytes} = 2^{55}\text{ bytes} = 33{,}554{,}432\text{ GB} = 33{,}554\text{ TB} \approx 33\text{ Petabytes!} $$
         <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
-          CR3 register &rarr; PML4 &rarr; Page Directory Pointer Table &rarr; Page Directory &rarr; Page Table &rarr; Physical Frame.
+          Allocating a flat page table for a single 64-bit process would require millions of times more RAM than exists on entire enterprise servers.
+        </p>
+      </div>
+
+      <h4>2. The Principle of Address Space Sparsity</h4>
+      <p>
+        The reason flat linear page tables are so catastrophically wasteful is that real-world programs exhibit extreme <strong>address space sparsity</strong>.
+      </p>
+      <p>
+        A typical user application does not populate 4 GB or 16 Exabytes of memory continuously. Instead, its virtual layout consists of three small, isolated clusters:
+      </p>
+      <ul>
+        <li><strong>Text &amp; Data Segments:</strong> A few megabytes mapped at low virtual memory.</li>
+        <li><strong>Heap:</strong> Begins just above data and grows dynamically upward.</li>
+        <li><strong>User Stack:</strong> Begins at high virtual memory and grows dynamically downward.</li>
+      </ul>
+      <p>
+        The vast chasm between the top of the heap and the bottom of the stack—often spanning hundreds of gigabytes or terabytes—is completely empty and unmapped. A flat page table wastes over $99.9\%$ of its entries storing invalid PTEs ($P = 0$) for memory addresses the program never touches.
+      </p>
+
+      <h4>3. Two-Level Hierarchical Paging (32-Bit Systems)</h4>
+      <p>
+        To eliminate the storage overhead of unmapped address space, modern operating systems <strong>page the page table itself</strong>. In a two-level hierarchical paging scheme, the monolithic page table is broken into thousands of distinct 4 KB pages, coordinated by a top-level table called the <strong>Page Directory</strong>.
+      </p>
+
+      <h5>Address Bit Decomposition (10-10-12 Scheme)</h5>
+      <p>
+        A 32-bit virtual address is partitioned into three discrete fields:
+      </p>
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 18px; font-family: var(--font-mono); font-size: 0.88rem; margin: 16px 0; text-align: center;">
+        Virtual Address (32b) = [ <span style="color: #38bdf8;">PDI (10 bits)</span> | <span style="color: #fbbf24;">PTI (10 bits)</span> | <span style="color: #6ee7b7;">Offset d (12 bits)</span> ]
+      </div>
+      <ul>
+        <li>
+          <strong>Page Directory Index (PDI, bits 31–22, 10 bits):</strong> Selects one of $2^{10} = 1024$ entries in the Page Directory. Each Page Directory Entry (PDE) contains the physical base frame of a second-level Page Table.
+        </li>
+        <li>
+          <strong>Page Table Index (PTI, bits 21–12, 10 bits):</strong> Selects one of $2^{10} = 1024$ entries within the designated second-level Page Table. Each Page Table Entry (PTE) contains the physical frame number ($f$) of the actual data page in RAM.
+        </li>
+        <li>
+          <strong>Byte Offset ($d$, bits 11–0, 12 bits):</strong> Addresses the specific byte within the 4 KB page ($2^{12} = 4096\text{ bytes}$).
+        </li>
+      </ul>
+
+      <h5>How Hierarchical Paging Saves Memory</h5>
+      <p>
+        The architectural brilliance of multi-level paging lies in conditional allocation:
+      </p>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Conditional Sub-Tree Pruning:</strong>
+        <br><br>
+        If a $4\text{ MB}$ region of virtual memory contains no allocated pages, the corresponding Page Directory Entry is marked $\text{Present} = 0$.
+        $$ \text{PDE.Present} = 0 \implies \text{Second-Level Page Table is NOT Allocated in RAM} $$
+      </div>
+      <p>
+        Consider a minimal 32-bit program requiring only $12\text{ KB}$ of memory (one 4 KB page for code, one for data, one for stack):
+      </p>
+      <ul>
+        <li><strong>Page Directory:</strong> Exactly one 4 KB frame ($1024\text{ entries} \times 4\text{ bytes} = 4\text{ KB}$). Always resident.</li>
+        <li><strong>Low Memory Page Table:</strong> One 4 KB frame covering code and data (maps $0 \dots 4\text{ MB}$).</li>
+        <li><strong>High Memory Page Table:</strong> One 4 KB frame covering the stack (maps top $4\text{ MB}$).</li>
+        <li><strong>Remaining 1022 Page Tables:</strong> Never allocated! Marked $P = 0$ in the directory.</li>
+      </ul>
+      <p>
+        Total memory consumed for page tables: $4\text{ KB} + 4\text{ KB} + 4\text{ KB} = \mathbf{12\text{ KB}}$, compared to $4096\text{ KB}$ ($4\text{ MB}$) for a flat table—a <strong>$99.7\%$ memory savings</strong>!
+      </p>
+
+      <h4>4. x86-64 4-Level Paging Architecture (IA-32e / Long Mode)</h4>
+      <p>
+        On modern 64-bit x86-64 processors, the hierarchical paging model is extended to four discrete levels. While pointers in x86-64 are 64 bits wide, current processor hardware implements a <strong>48-bit canonical virtual address space</strong> (capable of addressing 256 Terabytes).
+      </p>
+
+      <h5>Canonical Address Sign Extension</h5>
+      <p>
+        In a 48-bit virtual address, bits 47 through 0 define the address space, while bits 63 through 48 must be an identical copy of bit 47 (sign-extension rule):
+      </p>
+      <ul>
+        <li><strong>User Space (Bit 47 = 0):</strong> Canonical range from <code>0x0000_0000_0000_0000</code> to <code>0x0000_7FFF_FFFF_FFFF</code> (lower 128 TB).</li>
+        <li><strong>Kernel Space (Bit 47 = 1):</strong> Canonical range from <code>0xFFFF_8000_0000_0000</code> to <code>0xFFFF_FFFF_FFFF_FFFF</code> (upper 128 TB).</li>
+        <li><strong>Non-Canonical Hole:</strong> Any address with mismatched upper bits generates a General Protection Fault (<code>#GP</code>).</li>
+      </ul>
+
+      <h5>The 9-9-9-9-12 Bit Decomposition</h5>
+      <p>
+        Because each Page Table Entry in 64-bit mode is 8 bytes wide, a single 4 KB page frame holds exactly $4096 / 8 = 512 = 2^9$ entries. Consequently, every level of the hierarchy indexes exactly <strong>9 bits</strong>:
+      </p>
+
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 18px; font-family: var(--font-mono); font-size: 0.85rem; margin: 16px 0; overflow-x: auto;">
+        <div style="display: flex; gap: 6px; min-width: 650px; text-align: center;">
+          <div style="flex: 1.2; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #38bdf8;">
+            <div style="color: #38bdf8; font-weight: bold;">PML4</div>
+            <div style="color: #94a3b8; font-size: 0.72rem;">Bits 47–39 (9b)</div>
+            <div style="color: #e2e8f0; font-size: 0.72rem;">512 entries (512 GB each)</div>
+          </div>
+          <div style="flex: 1.2; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #818cf8;">
+            <div style="color: #818cf8; font-weight: bold;">PDPT</div>
+            <div style="color: #94a3b8; font-size: 0.72rem;">Bits 38–30 (9b)</div>
+            <div style="color: #e2e8f0; font-size: 0.72rem;">512 entries (1 GB each)</div>
+          </div>
+          <div style="flex: 1.2; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #fbbf24;">
+            <div style="color: #fbbf24; font-weight: bold;">PD</div>
+            <div style="color: #94a3b8; font-size: 0.72rem;">Bits 29–21 (9b)</div>
+            <div style="color: #e2e8f0; font-size: 0.72rem;">512 entries (2 MB each)</div>
+          </div>
+          <div style="flex: 1.2; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #34d399;">
+            <div style="color: #34d399; font-weight: bold;">PT</div>
+            <div style="color: #94a3b8; font-size: 0.72rem;">Bits 20–12 (9b)</div>
+            <div style="color: #e2e8f0; font-size: 0.72rem;">512 entries (4 KB each)</div>
+          </div>
+          <div style="flex: 1; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #f43f5e;">
+            <div style="color: #f43f5e; font-weight: bold;">Offset</div>
+            <div style="color: #94a3b8; font-size: 0.72rem;">Bits 11–0 (12b)</div>
+            <div style="color: #e2e8f0; font-size: 0.72rem;">4096 bytes</div>
+          </div>
+        </div>
+      </div>
+
+      <h5>The Hardware Table Walk Sequence</h5>
+      <p>
+        The CPU control register <strong><code>CR3</code></strong> stores the physical base address of the active process's root PML4 table. When translating address $VA$, the hardware MMU executes the following sequential steps:
+      </p>
+      <ol style="font-size: 0.92rem; line-height: 1.7;">
+        <li>
+          <strong>PML4 Lookup:</strong> Load entry at physical address $\text{CR3} + (\text{PML4\_Index} \times 8)$. If $P = 0$, raise Page Fault. Extract base address of PDPT.
+        </li>
+        <li>
+          <strong>PDPT Lookup:</strong> Load entry at physical address $\text{PDPT\_Base} + (\text{PDPT\_Index} \times 8)$. If $P = 0$, raise Page Fault. Extract base address of PD.
+        </li>
+        <li>
+          <strong>PD Lookup:</strong> Load entry at physical address $\text{PD\_Base} + (\text{PD\_Index} \times 8)$. If $P = 0$, raise Page Fault. Extract base address of PT.
+        </li>
+        <li>
+          <strong>PT Lookup:</strong> Load entry at physical address $\text{PT\_Base} + (\text{PT\_Index} \times 8)$. If $P = 0$, raise Page Fault. Extract Physical Frame Number ($f$).
+        </li>
+        <li>
+          <strong>Physical Address Assembly:</strong> Compute final physical address $\text{PA} = (f \ll 12) \mid \text{Offset}$.
+        </li>
+      </ol>
+
+      <h4>5. Large Pages &amp; Huge Pages (Page Size Extensions)</h4>
+      <p>
+        Traversing four levels of page tables adds significant overhead. For database engines, virtual machine hypervisors (KVM), and scientific simulations with massive memory footprints, standard 4 KB pages cause severe TLB cache thrashing.
+      </p>
+      <p>
+        Modern processors allow the MMU to terminate the tree walk early by setting the <strong>Page Size (PS) bit</strong> (bit 7) in intermediate table entries:
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">2 MB Huge Pages (x86-64)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            By setting the <strong>PS bit</strong> in a Page Directory (PD) entry, the PD entry points directly to a contiguous <strong>2 MB physical frame</strong>, completely bypassing the fourth-level Page Table (PT).
+          </p>
+          <div class="math-callout" style="margin: 10px 0 0 0; padding: 10px; font-size: 0.82rem;">
+            Offset expands from 12 bits to 21 bits ($2^{21} = 2\text{ MB}$).
+            <br>
+            Virtual Address: 9b PML4 + 9b PDPT + 9b PD + 21b Offset.
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+            A single TLB entry now maps 2 MB instead of 4 KB ($512\times$ greater cache coverage).
+          </p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
+          <strong style="color: var(--primary); font-size: 0.98rem;">1 GB Giant Pages (x86-64)</strong>
+          <p style="font-size: 0.86rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
+            By setting the <strong>PS bit</strong> in a Page Directory Pointer Table (PDPT) entry, the entry points directly to a contiguous <strong>1 GB physical frame</strong>, bypassing both the PD and PT levels.
+          </p>
+          <div class="math-callout" style="margin: 10px 0 0 0; padding: 10px; font-size: 0.82rem;">
+            Offset expands from 12 bits to 30 bits ($2^{30} = 1\text{ GB}$).
+            <br>
+            Virtual Address: 9b PML4 + 9b PDPT + 30b Offset.
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">
+            Enables hypervisors to map hundreds of gigabytes of guest physical memory with negligible TLB misses.
+          </p>
+        </div>
+      </div>
+
+      <h4>6. Modern Scaling: 5-Level Paging (Paging57)</h4>
+      <p>
+        With high-performance cloud servers deploying hundreds of terabytes of physical memory, the 48-bit canonical limit (256 TB virtual space) has become an architectural bottleneck.
+      </p>
+      <p>
+        Modern processors (Intel Ice Lake and newer, AMD Zen 4) introduce <strong>5-Level Paging (Paging57)</strong>:
+      </p>
+      <ul>
+        <li>Expands the canonical virtual address from 48 bits to <strong>57 bits</strong> ($2^{57} = 128\text{ Petabytes}$).</li>
+        <li>Introduces a fifth root level called <strong>PML5</strong> (bits 56–48, 9 bits).</li>
+        <li>The full tree walk requires <strong>5 sequential memory accesses</strong>: PML5 &rarr; PML4 &rarr; PDPT &rarr; PD &rarr; PT &rarr; Physical Data.</li>
+      </ul>
+
+      <h4>7. The Memory Amplification Penalty &amp; The TLB Imperative</h4>
+      <p>
+        Hierarchical paging brilliantly solves the memory storage scaling crisis, but it introduces a severe hardware performance bottleneck:
+      </p>
+
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--danger);">
+        <strong style="color: var(--danger);">The Memory Amplification Penalty:</strong>
+        <br><br>
+        In a 4-level paging system, fetching a single 8-byte variable from RAM requires:
+        $$ 4 \text{ (Page Table Traversal Reads)} + 1 \text{ (Actual Data Read)} = \mathbf{5 \text{ Memory Access Cycles}} $$
+        <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
+          If a physical RAM access takes 50 nanoseconds, a simple memory read would take $250\text{ ns}$—a catastrophic <strong>$400\%$ hardware slowdown</strong> on every memory instruction.
         </p>
       </div>
 
       <p>
-        <strong>The Latency Penalty:</strong> While multi-level page tables solve the memory footprint crisis, translating a single virtual address in x86-64 requires <strong>four sequential physical memory reads</strong> before accessing the actual data! To avoid a $400\%$ memory bus slowdown, hardware incorporates a high-speed cache: the <strong>Translation Lookaside Buffer (TLB)</strong>, explored in Module 04.
-      </p>
-    </div>
+        Without specialized hardware caching, modern multi-level virtual memory would be unacceptably slow. In <strong>Module 04</strong>, we examine the critical hardware component that restores near-zero-latency translation: the <strong>Translation Lookaside Buffer (TLB)</strong>.
+      </p>"""
 
-    <nav class="nav-bar">
-      <a href="02-dynamic-partitioning-free-lists.html" class="nav-btn">&larr; Module 02</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 7 Hub</a>
-      <a href="04-tlb-hardware-inverted-page-tables.html" class="nav-btn">Module 04 &rarr;</a>
-    </nav>
-  </div>
+def update_multilevel_section():
+    if not os.path.exists(TARGET_FILE):
+        print(f"Error: {TARGET_FILE} not found.")
+        return False
 
-  <script>
-    let ptStep = 1;
-    const ptTotalSteps = 4;
-    let ptMode = 'valid';
+    with open(TARGET_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
 
-    const ptValidData = [
-      {
-        preview: "<strong>Step 1: Virtual Address Issued.</strong> CPU issues virtual address <code>0x000021A4</code>. MMU splits into Page Number $p=2$ and Offset $d=\\text{0x1A4}$.",
-        phase: "1/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "Address Emitted", statusColor: "#38bdf8",
-        what: "MMU extracts bits 31-12 to obtain page index 2. Bits 11-0 (0x1A4) are preserved as offset.",
-        why: "Address decomposition cleanly isolates physical location lookup from byte offset indexing.",
-        banner: "Address Split: <strong>p = 2 (Upper 20b), d = 0x1A4 (Lower 12b)</strong>",
-        targetPteText: "PTE 2: f=7 P=1", targetPteFill: "#e0f2fe", targetPteStroke: "#0284c7",
-        fText: "f = 7", fFill: "#e0f2fe", fStroke: "#0284c7", faultOpacity: 0
-      },
-      {
-        preview: "<strong>Step 2: Index Page Table.</strong> MMU reads entry at index $p=2$. Retrieves PTE: Frame $f=7$, Present bit $P=1$, Read/Write $R/W=1$.",
-        phase: "2/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "PTE Queried", statusColor: "#38bdf8",
-        what: "MMU hardware loads Page Table Entry 2. Evaluates Present bit (P=1) and permissions.",
-        why: "Validates that the target virtual page currently resides in physical RAM before asserting address bus.",
-        banner: "PTE Read: <strong>Frame f=7 found in physical RAM (Present=1)</strong>",
-        targetPteText: "PTE 2: f=7 P=1", targetPteFill: "#fef3c7", targetPteStroke: "#d97706",
-        fText: "f = 7", fFill: "#e0f2fe", fStroke: "#0284c7", faultOpacity: 0
-      },
-      {
-        preview: "<strong>Step 3: Concatenate Physical Address.</strong> MMU combines Frame Number ($f=7$) with original Offset ($d=\\text{0x1A4}$) to form Physical Address <code>0x000071A4</code>.",
-        phase: "3/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "PA Assembled", statusColor: "#4ade80",
-        what: "MMU executes bitwise shift: (7 &lt;&lt; 12) | 0x1A4 = 0x000071A4.",
-        why: "Hardware translation occurs invisibly to the running application without software intervention.",
-        banner: "Translation: <strong>Physical Address 0x000071A4 Assembled</strong>",
-        targetPteText: "PTE 2: f=7 P=1", targetPteFill: "#dcfce7", targetPteStroke: "#16a34a",
-        fText: "f = 7", fFill: "#dcfce7", fStroke: "#16a34a", faultOpacity: 0
-      },
-      {
-        preview: "<strong>Step 4: RAM Access Complete.</strong> Physical address <code>0x000071A4</code> is asserted on external memory bus. Data operand read succeeds.",
-        phase: "4/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "Access Success", statusColor: "#16a34a",
-        what: "Physical RAM responds at byte offset 0x1A4 within frame 7. Data loaded into CPU register.",
-        why: "Full virtual memory isolation achieved without requiring contiguous allocation.",
-        banner: "Complete: <strong>RAM Memory Bus Fetch at 0x000071A4 Succeeded</strong>",
-        targetPteText: "PTE 2: f=7 P=1", targetPteFill: "#dcfce7", targetPteStroke: "#16a34a",
-        fText: "f = 7", fFill: "#dcfce7", fStroke: "#16a34a", faultOpacity: 0
-      }
-    ];
+    start_marker = "      <h3>4. Multi-Level Hierarchical Page Tables</h3>"
+    end_marker = "</div>\n\n    <nav class=\"nav-bar\">"
 
-    const ptFaultData = [
-      {
-        preview: "<strong>Step 1: Virtual Address Issued.</strong> CPU issues virtual address <code>0x000021A4</code> ($p=2, d=\\text{0x1A4}$).",
-        phase: "1/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "Address Emitted", statusColor: "#38bdf8",
-        what: "MMU extracts page number p=2 from virtual address stream.",
-        why: "Hardware cannot know whether a page is resident until the PTE is loaded from RAM.",
-        banner: "Address Split: <strong>p = 2 (Upper 20b), d = 0x1A4 (Lower 12b)</strong>",
-        targetPteText: "PTE 2: f=? P=0", targetPteFill: "#e0f2fe", targetPteStroke: "#0284c7",
-        fText: "f = ?", fFill: "#f1f5f9", fStroke: "#cbd5e1", faultOpacity: 0
-      },
-      {
-        preview: "<strong>Step 2: Present Bit Zero Detected.</strong> MMU reads PTE 2 and finds Present bit $P=0$. The page is not resident in physical RAM!",
-        phase: "2/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "MISSING (P=0)", statusColor: "#dc2626",
-        what: "MMU inspects bit 0: Present = 0. Hardware aborts physical address generation.",
-        why: "Page is either swapped to disk backing store or has not yet been allocated (demand paging).",
-        banner: "Hazard: <strong>PTE Present bit is 0 &mdash; Page Not in RAM</strong>",
-        targetPteText: "PTE 2: f=? P=0", targetPteFill: "#fee2e2", targetPteStroke: "#dc2626",
-        fText: "ABORT", fFill: "#fee2e2", fStroke: "#dc2626", faultOpacity: 1
-      },
-      {
-        preview: "<strong>Step 3: Hardware Page Fault Trap.</strong> CPU halts execution of the instruction and raises Exception 14 (Page Fault Trap).",
-        phase: "3/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "PAGE FAULT", statusColor: "#dc2626",
-        what: "CPU saves context, places faulting address 0x000021A4 into CR2 register, and jumps to kernel ISR.",
-        why: "Delegates resolution to operating system kernel page fault handler.",
-        banner: "Trap Raised: <strong>CPU switches to Kernel Mode (Page Fault ISR)</strong>",
-        targetPteText: "PTE 2: f=? P=0", targetPteFill: "#fee2e2", targetPteStroke: "#dc2626",
-        fText: "TRAP", fFill: "#fee2e2", fStroke: "#dc2626", faultOpacity: 1
-      },
-      {
-        preview: "<strong>Step 4: Demand Paging I/O.</strong> OS allocates free frame, issues disk read to fetch page from swap, updates PTE ($P=1$), and restarts instruction.",
-        phase: "4/4", va: "0x000021A4", pd: "p=2, d=0x1A4", status: "Fault Handled", statusColor: "#d97706",
-        what: "Kernel reads page from swap disk, maps frame into PTE 2, sets Present=1, and resumes process.",
-        why: "Virtual memory allows programs larger than physical RAM to execute transparently via demand paging.",
-        banner: "Recovery: <strong>Page swapped in from disk &mdash; Instruction restarted</strong>",
-        targetPteText: "PTE 2: f=7 P=1", targetPteFill: "#dcfce7", targetPteStroke: "#16a34a",
-        fText: "f = 7", fFill: "#dcfce7", fStroke: "#16a34a", faultOpacity: 0
-      }
-    ];
+    start_idx = content.find(start_marker)
+    end_idx = content.find(end_marker, start_idx)
 
-    function changePtStep(dir) {
-      ptStep += dir;
-      if (ptStep < 1) ptStep = 1;
-      if (ptStep > ptTotalSteps) ptStep = ptTotalSteps;
-      updatePtUI();
-    }
+    if start_idx == -1 or end_idx == -1:
+        print("Error: Could not locate Section 4 boundaries in Module 03.")
+        return False
 
-    function resetPtStepper() {
-      ptStep = 1;
-      updatePtUI();
-    }
+    updated_content = content[:start_idx] + EXPANDED_MULTILEVEL_SECTION + "\n    " + content[end_idx:]
 
-    function setPtMode(mode) {
-      ptMode = mode;
-      document.getElementById('pt-btn-valid').className = (mode === 'valid') ? 'toggle-btn active' : 'toggle-btn';
-      document.getElementById('pt-btn-fault').className = (mode === 'fault') ? 'toggle-btn active' : 'toggle-btn';
-      document.getElementById('pt-btn-valid').style.background = (mode === 'valid') ? '#e0f2fe' : '#f1f5f9';
-      document.getElementById('pt-btn-fault').style.background = (mode === 'fault') ? '#e0f2fe' : '#f1f5f9';
-      ptStep = 1;
-      updatePtUI();
-    }
-
-    function updatePtUI() {
-      const dataset = (ptMode === 'valid') ? ptValidData : ptFaultData;
-      const data = dataset[ptStep - 1];
-
-      document.getElementById('pt-preview-text').innerHTML = data.preview;
-      document.getElementById('pt-tel-phase').innerText = data.phase;
-      document.getElementById('pt-tel-va').innerText = data.va;
-      document.getElementById('pt-tel-pd').innerText = data.pd;
-
-      const statusEl = document.getElementById('pt-tel-status');
-      statusEl.innerText = data.status;
-      statusEl.style.color = data.statusColor;
-
-      document.getElementById('pt-pane-what').innerHTML = data.what;
-      document.getElementById('pt-pane-why').innerHTML = data.why;
-      document.getElementById('pt-canvas-banner').innerHTML = data.banner;
-
-      // Update SVG visual components
-      const rowTarget = document.getElementById('pt-row-target');
-      const txtPte = document.getElementById('pt-txt-pte');
-      const boxF = document.getElementById('pt-box-f');
-      const txtF = document.getElementById('pt-txt-f');
-      const faultBox = document.getElementById('pt-fault-box');
-
-      rowTarget.setAttribute('fill', data.targetPteFill);
-      rowTarget.setAttribute('stroke', data.targetPteStroke);
-      txtPte.textContent = data.targetPteText;
-
-      boxF.setAttribute('fill', data.fFill);
-      boxF.setAttribute('stroke', data.fStroke);
-      txtF.textContent = data.fText;
-
-      faultBox.setAttribute('opacity', data.faultOpacity);
-
-      document.getElementById('pt-prev-btn').disabled = (ptStep === 1);
-      document.getElementById('pt-next-btn').disabled = (ptStep === ptTotalSteps);
-    }
-  </script>
-</body>
-</html>
-"""
-
-def create_module_three():
-    os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_THREE_CONTENT.strip() + "\n")
-    print(f"--> Successfully created Module 03 at {TARGET_FILE}")
+        f.write(updated_content)
+
+    print(f"--> Successfully expanded Multi-Level Page Tables in {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if create_module_three():
+    if update_multilevel_section():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Create Module 03 on Virtual Memory and Paging Architectures\n\n"
-                "Implement virtual address decomposition, PTE bitfields, multi-level\n"
-                "hierarchical paging, and an interactive MMU address translation stepper."
+                "Deeply expand Multi-Level Hierarchical Page Tables in Week 7 Module 03\n\n"
+                "Add mathematical proofs for 64-bit scaling, 10-10-12 and 9-9-9-9-12 bit\n"
+                "decompositions, 2MB/1GB huge pages, CR3 walks, and 5-level paging."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
