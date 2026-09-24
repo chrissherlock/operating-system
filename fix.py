@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 2 of 03-disk-hardware-scheduling.html
+# fix.py: Deeply expand Section 3 of 03-disk-hardware-scheduling.html
 # =====================================================================
 import os
 import subprocess
@@ -10,274 +10,282 @@ TARGET_FILE = os.path.join(
     "03-disk-hardware-scheduling.html"
 )
 
-EXPANDED_SECTION_TWO = r"""    <h3>2. Modeling I/O Access Latency (<i>T</i><sub>I/O</sub>)</h3>
+EXPANDED_SECTION_THREE_PRE_AID = r"""    <h3>3. Disk Arm Scheduling Algorithms</h3>
     <p>
-      To an operating system kernel, secondary storage operations are enormously expensive compared to register and cache access. Reading a block of data from main DRAM requires tens of nanoseconds, whereas reading a block from a mechanical hard disk requires <strong>millions of nanoseconds</strong>.
+      In a multiprogramming operating system, dozens of processes issue concurrent reads and writes to storage. Because mechanical seek time and rotational delay dwarf electronic transfer speeds by over 500 to 1, the order in which pending disk requests are serviced directly dictates overall system throughput and interactive responsiveness.
     </p>
     <p>
-      To design effective disk scheduling algorithms and filesystem page caches, we must construct a rigorous mathematical latency model decomposed into its physical and electronic sub-components:
+      When an application issues a file read, the operating system block layer enqueues the request into a kernel dispatch queue. The <strong>Disk Arm Scheduler</strong> (or I/O elevator) reorders, merges, and dispatches pending requests to optimize physical head trajectory.
     </p>
 
-    <div class="math-callout" style="text-align: center; font-size: 1.05rem;">
-      <i>T</i><sub>I/O</sub> = <i>T</i><sub>seek</sub> + <i>T</i><sub>rotational</sub> + <i>T</i><sub>transfer</sub> + <i>T</i><sub>controller</sub>
-    </div>
-
-    <!-- Structural Diagram: Time-Domain Latency Timeline -->
+    <!-- Structural Diagram: Trajectory Profiles across Schedulers -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.2: Time-Domain Decomposition of a Random 4 KB Disk Read Operation (~10.2 ms)</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Visualizing how mechanical arm movement and platter rotation dwarf electronic transfer time by over 500 to 1.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.3: Trajectory Comparison Across Classical Disk Scheduling Policies</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Spatial head paths across cylinders 0 to 199 starting from cylinder 53 with pending queue [98, 183, 37, 122, 14, 124, 65, 67].</div>
 
-      <svg viewBox="0 0 760 220" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <!-- Timeline Bar Base -->
-        <g transform="translate(20, 40)">
-          <!-- Total Timeline Bar (720px width = 10.2 ms total) -->
-          <!-- Seek Phase: 6.0 ms = ~423px -->
-          <rect x="0" y="20" width="423" height="42" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-          <text x="211" y="38" text-anchor="middle" font-size="8.5" font-weight="700" fill="#991b1b">SEEK TIME (T<sub>seek</sub>): 6.0 ms (58.8%)</text>
-          <text x="211" y="52" text-anchor="middle" font-size="7" fill="#7f1d1d">Arm acceleration, coasting, deceleration, head settling</text>
+      <svg viewBox="0 0 760 280" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <defs>
+          <marker id="sched-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
+          </marker>
+          <marker id="sched-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
+          </marker>
+        </defs>
 
-          <!-- Rotational Phase: 4.17 ms = ~294px -->
-          <rect x="423" y="20" width="294" height="42" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-          <text x="570" y="38" text-anchor="middle" font-size="8.5" font-weight="700" fill="#92400e">ROTATIONAL DELAY (T<sub>rot</sub>): 4.17 ms (40.9%)</text>
-          <text x="570" y="52" text-anchor="middle" font-size="7" fill="#b45309">Waiting for sector to spin under head at 7200 RPM</text>
+        <!-- Column 1: FCFS Thrashing -->
+        <g transform="translate(15, 20)">
+          <rect width="170" height="240" rx="6" fill="#f8fafc" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="85" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">1. FCFS (FIFO)</text>
+          <text x="85" y="38" text-anchor="middle" font-size="7" fill="#dc2626">Movement: 640 Cylinders</text>
 
-          <!-- Transfer Phase: 0.02 ms = ~3px (exaggerated to 3px for visibility) -->
-          <rect x="717" y="20" width="3" height="42" fill="#16a34a"/>
+          <!-- Graph axis: X is cylinder 0..199 (140px width), Y is sequence step down -->
+          <g transform="translate(15, 50)">
+            <line x1="0" y1="0" x2="140" y2="0" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="0" y="-4" font-size="6" font-family="var(--font-mono)" fill="#64748b">0</text>
+            <text x="140" y="-4" text-anchor="end" font-size="6" font-family="var(--font-mono)" fill="#64748b">199</text>
+
+            <!-- Path: 53 -> 98 -> 183 -> 37 -> 122 -> 14 -> 124 -> 65 -> 67 -->
+            <polyline points="37,0 69,18 129,36 26,54 86,72 10,90 87,108 46,126 47,144"
+                      fill="none" stroke="#dc2626" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="37" cy="0" r="3" fill="#0f172a"/>
+            <circle cx="47" cy="144" r="3" fill="#dc2626"/>
+          </g>
+          <text x="85" y="218" text-anchor="middle" font-size="6.5" fill="#7f1d1d">Wild full-stroke thrashing</text>
+          <text x="85" y="230" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">Slowest Throughput</text>
         </g>
 
-        <!-- Callout Annotations -->
-        <g transform="translate(20, 115)">
-          <rect width="720" height="85" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
+        <!-- Column 2: SSTF Greedy -->
+        <g transform="translate(195, 20)">
+          <rect width="170" height="240" rx="6" fill="#f8fafc" stroke="#d97706" stroke-width="1.5"/>
+          <text x="85" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">2. SSTF (GREEDY)</text>
+          <text x="85" y="38" text-anchor="middle" font-size="7" fill="#b45309">Movement: 236 Cylinders</text>
 
-          <text x="15" y="22" font-size="8.5" font-weight="700" fill="#0f172a">THE MECHANICAL LATENCY REALITY:</text>
-          <text x="15" y="40" font-size="8" fill="#334155">&bull; <strong>Mechanical Latency (Seek + Rotation):</strong> Consumes <tspan font-weight="700" fill="#dc2626">10.17 ms (99.8% of total I/O time)</tspan>.</text>
-          <text x="15" y="56" font-size="8" fill="#334155">&bull; <strong>Electronic Media Transfer Time (4 KB):</strong> Consumes <tspan font-weight="700" fill="#16a34a">0.02 ms (less than 0.2% of total I/O time)</tspan>.</text>
-          <text x="15" y="72" font-size="8" fill="#334155">&bull; <strong>Conclusion:</strong> Random I/O is completely bound by the physical laws of mechanical inertia and electric motor torque!</text>
+          <g transform="translate(15, 50)">
+            <line x1="0" y1="0" x2="140" y2="0" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="0" y="-4" font-size="6" font-family="var(--font-mono)" fill="#64748b">0</text>
+            <text x="140" y="-4" text-anchor="end" font-size="6" font-family="var(--font-mono)" fill="#64748b">199</text>
+
+            <!-- Path: 53 -> 65 -> 67 -> 37 -> 14 -> 98 -> 122 -> 124 -> 183 -->
+            <polyline points="37,0 46,18 47,36 26,54 10,72 69,90 86,108 87,126 129,144"
+                      fill="none" stroke="#d97706" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="37" cy="0" r="3" fill="#0f172a"/>
+            <circle cx="129" cy="144" r="3" fill="#d97706"/>
+          </g>
+          <text x="85" y="218" text-anchor="middle" font-size="6.5" fill="#92400e">Trapped in local cluster</text>
+          <text x="85" y="230" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">Outer Starvation Hazard</text>
+        </g>
+
+        <!-- Column 3: SCAN Elevator -->
+        <g transform="translate(375, 20)">
+          <rect width="175" height="240" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="87" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#0369a1">3. SCAN (ELEVATOR)</text>
+          <text x="87" y="38" text-anchor="middle" font-size="7" fill="#0284c7">Movement: 208 Cylinders</text>
+
+          <g transform="translate(15, 50)">
+            <line x1="0" y1="0" x2="140" y2="0" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="0" y="-4" font-size="6" font-family="var(--font-mono)" fill="#64748b">0</text>
+            <text x="140" y="-4" text-anchor="end" font-size="6" font-family="var(--font-mono)" fill="#64748b">199</text>
+
+            <!-- Path: 53 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183 -> [199] -> 37 -> 14 -->
+            <polyline points="37,0 46,16 47,32 69,48 86,64 87,80 129,96 140,112 26,128 10,144"
+                      fill="none" stroke="#0284c7" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="37" cy="0" r="3" fill="#0f172a"/>
+            <circle cx="10" cy="144" r="3" fill="#0284c7"/>
+          </g>
+          <text x="87" y="218" text-anchor="middle" font-size="6.5" fill="#0369a1">Sweeps to edge; reverses</text>
+          <text x="87" y="230" text-anchor="middle" font-size="6.5" font-weight="700" fill="#059669">Zero Starvation</text>
+        </g>
+
+        <!-- Column 4: C-LOOK Optimized -->
+        <g transform="translate(560, 20)">
+          <rect width="185" height="240" rx="6" fill="#f8fafc" stroke="#16a34a" stroke-width="2"/>
+          <text x="92" y="24" text-anchor="middle" font-size="9" font-weight="700" fill="#166534">4. C-LOOK (CIRCULAR)</text>
+          <text x="92" y="38" text-anchor="middle" font-size="7" fill="#166534">Movement: 322 Cylinders</text>
+
+          <g transform="translate(15, 50)">
+            <line x1="0" y1="0" x2="140" y2="0" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="0" y="-4" font-size="6" font-family="var(--font-mono)" fill="#64748b">0</text>
+            <text x="140" y="-4" text-anchor="end" font-size="6" font-family="var(--font-mono)" fill="#64748b">199</text>
+
+            <!-- Path: 53 -> 65 -> 67 -> 98 -> 122 -> 124 -> 183 -> [Jump to 14] -> 37 -->
+            <polyline points="37,0 46,18 47,36 69,54 86,72 87,90 129,108 10,126 26,144"
+                      fill="none" stroke="#16a34a" stroke-width="1.5" stroke-linejoin="round"/>
+            <!-- Jump line dashed -->
+            <line x1="129" y1="108" x2="10" y2="126" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <circle cx="37" cy="0" r="3" fill="#0f172a"/>
+            <circle cx="26" cy="144" r="3" fill="#16a34a"/>
+          </g>
+          <text x="92" y="218" text-anchor="middle" font-size="6.5" fill="#166534">Bounded to active requests</text>
+          <text x="92" y="230" text-anchor="middle" font-size="6.5" font-weight="700" fill="#166534">Uniform Wait Distribution</text>
         </g>
       </svg>
     </div>
 
-    <h4>1. Seek Time (<i>T</i><sub>seek</sub>): The Voice-Coil Mechanics</h4>
+    <h4>The Dual Mandate of the Disk Arm Scheduler</h4>
     <p>
-      <strong>Seek time</strong> is the physical delay required for the voice-coil actuator arm to position the read/write heads radially across the platters and align precisely over the target cylinder.
-    </p>
-    <p>
-      An actuator movement is not an instantaneous, uniform velocity slide. The voice-coil motor must obey classical Newtonian mechanics across four distinct physical phases:
+      An effective disk scheduler must balance two fundamentally competing objectives:
     </p>
     <ol>
-      <li><strong>Acceleration Phase:</strong> Maximum electrical current is driven through the coil, creating an intense magnetic field against the permanent rare-earth magnets to accelerate the mass of the arm.</li>
-      <li><strong>Coasting Phase:</strong> For long seeks across hundreds of cylinders, the arm reaches its maximum terminal velocity and coasts across the platter radius.</li>
-      <li><strong>Deceleration Phase:</strong> Reverse current is applied through the voice coil, exerting braking force to bring the high-speed arm to a controlled stop over the target cylinder.</li>
-      <li><strong>Head Settling Time:</strong> The heads vibrate slightly upon arrival. The closed-loop servo mechanism reads embedded magnetic servo bursts to dampen oscillations and settle the head within the target track boundary (a mechanical settling budget of <strong>0.5 to 1.5 milliseconds</strong>).</li>
-    </ol>
-
-    <div style="overflow-x: auto; margin: 18px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 12px; width: 25%;">Seek Classification</th>
-            <th style="padding: 10px 12px; width: 25%;">Typical Duration</th>
-            <th style="padding: 10px 12px; width: 50%;">Physical Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">Track-to-Track Seek</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #0284c7;">0.5 &ndash; 1.5 ms</td>
-            <td style="padding: 10px 12px;">Stepping between immediately adjacent cylinders (dominated entirely by settling time).</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">Full-Stroke Seek</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #dc2626;">15.0 &ndash; 20.0 ms</td>
-            <td style="padding: 10px 12px;">Traveling across the entire radius of the disk (from innermost cylinder to outermost cylinder).</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
-            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">Average Seek Time</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #166534; font-weight: 700;">4.0 &ndash; 9.0 ms</td>
-            <td style="padding: 10px 12px; color: #166534;">The expected seek time between two uniformly distributed random cylinders across the disk.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="math-callout">
-      <strong>Mathematical Derivation: The <sup>1</sup>&frasl;<sub>3</sub> Disk Stroke Law</strong>
-      <br>
-      Suppose a disk has <i>N</i> cylinders numbered continuously from 0 to <i>N</i>. If target requests are uniformly and independently distributed across all cylinders, what is the average physical seek distance traveled between two consecutive random requests located at positions <i>x</i> and <i>y</i>?
-      <br><br>
-      The expected distance is given by the continuous double integral over the disk radius:
-      <div style="margin: 10px 0; text-align: center; font-size: 0.95rem;">
-        Expected Seek Distance = <sup>1</sup>&frasl;<sub><i>N</i><sup>2</sup></sub> &int;<sub>0</sub><sup><i>N</i></sup> &int;<sub>0</sub><sup><i>N</i></sup> |<i>x</i> - <i>y</i>| <i>dx</i> <i>dy</i> = <strong><sup><i>N</i></sup>&frasl;<sub>3</sub></strong>
-      </div>
-      On average, a completely random seek travels <strong>one-third of the entire disk surface stroke</strong>! This statistical law allows operating system simulators to accurately estimate average random seek times as approximately one-third of the full-stroke seek duration.
-    </div>
-
-    <h4>2. Rotational Latency (<i>T</i><sub>rotational</sub>): Platter RPM Physics</h4>
-    <p>
-      Once the voice-coil arm settles precisely over the target cylinder, the read head cannot immediately begin reading data. The target sector may currently be on the opposite side of the rotating platter. The time required for the target sector to rotate underneath the read head is the <strong>Rotational Latency</strong>.
-    </p>
-    <p>
-      Because disk platters rotate at a strict <strong>Constant Angular Velocity (CAV)</strong> measured in Revolutions Per Minute (RPM), the period of one complete physical revolution (<i>T</i><sub>rev</sub>) is constant:
-    </p>
-
-    <div class="math-callout" style="text-align: center; font-size: 0.95rem;">
-      <i>T</i><sub>rev</sub> = ( <sup>60</sup>&frasl;<sub>RPM</sub> ) &times; 1000 ms
-    </div>
-
-    <p>
-      Assuming random access, the target sector may arrive immediately beneath the head (best case: 0 ms), or it may have just passed the head by a fraction of a millimeter (worst case: one full physical revolution, <i>T</i><sub>rev</sub>).
-      <br>
-      Under a uniform distribution, the <strong>Average Rotational Latency (<i>T</i><sub>rot (avg)</sub>)</strong> is exactly half a revolution:
-    </p>
-
-    <div class="math-callout" style="text-align: center; font-size: 0.95rem;">
-      <i>T</i><sub>rot (avg)</sub> = <sup>1</sup>&frasl;<sub>2</sub> &times; <i>T</i><sub>rev</sub> = ( <sup>30</sup>&frasl;<sub>RPM</sub> ) &times; 1000 ms
-    </div>
-
-    <div style="overflow-x: auto; margin: 18px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 12px; width: 25%;">Spindle Speed (RPM)</th>
-            <th style="padding: 10px 12px; width: 25%;">Full Revolution Period</th>
-            <th style="padding: 10px 12px; width: 25%;">Average Rotational Latency</th>
-            <th style="padding: 10px 12px; width: 25%;">Target Market Segment</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">5,400 RPM</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">11.11 ms</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #dc2626;">5.56 ms</td>
-            <td style="padding: 10px 12px;">Consumer laptops, low-power NAS archives</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">7,200 RPM</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">8.33 ms</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #d97706;">4.17 ms</td>
-            <td style="padding: 10px 12px;">Standard desktop storage, datacenter bulk arrays</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">10,000 RPM</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">6.00 ms</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #0284c7;">3.00 ms</td>
-            <td style="padding: 10px 12px;">Enterprise mission-critical database storage</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
-            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">15,000 RPM</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">4.00 ms</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #166534; font-weight: 700;">2.00 ms</td>
-            <td style="padding: 10px 12px; color: #166534;">High-performance SAS enterprise drives</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h4>3. Transfer Time (<i>T</i><sub>transfer</sub>) &amp; Controller Overhead</h4>
-    <p>
-      Once the head settles over the cylinder and the target sector rotates underneath, the drive enters the <strong>Transfer Phase</strong>.
-    </p>
-    <ul>
       <li>
-        <strong>Media Transfer Time:</strong> The time required for the sector's magnetic bits to sweep past the TMR sensor:
+        <strong>Throughput Maximization:</strong> Squeezing the maximum number of megabytes per second out of the physical platters. This requires minimizing aggregate seek distance and reducing the frequency of head turnaround reversals:
         <div class="math-callout" style="text-align: center;">
-          <i>T</i><sub>transfer</sub> = <sup>Transfer Size (Bytes)</sup>&frasl;<sub>Internal Track Media Transfer Rate (Bytes/sec)</sub>
-        </div>
-        For a standard 4 KB (4,096 bytes) block read on an outer track streaming at 200 MB/s:
-        <div style="margin: 6px 0; text-align: center; font-family: var(--font-mono); font-size: 0.85rem; color: #059669;">
-          <i>T</i><sub>transfer</sub> = <sup>4,096 Bytes</sup>&frasl;<sub>200,000,000 Bytes/sec</sub> &asymp; <strong>0.0000205 seconds = 0.02 ms</strong>
+          Total Seek Cost = &sum;<sub><i>i</i>=1</sub><sup><i>K</i></sup> | Cylinder<sub><i>i</i></sub> - Cylinder<sub><i>i</i>-1</sub> |
         </div>
       </li>
       <li>
-        <strong>Controller Overhead (<i>T</i><sub>controller</sub>):</strong> The electronic setup time required for the controller's ASIC to decode commands, program DMA registers, verify ECC checksums, and trigger host interrupts (typically <strong>&lt; 0.02 milliseconds</strong>).
+        <strong>Fairness &amp; Bounded Latency:</strong> Ensuring that no single I/O request starves in the queue indefinitely while the arm services requests closer to the active cylinder cluster.
+      </li>
+    </ol>
+
+    <div class="math-callout">
+      <strong>Request Merging: Optimization Before Scheduling:</strong>
+      <br>
+      Before any arm movement algorithm evaluates pending requests, the operating system block layer executes <strong>Request Merging</strong>:
+      <ul>
+        <li><strong>Back Merging:</strong> If a newly enqueued request addresses Sector 104, and an existing pending request addresses Sectors 100&ndash;103, the kernel merges them into a single contiguous request spanning Sectors 100&ndash;104.</li>
+        <li><strong>Front Merging:</strong> Merging a new request directly ahead of an existing request on the identical track.</li>
+      </ul>
+      Merging eliminates physical seek operations entirely by converting multiple small random I/O operations into a single continuous streaming burst!
+    </div>
+
+    <h4>Detailed Algorithmic Analysis</h4>
+
+    <h5>1. First-Come, First-Served (FCFS)</h5>
+    <p>
+      The baseline scheduling policy services requests strictly in the chronological order of their arrival into the queue:
+    </p>
+    <ul>
+      <li><strong>Advantages:</strong> Completely fair; zero starvation; trivial <i>O</i>(1) FIFO queue implementation.</li>
+      <li>
+        <strong>The Defect &mdash; Wild Head Thrashing:</strong> FCFS pays zero attention to spatial locality. If Process A requests an inner cylinder (Cylinder 14) and Process B requests an outer cylinder (Cylinder 183), the arm thrashes back and forth across the entire platter width.
+        <br>
+        On our classical benchmark workload, FCFS generates <strong>640 cylinders of head movement</strong>, operating at less than one-third the throughput of an elevator scheduler.
       </li>
     </ul>
 
-    <h4>The 500&times; Asymmetry: Random vs. Sequential Performance</h4>
+    <h5>2. Shortest Seek Time First (SSTF)</h5>
     <p>
-      We can now calculate the catastrophic performance penalty of random I/O versus sequential streaming on a modern 7,200 RPM mechanical drive:
+      SSTF applies a greedy heuristic: among all pending requests in the queue, it selects the request that requires the <strong>minimum physical seek distance from the current head position</strong>:
+    </p>
+    <div class="math-callout" style="text-align: center;">
+      Next Target = argmin<sub><i>r</i> &isin; <i>Q</i></sub> | Head<sub>current</sub> - Cylinder<sub><i>r</i></sub> |
+    </div>
+    <ul>
+      <li><strong>Performance:</strong> Slashes head travel from 640 cylinders down to <strong>236 cylinders</strong>, dramatically increasing throughput under low-to-medium loads.</li>
+      <li>
+        <strong>The Fatal Flaw &mdash; Pathological Starvation:</strong>
+        Because SSTF is greedy, it favors requests clustered near the current cylinder. If an application continuously generates requests around Cylinders 50&ndash;70, the head lingers in that cluster indefinitely.
+        <br>
+        A request pending on Cylinder 183 will <strong>starve forever</strong> as long as new requests arrive in the local neighborhood! For this reason, pure SSTF is never deployed in general-purpose production operating systems.
+      </li>
+    </ul>
+
+    <h5>3. SCAN (The Elevator Algorithm)</h5>
+    <p>
+      To eliminate starvation while preserving spatial locality, the <strong>SCAN algorithm</strong> mimics a commercial building elevator:
+    </p>
+    <ul>
+      <li>The arm maintains a directional vector (e.g. <em>Moving Outward toward Cylinder 199</em>).</li>
+      <li>The head sweeps continuously in that direction, servicing all pending requests encountered along its path.</li>
+      <li>When the arm reaches the extreme cylinder of the disk (Cylinder 199), the arm <strong>reverses direction</strong> and begins sweeping inward toward Cylinder 0, servicing requests in reverse.</li>
+      <li><strong>Starvation Bound:</strong> A request is guaranteed to be serviced in <strong>at most two full sweeps</strong> of the platter radius, permanently eliminating starvation.</li>
+      <li>
+        <strong>The SCAN Defect &mdash; Non-Uniform Waiting Distribution:</strong>
+        SCAN suffers from an asymmetric waiting time distribution. When the arm passes Cylinder 50 heading right, the area directly behind it (Cylinders 0&ndash;49) has just been cleared of requests.
+        <br>
+        A new request arriving at Cylinder 48 must wait for the arm to travel all the way to 199, reverse, and sweep back down to 48&mdash;a wait of nearly two full disk strokes! In contrast, requests ahead of the advancing arm experience negligible wait times.
+      </li>
+    </ul>
+
+    <h5>4. C-SCAN (Circular SCAN)</h5>
+    <p>
+      C-SCAN corrects the non-uniform wait distribution of SCAN by restricting servicing to a <strong>single sweep direction</strong>:
+    </p>
+    <ul>
+      <li>The arm sweeps in one direction only (e.g. from lowest cylinder toward highest cylinder), servicing requests along the way.</li>
+      <li>Upon reaching the outer extreme (Cylinder 199), the arm <strong>immediately performs a high-speed return jump back to Cylinder 0 without servicing any requests on the return journey</strong>!</li>
+      <li>Once reset to Cylinder 0, it resumes its forward sweep.</li>
+      <li><strong>Mathematical Fairness:</strong> By treating the cylinders as a circular ring, C-SCAN provides a mathematically <strong>uniform average waiting time</strong> for all cylinders across the platter surface.</li>
+    </ul>
+
+    <h5>5. LOOK and C-LOOK (Industrial Optimizations)</h5>
+    <p>
+      Standard SCAN and C-SCAN waste significant mechanical travel by driving the arm all the way to the absolute physical edge of the disk (Cylinder 0 and Cylinder 199) even when no requests are pending at those extreme boundaries.
+    </p>
+    <p>
+      <strong>LOOK</strong> and <strong>C-LOOK</strong> add a forward-inspection lookahead:
+    </p>
+    <ul>
+      <li>The arm advances in its current direction only as far as the <strong>highest pending request in the queue</strong>.</li>
+      <li>In our benchmark workload, the highest pending request is <strong>Cylinder 183</strong>. LOOK reverses immediately at 183; it never wastes mechanical motion traveling to the unused Cylinder 199.</li>
+      <li>Similarly, C-LOOK executes its circular return jump immediately upon completing Cylinder 183, jumping directly to the lowest pending request (<strong>Cylinder 14</strong>) rather than Cylinder 0.</li>
+      <li>C-LOOK is the universal gold standard for rotational mechanical arm scheduling in production systems.</li>
+    </ul>
+
+    <h4>Modern Operating System Scheduling Architectures</h4>
+    <p>
+      In modern Linux and Windows kernels, disk scheduling has moved beyond pure geometric heuristics to address quality-of-service and hardware-offloaded queues:
     </p>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
-      <!-- Random I/O Math -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 16px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Case 1: Random Access (4 KB Block)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 8px;">Physical Seek &amp; Rotation Paid on Every Block</div>
+      <!-- Deadline Scheduler -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">1. The Linux Deadline Scheduler</h4>
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Every 4 KB read accesses an arbitrary, disjoint cylinder:
-          <br><br>
-          <i>T</i><sub>seek</sub> &asymp; 6.00 ms<br>
-          <i>T</i><sub>rot</sub> &asymp; 4.17 ms<br>
-          <i>T</i><sub>transfer</sub> &asymp; 0.02 ms<br>
-          <strong>Total Time (<i>T</i><sub>I/O</sub>): &asymp; 10.19 ms</strong>
-          <br><br>
-          <span style="font-family: var(--font-mono); font-weight: 700; color: #dc2626; font-size: 0.88rem;">
-            IOPS = 1 / 0.01019 s &asymp; 98 IOPS<br>
-            Throughput = 98 &times; 4 KB &asymp; 0.39 MB/s!
-          </span>
+          Separates requests into multiple queues:
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li><strong>Sorted Elevator Queue:</strong> Standard C-LOOK ordering to maximize throughput.</li>
+            <li><strong>Read FIFO Queue:</strong> Hard expiration deadline of <strong>500 ms</strong>.</li>
+            <li><strong>Write FIFO Queue:</strong> Relaxed expiration deadline of <strong>5000 ms (5 s)</strong>.</li>
+          </ul>
+          <em>Why Prioritize Reads?</em> Applications issuing reads typically block until data is returned. Writes are buffered asynchronously in the page cache. If a read request approaches its 500 ms deadline, the scheduler aborts elevator ordering and services the read immediately!
         </p>
       </div>
 
-      <!-- Sequential I/O Math -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 16px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Case 2: Sequential Access (Streaming)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase; margin-bottom: 8px;">Seek &amp; Rotation Amortized to Zero</div>
+      <!-- NCQ Hardware Queuing -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">2. Native Command Queuing (NCQ)</h4>
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Blocks reside contiguously along the same track:
-          <br><br>
-          Initial Seek + Rotation paid ONCE for the entire stream.<br>
-          Subsequent blocks stream continuously as the track rotates.<br>
-          Track skewing prevents rotational misses between tracks.
-          <br><br>
-          <span style="font-family: var(--font-mono); font-weight: 700; color: #166534; font-size: 0.88rem;">
-            IOPS = Not seek-bound<br>
-            Throughput = Wire Media Rate &asymp; 200.00 MB/s!
-          </span>
+          Modern SATA and SAS drives implement hardware-side scheduling:
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li>The host OS dispatches up to <strong>32 commands simultaneously</strong> (or 256 in SCSI TCQ) into the drive controller's internal queue.</li>
+            <li>The on-drive microprocessor knows the <em>exact real-time angular position</em> of the spinning platters (which the host OS cannot know due to PCIe bus latency).</li>
+            <li>The drive controller executes <strong>Rotational Position Sorting (RPS)</strong>, dynamically choosing the request that minimizes the sum of seek time <em>plus</em> immediate rotational delay!</li>
+          </ul>
         </p>
       </div>
-    </div>
-
-    <div class="math-callout" style="background: #fef2f2; border-left-color: #dc2626;">
-      <strong style="color: #991b1b;">The Core Architectural Lesson:</strong>
-      <br>
-      Sequential I/O is more than <strong>500 times faster</strong> than random I/O on mechanical storage ($200\text{ MB/s}$ vs. $0.39\text{ MB/s}$).
-      <br><br>
-      This vast performance disparity explains why operating system kernels incorporate:
-      <ul>
-        <li><strong>Read-Ahead (Prefetching):</strong> Detecting sequential reads and proactively loading dozens of subsequent sectors into the page cache ahead of user requests.</li>
-        <li><strong>Write Buffering &amp; Elevator Schedulers:</strong> Queueing writes in RAM to merge adjacent blocks and sort requests into sequential cylinder order before dispatching to physical hardware.</li>
-      </ul>
     </div>"""
 
-def update_section_two():
+def update_section_three():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>2. Modeling I/O Access Latency"
-    end_marker = "<h3>3. Disk Arm Scheduling Algorithms</h3>"
+    start_marker = "<h3>3. Disk Arm Scheduling Algorithms</h3>"
+    end_marker = "<!-- Directed Narrative Stepper: Disk Arm Scheduling Arena -->"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 2 boundaries in Module 03.")
+        print("Error: Could not locate Section 3 boundaries before the interactive stepper.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_THREE_PRE_AID + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 2 in Module 03 on Modeling I/O Access Latency (T_I/O)\n\n"
-            "Detail seek time derivation, rotational latency math across RPM tiers,\n"
-            "transfer time formulas, the 500x random vs sequential gap, and add SVG."
+            "Expand Section 3 of Module 03 on Disk Arm Scheduling Algorithms\n\n"
+            "Detail FCFS thrashing, SSTF starvation, SCAN vs C-SCAN uniform wait math,\n"
+            "LOOK/C-LOOK optimizations, NCQ hardware queues, and add an SVG comparison."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -286,5 +294,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_two():
+    if update_section_three():
         run_git_sync()
