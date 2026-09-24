@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Readers-Writers Starvation & 2PL in Module 04
+# fix.py: Expand Linux lockdep & Windows Driver Verifier in Module 04
 # =====================================================================
 import os
 import subprocess
@@ -10,196 +10,161 @@ TARGET_FILE = os.path.join(
     "04-classic-synchronization-real-world-defenses.html"
 )
 
-READERS_WRITERS_2PL_EXPANSION = r"""      <h3>2. Readers-Writers Starvation &amp; Database 2PL</h3>
+REAL_WORLD_DEFENSES_EXPANDED = r"""      <h3>3. Real-World Kernel Defenses: Linux lockdep &amp; Driver Verifier</h3>
       <p>
-        In concurrent database engines, file systems, and operating system memory caches, access patterns exhibit an asymmetric read-heavy bias. The <strong>Readers-Writers Problem</strong> formalizes synchronization protocols for shared state accessed by two distinct classes of concurrent threads:
+        In modern enterprise operating system kernels, theoretical avoidance algorithms such as Dijkstra's Banker's Algorithm are practically unusable. The reasons are architectural: real-world kernels execute thousands of asynchronous device drivers and user threads simultaneously, resources cannot be enumerated in static vectors upfront, and the $\mathcal{O}(m \times n^2)$ latency overhead of running dynamic matrix verifications on every spinlock acquisition would decimate system throughput.
+      </p>
+      <p>
+        Consequently, modern operating systems adopt a pragmatic, multi-tier strategy: they use fine-grained locking primitives for maximum concurrent performance, combined with <strong>aggressive runtime lock validation subsystems</strong> to identify potential deadlock patterns long before they manifest as unrecoverable production hangs.
+      </p>
+
+      <h4>1. Linux Kernel Lock Validator: <code>lockdep</code></h4>
+      <p>
+        Introduced by Ingo Molnar and Arjan van de Ven in Linux 2.6.17, <strong><code>lockdep</code></strong> is the Linux kernel's built-in runtime lock validation engine. Rather than detecting deadlocks after the system freezes, <code>lockdep</code> dynamically models the <em>rules</em> of lock acquisition to detect <strong>potential</strong> deadlocks during normal execution—even if the deadlocking race condition has not yet occurred.
+      </p>
+
+      <h5>Lock Classes vs. Lock Instances</h5>
+      <p>
+        A naive lock tracker that monitored every discrete lock instance would consume gigabytes of RAM. For example, a Linux filesystem might instantiate millions of distinct <code>struct inode</code> or <code>struct dentry</code> objects, each containing its own mutex.
+      </p>
+      <p>
+        To solve this scaling problem, <code>lockdep</code> aggregates locks into <strong>Lock Classes</strong> using static identity keys (<code>struct lock_class_key</code>):
       </p>
       <ul>
-        <li><strong>Readers ($R$):</strong> Inspect state without mutation. Multiple readers may access the critical section concurrently ($R_1 \parallel R_2$).</li>
-        <li><strong>Writers ($W$):</strong> Mutate state. A writer requires exclusive, non-shareable access; no other reader or writer may occupy the critical section ($W_1 \perp R_1$, $W_1 \perp W_2$).</li>
-      </ul>
-
-      <div class="math-callout" style="background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin: 18px 0;">
-        <strong style="color: var(--primary);">Mutual Exclusion Invariant:</strong>
-        <br><br>
-        $$ \text{ActiveWriters} \le 1 \quad \land \quad (\text{ActiveWriters} = 1 \implies \text{ActiveReaders} = 0) $$
-      </div>
-
-      <h4>1. The Triad of Readers-Writers Variants</h4>
-      <p>
-        The primary challenge in designing readers-writers locks (<code>rwlock</code>) lies in arbitrating queue priorities without causing <strong>starvation (indefinite deferral)</strong>:
-      </p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0;">
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-          <strong style="color: var(--primary); font-size: 0.92rem;">First Variant: Reader-Preference</strong>
-          <p style="font-size: 0.82rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
-            No reader is kept waiting unless a writer already holds the lock. Incoming readers join active readers immediately, even if a writer is queued.
-          </p>
-          <div style="font-size: 0.78rem; font-weight: 700; color: #dc2626; margin-top: 8px;">
-            Hazard: Writer Starvation
-          </div>
-          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
-            A continuous cascade of overlapping readers permanently blocks writers.
-          </p>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-          <strong style="color: var(--primary); font-size: 0.92rem;">Second Variant: Writer-Preference</strong>
-          <p style="font-size: 0.82rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
-            Once a writer signals intent to write, new incoming readers are queued behind it. Active readers drain, and the queued writer executes next.
-          </p>
-          <div style="font-size: 0.78rem; font-weight: 700; color: #d97706; margin-top: 8px;">
-            Hazard: Reader Starvation
-          </div>
-          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
-            In write-intensive workloads, continuous writer arrivals lock out all readers.
-          </p>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-          <strong style="color: var(--primary); font-size: 0.92rem;">Third Variant: Fair / FIFO Order</strong>
-          <p style="font-size: 0.82rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
-            Requests are processed in strict arrival order using a synchronization <strong>turnstile</strong>. Neither readers nor writers can starve.
-          </p>
-          <div style="font-size: 0.78rem; font-weight: 700; color: #16a34a; margin-top: 8px;">
-            Guaranteed: Starvation-Free
-          </div>
-          <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
-            Preserves reader concurrency while bounding waiting time to $O(N)$.
-          </p>
-        </div>
-      </div>
-
-      <h4>2. Starvation-Free Turnstile Implementation (C Pseudocode)</h4>
-      <p>
-        To eliminate starvation, a binary semaphore named <code>turnstile</code> acts as an entry barrier. When a writer queues at the turnstile, subsequent readers are held behind it until the writer completes:
-      </p>
-
-      <!-- Syntax Highlighted Code Box: Fair RW-Lock -->
-      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);">
-        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
-          c &bull; fair_rwlock.c
-        </div>
-        <pre style="margin: 0; line-height: 1.5;"><span style="color: #94a3b8;">// Shared Synchronization State</span>
-<span style="color: #6ee7b7;">int</span> read_count = <span style="color: #f43f5e;">0</span>;
-<span style="color: #6ee7b7;">semaphore</span> turnstile = <span style="color: #f43f5e;">1</span>;     <span style="color: #94a3b8;">// Preserves FIFO arrival order</span>
-<span style="color: #6ee7b7;">semaphore</span> count_mutex = <span style="color: #f43f5e;">1</span>;   <span style="color: #94a3b8;">// Protects read_count updates</span>
-<span style="color: #6ee7b7;">semaphore</span> resource = <span style="color: #f43f5e;">1</span>;      <span style="color: #94a3b8;">// Exclusive data lock</span>
-
-<span style="color: #c084fc;">void</span> <span style="color: #60a5fa;">reader</span>() {
-    <span style="color: #60a5fa;">wait</span>(turnstile);         <span style="color: #94a3b8;">// Pass through turnstile gate</span>
-    <span style="color: #60a5fa;">signal</span>(turnstile);
-
-    <span style="color: #60a5fa;">wait</span>(count_mutex);
-    read_count++;
-    <span style="color: #c084fc;">if</span> (read_count == <span style="color: #f43f5e;">1</span>) {
-        <span style="color: #60a5fa;">wait</span>(resource);      <span style="color: #94a3b8;">// First reader claims exclusive resource lock</span>
-    }
-    <span style="color: #60a5fa;">signal</span>(count_mutex);
-
-    <span style="color: #60a5fa;">read_data</span>();             <span style="color: #94a3b8;">// Concurrent read section</span>
-
-    <span style="color: #60a5fa;">wait</span>(count_mutex);
-    read_count--;
-    <span style="color: #c084fc;">if</span> (read_count == <span style="color: #f43f5e;">0</span>) {
-        <span style="color: #60a5fa;">signal</span>(resource);    <span style="color: #94a3b8;">// Last reader releases exclusive lock</span>
-    }
-    <span style="color: #60a5fa;">signal</span>(count_mutex);
-}
-
-<span style="color: #c084fc;">void</span> <span style="color: #60a5fa;">writer</span>() {
-    <span style="color: #60a5fa;">wait</span>(turnstile);         <span style="color: #94a3b8;">// Block incoming readers from passing gate</span>
-    <span style="color: #60a5fa;">wait</span>(resource);          <span style="color: #94a3b8;">// Wait for active readers to drain</span>
-
-    <span style="color: #60a5fa;">write_data</span>();            <span style="color: #94a3b8;">// Exclusive write section</span>
-
-    <span style="color: #60a5fa;">signal</span>(turnstile);       <span style="color: #94a3b8;">// Open gate for next queued thread</span>
-    <span style="color: #60a5fa;">signal</span>(resource);        <span style="color: #94a3b8;">// Release exclusive lock</span>
-}</pre>
-      </div>
-
-      <h4>3. Database Concurrency: Two-Phase Locking (2PL)</h4>
-      <p>
-        In relational database engines (such as PostgreSQL, MySQL InnoDB, and Oracle), concurrency control cannot rely on ad-hoc mutexes. Databases must guarantee <strong>Serializability</strong>—the highest isolation level, ensuring concurrent execution produces the exact same state as some serial execution order.
-      </p>
-      <p>
-        The mathematical foundation of serializability is <strong>Two-Phase Locking (2PL)</strong>:
-      </p>
-      <ol>
         <li>
-          <strong>Growing Phase (Lock Acquisition):</strong> The transaction may acquire shared locks (<code>S-lock</code>) or exclusive locks (<code>X-lock</code>) as needed. <em>The transaction is strictly forbidden from releasing any lock during this phase.</em>
+          <strong>Class-Based Mapping:</strong> All lock instances initialized at the same static code site belong to the exact same lock class. For instance, every <code>inode-&gt;i_rwsem</code> allocated across the ext4 filesystem shares a single lock class identity.
         </li>
         <li>
-          <strong>Shrinking Phase (Lock Release):</strong> The transaction begins releasing locks. <em>Once the transaction releases its first lock, it enters the shrinking phase and is strictly forbidden from acquiring any further locks.</em>
+          <strong>Bounded Graph Complexity:</strong> Instead of tracking millions of nodes, <code>lockdep</code> maintains a directed dependency graph of only several thousand lock classes, reducing cycle detection to microseconds.
+        </li>
+      </ul>
+
+      <h5>The Core Invariants Tracked by <code>lockdep</code></h5>
+      <ol>
+        <li>
+          <strong>Lock Acquisition Ordering (Circular Dependency):</strong> If a thread acquires Class $A$ and then acquires Class $B$, <code>lockdep</code> inserts a directed edge $A \to B$ into its global Lock Dependency Graph. If any thread later attempts to acquire Class $A$ while already holding Class $B$ ($B \to A$), <code>lockdep</code> immediately identifies a directed cycle, prints a detailed warning splat to <code>dmesg</code>, and outputs the exact stack traces of both acquisition paths.
+        </li>
+        <li>
+          <strong>Hardirq &amp; Softirq Context Inversion:</strong> A classic kernel deadlock occurs when a lock is acquired in process context with hardware interrupts enabled:
+          $$ \text{Thread on CPU 0 acquires Lock } L \implies \text{Hardirq fires on CPU 0} \implies \text{ISR attempts to acquire Lock } L $$
+          Because the interrupt service routine (ISR) interrupted the thread holding $L$, the thread cannot run to release $L$, while the ISR spins forever on the same CPU. <code>lockdep</code> tracks the interrupt state of every lock class and flags any lock taken in interrupt context that was previously acquired with interrupts enabled.
         </li>
       </ol>
 
-      <div class="math-callout" style="background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin: 18px 0;">
-        <strong style="color: var(--primary);">2PL Serializability Theorem:</strong>
-        <br><br>
-        $$ \text{Any schedule produced by a 2PL scheduler is conflict-serializable (acyclic serialization graph).} $$
+      <h5>Anatomy of a <code>lockdep</code> Splat (Kernel Diagnostic)</h5>
+      <p>
+        When <code>lockdep</code> detects an invalid lock ordering, it produces a diagnostic report in the kernel log:
+      </p>
+
+      <!-- Syntax Highlighted Kernel Splat Box -->
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.82rem; overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);">
+        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+          dmesg &bull; lockdep_warning.log
+        </div>
+        <pre style="margin: 0; line-height: 1.5;"><span style="color: #f87171; font-weight: 700;">======================================================</span>
+<span style="color: #f87171; font-weight: 700;">WARNING: possible circular locking dependency detected</span>
+<span style="color: #94a3b8;">6.8.0-rc3-custom #1 Not tainted</span>
+<span style="color: #f87171; font-weight: 700;">------------------------------------------------------</span>
+<span style="color: #38bdf8;">kworker/u16:2/184</span> is trying to acquire lock:
+ffff888102a3b040 (&amp;sb-&gt;s_type-&gt;i_mutex_key#3){++++}-{3:3}, at: ext4_evict_inode+0x12a
+
+but task is already holding lock:
+ffff888103c89120 (&amp;journal-&gt;j_trans_barrier){++++}-{0:0}, at: jbd2_journal_start+0x8f
+
+<span style="color: #fbbf24;">which lock already depends on the new lock!</span>
+
+the existing dependency chain (in reverse order) is:
+-&gt; #1 (&amp;journal-&gt;j_trans_barrier){++++}-{0:0}:
+       validate_chain+0x628/0x1030
+       __lock_acquire+0x4c2/0x9a0
+       lock_acquire+0xd8/0x310
+       jbd2_journal_start+0x8f/0x230
+-&gt; #0 (&amp;sb-&gt;s_type-&gt;i_mutex_key#3){++++}-{3:3}:
+       validate_chain+0x628/0x1030
+       __lock_acquire+0x4c2/0x9a0
+       lock_acquire+0xd8/0x310
+       ext4_evict_inode+0x12a/0x680</pre>
       </div>
 
-      <h5>Strict 2PL (S2PL) vs. Rigorous 2PL (SS2PL)</h5>
+      <h4>2. Windows Driver Verifier: Deadlock Detection Engine</h4>
       <p>
-        Basic 2PL guarantees serializability, but it suffers from <strong>cascading aborts</strong>. If transaction $T_1$ releases an exclusive lock on row $A$ during its shrinking phase and later encounters a disk fault and aborts, any concurrent transaction $T_2$ that read uncommitted row $A$ must also be aborted.
+        On Microsoft Windows, the primary mechanism for defending the Executive and device subsystem against synchronization failures is <strong>Driver Verifier</strong>. Because third-party hardware device drivers execute in kernel mode with unrestricted hardware access, an unhandled lock deadlock in a driver halts the entire operating system.
       </p>
-      <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.88rem;">
+
+      <h5>Deadlock Detection Mechanics</h5>
+      <p>
+        When the <em>Deadlock Detection</em> option is enabled in Driver Verifier, the kernel intercepts and wraps all core synchronization APIs exposed by the Windows Kernel Executive:
+      </p>
+      <ul>
+        <li>Executive Spinlocks (<code>KeAcquireSpinLock</code>, <code>KeReleaseSpinLock</code>, <code>KeAcquireInStackQueuedSpinLock</code>)</li>
+        <li>Executive Fast Mutexes (<code>ExAcquireFastMutex</code>)</li>
+        <li>Shared/Exclusive Executive Resources (<code>ERESOURCE</code>)</li>
+      </ul>
+      <p>
+        Driver Verifier builds an internal Resource Hierarchy Graph tracking ownership topology. If Driver Verifier detects that Driver $X$ acquires Resource $A$ and waits on Resource $B$, while Driver $Y$ holds Resource $B$ and requests Resource $A$, the system will not wait for an indefinite freeze.
+      </p>
+
+      <h5>Enforcing Interrupt Request Level (IRQL) Rules</h5>
+      <p>
+        Windows synchronization primitives are tightly bound to the processor's <strong>IRQL (Interrupt Request Level)</strong>:
+      </p>
+      <ul>
+        <li><strong><code>PASSIVE_LEVEL</code> (0):</strong> Normal user-thread execution. Paged memory access and blocking wait operations (e.g., <code>KeWaitForSingleObject</code>) are permitted.</li>
+        <li><strong><code>APC_LEVEL</code> (1):</strong> Asynchronous Procedure Calls. Page faults are still allowed.</li>
+        <li><strong><code>DISPATCH_LEVEL</code> (2):</strong> Thread scheduler and DPC execution. <em>Page faults and context-switch wait operations are strictly forbidden.</em> Only non-paged memory and non-sleeping spinlocks may be used.</li>
+      </ul>
+      <p>
+        A frequent cause of Windows kernel deadlocks is acquiring a spinlock (which elevates the CPU to <code>DISPATCH_LEVEL</code>) and then attempting to access paged-pool memory. If that memory has been paged out to disk, the CPU triggers a page fault requiring disk I/O—which requires waiting for an I/O completion interrupt. But the thread scheduler cannot run on that CPU because it is locked at <code>DISPATCH_LEVEL</code>, causing an immediate deadlock. Driver Verifier traps this condition instantaneously.
+      </p>
+
+      <h5>BugCheck <code>0xC4</code>: <code>DRIVER_VERIFIER_DETECTED_VIOLATION</code></h5>
+      <p>
+        When Driver Verifier detects a deadlock cycle or fatal IRQL violation, it immediately halts execution with a Blue Screen of Death (BSOD) generating <strong>Stop Code <code>0xC4</code></strong>. Subcode <code>0x100</code> indicates a proven deadlock:
+      </p>
+
+      <div class="math-callout" style="background: #f8fafc; border-left: 4px solid var(--danger); padding: 16px; border-radius: 0 6px 6px 0; margin: 18px 0;">
+        <strong style="color: var(--danger);">Windows Crash Dump Analysis:</strong>
+        <br><br>
+        <code>STOP 0x000000C4 (0x00000100, Resource1, Resource2, ThreadAddress)</code>
+        <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
+          Parameter 1 (<code>0x100</code>) confirms a circular lock dependency. Parameters 2 and 3 provide the kernel virtual memory addresses of the conflicting locks, enabling instant disassembly in WinDbg via <code>!deadlock</code>.
+        </p>
+      </div>
+
+      <h4>3. Architectural Comparison: Linux vs. Windows</h4>
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.88rem;">
         <thead>
           <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Protocol Variant</th>
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Release Invariant</th>
-            <th style="padding: 10px; text-align: left; color: var(--primary);">Guarantees &amp; Trade-offs</th>
+            <th style="padding: 10px; text-align: left; color: var(--primary);">Architectural Property</th>
+            <th style="padding: 10px; text-align: left; color: var(--primary);">Linux <code>lockdep</code></th>
+            <th style="padding: 10px; text-align: left; color: var(--primary);">Windows Driver Verifier</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: 600;">Basic 2PL</td>
-            <td style="padding: 10px;">Locks released incrementally during shrinking phase.</td>
-            <td style="padding: 10px; color: #dc2626;">Serializability guaranteed, but vulnerable to cascading aborts.</td>
+            <td style="padding: 10px; font-weight: 600;">Primary Abstraction</td>
+            <td style="padding: 10px;"><strong>Lock Classes</strong> (identifies code sites via static keys).</td>
+            <td style="padding: 10px;"><strong>Resource Nodes</strong> (intercepts specific runtime object pointers).</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px; font-weight: 600;">Strict 2PL (S2PL)</td>
-            <td style="padding: 10px;">All <strong>Exclusive (X)</strong> locks held until transaction commits or aborts.</td>
-            <td style="padding: 10px; color: #16a34a;">Eliminates cascading aborts (prevents dirty reads). Industry standard.</td>
+            <td style="padding: 10px; font-weight: 600;">Trigger Timing</td>
+            <td style="padding: 10px; color: #16a34a;">Predictive (warns when an unsafe order is theoretically possible).</td>
+            <td style="padding: 10px; color: #0284c7;">Active runtime tracking (detects live circular wait chains).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; font-weight: 600;">Default Action on Violation</td>
+            <td style="padding: 10px;">Prints kernel warning splat to <code>dmesg</code>; disables itself to save system.</td>
+            <td style="padding: 10px; color: #dc2626;">Immediate BugCheck <code>0xC4</code> (forces crash dump generation).</td>
           </tr>
           <tr>
-            <td style="padding: 10px; font-weight: 600;">Rigorous / Strong Strict 2PL (SS2PL)</td>
-            <td style="padding: 10px;"><strong>All</strong> locks (both Shared S and Exclusive X) held until commit/abort.</td>
-            <td style="padding: 10px; color: #0284c7;">Serial execution order matches commit order; lowers reader throughput.</td>
+            <td style="padding: 10px; font-weight: 600;">Production Viability</td>
+            <td style="padding: 10px;">Disabled in production distro kernels; standard in debug/test kernels.</td>
+            <td style="padding: 10px;">Selectively enabled per-driver by system administrators and QA labs.</td>
           </tr>
         </tbody>
-      </table>
+      </table>"""
 
-      <h4>4. DBMS Deadlock Resolution via Wait-For-Graphs</h4>
-      <p>
-        While 2PL guarantees serializability, it <strong>does not prevent deadlock</strong>. In fact, aggressive lock acquisition makes deadlocks inevitable. For example:
-      </p>
-      <ul>
-        <li>Transaction $T_1$ holds exclusive lock $X(A)$ and requests $X(B)$.</li>
-        <li>Transaction $T_2$ holds exclusive lock $X(B)$ and requests $X(A)$.</li>
-      </ul>
-      <p>
-        Modern database engines handle this through active <strong>deadlock detection and victim selection</strong>:
-      </p>
-      <ul>
-        <li>
-          <strong>Wait-For-Graph (WFG) Construction:</strong> The DBMS lock manager maintains a background thread running every 50&ndash;500ms. It constructs a directed graph where nodes represent active transactions and edges represent pending lock requests ($T_i \to T_j$).
-        </li>
-        <li>
-          <strong>Cycle Detection:</strong> The lock manager runs Depth-First Search (DFS) over the WFG. A cycle indicates an unresolvable circular wait.
-        </li>
-        <li>
-          <strong>Victim Selection Criteria:</strong> Upon detecting a cycle, the engine selects a "victim" transaction to abort and roll back based on:
-          <ol>
-            <li><strong>Fewest Locks Held:</strong> Minimizes the volume of undo log records to process.</li>
-            <li><strong>Youngest Elapsed Time:</strong> Minimizes discarded user computation.</li>
-            <li><strong>Rollback Cost:</strong> Prefers read-heavy transactions over transactions with heavy physical disk writes.</li>
-          </ol>
-        </li>
-      </ul>"""
-
-def expand_readers_writers_2pl():
+def expand_real_world_defenses():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return False
@@ -207,32 +172,32 @@ def expand_readers_writers_2pl():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>2. Readers-Writers Starvation &amp; Database 2PL</h3>"
-    end_marker = "<h3>3. Real-World Kernel Defenses: Linux lockdep &amp; Driver Verifier</h3>"
+    start_marker = "<h3>3. Real-World Kernel Defenses: Linux lockdep &amp; Driver Verifier</h3>"
+    end_marker = "</div>\n\n    <nav class=\"nav-bar\">"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker, start_idx)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 2 boundaries in Module 04.")
+        print("Error: Could not locate Section 3 boundaries in target file.")
         return False
 
-    updated_content = content[:start_idx] + READERS_WRITERS_2PL_EXPANSION + "\n\n      " + content[end_idx:]
+    updated_content = content[:start_idx] + REAL_WORLD_DEFENSES_EXPANDED + "\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Readers-Writers & 2PL in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if expand_readers_writers_2pl():
+    if expand_real_world_defenses():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Expand Readers-Writers starvation and Database 2PL in Module 04\n\n"
-                "Add 3-variant Readers-Writers taxonomy, fair turnstile lock implementation,\n"
-                "Strict/Rigorous 2PL invariants, and DBMS Wait-For-Graph deadlock resolution."
+                "Deeply expand real-world kernel defenses section in Module 04\n\n"
+                "Add architectural breakdowns of Linux lockdep lock classes and IRQ\n"
+                "inversions, Windows Driver Verifier IRQL rules, and real panic splats."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
