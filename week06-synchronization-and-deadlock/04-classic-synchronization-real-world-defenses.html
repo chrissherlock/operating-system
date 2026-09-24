@@ -193,53 +193,63 @@
           <div class="visual-canvas" style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 250px;">
             <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; Dining Table Topology</div>
 
-            <!-- Circular Table SVG Canvas -->
-            <svg viewBox="0 0 300 240" style="width: 100%; height: 100%; min-height: 200px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
-              <!-- Central Table -->
-              <circle cx="150" cy="120" r="65" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" />
+            <!-- Circular Table SVG Canvas with Accurate Radial Geometry -->
+            <svg viewBox="0 0 300 240" style="width: 100%; height: 100%; min-height: 220px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
+              <!-- Central Dining Table (Center at 150, 120, Radius 62) -->
+              <circle cx="150" cy="120" r="62" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2" />
               <text x="150" y="124" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">Table</text>
 
-              <!-- Chopstick Rectangles (Radial between philosophers) -->
-              <!-- C0 (between P0 and P1) -->
-              <rect id="dp-c0" x="145" y="60" width="10" height="24" rx="2" fill="#d97706" transform="rotate(36 150 72)" />
-              <text x="168" y="74" fill="#b45309" font-size="8" font-weight="700">C0</text>
+              <!-- Chopsticks/Forks C0..C4 positioned on the table boundary between philosophers -->
+              <!-- C0: Between P0 (-90 deg) and P1 (-18 deg) at -54 deg -->
+              <g id="grp-c0">
+                <rect id="dp-c0" x="182" y="62" width="7" height="22" rx="2" fill="#d97706" transform="rotate(36 185 73)" />
+                <text x="175" y="62" fill="#b45309" font-size="8" font-weight="700">C0</text>
+              </g>
 
-              <!-- C1 (between P1 and P2) -->
-              <rect id="dp-c1" x="180" y="130" width="10" height="24" rx="2" fill="#d97706" transform="rotate(108 185 142)" />
-              <text x="200" y="152" fill="#b45309" font-size="8" font-weight="700">C1</text>
+              <!-- C1: Between P1 (-18 deg) and P2 (+54 deg) at +18 deg -->
+              <g id="grp-c1">
+                <rect id="dp-c1" x="206" y="128" width="7" height="22" rx="2" fill="#d97706" transform="rotate(108 209 139)" />
+                <text x="216" y="126" fill="#b45309" font-size="8" font-weight="700">C1</text>
+              </g>
 
-              <!-- C2 (between P2 and P3) -->
-              <rect id="dp-c2" x="125" y="170" width="10" height="24" rx="2" fill="#d97706" transform="rotate(180 130 182)" />
-              <text x="135" y="198" fill="#b45309" font-size="8" font-weight="700">C2</text>
+              <!-- C2: Between P2 (+54 deg) and P3 (+126 deg) at +90 deg -->
+              <g id="grp-c2">
+                <rect id="dp-c2" x="146.5" y="171" width="7" height="22" rx="2" fill="#d97706" transform="rotate(0 150 182)" />
+                <text x="150" y="202" fill="#b45309" font-size="8" font-weight="700" text-anchor="middle">C2</text>
+              </g>
 
-              <!-- C3 (between P3 and P4) -->
-              <rect id="dp-c3" x="90" y="130" width="10" height="24" rx="2" fill="#d97706" transform="rotate(-108 95 142)" />
-              <text x="75" y="152" fill="#b45309" font-size="8" font-weight="700">C3</text>
+              <!-- C3: Between P3 (+126 deg) and P4 (+198 deg) at +162 deg -->
+              <g id="grp-c3">
+                <rect id="dp-c3" x="87" y="128" width="7" height="22" rx="2" fill="#d97706" transform="rotate(-108 90 139)" />
+                <text x="74" y="126" fill="#b45309" font-size="8" font-weight="700">C3</text>
+              </g>
 
-              <!-- C4 (between P4 and P0) -->
-              <rect id="dp-c4" x="125" y="60" width="10" height="24" rx="2" fill="#d97706" transform="rotate(-36 130 72)" />
-              <text x="110" y="74" fill="#b45309" font-size="8" font-weight="700">C4</text>
+              <!-- C4: Between P4 (+198 deg) and P0 (+270 deg) at +234 deg -->
+              <g id="grp-c4">
+                <rect id="dp-c4" x="111" y="62" width="7" height="22" rx="2" fill="#d97706" transform="rotate(-36 114 73)" />
+                <text x="115" y="62" fill="#b45309" font-size="8" font-weight="700">C4</text>
+              </g>
 
-              <!-- Philosopher Nodes -->
-              <!-- P0 (Top Center) -->
-              <circle id="dp-p0" cx="150" cy="25" r="16" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
-              <text x="150" y="29" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P0</text>
+              <!-- Philosopher Nodes (Radius ~92 from center) -->
+              <!-- P0: Top center (angle -90 deg) -->
+              <circle id="dp-p0" cx="150" cy="28" r="17" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+              <text x="150" y="32" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P0</text>
 
-              <!-- P1 (Top Right) -->
-              <circle id="dp-p1" cx="245" cy="85" r="16" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
-              <text x="245" y="89" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P1</text>
+              <!-- P1: Top right (angle -18 deg) -->
+              <circle id="dp-p1" cx="238" cy="92" r="17" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+              <text x="238" y="96" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P1</text>
 
-              <!-- P2 (Bottom Right) -->
-              <circle id="dp-p2" cx="210" cy="195" r="16" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
-              <text x="210" y="199" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P2</text>
+              <!-- P2: Bottom right (angle +54 deg) -->
+              <circle id="dp-p2" cx="204" cy="194" r="17" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+              <text x="204" y="198" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P2</text>
 
-              <!-- P3 (Bottom Left) -->
-              <circle id="dp-p3" cx="90" cy="195" r="16" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
-              <text x="90" y="199" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P3</text>
+              <!-- P3: Bottom left (angle +126 deg) -->
+              <circle id="dp-p3" cx="96" cy="194" r="17" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+              <text x="96" y="198" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P3</text>
 
-              <!-- P4 (Top Left) -->
-              <circle id="dp-p4" cx="55" cy="85" r="16" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
-              <text x="55" y="89" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P4</text>
+              <!-- P4: Top left (angle +198 deg) -->
+              <circle id="dp-p4" cx="62" cy="92" r="17" fill="#ffffff" stroke="#0284c7" stroke-width="2.5" />
+              <text x="62" y="96" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">P4</text>
             </svg>
 
             <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="dp-canvas-banner">
