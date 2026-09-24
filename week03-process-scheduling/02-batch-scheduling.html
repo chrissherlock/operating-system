@@ -551,41 +551,86 @@
       </div>
 
       <div class="canvas-container">
-        <svg class="gantt-canvas" viewBox="0 0 760 220">
+        <svg class="gantt-canvas" viewBox="0 0 760 260">
+          <defs>
+            <pattern id="wait-stripe" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="8" stroke="#fcd34d" stroke-width="4" />
+              <line x1="4" y1="0" x2="4" y2="8" stroke="#fef3c7" stroke-width="4" />
+            </pattern>
+            <marker id="arr-arrival" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 2 0 L 5 8 L 8 0 z" fill="#d97706" />
+            </marker>
+          </defs>
+
           <!-- Ready Queue Status Box (Left) -->
-          <g transform="translate(20, 20)">
-            <rect width="200" height="180" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-            <text x="14" y="24" font-size="11" font-weight="700" fill="#0f172a">READY QUEUE</text>
-            <rect id="node-queue-b" x="12" y="36" width="176" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" style="display: none;"/>
-            <text id="txt-queue-b" x="20" y="58" font-family="var(--font-mono)" font-size="10" fill="#334155" style="display: none;">Proc B (Rem: 3ms)</text>
+          <g transform="translate(15, 15)">
+            <rect width="215" height="230" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+            <text x="14" y="24" font-size="11" font-weight="700" fill="#0f172a">READY QUEUE (WAITING)</text>
 
-            <rect id="node-queue-c" x="12" y="78" width="176" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" style="display: none;"/>
-            <text id="txt-queue-c" x="20" y="100" font-family="var(--font-mono)" font-size="10" fill="#334155" style="display: none;">Proc C (Rem: 3ms)</text>
-
-            <rect id="node-queue-a" x="12" y="120" width="176" height="34" rx="4" fill="#ffffff" stroke="#dc2626" stroke-dasharray="3 3" style="display: none;"/>
-            <text id="txt-queue-a" x="20" y="142" font-family="var(--font-mono)" font-size="10" fill="#dc2626" style="display: none;">Proc A (Preempted: 22ms)</text>
-          </g>
-
-          <!-- Gantt Chart Arena (Right) -->
-          <g transform="translate(240, 20)">
-            <rect width="500" height="180" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-            <text x="15" y="24" font-size="11" font-weight="700" fill="#0f172a">CPU TIMELINE (GANTT CHART)</text>
-
-            <!-- Dynamic Gantt Segments -->
-            <g id="gantt-bars">
-              <!-- Rendered dynamically by script -->
+            <!-- Proc B Queue Card -->
+            <g id="card-queue-b" style="display: none;">
+              <rect x="12" y="36" width="190" height="52" rx="4" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+              <text x="20" y="54" font-size="10" font-weight="700" fill="#b45309">Proc B (Burst: 3ms)</text>
+              <text x="20" y="68" font-family="var(--font-mono)" font-size="9" fill="#d97706">Arrived T=2 | WAITING</text>
+              <text id="txt-queue-b-timer" x="20" y="80" font-family="var(--font-mono)" font-size="8.5" fill="#64748b">Wait: 0ms accumulating</text>
             </g>
 
-            <!-- Timeline Axis -->
-            <line x1="20" y1="130" x2="480" y2="130" stroke="#94a3b8" stroke-width="2"/>
-            <text x="20" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">0</text>
-            <text x="150" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=8</text>
-            <text x="280" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=16</text>
-            <text x="410" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=24</text>
-            <text x="475" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=30</text>
+            <!-- Proc C Queue Card -->
+            <g id="card-queue-c" style="display: none;">
+              <rect x="12" y="96" width="190" height="52" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+              <text x="20" y="114" font-size="10" font-weight="700" fill="#0369a1">Proc C (Burst: 3ms)</text>
+              <text x="20" y="128" font-family="var(--font-mono)" font-size="9" fill="#0284c7">Arrived T=4 | WAITING</text>
+              <text id="txt-queue-c-timer" x="20" y="140" font-family="var(--font-mono)" font-size="8.5" fill="#64748b">Wait: 0ms accumulating</text>
+            </g>
+
+            <!-- Proc A (Preempted Card for SRTN) -->
+            <g id="card-queue-a" style="display: none;">
+              <rect x="12" y="156" width="190" height="52" rx="4" fill="#fef2f2" stroke="#dc2626" stroke-width="2" stroke-dasharray="3 3"/>
+              <text x="20" y="174" font-size="10" font-weight="700" fill="#b91c1c">Proc A (Preempted!)</text>
+              <text x="20" y="188" font-family="var(--font-mono)" font-size="9" fill="#dc2626">Rem: 22ms | Queued</text>
+              <text x="20" y="200" font-family="var(--font-mono)" font-size="8.5" fill="#64748b">Waiting for CPU core</text>
+            </g>
+
+            <text id="txt-queue-empty" x="14" y="60" font-family="var(--font-mono)" font-size="9.5" fill="#94a3b8">Queue Empty (No waiters)</text>
           </g>
-        </svg>
-      </div>
+
+          <!-- Gantt Timeline & Arrival Arena (Right) -->
+          <g transform="translate(245, 15)">
+            <rect width="500" height="230" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+            <text x="15" y="24" font-size="11" font-weight="700" fill="#0f172a">CPU EXECUTION &amp; ARRIVAL TIMELINE</text>
+
+            <!-- Track 1: Active CPU Core Execution -->
+            <text x="15" y="48" font-size="9.5" font-weight="700" fill="#475569">CPU CORE 0 (Running):</text>
+            <rect x="15" y="55" width="470" height="42" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+            <g id="gantt-cpu-bars"></g>
+
+            <!-- Track 2: Arrival & Waiting Queue Track -->
+            <text x="15" y="122" font-size="9.5" font-weight="700" fill="#d97706">READY QUEUE ARRIVALS &amp; DELAYS:</text>
+            <rect x="15" y="128" width="470" height="42" rx="4" fill="#fffbeb" stroke="#fef3c7"/>
+            <g id="gantt-wait-bars"></g>
+
+            <!-- Timeline Time Axis -->
+            <line x1="15" y1="195" x2="485" y2="195" stroke="#94a3b8" stroke-width="2"/>
+            <!-- Tick marks: Scale factor = 15px per ms, 0=15, 2=45, 4=75, 8=135, 24=375, 30=465 -->
+            <line x1="15" y1="195" x2="15" y2="203" stroke="#475569" stroke-width="1.5"/>
+            <text x="15" y="216" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#475569">T=0</text>
+
+            <line x1="45" y1="195" x2="45" y2="203" stroke="#d97706" stroke-width="1.5"/>
+            <text x="45" y="216" text-anchor="middle" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="#d97706">T=2</text>
+
+            <line x1="75" y1="195" x2="75" y2="203" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="75" y="216" text-anchor="middle" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="#0284c7">T=4</text>
+
+            <line x1="135" y1="195" x2="135" y2="203" stroke="#475569" stroke-width="1.5"/>
+            <text x="135" y="216" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#475569">T=8</text>
+
+            <line x1="375" y1="195" x2="375" y2="203" stroke="#475569" stroke-width="1.5"/>
+            <text x="375" y="216" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#475569">T=24</text>
+
+            <line x1="465" y1="195" x2="465" y2="203" stroke="#475569" stroke-width="1.5"/>
+            <text x="465" y="216" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#475569">T=30</text>
+          </g>
+        </svg>      </div>
 
       <!-- Stepper Controls & Current Step Summary Panel -->
       <div class="controls-narrative-strip">
@@ -700,14 +745,17 @@
         {
           time: "T = 0 ms",
           active: "Process A (Burst: 24 ms)",
-          queue: "Empty",
+          queue: "Empty (No arrivals)",
           wait: "0.0 ms (A running)",
           showQueueB: false,
           showQueueC: false,
           showQueueA: false,
-          barsHtml: `
-            <rect x="20" y="45" width="40" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="40" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A</text>
+          cpuBars: `
+            <rect x="15" y="55" width="40" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="35" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (0-2ms)</text>
+          `,
+          waitBars: `
+            <text x="25" y="152" font-size="9" fill="#94a3b8">No tasks in Ready queue</text>
           `,
           narrative: "Process A arrives at T=0 with a 24ms burst requirement. The CPU starts executing Process A. The Ready queue is currently empty.",
           what: "Process A enters the CPU core at T=0. Because no other jobs exist, Process A is granted immediate execution.",
@@ -716,72 +764,103 @@
         {
           time: "T = 2 ms",
           active: "Process A (Running: 22ms left)",
-          queue: "Proc B (Arrived T=2)",
-          wait: "0.0 ms (B waiting)",
+          queue: "Proc B (Arrived T=2 | Trapped)",
+          wait: "Proc B accumulating wait!",
           showQueueB: true,
           showQueueC: false,
           showQueueA: false,
-          barsHtml: `
-            <rect x="20" y="45" width="60" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="50" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Running)</text>
+          bTimer: "Wait: 0ms (Just arrived)",
+          cpuBars: `
+            <rect x="15" y="55" width="70" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="50" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Monopolizing Core 0)</text>
           `,
-          narrative: "Process B (burst: 3ms) arrives at T=2. Under FCFS, Process A cannot be preempted. Process B is placed into the Ready queue and forced to wait.",
-          what: "Process B enters the Ready list. Even though Process B only needs 3ms of CPU time, it must wait for Process A's remaining 22ms.",
-          why: "Non-preemptive FCFS forbids forcibly stripping the CPU from an active process; the running task owns the core until voluntary release."
+          waitBars: `
+            <!-- Process B Arrival Marker at T=2 (x=45) -->
+            <path d="M 45 110 L 45 128" stroke="#d97706" stroke-width="2" marker-end="url(#arr-arrival)"/>
+            <text x="45" y="105" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#d97706">&darr; B Arrives (3ms)</text>
+
+            <rect x="45" y="132" width="40" height="34" rx="3" fill="url(#wait-stripe)" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="65" y="153" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">B Trapped</text>
+          `,
+          narrative: "Process B (burst: 3ms) arrives at T=2. Notice the arrival marker &amp; striped amber wait bar: under non-preemptive FCFS, Process A cannot be interrupted. Process B is trapped in the Ready queue.",
+          what: "Process B enters the Ready queue at T=2. Even though Process B requires only 3ms of computation, it cannot preempt Process A and begins accumulating waiting time.",
+          why: "Non-preemptive FCFS adheres strictly to FIFO arrival order without inspecting burst length; running tasks own the processor until voluntary yield or termination."
         },
         {
           time: "T = 4 ms",
           active: "Process A (Running: 20ms left)",
-          queue: "Proc B, Proc C (Trapped)",
-          wait: "1.0 ms average wait",
+          queue: "Proc B &amp; Proc C (Trapped)",
+          wait: "B waited 2ms, C arrived",
           showQueueB: true,
           showQueueC: true,
           showQueueA: false,
-          barsHtml: `
-            <rect x="20" y="45" width="90" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="65" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Convoy Lock)</text>
+          bTimer: "Wait: 2ms in queue",
+          cTimer: "Wait: 0ms (Just arrived)",
+          cpuBars: `
+            <rect x="15" y="55" width="105" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="67" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A (Convoy Lock)</text>
           `,
-          narrative: "Process C (burst: 3ms) arrives at T=4. Both B and C are trapped behind Process A. This is the Convoy Effect in action.",
-          what: "The Ready queue grows as fast I/O tasks queue up. I/O peripheral hardware sits idle while Process A monopolizes the CPU core.",
-          why: "FCFS ignores task length. The operating system cannot prioritize short tasks over long-running batch jobs."
+          waitBars: `
+            <!-- Process B Arrival at T=2 -->
+            <text x="45" y="105" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#d97706">B (T=2)</text>
+            <rect x="45" y="132" width="70" height="34" rx="3" fill="url(#wait-stripe)" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="80" y="153" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b45309">B Waiting...</text>
+
+            <!-- Process C Arrival at T=4 (x=75) -->
+            <path d="M 75 110 L 75 128" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-arrival)"/>
+            <text x="75" y="105" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">&darr; C Arrives</text>
+            <rect x="75" y="136" width="40" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="95" y="153" text-anchor="middle" font-size="8" font-weight="700" fill="#0369a1">C Queued</text>
+          `,
+          narrative: "Process C (burst: 3ms) arrives at T=4. Both Process B and Process C are now stalled in the Ready queue behind Process A. This is the Convoy Effect.",
+          what: "Two fast tasks (B and C) are trapped. Meanwhile, disk and network controllers sit completely idle waiting for B and C to run.",
+          why: "FCFS ignores task size, severely damaging average turnaround time and degrading peripheral device utilization."
         },
         {
           time: "T = 24 ms",
-          active: "Process B (Dispatched)",
-          queue: "Proc C (Waited 20ms)",
-          wait: "B waited 22ms!",
+          active: "Process B (Finally Dispatched)",
+          queue: "Proc C (Waited 20ms!)",
+          wait: "B waited 22ms for 3ms job",
           showQueueB: false,
           showQueueC: true,
           showQueueA: false,
-          barsHtml: `
-            <rect x="20" y="45" width="360" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="200" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A Finished (0-24ms)</text>
-            <rect x="380" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
-            <text x="402" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+          cTimer: "Wait: 20ms in queue",
+          cpuBars: `
+            <rect x="15" y="55" width="360" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="195" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A Finished (0-24ms)</text>
+            <rect x="375" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
+            <text x="397" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
           `,
-          narrative: "Process A finally completes at T=24. Process B is dispatched after suffering an agonizing 22ms wait for a 3ms task. Process C continues waiting.",
-          what: "Process A calls exit(). The dispatcher loads Process B. Process B's turnaround time is 27 - 2 = 25ms (Slowdown ratio W = 8.3x).",
-          why: "FCFS guarantees starvation freedom, but imposes devastating latency penalties on short interactive jobs."
+          waitBars: `
+            <rect x="45" y="132" width="330" height="34" rx="3" fill="url(#wait-stripe)" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="210" y="153" text-anchor="middle" font-size="9" font-weight="700" fill="#b45309">Proc B Total Queue Wait: 22 ms! (T=2 to T=24)</text>
+          `,
+          narrative: "Process A finally completes at T=24. Process B is dispatched after an agonizing 22ms wait for a 3ms task. Process C has already waited 20ms and continues waiting.",
+          what: "Process A terminates. The dispatcher switches to Process B. Process B's slowdown ratio is W = 25 / 3 = 8.3x.",
+          why: "FCFS guarantees no starvation, but inflicts enormous queue delays on short tasks trapped behind large jobs."
         },
         {
           time: "T = 30 ms",
-          active: "Workload Complete",
+          active: "All Workloads Finished",
           queue: "Empty",
           wait: "Avg Turnaround: 25.0 ms",
           showQueueB: false,
           showQueueC: false,
           showQueueA: false,
-          barsHtml: `
-            <rect x="20" y="45" width="360" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="200" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A (0-24ms)</text>
-            <rect x="380" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
-            <text x="402" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
-            <rect x="425" y="45" width="45" height="40" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
-            <text x="447" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+          cpuBars: `
+            <rect x="15" y="55" width="360" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="195" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A (0-24ms)</text>
+            <rect x="375" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+            <text x="397" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+            <rect x="420" y="55" width="45" height="42" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+            <text x="442" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+          `,
+          waitBars: `
+            <text x="25" y="152" font-size="9.5" font-weight="700" fill="#475569">Total Wait Times: A = 0ms | B = 22ms | C = 23ms (Average Wait: 15.0ms)</text>
           `,
           narrative: "All jobs finish by T=30. Average Turnaround Time = (24 + 25 + 26) / 3 = 25.0 ms. Average Waiting Time = (0 + 22 + 23) / 3 = 15.0 ms.",
-          what: "Workload finishes. The convoy effect severely degraded average turnaround time across the batch.",
-          why: "Analyzing this structural flaw establishes why operating systems transitioned to preemptive algorithms."
+          what: "Batch completes. Notice how the convoy effect created an asymmetric waiting distribution.",
+          why: "Observing this structural flaw explains why operating systems developed preemptive Shortest Remaining Time Next."
         }
       ],
       srtn: [
@@ -793,49 +872,65 @@
           showQueueB: false,
           showQueueC: false,
           showQueueA: false,
-          barsHtml: `
-            <rect x="20" y="45" width="40" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="40" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A</text>
+          cpuBars: `
+            <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="30" y="80" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
           `,
-          narrative: "Process A arrives at T=0 with a 24ms burst. The CPU starts executing Process A. Remaining time: 24ms.",
+          waitBars: `
+            <text x="25" y="152" font-size="9" fill="#94a3b8">Ready queue empty</text>
+          `,
+          narrative: "Process A arrives at T=0 with a 24ms burst requirement. The CPU starts executing Process A. Remaining time: 24ms.",
           what: "Process A runs on the core. No other tasks exist in the system.",
           why: "The CPU immediately services available tasks to eliminate idle execution cycles."
         },
         {
           time: "T = 2 ms",
-          active: "Process B PREEMPTS Process A",
+          active: "Process B PREEMPTS Process A!",
           queue: "Proc A (Preempted: 22ms)",
           wait: "0.0 ms (B runs immediately!)",
           showQueueB: false,
           showQueueC: false,
           showQueueA: true,
-          barsHtml: `
-            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
-            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
-            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+          cpuBars: `
+            <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="30" y="80" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="45" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
+            <text x="67" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B (RUNNING)</text>
           `,
-          narrative: "Process B (3ms) arrives at T=2. SRTN compares B's required time (3ms) against A's remaining time (22ms). 3ms < 22ms &rarr; Process A is PREEMPTED!",
-          what: "The kernel suspends Process A, saves its registers, and immediately dispatches Process B. Process B experiences ZERO waiting time!",
-          why: "SRTN prioritizes the task with the shortest remaining time to minimize system-wide waiting queues."
+          waitBars: `
+            <path d="M 45 110 L 45 128" stroke="#059669" stroke-width="2" marker-end="url(#arr-arrival)"/>
+            <text x="45" y="105" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#059669">&darr; B Arrives (3ms &lt; 22ms rem)</text>
+            <rect x="45" y="132" width="150" height="34" rx="3" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="120" y="153" text-anchor="middle" font-size="8.5" font-weight="700" fill="#dc2626">Proc A Preempted to Ready Queue</text>
+          `,
+          narrative: "Process B (3ms) arrives at T=2. SRTN compares B's requirement (3ms) against A's remaining time (22ms). Since 3ms &lt; 22ms, Process A is PREEMPTED immediately! Process B runs with ZERO wait time.",
+          what: "The kernel forcibly suspends Process A, saves its registers to its trap frame, moves A to the Ready queue, and dispatches Process B.",
+          why: "SRTN prioritizes jobs with the shortest remaining execution requirement, eliminating the convoy effect."
         },
         {
           time: "T = 4 ms",
           active: "Process B (1ms left)",
           queue: "Proc C (3ms), Proc A (22ms)",
-          wait: "B running; C queued",
+          wait: "C queued; B finishing",
           showQueueB: false,
           showQueueC: true,
           showQueueA: true,
-          barsHtml: `
-            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
-            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
-            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+          cTimer: "Wait: 0ms (3ms burst)",
+          cpuBars: `
+            <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="30" y="80" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="45" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
+            <text x="67" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
           `,
-          narrative: "Process C (3ms) arrives at T=4. The scheduler compares C (3ms) with running B (1ms left). 1ms < 3ms, so Process B continues uninterrupted.",
-          what: "Process B retains the core. Process C is placed ahead of Process A in the Ready queue because 3ms < 22ms.",
-          why: "The currently running task has a shorter remaining burst than the newly arrived task, so no preemption occurs."
+          waitBars: `
+            <path d="M 75 110 L 75 128" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-arrival)"/>
+            <text x="75" y="105" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#0284c7">&darr; C Arrives (3ms)</text>
+            <rect x="75" y="132" width="15" height="34" rx="2" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="82" y="153" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0369a1">C</text>
+          `,
+          narrative: "Process C (3ms) arrives at T=4. The scheduler compares C (3ms) with running B (1ms remaining). 1ms &lt; 3ms, so Process B continues uninterrupted.",
+          what: "Process B retains the core. Process C is placed ahead of Process A in the Ready queue because 3ms &lt; 22ms.",
+          why: "The currently executing task has shorter remaining time than the new arrival, so preemption is unnecessary."
         },
         {
           time: "T = 5 ms",
@@ -845,13 +940,16 @@
           showQueueB: false,
           showQueueC: false,
           showQueueA: true,
-          barsHtml: `
-            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
-            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
-            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
-            <rect x="95" y="45" width="45" height="40" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
-            <text x="117" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+          cpuBars: `
+            <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="30" y="80" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="45" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+            <text x="67" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B (Fin)</text>
+            <rect x="90" y="55" width="45" height="42" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+            <text x="112" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+          `,
+          waitBars: `
+            <text x="25" y="152" font-size="9" font-weight="600" fill="#059669">Proc B finished at T=5 (Turnaround = 3ms, W = 1.0x!)</text>
           `,
           narrative: "Process B completes at T=5. Process C (3ms) is selected over Process A (22ms). Process C executes from T=5 to T=8.",
           what: "Process B finishes with a turnaround time of 5 - 2 = 3ms (optimal!). Process C starts running after waiting only 1ms.",
@@ -859,23 +957,26 @@
         },
         {
           time: "T = 30 ms",
-          active: "Workload Complete",
+          active: "All Workloads Finished",
           queue: "Empty",
-          wait: "Avg Turnaround: 13.0 ms!",
+          wait: "Avg Turnaround: 12.33 ms!",
           showQueueB: false,
           showQueueC: false,
           showQueueA: false,
-          barsHtml: `
-            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
-            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
-            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
-            <rect x="95" y="45" width="45" height="40" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5"/>
-            <text x="117" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
-            <rect x="140" y="45" width="330" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="305" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A Resumed &amp; Finished (8-30ms)</text>
+          cpuBars: `
+            <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="30" y="80" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="45" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+            <text x="67" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+            <rect x="90" y="55" width="45" height="42" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="112" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+            <rect x="135" y="55" width="330" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="300" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A Resumed &amp; Finished (8-30ms)</text>
           `,
-          narrative: "Process C completes at T=8. Process A resumes and executes its remaining 22ms until T=30. Average Turnaround = (30 + 3 + 4) / 3 = 12.33 ms (vs. 25.0 ms under FCFS &mdash; more than 50% faster!).",
+          waitBars: `
+            <text x="25" y="152" font-size="9.5" font-weight="700" fill="#059669">Turnaround Times: A = 30ms | B = 3ms | C = 4ms (Average Turnaround: 12.33 ms &mdash; 50%+ faster!)</text>
+          `,
+          narrative: "Process C completes at T=8. Process A resumes and finishes at T=30. Average Turnaround = (30 + 3 + 4) / 3 = 12.33 ms (vs. 25.0 ms under FCFS).",
           what: "Workload finishes. Average waiting time dropped from 15.0 ms under FCFS to only 2.33 ms under SRTN.",
           why: "Preemptive SRTN prevents short tasks from being penalized by long jobs, maximizing batch throughput."
         }
@@ -895,27 +996,37 @@
       document.getElementById("b-telem-queue").textContent = step.queue;
       document.getElementById("b-telem-wait").textContent = step.wait;
 
-      // Update Queue Nodes
-      document.getElementById("node-queue-b").style.display = step.showQueueB ? "block" : "none";
-      document.getElementById("txt-queue-b").style.display = step.showQueueB ? "block" : "none";
+      // Update Queue Cards
+      const cardB = document.getElementById("card-queue-b");
+      const cardC = document.getElementById("card-queue-c");
+      const cardA = document.getElementById("card-queue-a");
+      const queueEmpty = document.getElementById("txt-queue-empty");
 
-      document.getElementById("node-queue-c").style.display = step.showQueueC ? "block" : "none";
-      document.getElementById("txt-queue-c").style.display = step.showQueueC ? "block" : "none";
+      cardB.style.display = step.showQueueB ? "block" : "none";
+      cardC.style.display = step.showQueueC ? "block" : "none";
+      cardA.style.display = step.showQueueA ? "block" : "none";
 
-      document.getElementById("node-queue-a").style.display = step.showQueueA ? "block" : "none";
-      document.getElementById("txt-queue-a").style.display = step.showQueueA ? "block" : "none";
+      if (step.bTimer && document.getElementById("txt-queue-b-timer")) {
+        document.getElementById("txt-queue-b-timer").textContent = step.bTimer;
+      }
+      if (step.cTimer && document.getElementById("txt-queue-c-timer")) {
+        document.getElementById("txt-queue-c-timer").textContent = step.cTimer;
+      }
 
-      // Update Gantt Bars
-      document.getElementById("gantt-bars").innerHTML = step.barsHtml;
+      queueEmpty.style.display = (!step.showQueueB && !step.showQueueC && !step.showQueueA) ? "block" : "none";
+
+      // Update Gantt Tracks
+      document.getElementById("gantt-cpu-bars").innerHTML = step.cpuBars;
+      document.getElementById("gantt-wait-bars").innerHTML = step.waitBars;
 
       // Update Narrative Panel
-      document.getElementById("b-txt-narrative").textContent = step.narrative;
+      document.getElementById("b-txt-narrative").innerHTML = step.narrative;
       document.getElementById("b-btn-prev").disabled = (activeBatchStep === 0);
       document.getElementById("b-btn-next").disabled = (activeBatchStep === steps.length - 1);
 
       // Update Analytical Panes
-      document.getElementById("b-txt-what").textContent = step.what;
-      document.getElementById("b-txt-why").textContent = step.why;
+      document.getElementById("b-txt-what").innerHTML = step.what;
+      document.getElementById("b-txt-why").innerHTML = step.why;
     }
 
     function stepBatch(delta) {
@@ -936,8 +1047,8 @@
       document.getElementById("dim-srtn").classList.toggle("active", dim === "srtn");
 
       const scenarioText = dim === "fcfs"
-        ? "Process A (24 ms burst) arrives at T=0. Process B (3 ms burst) arrives at T=2. Process C (3 ms burst) arrives at T=4. Observing how non-preemptive FCFS locks the CPU and degrades turnaround time."
-        : "Process A (24 ms burst) arrives at T=0. Process B (3 ms burst) arrives at T=2. Process C (3 ms burst) arrives at T=4. Observing how preemptive SRTN interrupts Process A to achieve optimal turnaround times.";
+        ? "Process A (24 ms burst) arrives at T=0. Process B (3 ms burst) arrives at T=2. Process C (3 ms burst) arrives at T=4. Observing how non-preemptive FCFS locks the CPU and traps incoming tasks in the Ready queue."
+        : "Process A (24 ms burst) arrives at T=0. Process B (3 ms burst) arrives at T=2. Process C (3 ms burst) arrives at T=4. Observing how preemptive SRTN immediately interrupts Process A to achieve optimal turnaround times.";
       document.getElementById("batch-scenario-text").innerHTML = scenarioText;
 
       renderBatchStepper();
