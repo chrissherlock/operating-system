@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Expand and syntax highlight Section 1 in Module 04
+# fix.py: Deeply expand Section 2 in Module 04
 # =====================================================================
 import os
 import subprocess
@@ -18,262 +18,290 @@ SYNTAX_CSS = r"""    /* Syntax Highlighting */
     .syn-str { color: #34d399; }
     .syn-cmt { color: #64748b; font-style: italic; }"""
 
-EXPANDED_SECTION_ONE = r"""    <h3>1. The Bounded-Buffer (Producer-Consumer) Problem</h3>
+EXPANDED_SECTION_TWO = r"""    <h3>2. The Dining Philosophers Problem</h3>
     <p>
-      The <strong>Bounded-Buffer Problem</strong> (originally formulated by Edsger W. Dijkstra) is the definitive architectural archetype for asynchronous decoupled systems.
+      Originally formulated by Edsger W. Dijkstra in 1965 as an examination problem on synchronizing tape drives, and later refined into its allegorical form by C. A. R. Hoare, the <strong>Dining Philosophers Problem</strong> is the definitive paradigm for resource allocation deadlocks in multi-threaded operating systems.
     </p>
     <p>
-      In modern computing, execution threads rarely operate in lockstep. A network card receives ethernet frames at gigabit line rate, an operating system audio server generates PCM audio buffers, and a database storage engine writes transaction log entries asynchronously to NVMe storage. In each scenario, an execution thread producing data must coordinate with an independent execution thread consuming data through a fixed-size storage buffer in memory.
+      The problem models concurrent processes competing for limited, mutually exclusive non-preemptible resources (such as multiple disk spindles, database row locks, or memory channels).
     </p>
 
-    <h4>Formal Problem Specification &amp; System Invariants</h4>
+    <h4>Formal Specification</h4>
     <p>
-      The architecture consists of one or more <strong>producers</strong> and one or more <strong>consumers</strong> sharing a circular ring buffer partitioned into <i>N</i> discrete slots:
+      Five philosophers sit around a circular dining table:
     </p>
     <ul>
-      <li><strong>Producer Obligation:</strong> Generates data items and deposits them into the buffer. A producer must be <em>blocked</em> from inserting when the buffer is full (<code>count == N</code>).</li>
-      <li><strong>Consumer Obligation:</strong> Extracts data items from the buffer and consumes them. A consumer must be <em>blocked</em> from extracting when the buffer is empty (<code>count == 0</code>).</li>
-      <li><strong>Mutual Exclusion Invariant:</strong> The physical slots, head/tail pointers, and metadata must never be modified by more than one thread concurrently.</li>
+      <li>Each philosopher spends their entire life alternating between two internal states: <strong>Thinking</strong> and <strong>Eating</strong>.</li>
+      <li>In the center of the table lies a communal bowl of spaghetti. Between each pair of adjacent philosophers lies a single chopstick (or fork). There are 5 philosophers and <strong>exactly 5 chopsticks</strong>.</li>
+      <li>Eating spaghetti requires <strong>two chopsticks simultaneously</strong>: a philosopher must acquire both their left chopstick and their right chopstick.</li>
+      <li>A chopstick can only be held by one philosopher at a time. When a philosopher finishes eating, they put down both chopsticks and return to thinking.</li>
     </ul>
 
-    <!-- Structural Diagram: Circular Ring Buffer Architecture -->
+    <!-- Structural Diagram: Dining Philosophers Table Topology -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.1: Circular Ring Buffer &amp; Tri-Semaphore Architecture</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How counting semaphores track vacant and populated slots while a binary semaphore serializes ring pointer updates.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.2: Dining Philosophers Circular Topology &amp; The Circular Wait Hazard</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How simultaneous left-hand acquisition establishes the fatal circular dependency ring.</div>
 
-      <svg viewBox="0 0 760 250" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <svg viewBox="0 0 760 260" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <defs>
-          <marker id="bb-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="dp-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
+          </marker>
+          <marker id="dp-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
-          </marker>
-          <marker id="bb-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
-          </marker>
-          <marker id="bb-arr-amber" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#d97706" />
           </marker>
         </defs>
 
-        <!-- Circular Buffer Layout (Center) -->
-        <g transform="translate(20, 20)">
-          <rect width="450" height="210" rx="8" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="20" y="26" font-size="10.5" font-weight="700" fill="#0284c7">CIRCULAR BUFFER RING (Capacity N = 5)</text>
+        <!-- Circular Table Visual -->
+        <g transform="translate(190, 130)">
+          <!-- Main Table Rim -->
+          <circle cx="0" cy="0" r="110" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+          <!-- Spaghetti Bowl -->
+          <circle cx="0" cy="0" r="45" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+          <text x="0" y="4" text-anchor="middle" font-size="8.5" font-weight="700" fill="#92400e">SPAGHETTI</text>
 
-          <!-- Slots 0..4 -->
-          <g transform="translate(20, 45)">
-            <!-- Slot 0: Full -->
-            <rect x="0" y="0" width="76" height="60" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="38" y="22" text-anchor="middle" font-size="8" font-weight="700" fill="#991b1b">SLOT 0</text>
-            <text x="38" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="#dc2626">[Item 0]</text>
-            <text x="38" y="52" text-anchor="middle" font-size="7" fill="#7f1d1d">FULL</text>
+          <!-- 5 Philosophers Placed in a Ring (R = 85) -->
+          <!-- P0 (Top: -90 deg) -->
+          <circle cx="0" cy="-80" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          <text x="0" y="-76" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P0</text>
 
-            <!-- Slot 1: Full -->
-            <rect x="83" y="0" width="76" height="60" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="121" y="22" text-anchor="middle" font-size="8" font-weight="700" fill="#991b1b">SLOT 1</text>
-            <text x="121" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="#dc2626">[Item 1]</text>
-            <text x="121" y="52" text-anchor="middle" font-size="7" fill="#7f1d1d">FULL</text>
+          <!-- P1 (Top-Right: -18 deg) -->
+          <circle cx="76" cy="-25" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          <text x="76" y="-21" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P1</text>
 
-            <!-- Slot 2: Full -->
-            <rect x="166" y="0" width="76" height="60" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text x="204" y="22" text-anchor="middle" font-size="8" font-weight="700" fill="#991b1b">SLOT 2</text>
-            <text x="204" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" fill="#dc2626">[Item 2]</text>
-            <text x="204" y="52" text-anchor="middle" font-size="7" fill="#7f1d1d">FULL</text>
+          <!-- P2 (Bottom-Right: +54 deg) -->
+          <circle cx="47" cy="65" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          <text x="47" y="69" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P2</text>
 
-            <!-- Slot 3: Empty -->
-            <rect x="249" y="0" width="76" height="60" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="3 3"/>
-            <text x="287" y="22" text-anchor="middle" font-size="8" font-weight="700" fill="#64748b">SLOT 3</text>
-            <text x="287" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#94a3b8">[Empty]</text>
-            <text x="287" y="52" text-anchor="middle" font-size="7" fill="#64748b">VACANT</text>
+          <!-- P3 (Bottom-Left: +126 deg) -->
+          <circle cx="-47" cy="65" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          <text x="-47" y="69" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P3</text>
 
-            <!-- Slot 4: Empty -->
-            <rect x="332" y="0" width="76" height="60" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="3 3"/>
-            <text x="370" y="22" text-anchor="middle" font-size="8" font-weight="700" fill="#64748b">SLOT 4</text>
-            <text x="370" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#94a3b8">[Empty]</text>
-            <text x="370" y="52" text-anchor="middle" font-size="7" fill="#64748b">VACANT</text>
-          </g>
+          <!-- P4 (Top-Left: +198 deg) -->
+          <circle cx="-76" cy="-25" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          <text x="-76" y="-21" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0369a1">P4</text>
 
-          <!-- Pointer Vectors -->
-          <g transform="translate(20, 115)">
-            <!-- Head Pointer (Producer Target) -->
-            <rect x="235" y="10" width="105" height="34" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
-            <text x="287" y="25" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0369a1">head pointer = 3</text>
-            <text x="287" y="37" text-anchor="middle" font-size="7" fill="#0284c7">&uarr; Next Producer Write</text>
+          <!-- 5 Chopsticks Placed in Interstices (R = 52) -->
+          <!-- C0 (between P4 and P0) -->
+          <rect x="-42" y="-62" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="-34" y="-51" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C0</text>
 
-            <!-- Tail Pointer (Consumer Target) -->
-            <rect x="-10" y="10" width="98" height="34" rx="4" fill="#fef3c7" stroke="#d97706"/>
-            <text x="39" y="25" text-anchor="middle" font-size="7.5" font-weight="700" fill="#92400e">tail pointer = 0</text>
-            <text x="39" y="37" text-anchor="middle" font-size="7" fill="#b45309">&uarr; Next Consumer Read</text>
-          </g>
+          <!-- C1 (between P0 and P1) -->
+          <rect x="26" y="-62" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="34" y="-51" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C1</text>
 
-          <!-- Conservation Equation Banner -->
-          <rect x="20" y="165" width="408" height="32" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="224" y="185" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#0f172a">empty (2) + full (3) = N (5) [CONSERVED]</text>
+          <!-- C2 (between P1 and P2) -->
+          <rect x="58" y="16" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="66" y="27" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C2</text>
+
+          <!-- C3 (between P2 and P3) -->
+          <rect x="-8" y="70" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="0" y="81" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C3</text>
+
+          <!-- C4 (between P3 and P4) -->
+          <rect x="-74" y="16" width="16" height="16" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="-66" y="27" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">C4</text>
         </g>
 
-        <!-- Tri-Semaphore Registry (Right) -->
-        <g transform="translate(485, 20)">
-          <rect width="255" height="210" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="16" y="24" font-size="10.5" font-weight="700" fill="#0f172a">TRI-SEMAPHORE STATE</text>
+        <!-- Right Panel: The 4 Coffman Deadlock Conditions -->
+        <g transform="translate(380, 20)">
+          <rect width="360" height="220" rx="8" fill="#f8fafc" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="16" y="24" font-size="10.5" font-weight="700" fill="#991b1b">THE COFFMAN DEADLOCK CONDITIONS</text>
 
-          <!-- Semaphore 1: empty -->
-          <rect x="12" y="36" width="230" height="48" rx="4" fill="#f0f9ff" stroke="#0284c7"/>
-          <text x="20" y="52" font-size="8" font-weight="700" fill="#0369a1">COUNTING: empty = 2</text>
-          <text x="20" y="66" font-size="7.5" fill="#0284c7">Tracks vacant slots &bull; Producer down(&amp;empty)</text>
-          <text x="20" y="77" font-size="7" fill="#64748b">Blocks producer when empty == 0</text>
+          <rect x="14" y="38" width="332" height="36" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="22" y="52" font-size="8" font-weight="700" fill="#0f172a">1. Mutual Exclusion:</text>
+          <text x="22" y="65" font-size="7.5" fill="#475569">Chopsticks are non-shareable: exactly one philosopher per utensil.</text>
 
-          <!-- Semaphore 2: full -->
-          <rect x="12" y="90" width="230" height="48" rx="4" fill="#fef2f2" stroke="#dc2626"/>
-          <text x="20" y="106" font-size="8" font-weight="700" fill="#991b1b">COUNTING: full = 3</text>
-          <text x="20" y="120" font-size="7.5" fill="#dc2626">Tracks populated slots &bull; Consumer down(&amp;full)</text>
-          <text x="20" y="131" font-size="7" fill="#64748b">Blocks consumer when full == 0</text>
+          <rect x="14" y="78" width="332" height="36" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="22" y="92" font-size="8" font-weight="700" fill="#0f172a">2. Hold and Wait:</text>
+          <text x="22" y="105" font-size="7.5" fill="#475569">Philosopher holds their left chopstick while waiting for right.</text>
 
-          <!-- Semaphore 3: mutex -->
-          <rect x="12" y="144" width="230" height="52" rx="4" fill="#f0fdf4" stroke="#16a34a"/>
-          <text x="20" y="160" font-size="8" font-weight="700" fill="#166534">BINARY: mutex = 1 (FREE)</text>
-          <text x="20" y="174" font-size="7.5" fill="#15803d">Enforces exclusive critical section access</text>
-          <text x="20" y="185" font-size="7" fill="#64748b">Guards ring pointers and buffer arrays</text>
+          <rect x="14" y="118" width="332" height="36" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="22" y="132" font-size="8" font-weight="700" fill="#0f172a">3. No Preemption:</text>
+          <text x="22" y="145" font-size="7.5" fill="#475569">Utensils cannot be forcibly confiscated from an adjacent peer.</text>
+
+          <rect x="14" y="158" width="332" height="50" rx="4" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="22" y="174" font-size="8" font-weight="700" fill="#991b1b">4. Circular Wait (The Fatal Ring):</text>
+          <text x="22" y="188" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">P0 &rarr; C1 &rarr; P1 &rarr; C2 &rarr; P2 &rarr; C3 &rarr; P3 &rarr; C4 &rarr; P4 &rarr; C0 &rarr; P0</text>
+          <text x="22" y="200" font-size="7" fill="#7f1d1d">Closed directed cycle in Resource Allocation Graph!</text>
         </g>
       </svg>
     </div>
 
-    <h4>The Tri-Semaphore Architecture</h4>
+    <h4>The Naive Implementation &amp; The Coffman Deadlock Conditions</h4>
     <p>
-      To solve the bounded-buffer problem without busy waiting, Dijkstra established the canonical <strong>tri-semaphore architecture</strong>:
+      The naive solution maps each chopstick to an individual binary semaphore (<code>chopstick[5]</code>, each initialized to <code>1</code>). Each philosopher runs an identical, symmetric routine:
     </p>
+
+    <pre><code><span class="syn-cmt">/* FLAWED: Naive Symmetric Philosopher Routine */</span>
+<span class="syn-kw">sem_t</span> chopstick[<span class="syn-num">5</span>]; <span class="syn-cmt">/* Initialized to 1 */</span>
+
+<span class="syn-kw">void</span> philosopher_naive(<span class="syn-kw">int</span> i) {
+    <span class="syn-kw">while</span> (<span class="syn-kw">true</span>) {
+        <span class="syn-fn">think</span>();
+        <span class="syn-fn">sem_wait</span>(&amp;chopstick[i]);             <span class="syn-cmt">/* 1. Pick up left chopstick */</span>
+        <span class="syn-fn">sem_wait</span>(&amp;chopstick[(i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>]);   <span class="syn-cmt">/* 2. Pick up right chopstick */</span>
+
+        <span class="syn-fn">eat</span>();
+
+        <span class="syn-fn">sem_post</span>(&amp;chopstick[i]);             <span class="syn-cmt">/* 3. Put down left chopstick */</span>
+        <span class="syn-fn">sem_post</span>(&amp;chopstick[(i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>]);   <span class="syn-cmt">/* 4. Put down right chopstick */</span>
+    }
+}</code></pre>
+
     <div class="math-callout">
-      <strong>Semaphore Initialization and Invariants:</strong>
-      <pre><code><span class="syn-kw">semaphore_t</span> mutex; <span class="syn-cmt">/* Binary semaphore: initialized to 1 (Buffer locked = 0, free = 1) */</span>
-<span class="syn-kw">semaphore_t</span> empty; <span class="syn-cmt">/* Counting semaphore: initialized to N (Vacant slots available) */</span>
-<span class="syn-kw">semaphore_t</span> full;  <span class="syn-cmt">/* Counting semaphore: initialized to 0 (Populated items available) */</span></code></pre>
-      <strong>The Fundamental Conservation Law:</strong>
+      <strong>Why the Naive Solution Triggers Total Deadlock:</strong>
       <br>
-      At any instant in time, the sum of vacant slots and filled items must strictly equal the buffer capacity:
-      <pre><code>empty + full = N</code></pre>
+      Suppose all five philosophers become hungry simultaneously. Each philosopher executes statement 1, grabbing their <strong>left chopstick</strong>:
+      <ul>
+        <li>Philosopher 0 grabs Chopstick 0.</li>
+        <li>Philosopher 1 grabs Chopstick 1.</li>
+        <li>Philosopher 2 grabs Chopstick 2.</li>
+        <li>Philosopher 3 grabs Chopstick 3.</li>
+        <li>Philosopher 4 grabs Chopstick 4.</li>
+      </ul>
+      Now, every philosopher executes statement 2, attempting to acquire their right chopstick:
+      <ul>
+        <li>Philosopher 0 demands Chopstick 1 (held by Philosopher 1) &rarr; BLOCKS.</li>
+        <li>Philosopher 1 demands Chopstick 2 (held by Philosopher 2) &rarr; BLOCKS.</li>
+        <li>Philosopher 2 demands Chopstick 3 (held by Philosopher 3) &rarr; BLOCKS.</li>
+        <li>Philosopher 3 demands Chopstick 4 (held by Philosopher 4) &rarr; BLOCKS.</li>
+        <li>Philosopher 4 demands Chopstick 0 (held by Philosopher 0) &rarr; BLOCKS.</li>
+      </ul>
+      This satisfies all four <strong>Coffman Conditions</strong>: Mutual Exclusion, Hold-and-Wait, No-Preemption, and Circular Wait. The system deadlocks permanently, and all five philosophers starve.
     </div>
 
-    <h4>Complete POSIX C Implementation</h4>
+    <h4>Strategy 1: Asymmetric Resource Hierarchy (Dijkstra's Symmetry Breaking)</h4>
     <p>
-      Below is the complete, industrial-grade implementation using POSIX semaphores (<code>semaphore.h</code>):
-    </p>
-
-    <pre><code><span class="syn-cmt">/* Production Bounded-Buffer Implementation Using POSIX Semaphores */</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;semaphore.h&gt;</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;pthread.h&gt;</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;stdbool.h&gt;</span>
-
-<span class="syn-kw">#define</span> BUFFER_CAPACITY <span class="syn-num">8</span>
-
-<span class="syn-kw">typedef struct</span> {
-    <span class="syn-kw">int</span> data[BUFFER_CAPACITY];
-    <span class="syn-kw">int</span> head;                  <span class="syn-cmt">/* Index for next insert: head = (head + 1) % N */</span>
-    <span class="syn-kw">int</span> tail;                  <span class="syn-cmt">/* Index for next remove: tail = (tail + 1) % N */</span>
-    <span class="syn-kw">sem_t</span> mutex;               <span class="syn-cmt">/* Binary semaphore guarding buffer pointers */</span>
-    <span class="syn-kw">sem_t</span> empty;               <span class="syn-cmt">/* Counting semaphore tracking vacant slots */</span>
-    <span class="syn-kw">sem_t</span> full;                <span class="syn-cmt">/* Counting semaphore tracking available items */</span>
-} bounded_buffer_t;
-
-<span class="syn-kw">void</span> buffer_init(bounded_buffer_t *b) {
-    b-&gt;head = <span class="syn-num">0</span>;
-    b-&gt;tail = <span class="syn-num">0</span>;
-    <span class="syn-fn">sem_init</span>(&amp;b-&gt;mutex, <span class="syn-num">0</span>, <span class="syn-num">1</span>);               <span class="syn-cmt">/* Binary mutex: init 1 */</span>
-    <span class="syn-fn">sem_init</span>(&amp;b-&gt;empty, <span class="syn-num">0</span>, BUFFER_CAPACITY); <span class="syn-cmt">/* Empty slots: init N */</span>
-    <span class="syn-fn">sem_init</span>(&amp;b-&gt;full,  <span class="syn-num">0</span>, <span class="syn-num">0</span>);               <span class="syn-cmt">/* Full items: init 0 */</span>
-}
-
-<span class="syn-kw">void</span> buffer_produce(bounded_buffer_t *b, <span class="syn-kw">int</span> item) {
-    <span class="syn-fn">sem_wait</span>(&amp;b-&gt;empty); <span class="syn-cmt">/* 1. Decrement empty slots (Blocks if buffer full!) */</span>
-    <span class="syn-fn">sem_wait</span>(&amp;b-&gt;mutex); <span class="syn-cmt">/* 2. Acquire critical section lock */</span>
-
-    <span class="syn-cmt">/* Critical Section: Insert item into circular ring */</span>
-    b-&gt;data[b-&gt;head] = item;
-    b-&gt;head = (b-&gt;head + <span class="syn-num">1</span>) % BUFFER_CAPACITY;
-
-    <span class="syn-fn">sem_post</span>(&amp;b-&gt;mutex); <span class="syn-cmt">/* 3. Release critical section lock */</span>
-    <span class="syn-fn">sem_post</span>(&amp;b-&gt;full);  <span class="syn-cmt">/* 4. Increment full items (Wakes waiting consumer) */</span>
-}
-
-<span class="syn-kw">int</span> buffer_consume(bounded_buffer_t *b) {
-    <span class="syn-fn">sem_wait</span>(&amp;b-&gt;full);  <span class="syn-cmt">/* 1. Decrement full items (Blocks if buffer empty!) */</span>
-    <span class="syn-fn">sem_wait</span>(&amp;b-&gt;mutex); <span class="syn-cmt">/* 2. Acquire critical section lock */</span>
-
-    <span class="syn-cmt">/* Critical Section: Extract item from circular ring */</span>
-    <span class="syn-kw">int</span> item = b-&gt;data[b-&gt;tail];
-    b-&gt;tail = (b-&gt;tail + <span class="syn-num">1</span>) % BUFFER_CAPACITY;
-
-    <span class="syn-fn">sem_post</span>(&amp;b-&gt;mutex); <span class="syn-cmt">/* 3. Release critical section lock */</span>
-    <span class="syn-fn">sem_post</span>(&amp;b-&gt;empty); <span class="syn-cmt">/* 4. Increment empty slots (Wakes waiting producer) */</span>
-
-    <span class="syn-kw">return</span> item;
-}</code></pre>
-
-    <h4>The Deadlock Inversion Trap &amp; Resource Allocation Graphs</h4>
-    <p>
-      In concurrent algorithm design, <strong>the order of lock acquisition dictates system liveness</strong>.
+      Deadlock can only occur if a closed circular dependency cycle exists. Dijkstra proved that establishing a <strong>strict total ordering</strong> over all resources mathematically guarantees freedom from deadlock.
     </p>
     <p>
-      Consider the catastrophic defect that occurs if an inexperienced developer swaps the order of the two wait calls in the producer routine:
+      Assign each chopstick a global numerical index from <code>0</code> to <code>4</code>. Establish a rule: <strong>every philosopher must always acquire their lower-numbered chopstick first, and their higher-numbered chopstick second</strong>:
     </p>
+    <ul>
+      <li>For Philosophers 0, 1, 2, and 3: The left chopstick (<code>i</code>) is lower than the right chopstick (<code>i + 1</code>). They pick up <strong>left first, then right</strong>.</li>
+      <li>For Philosopher 4: The left chopstick is <code>4</code>, but the right chopstick is <code>(4 + 1) % 5 = 0</code>! Because <code>0 &lt; 4</code>, Philosopher 4 picks up <strong>right first (0), then left (4)</strong>.</li>
+    </ul>
 
-    <pre><code><span class="syn-cmt">/* FATAL: Inverted Lock Acquisition Ordering */</span>
-<span class="syn-kw">void</span> flawed_producer(bounded_buffer_t *b, <span class="syn-kw">int</span> item) {
-    <span class="syn-fn">sem_wait</span>(&amp;b-&gt;mutex); <span class="syn-cmt">/* STEP 1: Claim mutex FIRST (Catastrophic Error!) */</span>
-    <span class="syn-fn">sem_wait</span>(&amp;b-&gt;empty); <span class="syn-cmt">/* STEP 2: Check empty slot availability */</span>
+    <pre><code><span class="syn-cmt">/* Strategy 1: Asymmetric Symmetry Breaking */</span>
+<span class="syn-kw">void</span> philosopher_asymmetric(<span class="syn-kw">int</span> i) {
+    <span class="syn-kw">int</span> left = i;
+    <span class="syn-kw">int</span> right = (i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>;
 
-    b-&gt;data[b-&gt;head] = item;
-    b-&gt;head = (b-&gt;head + <span class="syn-num">1</span>) % BUFFER_CAPACITY;
+    <span class="syn-kw">while</span> (<span class="syn-kw">true</span>) {
+        <span class="syn-fn">think</span>();
 
-    <span class="syn-fn">sem_post</span>(&amp;b-&gt;mutex);
-    <span class="syn-fn">sem_post</span>(&amp;b-&gt;full);
+        <span class="syn-kw">if</span> (i % <span class="syn-num">2</span> == <span class="syn-num">0</span>) {
+            <span class="syn-cmt">/* Even philosophers: Left first, then Right */</span>
+            <span class="syn-fn">sem_wait</span>(&amp;chopstick[left]);
+            <span class="syn-fn">sem_wait</span>(&amp;chopstick[right]);
+        } <span class="syn-kw">else</span> {
+            <span class="syn-cmt">/* Odd philosophers: Right first, then Left */</span>
+            <span class="syn-fn">sem_wait</span>(&amp;chopstick[right]);
+            <span class="syn-fn">sem_wait</span>(&amp;chopstick[left]);
+        }
+
+        <span class="syn-fn">eat</span>();
+
+        <span class="syn-fn">sem_post</span>(&amp;chopstick[left]);
+        <span class="syn-fn">sem_post</span>(&amp;chopstick[right]);
+    }
 }</code></pre>
 
     <div class="math-callout">
-      <strong>Anatomy of the Inversion Deadlock:</strong>
+      <strong>Proof of Deadlock Freedom under Resource Hierarchy:</strong>
+      <br>
+      Suppose all five philosophers become hungry simultaneously:
       <ol>
-        <li>Suppose the buffer is full (<code>empty == 0</code>).</li>
-        <li>The Producer executes <code>sem_wait(&amp;b-&gt;mutex)</code>. Because <code>mutex == 1</code>, the Producer acquires the lock (<code>mutex</code> drops to <code>0</code>).</li>
-        <li>The Producer executes <code>sem_wait(&amp;b-&gt;empty)</code>. Because <code>empty == 0</code>, the Producer is suspended and moved to the <code>empty</code> wait queue. <strong>Crucially, the Producer is put to sleep while still holding the mutex!</strong></li>
-        <li>The Consumer is scheduled. To free up a buffer slot, it must consume an item. It executes <code>sem_wait(&amp;b-&gt;full)</code> (which succeeds, as items exist).</li>
-        <li>The Consumer then executes <code>sem_wait(&amp;b-&gt;mutex)</code>. Because the sleeping Producer holds <code>mutex</code>, <strong>the Consumer blocks immediately</strong>!</li>
+        <li>Philosopher 0 and Philosopher 4 both compete for Chopstick 0 as their very first acquisition.</li>
+        <li>Exactly one of them wins (say, Philosopher 0 claims Chopstick 0).</li>
+        <li>Philosopher 4 blocks immediately on Chopstick 0 <em>before claiming Chopstick 4</em>!</li>
+        <li>Because Chopstick 4 is left untouched, Philosopher 3 successfully claims both Chopstick 3 and Chopstick 4, eats, and releases both.</li>
       </ol>
-      <strong>The Circular Wait Dependency (Deadlock):</strong>
-      <br>
-      The Producer holds <code>mutex</code> and is waiting for <code>empty</code> (which can only be produced by the Consumer).
-      <br>
-      The Consumer holds <code>full</code> and is waiting for <code>mutex</code> (which is held by the Producer).
-      <pre><code>[Producer] &rarr; (holds mutex) &rarr; [blocks on empty] &larr; (produced by Consumer)
-   &uarr;                                                      &darr;
-   &plusmn;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash; [Consumer blocks on mutex] &larr;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&plusmn;</code></pre>
-      Neither thread can ever make progress. The system is permanently locked.
+      The circular dependency cycle is broken. At least one philosopher is always guaranteed to eat.
     </div>
 
-    <h4>The Win32 Windows Alternative</h4>
+    <h4>Strategy 2: Tanenbaum's State-Tracking Semaphore Array</h4>
     <p>
-      On Windows, the Bounded-Buffer problem can be implemented using native <strong>Win32 Kernel Semaphore Handles</strong>:
+      While the asymmetric approach prevents deadlock, it can introduce unequal waiting times. Andrew Tanenbaum designed an elegant solution utilizing an explicit <strong>state machine array</strong> that allows a philosopher to eat only when <em>neither neighbor is eating</em>:
     </p>
 
-    <pre><code><span class="syn-cmt">/* Windows Win32 Bounded-Buffer Implementation */</span>
+    <pre><code><span class="syn-cmt">/* Strategy 2: Tanenbaum's State-Tracking Solution */</span>
+<span class="syn-kw">#define</span> N <span class="syn-num">5</span>
+<span class="syn-kw">#define</span> LEFT  ((i + N - <span class="syn-num">1</span>) % N)
+<span class="syn-kw">#define</span> RIGHT ((i + <span class="syn-num">1</span>) % N)
+
+<span class="syn-kw">typedef enum</span> { THINKING, HUNGRY, EATING } state_t;
+
+state_t state[N];         <span class="syn-cmt">/* Tracks state of every philosopher */</span>
+<span class="syn-kw">sem_t</span> mutex;              <span class="syn-cmt">/* Binary mutex protecting state[] inspections */</span>
+<span class="syn-kw">sem_t</span> s[N];               <span class="syn-cmt">/* One private semaphore per philosopher (init 0) */</span>
+
+<span class="syn-kw">void</span> test_neighbors(<span class="syn-kw">int</span> i) {
+    <span class="syn-cmt">/* If I am hungry AND neither neighbor is eating, begin eating */</span>
+    <span class="syn-kw">if</span> (state[i] == HUNGRY &amp;&amp; state[LEFT] != EATING &amp;&amp; state[RIGHT] != EATING) {
+        state[i] = EATING;
+        <span class="syn-fn">sem_post</span>(&amp;s[i]);  <span class="syn-cmt">/* Wake myself up (increments s[i] from 0 to 1) */</span>
+    }
+}
+
+<span class="syn-kw">void</span> take_forks(<span class="syn-kw">int</span> i) {
+    <span class="syn-fn">sem_wait</span>(&amp;mutex);     <span class="syn-cmt">/* Enter critical section */</span>
+    state[i] = HUNGRY;
+    <span class="syn-fn">test_neighbors</span>(i);    <span class="syn-cmt">/* Attempt to claim both forks */</span>
+    <span class="syn-fn">sem_post</span>(&amp;mutex);     <span class="syn-cmt">/* Exit critical section */</span>
+
+    <span class="syn-fn">sem_wait</span>(&amp;s[i]);      <span class="syn-cmt">/* Block if forks were not available */</span>
+}
+
+<span class="syn-kw">void</span> put_forks(<span class="syn-kw">int</span> i) {
+    <span class="syn-fn">sem_wait</span>(&amp;mutex);     <span class="syn-cmt">/* Enter critical section */</span>
+    state[i] = THINKING;
+    <span class="syn-fn">test_neighbors</span>(LEFT); <span class="syn-cmt">/* Check if left neighbor can now eat */</span>
+    <span class="syn-fn">test_neighbors</span>(RIGHT);<span class="syn-cmt">/* Check if right neighbor can now eat */</span>
+    <span class="syn-fn">sem_post</span>(&amp;mutex);     <span class="syn-cmt">/* Exit critical section */</span>
+}</code></pre>
+
+    <div class="math-callout">
+      <strong>Key Insights of Tanenbaum's Solution:</strong>
+      <ul>
+        <li><strong>Atomic Dual Acquisition:</strong> Forks are never claimed one at a time. The test <code>state[LEFT] != EATING &amp;&amp; state[RIGHT] != EATING</code> ensures both forks are claimed simultaneously under the protection of <code>mutex</code>.</li>
+        <li><strong>Self-Signaling via Private Semaphores:</strong> The private semaphore <code>s[i]</code> is initialized to <code>0</code>. If forks are available, <code>test_neighbors(i)</code> calls <code>sem_post(&amp;s[i])</code>, incrementing it to <code>1</code>. When the philosopher immediately follows with <code>sem_wait(&amp;s[i])</code>, they do not sleep. If forks were busy, <code>sem_post</code> is not called, and the philosopher blocks until an exiting neighbor calls <code>test_neighbors</code> on their behalf.</li>
+      </ul>
+    </div>
+
+    <h4>Strategy 3: Windows WaitForMultipleObjects</h4>
+    <p>
+      On Windows NT platforms, the dining philosophers problem can be resolved using the kernel's native multi-handle wait capability:
+    </p>
+
+    <pre><code><span class="syn-cmt">/* Win32 Atomic Multi-Object Fork Acquisition */</span>
 <span class="syn-kw">#include</span> <span class="syn-str">&lt;windows.h&gt;</span>
 
-<span class="syn-kw">typedef struct</span> {
-    <span class="syn-kw">int</span> data[BUFFER_CAPACITY];
-    <span class="syn-kw">int</span> head, tail;
-    HANDLE hMutex; <span class="syn-cmt">/* Mutex object or CRITICAL_SECTION */</span>
-    HANDLE hEmpty; <span class="syn-cmt">/* Counting semaphore: init N, max N */</span>
-    HANDLE hFull;  <span class="syn-cmt">/* Counting semaphore: init 0, max N */</span>
-} win_bounded_buffer_t;
+HANDLE hChopsticks[<span class="syn-num">5</span>]; <span class="syn-cmt">/* Mutex handles for each utensil */</span>
 
-<span class="syn-kw">void</span> win_produce(win_bounded_buffer_t *b, <span class="syn-kw">int</span> item) {
-    <span class="syn-fn">WaitForSingleObject</span>(b-&gt;hEmpty, INFINITE); <span class="syn-cmt">/* 1. Wait for vacant slot */</span>
-    <span class="syn-fn">WaitForSingleObject</span>(b-&gt;hMutex, INFINITE); <span class="syn-cmt">/* 2. Acquire buffer lock */</span>
+<span class="syn-kw">void</span> philosopher_win32(<span class="syn-kw">int</span> i) {
+    HANDLE needed[<span class="syn-num">2</span>];
+    needed[<span class="syn-num">0</span>] = hChopsticks[i];
+    needed[<span class="syn-num">1</span>] = hChopsticks[(i + <span class="syn-num">1</span>) % <span class="syn-num">5</span>];
 
-    b-&gt;data[b-&gt;head] = item;
-    b-&gt;head = (b-&gt;head + <span class="syn-num">1</span>) % BUFFER_CAPACITY;
+    <span class="syn-kw">while</span> (<span class="syn-kw">true</span>) {
+        <span class="syn-fn">think</span>();
 
-    <span class="syn-fn">ReleaseMutex</span>(b-&gt;hMutex);                  <span class="syn-cmt">/* 3. Release buffer lock */</span>
-    <span class="syn-fn">ReleaseSemaphore</span>(b-&gt;hFull, <span class="syn-num">1</span>, NULL);      <span class="syn-cmt">/* 4. Signal populated item */</span>
-}</code></pre>"""
+        <span class="syn-cmt">/* Atomically wait for BOTH mutexes simultaneously (bWaitAll = TRUE) */</span>
+        DWORD result = <span class="syn-fn">WaitForMultipleObjects</span>(<span class="syn-num">2</span>, needed, TRUE, INFINITE);
+        <span class="syn-kw">if</span> (result == WAIT_OBJECT_0) {
+            <span class="syn-fn">eat</span>();
+            <span class="syn-fn">ReleaseMutex</span>(needed[<span class="syn-num">0</span>]);
+            <span class="syn-fn">ReleaseMutex</span>(needed[<span class="syn-num">1</span>]);
+        }
+    }
+}</code></pre>
+    <p>
+      Because <code>WaitForMultipleObjects(..., bWaitAll = TRUE)</code> is an <strong>atomic kernel-level operation</strong>, the operating system scheduler claims both handles together. If either utensil is held, the thread is suspended without claiming the other, eliminating the "Hold and Wait" Coffman condition.
+    </p>"""
 
-def update_section_one():
+def update_section_two():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -283,32 +311,32 @@ def update_section_one():
         if style_end != -1:
             content = content[:style_end] + "\n" + SYNTAX_CSS + "\n  " + content[style_end:]
 
-    # 2. Locate Section 1 boundaries
-    start_marker = "<h3>1. The Bounded-Buffer (Producer-Consumer) Problem</h3>"
-    end_marker = "<!-- Directed Narrative Stepper: Bounded Buffer Deadlock vs Correct -->"
+    # 2. Locate Section 2 boundaries
+    start_marker = "<h3>2. The Dining Philosophers Problem</h3>"
+    end_marker = "<h3>3. The Readers-Writers Problem</h3>"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 1 boundaries in Module 04.")
+        print("Error: Could not locate Section 2 boundaries in Module 04.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_ONE + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded and syntax-highlighted Section 1 in {TARGET_FILE}")
+    print(f"--> Successfully expanded and syntax-highlighted Section 2 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand and syntax-highlight Bounded-Buffer section in Module 04\n\n"
-            "Add circular ring math invariants, tri-semaphore conservation formulas,\n"
-            "deadlock RAG graph trace, POSIX vs. Win32 code, and an SVG architecture diagram."
+            "Expand Section 2 in Module 04 with Dining Philosophers architectures\n\n"
+            "Detail Coffman conditions, asymmetric symmetry breaking, Tanenbaum state\n"
+            "matrix, Chandy-Misra tokens, Win32 multi-wait, and add an SVG diagram."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -317,5 +345,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_one():
+    if update_section_two():
         run_git_sync()
