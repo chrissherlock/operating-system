@@ -1,278 +1,978 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 4 of 01-scheduling-introduction.html
+# fix.py: Deeply expand 02-batch-scheduling.html in Week 3
 # =====================================================================
 import os
 import subprocess
 
-TARGET_FILE = os.path.join("week03-process-scheduling", "01-scheduling-introduction.html")
+TARGET_FILE = os.path.join("week03-process-scheduling", "02-batch-scheduling.html")
 
-def build_expanded_section_four():
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
+MODULE_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02. Scheduling in Batch Systems | Week 3: Process Scheduling</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4, h5 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    h5 { margin-top: 14px; margin-bottom: 4px; color: #475569; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+    }
 
-    new_section_four = r"""    <h3>4. Conflicting Optimization Goals &amp; Metrics</h3>
+    /* Math Box */
+    .math-callout {
+      background: #f8fafc;
+      border-left: 4px solid var(--accent);
+      padding: 14px 18px;
+      margin: 16px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.9rem;
+      color: #1e293b;
+    }
+    .math-callout strong { color: #0f172a; }
+
+    /* Navigation Bar */
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+    /* Directed Narrative Stepper Layout */
+    .aid-wrapper {
+      margin: 32px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      overflow: hidden;
+    }
+    .aid-header {
+      background: #f1f5f9;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .aid-header h4 {
+      margin: 0;
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .dimension-toggles {
+      display: flex;
+      gap: 6px;
+    }
+    .dim-btn {
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .dim-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+    }
+    .scenario-banner {
+      background: #f8fafc;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scenario-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .telemetry-strip {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .telemetry-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .telemetry-label {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .telemetry-val {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+    .telemetry-val.highlight { color: #4ade80; }
+    .telemetry-val.alert { color: #f87171; }
+
+    .canvas-container {
+      background: #ffffff;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    svg.gantt-canvas {
+      width: 100%;
+      max-width: 760px;
+      height: auto;
+      overflow: visible;
+    }
+
+    .controls-narrative-strip {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 18px;
+    }
+    @media (max-width: 720px) {
+      .controls-narrative-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+    .stepper-btn-group {
+      display: flex;
+      gap: 8px;
+      align-self: center;
+    }
+    .btn-step {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn-step:hover:not(:disabled) {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    .btn-step:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .narrative-preview-panel {
+      font-size: 0.84rem;
+      line-height: 1.5;
+      color: #334155;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 4px;
+      padding: 10px 14px;
+    }
+    .narrative-preview-panel strong {
+      color: #0f172a;
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+
+    .analytical-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--border);
+      gap: 1px;
+    }
+    @media (max-width: 720px) {
+      .analytical-grid { grid-template-columns: 1fr; }
+    }
+    .pane-card {
+      background: #ffffff;
+      padding: 18px;
+    }
+    .pane-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pane-title.what { color: var(--accent); }
+    .pane-title.why { color: var(--success); }
+    .pane-content {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #334155;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="01-scheduling-introduction.html">&larr; 01. Intro to Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <a href="03-interactive-scheduling.html">Next: 03. Interactive Scheduling &rarr;</a>
+    </nav>
+
+    <h2>02. Scheduling in Batch Systems</h2>
     <p>
-      An operating system scheduler operates in an environment of inherent physical constraints and mutually incompatible performance objectives. No single scheduling algorithm can simultaneously maximize raw hardware throughput, eliminate user latency, guarantee absolute fairness, and maintain zero scheduling overhead. Designing or selecting a scheduler requires understanding the formal mathematical metrics that quantify performance and the trade-offs that govern their optimization.
+      Batch processing represents the foundational operational paradigm of mainframe computing and modern High-Performance Computing (HPC) clusters. In a batch environment, jobs are submitted non-interactively to a spooling queue. Because no human user sits at a terminal waiting for immediate keystroke feedback, the primary optimization objectives shift decisively:
     </p>
-
-    <h4>1. Formal Mathematical Scheduling Metrics</h4>
-    <p>
-      To evaluate and compare scheduling algorithms rigorously, operating system architects define precise timing invariants across the lifecycle of a process:
-    </p>
-
     <ul>
-      <li>
-        <strong>Turnaround Time (<i>T</i><sub>turnaround</sub>):</strong>
-        The total elapsed wall-clock duration from the instant a job is submitted or arrives in the Ready queue (<i>T</i><sub>arrival</sub>) to the exact instant it finishes execution (<i>T</i><sub>completion</sub>):
-        <pre><code><i>T</i><sub>turnaround</sub> = <i>T</i><sub>completion</sub> &minus; <i>T</i><sub>arrival</sub></code></pre>
-        Turnaround time represents the user's total elapsed waiting experience in batch environments. It comprises four distinct sub-components:
-        <pre><code><i>T</i><sub>turnaround</sub> = <i>T</i><sub>exec</sub> + <i>T</i><sub>wait</sub> + <i>T</i><sub>io</sub> + <i>T</i><sub>dispatch</sub></code></pre>
-        where <i>T</i><sub>exec</sub> is total CPU burst time, <i>T</i><sub>wait</sub> is cumulative time spent in the Ready queue, <i>T</i><sub>io</sub> is time spent blocked on peripheral devices, and <i>T</i><sub>dispatch</sub> is cumulative context-switch latency.
-      </li>
-      <li>
-        <strong>Normalized Turnaround Time / Penalty Ratio (<i>W</i>):</strong>
-        Absolute turnaround time is often deceptive because a 10-second turnaround is catastrophic for a job requiring only 1 millisecond of computation, but stellar for a batch simulation requiring 9 seconds. The normalized turnaround time (also called the <strong>slowdown</strong> or <strong>penalty ratio</strong>) measures the relative delay imposed by the operating system:
-        <pre><code><i>W</i> = <i>T</i><sub>turnaround</sub> / <i>T</i><sub>exec</sub></code></pre>
-        The minimum possible value is 1.0 (indicating the process ran with zero queue delays or context switches). Higher values indicate severe queuing congestion or scheduler starvation.
-      </li>
-      <li>
-        <strong>Waiting Time (<i>T</i><sub>wait</sub>):</strong>
-        The cumulative duration a process spends in the Ready queue waiting to be granted a CPU core. Unlike turnaround time, waiting time explicitly discounts time spent actively executing instructions or waiting for hardware I/O completion:
-        <pre><code><i>T</i><sub>wait</sub> = <i>T</i><sub>turnaround</sub> &minus; <i>T</i><sub>exec</sub> &minus; <i>T</i><sub>io</sub></code></pre>
-        In purely compute-bound workloads with zero I/O, this simplifies directly to:
-        <pre><code><i>T</i><sub>wait</sub> = <i>T</i><sub>turnaround</sub> &minus; <i>T</i><sub>exec</sub></code></pre>
-        A scheduler has no control over how long a program must calculate (<i>T</i><sub>exec</sub>) or how long a disk takes to spin (<i>T</i><sub>io</sub>); its sole mathematical objective when optimizing turnaround time is minimizing <i>T</i><sub>wait</sub>.
-      </li>
-      <li>
-        <strong>Response Time (<i>T</i><sub>response</sub>):</strong>
-        In interactive systems, the user does not wait for an entire program to complete before assessing responsiveness. <strong>Response time</strong> is the duration between a process entering the Ready queue (e.g., when a key is pressed or a packet arrives) and its very first dispatch onto a CPU core:
-        <pre><code><i>T</i><sub>response</sub> = <i>T</i><sub>first_dispatch</sub> &minus; <i>T</i><sub>arrival</sub></code></pre>
-        While turnaround time governs background batch efficiency, response time dictates the perceptible latency and tactile fluidity of user interfaces.
-      </li>
-      <li>
-        <strong>System Throughput (<i>X</i>):</strong>
-        The number of complete processes or tasks executed per unit time (e.g., jobs per second):
-        <pre><code><i>X</i> = <i>N</i> / &Delta;<i>t</i></code></pre>
-        Throughput depends heavily on average job length and context-switch frequency. If a scheduler spends too much time executing context switches, useful computational throughput drops.
-      </li>
-      <li>
-        <strong>CPU Utilization (<i>U</i>):</strong>
-        The fraction of total time the physical CPU execution units spend executing non-idle user instructions or productive kernel system calls:
-        <pre><code><i>U</i> = (<i>T</i><sub>busy</sub> / <i>T</i><sub>total</sub>) &times; 100%</code></pre>
-        In multi-programmed systems, CPU utilization increases with the degree of multiprogramming <i>n</i>. If the probability that any single process is waiting for I/O is <i>p</i>, the probability that all <i>n</i> processes are simultaneously idle is <i>p</i><sup><i>n</i></sup>, yielding theoretical processor utilization of:
-        <pre><code><i>U</i> = 1 &minus; <i>p</i><sup><i>n</i></sup></code></pre>
-      </li>
-      <li>
-        <strong>Fairness &amp; Predictability (Variance &amp; Jitter):</strong>
-        A scheduler must guarantee comparable treatment for comparable workloads. Beyond average response time, interactive and real-time systems require minimal <strong>variance</strong> (&sigma;<sup>2</sup>). A system where response time fluctuates unpredictably between 10 ms and 2,000 ms feels broken to a human user and violates strict deadlines in a real-time system, even if the statistical average is acceptable.
-      </li>
+      <li><strong>Maximizing Throughput (<i>X</i>):</strong> Completing the maximum number of computational tasks per hour.</li>
+      <li><strong>Minimizing Turnaround Time (<i>T</i><sub>turnaround</sub>):</strong> Delivering finished outputs as quickly as possible.</li>
+      <li><strong>Maximizing CPU Utilization (<i>U</i>):</strong> Ensuring expensive silicon execution units remain saturated near 100% capacity.</li>
     </ul>
 
-    <!-- Structural SVG Diagram: Timeline of Metric Intervals -->
-    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 1.3: Anatomical Process Lifecycle Timeline &amp; Metric Intervals</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 16px;">Visualizing how Arrival, Ready Wait, Execution Bursts, I/O Blocks, and Completion map to Response, Wait, and Turnaround metrics.</div>
+    <h3>1. First-Come, First-Served (FCFS)</h3>
+    <p>
+      The simplest and most intuitive scheduling discipline is <strong>First-Come, First-Served (FCFS)</strong>. Tasks are assigned the processor strictly in the chronological order of their arrival in the Ready queue.
+    </p>
+    <h4>Mechanics &amp; Implementation</h4>
+    <p>
+      The operating system manages the Ready list as a standard FIFO (First-In, First-Out) queue. When a job enters the Ready state, its Process Control Block (PCB) is linked to the tail of the queue. The dispatcher repeatedly pulls the task from the queue head, loads its register state, and allows it to run.
+    </p>
+    <p>
+      <strong>Non-Preemptive Invariant:</strong> FCFS is strictly non-preemptive. Once a process acquires a CPU core, it retains exclusive ownership until it voluntarily relinquishes control—either by terminating (<code>exit()</code>) or blocking on an I/O request (<code>read()</code>, <code>write()</code>).
+    </p>
+    <ul>
+      <li><strong>Implementation Complexity:</strong> Trivially minimal. Enqueue and dequeue operations operate in <i>O</i>(1) time with zero algorithmic overhead.</li>
+      <li><strong>Starvation Immunity:</strong> Because the arrival order is monotonic and immutable, every queued process will eventually reach the head of the queue. Starvation is impossible under finite job lengths.</li>
+    </ul>
 
-      <svg viewBox="0 0 820 280" style="width: 100%; height: auto; font-family: system-ui, -apple-system, sans-serif;">
-        <defs>
-          <marker id="tm-arr-left" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 8 2 L 2 5 L 8 8 z" fill="#0284c7" />
-          </marker>
-          <marker id="tm-arr-right" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 2 2 L 8 5 L 2 8 z" fill="#0284c7" />
-          </marker>
-          <marker id="tm-arr-purple-l" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 8 2 L 2 5 L 8 8 z" fill="#7c3aed" />
-          </marker>
-          <marker id="tm-arr-purple-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 2 2 L 8 5 L 2 8 z" fill="#7c3aed" />
-          </marker>
-          <marker id="tm-arr-dark-l" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 8 2 L 2 5 L 8 8 z" fill="#0f172a" />
-          </marker>
-          <marker id="tm-arr-dark-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 2 2 L 8 5 L 2 8 z" fill="#0f172a" />
-          </marker>
-        </defs>
+    <h4>The Convoy Effect</h4>
+    <p>
+      Despite its simplicity, FCFS suffers from a severe performance vulnerability known as the <strong>convoy effect</strong>.
+    </p>
+    <p>
+      Consider a workload containing one massive, compute-bound process (Process <i>A</i> requiring 24 ms of continuous CPU execution) followed by three lightweight, I/O-bound processes (Processes <i>B</i>, <i>C</i>, and <i>D</i>, each requiring only 3 ms of computation before issuing disk writes).
+    </p>
 
-        <!-- Base Time Axis -->
-        <line x1="40" y1="120" x2="780" y2="120" stroke="#cbd5e1" stroke-width="2" />
+    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 20px 0;">
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.1: The Convoy Effect under First-Come, First-Served (FCFS)</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">A single compute-bound task monopolizes the CPU, forcing fast I/O tasks to queue and leaving hardware I/O devices idle.</div>
 
-        <!-- Execution Blocks along the timeline -->
-        <!-- 1. Ready Queue Wait: x=60 to 180 (Width=120) -->
-        <rect x="60" y="90" width="120" height="45" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3" />
-        <text x="120" y="112" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">Ready Queue</text>
-        <text x="120" y="125" text-anchor="middle" font-size="8.5" fill="#94a3b8">Wait (T_wait 1)</text>
+      <svg viewBox="0 0 760 160" style="width: 100%; height: auto; font-family: system-ui, -apple-system, sans-serif;">
+        <!-- Gantt Bars -->
+        <!-- Process A: 0 to 24 (Scale factor: 20px per ms) -> 0 to 480px -->
+        <rect x="50" y="40" width="480" height="50" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+        <text x="290" y="66" text-anchor="middle" font-size="12" font-weight="700" fill="#991b1b">Process A (Compute-Bound: 24 ms)</text>
+        <text x="290" y="80" text-anchor="middle" font-size="9" fill="#dc2626">CPU at 100% | I/O Devices Completely Idle</text>
 
-        <!-- 2. First CPU Burst: x=180 to 320 (Width=140) -->
-        <rect x="180" y="85" width="140" height="55" rx="4" fill="#f0fdf4" stroke="#059669" stroke-width="2" />
-        <text x="250" y="110" text-anchor="middle" font-size="10.5" font-weight="700" fill="#166534">CPU Burst 1</text>
-        <text x="250" y="126" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#15803d">Running</text>
+        <!-- Process B: 24 to 27 -> 480 to 540 -->
+        <rect x="530" y="40" width="60" height="50" rx="4" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
+        <text x="560" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B (3ms)</text>
 
-        <!-- 3. I/O Block: x=320 to 460 (Width=140) -->
-        <rect x="320" y="90" width="140" height="45" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
-        <text x="390" y="112" text-anchor="middle" font-size="10" font-weight="600" fill="#b45309">Blocked (I/O Wait)</text>
-        <text x="390" y="125" text-anchor="middle" font-size="8.5" fill="#d97706">Disk Read / NIC</text>
+        <!-- Process C: 27 to 30 -> 540 to 600 -->
+        <rect x="590" y="40" width="60" height="50" rx="4" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+        <text x="620" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C (3ms)</text>
 
-        <!-- 4. Ready Queue Wait 2: x=460 to 540 (Width=80) -->
-        <rect x="460" y="90" width="80" height="45" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3" />
-        <text x="500" y="112" text-anchor="middle" font-size="9.5" font-weight="600" fill="#64748b">Ready</text>
-        <text x="500" y="125" text-anchor="middle" font-size="8" fill="#94a3b8">(T_wait 2)</text>
+        <!-- Process D: 30 to 33 -> 600 to 660 -->
+        <rect x="650" y="40" width="60" height="50" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+        <text x="680" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#b45309">D (3ms)</text>
 
-        <!-- 5. Second CPU Burst: x=540 to 720 (Width=180) -->
-        <rect x="540" y="85" width="180" height="55" rx="4" fill="#f0fdf4" stroke="#059669" stroke-width="2" />
-        <text x="630" y="110" text-anchor="middle" font-size="10.5" font-weight="700" fill="#166534">CPU Burst 2</text>
-        <text x="630" y="126" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#15803d">Terminates / exit()</text>
+        <!-- Timeline Scale Ticks -->
+        <line x1="50" y1="95" x2="50" y2="105" stroke="#475569" stroke-width="1.5"/>
+        <text x="50" y="120" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="#475569">0</text>
 
-        <!-- Vertical Milestone Guidelines -->
-        <!-- T_arrival at x=60 -->
-        <line x1="60" y1="35" x2="60" y2="175" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="2 2" />
-        <text x="60" y="28" text-anchor="middle" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#0284c7">T_arrival</text>
+        <line x1="530" y1="95" x2="530" y2="105" stroke="#475569" stroke-width="1.5"/>
+        <text x="530" y="120" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="#475569">24</text>
 
-        <!-- T_first_dispatch at x=180 -->
-        <line x1="180" y1="35" x2="180" y2="175" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="2 2" />
-        <text x="180" y="28" text-anchor="middle" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#7c3aed">T_first_dispatch</text>
+        <line x1="590" y1="95" x2="590" y2="105" stroke="#475569" stroke-width="1.5"/>
+        <text x="590" y="120" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="#475569">27</text>
 
-        <!-- T_completion at x=720 -->
-        <line x1="720" y1="35" x2="720" y2="245" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="2 2" />
-        <text x="720" y="28" text-anchor="middle" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#0f172a">T_completion</text>
+        <line x1="650" y1="95" x2="650" y2="105" stroke="#475569" stroke-width="1.5"/>
+        <text x="650" y="120" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="#475569">30</text>
 
-        <!-- Dimension Interval 1: Response Time (T_arrival to T_first_dispatch) -->
-        <line x1="64" y1="52" x2="176" y2="52" stroke="#7c3aed" stroke-width="2" marker-start="url(#tm-arr-purple-l)" marker-end="url(#tm-arr-purple-r)" />
-        <text x="120" y="47" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="#7c3aed">T_response</text>
-
-        <!-- Dimension Interval 2: Cumulative Waiting Time (Wait 1 + Wait 2) -->
-        <line x1="64" y1="165" x2="176" y2="165" stroke="#0284c7" stroke-width="1.5" marker-start="url(#tm-arr-left)" marker-end="url(#tm-arr-right)" />
-        <text x="120" y="180" text-anchor="middle" font-size="9" font-weight="600" fill="#0284c7">T_wait (1)</text>
-
-        <line x1="464" y1="165" x2="536" y2="165" stroke="#0284c7" stroke-width="1.5" marker-start="url(#tm-arr-left)" marker-end="url(#tm-arr-right)" />
-        <text x="500" y="180" text-anchor="middle" font-size="9" font-weight="600" fill="#0284c7">T_wait (2)</text>
-
-        <text x="310" y="180" text-anchor="middle" font-family="var(--font-mono)" font-size="9" font-weight="600" fill="#0284c7">Total T_wait = Wait(1) + Wait(2)</text>
-
-        <!-- Dimension Interval 3: Turnaround Time (T_arrival to T_completion) -->
-        <line x1="64" y1="225" x2="716" y2="225" stroke="#0f172a" stroke-width="2.5" marker-start="url(#tm-arr-dark-l)" marker-end="url(#tm-arr-dark-r)" />
-        <text x="390" y="218" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0f172a">T_turnaround = T_completion &minus; T_arrival (Total Elapsed Duration)</text>
+        <line x1="710" y1="95" x2="710" y2="105" stroke="#475569" stroke-width="1.5"/>
+        <text x="710" y="120" text-anchor="middle" font-family="var(--font-mono)" font-size="10" fill="#475569">33 ms</text>
       </svg>
     </div>
 
-    <h4>2. Fundamental Architectural Dilemmas &amp; Trade-Offs</h4>
-    <p>
-      Optimizing an operating system scheduler is an exercise in managing engineering tensions along Pareto optimal frontiers:
-    </p>
-
-    <h5>A. Turnaround Time vs. Response Time</h5>
-    <p>
-      Algorithms that mathematically optimize average turnaround time (such as <strong>Shortest Job First / Shortest Remaining Time Next</strong>) do so by letting short jobs run to completion while ignoring long jobs. However, if an interactive process arrives while a compute job is underway, non-preemptive turnaround optimizers force the interactive task to wait, severely degrading response time.
-    </p>
-    <p>
-      Conversely, algorithms designed to minimize response time (such as <strong>Round-Robin with tiny time slices</strong>) frequently interrupt long jobs to service incoming interactive events. Because every context switch incurs dispatch latency and invalidates CPU cache hierarchies, the total turnaround time for all jobs degrades.
-    </p>
-
-    <h5>B. System Throughput vs. Latency (The Quantum Sizing Dilemma)</h5>
-    <p>
-      Consider a system where every context switch requires dispatch latency &delta;. If the scheduler assigns a time quantum of length <i>q</i>, the fraction of CPU time wasted purely on dispatch overhead (&alpha;) is:
-    </p>
-    <pre><code>&alpha; = &delta; / (<i>q</i> + &delta;)</code></pre>
-    <ul>
-      <li><strong>Maximizing Throughput (Large <i>q</i>, e.g., <i>q</i> = 200 ms, &delta; = 1 ms):</strong> Overhead &alpha; &approx; 0.5%. Almost 99.5% of CPU cycles perform useful application computation. However, interactive response latency degrades to hundreds of milliseconds, causing unacceptable UI stutter.</li>
-      <li><strong>Minimizing Latency (Small <i>q</i>, e.g., <i>q</i> = 4 ms, &delta; = 1 ms):</strong> Response time drops to near-imperceptible levels, but overhead &alpha; surges to 20%. One-fifth of the entire processor's silicon capacity is lost to context switches, MMU reloading, and cache thrashing.</li>
-    </ul>
-
-    <h5>C. Fairness vs. Prioritization &amp; Starvation</h5>
-    <p>
-      Strict fairness implies that every ready task receives an equal share of CPU cycles (e.g., pure Round-Robin or Generalized Processor Sharing). However, operating systems must enforce real-world urgency:
-    </p>
-    <ul>
-      <li>A background disk-indexing service should not receive the same execution priority as the interactive display server rendering user keystrokes at 120 frames per second.</li>
-      <li>However, introducing strict priority hierarchies immediately creates the risk of <strong>starvation</strong>: low-priority tasks may sit in the Ready queue indefinitely if higher-priority tasks arrive continuously. Schedulers must compromise strict prioritization through dynamic mechanisms such as <strong>aging</strong>.</li>
-    </ul>
-
-    <h4>3. Operational Environments &amp; Optimization Target Matrix</h4>
-    <div style="overflow-x: auto; margin: 18px 0;">
+    <h4>Mathematical Turnaround and Waiting Time Analysis</h4>
+    <div style="overflow-x: auto; margin: 16px 0;">
       <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
         <thead>
           <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 14px; width: 22%;">Operational Arena</th>
-            <th style="padding: 10px 14px; width: 38%;">Primary Optimization Targets</th>
-            <th style="padding: 10px 14px; width: 40%;">Secondary Constraints &amp; Tolerated Trade-offs</th>
+            <th style="padding: 8px 12px;">Process</th>
+            <th style="padding: 8px 12px;">Arrival Time</th>
+            <th style="padding: 8px 12px;">Burst Time</th>
+            <th style="padding: 8px 12px;">Completion Time</th>
+            <th style="padding: 8px 12px;">Turnaround Time (<i>T</i><sub>turnaround</sub>)</th>
+            <th style="padding: 8px 12px;">Waiting Time (<i>T</i><sub>wait</sub>)</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 700; color: #0f172a;">All Operating Systems</td>
-            <td style="padding: 10px 14px;">
-              &bull; <strong>Fairness:</strong> Comparable processes receive comparable service.<br>
-              &bull; <strong>Policy Enforcement:</strong> Stated allocation rules are upheld.<br>
-              &bull; <strong>Starvation Freedom:</strong> No runnable task waits indefinitely.
-            </td>
-            <td style="padding: 10px 14px; color: var(--text-muted);">
-              Must minimize scheduling algorithmic complexity (<i>O</i>(1) or <i>O</i>(log <i>N</i>) runqueue operations).
-            </td>
+            <td style="padding: 8px 12px; font-weight: 700; color: #dc2626;">Process A</td>
+            <td style="padding: 8px 12px;">0 ms</td>
+            <td style="padding: 8px 12px;">24 ms</td>
+            <td style="padding: 8px 12px;">24 ms</td>
+            <td style="padding: 8px 12px;">24 &minus; 0 = <strong>24 ms</strong></td>
+            <td style="padding: 8px 12px;">24 &minus; 24 = <strong>0 ms</strong></td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 700; color: #0369a1;">Batch Processing Systems<br><span style="font-size: 0.78rem; font-weight: 400; color: #64748b;">(HPC, Scientific Compute, Compilers)</span></td>
-            <td style="padding: 10px 14px;">
-              &bull; <strong>Throughput:</strong> Maximize jobs completed per hour.<br>
-              &bull; <strong>Turnaround Time:</strong> Minimize time from submission to output.<br>
-              &bull; <strong>CPU Utilization:</strong> Keep execution units 100% busy.
-            </td>
-            <td style="padding: 10px 14px; color: var(--text-muted);">
-              Response time is completely irrelevant; long preemption delays are encouraged to minimize cache churn and context switch overhead.
-            </td>
+            <td style="padding: 8px 12px; font-weight: 700; color: #059669;">Process B</td>
+            <td style="padding: 8px 12px;">0 ms</td>
+            <td style="padding: 8px 12px;">3 ms</td>
+            <td style="padding: 8px 12px;">27 ms</td>
+            <td style="padding: 8px 12px;">27 &minus; 0 = <strong>27 ms</strong></td>
+            <td style="padding: 8px 12px;">27 &minus; 3 = <strong>24 ms</strong></td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 700; color: #0284c7;">Interactive &amp; Desktop Systems<br><span style="font-size: 0.78rem; font-weight: 400; color: #64748b;">(Workstations, Laptops, Mobile OS)</span></td>
-            <td style="padding: 10px 14px;">
-              &bull; <strong>Response Time:</strong> Fast feedback to user events (&lt;16&ndash;50 ms).<br>
-              &bull; <strong>Proportionality:</strong> Simple tasks respond immediately.<br>
-              &bull; <strong>Low Variance:</strong> Smooth UI frame rates without stutter.
-            </td>
-            <td style="padding: 10px 14px; color: var(--text-muted);">
-              Tolerates 2%&ndash;5% throughput loss and lower average turnaround time to support continuous preemption and time slicing.
-            </td>
+            <td style="padding: 8px 12px; font-weight: 700; color: #0284c7;">Process C</td>
+            <td style="padding: 8px 12px;">0 ms</td>
+            <td style="padding: 8px 12px;">3 ms</td>
+            <td style="padding: 8px 12px;">30 ms</td>
+            <td style="padding: 8px 12px;">30 &minus; 0 = <strong>30 ms</strong></td>
+            <td style="padding: 8px 12px;">30 &minus; 3 = <strong>27 ms</strong></td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 700; color: #059669;">Real-Time Embedded Systems<br><span style="font-size: 0.78rem; font-weight: 400; color: #64748b;">(Avionics, Robotics, Automotive ABS)</span></td>
-            <td style="padding: 10px 14px;">
-              &bull; <strong>Meeting Deadlines:</strong> Hard timing constraints must never fail.<br>
-              &bull; <strong>Predictability (Zero Jitter):</strong> Deterministic worst-case execution time (WCET).
-            </td>
-            <td style="padding: 10px 14px; color: var(--text-muted);">
-              Average throughput and hardware utilization are deliberately sacrificed; systems are intentionally over-provisioned to guarantee timing margins.
-            </td>
+            <td style="padding: 8px 12px; font-weight: 700; color: #d97706;">Process D</td>
+            <td style="padding: 8px 12px;">0 ms</td>
+            <td style="padding: 8px 12px;">3 ms</td>
+            <td style="padding: 8px 12px;">33 ms</td>
+            <td style="padding: 8px 12px;">33 &minus; 0 = <strong>33 ms</strong></td>
+            <td style="padding: 8px 12px;">33 &minus; 3 = <strong>30 ms</strong></td>
           </tr>
         </tbody>
       </table>
-    </div>"""
+    </div>
 
-    # Replace Section 4 cleanly
-    start_tag = "<h3>4. Conflicting Optimization Goals &amp; Metrics</h3>"
-    end_tag = '<nav class="nav-bar" style="margin-top: 36px;'
+    <div class="math-callout">
+      <strong>FCFS Performance Summary:</strong>
+      <br>
+      Average Turnaround Time = (24 + 27 + 30 + 33) / 4 = <strong>28.5 ms</strong>
+      <br>
+      Average Waiting Time = (0 + 24 + 27 + 30) / 4 = <strong>20.25 ms</strong>
+      <br>
+      <em>The Convoy Consequence:</em> Processes <i>B</i>, <i>C</i>, and <i>D</i> suffer a penalty ratio (slowdown) of <i>W</i> = 27 / 3 = 9.0x to 33 / 3 = 11.0x simply because they were trapped behind a single compute hog. Meanwhile, the disk controller sat completely idle for 24 ms. When <i>A</i> finally finishes, all three short jobs rush through the CPU and issue disk requests simultaneously, leaving the CPU idle while disk queues overflow.
+    </div>
 
-    start_pos = content.find(start_tag)
-    end_pos = content.find(end_tag)
+    <h3>2. Shortest Job First (SJF)</h3>
+    <p>
+      To eliminate the convoy effect and minimize average waiting time, batch architectures turn to <strong>Shortest Job First (SJF)</strong>. When the CPU becomes free, the scheduler inspects the Ready queue and selects the job with the smallest required CPU burst duration.
+    </p>
 
-    if start_pos == -1 or end_pos == -1:
-        print("Error: Could not locate Section 4 tags in target file.")
-        return False
+    <h4>Mathematical Proof of SJF Turnaround Optimality</h4>
+    <p>
+      <strong>Theorem:</strong> When all jobs arrive simultaneously at time <i>T</i> = 0, non-preemptive Shortest Job First is provably optimal: it yields the minimum possible average waiting time and minimum average turnaround time among all non-preemptive algorithms.
+    </p>
 
-    updated_content = content[:start_pos] + new_section_four + "\n\n    " + content[end_pos:]
+    <div class="math-callout">
+      <strong>Formal Proof:</strong>
+      <br>
+      Consider <i>n</i> jobs arriving at <i>T</i> = 0 with execution burst durations <i>t</i><sub>1</sub>, <i>t</i><sub>2</sub>, ..., <i>t</i><sub><i>n</i></sub>.
+      <br>
+      Suppose the scheduler executes these jobs in arbitrary permutation &pi; = (&pi;<sub>1</sub>, &pi;<sub>2</sub>, ..., &pi;<sub><i>n</i></sub>).
+      <br><br>
+      The waiting time for the first job executed (&pi;<sub>1</sub>) is 0.
+      <br>
+      The waiting time for the second job (&pi;<sub>2</sub>) is <i>t</i><sub>&pi;<sub>1</sub></sub>.
+      <br>
+      The waiting time for the third job (&pi;<sub>3</sub>) is <i>t</i><sub>&pi;<sub>1</sub></sub> + <i>t</i><sub>&pi;<sub>2</sub></sub>.
+      <br>
+      In general, the waiting time for the <i>k</i>-th job is the sum of all preceding burst lengths:
+      <pre><code><i>T</i><sub>wait</sub>(&pi;<sub><i>k</i></sub>) = &sum;<sub><i>j</i>=1</sub><sup><i>k</i>&minus;1</sup> <i>t</i><sub>&pi;<sub><i>j</i></sub></sub></code></pre>
+      Summing the waiting times across all <i>n</i> jobs yields the total system waiting time:
+      <pre><code>Total <i>T</i><sub>wait</sub> = (<i>n</i> &minus; 1)<i>t</i><sub>&pi;<sub>1</sub></sub> + (<i>n</i> &minus; 2)<i>t</i><sub>&pi;<sub>2</sub></sub> + (<i>n</i> &minus; 3)<i>t</i><sub>&pi;<sub>3</sub></sub> + ... + 1&middot;<i>t</i><sub>&pi;<sub><i>n</i>&minus;1</sub></sub> + 0&middot;<i>t</i><sub>&pi;<sub><i>n</i></sub></sub></code></pre>
+      Notice that the burst time of the first job (<i>t</i><sub>&pi;<sub>1</sub></sub>) is added into the waiting time of all (<i>n</i> &minus; 1) remaining jobs. The burst time of the second job is added into (<i>n</i> &minus; 2) jobs, and so on.
+      <br><br>
+      To minimize this linear combination &sum;<sub><i>i</i>=1</sub><sup><i>n</i></sup> (<i>n</i> &minus; <i>i</i>)<i>t</i><sub>&pi;<sub><i>i</i></sub></sub>, coefficients (<i>n</i> &minus; <i>i</i>) strictly decrease as <i>i</i> increases. By the Rearrangement Inequality, the sum is minimized if and only if the burst times are ordered in monotonically non-decreasing order:
+      <pre><code><i>t</i><sub>&pi;<sub>1</sub></sub> &le; <i>t</i><sub>&pi;<sub>2</sub></sub> &le; <i>t</i><sub>&pi;<sub>3</sub></sub> &le; ... &le; <i>t</i><sub>&pi;<sub><i>n</i></sub></sub></code></pre>
+      Since Average Turnaround Time is simply Average Waiting Time plus the constant mean burst time, minimizing total waiting time simultaneously minimizes average turnaround time. <strong style="color: #059669;">Q.E.D.</strong>
+    </div>
 
+    <h4>Revisiting the Convoy Workload with SJF</h4>
+    <p>
+      Applying non-preemptive SJF to the earlier workload (Jobs <i>B</i>, <i>C</i>, <i>D</i> requiring 3 ms; Job <i>A</i> requiring 24 ms, all available at <i>T</i> = 0):
+    </p>
+    <ul>
+      <li>Execution Order: <i>B</i> &rarr; <i>C</i> &rarr; <i>D</i> &rarr; <i>A</i></li>
+      <li>Waiting Times: <i>T</i><sub>wait</sub>(<i>B</i>) = 0 ms, <i>T</i><sub>wait</sub>(<i>C</i>) = 3 ms, <i>T</i><sub>wait</sub>(<i>D</i>) = 6 ms, <i>T</i><sub>wait</sub>(<i>A</i>) = 9 ms.</li>
+      <li><strong>Average Waiting Time:</strong> (0 + 3 + 6 + 9) / 4 = <strong>4.5 ms</strong> (vs. 20.25 ms under FCFS &mdash; a <strong>78% reduction</strong>).</li>
+      <li><strong>Average Turnaround Time:</strong> (3 + 6 + 9 + 33) / 4 = <strong>12.75 ms</strong> (vs. 28.5 ms under FCFS &mdash; a <strong>55% reduction</strong>).</li>
+    </ul>
+
+    <h4>The Arrival Timing Dilemma &amp; Starvation</h4>
+    <p>
+      SJF's mathematical optimality holds strictly only when all candidate jobs arrive simultaneously.
+    </p>
+    <ul>
+      <li><strong>Arrival Order Vulnerability:</strong> If Job <i>A</i> (24 ms) arrives at <i>T</i> = 0, and Jobs <i>B</i>, <i>C</i>, and <i>D</i> arrive at <i>T</i> = 1 ms, non-preemptive SJF cannot preempt Job <i>A</i>. The system degenerates into FCFS, and the convoy effect re-emerges.</li>
+      <li><strong>Starvation (Indefinite Postponement):</strong> If short jobs arrive in a steady, continuous stream, a long-running compute job will sit in the Ready queue indefinitely, starved of CPU cycles.</li>
+    </ul>
+
+    <h3>3. Shortest Remaining Time Next (SRTN)</h3>
+    <p>
+      To prevent short jobs from being trapped when they arrive immediately after a long job begins running, operating systems introduce preemption. <strong>Shortest Remaining Time Next (SRTN)</strong> is the preemptive variant of Shortest Job First.
+    </p>
+
+    <h4>Preemptive Evaluation Logic</h4>
+    <p>
+      Whenever a new process enters the Ready queue, the scheduler does not wait for the currently executing process to finish. Instead, it compares the <em>expected remaining execution time</em> of the currently running task against the <em>full burst duration</em> of the newly arrived task:
+    </p>
+    <ul>
+      <li>If the newly arrived process requires less execution time than the current task has remaining, the running task is immediately preempted.</li>
+      <li>The preempted task's register state is preserved in its PCB/trap frame, its state is moved back to <code>TASK_RUNNING</code> (in the Ready list), and the dispatcher switches the CPU core to the new task.</li>
+      <li>If the new process requires more time than remains on the current task, the running process continues uninterrupted.</li>
+    </ul>
+
+    <!-- Directed Narrative Stepper Standard: Batch Scheduling Mechanics -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: FCFS Convoy Effect vs. SRTN Preemption</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="dim-fcfs" onclick="setBatchDim('fcfs')">First-Come First-Served (FCFS)</button>
+          <button class="dim-btn" id="dim-srtn" onclick="setBatchDim('srtn')">Shortest Remaining Time Next (SRTN)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Workload Trace</span>
+        <span id="batch-scenario-text">Process A (24 ms burst) arrives at T=0. Process B (3 ms burst) arrives at T=2. Process C (3 ms burst) arrives at T=4. Comparing execution order and waiting delays.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Timeline Marker</span>
+          <span class="telemetry-val highlight" id="b-telem-time">T = 0 ms</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Active Core Job</span>
+          <span class="telemetry-val" id="b-telem-active">Process A (Burst: 24 ms)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Ready Queue Depth</span>
+          <span class="telemetry-val" id="b-telem-queue">Empty (No arrivals)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Average Wait Time</span>
+          <span class="telemetry-val" id="b-telem-wait">0.0 ms (Active)</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="gantt-canvas" viewBox="0 0 760 220">
+          <!-- Ready Queue Status Box (Left) -->
+          <g transform="translate(20, 20)">
+            <rect width="200" height="180" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+            <text x="14" y="24" font-size="11" font-weight="700" fill="#0f172a">READY QUEUE</text>
+            <rect id="node-queue-b" x="12" y="36" width="176" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" style="display: none;"/>
+            <text id="txt-queue-b" x="20" y="58" font-family="var(--font-mono)" font-size="10" fill="#334155" style="display: none;">Proc B (Rem: 3ms)</text>
+
+            <rect id="node-queue-c" x="12" y="78" width="176" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" style="display: none;"/>
+            <text id="txt-queue-c" x="20" y="100" font-family="var(--font-mono)" font-size="10" fill="#334155" style="display: none;">Proc C (Rem: 3ms)</text>
+
+            <rect id="node-queue-a" x="12" y="120" width="176" height="34" rx="4" fill="#ffffff" stroke="#dc2626" stroke-dasharray="3 3" style="display: none;"/>
+            <text id="txt-queue-a" x="20" y="142" font-family="var(--font-mono)" font-size="10" fill="#dc2626" style="display: none;">Proc A (Preempted: 22ms)</text>
+          </g>
+
+          <!-- Gantt Chart Arena (Right) -->
+          <g transform="translate(240, 20)">
+            <rect width="500" height="180" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+            <text x="15" y="24" font-size="11" font-weight="700" fill="#0f172a">CPU TIMELINE (GANTT CHART)</text>
+
+            <!-- Dynamic Gantt Segments -->
+            <g id="gantt-bars">
+              <!-- Rendered dynamically by script -->
+            </g>
+
+            <!-- Timeline Axis -->
+            <line x1="20" y1="130" x2="480" y2="130" stroke="#94a3b8" stroke-width="2"/>
+            <text x="20" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">0</text>
+            <text x="150" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=8</text>
+            <text x="280" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=16</text>
+            <text x="410" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=24</text>
+            <text x="475" y="150" font-family="var(--font-mono)" font-size="10" fill="#64748b">T=30</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Stepper Controls & Current Step Summary Panel -->
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="b-btn-prev" onclick="stepBatch(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="b-btn-next" onclick="stepBatch(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="b-btn-reset" onclick="resetBatch()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="b-txt-narrative">Process A arrives at T=0 with a 24ms burst requirement. The CPU starts executing Process A. The Ready queue is currently empty.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="b-txt-what">Process A enters the CPU core at T=0. Because no other jobs exist, Process A is granted immediate execution.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="b-txt-why">The operating system maximizes hardware utilization by never letting an execution core sit idle when runnable work is present.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>4. Predicting Future Bursts: Exponential Smoothing</h3>
+    <p>
+      The fatal practical limitation of both SJF and SRTN in general-purpose operating systems is obvious: <em>the scheduler cannot know how long a process will execute before it runs</em>. A process may loop three times, read a file, or loop ten million times depending on user input.
+    </p>
+    <p>
+      To approximate SJF/SRTN, the operating system estimates the next CPU burst duration based on the process's past measured behavior using an <strong>exponential moving average (exponential smoothing)</strong>.
+    </p>
+
+    <h4>Mathematical Recurrence Formulation</h4>
+    <p>
+      Let <i>t</i><sub><i>n</i></sub> be the length of the <i>n</i>-th actual, measured CPU burst. Let &tau;<sub><i>n</i></sub> be the predicted value for the <i>n</i>-th burst. The prediction for the upcoming (<i>n</i> + 1)-th burst is calculated recursively as:
+    </p>
+    <pre><code>&tau;<sub><i>n</i>+1</sub> = &alpha;<i>t</i><sub><i>n</i></sub> + (1 &minus; &alpha;)&tau;<sub><i>n</i></sub></code></pre>
+    <p>
+      where &alpha; (0 &le; &alpha; &le; 1) is a configurable smoothing parameter that controls the weighting:
+    </p>
+    <ul>
+      <li><strong>&alpha; = 0 (&tau;<sub><i>n</i>+1</sub> = &tau;<sub><i>n</i></sub>):</strong> Recent history has zero influence. The prediction remains frozen at its initial baseline &tau;<sub>0</sub>.</li>
+      <li><strong>&alpha; = 1 (&tau;<sub><i>n</i>+1</sub> = <i>t</i><sub><i>n</i></sub>):</strong> Past history has zero influence. The next burst is assumed to exactly equal the most recent single burst. Highly vulnerable to temporary anomalies.</li>
+      <li><strong>&alpha; = 0.5 (Balanced Exponential Decay):</strong> Equal weight is assigned to the immediate past burst and the historical aggregate. This is the canonical default in production systems.</li>
+    </ul>
+
+    <h4>Expanding the Recurrence Relation</h4>
+    <p>
+      Expanding the formula reveals how historical burst observations decay geometrically over time:
+    </p>
+    <pre><code>&tau;<sub><i>n</i>+1</sub> = &alpha;<i>t</i><sub><i>n</i></sub> + (1 &minus; &alpha;)&alpha;<i>t</i><sub><i>n</i>&minus;1</sub> + (1 &minus; &alpha;)<sup>2</sup>&alpha;<i>t</i><sub><i>n</i>&minus;2</sub> + ... + (1 &minus; &alpha;)<sup><i>j</i></sup>&alpha;<i>t</i><sub><i>n</i>&minus;<i>j</i></sub> + ... + (1 &minus; &alpha;)<sup><i>n</i>+1</sup>&tau;<sub>0</sub></code></pre>
+    <p>
+      Because (1 &minus; &alpha;) &lt; 1, the term (1 &minus; &alpha;)<sup><i>j</i></sup> shrinks exponentially as <i>j</i> increases. Older burst lengths rapidly lose their mathematical weight. If a process historically performed long 100 ms calculations but recently transitions into an interactive I/O phase (producing 2 ms bursts), &tau; adjusts downward within 3 to 4 scheduling cycles, dynamically reclassifying the task as short.
+    </p>
+
+    <h3>5. Comprehensive Batch Scheduling Comparison</h3>
+    <div style="overflow-x: auto; margin: 18px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px; width: 22%;">Algorithm</th>
+            <th style="padding: 10px 14px; width: 18%;">Execution Discipline</th>
+            <th style="padding: 10px 14px; width: 20%;">Average Turnaround</th>
+            <th style="padding: 10px 14px; width: 20%;">Starvation Hazard</th>
+            <th style="padding: 10px 14px; width: 20%;">Overhead &amp; Feasibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 700; color: #0284c7;">First-Come First-Served (FCFS)</td>
+            <td style="padding: 10px 14px;">Non-Preemptive (FIFO)</td>
+            <td style="padding: 10px 14px; color: #dc2626;">Poor (Degraded severely by Convoy Effect)</td>
+            <td style="padding: 10px 14px; color: #059669;">Zero (Arrival order is monotonic)</td>
+            <td style="padding: 10px 14px;">Trivial (<i>O</i>(1) linked list operations).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 700; color: #059669;">Shortest Job First (SJF)</td>
+            <td style="padding: 10px 14px;">Non-Preemptive (Smallest Burst)</td>
+            <td style="padding: 10px 14px; color: #059669;">Mathematically Optimal for simultaneous arrivals</td>
+            <td style="padding: 10px 14px; color: #dc2626;">High (Long jobs starve if short jobs arrive continuously)</td>
+            <td style="padding: 10px 14px;">Requires burst prediction (&tau;) or batch declarations.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 700; color: #7c3aed;">Shortest Remaining Time Next (SRTN)</td>
+            <td style="padding: 10px 14px;">Preemptive (Smallest Remaining)</td>
+            <td style="padding: 10px 14px; color: #059669;">Optimal among all dynamic arrival environments</td>
+            <td style="padding: 10px 14px; color: #dc2626;">High (Continuous short jobs starve long jobs)</td>
+            <td style="padding: 10px 14px;">Context switch overhead + active elapsed time tracking.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="01-scheduling-introduction.html">&larr; 01. Intro to Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <a href="03-interactive-scheduling.html">Next: 03. Interactive Scheduling &rarr;</a>
+    </nav>
+  </div>
+
+  <script>
+    const batchSteps = {
+      fcfs: [
+        {
+          time: "T = 0 ms",
+          active: "Process A (Burst: 24 ms)",
+          queue: "Empty",
+          wait: "0.0 ms (A running)",
+          showQueueB: false,
+          showQueueC: false,
+          showQueueA: false,
+          barsHtml: `
+            <rect x="20" y="45" width="40" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="40" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A</text>
+          `,
+          narrative: "Process A arrives at T=0 with a 24ms burst requirement. The CPU starts executing Process A. The Ready queue is currently empty.",
+          what: "Process A enters the CPU core at T=0. Because no other jobs exist, Process A is granted immediate execution.",
+          why: "The operating system maximizes hardware utilization by never letting an execution core sit idle when runnable work is present."
+        },
+        {
+          time: "T = 2 ms",
+          active: "Process A (Running: 22ms left)",
+          queue: "Proc B (Arrived T=2)",
+          wait: "0.0 ms (B waiting)",
+          showQueueB: true,
+          showQueueC: false,
+          showQueueA: false,
+          barsHtml: `
+            <rect x="20" y="45" width="60" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="50" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Running)</text>
+          `,
+          narrative: "Process B (burst: 3ms) arrives at T=2. Under FCFS, Process A cannot be preempted. Process B is placed into the Ready queue and forced to wait.",
+          what: "Process B enters the Ready list. Even though Process B only needs 3ms of CPU time, it must wait for Process A's remaining 22ms.",
+          why: "Non-preemptive FCFS forbids forcibly stripping the CPU from an active process; the running task owns the core until voluntary release."
+        },
+        {
+          time: "T = 4 ms",
+          active: "Process A (Running: 20ms left)",
+          queue: "Proc B, Proc C (Trapped)",
+          wait: "1.0 ms average wait",
+          showQueueB: true,
+          showQueueC: true,
+          showQueueA: false,
+          barsHtml: `
+            <rect x="20" y="45" width="90" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="65" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Convoy Lock)</text>
+          `,
+          narrative: "Process C (burst: 3ms) arrives at T=4. Both B and C are trapped behind Process A. This is the Convoy Effect in action.",
+          what: "The Ready queue grows as fast I/O tasks queue up. I/O peripheral hardware sits idle while Process A monopolizes the CPU core.",
+          why: "FCFS ignores task length. The operating system cannot prioritize short tasks over long-running batch jobs."
+        },
+        {
+          time: "T = 24 ms",
+          active: "Process B (Dispatched)",
+          queue: "Proc C (Waited 20ms)",
+          wait: "B waited 22ms!",
+          showQueueB: false,
+          showQueueC: true,
+          showQueueA: false,
+          barsHtml: `
+            <rect x="20" y="45" width="360" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="200" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A Finished (0-24ms)</text>
+            <rect x="380" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
+            <text x="402" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+          `,
+          narrative: "Process A finally completes at T=24. Process B is dispatched after suffering an agonizing 22ms wait for a 3ms task. Process C continues waiting.",
+          what: "Process A calls exit(). The dispatcher loads Process B. Process B's turnaround time is 27 - 2 = 25ms (Slowdown ratio W = 8.3x).",
+          why: "FCFS guarantees starvation freedom, but imposes devastating latency penalties on short interactive jobs."
+        },
+        {
+          time: "T = 30 ms",
+          active: "Workload Complete",
+          queue: "Empty",
+          wait: "Avg Turnaround: 25.0 ms",
+          showQueueB: false,
+          showQueueC: false,
+          showQueueA: false,
+          barsHtml: `
+            <rect x="20" y="45" width="360" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="200" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A (0-24ms)</text>
+            <rect x="380" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
+            <text x="402" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+            <rect x="425" y="45" width="45" height="40" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+            <text x="447" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+          `,
+          narrative: "All jobs finish by T=30. Average Turnaround Time = (24 + 25 + 26) / 3 = 25.0 ms. Average Waiting Time = (0 + 22 + 23) / 3 = 15.0 ms.",
+          what: "Workload finishes. The convoy effect severely degraded average turnaround time across the batch.",
+          why: "Analyzing this structural flaw establishes why operating systems transitioned to preemptive algorithms."
+        }
+      ],
+      srtn: [
+        {
+          time: "T = 0 ms",
+          active: "Process A (Burst: 24 ms)",
+          queue: "Empty",
+          wait: "0.0 ms (A running)",
+          showQueueB: false,
+          showQueueC: false,
+          showQueueA: false,
+          barsHtml: `
+            <rect x="20" y="45" width="40" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="40" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A</text>
+          `,
+          narrative: "Process A arrives at T=0 with a 24ms burst. The CPU starts executing Process A. Remaining time: 24ms.",
+          what: "Process A runs on the core. No other tasks exist in the system.",
+          why: "The CPU immediately services available tasks to eliminate idle execution cycles."
+        },
+        {
+          time: "T = 2 ms",
+          active: "Process B PREEMPTS Process A",
+          queue: "Proc A (Preempted: 22ms)",
+          wait: "0.0 ms (B runs immediately!)",
+          showQueueB: false,
+          showQueueC: false,
+          showQueueA: true,
+          barsHtml: `
+            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
+            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+          `,
+          narrative: "Process B (3ms) arrives at T=2. SRTN compares B's required time (3ms) against A's remaining time (22ms). 3ms < 22ms &rarr; Process A is PREEMPTED!",
+          what: "The kernel suspends Process A, saves its registers, and immediately dispatches Process B. Process B experiences ZERO waiting time!",
+          why: "SRTN prioritizes the task with the shortest remaining time to minimize system-wide waiting queues."
+        },
+        {
+          time: "T = 4 ms",
+          active: "Process B (1ms left)",
+          queue: "Proc C (3ms), Proc A (22ms)",
+          wait: "B running; C queued",
+          showQueueB: false,
+          showQueueC: true,
+          showQueueA: true,
+          barsHtml: `
+            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
+            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+          `,
+          narrative: "Process C (3ms) arrives at T=4. The scheduler compares C (3ms) with running B (1ms left). 1ms < 3ms, so Process B continues uninterrupted.",
+          what: "Process B retains the core. Process C is placed ahead of Process A in the Ready queue because 3ms < 22ms.",
+          why: "The currently running task has a shorter remaining burst than the newly arrived task, so no preemption occurs."
+        },
+        {
+          time: "T = 5 ms",
+          active: "Process C (Dispatched)",
+          queue: "Proc A (22ms remaining)",
+          wait: "C waited only 1ms!",
+          showQueueB: false,
+          showQueueC: false,
+          showQueueA: true,
+          barsHtml: `
+            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+            <rect x="95" y="45" width="45" height="40" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+            <text x="117" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+          `,
+          narrative: "Process B completes at T=5. Process C (3ms) is selected over Process A (22ms). Process C executes from T=5 to T=8.",
+          what: "Process B finishes with a turnaround time of 5 - 2 = 3ms (optimal!). Process C starts running after waiting only 1ms.",
+          why: "SRTN clears short tasks out of the system rapidly, freeing up memory and allowing short jobs to start I/O operations."
+        },
+        {
+          time: "T = 30 ms",
+          active: "Workload Complete",
+          queue: "Empty",
+          wait: "Avg Turnaround: 13.0 ms!",
+          showQueueB: false,
+          showQueueC: false,
+          showQueueA: false,
+          barsHtml: `
+            <rect x="20" y="45" width="30" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="35" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <rect x="50" y="45" width="45" height="40" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="1.5"/>
+            <text x="72" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
+            <rect x="95" y="45" width="45" height="40" rx="3" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="117" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">C</text>
+            <rect x="140" y="45" width="330" height="40" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="305" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A Resumed &amp; Finished (8-30ms)</text>
+          `,
+          narrative: "Process C completes at T=8. Process A resumes and executes its remaining 22ms until T=30. Average Turnaround = (30 + 3 + 4) / 3 = 12.33 ms (vs. 25.0 ms under FCFS &mdash; more than 50% faster!).",
+          what: "Workload finishes. Average waiting time dropped from 15.0 ms under FCFS to only 2.33 ms under SRTN.",
+          why: "Preemptive SRTN prevents short tasks from being penalized by long jobs, maximizing batch throughput."
+        }
+      ]
+    };
+
+    let activeBatchDim = "fcfs";
+    let activeBatchStep = 0;
+
+    function renderBatchStepper() {
+      const steps = batchSteps[activeBatchDim];
+      const step = steps[activeBatchStep];
+
+      // Update Live Telemetry
+      document.getElementById("b-telem-time").textContent = step.time;
+      document.getElementById("b-telem-active").textContent = step.active;
+      document.getElementById("b-telem-queue").textContent = step.queue;
+      document.getElementById("b-telem-wait").textContent = step.wait;
+
+      // Update Queue Nodes
+      document.getElementById("node-queue-b").style.display = step.showQueueB ? "block" : "none";
+      document.getElementById("txt-queue-b").style.display = step.showQueueB ? "block" : "none";
+
+      document.getElementById("node-queue-c").style.display = step.showQueueC ? "block" : "none";
+      document.getElementById("txt-queue-c").style.display = step.showQueueC ? "block" : "none";
+
+      document.getElementById("node-queue-a").style.display = step.showQueueA ? "block" : "none";
+      document.getElementById("txt-queue-a").style.display = step.showQueueA ? "block" : "none";
+
+      // Update Gantt Bars
+      document.getElementById("gantt-bars").innerHTML = step.barsHtml;
+
+      // Update Narrative Panel
+      document.getElementById("b-txt-narrative").textContent = step.narrative;
+      document.getElementById("b-btn-prev").disabled = (activeBatchStep === 0);
+      document.getElementById("b-btn-next").disabled = (activeBatchStep === steps.length - 1);
+
+      // Update Analytical Panes
+      document.getElementById("b-txt-what").textContent = step.what;
+      document.getElementById("b-txt-why").textContent = step.why;
+    }
+
+    function stepBatch(delta) {
+      const steps = batchSteps[activeBatchDim];
+      activeBatchStep = Math.max(0, Math.min(steps.length - 1, activeBatchStep + delta));
+      renderBatchStepper();
+    }
+
+    function resetBatch() {
+      activeBatchStep = 0;
+      renderBatchStepper();
+    }
+
+    function setBatchDim(dim) {
+      activeBatchDim = dim;
+      activeBatchStep = 0;
+      document.getElementById("dim-fcfs").classList.toggle("active", dim === "fcfs");
+      document.getElementById("dim-srtn").classList.toggle("active", dim === "srtn");
+
+      const scenarioText = dim === "fcfs"
+        ? "Process A (24 ms burst) arrives at T=0. Process B (3 ms burst) arrives at T=2. Process C (3 ms burst) arrives at T=4. Observing how non-preemptive FCFS locks the CPU and degrades turnaround time."
+        : "Process A (24 ms burst) arrives at T=0. Process B (3 ms burst) arrives at T=2. Process C (3 ms burst) arrives at T=4. Observing how preemptive SRTN interrupts Process A to achieve optimal turnaround times.";
+      document.getElementById("batch-scenario-text").innerHTML = scenarioText;
+
+      renderBatchStepper();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderBatchStepper();
+    });
+  </script>
+</body>
+</html>
+"""
+
+def write_expanded_module():
+    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(updated_content)
+        f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully expanded Section 4 in {TARGET_FILE}")
-    return True
+    print(f"--> Successfully expanded {TARGET_FILE}")
 
-def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 4 in 01-scheduling-introduction.html with metric formulas\n\n"
-            "Detail turnaround, slowdown ratio, wait, response, throughput overhead,\n"
-            "variance/jitter, trade-off Pareto frontiers, and add an SVG timeline."
+            "Expand 02-batch-scheduling.html with mathematical proofs and stepper\n\n"
+            "Detail FCFS convoy effect, mathematical proof of SJF optimality, SRTN\n"
+            "preemption, exponential smoothing recurrence, and add a Gantt stepper."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -281,5 +981,4 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if build_expanded_section_four():
-        run_git_sync()
+    write_expanded_module()
