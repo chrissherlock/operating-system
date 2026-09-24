@@ -647,6 +647,130 @@ semaphore db_mutex = <span class="syn-num">1</span>; <span class="syn-cmt">/* Ex
       <li>The existing readers finish and exit. Once <code>read_count</code> drains to <code>0</code>, the queued writer executes immediately, bounding the waiting time of write operations.</li>
     </ul>
 
+    
+    <!-- Interactive Aid: Readers-Writers Starvation vs Fair Turnstile -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Readers-Writers Starvation vs. Fair Turnstile</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="rw-dim-starve" onclick="setRwDim('starve')">Reader-Preference (Starvation)</button>
+          <button class="dim-btn" id="rw-dim-fair" onclick="setRwDim('fair')">Fair Turnstile (Bounded)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Policy Simulation</span>
+        <span id="rw-scenario-text">Reader R1 is currently reading the database. Writer W1 arrives to submit an update. Under Reader-Preference, continuous overlapping reader arrivals starve W1 permanently.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Timeline Clock</span>
+          <span class="telemetry-val highlight" id="rw-telem-time">T = 0 ms</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Active Readers Inside</span>
+          <span class="telemetry-val" id="rw-telem-rc">read_count = 1</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Writer Queue State</span>
+          <span class="telemetry-val" id="rw-telem-writer">W1 Awaiting Entry</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Database Access Mode</span>
+          <span class="telemetry-val highlight" id="rw-telem-db">SHARED_READ</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Fairness Metric</span>
+          <span class="telemetry-val highlight" id="rw-telem-status">Nominal</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="hw-canvas" viewBox="0 0 760 250">
+          <!-- Left: Turnstile Entry Gate -->
+          <g transform="translate(20, 20)">
+            <rect width="210" height="210" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="14" y="24" font-size="10.5" font-weight="700" fill="#0284c7">ENTRY TURNSTILE GATE</text>
+
+            <rect id="rw-rect-gate" x="12" y="38" width="186" height="48" rx="4" fill="#dcfce7" stroke="#16a34a"/>
+            <text id="rw-txt-gate-title" x="105" y="58" text-anchor="middle" font-size="8.5" font-weight="700" fill="#166534">GATE STATUS: OPEN</text>
+            <text id="rw-txt-gate-sub" x="105" y="74" text-anchor="middle" font-size="7.5" fill="#166534">Readers pass freely</text>
+
+            <!-- Waiting Threads Queue -->
+            <rect x="12" y="96" width="186" height="100" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="20" y="114" font-size="8" font-weight="700" fill="#475569">PENDING ARRIVAL QUEUE:</text>
+            <text id="rw-txt-q-r2" x="20" y="134" font-family="var(--font-mono)" font-size="8.5" fill="#0284c7">Reader R2 (Arrived T=1)</text>
+            <text id="rw-txt-q-w1" x="20" y="152" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#dc2626">Writer W1 (Blocked T=1)</text>
+            <text id="rw-txt-q-r3" x="20" y="170" font-family="var(--font-mono)" font-size="8.5" fill="#0284c7">Reader R3 (Arrived T=2)</text>
+          </g>
+
+          <!-- Middle: Database Chamber -->
+          <g transform="translate(250, 20)">
+            <rect width="260" height="210" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <text x="130" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">SHARED DATABASE CHAMBER</text>
+
+            <!-- Database Content Block -->
+            <rect id="rw-rect-db-state" x="15" y="40" width="230" height="90" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+            <text id="rw-txt-db-mode" x="130" y="64" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0369a1">CURRENT MODE: SHARED READ</text>
+            <text id="rw-txt-db-readers" x="130" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="14" font-weight="700" fill="#0284c7">Active: [R1]</text>
+            <text id="rw-txt-db-count" x="130" y="112" text-anchor="middle" font-size="8" fill="#64748b">read_count = 1 | db_mutex HELD</text>
+
+            <!-- Semaphore Readout -->
+            <rect x="15" y="140" width="230" height="56" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text x="24" y="158" font-size="8" font-weight="700" fill="#475569">SYNCHRONIZATION STATE:</text>
+            <text id="rw-txt-db-sem" x="24" y="176" font-family="var(--font-mono)" font-size="8.5" fill="#0f172a">db_mutex=0 (Held by Readers)</text>
+          </g>
+
+          <!-- Right: Writer Status & Starvation Telemetry -->
+          <g transform="translate(530, 20)">
+            <rect width="210" height="210" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="14" y="24" font-size="10.5" font-weight="700" fill="#dc2626">WRITER W1 STATUS</text>
+
+            <rect id="rw-rect-w1-badge" x="12" y="38" width="186" height="60" rx="4" fill="#fee2e2" stroke="#dc2626"/>
+            <text id="rw-txt-w1-status" x="105" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">WRITER STARVING!</text>
+            <text id="rw-txt-w1-sub" x="105" y="78" text-anchor="middle" font-size="7.5" fill="#7f1d1d">Blocked on db_mutex</text>
+
+            <rect x="12" y="108" width="186" height="88" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="20" y="126" font-size="8" font-weight="700" fill="#475569">FAIRNESS METRICS:</text>
+            <text id="rw-txt-w-wait" x="20" y="146" font-family="var(--font-mono)" font-size="8.5" fill="#dc2626">Wait Time: 0 ms</text>
+            <text id="rw-txt-bypass-count" x="20" y="164" font-size="8" fill="#64748b">Readers Bypassed: 0</text>
+            <text id="rw-txt-fairness-tag" x="20" y="180" font-size="7.5" font-weight="700" fill="#dc2626">Starvation Risk: HIGH</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="rw-btn-prev" onclick="stepRw(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="rw-btn-next" onclick="stepRw(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="rw-btn-reset" onclick="resetRw()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="rw-txt-narrative">Initial State: Reader R1 is inside the database. Writer W1 and Reader R2 arrive simultaneously.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="rw-txt-what">Reader R1 holds db_mutex. Writer W1 and Reader R2 arrive at the gate.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="rw-txt-why">Baseline setup demonstrating how different scheduling policies arbitrate competing reader and writer queues.</p>
+        </div>
+      </div>
+    </div>
+
+
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="03-semaphores-mutexes-monitors.html">&larr; 03. Semaphores &amp; Monitors</a>
       <a href="index.html">&#127968; Week 4 Hub</a>
@@ -893,5 +1017,120 @@ semaphore db_mutex = <span class="syn-num">1</span>; <span class="syn-cmt">/* Ex
       renderCsStepper();
     });
   </script>
+
+  <script>
+    const rwSteps = {
+      starve: [
+        {
+          time: "T = 0 ms", rc: "read_count = 1", writer: "W1 Arrives (T=0)", db: "SHARED_READ", status: "Reader-Preference",
+          gateTitle: "GATE STATUS: OPEN TO READERS", gateSub: "Readers bypass queued writers",
+          dbReaders: "Active: [R1]", dbCount: "read_count = 1 | db_mutex Held",
+          w1Status: "WRITER BLOCKED ON DB_MUTEX", w1Sub: "Cannot enter while read_count > 0",
+          wWait: "Wait: 0 ms", bypass: "Readers Bypassed: 0",
+          narrative: "Reader R1 holds db_mutex. Writer W1 arrives and blocks. Under Reader-Preference, gate remains wide open to newly arriving readers.",
+          what: "R1 is reading. W1 blocks on db_mutex.",
+          why: "Reader-preference allows concurrent readers at the expense of writers."
+        },
+        {
+          time: "T = 1 ms", rc: "read_count = 2", writer: "W1 Starving!", db: "SHARED_READ", status: "R2 Bypasses Writer",
+          gateTitle: "GATE STATUS: R2 JUMPS QUEUE!", gateSub: "R2 enters without touching db_mutex",
+          dbReaders: "Active: [R1, R2]", dbCount: "read_count = 2 | db_mutex Held",
+          w1Status: "W1 STARVING: BYPASSED BY R2", w1Sub: "Waiting in queue...",
+          wWait: "Wait: 1 ms", bypass: "Readers Bypassed: 1 (R2)",
+          narrative: "Reader R2 arrives! Because read_count > 0, R2 does not check db_mutex; it increments read_count to 2 and enters. W1 is BYPASSED!",
+          what: "R2 enters while W1 waits. read_count rises to 2.",
+          why: "First readers-writers policy prioritizes read concurrency."
+        },
+        {
+          time: "T = 2 ms", rc: "read_count = 2", writer: "W1 STARVED INDEFINITELY", db: "SHARED_READ", status: "STARVATION PATHOLOGY",
+          gateTitle: "GATE STATUS: R3 JUMPS QUEUE!", gateSub: "R1 exits, but R3 enters!",
+          dbReaders: "Active: [R2, R3]", dbCount: "read_count = 2 | db_mutex Held",
+          w1Status: "W1 STARVED INDEFINITELY!", w1Sub: "read_count NEVER DROPS TO 0!",
+          wWait: "Wait: 2 ms (Unbounded)", bypass: "Readers Bypassed: 2 (R2, R3)",
+          narrative: "R1 finishes and exits, but R3 arrives before R2 finishes! read_count NEVER reaches 0. Writer W1 is starved indefinitely!",
+          what: "Continuous stream of overlapping readers prevents writer from ever entering.",
+          why: "Violates Condition 4 (Bounded Waiting): W1 suffers indefinite starvation."
+        }
+      ],
+      fair: [
+        {
+          time: "T = 0 ms", rc: "read_count = 1", writer: "W1 Arrives at Turnstile", db: "SHARED_READ", status: "Fair Turnstile Active",
+          gateTitle: "GATE STATUS: W1 CLAIMS TURNSTILE", gateSub: "Gate locked against NEW readers!",
+          dbReaders: "Active: [R1]", dbCount: "read_count = 1 | Turnstile Held",
+          w1Status: "W1 HOLDS TURNSTILE", w1Sub: "Awaiting R1 to drain",
+          wWait: "Wait: 0 ms", bypass: "Readers Bypassed: 0",
+          narrative: "Fair Turnstile: When Writer W1 arrives, it acquires the entry turnstile gate. NEW READERS (R2, R3) ARE BLOCKED AT THE GATE!",
+          what: "W1 locks the turnstile gate. Existing readers can finish, but new readers must queue behind W1.",
+          why: "Prevents newly arriving readers from jumping ahead of waiting writers."
+        },
+        {
+          time: "T = 1 ms", rc: "read_count = 0", writer: "W1 ENTERS DATABASE!", db: "WRITE_EXCLUSIVE", status: "BOUNDED LATENCY",
+          gateTitle: "GATE: R2 & R3 QUEUED BEHIND W1", gateSub: "W1 active in database",
+          dbReaders: "Active: [W1 EXCLUSIVE]", dbCount: "read_count = 0 | EXCLUSIVE WRITE",
+          w1Status: "WRITING EXCLUSIVELY (SAFE)", w1Sub: "Writing database updates...",
+          wWait: "Wait: 1 ms (BOUNDED)", bypass: "Readers Bypassed: 0 (Fair)",
+          narrative: "R1 finishes and leaves. read_count drops to 0. W1 enters the database immediately! Zero starvation. Bounded wait time!",
+          what: "W1 writes with guaranteed exclusive mutual exclusion.",
+          why: "Fairness queuing guarantees bounded waiting for all threads."
+        }
+      ]
+    };
+
+    let activeRwDim = "starve";
+    let activeRwStep = 0;
+
+    function renderRw() {
+      const steps = rwSteps[activeRwDim];
+      const step = steps[activeRwStep];
+
+      document.getElementById("rw-telem-time").textContent = step.time;
+      document.getElementById("rw-telem-rc").textContent = step.rc;
+      document.getElementById("rw-telem-writer").textContent = step.writer;
+      document.getElementById("rw-telem-db").textContent = step.db;
+      document.getElementById("rw-telem-status").textContent = step.status;
+
+      document.getElementById("rw-txt-gate-title").textContent = step.gateTitle;
+      document.getElementById("rw-txt-gate-sub").textContent = step.gateSub;
+
+      document.getElementById("rw-txt-db-readers").textContent = step.dbReaders;
+      document.getElementById("rw-txt-db-count").textContent = step.dbCount;
+
+      document.getElementById("rw-txt-w1-status").textContent = step.w1Status;
+      document.getElementById("rw-txt-w1-sub").textContent = step.w1Sub;
+      document.getElementById("rw-txt-w-wait").textContent = step.wWait;
+      document.getElementById("rw-txt-bypass-count").textContent = step.bypass;
+
+      document.getElementById("rw-txt-narrative").innerHTML = step.narrative;
+      document.getElementById("rw-txt-what").innerHTML = step.what;
+      document.getElementById("rw-txt-why").innerHTML = step.why;
+
+      document.getElementById("rw-btn-prev").disabled = (activeRwStep === 0);
+      document.getElementById("rw-btn-next").disabled = (activeRwStep === steps.length - 1);
+    }
+
+    function stepRw(delta) {
+      const steps = rwSteps[activeRwDim];
+      activeRwStep = Math.max(0, Math.min(steps.length - 1, activeRwStep + delta));
+      renderRw();
+    }
+
+    function resetRw() {
+      activeRwStep = 0;
+      renderRw();
+    }
+
+    function setRwDim(dim) {
+      activeRwDim = dim;
+      activeRwStep = 0;
+      document.getElementById("rw-dim-starve").classList.toggle("active", dim === "starve");
+      document.getElementById("rw-dim-fair").classList.toggle("active", dim === "fair");
+      renderRw();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderRw();
+    });
+  </script>
+
 </body>
 </html>

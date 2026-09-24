@@ -599,6 +599,137 @@
       </li>
     </ol>
 
+    
+    <!-- Interactive Aid: Linux Futex Fast-Path vs Slow-Path -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Linux Futex Fast-Path vs. Kernel Slow-Path</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="f-dim-fast" onclick="setFutexDim('fast')">Uncontended (Fast-Path)</button>
+          <button class="dim-btn" id="f-dim-slow" onclick="setFutexDim('slow')">Contended (FUTEX_WAIT)</button>
+          <button class="dim-btn" id="f-dim-wake" onclick="setFutexDim('wake')">Unlock (FUTEX_WAKE)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Execution Path</span>
+        <span id="f-scenario-text">Thread A acquires an uncontended lock. It executes entirely in Ring 3 user space with a single atomic CAS instruction, incurring ZERO system calls.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Timeline Clock</span>
+          <span class="telemetry-val highlight" id="f-telem-time">T = 0 ns</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Current Privilege Ring</span>
+          <span class="telemetry-val" id="f-telem-ring">Ring 3 (User Space)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">User Futex Word (*uaddr)</span>
+          <span class="telemetry-val highlight" id="f-telem-uaddr">0 (UNLOCKED)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">System Call Count</span>
+          <span class="telemetry-val highlight" id="f-telem-syscalls">0 Syscalls</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Execution Latency</span>
+          <span class="telemetry-val highlight" id="f-telem-lat">~5 ns (Fast Path)</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="hw-canvas" viewBox="0 0 760 250">
+          <defs>
+            <marker id="f-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
+            </marker>
+            <marker id="f-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
+            </marker>
+            <marker id="f-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
+            </marker>
+          </defs>
+
+          <!-- Top Half: Ring 3 User Space -->
+          <g transform="translate(20, 15)">
+            <rect width="720" height="105" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="16" y="22" font-size="10" font-weight="700" fill="#0284c7">RING 3: USER-SPACE VIRTUAL MEMORY (Fast-Path Domain)</text>
+
+            <!-- Thread Context Box -->
+            <rect id="f-rect-u-thread" x="14" y="34" width="220" height="60" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
+            <text x="24" y="52" font-size="8" font-weight="700" fill="#0369a1">ACTIVE THREAD: Thread A</text>
+            <text id="f-txt-u-action" x="24" y="70" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="#0f172a">atomic_cas(uaddr, 0, 1)</text>
+            <text id="f-txt-u-ring-label" x="24" y="84" font-size="7.5" fill="#64748b">No kernel privilege required</text>
+
+            <!-- Futex Word Box -->
+            <rect id="f-rect-uaddr" x="250" y="34" width="220" height="60" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+            <text x="260" y="52" font-size="8" font-weight="700" fill="#475569">FUTEX WORD: uint32_t *uaddr</text>
+            <text id="f-txt-uaddr-val" x="360" y="74" text-anchor="middle" font-family="var(--font-mono)" font-size="16" font-weight="700" fill="#059669">0 (FREE)</text>
+            <text id="f-txt-uaddr-desc" x="360" y="87" text-anchor="middle" font-size="7.5" fill="#64748b">0=Free, 1=Held, 2=Waiters</text>
+
+            <!-- Fast-Path Indicator Box -->
+            <rect id="f-rect-fast-badge" x="485" y="34" width="220" height="60" rx="4" fill="#dcfce7" stroke="#16a34a"/>
+            <text x="595" y="56" text-anchor="middle" font-size="8.5" font-weight="700" fill="#166534">&#10003; FAST-PATH HIT: ~5 ns</text>
+            <text id="f-txt-fast-desc" x="595" y="74" text-anchor="middle" font-size="7.5" fill="#166534">Atomic swap succeeds in user space</text>
+            <text x="595" y="86" text-anchor="middle" font-size="7.5" font-weight="700" fill="#166534">ZERO KERNEL SYSTEM CALLS</text>
+          </g>
+
+          <!-- Divider: Ring Transition Boundary -->
+          <line x1="20" y1="130" x2="740" y2="130" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text x="380" y="134" text-anchor="middle" font-size="7.5" font-weight="700" fill="#64748b">USER / KERNEL PRIVILEGE BOUNDARY (syscall / sysret)</text>
+
+          <!-- Bottom Half: Ring 0 Kernel Space -->
+          <g transform="translate(20, 145)">
+            <rect width="720" height="90" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="16" y="20" font-size="10" font-weight="700" fill="#0f172a">RING 0: KERNEL SPACE (Slow-Path Domain &mdash; sys_futex)</text>
+
+            <!-- Kernel Wait Queue Bucket -->
+            <rect id="f-rect-k-queue" x="14" y="28" width="456" height="52" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="24" y="44" font-size="8" font-weight="700" fill="#475569">KERNEL HASH BUCKET WAIT QUEUE: futex_queues[hash(uaddr)]</text>
+            <text id="f-txt-k-queue-items" x="24" y="64" font-family="var(--font-mono)" font-size="9" fill="#94a3b8">[Queue Empty: No Threads Sleeping]</text>
+
+            <!-- Scheduler Action Box -->
+            <rect id="f-rect-k-sched" x="485" y="28" width="220" height="52" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="495" y="44" font-size="8" font-weight="700" fill="#475569">OS SCHEDULER:</text>
+            <text id="f-txt-k-sched" x="495" y="64" font-size="8.5" font-weight="600" fill="#64748b">No descheduling required</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="f-btn-prev" onclick="stepFutex(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="f-btn-next" onclick="stepFutex(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="f-btn-reset" onclick="resetFutex()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="f-txt-narrative">Futex variable is 0 (unlocked). Thread A issues an atomic CAS to claim the lock.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="f-txt-what">Thread A executes atomic cmpxchg(uaddr, 0, 1) entirely inside Ring 3 user memory.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="f-txt-why">Uncontended locks should execute in single-digit nanoseconds without paying the overhead of kernel traps.</p>
+        </div>
+      </div>
+    </div>
+
+
     <h3>4. Monitors &amp; Condition Variables</h3>
     <p>
       While semaphores are mathematically robust, they are prone to catastrophic human error:
@@ -971,5 +1102,115 @@
       renderSemStepper();
     });
   </script>
+
+  <script>
+    const futexSteps = {
+      fast: [
+        {
+          time: "T = 0 ns", ring: "Ring 3 (User Space)", uaddr: "0 (UNLOCKED)", syscalls: "0 Syscalls", lat: "~5 ns (Fast Path)",
+          action: "atomic_cas(uaddr, 0, 1)", uaddrVal: "0 (FREE)", uaddrColor: "#059669",
+          fastDesc: "Atomic CAS succeeds in user space",
+          queueItems: "[Queue Empty: No Threads Sleeping]", sched: "No descheduling required",
+          narrative: "Thread A attempts to acquire an uncontended mutex (*uaddr == 0).",
+          what: "Thread A executes atomic cmpxchg in Ring 3 user space.",
+          why: "Uncontended mutexes require zero kernel privileges."
+        },
+        {
+          time: "T = 5 ns", ring: "Ring 3 (User Space)", uaddr: "1 (LOCKED BY THREAD A)", syscalls: "0 Syscalls", lat: "5 ns (COMPLETE)",
+          action: "In Critical Section", uaddrVal: "1 (LOCKED)", uaddrColor: "#dc2626",
+          fastDesc: "LOCK ACQUIRED WITH ZERO SYSCALLS!",
+          queueItems: "[Queue Empty]", sched: "Thread A running in user space",
+          narrative: "Atomic CAS succeeds! *uaddr is set from 0 to 1. Thread A enters its critical section immediately without entering the kernel!",
+          what: "Thread A claims the lock in 5 nanoseconds.",
+          why: "Eliminates kernel trap latency when no contention exists."
+        }
+      ],
+      slow: [
+        {
+          time: "T = 0 ns", ring: "Ring 3 (User Space)", uaddr: "1 (HELD BY THREAD A)", syscalls: "0 Syscalls", lat: "Contention Detected",
+          action: "atomic_cas(uaddr, 0, 1) -> FAILS", uaddrVal: "1 (LOCKED)", uaddrColor: "#dc2626",
+          fastDesc: "Fast-path CAS failed: Lock already held",
+          queueItems: "[Queue Empty]", sched: "Thread B must block",
+          narrative: "Thread B attempts to acquire the lock, but finds *uaddr is already 1. Fast-path fails! Thread B must invoke the kernel slow-path.",
+          what: "CAS returns failure. Thread B cannot enter critical section.",
+          why: "Contended locks require operating system thread descheduling."
+        },
+        {
+          time: "T = 150 ns", ring: "Ring 0 (Kernel Mode)", uaddr: "2 (WAITERS PRESENT)", syscalls: "1 (FUTEX_WAIT)", lat: "~200 ns (Syscall)",
+          action: "sys_futex(uaddr, FUTEX_WAIT, 2)", uaddrVal: "2 (CONTENDED)", uaddrColor: "#dc2626",
+          fastDesc: "DROPPED INTO KERNEL SLOW-PATH",
+          queueItems: "futex_queues: [Thread B Enqueued & Blocked]", sched: "Thread B descheduled -> OS runs others",
+          narrative: "Thread B sets *uaddr=2 and executes sys_futex(FUTEX_WAIT). The kernel verifies memory, puts Thread B on a wait queue, and context switches away.",
+          what: "Kernel verifies *uaddr==2, suspends Thread B, and frees the CPU.",
+          why: "Sleeping prevents Thread B from burning 100% CPU on spin loops."
+        }
+      ],
+      wake: [
+        {
+          time: "T = 0 ns", ring: "Ring 3 -> Ring 0", uaddr: "2 (WAITERS PRESENT)", syscalls: "1 (FUTEX_WAKE)", lat: "~150 ns",
+          action: "Thread A: sys_futex(FUTEX_WAKE, 1)", uaddrVal: "0 (RELEASED)", uaddrColor: "#059669",
+          fastDesc: "Thread A releases lock & wakes waiter",
+          queueItems: "futex_queues: [Thread B Waking Up]", sched: "Thread B moved to READY queue",
+          narrative: "Thread A finishes its critical section. Seeing *uaddr was 2 (waiters present), it resets *uaddr=0 and issues sys_futex(FUTEX_WAKE, 1).",
+          what: "Kernel wakes Thread B from hash queue and transitions it to READY.",
+          why: "Guarantees prompt handoff without lost wakeup defects."
+        }
+      ]
+    };
+
+    let activeFutexDim = "fast";
+    let activeFutexStep = 0;
+
+    function renderFutex() {
+      const steps = futexSteps[activeFutexDim];
+      const step = steps[activeFutexStep];
+
+      document.getElementById("f-telem-time").textContent = step.time;
+      document.getElementById("f-telem-ring").textContent = step.ring;
+      document.getElementById("f-telem-uaddr").textContent = step.uaddr;
+      document.getElementById("f-telem-syscalls").textContent = step.syscalls;
+      document.getElementById("f-telem-lat").textContent = step.lat;
+
+      document.getElementById("f-txt-u-action").textContent = step.action;
+      document.getElementById("f-txt-uaddr-val").textContent = step.uaddrVal;
+      document.getElementById("f-txt-uaddr-val").setAttribute("fill", step.uaddrColor);
+      document.getElementById("f-txt-fast-desc").textContent = step.fastDesc;
+
+      document.getElementById("f-txt-k-queue-items").textContent = step.queueItems;
+      document.getElementById("f-txt-k-sched").textContent = step.sched;
+
+      document.getElementById("f-txt-narrative").innerHTML = step.narrative;
+      document.getElementById("f-txt-what").innerHTML = step.what;
+      document.getElementById("f-txt-why").innerHTML = step.why;
+
+      document.getElementById("f-btn-prev").disabled = (activeFutexStep === 0);
+      document.getElementById("f-btn-next").disabled = (activeFutexStep === steps.length - 1);
+    }
+
+    function stepFutex(delta) {
+      const steps = futexSteps[activeFutexDim];
+      activeFutexStep = Math.max(0, Math.min(steps.length - 1, activeFutexStep + delta));
+      renderFutex();
+    }
+
+    function resetFutex() {
+      activeFutexStep = 0;
+      renderFutex();
+    }
+
+    function setFutexDim(dim) {
+      activeFutexDim = dim;
+      activeFutexStep = 0;
+      document.getElementById("f-dim-fast").classList.toggle("active", dim === "fast");
+      document.getElementById("f-dim-slow").classList.toggle("active", dim === "slow");
+      document.getElementById("f-dim-wake").classList.toggle("active", dim === "wake");
+      renderFutex();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderFutex();
+    });
+  </script>
+
 </body>
 </html>

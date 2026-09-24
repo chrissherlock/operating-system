@@ -738,6 +738,151 @@ turn = <span class="syn-num">0</span>; <span class="syn-cmt">/* Process 1 yields
       The <code>memory_order_seq_cst</code> fence emits an architectural fence instruction (such as <code>mfence</code> on x86 or <code>dmb ish</code> on ARM) that stalls the core until all pending stores in the store buffer have been committed to cache and made visible to all other cores.
     </p>
 
+    
+    <!-- Interactive Aid: Peterson Arbitration & Store-Buffer Reordering -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Peterson's Algorithm &amp; Store-Buffer Reordering</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="p-dim-sc" onclick="setPetersonDim('sc')">Sequential Consistency</button>
+          <button class="dim-btn" id="p-dim-ooo" onclick="setPetersonDim('ooo')">Store-Buffer Reorder (Bug)</button>
+          <button class="dim-btn" id="p-dim-fence" onclick="setPetersonDim('fence')">Memory Fence (Protected)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Arbitration Arc</span>
+        <span id="p-scenario-text">Core 0 (P0) and Core 1 (P1) simultaneously execute Peterson's protocol. Under Sequential Consistency, the polite assignment to turn breaks the tie deterministically.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Timeline Clock</span>
+          <span class="telemetry-val highlight" id="p-telem-time">T = 0 ns</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">P0 State &amp; Flag</span>
+          <span class="telemetry-val" id="p-telem-p0">flag[0] = false</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">P1 State &amp; Flag</span>
+          <span class="telemetry-val" id="p-telem-p1">flag[1] = false</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Shared Memory 'turn'</span>
+          <span class="telemetry-val highlight" id="p-telem-turn">turn = 0</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Critical Section State</span>
+          <span class="telemetry-val highlight" id="p-telem-status">Empty (Safe)</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="hw-canvas" viewBox="0 0 760 250">
+          <defs>
+            <marker id="p-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
+            </marker>
+            <marker id="p-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
+            </marker>
+            <marker id="p-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
+            </marker>
+          </defs>
+
+          <!-- Core 0 Block -->
+          <g transform="translate(20, 20)">
+            <rect width="210" height="210" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="14" y="24" font-size="10.5" font-weight="700" fill="#0284c7">CPU CORE 0 (P0)</text>
+
+            <rect id="p-rect-c0-stage" x="12" y="36" width="186" height="42" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
+            <text id="p-txt-c0-stage" x="105" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#0369a1">STAGE: IDLE</text>
+
+            <rect x="12" y="86" width="186" height="48" rx="4" fill="#0f172a"/>
+            <text x="20" y="104" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#94a3b8">CURRENT INSTRUCTION:</text>
+            <text id="p-txt-c0-instr" x="20" y="122" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#38bdf8">enter_region(0)</text>
+
+            <!-- Store Buffer Box -->
+            <rect id="p-rect-c0-sbuf" x="12" y="142" width="186" height="56" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text x="20" y="158" font-size="8" font-weight="700" fill="#475569">STORE BUFFER (FIFO):</text>
+            <text id="p-txt-c0-sbuf" x="20" y="174" font-family="var(--font-mono)" font-size="8.5" fill="#64748b">[Buffer Empty: Drained]</text>
+            <text id="p-txt-c0-sbuf-status" x="20" y="188" font-size="7.5" fill="#94a3b8">Writes commit immediately</text>
+          </g>
+
+          <!-- Middle: Shared Physical Memory & Interconnect -->
+          <g transform="translate(250, 20)">
+            <rect width="260" height="210" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <text x="130" y="24" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0f172a">SHARED DRAM CELLS</text>
+
+            <!-- Intent Array Box -->
+            <rect x="14" y="38" width="232" height="48" rx="4" fill="#f0f9ff" stroke="#bae6fd"/>
+            <text x="22" y="54" font-size="8" font-weight="700" fill="#0369a1">SHARED ARRAY: flag[2]</text>
+            <text id="p-txt-mem-flags" x="130" y="74" text-anchor="middle" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#0f172a">flag[0]=F &nbsp;|&nbsp; flag[1]=F</text>
+
+            <!-- Turn Scalar Box -->
+            <rect x="14" y="94" width="232" height="52" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text x="22" y="112" font-size="8" font-weight="700" fill="#475569">TIE-BREAKER SCALAR: turn</text>
+            <text id="p-txt-mem-turn" x="130" y="134" text-anchor="middle" font-family="var(--font-mono)" font-size="16" font-weight="700" fill="#0284c7">turn = 0</text>
+
+            <!-- Critical Region Occupancy Status -->
+            <rect id="p-rect-cs-badge" x="14" y="154" width="232" height="44" rx="4" fill="#dcfce7" stroke="#16a34a"/>
+            <text id="p-txt-cs-badge" x="130" y="180" text-anchor="middle" font-size="8.5" font-weight="700" fill="#166534">&#10003; CRITICAL REGION: VACANT</text>
+          </g>
+
+          <!-- Core 1 Block -->
+          <g transform="translate(530, 20)">
+            <rect width="210" height="210" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="14" y="24" font-size="10.5" font-weight="700" fill="#d97706">CPU CORE 1 (P1)</text>
+
+            <rect id="p-rect-c1-stage" x="12" y="36" width="186" height="42" rx="4" fill="#fef3c7" stroke="#d97706"/>
+            <text id="p-txt-c1-stage" x="105" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">STAGE: IDLE</text>
+
+            <rect x="12" y="86" width="186" height="48" rx="4" fill="#0f172a"/>
+            <text x="20" y="104" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#94a3b8">CURRENT INSTRUCTION:</text>
+            <text id="p-txt-c1-instr" x="20" y="122" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#38bdf8">enter_region(1)</text>
+
+            <!-- Store Buffer Box -->
+            <rect id="p-rect-c1-sbuf" x="12" y="142" width="186" height="56" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
+            <text x="20" y="158" font-size="8" font-weight="700" fill="#475569">STORE BUFFER (FIFO):</text>
+            <text id="p-txt-c1-sbuf" x="20" y="174" font-family="var(--font-mono)" font-size="8.5" fill="#64748b">[Buffer Empty: Drained]</text>
+            <text id="p-txt-c1-sbuf-status" x="20" y="188" font-size="7.5" fill="#94a3b8">Writes commit immediately</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="p-btn-prev" onclick="stepPeterson(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="p-btn-next" onclick="stepPeterson(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="p-btn-reset" onclick="resetPeterson()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="p-txt-narrative">Initial State: Both processes are in their remainder sections. Both flags are false. Critical region is completely empty.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="p-txt-what">Both processes are idle. Memory holds flags=false, turn=0.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="p-txt-why">Baseline state before concurrent contention begins.</p>
+        </div>
+      </div>
+    </div>
+
+
     <h3>3. Hardware-Assisted Atomic Instructions</h3>
     <p>
       Rather than relying on intricate multi-variable software proofs, hardware architects introduced instructions that execute the entire Load-Modify-Store sequence as a <strong>single, indivisible hardware transaction</strong>.
@@ -1170,6 +1315,147 @@ If T<sub>cs</sub> &gt; 2 &times; T<sub>switch</sub> &rarr; <strong>Sleeping cons
       </li>
     </ol>
 
+    
+    <!-- Interactive Aid: MESI Cacheline Bouncing & TTAS Simulator -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: MESI Cacheline Bouncing &amp; TTAS Optimization</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="m-dim-naive" onclick="setMesiDim('naive')">Naive Spinlock (Bounce Storm)</button>
+          <button class="dim-btn" id="m-dim-ttas" onclick="setMesiDim('ttas')">TTAS (Shared Cache Hit)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Hardware Topology</span>
+        <span id="m-scenario-text">Core 0 holds spinlock [0x80001000]. Core 1 and Core 2 compete to acquire it. Under naive TSL, every spin issues an atomic write, causing continuous cacheline invalidations and bus saturation.</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Timeline Clock</span>
+          <span class="telemetry-val highlight" id="m-telem-time">T = 0 ns</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Core 0 Cache State</span>
+          <span class="telemetry-val" id="m-telem-c0">Modified (M)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Core 1 Cache State</span>
+          <span class="telemetry-val" id="m-telem-c1">Invalid (I)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Bus Traffic Saturation</span>
+          <span class="telemetry-val highlight" id="m-telem-bus">0 MB/s (Idle)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Interconnect State</span>
+          <span class="telemetry-val highlight" id="m-telem-status">Nominal</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="hw-canvas" viewBox="0 0 760 250">
+          <defs>
+            <marker id="m-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
+            </marker>
+            <marker id="m-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
+            </marker>
+          </defs>
+
+          <!-- Core 0 (Lock Holder) -->
+          <g transform="translate(15, 20)">
+            <rect width="165" height="210" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="12" y="24" font-size="9.5" font-weight="700" fill="#059669">CORE 0 [Lock Holder]</text>
+
+            <rect x="10" y="36" width="145" height="42" rx="3" fill="#dcfce7" stroke="#16a34a"/>
+            <text x="18" y="52" font-size="8" font-weight="700" fill="#166534">CRITICAL SECTION</text>
+            <text x="18" y="68" font-family="var(--font-mono)" font-size="8" fill="#14532d">balance += 100;</text>
+
+            <rect id="m-rect-c0-cache" x="10" y="86" width="145" height="52" rx="3" fill="#dcfce7" stroke="#16a34a"/>
+            <text x="18" y="102" font-size="8" font-weight="700" fill="#166534">L1 CACHE (MESI):</text>
+            <text id="m-txt-c0-mesi" x="18" y="122" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#166534">MODIFIED [M]</text>
+
+            <rect x="10" y="146" width="145" height="52" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="18" y="162" font-size="7.5" font-weight="700" fill="#475569">BUS ACTIVITY:</text>
+            <text id="m-txt-c0-bus" x="18" y="180" font-size="7.5" fill="#64748b">Holds line exclusively</text>
+          </g>
+
+          <!-- Central Interconnect Bus -->
+          <g transform="translate(195, 20)">
+            <rect width="365" height="210" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+            <text x="182" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#0f172a">SHARED INTERCONNECT BUS (RING / MESH)</text>
+
+            <!-- Bus Telemetry Box -->
+            <rect id="m-rect-bus-box" x="15" y="38" width="335" height="68" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text id="m-txt-bus-title" x="182" y="56" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0284c7">INTERCONNECT STATUS: QUIET</text>
+            <text id="m-txt-bus-desc" x="182" y="74" text-anchor="middle" font-size="8" fill="#64748b">No invalidation storm active</text>
+            <text id="m-txt-bus-metric" x="182" y="92" text-anchor="middle" font-family="var(--font-mono)" font-size="9" font-weight="700" fill="#059669">Bandwidth: 0 GB/s (Clean)</text>
+
+            <!-- Invalidation Storm Vectors -->
+            <g id="m-grp-storm-arrows" style="display: none;">
+              <line x1="30" y1="130" x2="335" y2="130" stroke="#dc2626" stroke-width="3" stroke-dasharray="4 3"/>
+              <text x="182" y="122" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#dc2626">&harr; RFO INVALIDATION BROADCASTS &harr;</text>
+            </g>
+
+            <rect x="25" y="148" width="315" height="50" rx="3" fill="#f0f9ff" stroke="#bae6fd"/>
+            <text x="35" y="166" font-size="8" font-weight="700" fill="#0369a1">PHYSICAL MEMORY LINE: [0x80001000]</text>
+            <text id="m-txt-mem-lock" x="35" y="184" font-family="var(--font-mono)" font-size="10" font-weight="700" fill="#0284c7">Value: 1 (LOCKED BY CORE 0)</text>
+          </g>
+
+          <!-- Core 1 & 2 (Spinners) -->
+          <g transform="translate(575, 20)">
+            <rect width="170" height="210" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="12" y="24" font-size="9.5" font-weight="700" fill="#d97706">CORE 1 [Spinner]</text>
+
+            <rect x="10" y="36" width="150" height="42" rx="3" fill="#fef3c7" stroke="#d97706"/>
+            <text x="18" y="52" font-size="8" font-weight="700" fill="#92400e">SPINNING CODE:</text>
+            <text id="m-txt-c1-code" x="18" y="68" font-family="var(--font-mono)" font-size="8" fill="#b45309">while (xchg(&amp;lock, 1))</text>
+
+            <rect id="m-rect-c1-cache" x="10" y="86" width="150" height="52" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="18" y="102" font-size="8" font-weight="700" fill="#991b1b">L1 CACHE (MESI):</text>
+            <text id="m-txt-c1-mesi" x="18" y="122" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#dc2626">INVALID [I]</text>
+
+            <rect x="10" y="146" width="150" height="52" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="18" y="162" font-size="7.5" font-weight="700" fill="#475569">MICRO-OP STATE:</text>
+            <text id="m-txt-c1-state" x="18" y="180" font-size="7.5" fill="#64748b">Cache line invalidated</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="controls-narrative-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="m-btn-prev" onclick="stepMesi(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="m-btn-next" onclick="stepMesi(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="m-btn-reset" onclick="resetMesi()">Reset</button>
+        </div>
+        <div class="narrative-preview-panel">
+          <strong>Current Step Summary</strong>
+          <span id="m-txt-narrative">Core 0 holds the spinlock in its L1 cache with MESI state Modified (M). Core 1 is waiting for the lock.</span>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="m-txt-what">Core 0 holds the lock line exclusively. Core 1 prepares to test the spinlock.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="m-txt-why">Baseline state showing how MESI coherency establishes single-core exclusivity.</p>
+        </div>
+      </div>
+    </div>
+
+
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="01-race-conditions-critical-regions.html">&larr; 01. Race Conditions</a>
       <a href="index.html">&#127968; Week 4 Hub</a>
@@ -1504,5 +1790,280 @@ If T<sub>cs</sub> &gt; 2 &times; T<sub>switch</sub> &rarr; <strong>Sleeping cons
       renderHwStepper();
     });
   </script>
+
+  <script>
+    // --- PETERSON STEPPER LOGIC ---
+    const petersonSteps = {
+      sc: [
+        {
+          time: "T = 0 ns", p0: "flag[0] = false", p1: "flag[1] = false", turn: "turn = 0", status: "Empty (Safe)",
+          c0Stage: "STAGE: IDLE", c0Instr: "enter_region(0)", c0Sbuf: "[Buffer Empty]",
+          c1Stage: "STAGE: IDLE", c1Instr: "enter_region(1)", c1Sbuf: "[Buffer Empty]",
+          flags: "flag[0]=F | flag[1]=F", turnMem: "turn = 0",
+          csBadge: "&#10003; CRITICAL REGION: VACANT", csFill: "#dcfce7", csStroke: "#16a34a", csColor: "#166534",
+          narrative: "Initial state: Both processes are in remainder sections. Flags are false. Turn is 0.",
+          what: "Sequential consistency assumes writes update memory immediately without store buffers.",
+          why: "Baseline setup for theoretical two-process mutual exclusion."
+        },
+        {
+          time: "T = 5 ns", p0: "flag[0] = true", p1: "flag[1] = true", turn: "turn = 1 (P0 yielded)", status: "Contention",
+          c0Stage: "P0: INTENT SET", c0Instr: "turn = 1", c0Sbuf: "[Drained to RAM]",
+          c1Stage: "P1: INTENT SET", c1Instr: "turn = 0", c1Sbuf: "[Drained to RAM]",
+          flags: "flag[0]=T | flag[1]=T", turnMem: "turn = 1",
+          csBadge: "ARBITRATION IN PROGRESS", csFill: "#fef3c7", csStroke: "#d97706", csColor: "#92400e",
+          narrative: "Both declare intent. P0 sets flag[0]=true and turn=1. Memory immediately commits writes.",
+          what: "P0 announces it wants to enter and politely offers turn=1 to P1.",
+          why: "Peterson requires declaring intent before testing competitor."
+        },
+        {
+          time: "T = 10 ns", p0: "P0 ENTERS CS", p1: "P1 SPINS", turn: "turn = 0 (FINAL)", status: "P0 Active in CS",
+          c0Stage: "IN CRITICAL SECTION", c0Instr: "balance += 100", c0Sbuf: "[CS Active]",
+          c1Stage: "SPINNING IN WHILE", c1Instr: "while (flag[0] && turn==0)", c1Sbuf: "[Blocked]",
+          flags: "flag[0]=T | flag[1]=T", turnMem: "turn = 0 (P1 OVERWROTE)",
+          csBadge: "&#10003; CS HELD BY P0 (P1 WAITING)", csFill: "#dcfce7", csStroke: "#16a34a", csColor: "#166534",
+          narrative: "P1 executes turn=0 last, overwriting turn! P0 evaluates while condition: turn==1 is false! P0 enters CS. P1 spins safely.",
+          what: "P1's write to turn overwrote P0's write. This broke the tie cleanly, granting entry to P0.",
+          why: "Mutual exclusion is strictly preserved under Sequential Consistency."
+        }
+      ],
+      ooo: [
+        {
+          time: "T = 0 ns", p0: "flag[0]=false", p1: "flag[1]=false", turn: "turn = 0", status: "Out-of-Order Silicon",
+          c0Stage: "IDLE", c0Instr: "flag[0] = true", c0Sbuf: "[Empty]",
+          c1Stage: "IDLE", c1Instr: "flag[1] = true", c1Sbuf: "[Empty]",
+          flags: "flag[0]=F | flag[1]=F", turnMem: "turn = 0",
+          csBadge: "REAL HARDWARE (OOO)", csFill: "#f8fafc", csStroke: "#cbd5e1", csColor: "#475569",
+          narrative: "On modern out-of-order processors, CPU cores use private FIFO Store Buffers to hide write latencies.",
+          what: "Stores are queued into store buffers before updating L1 cache.",
+          why: "CPUs cannot stall execution waiting for memory bus write cycles."
+        },
+        {
+          time: "T = 5 ns", p0: "Store Buffered!", p1: "Store Buffered!", turn: "turn = 0 in DRAM", status: "STORE-LOAD REORDER",
+          c0Stage: "FLAG WRITE BUFFERED", c0Instr: "read flag[1] (Early)", c0Sbuf: "STORE: flag[0]=T (Uncommitted)",
+          c1Stage: "FLAG WRITE BUFFERED", c1Instr: "read flag[0] (Early)", c1Sbuf: "STORE: flag[1]=T (Uncommitted)",
+          flags: "flag[0]=F | flag[1]=F (STALE)", turnMem: "turn = 0",
+          csBadge: "&times; STORE BUFFER NOT FLUSHED!", csFill: "#fee2e2", csStroke: "#dc2626", csColor: "#991b1b",
+          narrative: "CRITICAL HARDWARE HAZARD: Both cores buffer their writes to flag[]. To optimize throughput, the CPU reorders subsequent LOADS ahead of pending STORES. Both cores read stale false flags from RAM!",
+          what: "Both cores read their peer's flag as false because writes are still trapped inside private store buffers.",
+          why: "Store-Load reordering is permitted on x86 and ARM to hide memory bus latency."
+        },
+        {
+          time: "T = 10 ns", p0: "BOTH IN CS!", p1: "BOTH IN CS!", turn: "turn = ?", status: "SAFETY VIOLATION!",
+          c0Stage: "ENTERS CS (BUG!)", c0Instr: "balance += 100", c0Sbuf: "[Buffered]",
+          c1Stage: "ENTERS CS (BUG!)", c1Instr: "balance -= 50", c1Sbuf: "[Buffered]",
+          flags: "flag[0]=T | flag[1]=T", turnMem: "turn = ?",
+          csBadge: "&times; MUTUAL EXCLUSION COLLAPSED!", csFill: "#fee2e2", csStroke: "#dc2626", csColor: "#991b1b",
+          narrative: "DISASTER: Because both cores read stale flags as false, both while loops evaluate to FALSE immediately! Both P0 and P1 enter the Critical Section simultaneously! Data is corrupted!",
+          what: "Simultaneous execution inside critical section due to store-buffer latency.",
+          why: "Peterson's algorithm fails completely on modern silicon without memory barriers."
+        }
+      ],
+      fence: [
+        {
+          time: "T = 0 ns", p0: "flag[0]=false", p1: "flag[1]=false", turn: "turn = 0", status: "Memory Fence Active",
+          c0Stage: "IDLE", c0Instr: "flag[0]=true; mfence;", c0Sbuf: "[Empty]",
+          c1Stage: "IDLE", c1Instr: "flag[1]=true; mfence;", c1Sbuf: "[Empty]",
+          flags: "flag[0]=F | flag[1]=F", turnMem: "turn = 0",
+          csBadge: "&#10003; MFENCE PROTECTION ACTIVE", csFill: "#dcfce7", csStroke: "#16a34a", csColor: "#166534",
+          narrative: "The compiler inserts architectural memory fences (mfence / dmb ish) to force store buffers to drain before loads can execute.",
+          what: "Memory fences enforce strict sequential consistency across store buffers.",
+          why: "Hardware is instructed not to reorder loads ahead of uncommitted stores."
+        },
+        {
+          time: "T = 5 ns", p0: "FENCE DRAINING", p1: "FENCE DRAINING", turn: "turn = 1", status: "Draining Buffers",
+          c0Stage: "PIPELINE STALLED ON FENCE", c0Instr: "mfence (Flushing)", c0Sbuf: "Flushing flag[0] -> RAM",
+          c1Stage: "PIPELINE STALLED ON FENCE", c1Instr: "mfence (Flushing)", c1Sbuf: "Flushing flag[1] -> RAM",
+          flags: "flag[0]=T | flag[1]=T", turnMem: "turn = 1",
+          csBadge: "COMMITTING WRITES ACROSS BUS", csFill: "#fef3c7", csStroke: "#d97706", csColor: "#92400e",
+          narrative: "The fence instruction stalls the processor core until all pending stores in the store buffer have been committed to physical cache.",
+          what: "Store buffers are flushed. RAM receives true for both flags before any while loop executes.",
+          why: "Eliminates the window where stale memory could be read by competing cores."
+        },
+        {
+          time: "T = 10 ns", p0: "P0 IN CS", p1: "P1 SPINS", turn: "turn = 0", status: "Safe Synchronization",
+          c0Stage: "IN CS (SAFE)", c0Instr: "balance += 100", c0Sbuf: "[Drained]",
+          c1Stage: "SPINNING (SAFE)", c1Instr: "while loop", c1Sbuf: "[Drained]",
+          flags: "flag[0]=T | flag[1]=T", turnMem: "turn = 0",
+          csBadge: "&#10003; PERFECT MUTEX ENFORCED", csFill: "#dcfce7", csStroke: "#16a34a", csColor: "#166534",
+          narrative: "Reads now observe the committed flags. P1's turn write breaks the tie safely. P0 enters; P1 spins. Correctness restored!",
+          what: "Mutual exclusion operates with mathematically proven safety on modern hardware.",
+          why: "Memory barriers bridge the gap between abstract algorithms and physical silicon."
+        }
+      ]
+    };
+
+    let activePetersonDim = "sc";
+    let activePetersonStep = 0;
+
+    function renderPeterson() {
+      const steps = petersonSteps[activePetersonDim];
+      const step = steps[activePetersonStep];
+
+      document.getElementById("p-telem-time").textContent = step.time;
+      document.getElementById("p-telem-p0").textContent = step.p0;
+      document.getElementById("p-telem-p1").textContent = step.p1;
+      document.getElementById("p-telem-turn").textContent = step.turn;
+      document.getElementById("p-telem-status").textContent = step.status;
+
+      document.getElementById("p-txt-c0-stage").textContent = step.c0Stage;
+      document.getElementById("p-txt-c0-instr").textContent = step.c0Instr;
+      document.getElementById("p-txt-c0-sbuf").textContent = step.c0Sbuf;
+
+      document.getElementById("p-txt-c1-stage").textContent = step.c1Stage;
+      document.getElementById("p-txt-c1-instr").textContent = step.c1Instr;
+      document.getElementById("p-txt-c1-sbuf").textContent = step.c1Sbuf;
+
+      document.getElementById("p-txt-mem-flags").textContent = step.flags;
+      document.getElementById("p-txt-mem-turn").textContent = step.turnMem;
+
+      document.getElementById("p-txt-cs-badge").innerHTML = step.csBadge;
+      document.getElementById("p-rect-cs-badge").setAttribute("fill", step.csFill);
+      document.getElementById("p-rect-cs-badge").setAttribute("stroke", step.csStroke);
+      document.getElementById("p-txt-cs-badge").setAttribute("fill", step.csColor);
+
+      document.getElementById("p-txt-narrative").innerHTML = step.narrative;
+      document.getElementById("p-txt-what").innerHTML = step.what;
+      document.getElementById("p-txt-why").innerHTML = step.why;
+
+      document.getElementById("p-btn-prev").disabled = (activePetersonStep === 0);
+      document.getElementById("p-btn-next").disabled = (activePetersonStep === steps.length - 1);
+    }
+
+    function stepPeterson(delta) {
+      const steps = petersonSteps[activePetersonDim];
+      activePetersonStep = Math.max(0, Math.min(steps.length - 1, activePetersonStep + delta));
+      renderPeterson();
+    }
+
+    function resetPeterson() {
+      activePetersonStep = 0;
+      renderPeterson();
+    }
+
+    function setPetersonDim(dim) {
+      activePetersonDim = dim;
+      activePetersonStep = 0;
+      document.getElementById("p-dim-sc").classList.toggle("active", dim === "sc");
+      document.getElementById("p-dim-ooo").classList.toggle("active", dim === "ooo");
+      document.getElementById("p-dim-fence").classList.toggle("active", dim === "fence");
+      renderPeterson();
+    }
+
+    // --- MESI SIMULATOR LOGIC ---
+    const mesiSteps = {
+      naive: [
+        {
+          time: "T = 0 ns", c0: "Modified (M)", c1: "Invalid (I)", bus: "0 MB/s", status: "Core 0 Holds Lock",
+          c0Mesi: "MODIFIED [M]", c1Mesi: "INVALID [I]",
+          c1Code: "while (xchg(&lock, 1))", c1State: "Prepares atomic write",
+          busTitle: "INTERCONNECT STATUS: QUIET", busDesc: "No invalidation storm active", busMetric: "Bandwidth: 0 GB/s",
+          busStorm: false, memVal: "1 (LOCKED BY CORE 0)",
+          narrative: "Core 0 holds the lock line exclusively in Modified (M) state. Core 1 prepares to enter spinlock.",
+          what: "Core 0 holds lock line in L1 cache. Core 1 begins spin loop.",
+          why: "Baseline single-core lock ownership."
+        },
+        {
+          time: "T = 10 ns", c0: "Invalidated (I)!", c1: "Modified (M)", bus: "25.6 GB/s (STORM!)", status: "CACHELINE BOUNCE!",
+          c0Mesi: "INVALID [I]", c1Mesi: "MODIFIED [M]",
+          c1Code: "xchg(&lock, 1) -> 1", c1State: "Broadcasts RFO write!",
+          busTitle: "INTERCONNECT STATUS: SATURATED!", busDesc: "Read-For-Ownership (RFO) storm active", busMetric: "Bandwidth: 25.6 GB/s (BUS SATURATED)",
+          busStorm: true, memVal: "1 (LOCKED)",
+          narrative: "Core 1 executes atomic xchg. This forces a write, broadcasting an Invalidate signal across the bus! Core 0's cache line is forcibly invalidated.",
+          what: "Core 1 snatches exclusive ownership of the cache line just to write 1 and fail.",
+          why: "Atomic instructions always require write ownership under MESI coherency."
+        },
+        {
+          time: "T = 20 ns", c0: "Re-snatches (M)", c1: "Invalidated (I)!", bus: "32.0 GB/s (THRASHING)", status: "BUS CONGESTION",
+          c0Mesi: "MODIFIED [M]", c1Mesi: "INVALID [I]",
+          c1Code: "while (xchg(&lock, 1))", c1State: "Cacheline stolen back!",
+          busTitle: "INTERCONNECT STATUS: THRASHING", busDesc: "Cache line bounces endlessly between cores", busMetric: "Bandwidth: 32.0 GB/s (OVERHEAT)",
+          busStorm: true, memVal: "1 (LOCKED)",
+          narrative: "Core 0 attempts to complete its critical section, requiring the cacheline back. The line bounces back and forth across the interconnect, killing bus throughput for all cores.",
+          what: "Repeated atomic exchanges force continuous cache invalidations.",
+          why: "Cacheline bouncing destroys scalability on multi-core sockets."
+        }
+      ],
+      ttas: [
+        {
+          time: "T = 0 ns", c0: "Modified (M)", c1: "Shared (S)", bus: "0 MB/s", status: "Shared Cache Hits",
+          c0Mesi: "MODIFIED [M]", c1Mesi: "SHARED [S]",
+          c1Code: "while (lock == 1) pause;", c1State: "Spinning on local read",
+          busTitle: "TTAS EFFICIENCY: ZERO BUS TRAFFIC", busDesc: "Spinners read locally from shared L1 cache", busMetric: "Bus Bandwidth: 0 GB/s (Silent)",
+          busStorm: false, memVal: "1 (LOCKED)",
+          narrative: "Under TTAS, Core 1 spins using standard READ instructions. Multiple cores hold the line in Shared (S) state without issuing bus writes.",
+          what: "Core 1 spins in a local read-only loop. Bus traffic drops to zero.",
+          why: "Reading a shared cache line does not invalidate peer caches."
+        },
+        {
+          time: "T = 15 ns", c0: "Unlocks (Store 0)", c1: "Shared -> Excl", bus: "Single Invalidate", status: "Clean Handoff",
+          c0Mesi: "INVALID [I]", c1Mesi: "EXCLUSIVE [E]",
+          c1Code: "lock == 0 -> xchg succeeds!", c1State: "Claims freed lock",
+          busTitle: "TTAS EFFICIENCY: CLEAN HANDOFF", busDesc: "Atomic write issued ONLY when lock is observed free", busMetric: "Bus Bandwidth: Normal (Clean)",
+          busStorm: false, memVal: "0 -> 1 (HANDOFF TO C1)",
+          narrative: "Core 0 stores 0 to unlock. Core 1 detects lock == 0 in its local cache, exits the read loop, and executes a single atomic xchg to claim the lock. Clean and scalable!",
+          what: "Atomic write is executed exactly once upon lock release.",
+          why: "TTAS eliminates O(N^2) invalidation storms across multi-core processors."
+        }
+      ]
+    };
+
+    let activeMesiDim = "naive";
+    let activeMesiStep = 0;
+
+    function renderMesi() {
+      const steps = mesiSteps[activeMesiDim];
+      const step = steps[activeMesiStep];
+
+      document.getElementById("m-telem-time").textContent = step.time;
+      document.getElementById("m-telem-c0").textContent = step.c0;
+      document.getElementById("m-telem-c1").textContent = step.c1;
+      document.getElementById("m-telem-bus").textContent = step.bus;
+      document.getElementById("m-telem-status").textContent = step.status;
+
+      document.getElementById("m-txt-c0-mesi").textContent = step.c0Mesi;
+      document.getElementById("m-txt-c1-mesi").textContent = step.c1Mesi;
+      document.getElementById("m-txt-c1-code").textContent = step.c1Code;
+      document.getElementById("m-txt-c1-state").textContent = step.c1State;
+
+      document.getElementById("m-txt-bus-title").textContent = step.busTitle;
+      document.getElementById("m-txt-bus-desc").textContent = step.busDesc;
+      document.getElementById("m-txt-bus-metric").textContent = step.busMetric;
+      document.getElementById("m-grp-storm-arrows").style.display = step.busStorm ? "block" : "none";
+
+      document.getElementById("m-txt-mem-lock").textContent = step.memVal;
+
+      document.getElementById("m-txt-narrative").innerHTML = step.narrative;
+      document.getElementById("m-txt-what").innerHTML = step.what;
+      document.getElementById("m-txt-why").innerHTML = step.why;
+
+      document.getElementById("m-btn-prev").disabled = (activeMesiStep === 0);
+      document.getElementById("m-btn-next").disabled = (activeMesiStep === steps.length - 1);
+    }
+
+    function stepMesi(delta) {
+      const steps = mesiSteps[activeMesiDim];
+      activeMesiStep = Math.max(0, Math.min(steps.length - 1, activeMesiStep + delta));
+      renderMesi();
+    }
+
+    function resetMesi() {
+      activeMesiStep = 0;
+      renderMesi();
+    }
+
+    function setMesiDim(dim) {
+      activeMesiDim = dim;
+      activeMesiStep = 0;
+      document.getElementById("m-dim-naive").classList.toggle("active", dim === "naive");
+      document.getElementById("m-dim-ttas").classList.toggle("active", dim === "ttas");
+      renderMesi();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderPeterson();
+      renderMesi();
+    });
+  </script>
+
 </body>
 </html>
