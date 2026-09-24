@@ -1,16 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create Module 04 for Classic Synchronization Problems & Defenses
-# =====================================================================
-import os
-import subprocess
-
-TARGET_FILE = os.path.join(
-    "week06-synchronization-and-deadlock",
-    "04-deadlock-recovery-starvation.html"
-)
-
-MODULE_FOUR_CONTENT = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -351,25 +339,3 @@ MODULE_FOUR_CONTENT = r"""<!DOCTYPE html>
   </script>
 </body>
 </html>
-"""
-
-def update_module_four():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_FOUR_CONTENT.strip() + "\n")
-    print(f"--> Successfully created Module 04 at {TARGET_FILE}")
-
-if __name__ == "__main__":
-    update_module_four()
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Create Module 04 on Classic Synchronization Problems and Real-World Defenses\n\n"
-            "Build complete educational module covering classic sync hazards, deadlock\n"
-            "recovery, starvation aging, and modern kernel defenses with interactive stepper."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git note: {e}")
