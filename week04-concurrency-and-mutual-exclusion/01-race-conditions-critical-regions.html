@@ -300,6 +300,13 @@
       color: #334155;
       margin: 0;
     }
+  
+    /* Syntax Highlighting */
+    .syn-kw { color: #38bdf8; font-weight: 600; }
+    .syn-fn { color: #60a5fa; font-weight: 600; }
+    .syn-num { color: #f59e0b; }
+    .syn-str { color: #34d399; }
+    .syn-cmt { color: #64748b; font-style: italic; }
   </style>
 </head>
 <body>
@@ -996,7 +1003,7 @@ Order 2 (T2 then T1): $1000 &minus; $50 = $950  &rarr; $950 + $100  = <strong>$1
     </p>
 
     <pre><code><span class="syn-cmt">/* FLAWED ATTEMPT: Strict Alternation via Turn Variable */</span>
-<span class="syn-kw">int</span> turn = <span class="syn-num">0</span>; <span class="syn-cmt">/* turn == 0 -&gt; P0 runs; turn == 1 -&gt; P1 runs */</span>
+<span class="syn-kw">int</span> turn = <span class="syn-num">0</span>; <span class="syn-cmt">/* turn == 0 &rarr; P0 runs; turn == 1 &rarr; P1 runs */</span>
 
 <span class="syn-cmt">/* --- Process 0 Code --- */</span>
 <span class="syn-kw">while</span> (<span class="syn-kw">true</span>) {
