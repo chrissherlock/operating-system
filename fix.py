@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Fix YouTube Error 153 by updating iframe attributes & domain
+# fix.py: Replace YouTube iframe with clickable high-res thumbnail card
 # =====================================================================
 import os
 import subprocess
@@ -10,7 +10,7 @@ TARGET_FILE = os.path.join(
     "01-concurrency-hazards-livelock-starvation.html"
 )
 
-FIXED_IFRAME_SECTION = r"""    <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
+THUMBNAIL_SECTION = r"""    <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
     <p>
       Priority inversion represents one of the most insidious architectural failures in preemptive priority-based operating systems. It occurs when a high-priority task is indirectly delayed or preempted by a lower-priority task, subverting the core scheduling contract.
     </p>
@@ -53,14 +53,23 @@ FIXED_IFRAME_SECTION = r"""    <h3>2. Priority Inversion and The Mars Pathfinder
       <li>This prevents medium-priority tasks ($M$) from preempting $L$. $L$ finishes its critical section rapidly, releases the mutex, drops back to its base priority, and allows $H$ to execute immediately.</li>
     </ul>
 
-    <p style="margin-top: 20px; font-weight: 600; color: var(--primary);">
+    <p style="margin-top: 24px; font-weight: 600; color: var(--primary);">
       Visual Walkthrough &mdash; Priority Inversion &amp; Mars Pathfinder Analysis:
     </p>
-    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; border: 1px solid var(--border); margin: 16px 0;">
-      <iframe src="https://www.youtube-nocookie.com/embed/gpttZW2hBMM" title="Priority Inversion Explained" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-    </div>"""
 
-def fix_error_153():
+    <!-- YouTube Thumbnail Card -->
+    <a href="https://www.youtube.com/watch?v=gpttZW2hBMM" target="_blank" style="display: block; position: relative; max-width: 640px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; background: #000; margin: 16px 0; transition: transform 0.15s ease, box-shadow 0.15s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06)';">
+      <img src="https://img.youtube.com/vi/gpttZW2hBMM/hqdefault.jpg" alt="Priority Inversion Explained Thumbnail" style="width: 100%; display: block; opacity: 0.9; transition: opacity 0.15s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.9';">
+      <!-- Play Button Overlay -->
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 48px; background: rgba(23, 23, 23, 0.85); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        <div style="width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid #ffffff; margin-left: 3px;"></div>
+      </div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: #fff; font-size: 0.88rem; font-weight: 600;">
+        Watch Video: Priority Inversion &amp; Mars Pathfinder Analysis &rarr;
+      </div>
+    </a>"""
+
+def apply_thumbnail_fix():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return False
@@ -78,22 +87,22 @@ def fix_error_153():
         print("Error: Markers not found.")
         return False
 
-    updated = content[:start_idx] + FIXED_IFRAME_SECTION + "\n\n    <nav class=\"nav-bar\">" + content[end_idx + len(end_marker):]
+    updated = content[:start_idx] + THUMBNAIL_SECTION + "\n\n    <nav class=\"nav-bar\">" + content[end_idx + len(end_marker):]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated)
 
-    print(f"--> Successfully updated iframe to resolve Error 153 in {TARGET_FILE}")
+    print(f"--> Successfully replaced iframe with thumbnail card in {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if fix_error_153():
+    if apply_thumbnail_fix():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Fix YouTube Error 153 in embedded video iframe\n\n"
-                "Add referrerpolicy and switch embed URL to youtube-nocookie.com\n"
-                "to satisfy YouTube's embedded player header requirements."
+                "Replace YouTube iframe with responsive thumbnail link in Module 01\n\n"
+                "Swap out embedded iframe for a high-res thumbnail preview card linking\n"
+                "directly to the YouTube video in a new tab, completely resolving Error 153."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
