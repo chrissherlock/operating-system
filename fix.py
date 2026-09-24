@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Remove YouTube video references from Module 02 Section 1
+# fix.py: Replace broken LaTeX markup with clean semantic HTML math in Module 02
 # =====================================================================
 import os
 import subprocess
@@ -10,30 +10,30 @@ TARGET_FILE = os.path.join(
     "02-deadlock-characterization-coffman-conditions.html"
 )
 
-CLEAN_DEADLOCK_SECTION = r"""    <h3>1. Formal Definition of System Deadlock</h3>
+CORRECTED_DEADLOCK_SECTION = r"""    <h3>1. Formal Definition of System Deadlock</h3>
     <p>
       In operating systems and concurrent computing theory, a <strong>system deadlock</strong> is defined as a permanent blockade state where a set of two or more execution entities (threads or processes) are unable to make forward progress because each entity is waiting for a resource that is currently held by another entity in the set.
     </p>
 
     <h4>Formal Mathematical Formulation</h4>
     <p>
-      Let <code>P = {P_1, P_2, ..., P_n}</code> be a finite set of concurrent processes, and let <code>R = {R_1, R_2, ..., R_m}</code> represent the available resource types in the operating system, where each resource type <code>R_j</code> may consist of one or more identical instances.
+      Let <i>P</i> = {<i>P</i><sub>1</sub>, <i>P</i><sub>2</sub>, ..., <i>P<sub>n</sub></i>} be a finite set of concurrent processes, and let <i>R</i> = {<i>R</i><sub>1</sub>, <i>R</i><sub>2</sub>, ..., <i>R<sub>m</sub></i>} represent the available resource types in the operating system, where each resource type <i>R<sub>j</sub></i> may consist of one or more identical instances.
     </p>
     <p>
-      A subset of processes <code>P' &subset; P</code> is said to be in a <strong>deadlock state</strong> if and only if every process <code>P_i &isin; P'</code> is indefinitely waiting for an event that can only be caused by another process <code>P_k &isin; P'</code> (where <code>k &ne; i</code>).
+      A subset of processes <i>P'</i> &sub; <i>P</i> is said to be in a <strong>deadlock state</strong> if and only if every process <i>P<sub>i</sub></i> &isin; <i>P'</i> is indefinitely waiting for an event that can only be caused by another process <i>P<sub>k</sub></i> &isin; <i>P'</i> (where <i>k</i> &ne; <i>i</i>).
     </p>
 
     <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
       <strong style="color: var(--primary);">Closed-Set Deadlock Condition:</strong>
-      <br>
-      <code>&forall; P_i &isin; P', \quad State(P_i) = BLOCKED \quad \text{waiting on resource } R_j \text{ held by } P_k &isin; P'</code>
+      <br><br>
+      &forall; <i>P<sub>i</sub></i> &isin; <i>P'</i>, &nbsp;&nbsp; State(<i>P<sub>i</sub></i>) = BLOCKED &nbsp;&nbsp; (waiting on resource <i>R<sub>j</sub></i> held by <i>P<sub>k</sub></i> &isin; <i>P'</i>)
     </div>
 
     <p>
       Because every entity in the closed chain is blocked waiting for a predecessor or successor, no process can ever release its currently allocated resources. Consequently, the entire set remains frozen indefinitely unless an external agent intervenes (such as a kernel detection-and-recovery subsystem or a watchdog timer).
     </p>"""
 
-def update_module_two_without_video():
+def update_math_markup():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return False
@@ -51,22 +51,22 @@ def update_module_two_without_video():
         print("Error: Could not locate Section 1 boundaries in Module 02.")
         return False
 
-    updated_content = content[:start_idx] + CLEAN_DEADLOCK_SECTION + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + CORRECTED_DEADLOCK_SECTION + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully removed video and cleaned up Section 1 in {TARGET_FILE}")
+    print(f"--> Successfully fixed math markup in {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if update_module_two_without_video():
+    if update_math_markup():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Remove YouTube video card from Section 1 in Module 02\n\n"
-                "Clean up Module 02 Section 1 by removing the embedded video card and links,\n"
-                "retaining only the formal mathematical definition and closed-set equations."
+                "Fix broken math formatting in Module 02 Section 1\n\n"
+                "Replace unsupported LaTeX commands with clean semantic HTML entities,\n"
+                "italics, and subscripts to ensure proper browser rendering."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
