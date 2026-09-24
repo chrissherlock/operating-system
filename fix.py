@@ -1,796 +1,127 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create 02-disk-hardware-scheduling.html in Week 5
+# fix.py: Reconcile Week 5 module numbering and link topology
 # =====================================================================
 import os
 import subprocess
 
-TARGET_FILE = os.path.join(
-    "week05-io-and-disk-scheduling",
-    "02-disk-hardware-scheduling.html"
-)
+WEEK5_DIR = "week05-io-and-disk-scheduling"
+OLD_DISK_FILE = os.path.join(WEEK5_DIR, "02-disk-hardware-scheduling.html")
+NEW_DISK_FILE = os.path.join(WEEK5_DIR, "03-disk-hardware-scheduling.html")
+MOD01_FILE = os.path.join(WEEK5_DIR, "01-io-hardware-device-controllers.html")
+MOD02_FILE = os.path.join(WEEK5_DIR, "02-interrupts-and-dma.html")
+INDEX_FILE = os.path.join(WEEK5_DIR, "index.html")
 
-MODULE_HTML = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>02. Disk Geometry &amp; Arm Scheduling | Week 5: I/O &amp; Disk Scheduling</title>
-  <style>
-    :root {
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --text: #1e293b;
-      --text-muted: #475569;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --success: #059669;
-      --warning: #d97706;
-      --danger: #dc2626;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: var(--font-sans);
-      color: var(--text);
-      background: var(--bg);
-      margin: 0;
-      padding: 32px 16px;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 40px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    h1, h2, h3, h4, h5 { color: #0f172a; }
-    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
-    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
-    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
-    h5 { margin-top: 14px; margin-bottom: 4px; color: #475569; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.04em; }
-    p { color: var(--text-muted); margin-bottom: 12px; }
-    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
-    li { margin-bottom: 6px; }
-    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      margin: 16px 0;
-    }
-    pre code {
-      background: transparent !important;
-      color: inherit !important;
-      padding: 0 !important;
-      border-radius: 0 !important;
-      font-size: inherit !important;
-    }
+def reconcile_files():
+    # 1. Rename 02-disk-hardware-scheduling.html -> 03-disk-hardware-scheduling.html
+    if os.path.exists(OLD_DISK_FILE):
+        os.rename(OLD_DISK_FILE, NEW_DISK_FILE)
+        print(f"--> Renamed {OLD_DISK_FILE} -> {NEW_DISK_FILE}")
 
-    /* Syntax Highlighting */
-    .syn-kw { color: #38bdf8; font-weight: 600; }
-    .syn-fn { color: #60a5fa; font-weight: 600; }
-    .syn-num { color: #f59e0b; }
-    .syn-str { color: #34d399; }
-    .syn-cmt { color: #64748b; font-style: italic; }
+    # 2. Update Module 01 navigation: Next -> 02-interrupts-and-dma.html
+    if os.path.exists(MOD01_FILE):
+        with open(MOD01_FILE, "r", encoding="utf-8") as f:
+            m1 = f.read()
 
-    .math-callout {
-      background: #f8fafc;
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      margin: 16px 0;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #1e293b;
-    }
-    .math-callout strong { color: #0f172a; }
+        m1 = m1.replace(
+            '<a href="02-disk-hardware-scheduling.html">Next: 02. Disk Hardware &amp; Scheduling &rarr;</a>',
+            '<a href="02-interrupts-and-dma.html">Next: 02. Interrupts &amp; DMA &rarr;</a>'
+        )
+        with open(MOD01_FILE, "w", encoding="utf-8") as f:
+            f.write(m1)
+        print(f"--> Updated navigation in {MOD01_FILE}")
 
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-bar a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: #334155;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .nav-bar a:hover {
-      background-color: #0f172a;
-      color: #ffffff;
-    }
+    # 3. Update Module 02 navigation: Next -> 03-disk-hardware-scheduling.html
+    if os.path.exists(MOD02_FILE):
+        with open(MOD02_FILE, "r", encoding="utf-8") as f:
+            m2 = f.read()
 
-    /* Directed Narrative Stepper Layout */
-    .aid-wrapper {
-      margin: 32px 0;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #ffffff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-      overflow: hidden;
-    }
-    .aid-header {
-      background: #f1f5f9;
-      padding: 12px 18px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .aid-header h4 {
-      margin: 0;
-      font-size: 0.96rem;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .dimension-toggles {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .dim-btn {
-      padding: 4px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .dim-btn.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-    }
-    .scenario-banner {
-      background: #f8fafc;
-      padding: 10px 18px;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-      color: #334155;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .scenario-tag {
-      background: #e0f2fe;
-      color: #0369a1;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .telemetry-strip {
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 12px 18px;
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px 16px;
-      border-bottom: 1px solid #1e293b;
-    }
-    .telemetry-cell {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .telemetry-label {
-      color: #94a3b8;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .telemetry-val {
-      color: #38bdf8;
-      font-weight: 600;
-    }
-    .telemetry-val.highlight { color: #4ade80; }
-    .telemetry-val.alert { color: #f87171; }
+        m2 = m2.replace(
+            '<a href="03-io-software-layers-buffering.html">Next: 03. I/O Software Layers &rarr;</a>',
+            '<a href="03-disk-hardware-scheduling.html">Next: 03. Disk Geometry &amp; Arm Scheduling &rarr;</a>'
+        )
+        with open(MOD02_FILE, "w", encoding="utf-8") as f:
+            f.write(m2)
+        print(f"--> Updated navigation in {MOD02_FILE}")
 
-    .canvas-container {
-      background: #ffffff;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-    svg.arm-canvas {
-      width: 100%;
-      max-width: 780px;
-      height: auto;
-      overflow: visible;
-    }
+    # 4. Update Module 03 navigation & header title
+    if os.path.exists(NEW_DISK_FILE):
+        with open(NEW_DISK_FILE, "r", encoding="utf-8") as f:
+            m3 = f.read()
 
-    .controls-narrative-strip {
-      padding: 14px 18px;
-      background: #f8fafc;
-      border-bottom: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 18px;
-    }
-    @media (max-width: 720px) {
-      .controls-narrative-strip {
-        grid-template-columns: 1fr;
-      }
-    }
-    .stepper-btn-group {
-      display: flex;
-      gap: 8px;
-      align-self: center;
-    }
-    .btn-step {
-      padding: 7px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: #334155;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-    }
-    .btn-step:hover:not(:disabled) {
-      background: #0f172a;
-      color: #ffffff;
-    }
-    .btn-step:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    .narrative-preview-panel {
-      font-size: 0.84rem;
-      line-height: 1.5;
-      color: #334155;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 4px;
-      padding: 10px 14px;
-    }
-    .narrative-preview-panel strong {
-      color: #0f172a;
-      display: block;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 2px;
-    }
+        # Update title and heading number
+        m3 = m3.replace(
+            "<title>02. Disk Geometry &amp; Arm Scheduling | Week 5: I/O &amp; Disk Scheduling</title>",
+            "<title>03. Disk Geometry &amp; Arm Scheduling | Week 5: I/O &amp; Disk Scheduling</title>"
+        )
+        m3 = m3.replace(
+            "<h2>02. Disk Geometry &amp; Arm Scheduling</h2>",
+            "<h2>03. Disk Geometry &amp; Arm Scheduling</h2>"
+        )
 
-    .analytical-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: var(--border);
-      gap: 1px;
-    }
-    @media (max-width: 720px) {
-      .analytical-grid { grid-template-columns: 1fr; }
-    }
-    .pane-card {
-      background: #ffffff;
-      padding: 18px;
-    }
-    .pane-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .pane-title.what { color: var(--accent); }
-    .pane-title.why { color: var(--success); }
-    .pane-content {
-      font-size: 0.88rem;
-      line-height: 1.55;
-      color: #334155;
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="01-io-hardware-device-controllers.html">&larr; 01. I/O Hardware &amp; Controllers</a>
-      <a href="index.html">&#127968; Week 5 Hub</a>
-      <a href="03-io-software-layers-buffering.html">Next: 03. I/O Software Layers &rarr;</a>
-    </nav>
+        # Update nav-bar links
+        m3 = m3.replace(
+            '<a href="01-io-hardware-device-controllers.html">&larr; 01. I/O Hardware &amp; Controllers</a>',
+            '<a href="02-interrupts-and-dma.html">&larr; 02. Interrupts &amp; DMA</a>'
+        )
+        m3 = m3.replace(
+            '<a href="03-io-software-layers-buffering.html">Next: 03. I/O Software Layers &rarr;</a>',
+            '<a href="04-raid-architectures.html">Next: 04. RAID Architectures &rarr;</a>'
+        )
 
-    <h2>02. Disk Geometry &amp; Arm Scheduling</h2>
-    <p>
-      For over five decades, magnetic Hard Disk Drives (HDDs) served as the primary secondary storage substrate in computer systems. While modern operating systems increasingly boot from solid-state flash memory, understanding mechanical disk geometry and head scheduling remains essential for studying <strong>physical latency modeling, mechanical movement optimization, and sequential data locality</strong>.
-    </p>
+        with open(NEW_DISK_FILE, "w", encoding="utf-8") as f:
+            f.write(m3)
+        print(f"--> Updated numbering and navigation in {NEW_DISK_FILE}")
 
-    <h3>1. Physical Disk Geometry: Platters, Cylinders, and Sectors</h3>
-    <p>
-      A magnetic disk drive is a precision electro-mechanical device composed of several circular rigid platters stacked along a central rotating <strong>spindle</strong>.
-    </p>
+    # 5. Synchronize Week 5 Hub (index.html)
+    if os.path.exists(INDEX_FILE):
+        with open(INDEX_FILE, "r", encoding="utf-8") as f:
+            idx = f.read()
 
-    <!-- Structural Diagram: Physical Disk Geometry -->
-    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.1: Physical Geometry of a Magnetic Hard Disk Drive</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How stacked magnetic platters, read/write heads, concentric tracks, and cylinders organize data storage.</div>
+        # Ensure Module 01, 02, 03 are correctly linked in the card list
+        if "01-io-hardware-device-controllers.html" not in idx or "02-interrupts-and-dma.html" not in idx:
+            # Replace placeholder or stale links with active module cards
+            stale_block_start = idx.find('<div class="modules-grid">')
+            stale_block_end = idx.find('</div>\n  </div>\n</body>')
+            if stale_block_start != -1 and stale_block_end != -1:
+                replacement_grid = """<div class="modules-grid">
+      <a class="module-card" href="01-io-hardware-device-controllers.html">
+        <span class="module-num">Module 01</span>
+        <h3>I/O Hardware &amp; Device Controllers</h3>
+        <p>Device classes, PMIO vs. MMIO, hardware status/command registers, and PIO vs. DMA data transfers.</p>
+      </a>
 
-      <svg viewBox="0 0 760 240" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <!-- Spindle & Platters (Left 3D Projection) -->
-        <g transform="translate(140, 120)">
-          <!-- Spindle Axis -->
-          <line x1="0" y1="-80" x2="0" y2="85" stroke="#475569" stroke-width="6"/>
-          <text x="0" y="102" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0f172a">SPINDLE MOTOR</text>
-          <text x="0" y="114" text-anchor="middle" font-size="7.5" fill="#64748b">(7,200 / 15,000 RPM)</text>
+      <a class="module-card" href="02-interrupts-and-dma.html">
+        <span class="module-num">Module 02</span>
+        <h3>Interrupts &amp; Direct Memory Access (DMA)</h3>
+        <p>APIC/MSI-X vectoring, top-half vs. bottom-half deferral, Windows DPCs, and cache coherency snooping.</p>
+      </a>
 
-          <!-- Platter 3 (Top) -->
-          <g transform="translate(0, -50)">
-            <ellipse cx="0" cy="0" rx="105" ry="32" fill="#f8fafc" stroke="#0284c7" stroke-width="2"/>
-            <ellipse cx="0" cy="0" rx="75" ry="22" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"/>
-            <ellipse cx="0" cy="0" rx="45" ry="13" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 3"/>
-            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#64748b"/>
-          </g>
+      <a class="module-card" href="03-disk-hardware-scheduling.html">
+        <span class="module-num">Module 03</span>
+        <h3>Disk Geometry &amp; Arm Scheduling</h3>
+        <p>Platters, cylinders, CHS to LBA translation, seek/rotational latency math, and SSTF/SCAN/C-LOOK algorithms.</p>
+      </a>
 
-          <!-- Platter 2 (Middle) -->
-          <g transform="translate(0, 0)">
-            <ellipse cx="0" cy="0" rx="105" ry="32" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" opacity="0.9"/>
-            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#64748b"/>
-          </g>
+      <a class="module-card" href="04-raid-architectures.html">
+        <span class="module-num">Module 04</span>
+        <h3>RAID Architectures &amp; Reliability</h3>
+        <p>Striping, mirroring, parity math, RAID 0 through RAID 6, MTTF reliability modeling, and rebuild rebuild delays.</p>
+      </a>"""
+                idx = idx[:stale_block_start] + replacement_grid + idx[stale_block_end:]
+                with open(INDEX_FILE, "w", encoding="utf-8") as f:
+                    f.write(idx)
+                print(f"--> Synchronized Week 5 Hub cards in {INDEX_FILE}")
 
-          <!-- Platter 1 (Bottom) -->
-          <g transform="translate(0, 50)">
-            <ellipse cx="0" cy="0" rx="105" ry="32" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" opacity="0.8"/>
-            <ellipse cx="0" cy="0" rx="12" ry="4" fill="#64748b"/>
-          </g>
-
-          <!-- Cylinder Visual Tube -->
-          <line x1="75" y1="-50" x2="75" y2="50" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <line x1="-75" y1="-50" x2="-75" y2="50" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="80" y="0" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#dc2626">CYLINDER</text>
-        </g>
-
-        <!-- Actuator Arm & Read/Write Heads -->
-        <g transform="translate(340, 120)">
-          <!-- Voice Coil Pivot -->
-          <circle cx="0" cy="0" r="18" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>
-          <circle cx="0" cy="0" r="6" fill="#0f172a"/>
-          <text x="0" y="-24" text-anchor="middle" font-size="8" font-weight="700" fill="#334155">VOICE-COIL PIVOT</text>
-
-          <!-- Arm Shafts -->
-          <polygon points="0,-10 0,10 -150,-48 -150,-52" fill="#94a3b8" opacity="0.9"/>
-          <polygon points="0,-10 0,10 -150,-2 -150,2" fill="#94a3b8" opacity="0.9"/>
-          <polygon points="0,-10 0,10 -150,48 -150,52" fill="#94a3b8" opacity="0.9"/>
-
-          <!-- Magnetic Heads -->
-          <circle cx="-150" cy="-50" r="4" fill="#dc2626"/>
-          <circle cx="-150" cy="0" r="4" fill="#dc2626"/>
-          <circle cx="-150" cy="50" r="4" fill="#dc2626"/>
-          <text x="-160" y="-58" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">R/W HEADS</text>
-        </g>
-
-        <!-- Geometry Breakdown Panel (Right) -->
-        <g transform="translate(490, 20)">
-          <rect width="250" height="200" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-          <text x="16" y="24" font-size="10" font-weight="700" fill="#0f172a">DISK GEOMETRY COMPONENTS</text>
-
-          <rect x="12" y="38" width="226" height="34" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="20" y="52" font-size="8" font-weight="700" fill="#0284c7">Platters &amp; Surfaces:</text>
-          <text x="20" y="64" font-size="7.5" fill="#64748b">Both top and bottom surfaces hold magnetic coatings.</text>
-
-          <rect x="12" y="76" width="226" height="34" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="20" y="90" font-size="8" font-weight="700" fill="#0284c7">Tracks:</text>
-          <text x="20" y="102" font-size="7.5" fill="#64748b">Concentric circular rings etched onto each platter.</text>
-
-          <rect x="12" y="114" width="226" height="34" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="20" y="128" font-size="8" font-weight="700" fill="#dc2626">Cylinders:</text>
-          <text x="20" y="140" font-size="7.5" fill="#64748b">The vertical set of all tracks at the identical arm radius.</text>
-
-          <rect x="12" y="152" width="226" height="36" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="20" y="166" font-size="8" font-weight="700" fill="#059669">Sectors (Blocks):</text>
-          <text x="20" y="178" font-size="7.5" fill="#64748b">Smallest unit of transfer: 512 Bytes or 4096 Bytes (4Kn).</text>
-        </g>
-      </svg>
-    </div>
-
-    <h4>From CHS to Logical Block Addressing (LBA)</h4>
-    <p>
-      In early computers, operating systems had to know the exact physical geometry:
-    </p>
-    <ul>
-      <li><strong>CHS Addressing:</strong> Every request specified <code>(Cylinder, Head, Sector)</code>. The OS told the drive: <em>"Move to Cylinder 102, activate Head 3, read Sector 14."</em></li>
-      <li>
-        <strong>Zoned Bit Recording (ZBR):</strong> Outer tracks have a much larger circumference than inner tracks. Modern drives pack up to twice as many sectors on outer tracks as inner tracks. CHS assumed fixed sector counts per track, making physical addressing obsolete.
-      </li>
-      <li>
-        <strong>Logical Block Addressing (LBA):</strong> The disk controller abstracts geometry completely. The drive presents a simple linear array of logical blocks indexed from $0$ to $N - 1$:
-        <pre><code>LBA 0, LBA 1, LBA 2, ..., LBA 976,773,167</code></pre>
-        The on-board disk firmware maps each LBA address to internal physical cylinder, head, and track locations, transparently managing bad sector remapping and track skewing.
-      </li>
-    </ul>
-
-    <h3>2. Modeling I/O Access Latency ($T_{\text{I/O}}$)</h3>
-    <p>
-      Reading or writing a block of data on a mechanical disk drive incurs four distinct physical delays:
-    </p>
-    <div class="math-callout">
-      <strong>The Fundamental Disk Access Latency Equation:</strong>
-      <pre><code>T<sub>I/O</sub> = T<sub>seek</sub> + T<sub>rotational</sub> + T<sub>transfer</sub> + T<sub>controller</sub></code></pre>
-      <ul>
-        <li><strong>Seek Time ($T_{\text{seek}}$):</strong> The time required for the voice-coil actuator arm to accelerate, travel mechanically across platters, decelerate, and settle precisely over the target cylinder. Average seek time is typically <strong>4 to 9 milliseconds</strong>.</li>
-        <li><strong>Rotational Latency ($T_{\text{rotational}}$):</strong> Once the head settles on the track, it must wait for the target sector to spin under the read head. On average, the disk must rotate half a revolution:
-          <pre><code>T<sub>rotational (avg)</sub> = 1/2 &times; (60 / RPM)</code></pre>
-          At 7,200 RPM, one revolution takes 8.33 ms &rarr; $T_{\text{rotational (avg)}} = \mathbf{4.17\text{ ms}}$.
-          <br>
-          At 15,000 RPM, one revolution takes 4.00 ms &rarr; $T_{\text{rotational (avg)}} = \mathbf{2.00\text{ ms}}$.
-        </li>
-        <li><strong>Transfer Time ($T_{\text{transfer}}$):</strong> The time to read the actual data bits off the platter as it spins underneath:
-          <pre><code>T<sub>transfer</sub> = Byte Count / Internal Track Transfer Rate</code></pre>
-          For a 4 KB block at 200 MB/s, $T_{\text{transfer}} \approx \mathbf{0.02\text{ ms}}$ (negligible compared to seek and rotation!).
-        </li>
-        <li><strong>Controller Overhead ($T_{\text{controller}}$):</strong> Microprocessor setup, DMA bus command, and ECC verification (&lt; 0.01 ms).</li>
-      </ul>
-    </div>
-    <p>
-      <strong>The Crucial Architectural Takeaway:</strong> Seek time and rotational delay account for over <strong>95% to 99% of total I/O latency</strong>. Random accesses run at &sim;150 IOPS (&sim;10 ms per read), while sequential accesses stream at 200 MB/s. Operating system disk schedulers exist to minimize mechanical seek distances!
-    </p>
-
-    <h3>3. Disk Arm Scheduling Algorithms</h3>
-    <p>
-      When multiple processes issue disk requests concurrently, the operating system kernel queues pending requests. The <strong>Disk Arm Scheduler</strong> decides the order in which pending cylinder requests are serviced to minimize mechanical arm travel.
-    </p>
-
-    <h4>The Classical Test Workload</h4>
-    <p>
-      Consider a disk with cylinders numbered <code>0</code> to <code>199</code>. The disk head is currently located at <strong>cylinder 53</strong>. The pending request queue holds 8 cylinder accesses:
-    </p>
-    <pre><code>Queue: [98, 183, 37, 122, 14, 124, 65, 67] | Current Head Position = 53</code></pre>
-
-    <!-- Directed Narrative Stepper: Disk Arm Scheduling Arena -->
-    <div class="aid-wrapper">
-      <div class="aid-header">
-        <h4>Interactive Stepper: Disk Arm Scheduling Visualizer (0 &ndash; 199 Cylinders)</h4>
-        <div class="dimension-toggles">
-          <button class="dim-btn active" id="arm-dim-sstf" onclick="setArmDim('sstf')">SSTF (Greedy)</button>
-          <button class="dim-btn" id="arm-dim-scan" onclick="setArmDim('scan')">SCAN (Elevator)</button>
-          <button class="dim-btn" id="arm-dim-clook" onclick="setArmDim('clook')">C-LOOK (Circular)</button>
-          <button class="dim-btn" id="arm-dim-fcfs" onclick="setArmDim('fcfs')">FCFS (Baseline)</button>
-        </div>
-      </div>
-
-      <div class="scenario-banner">
-        <span class="scenario-tag">Scheduling Policy</span>
-        <span id="arm-scenario-text">SSTF (Shortest Seek Time First): Always chooses the pending request closest to the current head cylinder. Minimizes seek distance greedily, but risks starving distant cylinders.</span>
-      </div>
-
-      <div class="telemetry-strip">
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Current Head Position</span>
-          <span class="telemetry-val highlight" id="arm-telem-head">Cylinder 53</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Target Cylinder</span>
-          <span class="telemetry-val" id="arm-telem-target">Start (53)</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Seek Hop Distance</span>
-          <span class="telemetry-val highlight" id="arm-telem-hop">0 Cylinders</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Total Head Movement</span>
-          <span class="telemetry-val alert" id="arm-telem-total">0 Cylinders</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Pending Requests</span>
-          <span class="telemetry-val" id="arm-telem-queue">8 Remaining</span>
-        </div>
-      </div>
-
-      <div class="canvas-container">
-        <svg class="arm-canvas" viewBox="0 0 760 210">
-          <!-- Cylinder Track Rail (0 to 199) -->
-          <g transform="translate(30, 70)">
-            <!-- Background Rail -->
-            <rect x="0" y="20" width="700" height="24" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
-
-            <!-- Tick Marks (0, 50, 100, 150, 199) -->
-            <line x1="0" y1="44" x2="0" y2="54" stroke="#475569" stroke-width="2"/>
-            <text x="0" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#475569">0</text>
-
-            <line x1="175" y1="44" x2="175" y2="54" stroke="#cbd5e1" stroke-width="1.5"/>
-            <text x="175" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#64748b">50</text>
-
-            <line x1="350" y1="44" x2="350" y2="54" stroke="#cbd5e1" stroke-width="1.5"/>
-            <text x="350" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#64748b">100</text>
-
-            <line x1="525" y1="44" x2="525" y2="54" stroke="#cbd5e1" stroke-width="1.5"/>
-            <text x="525" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#64748b">150</text>
-
-            <line x1="700" y1="44" x2="700" y2="54" stroke="#475569" stroke-width="2"/>
-            <text x="700" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#475569">199</text>
-
-            <!-- Request Notches On Rail (3.517 pixels per cylinder) -->
-            <!-- 14: 49.2px | 37: 130.1px | 65: 228.6px | 67: 235.6px | 98: 344.7px | 122: 429.1px | 124: 436.1px | 183: 643.6px -->
-            <circle id="cyl-14" cx="49" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <circle id="cyl-37" cx="130" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <circle id="cyl-65" cx="229" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <circle id="cyl-67" cx="236" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <circle id="cyl-98" cx="345" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <circle id="cyl-122" cx="429" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <circle id="cyl-124" cx="436" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <circle id="cyl-183" cx="644" cy="32" r="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-
-            <!-- Moving Head Cursor Group -->
-            <g id="arm-cursor" transform="translate(186, 0)">
-              <!-- Pointer Shape -->
-              <polygon points="0,12 -8,0 8,0" fill="#0284c7"/>
-              <line x1="0" y1="12" x2="0" y2="44" stroke="#0284c7" stroke-width="2.5"/>
-              <circle cx="0" cy="32" r="4" fill="#0284c7"/>
-              <rect x="-24" y="-16" width="48" height="15" rx="3" fill="#0284c7"/>
-              <text id="arm-cursor-txt" x="0" y="-5" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#ffffff">53</text>
-            </g>
-          </g>
-
-          <!-- History Path Trail Overlay -->
-          <g id="arm-trail" transform="translate(30, 70)"></g>
-        </svg>
-      </div>
-
-      <div class="controls-narrative-strip">
-        <div class="stepper-btn-group">
-          <button class="btn-step" id="arm-btn-prev" onclick="stepArm(-1)" disabled>&larr; Previous</button>
-          <button class="btn-step" id="arm-btn-next" onclick="stepArm(1)">Next Step &rarr;</button>
-          <button class="btn-step" id="arm-btn-reset" onclick="resetArm()">Reset</button>
-        </div>
-        <div class="narrative-preview-panel">
-          <strong>Current Step Summary</strong>
-          <span id="arm-txt-narrative">Initial State: Disk head parked at Cylinder 53. Pending queue: [98, 183, 37, 122, 14, 124, 65, 67]. Ready to schedule.</span>
-        </div>
-      </div>
-
-      <div class="analytical-grid">
-        <div class="pane-card">
-          <div class="pane-title what">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            What Is Happening
-          </div>
-          <p class="pane-content" id="arm-txt-what">Head is parked at cylinder 53. The scheduler assesses the queue to pick the first target.</p>
-        </div>
-        <div class="pane-card">
-          <div class="pane-title why">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            Why The System Does This
-          </div>
-          <p class="pane-content" id="arm-txt-why">Baseline setup before mechanical arm acceleration begins.</p>
-        </div>
-      </div>
-    </div>
-
-    <h4>Algorithm Analysis &amp; Comparisons</h4>
-    <div style="overflow-x: auto; margin: 18px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 12px; width: 20%;">Algorithm</th>
-            <th style="padding: 10px 12px; width: 22%;">Head Movement (Workload)</th>
-            <th style="padding: 10px 12px; width: 30%;">Core Behavioral Characteristic</th>
-            <th style="padding: 10px 12px; width: 28%;">Primary Defect / Limitation</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">FCFS</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #dc2626;">640 Cylinders</td>
-            <td style="padding: 10px 12px;">Completely fair, zero starvation.</td>
-            <td style="padding: 10px 12px; color: #dc2626;">Wild head thrashing; slowest throughput.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">SSTF</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #059669; font-weight: 700;">236 Cylinders</td>
-            <td style="padding: 10px 12px;">Greedy local minimum; fast response under low loads.</td>
-            <td style="padding: 10px 12px; color: #dc2626;"><strong>Pathological Starvation</strong> of outer tracks.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">SCAN (Elevator)</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #0284c7; font-weight: 700;">208 Cylinders</td>
-            <td style="padding: 10px 12px;">Sweeps end-to-end; eliminates starvation completely.</td>
-            <td style="padding: 10px 12px;">Unequal waiting distribution for recent cylinders.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
-            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">C-LOOK</td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #166534; font-weight: 700;">322 Cylinders</td>
-            <td style="padding: 10px 12px; color: #166534;">Single-direction sweep with fast return; uniform wait times.</td>
-            <td style="padding: 10px 12px; color: #166534;">Slightly higher total head movement than SCAN.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
-      <a href="01-io-hardware-device-controllers.html">&larr; 01. I/O Hardware &amp; Controllers</a>
-      <a href="index.html">&#127968; Week 5 Hub</a>
-      <a href="03-io-software-layers-buffering.html">Next: 03. I/O Software Layers &rarr;</a>
-    </nav>
-  </div>
-
-  <script>
-    // 3.5175 pixels per cylinder (700px / 199)
-    function cylToPx(c) {
-      return Math.round(c * (700 / 199));
-    }
-
-    const armData = {
-      sstf: [
-        { head: 53, target: "Start (53)", hop: 0, total: 0, queue: "[98, 183, 37, 122, 14, 124, 65, 67]", doneCyl: [], narrative: "Start at 53. Nearest pending request is 65 (distance = 12).", what: "SSTF evaluates all 8 requests and picks min |pos - req|.", why: "Greedy optimization minimizes immediate arm movement." },
-        { head: 65, target: "65", hop: 12, total: 12, queue: "[98, 183, 37, 122, 14, 124, 67]", doneCyl: [65], narrative: "Moved to 65. Next nearest is 67 (distance = 2).", what: "Arm moves 12 cylinders right to service 65.", why: "67 is immediately adjacent." },
-        { head: 67, target: "67", hop: 2, total: 14, queue: "[98, 183, 37, 122, 14, 124]", doneCyl: [65, 67], narrative: "Moved to 67. Next nearest is 37 (distance = 30; vs 98 dist = 31).", what: "Arm moves 2 cylinders to 67. Evaluates 37 vs 98.", why: "37 is closer by 1 cylinder (|67-37|=30 vs |67-98|=31)." },
-        { head: 37, target: "37", hop: 30, total: 44, queue: "[98, 183, 122, 14, 124]", doneCyl: [65, 67, 37], narrative: "Moved to 37. Next nearest is 14 (distance = 23; vs 98 dist = 61).", what: "Arm reverses left to 37.", why: "Greedy heuristic keeps arm in the local cluster." },
-        { head: 14, target: "14", hop: 23, total: 67, queue: "[98, 183, 122, 124]", doneCyl: [65, 67, 37, 14], narrative: "Moved to 14. Left side exhausted! Nearest is 98 (distance = 84).", what: "Arm finishes low cylinders. Must take large leap across platters.", why: "All remaining requests lie on the high end of the disk." },
-        { head: 98, target: "98", hop: 84, total: 151, queue: "[183, 122, 124]", doneCyl: [65, 67, 37, 14, 98], narrative: "Moved to 98. Next nearest is 122 (distance = 24).", what: "Arm leaps 84 cylinders to 98.", why: "Nearest remaining target." },
-        { head: 122, target: "122", hop: 24, total: 175, queue: "[183, 124]", doneCyl: [65, 67, 37, 14, 98, 122], narrative: "Moved to 122. Next nearest is 124 (distance = 2).", what: "Services 122.", why: "124 is adjacent." },
-        { head: 124, target: "124", hop: 2, total: 177, queue: "[183]", doneCyl: [65, 67, 37, 14, 98, 122, 124], narrative: "Moved to 124. Only 183 remains (distance = 59).", what: "Services 124.", why: "Final hop to extreme outer track." },
-        { head: 183, target: "183 (End)", hop: 59, total: 236, queue: "[All Complete]", doneCyl: [65, 67, 37, 14, 98, 122, 124, 183], narrative: "Finished at 183. Total seek movement = 236 cylinders.", what: "All 8 requests satisfied.", why: "Low total movement, but 183 suffered long wait while arm lingered around 14." }
-      ],
-      scan: [
-        { head: 53, target: "Start (53)", hop: 0, total: 0, queue: "Moving Right &rarr;", doneCyl: [], narrative: "SCAN (Elevator): Arm moves right toward 199. Next target in path is 65.", what: "Elevator algorithm sweeps in a fixed direction.", why: "Prevents starvation by ignoring greedy local jumps in reverse." },
-        { head: 65, target: "65", hop: 12, total: 12, queue: "Moving Right &rarr;", doneCyl: [65], narrative: "Services 65 on rightward sweep.", what: "Arm visits 65.", why: "65 is encountered along current sweep vector." },
-        { head: 67, target: "67", hop: 2, total: 14, queue: "Moving Right &rarr;", doneCyl: [65, 67], narrative: "Services 67 on rightward sweep.", what: "Arm visits 67.", why: "Maintains rightward momentum." },
-        { head: 98, target: "98", hop: 31, total: 45, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98], narrative: "Services 98 on rightward sweep.", what: "Arm visits 98.", why: "Continuing towards 199." },
-        { head: 122, target: "122", hop: 24, total: 69, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98, 122], narrative: "Services 122 on rightward sweep.", what: "Arm visits 122.", why: "Continuing towards 199." },
-        { head: 124, target: "124", hop: 2, total: 71, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98, 122, 124], narrative: "Services 124 on rightward sweep.", what: "Arm visits 124.", why: "Continuing towards 199." },
-        { head: 183, target: "183", hop: 59, total: 130, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98, 122, 124, 183], narrative: "Services 183. Pure SCAN continues all the way to cylinder 199.", what: "Services 183 and proceeds to disk edge.", why: "Pure SCAN guarantees edge boundary traversal." },
-        { head: 199, target: "199 (Edge)", hop: 16, total: 146, queue: "Reversing &larr; Left", doneCyl: [65, 67, 98, 122, 124, 183], narrative: "Reached disk edge (199). Reverses direction leftward. Next is 37.", what: "Arm hits 199 and reverses sweep vector.", why: "Elevator reverses at building ends." },
-        { head: 37, target: "37", hop: 162, total: 308, queue: "Moving Left &larr;", doneCyl: [65, 67, 98, 122, 124, 183, 37], narrative: "Services 37 on leftward sweep.", what: "Arm sweeps down to 37.", why: "Only 14 and 37 remain." },
-        { head: 14, target: "14 (End)", hop: 23, total: 331, queue: "[All Complete]", doneCyl: [65, 67, 98, 122, 124, 183, 37, 14], narrative: "Finished at 14. Total seek movement = 331 cylinders (or 208 if LOOK is used).", what: "All requests satisfied with zero starvation.", why: "SCAN trades raw distance for strictly bounded latency." }
-      ],
-      clook: [
-        { head: 53, target: "Start (53)", hop: 0, total: 0, queue: "Moving Right &rarr;", doneCyl: [], narrative: "C-LOOK: Moves right, but only as far as highest request (183). Does not waste travel to 199.", what: "C-LOOK optimizes SCAN by bounding travel to active requests.", why: "Eliminates empty travel to physical disk margins." },
-        { head: 65, target: "65", hop: 12, total: 12, queue: "Moving Right &rarr;", doneCyl: [65], narrative: "Services 65.", what: "Visits 65.", why: "Along path." },
-        { head: 67, target: "67", hop: 2, total: 14, queue: "Moving Right &rarr;", doneCyl: [65, 67], narrative: "Services 67.", what: "Visits 67.", why: "Along path." },
-        { head: 98, target: "98", hop: 31, total: 45, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98], narrative: "Services 98.", what: "Visits 98.", why: "Along path." },
-        { head: 122, target: "122", hop: 24, total: 69, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98, 122], narrative: "Services 122.", what: "Visits 122.", why: "Along path." },
-        { head: 124, target: "124", hop: 2, total: 71, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98, 122, 124], narrative: "Services 124.", what: "Visits 124.", why: "Along path." },
-        { head: 183, target: "183 (Max)", hop: 59, total: 130, queue: "Circular Jump &larr;", doneCyl: [65, 67, 98, 122, 124, 183], narrative: "Highest request (183) reached! Jumps directly to lowest request (14) without servicing on return.", what: "Circular jump to opposite extreme.", why: "Provides uniform waiting time distribution across all cylinders." },
-        { head: 14, target: "14 (Min Jump)", hop: 169, total: 299, queue: "Moving Right &rarr;", doneCyl: [65, 67, 98, 122, 124, 183, 14], narrative: "Arrived at 14 via fast return. Resumes rightward scan. Next is 37.", what: "Services lowest request.", why: "Starts fresh rightward sweep." },
-        { head: 37, target: "37 (End)", hop: 23, total: 322, queue: "[All Complete]", doneCyl: [65, 67, 98, 122, 124, 183, 14, 37], narrative: "Finished at 37! Total movement = 322 cylinders. Uniform wait time achieved.", what: "All requests complete.", why: "C-LOOK is the industry standard for rotational elevator scheduling." }
-      ],
-      fcfs: [
-        { head: 53, target: "Start (53)", hop: 0, total: 0, queue: "[98, 183, 37, 122, 14, 124, 65, 67]", doneCyl: [], narrative: "FCFS: Services requests in strict arrival order without reordering.", what: "First-Come First-Served scheduling.", why: "Trivial FIFO queue implementation." },
-        { head: 98, target: "98", hop: 45, total: 45, queue: "[183, 37, 122, 14, 124, 65, 67]", doneCyl: [98], narrative: "Hop 53 &rarr; 98 (distance 45).", what: "Services 98.", why: "Arrival 1." },
-        { head: 183, target: "183", hop: 85, total: 130, queue: "[37, 122, 14, 124, 65, 67]", doneCyl: [98, 183], narrative: "Hop 98 &rarr; 183 (distance 85). Wild seek outward.", what: "Services 183.", why: "Arrival 2." },
-        { head: 37, target: "37", hop: 146, total: 276, queue: "[122, 14, 124, 65, 67]", doneCyl: [98, 183, 37], narrative: "Hop 183 &rarr; 37 (distance 146). Wild seek inward across platters!", what: "Thrashing across entire disk.", why: "Arrival 3." },
-        { head: 122, target: "122", hop: 85, total: 361, queue: "[14, 124, 65, 67]", doneCyl: [98, 183, 37, 122], narrative: "Hop 37 &rarr; 122 (distance 85). Reverses outward again.", what: "Back and forth thrashing.", why: "Arrival 4." },
-        { head: 14, target: "14", hop: 108, total: 469, queue: "[124, 65, 67]", doneCyl: [98, 183, 37, 122, 14], narrative: "Hop 122 &rarr; 14 (distance 108). Reverses inward again.", what: "Extreme arm fatigue.", why: "Arrival 5." },
-        { head: 124, target: "124", hop: 110, total: 579, queue: "[65, 67]", doneCyl: [98, 183, 37, 122, 14, 124], narrative: "Hop 14 &rarr; 124 (distance 110). Another full-stroke traversal.", what: "Heavy seek latency.", why: "Arrival 6." },
-        { head: 65, target: "65", hop: 59, total: 638, queue: "[67]", doneCyl: [98, 183, 37, 122, 14, 124, 65], narrative: "Hop 124 &rarr; 65 (distance 59).", what: "Services 65.", why: "Arrival 7." },
-        { head: 67, target: "67 (End)", hop: 2, total: 640, queue: "[All Complete]", doneCyl: [98, 183, 37, 122, 14, 124, 65, 67], narrative: "Finished at 67. Total movement = 640 CYLINDERS! Over 3x worse than SCAN.", what: "Catastrophic head movement.", why: "Proof of why uncoordinated disk scheduling is unacceptable." }
-      ]
-    };
-
-    let activeArmDim = "sstf";
-    let activeArmStep = 0;
-
-    const allCylinders = [14, 37, 65, 67, 98, 122, 124, 183];
-
-    function renderArmStepper() {
-      const steps = armData[activeArmDim];
-      const step = steps[activeArmStep];
-
-      // Telemetry
-      document.getElementById("arm-telem-head").textContent = "Cylinder " + step.head;
-      document.getElementById("arm-telem-target").textContent = step.target;
-      document.getElementById("arm-telem-hop").textContent = step.hop + " Cylinders";
-      document.getElementById("arm-telem-total").textContent = step.total + " Cylinders";
-      document.getElementById("arm-telem-queue").textContent = step.queue;
-
-      // Cursor position
-      const px = cylToPx(step.head);
-      document.getElementById("arm-cursor").setAttribute("transform", "translate(" + px + ", 0)");
-      document.getElementById("arm-cursor-txt").textContent = step.head;
-
-      // Cylinder dots status
-      allCylinders.forEach(c => {
-        const el = document.getElementById("cyl-" + c);
-        if (el) {
-          if (step.doneCyl.includes(c)) {
-            el.setAttribute("fill", "#dcfce7");
-            el.setAttribute("stroke", "#16a34a");
-          } else {
-            el.setAttribute("fill", "#fee2e2");
-            el.setAttribute("stroke", "#dc2626");
-          }
-        }
-      });
-
-      // Controls & Narrative
-      document.getElementById("arm-txt-narrative").innerHTML = step.narrative;
-      document.getElementById("arm-btn-prev").disabled = (activeArmStep === 0);
-      document.getElementById("arm-btn-next").disabled = (activeArmStep === steps.length - 1);
-
-      // Analytical Panes
-      document.getElementById("arm-txt-what").innerHTML = step.what;
-      document.getElementById("arm-txt-why").innerHTML = step.why;
-    }
-
-    function stepArm(delta) {
-      const steps = armData[activeArmDim];
-      activeArmStep = Math.max(0, Math.min(steps.length - 1, activeArmStep + delta));
-      renderArmStepper();
-    }
-
-    function resetArm() {
-      activeArmStep = 0;
-      renderArmStepper();
-    }
-
-    function setArmDim(dim) {
-      activeArmDim = dim;
-      activeArmStep = 0;
-      document.getElementById("arm-dim-sstf").classList.toggle("active", dim === "sstf");
-      document.getElementById("arm-dim-scan").classList.toggle("active", dim === "scan");
-      document.getElementById("arm-dim-clook").classList.toggle("active", dim === "clook");
-      document.getElementById("arm-dim-fcfs").classList.toggle("active", dim === "fcfs");
-
-      let scenarioText = "";
-      if (dim === "sstf") scenarioText = "SSTF (Shortest Seek Time First): Always chooses the pending request closest to the current head cylinder. Minimizes seek distance greedily, but risks starving distant cylinders.";
-      else if (dim === "scan") scenarioText = "SCAN (Elevator Algorithm): The arm sweeps continuously toward cylinder 199, servicing requests along its path, then reverses at the edge and sweeps back.";
-      else if (dim === "clook") scenarioText = "C-LOOK: Optimizes SCAN by bounding sweep to active requests (stops at 183) and performing an immediate fast return jump to 14, guaranteeing uniform wait times.";
-      else if (dim === "fcfs") scenarioText = "FCFS (First-Come First-Served): Baseline naive FIFO scheduling. Demonstrates wild head bouncing and massive mechanical wear.";
-
-      document.getElementById("arm-scenario-text").innerHTML = scenarioText;
-      renderArmStepper();
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      renderArmStepper();
-    });
-  </script>
-</body>
-</html>
-"""
-
-def generate_module_two():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-
-    print(f"--> Successfully created {TARGET_FILE}")
-
+def run_git_sync():
     try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        # Check if old file was in git and remove it
+        subprocess.run(["git", "rm", "-f", OLD_DISK_FILE], stderr=subprocess.DEVNULL)
+        subprocess.run(["git", "add", "fix.py", WEEK5_DIR], check=True)
         commit_msg = (
-            "Add Disk Geometry & Arm Scheduling module in Week 5\n\n"
-            "Cover platters/tracks/sectors, CHS to LBA, seek and rotational math,\n"
-            "SSTF/SCAN/C-LOOK algorithms, and an interactive 200-cylinder arm stepper."
+            "Reconcile Week 5 module numbering and link topology\n\n"
+            "Rename 02-disk-hardware-scheduling to 03-disk-hardware-scheduling,\n"
+            "correct sequential navigation links, and synchronize Week 5 hub index."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -799,4 +130,5 @@ def generate_module_two():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    generate_module_two()
+    reconcile_files()
+    run_git_sync()
