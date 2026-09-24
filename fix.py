@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Expand week02-processes/04-thread-implementation.html
+# fix.py: Rebalance 04-thread-implementation.html across Linux and Windows
 # =====================================================================
 import os
 import subprocess
@@ -12,7 +12,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>04. Thread Implementation &amp; Pthreads | Week 2: Processes &amp; Concurrency</title>
+  <title>04. Thread Implementation &amp; APIs | Week 2: Processes &amp; Concurrency</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -350,43 +350,39 @@ MODULE_HTML = r"""<!DOCTYPE html>
       <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Module 04 (End of Week 2)</span>
     </nav>
 
-    <h2>04. Thread Implementation &amp; Pthreads</h2>
+    <h2>04. Thread Implementation &amp; APIs</h2>
     <p>
-      While the conceptual thread model establishes threads as lightweight units of execution within a shared address space, the critical engineering decision is <em>where</em> those threads are implemented and scheduled: purely in <strong>user space</strong>, directly within the <strong>operating system kernel</strong>, or through a <strong>hybrid</strong> combination of both.
+      While the abstract thread model establishes threads as lightweight units of execution sharing an address space, operating systems differ substantially in how they implement, schedule, and expose threads to user programs. The two dominant modern computing platforms—<strong>Windows NT</strong> and <strong>UNIX/Linux</strong>—solve this fundamental engineering challenge through contrasting architectural philosophies.
     </p>
 
-    <h3>1. User-Level Threads (ULT: Many-to-One Model)</h3>
+    <h3>1. Architectural Implementation Models: ULT vs. KLT</h3>
     <p>
-      In a pure user-level thread implementation, the operating system kernel is completely unaware of multithreading. The kernel treats the entire process as a single, traditional thread of control with a single Process Control Block (PCB).
+      Operating system threads are categorized based on whether execution states are tracked in <strong>user space</strong>, directly within the <strong>operating system kernel</strong>, or through a hybrid combination:
     </p>
+
+    <h4>User-Level Threads (ULT: Many-to-One Model)</h4>
     <p>
-      Multithreading is managed entirely in user space by a runtime library (such as historical GNU Portable Threads or early Java "Green Threads"):
+      In a pure user-level thread implementation, the operating system kernel is completely oblivious to multithreading. The kernel manages only the parent process container as a single scheduling entity with one Process Control Block (PCB).
     </p>
     <ul>
-      <li><strong>User-Space Thread Table:</strong> The runtime library maintains its own private Thread Control Blocks (TCBs) in user memory, tracking the Program Counter, registers, stack pointer, and state (Running, Ready, Blocked) for each thread.</li>
-      <li><strong>User-Space Context Switching:</strong> When a thread yields control (e.g., via <code>thread_yield()</code>), the runtime library saves CPU registers into the thread's user-space TCB, selects another ready thread from its queue, and restores the new thread's registers using machine routines similar to <code>setjmp()</code> and <code>longjmp()</code>.</li>
-      <li><strong>Extreme Context-Switch Economy:</strong> Because the switch involves no supervisor traps, no privilege ring transitions (Ring 3 to Ring 0), and no kernel scheduler invocations, switching threads requires only a handful of CPU assembly instructions, completing in nanoseconds.</li>
+      <li><strong>User-Space Runtime Library:</strong> All thread creation, destruction, and scheduling decisions are handled by a user-space library (such as historical Green Threads, GNU Pth, or modern language coroutines).</li>
+      <li><strong>Thread Switching Speed:</strong> Switching between user threads requires only swapping CPU registers and the stack pointer using unprivileged assembly instructions (analogous to <code>setjmp</code> and <code>longjmp</code>). It incurs zero supervisor trap overhead, completing in nanoseconds.</li>
+      <li><strong>The Inherent Flaws:</strong>
+        <ol>
+          <li><em>The Blocking Call Vulnerability:</em> If any user thread invokes a synchronous, blocking system call (such as reading a disk sector), the kernel halts the entire process because it only sees one kernel thread. All sibling user threads are frozen.</li>
+          <li><em>Lack of Hardware Multiprocessing:</em> Because the kernel assigns at most one physical CPU core to the process, a user-level multithreaded application can never execute across multiple cores simultaneously, regardless of how many cores the machine possesses.</li>
+        </ol>
+      </li>
     </ul>
 
-    <h4>The Two Fatal Flaws of User-Level Threads</h4>
-    <ol>
-      <li>
-        <strong>The Blocking System Call Problem:</strong> If Thread 1 issues a blocking system call (such as a synchronous disk <code>read()</code> or network <code>recv()</code>), the CPU traps into kernel mode. Because the kernel sees only a single monolithic process, <em>the entire process is transitioned to the Blocked state</em>. Even though Threads 2 and 3 in user space are fully ready to perform calculations, the kernel will not schedule the process until the I/O finishes.
-      </li>
-      <li>
-        <strong>Inability to Exploit Multicore Hardware:</strong> Because the kernel allocates only one physical execution slot to the process, all user-level threads must time-share that single kernel thread. Even on a 64-core processor, a user-level multithreaded application can saturate at most one physical CPU core.
-      </li>
-    </ol>
-
-    <h3>2. Kernel-Level Threads (KLT: One-to-One Model)</h3>
+    <h4>Kernel-Level Threads (KLT: One-to-One Model)</h4>
     <p>
-      In a kernel-level thread model, the operating system kernel directly recognizes, creates, and manages every thread of execution. Every user-level thread is mapped one-to-one to an independent kernel scheduling entity.
+      In a 1:1 kernel-level thread model, every user-level thread is backed directly by an official kernel scheduling entity. Both modern <strong>Windows</strong> and <strong>Linux</strong> utilize this model as their primary threading architecture.
     </p>
     <ul>
-      <li><strong>Kernel TCB Management:</strong> The kernel maintains both the process table and an official kernel thread table. Scheduling, prioritization, and preemption are handled directly by the kernel's CPU scheduler.</li>
-      <li><strong>True Hardware Parallelism:</strong> If a process spawns four threads on a quad-core processor, the kernel scheduler assigns each thread to a distinct physical core, executing all four threads simultaneously in silicon.</li>
-      <li><strong>Independent Blocking:</strong> If Thread 1 blocks waiting on disk I/O, the kernel suspends only Thread 1. The kernel scheduler immediately switches the CPU core to Thread 2 or Thread 3 of the same process, preventing the application from freezing.</li>
-      <li><strong>The Context-Switch Tax:</strong> Creating a thread or switching between threads requires a supervisor system call trap (entering Ring 0), saving kernel stack states, and invoking the kernel dispatcher. While substantially cheaper than a full process context switch (because virtual memory page tables remain unchanged), it is orders of magnitude slower than a user-space thread switch.</li>
+      <li><strong>True Multicore Execution:</strong> The kernel scheduler assigns independent threads of the same process to separate physical CPU cores, achieving true simultaneous hardware execution in silicon.</li>
+      <li><strong>Isolated I/O Blocking:</strong> When one thread blocks on disk or network I/O, the kernel puts only that specific thread to sleep, keeping sibling threads executing unimpeded.</li>
+      <li><strong>Context Switch Overhead:</strong> Thread creation, destruction, and context switching require entering supervisor mode (Ring 0) via a system call trap, incurring higher CPU overhead than user-space switches.</li>
     </ul>
 
     <!-- Directed Narrative Stepper Standard: Thread Implementation Models -->
@@ -394,32 +390,32 @@ MODULE_HTML = r"""<!DOCTYPE html>
       <div class="aid-header">
         <h4>Interactive Stepper: Thread Implementation Architectures in Action</h4>
         <div class="dimension-toggles">
-          <button class="dim-btn active" id="dim-ult" onclick="setImplDim('ult')">User-Level Threads (Many-to-One)</button>
-          <button class="dim-btn" id="dim-klt" onclick="setImplDim('klt')">Kernel-Level Threads (One-to-One)</button>
+          <button class="dim-btn active" id="dim-klt" onclick="setImplDim('klt')">Kernel Threads (1:1 Model - Windows &amp; Linux)</button>
+          <button class="dim-btn" id="dim-ult" onclick="setImplDim('ult')">User Threads (Many-to-One - Green Threads / Fibers)</button>
         </div>
       </div>
 
       <div class="scenario-banner">
         <span class="scenario-tag">Scenario Arc</span>
-        <span id="impl-scenario-text">Thread 1 runs compute, Thread 2 issues a blocking disk read(), and Thread 3 is ready to execute. Observing how different implementation models respond to blocking I/O.</span>
+        <span id="impl-scenario-text">Thread 1 runs compute, Thread 2 blocks on a disk read(), and Thread 3 handles background tasks. Observing how kernel-level versus user-level thread managers react to blocking I/O.</span>
       </div>
 
       <div class="telemetry-strip">
         <div class="telemetry-cell">
           <span class="telemetry-label">Active Phase</span>
-          <span class="telemetry-val highlight" id="m-telem-phase">1. Thread 1 Compute Execution</span>
+          <span class="telemetry-val highlight" id="m-telem-phase">1. Multi-Core Execution</span>
         </div>
         <div class="telemetry-cell">
           <span class="telemetry-label">Scheduling Entity</span>
-          <span class="telemetry-val" id="m-telem-sched">User-Space Runtime Library</span>
+          <span class="telemetry-val" id="m-telem-sched">OS Kernel Scheduler</span>
         </div>
         <div class="telemetry-cell">
           <span class="telemetry-label">Kernel Privilege Level</span>
-          <span class="telemetry-val" id="m-telem-ring">Ring 3 (Unprivileged User Mode)</span>
+          <span class="telemetry-val" id="m-telem-ring">Ring 0 Supervised</span>
         </div>
         <div class="telemetry-cell">
           <span class="telemetry-label">Core Saturation</span>
-          <span class="telemetry-val" id="m-telem-cores">1 Physical Core (Bound to Process)</span>
+          <span class="telemetry-val" id="m-telem-cores">3 Cores Saturated</span>
         </div>
       </div>
 
@@ -442,32 +438,44 @@ MODULE_HTML = r"""<!DOCTYPE html>
           <!-- User Space Threads -->
           <g id="box-ut1" transform="translate(60, 40)">
             <rect class="node-box active" width="130" height="65" rx="6"/>
-            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">User Thread 1</text>
+            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">Thread / Fiber 1</text>
             <text id="ut1-sub" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#0284c7">Compute Burst</text>
           </g>
 
           <g id="box-ut2" transform="translate(295, 40)">
             <rect class="node-box" width="130" height="65" rx="6"/>
-            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">User Thread 2</text>
+            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">Thread / Fiber 2</text>
             <text id="ut2-sub" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#64748b">Ready to Read</text>
           </g>
 
           <g id="box-ut3" transform="translate(530, 40)">
             <rect class="node-box" width="130" height="65" rx="6"/>
-            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">User Thread 3</text>
+            <text x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">Thread / Fiber 3</text>
             <text id="ut3-sub" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#64748b">Ready Queue</text>
           </g>
 
           <!-- Mapping Edges -->
-          <path id="map-edge-1" class="flow-edge active" d="M 125 105 L 360 170" marker-end="url(#arrhead-act)" />
-          <path id="map-edge-2" class="flow-edge" d="M 360 105 L 360 170" marker-end="url(#arrhead)" />
-          <path id="map-edge-3" class="flow-edge" d="M 595 105 L 360 170" marker-end="url(#arrhead)" />
+          <path id="map-edge-1" class="flow-edge active" d="M 125 105 L 125 170" marker-end="url(#arrhead-act)" />
+          <path id="map-edge-2" class="flow-edge active" d="M 360 105 L 360 170" marker-end="url(#arrhead-act)" />
+          <path id="map-edge-3" class="flow-edge active" d="M 595 105 L 595 170" marker-end="url(#arrhead-act)" />
 
           <!-- Kernel Space Entities -->
-          <g id="box-kt-shared" transform="translate(260, 170)">
-            <rect id="rect-kt-shared" class="node-box active" width="200" height="65" rx="6"/>
-            <text id="txt-kt-title" x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">1 Kernel Thread (PCB 401)</text>
-            <text id="txt-kt-status" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#0284c7">Allocated to CPU Core 0</text>
+          <g id="box-kt-1" transform="translate(60, 170)">
+            <rect class="node-box active" width="130" height="65" rx="6"/>
+            <text id="txt-kt1-title" x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">Kernel TCB 1</text>
+            <text id="txt-kt1-status" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#0284c7">Core 0: RUNNING</text>
+          </g>
+
+          <g id="box-kt-2" transform="translate(295, 170)">
+            <rect class="node-box" width="130" height="65" rx="6"/>
+            <text id="txt-kt2-title" x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">Kernel TCB 2</text>
+            <text id="txt-kt2-status" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#64748b">Core 1: RUNNING</text>
+          </g>
+
+          <g id="box-kt-3" transform="translate(530, 170)">
+            <rect class="node-box" width="130" height="65" rx="6"/>
+            <text id="txt-kt3-title" x="15" y="26" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">Kernel TCB 3</text>
+            <text id="txt-kt3-status" x="15" y="44" font-family="var(--font-mono)" font-size="10" fill="#64748b">Core 2: RUNNING</text>
           </g>
         </svg>
       </div>
@@ -481,7 +489,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
         </div>
         <div class="narrative-preview-panel">
           <strong>Current Step Summary</strong>
-          <span id="m-txt-narrative">User Thread 1 executes arithmetic instructions inside the user-space runtime. The kernel schedules the single underlying process thread onto CPU Core 0, completely unaware that multiple sub-threads exist.</span>
+          <span id="m-txt-narrative">In a 1:1 kernel thread model, each user thread maps to an independent kernel scheduling object (ETHREAD on Windows, task_struct on Linux). All three physical CPU cores execute instructions concurrently.</span>
         </div>
       </div>
 
@@ -491,105 +499,87 @@ MODULE_HTML = r"""<!DOCTYPE html>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             What Is Happening
           </div>
-          <p class="pane-content" id="m-txt-what">User Thread 1 executes instructions on the CPU via the single kernel thread assigned to this process. Threads 2 and 3 sit inside the user runtime library's ready list.</p>
+          <p class="pane-content" id="m-txt-what">Each thread has a dedicated kernel TCB. The operating system dispatcher maps each thread to a separate hardware core simultaneously.</p>
         </div>
         <div class="pane-card">
           <div class="pane-title why">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
             Why The System Does This
           </div>
-          <p class="pane-content" id="m-txt-why">User-level threads allow applications to implement custom scheduling policies without kernel support, achieving near-zero overhead switches when operations remain non-blocking.</p>
+          <p class="pane-content" id="m-txt-why">Kernel-level threads enable true symmetric multiprocessing (SMP) parallelism, allowing compute-bound applications to scale linearly with physical core counts.</p>
         </div>
       </div>
     </div>
 
-    <h3>3. Hybrid Threading Models (M:N &amp; Two-Level)</h3>
+    <h3>2. The Windows NT Threading Architecture</h3>
     <p>
-      To combine the nanosecond context-switch speed of user-level threads with the multicore parallelism and non-blocking robustness of kernel-level threads, computer scientists developed the <strong>M:N hybrid model</strong> (historically implemented in Solaris Light-Weight Processes and modern language runtimes such as Go's goroutine scheduler):
+      Windows was architected from its inception as a native, multithreaded operating system. Unlike early UNIX implementations where threads were bolted onto existing process models, Windows treats the <strong>thread as the fundamental unit of CPU execution</strong> and the <strong>process as a passive resource container</strong>.
+    </p>
+
+    <h4>The Kernel Representation: ETHREAD and KTHREAD</h4>
+    <p>
+      Within the Windows NT kernel, every thread is represented by a two-tiered data structure:
     </p>
     <ul>
-      <li>$M$ user-level application threads are dynamically multiplexed over a smaller pool of $N$ kernel-level worker threads.</li>
-      <li>If a user thread executes compute-bound code, it switches in user space without entering the kernel.</li>
-      <li>If a user thread issues a blocking I/O system call, the kernel blocks only that specific underlying kernel worker thread. The user-space runtime immediately migrates the remaining runnable user threads to other surviving kernel worker threads.</li>
-      <li><strong>Scheduler Activations &amp; Upcalls:</strong> To coordinate state between user space and kernel space without polling, the kernel uses <em>upcalls</em>—the kernel signals the user runtime when a thread blocks or unblocks, allowing the user scheduler to rebalance work dynamically.</li>
+      <li><strong>ETHREAD (Executive Thread Block):</strong> Resides in the Windows Executive layer (upper kernel mode). It encapsulates higher-level management data: the thread's access token, process ownership pointer (to <code>EPROCESS</code>), thread impersonation security contexts, I/O request lists (IRP list), and cross-thread communication endpoints.</li>
+      <li><strong>KTHREAD (Kernel Thread Block):</strong> Embedded directly within the <code>ETHREAD</code> structure, it resides in the Windows Microkernel layer. It contains hardware-critical execution state: the kernel execution stack, machine register context, hardware scheduling priority (0 to 31), processor affinity masks, dispatching state (Ready, Running, Standby, Waiting), and quantum counters.</li>
     </ul>
 
-    <h3>4. The POSIX Threads (Pthreads) Standard</h3>
+    <h4>The Win32 Thread Management API</h4>
     <p>
-      To ensure source-code portability across diverse UNIX and POSIX-compliant operating systems, the IEEE standardized the <strong>POSIX 1003.1c standard</strong>, commonly known as <strong>Pthreads</strong>. Pthreads defines an explicit C language interface for thread creation, lifecycle synchronization, and mutual exclusion.
+      Windows exposes thread lifecycle and synchronization management via the Win32 subsystem API:
     </p>
+    <pre><code><span class="syn-kwd">#include</span> <span class="syn-var">&lt;windows.h&gt;</span>
+<span class="syn-kwd">#include</span> <span class="syn-var">&lt;stdio.h&gt;</span>
 
-    <h4>Core Pthreads Lifecycle API</h4>
-    <div style="overflow-x: auto; margin: 16px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 14px;">Function Prototype</th>
-            <th style="padding: 10px 14px;">Operational Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px;"><code>int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);</code></td>
-            <td style="padding: 10px 14px;">Spawns a new thread executing <code>start_routine(arg)</code> with configurable stack and scheduling attributes.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px;"><code>int pthread_join(pthread_t thread, void **retval);</code></td>
-            <td style="padding: 10px 14px;">Blocks calling thread until the target <code>thread</code> terminates, reaping its return pointer and resources (similar to <code>waitpid</code>).</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px;"><code>int pthread_detach(pthread_t thread);</code></td>
-            <td style="padding: 10px 14px;">Marks thread as detached; its storage is automatically reclaimed by the runtime immediately upon termination without requiring a join.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px;"><code>void pthread_exit(void *retval);</code></td>
-            <td style="padding: 10px 14px;">Terminates the calling thread voluntarily, passing <code>retval</code> to any waiting <code>pthread_join()</code> invocation.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+<span class="syn-type">CRITICAL_SECTION</span> <span class="syn-var">cs</span><span class="syn-punc">;</span>
+<span class="syn-type">LONG</span> <span class="syn-var">shared_val</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
 
-    <h4>Concrete Pthreads Implementation Example</h4>
-    <p>
-      The following C program demonstrates thread creation, argument passing via heap structures, thread synchronization via joining, and mutual exclusion locking:
-    </p>
-    <pre><code><span class="syn-kwd">#include</span> <span class="syn-var">&lt;stdio.h&gt;</span>
-<span class="syn-kwd">#include</span> <span class="syn-var">&lt;stdlib.h&gt;</span>
-<span class="syn-kwd">#include</span> <span class="syn-var">&lt;pthread.h&gt;</span>
-
-<span class="syn-type">pthread_mutex_t</span> <span class="syn-var">lock</span> <span class="syn-punc">=</span> <span class="syn-var">PTHREAD_MUTEX_INITIALIZER</span><span class="syn-punc">;</span>
-<span class="syn-type">long</span> <span class="syn-var">shared_counter</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
-
-<span class="syn-type">void</span> <span class="syn-punc">*</span><span class="syn-fn">worker_routine</span><span class="syn-punc">(</span><span class="syn-type">void</span> <span class="syn-punc">*</span><span class="syn-var">arg</span><span class="syn-punc">) {</span>
-    <span class="syn-type">long</span> <span class="syn-var">iterations</span> <span class="syn-punc">= *(</span><span class="syn-type">long</span> <span class="syn-punc">*)</span><span class="syn-var">arg</span><span class="syn-punc">;</span>
-    <span class="syn-kwd">for</span> <span class="syn-punc">(</span><span class="syn-type">long</span> <span class="syn-var">i</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span> <span class="syn-var">i</span> <span class="syn-punc">&lt;</span> <span class="syn-var">iterations</span><span class="syn-punc">;</span> <span class="syn-var">i</span><span class="syn-punc">++) {</span>
-        <span class="syn-fn">pthread_mutex_lock</span><span class="syn-punc">(&amp;</span><span class="syn-var">lock</span><span class="syn-punc">);</span>
-        <span class="syn-var">shared_counter</span><span class="syn-punc">++;</span>  <span class="syn-cmt">/* Critical section guarded by mutex */</span>
-        <span class="syn-fn">pthread_mutex_unlock</span><span class="syn-punc">(&amp;</span><span class="syn-var">lock</span><span class="syn-punc">);</span>
+<span class="syn-type">DWORD</span> <span class="syn-var">WINAPI</span> <span class="syn-fn">WorkerRoutine</span><span class="syn-punc">(</span><span class="syn-type">LPVOID</span> <span class="syn-var">lpParam</span><span class="syn-punc">) {</span>
+    <span class="syn-type">LONG</span> <span class="syn-var">iterations</span> <span class="syn-punc">= *(</span><span class="syn-type">LONG</span><span class="syn-punc">*)</span><span class="syn-var">lpParam</span><span class="syn-punc">;</span>
+    <span class="syn-kwd">for</span> <span class="syn-punc">(</span><span class="syn-type">LONG</span> <span class="syn-var">i</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span> <span class="syn-var">i</span> <span class="syn-punc">&lt;</span> <span class="syn-var">iterations</span><span class="syn-punc">;</span> <span class="syn-var">i</span><span class="syn-punc">++) {</span>
+        <span class="syn-fn">EnterCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
+        <span class="syn-var">shared_val</span><span class="syn-punc">++;</span>  <span class="syn-cmt">/* Fast user-mode mutual exclusion */</span>
+        <span class="syn-fn">LeaveCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
     <span class="syn-punc">}</span>
-    <span class="syn-kwd">return</span> <span class="syn-var">NULL</span><span class="syn-punc">;</span>
+    <span class="syn-kwd">return</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
 <span class="syn-punc">}</span>
 
 <span class="syn-type">int</span> <span class="syn-fn">main</span><span class="syn-punc">() {</span>
-    <span class="syn-type">pthread_t</span> <span class="syn-var">t1</span><span class="syn-punc">,</span> <span class="syn-var">t2</span><span class="syn-punc">;</span>
-    <span class="syn-type">long</span> <span class="syn-var">counts</span> <span class="syn-punc">=</span> <span class="syn-var">1000000</span><span class="syn-punc">;</span>
+    <span class="syn-type">HANDLE</span> <span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">2</span><span class="syn-punc">];</span>
+    <span class="syn-type">LONG</span> <span class="syn-var">loop_count</span> <span class="syn-punc">=</span> <span class="syn-var">500000</span><span class="syn-punc">;</span>
 
-    <span class="syn-fn">pthread_create</span><span class="syn-punc">(&amp;</span><span class="syn-var">t1</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">worker_routine</span><span class="syn-punc">, &amp;</span><span class="syn-var">counts</span><span class="syn-punc">);</span>
-    <span class="syn-fn">pthread_create</span><span class="syn-punc">(&amp;</span><span class="syn-var">t2</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">worker_routine</span><span class="syn-punc">, &amp;</span><span class="syn-var">counts</span><span class="syn-punc">);</span>
+    <span class="syn-fn">InitializeCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
 
-    <span class="syn-fn">pthread_join</span><span class="syn-punc">(</span><span class="syn-var">t1</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
-    <span class="syn-fn">pthread_join</span><span class="syn-punc">(</span><span class="syn-var">t2</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
+    <span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">0</span><span class="syn-punc">] =</span> <span class="syn-fn">CreateThread</span><span class="syn-punc">(</span><span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">WorkerRoutine</span><span class="syn-punc">, &amp;</span><span class="syn-var">loop_count</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
+    <span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">1</span><span class="syn-punc">] =</span> <span class="syn-fn">CreateThread</span><span class="syn-punc">(</span><span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">WorkerRoutine</span><span class="syn-punc">, &amp;</span><span class="syn-var">loop_count</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
 
-    <span class="syn-fn">printf</span><span class="syn-punc">(</span><span class="syn-var">"Final Counter: %ld\n"</span><span class="syn-punc">,</span> <span class="syn-var">shared_counter</span><span class="syn-punc">);</span>
+    <span class="syn-cmt">/* Synchronize with all worker threads simultaneously */</span>
+    <span class="syn-fn">WaitForMultipleObjects</span><span class="syn-punc">(</span><span class="syn-var">2</span><span class="syn-punc">,</span> <span class="syn-var">hThreads</span><span class="syn-punc">,</span> <span class="syn-var">TRUE</span><span class="syn-punc">,</span> <span class="syn-var">INFINITE</span><span class="syn-punc">);</span>
+
+    <span class="syn-fn">CloseHandle</span><span class="syn-punc">(</span><span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">0</span><span class="syn-punc">]);</span>
+    <span class="syn-fn">CloseHandle</span><span class="syn-punc">(</span><span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">1</span><span class="syn-punc">]);</span>
+    <span class="syn-fn">DeleteCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
     <span class="syn-kwd">return</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
 <span class="syn-punc">}</span></code></pre>
 
-    <h4>5. Linux Native POSIX Thread Library (NPTL) &amp; clone(2)</h4>
+    <h4>Windows Fibers: Cooperative User-Mode Scheduling</h4>
     <p>
-      Linux implements Pthreads using the Native POSIX Thread Library (NPTL). Underneath the POSIX wrapper, the Linux kernel does not have a separate data structure for threads versus processes. Instead, every execution context is represented uniformly by a <code>struct task_struct</code>.
+      In addition to native kernel threads, Windows natively implements <strong>Fibers</strong>—a pure user-level, cooperative threading mechanism (Many-to-One / Many-to-Many):
+    </p>
+    <ul>
+      <li>A thread converts itself to a fiber by calling <code>ConvertThreadToFiber()</code>.</li>
+      <li>Additional fibers are created in user space via <code>CreateFiber()</code>. Each fiber possesses its own private execution stack and user-mode context, but shares the underlying kernel thread.</li>
+      <li>Fibers yield control explicitly using <code>SwitchToFiber(lpFiber)</code>. The switch executes entirely in User Mode (Ring 3) without kernel intervention.</li>
+      <li><em>Engineering Context:</em> Microsoft originally introduced Fibers to simplify porting existing UNIX database engines (such as early Microsoft SQL Server architectures based on Sybase) that relied heavily on user-space thread schedulers.</li>
+    </ul>
+
+    <h3>3. The Linux NPTL Architecture &amp; clone(2)</h3>
+    <p>
+      Linux approaches threading from an entirely different conceptual angle. Rather than distinguishing sharply between a "process" object and a "thread" object, the Linux kernel manages all execution contexts uniformly as <strong>tasks</strong>, represented by <code>struct task_struct</code>.
     </p>
     <p>
-      The <code>pthread_create()</code> library function invokes the versatile Linux <strong><code>clone(2)</code></strong> system call, supplying explicit sharing flags that govern resource inheritance:
+      In Linux, whether an execution entity acts as a separate process with complete memory isolation or as a thread sharing memory is simply a matter of configuration flags passed to the <strong><code>clone(2)</code></strong> system call:
     </p>
     <pre><code><span class="syn-type">int</span> <span class="syn-var">tid</span> <span class="syn-punc">=</span> <span class="syn-fn">clone</span><span class="syn-punc">(</span><span class="syn-var">worker_func</span><span class="syn-punc">,</span> <span class="syn-var">child_stack_top</span><span class="syn-punc">,</span>
                 <span class="syn-var">CLONE_VM</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FS</span> <span class="syn-punc">|</span> <span class="syn-var">CLONE_FILES</span> <span class="syn-punc">|</span>
@@ -597,12 +587,51 @@ MODULE_HTML = r"""<!DOCTYPE html>
                 <span class="syn-var">arg</span><span class="syn-punc">);</span></code></pre>
 
     <ul>
-      <li><code>CLONE_VM</code>: The new task shares the exact same virtual memory page tables as the caller, pointing to the same Memory Descriptor (<code>mm_struct</code>).</li>
-      <li><code>CLONE_FILES</code>: The new task shares the file descriptor table; an <code>open()</code> or <code>close()</code> in one thread is immediately visible to all other threads.</li>
-      <li><code>CLONE_FS</code>: The new task shares filesystem attributes (working directory, root directory, umask).</li>
-      <li><code>CLONE_SIGHAND</code>: The new task shares signal handlers and dispositions.</li>
-      <li><code>CLONE_THREAD</code>: The new task is placed in the same thread group as the caller, assigning it the same visible Process ID (PID) while retaining its own unique Thread ID (TID).</li>
+      <li><code>CLONE_VM</code>: Both tasks share the exact same virtual memory address space (same page tables and same <code>mm_struct</code>).</li>
+      <li><code>CLONE_FILES</code>: Both tasks share the same open file descriptor table.</li>
+      <li><code>CLONE_SIGHAND</code>: Both tasks share signal actions and handlers.</li>
+      <li><code>CLONE_THREAD</code>: The new task joins the thread group of the caller. To userspace utilities (like <code>getpid()</code>), all threads in the group report the same Process ID (PID), while the kernel identifies each thread uniquely by its Thread ID (TID, retrieved via <code>gettid()</code>).</li>
     </ul>
+
+    <h3>4. Direct Architectural Comparison: Windows vs. POSIX/Linux</h3>
+    <div style="overflow-x: auto; margin: 20px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px; width: 25%;">Feature / Mechanism</th>
+            <th style="padding: 10px 14px; width: 37%;">Windows NT (Win32)</th>
+            <th style="padding: 10px 14px; width: 38%;">UNIX / Linux (POSIX / NPTL)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Kernel Representation</td>
+            <td style="padding: 10px 14px;">Dedicated <code>ETHREAD</code> and <code>KTHREAD</code> objects in Executive/Kernel.</td>
+            <td style="padding: 10px 14px;">Unified <code>struct task_struct</code> (treated as a task with shared pointers).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Thread Creation API</td>
+            <td style="padding: 10px 14px;"><code>CreateThread()</code> / <code>_beginthreadex()</code></td>
+            <td style="padding: 10px 14px;"><code>pthread_create()</code> (wraps <code>clone(2)</code>)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Synchronization Model</td>
+            <td style="padding: 10px 14px;">Object Handles: <code>WaitForSingleObject</code>, <code>CRITICAL_SECTION</code>.</td>
+            <td style="padding: 10px 14px;">Pthreads Primitives: <code>pthread_mutex_t</code>, <code>pthread_cond_t</code>.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Hardware TLS Register</td>
+            <td style="padding: 10px 14px;"><code>%gs</code> segment register points to Thread Information Block (TIB).</td>
+            <td style="padding: 10px 14px;"><code>%fs</code> segment register points to Thread Control Block (TCB).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">User-Space Cooperative Model</td>
+            <td style="padding: 10px 14px;">Native Win32 <strong>Fibers</strong> (<code>CreateFiber</code>, <code>SwitchToFiber</code>).</td>
+            <td style="padding: 10px 14px;">Language runtimes (goroutines) or POSIX <code>ucontext_t</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="03-classical-threads.html">&larr; Previous: 03. Classical Threads</a>
@@ -613,22 +642,89 @@ MODULE_HTML = r"""<!DOCTYPE html>
 
   <script>
     const implSteps = {
+      klt: [
+        {
+          phase: "1. Multi-Core Execution (Windows & Linux)",
+          sched: "OS Kernel Scheduler (SMP)",
+          ring: "Ring 0 Supervised",
+          cores: "3 Cores Saturated",
+          ut1State: "Active on Core 0",
+          ut2State: "Active on Core 1",
+          ut3State: "Active on Core 2",
+          kt1Status: "Core 0: RUNNING",
+          kt2Status: "Core 1: RUNNING",
+          kt3Status: "Core 2: RUNNING",
+          ut1BoxClass: "node-box active",
+          ut2BoxClass: "node-box active",
+          ut3BoxClass: "node-box active",
+          kt1BoxClass: "node-box active",
+          kt2BoxClass: "node-box active",
+          kt3BoxClass: "node-box active",
+          narrative: "In a 1:1 kernel thread model (Windows ETHREAD or Linux task_struct), each user thread maps to an independent kernel scheduling object. All three physical CPU cores execute instructions concurrently.",
+          what: "Each thread has a dedicated kernel TCB. The operating system dispatcher maps each thread to a separate hardware core simultaneously.",
+          why: "Kernel-level threads enable true symmetric multiprocessing (SMP) parallelism, allowing compute-bound applications to scale linearly with physical core counts."
+        },
+        {
+          phase: "2. Thread 2 Blocks on I/O (Isolated Sleep)",
+          sched: "Kernel Traps & Suspends Only Thread 2",
+          ring: "Ring 0 Trap Handled",
+          cores: "2 Cores Active (Core 0 & Core 2)",
+          ut1State: "RUNNING on Core 0",
+          ut2State: "BLOCKED on Disk I/O",
+          ut3State: "RUNNING on Core 2",
+          kt1Status: "Core 0: RUNNING",
+          kt2Status: "Wait Queue: SLEEP",
+          kt3Status: "Core 2: RUNNING",
+          ut1BoxClass: "node-box active",
+          ut2BoxClass: "node-box blocked",
+          ut3BoxClass: "node-box active",
+          kt1BoxClass: "node-box active",
+          kt2BoxClass: "node-box blocked",
+          kt3BoxClass: "node-box active",
+          narrative: "Thread 2 executes a synchronous read() call. The kernel traps into Ring 0 and transitions ONLY Thread 2 into the I/O wait queue. Threads 1 and 3 continue executing on their respective cores without interruption.",
+          what: "The kernel updates TCB 2 to BLOCKED and yields Core 1, while leaving TCB 1 and TCB 3 executing unimpeded on Core 0 and Core 2.",
+          why: "Because the kernel maintains independent execution state for every thread, blocking operations are isolated to the faulting thread alone."
+        },
+        {
+          phase: "3. I/O Completion & Multi-Core Re-Dispatch",
+          sched: "Hardware Interrupt Wakes Thread 2",
+          ring: "Kernel IRQ Vector Handled",
+          cores: "All 3 Cores Saturated",
+          ut1State: "Compute Finished",
+          ut2State: "I/O Done (Resumed)",
+          ut3State: "Processing Results",
+          kt1Status: "Core 0: RUNNING",
+          kt2Status: "Core 1: DISPATCHED",
+          kt3Status: "Core 2: RUNNING",
+          ut1BoxClass: "node-box active",
+          ut2BoxClass: "node-box active",
+          ut3BoxClass: "node-box active",
+          kt1BoxClass: "node-box active",
+          kt2BoxClass: "node-box active",
+          kt3BoxClass: "node-box active",
+          narrative: "The disk controller completes the transfer and triggers a hardware interrupt. The kernel awakens Thread 2, marks it Ready, and dispatches it to an idle core. All threads continue progressing concurrently.",
+          what: "The kernel's disk interrupt handler moves TCB 2 from Blocked to Ready, restoring its execution context without user-space runtime intervention.",
+          why: "Kernel-level multithreading guarantees optimal CPU utilization and high responsiveness, forming the foundation of modern POSIX/Linux and Windows systems."
+        }
+      ],
       ult: [
         {
-          phase: "1. Thread 1 Compute Execution",
-          sched: "User Runtime Library",
+          phase: "1. User-Space Execution (Many-to-One)",
+          sched: "User Runtime Library / Fiber Manager",
           ring: "Ring 3 (Unprivileged User Mode)",
           cores: "1 Physical Core (Bound to Process)",
           ut1State: "Compute Burst",
           ut2State: "Ready to Read",
           ut3State: "Ready Queue",
-          ktTitle: "1 Kernel Thread (PCB 401)",
-          ktStatus: "Allocated to CPU Core 0",
+          kt1Status: "Allocated to Core 0",
+          kt2Status: "Unmapped",
+          kt3Status: "Unmapped",
           ut1BoxClass: "node-box active",
           ut2BoxClass: "node-box",
           ut3BoxClass: "node-box",
-          ktBoxClass: "node-box active",
-          activeEdge: "map-edge-1",
+          kt1BoxClass: "node-box active",
+          kt2BoxClass: "node-box",
+          kt3BoxClass: "node-box",
           narrative: "User Thread 1 executes arithmetic instructions inside the user-space runtime. The kernel schedules the single underlying process thread onto CPU Core 0, completely unaware that multiple sub-threads exist.",
           what: "User Thread 1 executes instructions on the CPU via the single kernel thread assigned to this process. Threads 2 and 3 sit inside the user runtime library's ready list.",
           why: "User-level threads allow applications to implement custom scheduling policies without kernel support, achieving near-zero overhead switches when operations remain non-blocking."
@@ -641,99 +737,44 @@ MODULE_HTML = r"""<!DOCTYPE html>
           ut1State: "Yielded to T2",
           ut2State: "TRAPPED: read() Syscall",
           ut3State: "Ready Queue",
-          ktTitle: "1 Kernel Thread (PCB 401)",
-          ktStatus: "Trapped in sys_read()",
+          kt1Status: "Trapped in sys_read()",
+          kt2Status: "Unmapped",
+          kt3Status: "Unmapped",
           ut1BoxClass: "node-box",
           ut2BoxClass: "node-box active",
           ut3BoxClass: "node-box",
-          ktBoxClass: "node-box active",
-          activeEdge: "map-edge-2",
-          narrative: "User Thread 2 issues a blocking disk read() system call. The CPU transitions into Ring 0 supervisor mode. Because the kernel only knows about PCB 401, it prepares to suspend the entire process.",
+          kt1BoxClass: "node-box active",
+          kt2BoxClass: "node-box",
+          kt3BoxClass: "node-box",
+          narrative: "User Thread 2 issues a blocking disk read() system call. The CPU transitions into Ring 0 supervisor mode. Because the kernel only knows about the single process thread, it prepares to suspend the entire process.",
           what: "Thread 2 executes a syscall trap instruction. The kernel receives the request and issues an unbuffered block fetch command to the disk controller.",
-          why: "The kernel cannot selectively schedule user threads it cannot see. To the kernel, process 401 is a single execution stream that has just blocked."
+          why: "The kernel cannot selectively schedule user threads it cannot see. To the kernel, the process is a single execution stream that has just blocked."
         },
         {
-          phase: "3. Entire Process Blocked (Fatal ULT Flaw)",
+          phase: "3. Entire Process Frozen (Fatal Many-to-One Flaw)",
           sched: "Kernel Scheduler (Process Suspended)",
           ring: "Kernel Mode Suspension",
           cores: "0 Cores Active (Process Stalled)",
           ut1State: "STALLED (Process Blocked)",
           ut2State: "BLOCKED ON DISK",
           ut3State: "STALLED (Starved in User Ready)",
-          ktTitle: "1 Kernel Thread (PCB 401)",
-          ktStatus: "BLOCKED in Wait Queue",
+          kt1Status: "BLOCKED in Wait Queue",
+          kt2Status: "Unmapped",
+          kt3Status: "Unmapped",
           ut1BoxClass: "node-box blocked",
           ut2BoxClass: "node-box blocked",
           ut3BoxClass: "node-box blocked",
-          ktBoxClass: "node-box blocked",
-          activeEdge: "map-edge-2",
+          kt1BoxClass: "node-box blocked",
+          kt2BoxClass: "node-box",
+          kt3BoxClass: "node-box",
           narrative: "The entire process is placed in the kernel's Blocked queue. Even though Thread 3 has compute work ready to execute, it cannot run because the process's sole kernel thread is suspended. This illustrates the primary vulnerability of pure user-level threads.",
-          what: "The kernel marks PCB 401 as BLOCKED and removes it from the CPU runqueue. All user threads are starved of CPU time.",
+          what: "The kernel marks the process as BLOCKED and removes it from the CPU runqueue. All user threads are starved of CPU time.",
           why: "Without scheduler activations or non-blocking system call wrappers, a blocking call in one thread inadvertently freezes all sibling threads."
-        }
-      ],
-      klt: [
-        {
-          phase: "1. Multi-Core Kernel Thread Execution",
-          sched: "Operating System Kernel Scheduler",
-          ring: "Hardware SMP Execution",
-          cores: "3 Physical Cores (Cores 0, 1, 2)",
-          ut1State: "Active on Core 0",
-          ut2State: "Active on Core 1",
-          ut3State: "Active on Core 2",
-          ktTitle: "3 Kernel Threads (TCB 1, 2, 3)",
-          ktStatus: "Mapped 1:1 to Hardware Cores",
-          ut1BoxClass: "node-box active",
-          ut2BoxClass: "node-box active",
-          ut3BoxClass: "node-box active",
-          ktBoxClass: "node-box active",
-          activeEdge: null,
-          narrative: "In a Kernel-Level Thread (KLT) model, all three threads are mapped 1:1 to official kernel TCBs. The kernel scheduler assigns Thread 1 to Core 0, Thread 2 to Core 1, and Thread 3 to Core 2, executing all three simultaneously in silicon.",
-          what: "Each thread has a dedicated entry in the kernel's task table. The operating system schedules them across available physical CPU cores simultaneously.",
-          why: "Kernel-level threads enable true symmetric multiprocessing (SMP) parallelism, allowing compute-bound applications to scale linearly with core counts."
-        },
-        {
-          phase: "2. Thread 2 Blocks on read() System Call",
-          sched: "Kernel Suspends Only TCB 2",
-          ring: "Selective Thread Suspension",
-          cores: "2 Cores Active (Cores 0 & 2 Running)",
-          ut1State: "RUNNING on Core 0",
-          ut2State: "BLOCKED on Disk I/O",
-          ut3State: "RUNNING on Core 2",
-          ktTitle: "TCB 1 (Run) | TCB 2 (Block) | TCB 3 (Run)",
-          ktStatus: "Core 0 & Core 2 Saturated",
-          ut1BoxClass: "node-box active",
-          ut2BoxClass: "node-box blocked",
-          ut3BoxClass: "node-box active",
-          ktBoxClass: "node-box active",
-          activeEdge: "map-edge-2",
-          narrative: "Thread 2 calls read() and blocks on disk I/O. The kernel suspends ONLY Thread 2. Threads 1 and 3 continue running at full speed on their respective CPU cores without interruption.",
-          what: "The kernel updates TCB 2 to BLOCKED and yields Core 1, while leaving TCB 1 and TCB 3 executing unimpeded on Core 0 and Core 2.",
-          why: "Because the kernel maintains independent execution state for every thread, blocking operations are isolated to the faulting thread alone."
-        },
-        {
-          phase: "3. I/O Done & Transparent Resumption",
-          sched: "Kernel Interrupt Handler",
-          ring: "IRQ Vector Wakeup & Dispatch",
-          cores: "All 3 Cores Active",
-          ut1State: "Compute Finished",
-          ut2State: "I/O Complete (Resumed)",
-          ut3State: "Processing Results",
-          ktTitle: "3 Kernel Threads (All Runnable)",
-          ktStatus: "Core 1 Re-dispatched",
-          ut1BoxClass: "node-box active",
-          ut2BoxClass: "node-box active",
-          ut3BoxClass: "node-box active",
-          ktBoxClass: "node-box active",
-          activeEdge: "map-edge-2",
-          narrative: "The disk controller raises an interrupt upon DMA completion. The kernel marks TCB 2 as Ready, dispatches it to an idle core, and all threads progress concurrently. This demonstrates the robustness of the 1:1 kernel thread model.",
-          what: "The kernel's disk interrupt handler moves TCB 2 from Blocked to Ready, restoring its execution context without user-space runtime intervention.",
-          why: "Kernel-level multithreading guarantees optimal CPU utilization and high responsiveness, forming the foundation of modern POSIX/Linux systems."
         }
       ]
     };
 
-    let activeImplDim = "ult";
+    let activeImplDim = "klt";
     let activeImplStep = 0;
 
     function renderImplStepper() {
@@ -750,28 +791,19 @@ MODULE_HTML = r"""<!DOCTYPE html>
       document.getElementById("ut1-sub").textContent = step.ut1State;
       document.getElementById("ut2-sub").textContent = step.ut2State;
       document.getElementById("ut3-sub").textContent = step.ut3State;
-      document.getElementById("txt-kt-title").textContent = step.ktTitle;
-      document.getElementById("txt-kt-status").textContent = step.ktStatus;
+      document.getElementById("txt-kt1-status").textContent = step.kt1Status;
+      document.getElementById("txt-kt2-status").textContent = step.kt2Status;
+      document.getElementById("txt-kt3-status").textContent = step.kt3Status;
 
       // Update SVG Node Classes
       document.getElementById("box-ut1").querySelector(".node-box").className.baseVal = step.ut1BoxClass;
       document.getElementById("box-ut2").querySelector(".node-box").className.baseVal = step.ut2BoxClass;
       document.getElementById("box-ut3").querySelector(".node-box").className.baseVal = step.ut3BoxClass;
-      document.getElementById("rect-kt-shared").className.baseVal = step.ktBoxClass;
+      document.getElementById("box-kt-1").querySelector(".node-box").className.baseVal = step.kt1BoxClass;
+      document.getElementById("box-kt-2").querySelector(".node-box").className.baseVal = step.kt2BoxClass;
+      document.getElementById("box-kt-3").querySelector(".node-box").className.baseVal = step.kt3BoxClass;
 
-      // Update Edges
-      ["map-edge-1", "map-edge-2", "map-edge-3"].forEach(id => {
-        const edge = document.getElementById(id);
-        if (id === step.activeEdge) {
-          edge.className.baseVal = "flow-edge active";
-          edge.setAttribute("marker-end", "url(#arrhead-act)");
-        } else {
-          edge.className.baseVal = "flow-edge";
-          edge.setAttribute("marker-end", "url(#arrhead)");
-        }
-      });
-
-      // Update Dedicated Narrative Summary Panel
+      // Update Narrative Panel
       document.getElementById("m-txt-narrative").textContent = step.narrative;
       document.getElementById("m-btn-prev").disabled = (activeImplStep === 0);
       document.getElementById("m-btn-next").disabled = (activeImplStep === steps.length - 1);
@@ -795,12 +827,32 @@ MODULE_HTML = r"""<!DOCTYPE html>
     function setImplDim(dim) {
       activeImplDim = dim;
       activeImplStep = 0;
-      document.getElementById("dim-ult").classList.toggle("active", dim === "ult");
       document.getElementById("dim-klt").classList.toggle("active", dim === "klt");
+      document.getElementById("dim-ult").classList.toggle("active", dim === "ult");
 
-      const scenarioText = dim === "ult"
-        ? "Thread 1 runs compute, Thread 2 issues a blocking disk read(), and Thread 3 is ready to execute. In a Many-to-One model, one blocked call stalls the entire process."
-        : "Thread 1 runs compute on Core 0, Thread 2 blocks on read(), and Thread 3 runs on Core 2. In a One-to-One kernel model, blocking calls are isolated to the calling thread.";
+      const isKlt = (dim === "klt");
+      document.getElementById("txt-kt1-title").textContent = isKlt ? "Kernel TCB 1" : "Single Process PCB";
+      document.getElementById("txt-kt2-title").textContent = isKlt ? "Kernel TCB 2" : "No Kernel Object";
+      document.getElementById("txt-kt3-title").textContent = isKlt ? "Kernel TCB 3" : "No Kernel Object";
+
+      // Mapping Edges in Many-to-One vs One-to-One
+      const edge1 = document.getElementById("map-edge-1");
+      const edge2 = document.getElementById("map-edge-2");
+      const edge3 = document.getElementById("map-edge-3");
+
+      if (isKlt) {
+        edge1.setAttribute("d", "M 125 105 L 125 170");
+        edge2.setAttribute("d", "M 360 105 L 360 170");
+        edge3.setAttribute("d", "M 595 105 L 595 170");
+      } else {
+        edge1.setAttribute("d", "M 125 105 L 125 170");
+        edge2.setAttribute("d", "M 360 105 L 125 170");
+        edge3.setAttribute("d", "M 595 105 L 125 170");
+      }
+
+      const scenarioText = isKlt
+        ? "Thread 1 runs compute, Thread 2 blocks on a disk read(), and Thread 3 handles background tasks. In a 1:1 kernel model (Windows & Linux), blocking calls are isolated to the calling thread."
+        : "Thread 1 runs compute, Thread 2 issues a blocking disk read(), and Thread 3 is ready. In a Many-to-One model (User Threads / Fibers), one blocked call stalls the entire process.";
       document.getElementById("impl-scenario-text").innerHTML = scenarioText;
 
       renderImplStepper();
@@ -814,19 +866,19 @@ MODULE_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def execute_expansion():
+def execute_rebalance():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully expanded Module 04 in {TARGET_FILE}")
+    print(f"--> Successfully rebalanced {TARGET_FILE} across Linux and Windows.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand 04-thread-implementation.html with thread models and Pthreads\n\n"
-            "Add comprehensive technical depth covering user-level threads, kernel\n"
-            "threads, hybrid models, NPTL clone flags, and a dual-model stepper."
+            "Rebalance Module 04 to cover Windows NT threading and Win32 Fibers\n\n"
+            "Incorporate Windows NT kernel thread mechanics (ETHREAD/KTHREAD), Win32\n"
+            "primitives, and Fibers alongside Linux NPTL clone flags and POSIX Pthreads."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -835,4 +887,4 @@ def execute_expansion():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    execute_expansion()
+    execute_rebalance()
