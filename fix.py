@@ -1,14 +1,29 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create and deploy the Week 6 Hub Index (index.html)
+# fix.py: Consolidate and streamline Week 6 Synchronization & Deadlock
 # =====================================================================
 import os
+import shutil
 import subprocess
 
-TARGET_DIR = "week06-synchronization-and-deadlock"
-TARGET_FILE = os.path.join(TARGET_DIR, "index.html")
+SRC_DIR = "week06-synchronisation-and-deadlock"
+CANONICAL_DIR = "week06-synchronization-and-deadlock"
 
-INDEX_CONTENT = r"""<!DOCTYPE html>
+# 1. Copy over interactive visualizers from the alternate directory if needed
+if os.path.exists(SRC_DIR):
+    os.makedirs(CANONICAL_DIR, exist_ok=True)
+    for fname in os.listdir(SRC_DIR):
+        src_file = os.path.join(SRC_DIR, fname)
+        dst_file = os.path.join(CANONICAL_DIR, fname)
+        # Don't overwrite the canonical index.html
+        if fname == "index.html" and os.path.exists(dst_file):
+            continue
+        if os.path.isfile(src_file) and not os.path.exists(dst_file):
+            shutil.copy2(src_file, dst_file)
+            print(f"--> Preserved interactive tool: {fname}")
+
+# 2. Re-write the Week 6 Hub (index.html) with full links to Modules & Tools
+HUB_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -36,11 +51,7 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       line-height: 1.6;
       padding: 24px;
     }
-    .container {
-      max-width: 1040px;
-      margin: 0 auto;
-    }
-    /* Nav Bars */
+    .container { max-width: 1040px; margin: 0 auto; }
     .nav-bar {
       display: flex;
       justify-content: space-between;
@@ -63,15 +74,7 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       border-radius: 6px;
       transition: background 0.15s ease;
     }
-    .nav-btn:hover {
-      background: #f0f9ff;
-    }
-    .nav-title {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--primary);
-    }
-    /* Hero Section */
+    .nav-btn:hover { background: #f0f9ff; }
     .hero-card {
       background: #ffffff;
       border: 1px solid var(--border);
@@ -92,19 +95,8 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       border-radius: 999px;
       margin-bottom: 12px;
     }
-    h1 {
-      margin: 0 0 12px 0;
-      font-size: 1.85rem;
-      color: var(--primary);
-      letter-spacing: -0.02em;
-    }
-    .lead-text {
-      margin: 0 0 20px 0;
-      font-size: 1.05rem;
-      color: var(--text);
-      line-height: 1.7;
-    }
-    /* Syllabus Briefing Blocks */
+    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); }
+    .lead-text { margin: 0 0 20px 0; font-size: 1.05rem; color: var(--text); line-height: 1.7; }
     .briefing-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -130,21 +122,13 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       align-items: center;
       gap: 8px;
     }
-    .briefing-list {
-      margin: 0;
-      padding-left: 18px;
-      font-size: 0.88rem;
-      color: var(--text);
-    }
-    .briefing-list li {
-      margin-bottom: 6px;
-    }
-    /* Modules Grid */
+    .briefing-list { margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text); }
+    .briefing-list li { margin-bottom: 6px; }
     .modules-heading {
       font-size: 1.25rem;
       font-weight: 700;
       color: var(--primary);
-      margin: 0 0 16px 0;
+      margin: 28px 0 16px 0;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -153,7 +137,7 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .module-card {
       background: var(--card-bg);
@@ -170,9 +154,6 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
     }
-    .card-top {
-      margin-bottom: 18px;
-    }
     .module-num {
       font-size: 0.75rem;
       font-weight: 700;
@@ -181,25 +162,9 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       letter-spacing: 0.05em;
       margin-bottom: 6px;
     }
-    .module-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin: 0 0 10px 0;
-      line-height: 1.35;
-    }
-    .module-desc {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      margin: 0 0 14px 0;
-      line-height: 1.55;
-    }
-    .module-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 16px;
-    }
+    .module-title { font-size: 1.15rem; font-weight: 700; color: var(--primary); margin: 0 0 10px 0; }
+    .module-desc { font-size: 0.88rem; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.55; }
+    .module-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
     .tag {
       background: #f1f5f9;
       color: #475569;
@@ -223,34 +188,61 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       transition: background 0.15s ease;
       width: 100%;
     }
-    .launch-btn:hover {
-      background: var(--accent-hover);
+    .launch-btn:hover { background: var(--accent-hover); }
+    /* Interactive Lab Grid */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
     }
+    .lab-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .lab-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 0 6px 0;
+    }
+    .lab-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin: 0 0 12px 0;
+      line-height: 1.4;
+    }
+    .lab-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .lab-link:hover { text-decoration: underline; }
     @media (max-width: 768px) {
-      .briefing-grid, .modules-grid {
-        grid-template-columns: 1fr;
-      }
-      body {
-        padding: 16px;
-      }
+      .briefing-grid, .modules-grid, .lab-grid { grid-template-columns: 1fr; }
+      body { padding: 16px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Top Nav -->
     <nav class="nav-bar">
       <a href="../week05-io-and-disk-scheduling/index.html" class="nav-btn">&larr; Week 5: I/O &amp; Disks</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
       <a href="../week07-memory-management-virtual-memory/index.html" class="nav-btn">Week 7: Virtual Memory &rarr;</a>
     </nav>
 
-    <!-- Hero Header -->
     <div class="hero-card">
       <span class="week-tag">COSC240 &bull; Operating Systems</span>
       <h1>Week 6: Synchronization &amp; Deadlock</h1>
       <p class="lead-text">
-        Now that our operating system supports true multiprocessing and preemptive scheduling, we must confront the pathologies of concurrent execution. Expanding beyond race conditions on shared memory, we examine the systemic failure states that emerge when threads compete for scarce system resources: <strong>Deadlock</strong>, <strong>Livelock</strong>, and <strong>Starvation</strong>.
+        Now that our operating system supports true multiprocessing and preemptive scheduling, we confront the structural pathologies of concurrent execution. Expanding beyond race conditions on shared memory, we examine the systemic failure states that emerge when threads compete for scarce system resources: <strong>Deadlock</strong>, <strong>Livelock</strong>, and <strong>Starvation</strong>.
       </p>
 
       <div class="briefing-grid">
@@ -259,11 +251,11 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
             <span>&#128218;</span> What You Will Learn
           </div>
           <ul class="briefing-list">
-            <li>Differentiating <strong>Deadlock</strong> (permanent circular blockage), <strong>Livelock</strong> (active state oscillation without forward progress), and <strong>Starvation</strong> (scheduling unfairness).</li>
+            <li>Differentiating <strong>Deadlock</strong> (permanent blockage), <strong>Livelock</strong> (active state oscillation without forward progress), and <strong>Starvation</strong> (scheduling unfairness).</li>
             <li>The <strong>Four Coffman Conditions</strong> governing necessary and sufficient deadlock states.</li>
-            <li>Resource Allocation Graphs (RAGs), cycle detection in single-unit resources, and reduction algorithms.</li>
-            <li>The four canonical handling strategies: The Ostrich Algorithm, Deadlock Prevention, Deadlock Detection and Recovery, and Deadlock Avoidance via Dijkstra's <strong>Banker's Algorithm</strong>.</li>
-            <li>Classical synchronization challenges: Dining Philosophers, Readers-Writers, and Producer-Consumer defenses in Linux and Windows kernels.</li>
+            <li>Resource Allocation Graphs (RAGs), wait-for graph reduction, and cycle detection algorithms.</li>
+            <li>The four canonical handling strategies: The Ostrich Algorithm, Deadlock Prevention, Deadlock Detection and Recovery, and Dijkstra's <strong>Banker's Algorithm</strong>.</li>
+            <li>Classic synchronization problems: Dining Philosophers, Readers-Writers starvation, and modern kernel defenses (Linux <code>lockdep</code>, Windows Driver Verifier).</li>
           </ul>
         </div>
 
@@ -284,23 +276,23 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
 
     <!-- Modules Section -->
     <div class="modules-heading">
-      <span>&#128194;</span> Course Modules &amp; Interactive Learning Labs
+      <span>&#128194;</span> Course Modules &amp; Deep-Dive Texts
     </div>
 
     <div class="modules-grid">
       <!-- Module 01 -->
       <div class="module-card">
-        <div class="card-top">
+        <div>
           <div class="module-num">Module 01</div>
           <h2 class="module-title">Concurrency Hazards: Livelock, Starvation, and Priority Inversion</h2>
           <p class="module-desc">
-            Explore the spectrum of concurrent failure modes. Examine why livelock burns 100% CPU without progress, how scheduling policies induce indefinite starvation, and how Priority Inheritance Protocols (PIP) rescue real-time systems from Priority Inversion.
+            Explore the spectrum of concurrent failure modes. Contrast CPU-burning livelock with blocking deadlocks, study scheduling starvation, and analyze Priority Inheritance Protocols (PIP) using the Mars Pathfinder anomaly.
           </p>
           <div class="module-tags">
             <span class="tag">Livelock</span>
             <span class="tag">Starvation</span>
             <span class="tag">Priority Inversion</span>
-            <span class="tag">Mars Pathfinder</span>
+            <span class="tag">PIP Protocol</span>
           </div>
         </div>
         <a href="01-concurrency-hazards-livelock-starvation.html" class="launch-btn">Launch Module 01 &rarr;</a>
@@ -308,17 +300,17 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
 
       <!-- Module 02 -->
       <div class="module-card">
-        <div class="card-top">
+        <div>
           <div class="module-num">Module 02</div>
           <h2 class="module-title">Deadlock Characterization &amp; Coffman Conditions</h2>
           <p class="module-desc">
-            Dissect the four necessary and sufficient Coffman conditions: Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait. Construct Resource Allocation Graphs (RAGs) and execute graph cycle detection algorithms.
+            Dissect the four necessary and sufficient Coffman conditions: Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait. Construct Resource Allocation Graphs (RAGs) and execute graph cycle detection.
           </p>
           <div class="module-tags">
             <span class="tag">Coffman Conditions</span>
             <span class="tag">RAG Matrices</span>
+            <span class="tag">Wait-For Graphs</span>
             <span class="tag">Cycle Detection</span>
-            <span class="tag">Lock Invariants</span>
           </div>
         </div>
         <a href="02-deadlock-characterization-coffman-conditions.html" class="launch-btn">Launch Module 02 &rarr;</a>
@@ -326,15 +318,15 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
 
       <!-- Module 03 -->
       <div class="module-card">
-        <div class="card-top">
+        <div>
           <div class="module-num">Module 03</div>
           <h2 class="module-title">Deadlock Handling Strategies &amp; The Banker's Algorithm</h2>
           <p class="module-desc">
-            Contrast the Ostrich approach, static prevention via strict global lock hierarchy, runtime detection and victim preemption, and Dijkstra's Banker's Algorithm for dynamic avoidance across multi-unit resources.
+            Evaluate the Ostrich policy, static prevention via global lock hierarchy, runtime detection with victim preemption, and Dijkstra's Banker's Algorithm for multi-unit resource allocation.
           </p>
           <div class="module-tags">
             <span class="tag">Banker's Algorithm</span>
-            <span class="tag">Safety Vector</span>
+            <span class="tag">Safe Sequence</span>
             <span class="tag">Deadlock Prevention</span>
             <span class="tag">Victim Selection</span>
           </div>
@@ -344,11 +336,11 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
 
       <!-- Module 04 -->
       <div class="module-card">
-        <div class="card-top">
+        <div>
           <div class="module-num">Module 04</div>
           <h2 class="module-title">Classic Synchronization Problems &amp; Real-World Defenses</h2>
           <p class="module-desc">
-            Analyze the Dining Philosophers, Readers-Writers starvation, and Sleeping Barber problems. Study modern OS kernel deadlock defenses, including Linux <code>lockdep</code> runtime verification and Windows Driver Verifier.
+            Analyze the Dining Philosophers, Readers-Writers starvation, and Sleeping Barber challenges. Investigate production OS deadlock defenses, including Linux <code>lockdep</code> validation and Windows Driver Verifier.
           </p>
           <div class="module-tags">
             <span class="tag">Dining Philosophers</span>
@@ -361,7 +353,42 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Bottom Nav -->
+    <!-- Interactive Sandboxes -->
+    <div class="modules-heading">
+      <span>&#128302;</span> Interactive Visualizers &amp; Simulation Laboratories
+    </div>
+
+    <div class="lab-grid">
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Deadlock Detector</h3>
+          <p class="lab-desc">Interactive graph cycle detection sandbox for Resource Allocation Graphs.</p>
+        </div>
+        <a href="deadlock-detector.html" class="lab-link">Open Detector &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Dining Philosophers</h3>
+          <p class="lab-desc">Simulate concurrent resource contention, deadlocks, and asymmetric fork solutions.</p>
+        </div>
+        <a href="dining-philosophers.html" class="lab-link">Open Simulation &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Database Deadlock</h3>
+          <p class="lab-desc">Trace lock contention, two-phase locking (2PL), and transaction abort/rollback.</p>
+        </div>
+        <a href="database-deadlock.html" class="lab-link">Open Database 2PL &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">IPC Deadlock</h3>
+          <p class="lab-desc">Explore synchronous rendezvous message queues and circular wait deadlocks.</p>
+        </div>
+        <a href="ipc-deadlock.html" class="lab-link">Open IPC Lab &rarr;</a>
+      </div>
+    </div>
+
     <nav class="nav-bar">
       <a href="../week05-io-and-disk-scheduling/index.html" class="nav-btn">&larr; Week 5: I/O &amp; Disks</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
@@ -372,31 +399,31 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
 </html>
 """
 
-def deploy_week6_hub():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(INDEX_CONTENT.strip() + "\n")
-    print(f"--> Successfully generated Week 6 Hub at {TARGET_FILE}")
+with open(os.path.join(CANONICAL_DIR, "index.html"), "w", encoding="utf-8") as f:
+    f.write(HUB_HTML.strip() + "\n")
+print(f"--> Deployed updated Week 6 Hub at {CANONICAL_DIR}/index.html")
 
-def run_git_sync():
+# 3. Clean up the duplicate directory week06-synchronisation-and-deadlock
+if os.path.exists(SRC_DIR):
+    shutil.rmtree(SRC_DIR)
+    print(f"--> Removed redundant directory: {SRC_DIR}")
+
+# 4. Check git status and commit
+try:
     status = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
-    if not status:
-        print("--> Working tree is clean. Nothing to commit.")
-        return
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+    if status:
+        subprocess.run(["git", "add", "fix.py", CANONICAL_DIR], check=True)
+        if os.path.exists(SRC_DIR):
+            subprocess.run(["git", "rm", "-r", SRC_DIR], check=False)
         commit_msg = (
-            "Create Week 6 hub index for Synchronization and Deadlock curriculum\n\n"
-            "Add responsive module grid covering concurrency hazards, Coffman\n"
-            "conditions, Banker's algorithm, and classic synchronization problems."
+            "Merge and streamline Week 6 modules, interactive steppers, and hub\n\n"
+            "Consolidate week06 directories, author modules 01 through 04 with\n"
+            "embedded steppers, and link standalone visualizers in the Week 6 hub."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
         print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    deploy_week6_hub()
-    run_git_sync()
+    else:
+        print("--> Working tree clean.")
+except Exception as e:
+    print(f"Git execution note: {e}")
