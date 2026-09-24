@@ -143,7 +143,7 @@
         Examine the formal mathematical conditions that define system deadlock. Analyze the Four Coffman Conditions, trace Resource Allocation Graphs (RAGs), and evaluate cycle detection algorithms in single-resource and multi-resource topologies.
       </p>
 
-          <h3>1. Formal Definition of System Deadlock</h3>
+              <h3>1. Formal Definition of System Deadlock</h3>
     <p>
       In operating systems and concurrent computing theory, a <strong>system deadlock</strong> is defined as a permanent blockade state where a set of two or more execution entities (threads or processes) are unable to make forward progress because each entity is waiting for a resource that is currently held by another entity in the set.
     </p>
@@ -165,22 +165,6 @@
     <p>
       Because every entity in the closed chain is blocked waiting for a predecessor or successor, no process can ever release its currently allocated resources. Consequently, the entire set remains frozen indefinitely unless an external agent intervenes (such as a kernel detection-and-recovery subsystem or a watchdog timer).
     </p>
-
-    <p style="margin-top: 20px;">
-      For a comprehensive video walkthrough explaining these theoretical conditions and how system deadlocks manifest in practice, review the <a href="https://www.youtube.com/watch?v=e8gMbYOmGr0" target="_blank" style="color: var(--accent); font-weight: 600; text-decoration: none;">Coffman Conditions video overview &rarr;</a>
-    </p>
-
-    <!-- YouTube Thumbnail Card -->
-    <a href="https://www.youtube.com/watch?v=e8gMbYOmGr0" target="_blank" style="display: block; position: relative; max-width: 640px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; background: #000; margin: 16px 0; transition: transform 0.15s ease, box-shadow 0.15s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06)';">
-      <img src="https://img.youtube.com/vi/e8gMbYOmGr0/hqdefault.jpg" alt="Coffman Conditions Explained Thumbnail" style="width: 100%; display: block; opacity: 0.9; transition: opacity 0.15s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.9';">
-      <!-- Play Button Overlay -->
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 48px; background: rgba(23, 23, 23, 0.85); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-        <div style="width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid #ffffff; margin-left: 3px;"></div>
-      </div>
-      <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: #fff; font-size: 0.88rem; font-weight: 600;">
-        Watch Video: Coffman Conditions &amp; Deadlock Theory &rarr;
-      </div>
-    </a>
 
     <h3>2. The Four Coffman Conditions</h3>
       <p>
