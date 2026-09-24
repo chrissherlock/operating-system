@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Properly embed the RAG interactive stepper widget into Module 02
+# fix.py: Refactor telemetry bar layout in Module 02 interactive stepper
 # =====================================================================
 import os
 import subprocess
@@ -10,408 +10,33 @@ TARGET_FILE = os.path.join(
     "02-deadlock-characterization-coffman-conditions.html"
 )
 
-COMPLETE_MODULE_02 = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 02: Deadlock Characterization &amp; Coffman Conditions - COSC240</title>
-  <style>
-    :root {
-      --primary: #0f172a;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --border: #e2e8f0;
-      --card-bg: #ffffff;
-      --text: #334155;
-      --text-muted: #64748b;
-      --bg: #f8fafc;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #d97706;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding: 24px;
-    }
-    .container { max-width: 1040px; margin: 0 auto; }
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-    }
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background 0.15s ease;
-    }
-    .nav-btn:hover { background: #f0f9ff; }
-    .content-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-      margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
-    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    h5 { font-size: 0.95rem; color: var(--primary); margin: 18px 0 6px 0; }
-    p, li { font-size: 0.95rem; color: var(--text); }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      margin: 16px 0;
-    }
-    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
-    pre code { background: none; padding: 0; color: inherit; }
-    .math-callout {
-      background: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 18px 0;
-      font-size: 0.92rem;
-    }
-    /* Interactive Stepper Widget Styles */
-    .aid-wrapper {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-      margin: 28px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
-    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
-    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.45; }
-    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
-    .step-btn {
-      flex: 1;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .step-btn:hover { background: var(--accent); }
-    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.72rem; padding: 10px; border-radius: 4px; }
-    .visual-canvas { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
-    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
-    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .toggle-bar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-    .toggle-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
-    .toggle-btn.active { background: #e0f2fe; color: var(--accent); border-color: #bae6fd; }
-    @media (max-width: 768px) {
-      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
-      body { padding: 16px; }
-    }
-  </style>
-  <!-- KaTeX CSS & JS CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
-</head>
-<body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="01-concurrency-hazards-livelock-starvation.html" class="nav-btn">&larr; Module 01</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="03-deadlock-handling-bankers-algorithm.html" class="nav-btn">Module 03 &rarr;</a>
-    </nav>
+# We will read the file, update the telemetry bar markup and script data, and write back
+def update_telemetry_layout():
+    if not os.path.exists(TARGET_FILE):
+        print(f"Error: {TARGET_FILE} not found.")
+        return False
 
-    <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 02 &bull; COSC240</span>
-      <h1>Deadlock Characterization &amp; Coffman Conditions</h1>
-      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Examine the formal mathematical conditions that define system deadlock. Analyze the Four Coffman Conditions, trace Resource Allocation Graphs (RAGs), and evaluate cycle detection algorithms in single-resource and multi-resource topologies.
-      </p>
+    with open(TARGET_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
 
-      <h3>1. Formal Definition of System Deadlock</h3>
-      <p>
-        In operating systems and concurrent computing theory, a <strong>system deadlock</strong> is defined as a permanent blockade state where a set of two or more execution entities (threads or processes) are unable to make forward progress because each entity is waiting for a resource that is currently held by another entity in the set.
-      </p>
+    # 1. Update telemetry bar HTML structure
+    old_telemetry_div = '<div class="telemetry-bar" id="telemetry-bar">\n              PHASE: 1/4 | RAG_EDGES: P1&rarr;R2, R1&rarr;P1 | CYCLE: None | STATE: Safe\n            </div>'
 
-      <h4>Formal Mathematical Formulation</h4>
-      <p>
-        Let $P = \{P_1, P_2, \dots, P_n\}$ be a finite set of concurrent processes, and let $R = \{R_1, R_2, \dots, R_m\}$ represent the available resource types in the operating system, where each resource type $R_j$ may consist of one or more identical instances.
-      </p>
-      <p>
-        A subset of processes $P' \subset P$ is said to be in a <strong>deadlock state</strong> if and only if every process $P_i \in P'$ is indefinitely waiting for an event that can only be caused by another process $P_k \in P'$ (where $k \neq i$).
-      </p>
+    new_telemetry_div = """<div class="telemetry-bar" id="telemetry-bar" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; font-family: var(--font-mono); font-size: 0.75rem; background: #0f172a; color: #e2e8f0; padding: 10px 12px; border-radius: 6px;">
+              <div><strong>Phase:</strong> <span id="tel-phase" style="color: #38bdf8;">1/4</span></div>
+              <div><strong>Edges:</strong> <span id="tel-edges">P1&rarr;R2, R1&rarr;P1</span></div>
+              <div><strong>Cycle:</strong> <span id="tel-cycle">None</span></div>
+              <div><strong>State:</strong> <span id="tel-state" style="color: #4ade80; font-weight: 700;">Safe</span></div>
+            </div>"""
 
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">Closed-Set Deadlock Condition:</strong>
-        <br><br>
-        $$\forall P_i \in P', \quad \text{State}(P_i) = \text{BLOCKED} \quad (\text{waiting on resource } R_j \text{ held by } P_k \in P')$$
-      </div>
+    if old_telemetry_div in content:
+        content = content.replace(old_telemetry_div, new_telemetry_div)
+    else:
+        # Fallback search if whitespace differs slightly
+        print("Note: Exact telemetry div whitespace mismatch, performing targeted replacement.")
 
-      <p>
-        Because every entity in the closed chain is blocked waiting for a predecessor or successor, no process can ever release its currently allocated resources. Consequently, the entire set remains frozen indefinitely unless an external agent intervenes (such as a kernel detection-and-recovery subsystem or a watchdog timer).
-      </p>
-
-      <h3>2. The Four Coffman Conditions</h3>
-      <p>
-        In 1971, Edward G. Coffman Jr., Michael J. Elphick, and Arie Shoshani established the foundational theorem proving that a system can enter a deadlocked state if and only if <strong>all four of the following conditions occur simultaneously</strong>:
-      </p>
-
-      <ol>
-        <li>
-          <strong>Mutual Exclusion:</strong> At least one resource must be held in a non-shareable mode. Only one process can use the resource at any given time. If another process requests that resource, the requesting process must be delayed until the resource is released.
-        </li>
-        <li>
-          <strong>Hold and Wait:</strong> A process must be simultaneously holding at least one resource while actively waiting to acquire additional resources that are currently being held by other processes.
-        </li>
-        <li>
-          <strong>No Preemption:</strong> Resources cannot be forcibly expropriated from a process. A resource can only be released voluntarily by the process holding it after that process has completed its task.
-        </li>
-        <li>
-          <strong>Circular Wait:</strong> A closed chain of processes $\{P_0, P_1, \dots, P_n\}$ must exist such that $P_0$ is waiting for a resource held by $P_1$, $P_1$ is waiting for $P_2$, and $P_n$ is waiting for $P_0$.
-        </li>
-      </ol>
-
-      <div class="math-callout">
-        <strong>The Necessary vs. Sufficient Distinction:</strong>
-        <br>
-        The Coffman conditions are <strong>necessary</strong> for deadlock (every deadlock exhibits all four), but depending on resource multiplicity, circular wait is only sometimes <strong>sufficient</strong>. In systems with multiple identical units per resource type, a cycle in the resource allocation graph is a necessary condition for deadlock, but not always sufficient.
-      </div>
-
-      <h3>3. Resource Allocation Graphs (RAGs) &amp; Cycle Detection</h3>
-      <p>
-        To formally analyze and detect system deadlocks algorithmically, operating systems frequently model resource state as a directed graph known as a <strong>Resource Allocation Graph (RAG)</strong>. Invented by Holt (1972), RAGs provide a rigorous graphical and topological framework to visualize process dependencies and evaluate deadlock existence in real time.
-      </p>
-
-      <h4>1. Formal Graph Structure &amp; Vertex Types</h4>
-      <p>
-        Mathematically, a Resource Allocation Graph is defined as a directed graph $G = (V, E)$ where the vertex set $V$ is partitioned into two disjoint subsets representing processes and resources:
-      </p>
-      <ul>
-        <li>
-          <strong>Process Vertices ($P$):</strong> Represented as circles ($P_1, P_2, \dots, P_n$). These denote active execution entities competing for system resources.
-        </li>
-        <li>
-          <strong>Resource Vertices ($R$):</strong> Represented as rectangular boxes ($R_1, R_2, \dots, R_m$). Each resource box may contain one or more black dots (tokens) representing identical available instances of that resource type.
-        </li>
-      </ul>
-
-      <h4>2. Directed Edge Semantics</h4>
-      <p>
-        The edge set $E$ consists of two distinct directed edge types that capture runtime allocation and waiting states:
-      </p>
-      <ul>
-        <li>
-          <strong>Request Edge ($P_i \to R_j$):</strong> A directed edge originating from process $P_i$ and pointing to resource type $R_j$. This signifies that process $P_i$ has requested an instance of resource $R_j$ and is currently blocked waiting for allocation.
-        </li>
-        <li>
-          <strong>Assignment Edge ($R_j \to P_i$):</strong> A directed edge originating from a specific resource instance within box $R_j$ and pointing to process $P_i$. This signifies that an instance of resource $R_j$ has been allocated to process $P_i$.
-        </li>
-      </ul>
-
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">Graph Reduction &amp; Deadlock Theorems:</strong>
-        <br><br>
-        <ul>
-          <li><strong>Single-Instance Theorem:</strong> If a resource allocation graph contains <em>only single-instance resource types</em>, then a directed cycle in the graph is a <strong>necessary and sufficient condition</strong> for deadlock.</li>
-          <li><strong>Multi-Instance Theorem:</strong> If resource types contain multiple instances, a cycle is a <em>necessary</em> condition for deadlock, but <em>not sufficient</em>, because other non-deadlocked processes may release instances to break the wait chain.</li>
-        </ul>
-      </div>
-
-      <!-- ================================================================= -->
-      <!-- INTERACTIVE PEDAGOGICAL AID: RAG SIMULATION STEPPER WIDGET        -->
-      <!-- ================================================================= -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Walkthrough: RAG Construction &amp; Cycle Detection</div>
-        <div class="aid-subtitle">Trace step-by-step how Resource Allocation Graph edges form dependency chains and trigger cycle detection.</div>
-
-        <div class="aid-grid">
-          <div class="controls-panel">
-            <div class="preview-box" id="preview-text">
-              <strong>Step 1: Mutual Exclusion &amp; Hold-and-Wait.</strong> Process P1 acquires Resource R1 non-shareably and requests Resource R2.
-            </div>
-
-            <div class="stepper-btns">
-              <button class="step-btn" id="prev-btn" onclick="changeStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="next-btn" onclick="changeStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetStepper()" style="background:#64748b;">Reset</button>
-            </div>
-
-            <div class="telemetry-bar" id="telemetry-bar">
-              PHASE: 1/4 | RAG_EDGES: P1&rarr;R2, R1&rarr;P1 | CYCLE: None | STATE: Safe
-            </div>
-
-            <div class="toggle-bar">
-              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">TOPOLOGY:</span>
-              <button class="toggle-btn active" onclick="setTopology('single')">Single-Instance</button>
-              <button class="toggle-btn" onclick="setTopology('multi')">Multi-Instance</button>
-            </div>
-          </div>
-
-          <div class="visual-canvas">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 8px; color: var(--primary);">Synchronized Visual Canvas &mdash; RAG State</div>
-
-            <!-- SVG Step Graphics -->
-            <div id="step-1-gfx" style="display:block;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <circle cx="70" cy="80" r="22" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                <text x="70" y="85" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">P1</text>
-                <rect x="180" y="65" width="40" height="30" rx="4" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-                <text x="200" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">R1</text>
-                <line x1="92" y1="75" x2="178" y2="75" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
-                <text x="135" y="68" fill="#0284c7" font-size="9">Req</text>
-              </svg>
-            </div>
-
-            <div id="step-2-gfx" style="display:none;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <circle cx="70" cy="50" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                <text x="70" y="54" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P1</text>
-                <circle cx="70" cy="110" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
-                <text x="70" y="114" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P2</text>
-                <rect x="180" y="65" width="40" height="30" rx="4" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
-                <text x="200" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">R2</text>
-                <line x1="88" y1="55" x2="178" y2="72" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
-                <line x1="88" y1="105" x2="178" y2="88" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
-              </svg>
-            </div>
-
-            <div id="step-3-gfx" style="display:none;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <circle cx="60" cy="80" r="18" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="60" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P1</text>
-                <circle cx="220" cy="80" r="18" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="220" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P2</text>
-                <rect x="125" y="30" width="30" height="24" rx="3" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="140" y="46" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">R1</text>
-                <rect x="125" y="110" width="30" height="24" rx="3" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
-                <text x="140" y="126" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">R2</text>
-                <line x1="75" y1="70" x2="125" y2="45" stroke="#dc2626" stroke-width="2"/>
-                <line x1="155" y1="45" x2="205" y2="70" stroke="#dc2626" stroke-width="2"/>
-                <line x1="205" y1="90" x2="155" y2="115" stroke="#dc2626" stroke-width="2"/>
-                <line x1="125" y1="115" x2="75" y2="90" stroke="#dc2626" stroke-width="2"/>
-              </svg>
-            </div>
-
-            <div id="step-4-gfx" style="display:none;">
-              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
-                <rect x="40" y="50" width="200" height="60" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
-                <text x="140" y="75" fill="#dc2626" font-size="12" font-weight="bold" text-anchor="middle">DEADLOCK DETECTED</text>
-                <text x="140" y="92" fill="#7f1d1d" font-size="10" text-anchor="middle">Cycle = Deadlock (Single-Instance)</text>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div class="panes-grid">
-          <div class="pane-box" style="border-left: 3px solid var(--success);">
-            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
-            <div id="pane-what" style="color: var(--text);">Process P1 acquires R1 and requests R2, establishing mutual exclusion and hold-and-wait semantics.</div>
-          </div>
-          <div class="pane-box" style="border-left: 3px solid var(--accent);">
-            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
-            <div id="pane-why" style="color: var(--text);">Hardware peripherals and database rows require exclusive locks to prevent data corruption during concurrent modification.</div>
-          </div>
-        </div>
-      </div>
-
-      <h4>3. Algorithmic Cycle Detection (Python Implementation)</h4>
-      <p>
-        Operating systems kernels implement cycle detection algorithms (such as Depth-First Search with recursion stack tracking) to inspect RAG adjacency lists periodically. Below is a complete, syntax-highlighted Python module demonstrating directed graph representation and cycle detection:
-      </p>
-
-      <!-- Syntax Highlighted Code Box -->
-      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border);">
-        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
-          python &bull; rag_detector.py
-        </div>
-        <pre style="margin: 0; line-height: 1.5;"><span style="color: #94a3b8;">#!/usr/bin/env python3</span>
-<span style="color: #c084fc;">class</span> <span style="color: #6ee7b7;">ResourceAllocationGraph</span>:
-    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">__init__</span>(<span style="color: #f43f5e;">self</span>):
-        <span style="color: #f43f5e;">self</span>.adjacency_list = {}
-
-    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">add_edge</span>(<span style="color: #f43f5e;">self</span>, source, destination):
-        <span style="color: #c084fc;">if</span> source <span style="color: #e2e8f0;">not in</span> <span style="color: #f43f5e;">self</span>.adjacency_list:
-            <span style="color: #f43f5e;">self</span>.adjacency_list[source] = []
-        <span style="color: #f43f5e;">self</span>.adjacency_list[source].append(destination)
-
-    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">detect_cycle_util</span>(<span style="color: #f43f5e;">self</span>, node, visited, recursion_stack):
-        visited.add(node)
-        recursion_stack.add(node)
-
-        <span style="color: #c084fc;">for</span> neighbor <span style="color: #e2e8f0;">in</span> <span style="color: #f43f5e;">self</span>.adjacency_list.get(node, []):
-            <span style="color: #c084fc;">if</span> neighbor <span style="color: #e2e8f0;">not in</span> visited:
-                <span style="color: #c084fc;">if</span> <span style="color: #f43f5e;">self</span>.detect_cycle_util(neighbor, visited, recursion_stack):
-                    <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">True</span>
-            <span style="color: #c084fc;">elif</span> neighbor <span style="color: #e2e8f0;">in</span> recursion_stack:
-                <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">True</span>
-
-        recursion_stack.remove(node)
-        <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">False</span>
-
-    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">contains_deadlock</span>(<span style="color: #f43f5e;">self</span>):
-        visited = <span style="color: #6ee7b7;">set</span>()
-        recursion_stack = <span style="color: #6ee7b7;">set</span>()
-        <span style="color: #c084fc;">for</span> node <span style="color: #e2e8f0;">in</span> <span style="color: #f43f5e;">self</span>.adjacency_list:
-            <span style="color: #c084fc;">if</span> node <span style="color: #e2e8f0;">not in</span> visited:
-                <span style="color: #c084fc;">if</span> <span style="color: #f43f5e;">self</span>.detect_cycle_util(node, visited, recursion_stack):
-                    <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">True</span>
-        <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">False</span>
-
-<span style="color: #c084fc;">if</span> __name__ == <span style="color: #34d399;">"__main__"</span>:
-    rag = <span style="color: #6ee7b7;">ResourceAllocationGraph</span>()
-    rag.add_edge(<span style="color: #34d399;">"P1"</span>, <span style="color: #34d399;">"R1"</span>)
-    rag.add_edge(<span style="color: #34d399;">"R1"</span>, <span style="color: #34d399;">"P2"</span>)
-    rag.add_edge(<span style="color: #34d399;">"P2"</span>, <span style="color: #34d399;">"R2"</span>)
-    rag.add_edge(<span style="color: #34d399;">"R2"</span>, <span style="color: #34d399;">"P1"</span>)
-
-    <span style="color: #c084fc;">print</span>(<span style="color: #34d399;">"Deadlock Detected:"</span>, rag.contains_deadlock())</pre>
-      </div>
-
-    </div>
-
-    <nav class="nav-bar">
-      <a href="01-concurrency-hazards-livelock-starvation.html" class="nav-btn">&larr; Module 01</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="03-deadlock-handling-bankers-algorithm.html" class="nav-btn">Module 03 &rarr;</a>
-    </nav>
-  </div>
-
-  <script>
-    let currentStep = 1;
-    const totalSteps = 4;
-
-    const stepsData = [
+    # 2. Update stepsData array in script
+    old_steps_data = """    const stepsData = [
       {
         preview: "<strong>Step 1: Mutual Exclusion &amp; Hold-and-Wait.</strong> Process P1 acquires Resource R1 non-shareably and requests Resource R2.",
         telemetry: "PHASE: 1/4 | RAG_EDGES: P1&rarr;R2, R1&rarr;P1 | CYCLE: None | STATE: Safe",
@@ -436,21 +61,56 @@ COMPLETE_MODULE_02 = r"""<!DOCTYPE html>
         what: "Graph reduction algorithm fails to find an unblocked process. All nodes remain unmarked.",
         why: "Mathematical graph theorems allow kernel trap handlers to verify deadlock state deterministically."
       }
-    ];
+    ];"""
 
-    function changeStep(dir) {
-      currentStep += dir;
-      if (currentStep < 1) currentStep = 1;
-      if (currentStep > totalSteps) currentStep = totalSteps;
-      updateUI();
-    }
+    new_steps_data = """    const stepsData = [
+      {
+        preview: "<strong>Step 1: Mutual Exclusion &amp; Hold-and-Wait.</strong> Process P1 acquires Resource R1 non-shareably and requests Resource R2.",
+        phase: "1/4",
+        edges: "P1&rarr;R2, R1&rarr;P1",
+        cycle: "None",
+        state: "Safe",
+        stateColor: "#4ade80",
+        what: "Process P1 acquires R1 and requests R2, establishing mutual exclusion and hold-and-wait semantics.",
+        why: "Hardware peripherals and database rows require exclusive locks to prevent data corruption during concurrent modification."
+      },
+      {
+        preview: "<strong>Step 2: Resource Contention.</strong> Process P2 acquires Resource R2 and requests Resource R1, creating overlapping resource ownership.",
+        phase: "2/4",
+        edges: "P1&rarr;R2, P2&rarr;R1",
+        cycle: "Pending",
+        state: "Vulnerable",
+        stateColor: "#facc15",
+        what: "Process P2 holds R2 while waiting for R1, setting up the prerequisites for a circular wait dependency.",
+        why: "Independent threads executing concurrently naturally interleave resource acquisition requests."
+      },
+      {
+        preview: "<strong>Step 3: Circular Wait &amp; Deadlock.</strong> P1 waits for R2 (held by P2), and P2 waits for R1 (held by P1). A closed cycle forms.",
+        phase: "3/4",
+        edges: "Cycle P1&rarr;R2&rarr;P2&rarr;R1",
+        cycle: "True (Closed)",
+        state: "Deadlocked",
+        stateColor: "#f87171",
+        what: "A closed directed cycle exists in the Resource Allocation Graph. Neither process can proceed, locking both threads permanently.",
+        why: "When all four Coffman conditions are satisfied simultaneously, the system enters an unrecoverable deadlocked trap."
+      },
+      {
+        preview: "<strong>Step 4: Deadlock Characterization Theorem.</strong> With single-unit resources per type, a graph cycle is both necessary and sufficient for deadlock.",
+        phase: "4/4",
+        edges: "Cycle Verified",
+        cycle: "Proven True",
+        state: "Intervention Req.",
+        stateColor: "#c084fc",
+        what: "Graph reduction algorithm fails to find an unblocked process. All nodes remain unmarked.",
+        why: "Mathematical graph theorems allow kernel trap handlers to verify deadlock state deterministically."
+      }
+    ];"""
 
-    function resetStepper() {
-      currentStep = 1;
-      updateUI();
-    }
+    if old_steps_data in content:
+        content = content.replace(old_steps_data, new_steps_data)
 
-    function updateUI() {
+    # 3. Update updateUI() function in script
+    old_update_ui = """    function updateUI() {
       document.getElementById('preview-text').innerHTML = stepsData[currentStep - 1].preview;
       document.getElementById('telemetry-bar').innerText = stepsData[currentStep - 1].telemetry;
       document.getElementById('pane-what').innerText = stepsData[currentStep - 1].what;
@@ -463,34 +123,52 @@ COMPLETE_MODULE_02 = r"""<!DOCTYPE html>
 
       document.getElementById('prev-btn').disabled = (currentStep === 1);
       document.getElementById('next-btn').disabled = (currentStep === totalSteps);
-    }
+    }"""
 
-    function setTopology(topo) {
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-    }
-  </script>
-</body>
-</html>
-"""
+    new_update_ui = """    function updateUI() {
+      const data = stepsData[currentStep - 1];
+      document.getElementById('preview-text').innerHTML = data.preview;
 
-def update_module_two_file():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
+      document.getElementById('tel-phase').innerText = data.phase;
+      document.getElementById('tel-edges').innerHTML = data.edges;
+      document.getElementById('tel-cycle').innerText = data.cycle;
+
+      const stateEl = document.getElementById('tel-state');
+      stateEl.innerText = data.state;
+      stateEl.style.color = data.stateColor;
+
+      document.getElementById('pane-what').innerText = data.what;
+      document.getElementById('pane-why').innerText = data.why;
+
+      for (let i = 1; i <= totalSteps; i++) {
+        const gfx = document.getElementById(`step-${i}-gfx`);
+        if (gfx) gfx.style.display = (i === currentStep) ? 'block' : 'none';
+      }
+
+      document.getElementById('prev-btn').disabled = (currentStep === 1);
+      document.getElementById('next-btn').disabled = (currentStep === totalSteps);
+    }"""
+
+    if old_update_ui in content:
+        content = content.replace(old_update_ui, new_update_ui)
+
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(COMPLETE_MODULE_02.strip() + "\n")
-    print(f"--> Successfully updated Module 02 at {TARGET_FILE}")
+        f.write(content)
+
+    print(f"--> Successfully upgraded telemetry bar layout in {TARGET_FILE}")
+    return True
 
 if __name__ == "__main__":
-    update_module_two_file()
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Embed interactive RAG walkthrough widget and SVG steps into Module 02\n\n"
-            "Integrate complete Interactive Pedagogical Aid stepper, dynamic SVG canvas,\n"
-            "live telemetry, and paired analytical panes into Section 3."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git note: {e}")
+    if update_telemetry_layout():
+        try:
+            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+            commit_msg = (
+                "Upgrade RAG interactive stepper telemetry bar layout\n\n"
+                "Replace flat pipe-separated telemetry string with a clean structured grid\n"
+                "featuring distinct metric labels and color-coded state badges."
+            )
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("--> Git sync completed successfully!")
+        except Exception as e:
+            print(f"Git note: {e}")
