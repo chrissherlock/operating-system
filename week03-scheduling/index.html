@@ -1,20 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Align Week 3 index with CPU Scheduling curriculum
-# =====================================================================
-import os
-import subprocess
-
-# Determine proper directory (week03 or week03-scheduling)
-TARGET_DIR = "week03" if os.path.exists("week03") else "week03-scheduling"
-if not os.path.exists(TARGET_DIR) and os.path.exists("week03-ipc"):
-    # Rename week03-ipc if it was previously created
-    os.rename("week03-ipc", "week03-scheduling")
-    TARGET_DIR = "week03-scheduling"
-
-TARGET_FILE = os.path.join(TARGET_DIR, "index.html")
-
-INDEX_HTML = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -260,27 +244,3 @@ INDEX_HTML = r"""<!DOCTYPE html>
   </div>
 </body>
 </html>
-"""
-
-def execute_index_update():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(INDEX_HTML.strip() + "\n")
-
-    print(f"--> Successfully created CPU Scheduling Week 3 index in {TARGET_FILE}")
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Realign Week 3 index with CPU scheduling curriculum\n\n"
-            "Structure Week 3 index into four modules covering scheduling goals,\n"
-            "batch algorithms, interactive multi-level feedback queues, and real-time."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    execute_index_update()
