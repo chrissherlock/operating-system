@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand NPTL and clone(2) in 04-thread-implementation.html
+# fix.py: Deeply expand Section 2 in 04-thread-implementation.html
 # =====================================================================
 import os
 import subprocess
@@ -513,65 +513,156 @@ MODULE_HTML = r"""<!DOCTYPE html>
 
     <h3>2. The Windows NT Threading Architecture</h3>
     <p>
-      Windows was architected from its inception as a native, multithreaded operating system. Unlike early UNIX implementations where threads were bolted onto existing process models, Windows treats the <strong>thread as the fundamental unit of CPU execution</strong> and the <strong>process as a passive resource container</strong>.
+      Windows was architected from its inception by Dave Cutler and the NT design team as a native, preemptive, multithreaded operating system. In the Windows NT design, the <strong>process</strong> is purely an inert container that owns an address space, handle table, and security token, while the <strong>thread</strong> is the sole schedulable entity that consumes CPU cycles.
     </p>
 
-    <h4>The Kernel Representation: ETHREAD and KTHREAD</h4>
+    <h4>1. Two-Tiered Kernel Representation: ETHREAD and KTHREAD</h4>
     <p>
-      Within the Windows NT kernel, every thread is represented by a two-tiered data structure:
+      Within the NT kernel address space, every thread is represented by a layered, composite data structure split between the upper <strong>Executive</strong> and the lower <strong>Microkernel</strong>:
     </p>
     <ul>
-      <li><strong>ETHREAD (Executive Thread Block):</strong> Resides in the Windows Executive layer (upper kernel mode). It encapsulates higher-level management data: the thread's access token, process ownership pointer (to <code>EPROCESS</code>), thread impersonation security contexts, I/O request lists (IRP list), and cross-thread communication endpoints.</li>
-      <li><strong>KTHREAD (Kernel Thread Block):</strong> Embedded directly within the <code>ETHREAD</code> structure, it resides in the Windows Microkernel layer. It contains hardware-critical execution state: the kernel execution stack, machine register context, hardware scheduling priority (0 to 31), processor affinity masks, dispatching state (Ready, Running, Standby, Waiting), and quantum counters.</li>
+      <li>
+        <strong>ETHREAD (Executive Thread Block):</strong> Resides in the Executive layer (Ring 0). It manages high-level operating system responsibilities:
+        <ul>
+          <li><strong>Object Header:</strong> Managed by the Windows Object Manager, tracking handle reference counts, security descriptors, and object retention.</li>
+          <li><strong>Client ID (CID):</strong> A structure containing <code>UniqueProcess</code> (Process ID) and <code>UniqueThread</code> (Thread ID).</li>
+          <li><strong>Impersonation Information:</strong> Pointers to an impersonation token, allowing a server thread to temporarily assume the security privileges of a calling network client without switching processes.</li>
+          <li><strong>I/O Request Packet (IRP) List:</strong> A linked list of pending, in-flight asynchronous I/O requests owned by this thread. When a thread terminates, the kernel walks this list to cancel or drain active device driver requests.</li>
+          <li><strong>Win32 Thread Information:</strong> A pointer (<code>Tcb.Win32Thread</code>) to GUI and desktop subsystem state in <code>win32k.sys</code> (message queues, desktop hooks, window station handles).</li>
+        </ul>
+      </li>
+      <li>
+        <strong>KTHREAD (Kernel Thread Block):</strong> Embedded as the very first member of <code>ETHREAD</code> (accessible as <code>ETHREAD.Tcb</code>), this structure resides in the Microkernel layer. It contains hardware-critical execution state that must be accessible to the low-level interrupt handlers and scheduler:
+        <ul>
+          <li><strong>Dispatcher Header (<code>DISPATCHER_HEADER</code>):</strong> Allows the thread object itself to function as a synchronization primitive. When a thread is executing, its signal state is non-signaled; upon termination, its state transitions to signaled, unblocking any callers waiting on its handle.</li>
+          <li><strong>Kernel Stack:</strong> Fixed-size stack (typically 24KB on x86-64) used whenever the thread executes inside Ring 0 supervisor mode.</li>
+          <li><strong>Machine Trap Frame (<code>KTRAP_FRAME</code>):</strong> Saves the complete hardware register context (RIP, RSP, RAX, general registers, segment selectors) when transitioning from User Mode to Kernel Mode via a syscall or interrupt.</li>
+          <li><strong>Scheduling Priorities:</strong> Tracks the thread's <em>Base Priority</em> and <em>Dynamic/Current Priority</em> (0 to 31), along with its assigned processor affinity mask and current quantum.</li>
+          <li><strong>Asynchronous Procedure Call (APC) Queues:</strong> Linked lists of pending kernel-mode and user-mode software interrupts queued for execution on this thread.</li>
+        </ul>
+      </li>
     </ul>
 
-    <h4>The Win32 Thread Management API</h4>
+    <h4>2. The User-Mode Structure: The Thread Environment Block (TEB / TIB)</h4>
     <p>
-      Windows exposes thread lifecycle and synchronization management via the Win32 subsystem API:
-    </p>
-    <pre><code><span class="syn-kwd">#include</span> <span class="syn-var">&lt;windows.h&gt;</span>
-<span class="syn-kwd">#include</span> <span class="syn-var">&lt;stdio.h&gt;</span>
-
-<span class="syn-type">CRITICAL_SECTION</span> <span class="syn-var">cs</span><span class="syn-punc">;</span>
-<span class="syn-type">LONG</span> <span class="syn-var">shared_val</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
-
-<span class="syn-type">DWORD</span> <span class="syn-var">WINAPI</span> <span class="syn-fn">WorkerRoutine</span><span class="syn-punc">(</span><span class="syn-type">LPVOID</span> <span class="syn-var">lpParam</span><span class="syn-punc">) {</span>
-    <span class="syn-type">LONG</span> <span class="syn-var">iterations</span> <span class="syn-punc">= *(</span><span class="syn-type">LONG</span><span class="syn-punc">*)</span><span class="syn-var">lpParam</span><span class="syn-punc">;</span>
-    <span class="syn-kwd">for</span> <span class="syn-punc">(</span><span class="syn-type">LONG</span> <span class="syn-var">i</span> <span class="syn-punc">=</span> <span class="syn-var">0</span><span class="syn-punc">;</span> <span class="syn-var">i</span> <span class="syn-punc">&lt;</span> <span class="syn-var">iterations</span><span class="syn-punc">;</span> <span class="syn-var">i</span><span class="syn-punc">++) {</span>
-        <span class="syn-fn">EnterCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
-        <span class="syn-var">shared_val</span><span class="syn-punc">++;</span>  <span class="syn-cmt">/* Fast user-mode mutual exclusion */</span>
-        <span class="syn-fn">LeaveCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
-    <span class="syn-punc">}</span>
-    <span class="syn-kwd">return</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
-<span class="syn-punc">}</span>
-
-<span class="syn-type">int</span> <span class="syn-fn">main</span><span class="syn-punc">() {</span>
-    <span class="syn-type">HANDLE</span> <span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">2</span><span class="syn-punc">];</span>
-    <span class="syn-type">LONG</span> <span class="syn-var">loop_count</span> <span class="syn-punc">=</span> <span class="syn-var">500000</span><span class="syn-punc">;</span>
-
-    <span class="syn-fn">InitializeCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
-
-    <span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">0</span><span class="syn-punc">] =</span> <span class="syn-fn">CreateThread</span><span class="syn-punc">(</span><span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">WorkerRoutine</span><span class="syn-punc">, &amp;</span><span class="syn-var">loop_count</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
-    <span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">1</span><span class="syn-punc">] =</span> <span class="syn-fn">CreateThread</span><span class="syn-punc">(</span><span class="syn-var">NULL</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">WorkerRoutine</span><span class="syn-punc">, &amp;</span><span class="syn-var">loop_count</span><span class="syn-punc">,</span> <span class="syn-var">0</span><span class="syn-punc">,</span> <span class="syn-var">NULL</span><span class="syn-punc">);</span>
-
-    <span class="syn-cmt">/* Synchronize with all worker threads simultaneously */</span>
-    <span class="syn-fn">WaitForMultipleObjects</span><span class="syn-punc">(</span><span class="syn-var">2</span><span class="syn-punc">,</span> <span class="syn-var">hThreads</span><span class="syn-punc">,</span> <span class="syn-var">TRUE</span><span class="syn-punc">,</span> <span class="syn-var">INFINITE</span><span class="syn-punc">);</span>
-
-    <span class="syn-fn">CloseHandle</span><span class="syn-punc">(</span><span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">0</span><span class="syn-punc">]);</span>
-    <span class="syn-fn">CloseHandle</span><span class="syn-punc">(</span><span class="syn-var">hThreads</span><span class="syn-punc">[</span><span class="syn-var">1</span><span class="syn-punc">]);</span>
-    <span class="syn-fn">DeleteCriticalSection</span><span class="syn-punc">(&amp;</span><span class="syn-var">cs</span><span class="syn-punc">);</span>
-    <span class="syn-kwd">return</span> <span class="syn-var">0</span><span class="syn-punc">;</span>
-<span class="syn-punc">}</span></code></pre>
-
-    <h4>Windows Fibers: Cooperative User-Mode Scheduling</h4>
-    <p>
-      In addition to native kernel threads, Windows natively implements <strong>Fibers</strong>—a pure user-level, cooperative threading mechanism (Many-to-One / Many-to-Many):
+      While the kernel maintains <code>ETHREAD</code> and <code>KTHREAD</code> in protected supervisor memory, user-space code requires rapid, non-privileged access to thread-specific variables. The Windows Subsystem maps a <strong>Thread Environment Block (TEB)</strong>, also historically called the <strong>Thread Information Block (TIB)</strong>, into user address space for every running thread:
     </p>
     <ul>
-      <li>A thread converts itself to a fiber by calling <code>ConvertThreadToFiber()</code>.</li>
-      <li>Additional fibers are created in user space via <code>CreateFiber()</code>. Each fiber possesses its own private execution stack and user-mode context, but shares the underlying kernel thread.</li>
-      <li>Fibers yield control explicitly using <code>SwitchToFiber(lpFiber)</code>. The switch executes entirely in User Mode (Ring 3) without kernel intervention.</li>
-      <li><em>Engineering Context:</em> Microsoft originally introduced Fibers to simplify porting existing UNIX database engines (such as early Microsoft SQL Server architectures based on Sybase) that relied heavily on user-space thread schedulers.</li>
+      <li><strong>Hardware Segment Register Addressing:</strong> On 64-bit Windows, the CPU's <strong><code>%gs</code> segment register</strong> base points directly to the active thread's TEB. On 32-bit Windows, the <strong><code>%fs</code> register</strong> is used. Accessing user-mode thread metadata requires zero system calls:
+        <pre><code><span class="syn-cmt"># Assembly instruction reading the Thread ID directly from TEB on x86-64:</span>
+<span class="syn-fn">movq</span>  <span class="syn-var">%gs</span><span class="syn-punc">:</span><span class="syn-var">0x48</span><span class="syn-punc">,</span> <span class="syn-var">%rax</span>   <span class="syn-cmt"># Offset 0x48 points to ClientId.UniqueThread</span></code></pre>
+      </li>
+      <li><strong>Stack Base and Limit:</strong> The TEB records the high and low memory bounds of the thread's user-mode stack, enabling the runtime to verify stack boundaries and trigger guard page expansions dynamically.</li>
+      <li><strong>Structured Exception Handling (SEH) Chain:</strong> On 32-bit Windows, the very first field of the TEB (<code>fs:[0]</code>) holds the pointer to the head of the Structured Exception Handling frame list, guiding stack unwinding when hardware traps occur.</li>
+      <li><strong>Thread-Local Storage (TLS) Array:</strong> Contains an array of 64 static TLS slot pointers, followed by an expansion pointer to an additional 1,024 dynamic TLS slots, managed via <code>TlsAlloc()</code>, <code>TlsGetValue()</code>, and <code>TlsSetValue()</code>.</li>
+      <li><strong>Last Error Code:</strong> Stores the thread's win32 error code, retrieved by <code>GetLastError()</code> and modified by <code>SetLastError()</code>. Because each thread owns its private TEB, concurrent threads never overwrite each other's error diagnostics.</li>
+      <li><strong>Pointer to the PEB:</strong> Points to the process-wide Process Environment Block (PEB), giving the thread access to command-line arguments, module lists, and heap handles.</li>
+    </ul>
+
+    <h4>3. The Windows Dispatcher &amp; Scheduling Mechanics</h4>
+    <p>
+      The Windows kernel implements a priority-driven, preemptive scheduling algorithm based on <strong>32 linear priority levels</strong> (numbered 0 to 31):
+    </p>
+    <ul>
+      <li><strong>Real-Time Priorities (16–31):</strong> Assigned to mission-critical system threads and audio/media pipelines. These priorities never fluctuate dynamically; a ready real-time thread preempts all lower-priority threads immediately.</li>
+      <li><strong>Variable / Dynamic Priorities (1–15):</strong> Assigned to regular user applications. The kernel dynamically adjusts (boosts and decays) these priorities:
+        <ul>
+          <li><em>I/O Completion Boost:</em> When a thread unblocks after a device I/O operation (e.g., keyboard keystroke or disk read), the kernel temporarily boosts its priority (e.g., +6 for keyboard input, +1 for disk completion) to make the application immediately responsive to user input.</li>
+          <li><em>Foreground Window Boost:</em> The thread owning the currently active, focused GUI window receives a priority quantum boost to eliminate visual typing latency.</li>
+          <li><em>Starvation Prevention (Balance Set Manager):</em> Every second, a kernel maintenance thread scans the ready queues. Any thread that has been ready to run but starved of CPU time for more than 4 seconds is temporarily boosted to priority 15 and granted double quantum, preventing low-priority background threads from starving indefinitely.</li>
+        </ul>
+      </li>
+      <li><strong>Priority 0:</strong> Reserved exclusively for the Zero Page Thread, which runs only when the machine is completely idle to wipe deallocated RAM pages with zeroes.</li>
+    </ul>
+
+    <h5>Thread Dispatcher States</h5>
+    <p>
+      Within the Microkernel, every <code>KTHREAD</code> transitions deterministically across eight formal dispatcher states:
+    </p>
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px; width: 22%;">State</th>
+            <th style="padding: 10px 14px; width: 78%;">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>Initialized</code></td>
+            <td style="padding: 10px 14px;">The thread structure has been created inside the Executive, but the thread is not yet placed in a kernel run queue.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>Ready</code></td>
+            <td style="padding: 10px 14px;">The thread has satisfied all execution prerequisites and resides in the per-processor ready queue awaiting dispatch by the scheduler.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>Standby</code></td>
+            <td style="padding: 10px 14px;">The thread has been selected by the dispatcher to run next on a specific physical CPU core; context switch is imminent.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>Running</code></td>
+            <td style="padding: 10px 14px;">The thread owns the physical hardware core; its registers and instructions are actively executing in silicon.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>Waiting</code></td>
+            <td style="padding: 10px 14px;">The thread is suspended, blocked on one or more kernel synchronization dispatcher objects (events, mutexes, semaphores, or file I/O).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>Transition</code></td>
+            <td style="padding: 10px 14px;">The thread is ready to run, but its kernel stack has been temporarily paged out of physical RAM; the kernel is paging it back in.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;"><code>Terminated</code></td>
+            <td style="padding: 10px 14px;">Execution has finished; resources are deallocated once all open handles to the thread object are closed.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>4. Win32 Synchronization Primitives &amp; Dispatcher Objects</h4>
+    <p>
+      Synchronization in Windows relies on an object-oriented architecture. Kernel synchronization primitives are formal <strong>dispatcher objects</strong> containing a common <code>DISPATCHER_HEADER</code>:
+    </p>
+    <ul>
+      <li><strong>Signaled vs. Non-Signaled State:</strong> A dispatcher object is either signaled (available / event occurred) or non-signaled (unavailable / busy).
+        <ul>
+          <li><em>Mutex Objects:</em> Signaled when not owned; non-signaled when held by a thread. Supports recursive acquisition and abandonment detection.</li>
+          <li><em>Event Objects:</em> Manual-reset events stay signaled until manually cleared; auto-reset events wake one waiting thread and automatically toggle back to non-signaled.</li>
+          <li><em>Semaphore Objects:</em> Contain a resource counter; signaled as long as count &gt; 0, non-signaled when count == 0.</li>
+        </ul>
+      </li>
+      <li><strong>Atomic Multi-Object Synchronization:</strong> The Win32 API provides <code>WaitForMultipleObjects()</code>, which allows a thread to block on up to 64 distinct kernel objects simultaneously. Crucially, with <code>bWaitAll = TRUE</code>, the kernel acquires all objects atomically, completely preventing deadlock scenarios caused by partial lock acquisitions across competing threads.</li>
+      <li><strong>User-Mode Hybrid Primitives:</strong> Entering the kernel for lock acquisition is costly. Windows provides high-performance hybrid user-mode synchronization:
+        <ul>
+          <li><strong>CRITICAL_SECTION:</strong> On multi-core machines, a critical section spins in user space via a busy-wait loop for a configured spin count (e.g., 4,000 iterations) using atomic operations before falling back to a kernel event. If the lock holder releases the lock during the spin phase, zero kernel traps occur.</li>
+          <li><strong>Slim Reader/Writer (SRW) Locks:</strong> Introduced in Windows Vista, SRW locks are pointer-sized, user-mode synchronization primitives that support multiple concurrent readers or exclusive writers without allocating an underlying kernel event object, operating with performance comparable to Linux futexes.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h4>5. Asynchronous Procedure Calls (APCs) &amp; Alertable I/O</h4>
+    <p>
+      Windows supports software interrupts directed at specific threads known as <strong>Asynchronous Procedure Calls (APCs)</strong>:
+    </p>
+    <ul>
+      <li><strong>Kernel APCs:</strong> Executed by device drivers and the memory manager at IRQL level <code>APC_LEVEL</code> (1) to perform I/O completion transfers directly into the calling thread's address space.</li>
+      <li><strong>User APCs:</strong> Applications can queue user-mode functions to run in the context of another thread via <code>QueueUserAPC()</code>.</li>
+      <li><strong>Alertable Wait States:</strong> A user APC does not interrupt a thread arbitrarily. It executes <em>only when the target thread explicitly places itself in an alertable state</em> by passing <code>bAlertable = TRUE</code> to wait functions such as <code>SleepEx()</code>, <code>WaitForSingleObjectEx()</code>, or <code>MsgWaitForMultipleObjectsEx()</code>. This guarantees that user-mode callbacks run only when the application has cleanly reached an idle synchronization barrier.</li>
+    </ul>
+
+    <h4>6. User-Mode Scheduling (UMS) &amp; Fibers</h4>
+    <p>
+      Beyond standard 1:1 kernel threads, Windows provides two distinct mechanisms for user-space thread orchestration:
+    </p>
+    <ul>
+      <li><strong>Win32 Fibers (Cooperative Many-to-One):</strong> A fiber is an execution context (stack, registers, and floating-point state) that runs cooperatively on top of a Windows thread. Fibers yield control explicitly using <code>SwitchToFiber()</code>. The kernel has no awareness of fibers; if a fiber invokes a blocking I/O system call, the underlying kernel thread halts, freezing all fibers mapped to that thread.</li>
+      <li><strong>User-Mode Scheduling (UMS - True Hybrid M:N):</strong> Introduced in 64-bit Windows 7 and Server 2008 R2, UMS was designed for high-throughput server applications. Unlike fibers, UMS decouples execution scheduling from the kernel:
+        <ul>
+          <li>When a UMS worker thread blocks in the kernel (e.g., on a page fault or disk I/O), the kernel executes a <strong>scheduler activation upcall</strong>, notifying a designated user-mode UMS scheduler thread.</li>
+          <li>The user-mode scheduler immediately launches another runnable UMS worker thread on that exact same CPU core, eliminating the classic blocking-call vulnerability of pure user-level threads while avoiding kernel context-switch overhead for compute tasks.</li>
+        </ul>
+      </li>
     </ul>
 
     <h3>3. The Linux NPTL Architecture &amp; clone(2)</h3>
@@ -757,7 +848,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
             <td style="padding: 10px 14px; font-weight: 600;">User-Space Cooperative Model</td>
-            <td style="padding: 10px 14px;">Native Win32 <strong>Fibers</strong> (<code>CreateFiber</code>, <code>SwitchToFiber</code>).</td>
+            <td style="padding: 10px 14px;">Native Win32 <strong>Fibers</strong> (<code>CreateFiber</code>, <code>SwitchToFiber</code>) &amp; UMS.</td>
             <td style="padding: 10px 14px;">Language runtimes (goroutines) or POSIX <code>ucontext_t</code>.</td>
           </tr>
         </tbody>
@@ -966,7 +1057,6 @@ MODULE_HTML = r"""<!DOCTYPE html>
       document.getElementById("txt-kt2-title").textContent = isKlt ? "Kernel TCB 2" : "No Kernel Object";
       document.getElementById("txt-kt3-title").textContent = isKlt ? "Kernel TCB 3" : "No Kernel Object";
 
-      // Mapping Edges in Many-to-One vs One-to-One
       const edge1 = document.getElementById("map-edge-1");
       const edge2 = document.getElementById("map-edge-2");
       const edge3 = document.getElementById("map-edge-3");
@@ -1002,14 +1092,14 @@ def execute_expansion():
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand NPTL and clone(2) architecture in Module 04\n\n"
-            "Detail task_struct PID/TGID duality, LinuxThreads historical flaws,\n"
-            "clone3 flag mechanics, userspace futex locking, and signal routing."
+            "Expand Windows NT threading architecture in Module 04\n\n"
+            "Detail ETHREAD/KTHREAD structures, TEB/TIB user blocks, dispatcher states,\n"
+            "priority boosts, kernel dispatcher objects, APCs, Fibers, and UMS."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
