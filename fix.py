@@ -1,26 +1,25 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Dining Philosophers section in Module 04
+# fix.py: Port comprehensive Dining Philosophers content to correct file
 # =====================================================================
 import os
 import subprocess
 
-TARGET_FILE = os.path.join(
+CORRECT_FILE = os.path.join(
+    "week06-synchronization-and-deadlock",
+    "04-classic-synchronization-real-world-defenses.html"
+)
+OLD_MISNAMED_FILE = os.path.join(
     "week06-synchronization-and-deadlock",
     "04-deadlock-recovery-starvation.html"
 )
 
-DINING_PHILOSOPHERS_MASSIVE = r"""      <h3>1. Classic Synchronization Hazards</h3>
+DINING_PHILOSOPHERS_FULL_SECTION = r"""      <h3>1. The Dining Philosophers Problem</h3>
       <p>
-        Operating systems and concurrent applications encounter recurring structural coordination challenges that highlight the delicate balance between throughput, mutual exclusion, and deadlock avoidance. Among these, classic synchronization problems serve as canonical architectural testbeds to prove that concurrency primitives do not introduce deadlocks, livelocks, or starvation.
+        Originally formulated by Edsger Dijkstra in 1965 to evaluate synchronization primitives on the RC 4000 multiprogramming system, the <strong>Dining Philosophers Problem</strong> is the foundational archetype for multi-resource allocation among concurrent processes. It abstracts the challenges of allocating shared, mutually exclusive devices (such as I/O channels, memory banks, or database table locks) without causing deadlock, livelock, or starvation.
       </p>
 
-      <h4>1. The Dining Philosophers Problem</h4>
-      <p>
-        Originally formulated by Edsger Dijkstra in 1965 to test synchronization primitives on the RC 4000 multiprogramming system, the <strong>Dining Philosophers Problem</strong> is the foundational archetype for multi-resource allocation among competing processes. It abstracts the challenges of allocating shared, mutually exclusive devices (such as I/O channels, memory banks, or database table locks) without causing deadlock or starvation.
-      </p>
-
-      <h5>1. Problem Geometry &amp; Mathematical Formulation</h5>
+      <h4>1. Problem Geometry &amp; Mathematical Formulation</h4>
       <p>
         Consider five philosophers sitting around a circular table. In front of each philosopher is a plate of noodles. Between each pair of adjacent plates lies a single shared chopstick (five total chopsticks). Each philosopher alternates between two primary states: <em>thinking</em> and <em>eating</em>.
       </p>
@@ -33,7 +32,7 @@ DINING_PHILOSOPHERS_MASSIVE = r"""      <h3>1. Classic Synchronization Hazards</
         A philosopher can only eat when holding <strong>both</strong> their immediate left and right chopsticks simultaneously. Because each chopstick is a strictly non-shareable resource ($C_k \in \{0, 1\}$), adjacent philosophers cannot eat concurrently:
       </p>
 
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+      <div class="math-callout" style="background: #f8fafc; border-left: 4px solid var(--accent); padding: 16px; border-radius: 0 6px 6px 0; margin: 18px 0;">
         <strong style="color: var(--primary);">Concurrency Invariant:</strong>
         <br><br>
         $$ \text{State}(P_i) = \text{EATING} \implies \text{State}(P_{(i+4)\bmod 5}) \neq \text{EATING} \quad \land \quad \text{State}(P_{(i+1)\bmod 5}) \neq \text{EATING} $$
@@ -42,7 +41,7 @@ DINING_PHILOSOPHERS_MASSIVE = r"""      <h3>1. Classic Synchronization Hazards</
         </p>
       </div>
 
-      <h5>2. Failure Mode 1: Deadlock via Lockstep Contention</h5>
+      <h4>2. Failure Mode 1: Deadlock via Lockstep Contention</h4>
       <p>
         Consider the naive concurrency implementation where each philosopher executes the following routine:
       </p>
@@ -72,7 +71,7 @@ void philosopher(int i) {
         </li>
       </ol>
 
-      <h5>3. Failure Mode 2: Livelock via Naive Preemption</h5>
+      <h4>3. Failure Mode 2: Livelock via Naive Preemption</h4>
       <p>
         A naive attempt to prevent deadlock is to eliminate the <em>Hold-and-Wait</em> condition using non-blocking lock acquisition (such as <code>pthread_mutex_trylock()</code>). If a philosopher acquires their left chopstick but finds their right chopstick busy, they release the left chopstick, sleep for a moment, and retry:
       </p>
@@ -91,22 +90,18 @@ void philosopher_trylock(int i) {
     }
 }</code></pre>
       <p>
-        While this technically eliminates static deadlock, it introduces a dangerous <strong>livelock</strong> hazard. If all five philosophers pick up their left chopstick simultaneously, fail to acquire their right chopstick, release their left chopstick in unison, and immediately retry at identical intervals, the threads enter a synchronized polite-retreat loop. The system consumes 100% CPU time executing state transitions without any philosopher ever eating.
+        While this eliminates static deadlock, it introduces a dangerous <strong>livelock</strong> hazard. If all five philosophers pick up their left chopstick simultaneously, fail to acquire their right chopstick, release their left chopstick in unison, and immediately retry at identical intervals, the threads enter a synchronized polite-retreat loop consuming 100% CPU without any philosopher ever eating.
       </p>
 
-      <h5>4. Failure Mode 3: Starvation via Neighbor Collusion</h5>
+      <h4>4. Failure Mode 3: Starvation via Neighbor Collusion</h4>
       <p>
         Even if deadlock and livelock are avoided, a concurrency protocol may still suffer from <strong>starvation (indefinite deferral)</strong>. Consider an asymmetric or priority-based scheduler where Philosopher $P_0$ and Philosopher $P_2$ eat alternately. Whenever $P_0$ finishes, $P_2$ starts; whenever $P_2$ finishes, $P_0$ starts.
       </p>
       <p>
-        Philosopher $P_1$ (sitting between $P_0$ and $P_2$) requires $C_1$ and $C_2$. Because either $C_1$ or $C_2$ is continuously held by $P_0$ or $P_2$, $P_1$ never finds both chopsticks free simultaneously. Although the system as a whole exhibits liveness (throughput &gt; 0), thread $P_1$ starves indefinitely.
+        Philosopher $P_1$ (sitting between $P_0$ and $P_2$) requires $C_1$ and $C_2$. Because either $C_1$ or $C_2$ is continuously held by $P_0$ or $P_2$, $P_1$ never finds both chopsticks free simultaneously. Although system throughput is positive, thread $P_1$ starves indefinitely.
       </p>
 
-      <h5>5. Four Rigorous Architectural Mitigations</h5>
-      <p>
-        Operating systems and distributed systems employ four standard strategies to solve the Dining Philosophers problem cleanly:
-      </p>
-
+      <h4>5. Four Rigorous Architectural Mitigations</h4>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
         <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
           <strong style="color: var(--primary); font-size: 0.95rem;">1. Asymmetric Acquisition (Dijkstra)</strong>
@@ -151,7 +146,7 @@ void philosopher_trylock(int i) {
         </div>
 
         <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-          <strong style="color: var(--primary); font-size: 0.95rem;">4. Monitor State Machine (Chandy-Misra)</strong>
+          <strong style="color: var(--primary); font-size: 0.95rem;">4. Monitor State Machine (Tanenbaum / Chandy-Misra)</strong>
           <p style="font-size: 0.85rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
             Encapsulate the state of each philosopher in a synchronized monitor. A philosopher transitions to <code>EATING</code> only if neither neighbor is currently eating.
           </p>
@@ -165,12 +160,7 @@ void philosopher_trylock(int i) {
         </div>
       </div>
 
-      <h5>Monitor Solution: Complete Implementation</h5>
-      <p>
-        The monitor-based solution represents the standard modern approach to multi-resource synchronization. Below is the complete state-based monitor implementation with condition variables:
-      </p>
-
-      <!-- Syntax Highlighted Pseudocode Box -->
+      <h4>6. Monitor Implementation Pseudocode</h4>
       <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border);">
         <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
           monitor &bull; DiningPhilosophersMonitor.pseudo
@@ -209,55 +199,62 @@ void philosopher_trylock(int i) {
         }
     }
 }</pre>
-      </div>
+      </div>"""
 
-      <h5>6. Real-World Systems Parallels</h5>
-      <p>
-        The Dining Philosophers problem maps directly to practical architectural challenges across systems programming:
-      </p>
-      <ul>
-        <li>
-          <strong>Relational Database Multi-Row Locking:</strong> When two transactions require write access to overlapping sets of rows across separate tables, unordered lock acquisition immediately recreates the circular wait condition. Databases enforce strict global lock ordering (or implement wait-for-graph cycle detection with transaction aborts) to recover.
-        </li>
-        <li>
-          <strong>Dual-Ported RAM &amp; Memory Banks:</strong> In multi-core DSPs and GPU execution units, shared memory banks can service only one access per clock cycle. Cross-thread access patterns that demand dual-bank ownership must be scheduled asymmetrically to prevent pipeline stalling.
-        </li>
-      </ul>"""
+KATEX_HEAD_TAGS = r"""  <!-- KaTeX CSS & JS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
+</head>"""
 
-def apply_dining_philosophers_expansion():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} not found.")
+def update_correct_module_four():
+    if not os.path.exists(CORRECT_FILE):
+        print(f"Error: {CORRECT_FILE} not found.")
         return False
 
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
+    with open(CORRECT_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>1. Classic Synchronization Hazards</h3>"
-    end_marker = "<h4>2. The Readers-Writers Problem</h4>"
+    # 1. Ensure KaTeX is present in head
+    if "katex.min.css" not in content:
+        content = content.replace("</head>", KATEX_HEAD_TAGS)
+
+    # 2. Replace Section 1
+    start_marker = "<h3>1. The Dining Philosophers Problem</h3>"
+    end_marker = "<h3>2. Readers-Writers Starvation &amp; Database 2PL</h3>"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker, start_idx)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 1 / Subsection 2 boundaries in Module 04.")
+        print("Error: Could not locate Section 1 boundaries in target file.")
         return False
 
-    updated_content = content[:start_idx] + DINING_PHILOSOPHERS_MASSIVE + "\n\n      " + content[end_idx:]
+    updated_content = content[:start_idx] + DINING_PHILOSOPHERS_FULL_SECTION + "\n\n      " + content[end_idx:]
 
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
+    with open(CORRECT_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Dining Philosophers in {TARGET_FILE}")
+    print(f"--> Successfully updated {CORRECT_FILE}")
+
+    # Remove misnamed file if it exists to keep tree clean
+    if os.path.exists(OLD_MISNAMED_FILE):
+        os.remove(OLD_MISNAMED_FILE)
+        print(f"--> Cleaned up misnamed {OLD_MISNAMED_FILE}")
+
     return True
 
 if __name__ == "__main__":
-    if apply_dining_philosophers_expansion():
+    if update_correct_module_four():
         try:
-            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+            files_to_add = [CORRECT_FILE, "fix.py"]
+            if not os.path.exists(OLD_MISNAMED_FILE):
+                subprocess.run(["git", "rm", "-f", OLD_MISNAMED_FILE], stderr=subprocess.DEVNULL)
+            subprocess.run(["git", "add"] + files_to_add, check=True)
             commit_msg = (
-                "Exhaustively expand Dining Philosophers theory and hazards in Module 04\n\n"
-                "Add mathematical circular graph modeling, livelock/starvation traces,\n"
-                "four structural mitigation proofs, and real-world DBMS lock parallels."
+                "Port full Dining Philosophers expansion to correct Module 04 file\n\n"
+                "Transfer mathematical formulation, failure mode traces, 4 mitigations,\n"
+                "and monitor pseudocode into 04-classic-synchronization-real-world-defenses."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
