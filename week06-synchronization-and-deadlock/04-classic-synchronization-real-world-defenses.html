@@ -125,17 +125,23 @@
       <p>
         Consider the naive concurrency implementation where each philosopher executes the following routine:
       </p>
-      <pre><code>// Naive Philosopher Routine (Deadlock Prone)
-void philosopher(int i) {
-    while (true) {
-        think();
-        wait(chopstick[i]);                 // Grab left chopstick
-        wait(chopstick[(i + 1) % 5]);       // Grab right chopstick
-        eat();
-        signal(chopstick[i]);              // Release left chopstick
-        signal(chopstick[(i + 1) % 5]);     // Release right chopstick
+      <!-- Syntax Highlighted Code Box: Naive Implementation -->
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);">
+        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+          c &bull; naive_philosopher.c
+        </div>
+        <pre style="margin: 0; line-height: 1.5;"><span style="color: #94a3b8;">// Naive Philosopher Routine (Deadlock Prone)</span>
+<span style="color: #c084fc;">void</span> <span style="color: #60a5fa;">philosopher</span>(<span style="color: #6ee7b7;">int</span> i) {
+    <span style="color: #c084fc;">while</span> (<span style="color: #fbbf24;">true</span>) {
+        <span style="color: #60a5fa;">think</span>();
+        <span style="color: #60a5fa;">wait</span>(chopstick[i]);                 <span style="color: #94a3b8;">// Grab left chopstick</span>
+        <span style="color: #60a5fa;">wait</span>(chopstick[(i + <span style="color: #f43f5e;">1</span>) % <span style="color: #f43f5e;">5</span>]);       <span style="color: #94a3b8;">// Grab right chopstick</span>
+        <span style="color: #60a5fa;">eat</span>();
+        <span style="color: #60a5fa;">signal</span>(chopstick[i]);              <span style="color: #94a3b8;">// Release left chopstick</span>
+        <span style="color: #60a5fa;">signal</span>(chopstick[(i + <span style="color: #f43f5e;">1</span>) % <span style="color: #f43f5e;">5</span>]);     <span style="color: #94a3b8;">// Release right chopstick</span>
     }
-}</code></pre>
+}</pre>
+      </div>
       <p>
         If all five philosophers simultaneously decide to eat and invoke <code>wait(chopstick[i])</code>, each philosopher successfully claims their left chopstick. When each philosopher subsequently issues <code>wait(chopstick[(i + 1) % 5])</code>, every right chopstick is already locked by their clockwise neighbor.
       </p>
@@ -155,20 +161,26 @@ void philosopher(int i) {
       <p>
         A naive attempt to prevent deadlock is to eliminate the <em>Hold-and-Wait</em> condition using non-blocking lock acquisition (such as <code>pthread_mutex_trylock()</code>). If a philosopher acquires their left chopstick but finds their right chopstick busy, they release the left chopstick, sleep for a moment, and retry:
       </p>
-      <pre><code>// Livelock Hazard
-void philosopher_trylock(int i) {
-    while (true) {
-        think();
-        acquire(chopstick[i]);
-        if (!try_acquire(chopstick[(i + 1) % 5])) {
-            release(chopstick[i]);          // Back off to prevent deadlock
-            continue;                       // Retry from the start
+      <!-- Syntax Highlighted Code Box: Livelock Hazard -->
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 16px 0; border: 1px solid var(--border);">
+        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+          c &bull; livelock_hazard.c
+        </div>
+        <pre style="margin: 0; line-height: 1.5;"><span style="color: #94a3b8;">// Livelock Hazard (Polite-Retreat Oscillation)</span>
+<span style="color: #c084fc;">void</span> <span style="color: #60a5fa;">philosopher_trylock</span>(<span style="color: #6ee7b7;">int</span> i) {
+    <span style="color: #c084fc;">while</span> (<span style="color: #fbbf24;">true</span>) {
+        <span style="color: #60a5fa;">think</span>();
+        <span style="color: #60a5fa;">acquire</span>(chopstick[i]);
+        <span style="color: #c084fc;">if</span> (!<span style="color: #60a5fa;">try_acquire</span>(chopstick[(i + <span style="color: #f43f5e;">1</span>) % <span style="color: #f43f5e;">5</span>])) {
+            <span style="color: #60a5fa;">release</span>(chopstick[i]);          <span style="color: #94a3b8;">// Back off to prevent deadlock</span>
+            <span style="color: #c084fc;">continue</span>;                       <span style="color: #94a3b8;">// Retry from the start</span>
         }
-        eat();
-        release(chopstick[i]);
-        release(chopstick[(i + 1) % 5]);
+        <span style="color: #60a5fa;">eat</span>();
+        <span style="color: #60a5fa;">release</span>(chopstick[i]);
+        <span style="color: #60a5fa;">release</span>(chopstick[(i + <span style="color: #f43f5e;">1</span>) % <span style="color: #f43f5e;">5</span>]);
     }
-}</code></pre>
+}</pre>
+      </div>
       <p>
         While this eliminates static deadlock, it introduces a dangerous <strong>livelock</strong> hazard. If all five philosophers pick up their left chopstick simultaneously, fail to acquire their right chopstick, release their left chopstick in unison, and immediately retry at identical intervals, the threads enter a synchronized polite-retreat loop consuming 100% CPU without any philosopher ever eating.
       </p>
