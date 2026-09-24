@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Repair corrupted SVG Figure 2.2 in 03-disk-hardware-scheduling.html
+# check_and_sync.py: Verify Figure 2.2 SVG cleanliness and sync cleanly
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join(
-    "week05-io-and-disk-scheduling",
-    "03-disk-hardware-scheduling.html"
+    "week05-io-and-disk-scheduling", "03-disk-hardware-scheduling.html"
 )
 
-CORRECTED_FIGURE_2_2 = r"""    <!-- Structural Diagram: Time-Domain Latency Timeline -->
+CORRECTED_FIGURE = r"""    <!-- Structural Diagram: Time-Domain Latency Timeline -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
       <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.2: Time-Domain Decomposition of a Random 4 KB Disk Read Operation (~10.2 ms)</div>
       <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Visualizing how mechanical arm movement and platter rotation dwarf electronic transfer time by over 500 to 1.</div>
@@ -70,42 +69,62 @@ CORRECTED_FIGURE_2_2 = r"""    <!-- Structural Diagram: Time-Domain Latency Time
       </svg>
     </div>"""
 
-def repair_figure():
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
 
-    start_marker = "<!-- Structural Diagram: Time-Domain Latency Timeline -->"
-    end_marker = "<h4>1. Seek Time (<i>T</i><sub>seek</sub>): The Voice-Coil Mechanics</h4>"
+def check_and_update():
+  if not os.path.exists(TARGET_FILE):
+    print(f"File {TARGET_FILE} not found.")
+    return
 
-    start_idx = content.find(start_marker)
-    end_idx = content.find(end_marker)
+  with open(TARGET_FILE, "r", encoding="utf-8") as f:
+    content = f.read()
 
-    if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Figure 2.2 boundaries in Module 03.")
-        return False
+  # Check if Figure 2.2 needs replacing
+  start_marker = "<!-- Structural Diagram: Time-Domain Latency Timeline -->"
+  end_marker = (
+      "<h4>1. Seek Time (<i>T</i><sub>seek</sub>): The Voice-Coil Mechanics</h4>"
+  )
 
-    updated_content = content[:start_idx] + CORRECTED_FIGURE_2_2.strip() + "\n\n    " + content[end_idx:]
+  start_idx = content.find(start_marker)
+  end_idx = content.find(end_marker)
 
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(updated_content)
+  if start_idx != -1 and end_idx != -1:
+    current_block = content[start_idx:end_idx].strip()
+    if current_block != CORRECTED_FIGURE.strip():
+      updated = (
+          content[:start_idx]
+          + CORRECTED_FIGURE.strip()
+          + "\n\n    "
+          + content[end_idx:]
+      )
+      with open(TARGET_FILE, "w", encoding="utf-8") as f:
+        f.write(updated)
+      print(f"--> Replaced Figure 2.2 with clean markup in {TARGET_FILE}")
+    else:
+      print("--> Figure 2.2 is already up-to-date and clean.")
+  else:
+    print("--> Notice: Boundary markers not matched as expected.")
 
-    print(f"--> Successfully repaired Figure 2.2 in {TARGET_FILE}")
-    return True
+  # Check git status
+  status = (
+      subprocess.check_output(["git", "status", "--porcelain"])
+      .decode("utf-8")
+      .strip()
+  )
+  if not status:
+    print("--> Working tree is already clean. Nothing to commit or push.")
+    return
 
-def run_git_sync():
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Fix SVG markup corruption in Figure 2.2 of Module 03\n\n"
-            "Remove invalid HTML <sub> tags inside SVG text elements, repair\n"
-            "timeline bar layout, and add a transfer inset callout."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
+  print(f"--> Changes detected:\n{status}")
+  subprocess.run(["git", "add", "."], check=True)
+  commit_msg = (
+      "Fix SVG markup corruption in Figure 2.2 of Module 03\n\n"
+      "Remove invalid HTML <sub> tags inside SVG text elements, repair\n"
+      "timeline bar layout, and add a transfer inset callout."
+  )
+  subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+  subprocess.run(["git", "push", "origin", "main"], check=True)
+  print("--> Successfully synced with origin main!")
+
 
 if __name__ == "__main__":
-    if repair_figure():
-        run_git_sync()
+  check_and_update()
