@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 4 in 02-process-lifecycle.html
+# fix.py: Expand week02-processes/03-classical-threads.html
 # =====================================================================
 import os
 import subprocess
 
-TARGET_FILE = os.path.join("week02-processes", "02-process-lifecycle.html")
+TARGET_FILE = os.path.join("week02-processes", "03-classical-threads.html")
 
 MODULE_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>02. Process Creation, Termination &amp; Hierarchies | Week 2: Processes &amp; Concurrency</title>
+  <title>03. The Classical Thread Model | Week 2: Processes &amp; Concurrency</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -194,7 +194,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
       align-items: center;
       border-bottom: 1px solid var(--border);
     }
-    svg.lifecycle-canvas {
+    svg.thread-canvas {
       width: 100%;
       max-width: 720px;
       height: auto;
@@ -291,158 +291,212 @@ MODULE_HTML = r"""<!DOCTYPE html>
       margin: 0;
     }
 
-    /* Diagram Nodes & Shapes */
-    .proc-box {
-      fill: #ffffff;
+    /* Diagram Styles */
+    .mem-block {
+      fill: #f8fafc;
       stroke: #cbd5e1;
       stroke-width: 2;
       transition: all 0.3s ease;
     }
-    .proc-group.active .proc-box {
+    .thread-card {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 1.5;
+      transition: all 0.3s ease;
+    }
+    .thread-card.active {
       stroke: #0284c7;
       stroke-width: 2.5;
       fill: #f0f9ff;
     }
-    .proc-group.zombie .proc-box {
+    .thread-card.blocked {
       stroke: #d97706;
-      stroke-width: 2.5;
+      stroke-width: 2;
       fill: #fef3c7;
     }
-    .proc-group.reaped .proc-box {
+    .stack-segment {
+      fill: #e2e8f0;
       stroke: #94a3b8;
-      stroke-dasharray: 4 4;
-      fill: #f8fafc;
-      opacity: 0.4;
-    }
-    .flow-line {
-      stroke: #cbd5e1;
-      stroke-width: 2;
-      fill: none;
+      stroke-width: 1.5;
       transition: all 0.3s ease;
     }
-    .flow-line.active {
+    .stack-segment.active {
+      fill: #bae6fd;
       stroke: #0284c7;
-      stroke-width: 3;
-      filter: drop-shadow(0 0 3px rgba(2, 132, 199, 0.4));
+      stroke-width: 2;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <nav class="nav-bar">
-      <a href="01-process-model.html">&larr; Previous: 01. Process Model</a>
+      <a href="02-process-lifecycle.html">&larr; Previous: 02. Process Lifecycle</a>
       <a href="index.html">&#127968; Week 2 Index</a>
-      <a href="03-classical-threads.html">Next: 03. Classical Threads &rarr;</a>
+      <a href="04-thread-implementation.html">Next: 04. Implementation &rarr;</a>
     </nav>
 
-    <h2>02. Process Creation, Termination &amp; Hierarchies</h2>
+    <h2>03. The Classical Thread Model</h2>
     <p>
-      An operating system is not a static monolith; it is an active ecosystem where processes are continually spawned, coordinated, and torn down. To maintain system integrity, resource tracking, and security separation, the kernel provides standardized lifecycle mechanisms and formal relationship models.
+      In traditional operating system designs, every process possesses a single thread of control executing in an isolated address space. While this model provides robust memory protection, modern software architectures frequently require multiple parallel streams of execution collaborating within the exact same dataset.
+    </p>
+    <p>
+      The <strong>thread abstraction</strong> decomposes the traditional heavyweight process into two distinct responsibilities: <strong>resource grouping</strong> and <strong>execution scheduling</strong>.
     </p>
 
-    <h3>1. Process Creation Mechanisms</h3>
+    <h3>1. Why Threads: Motivation and Utility</h3>
     <p>
-      In modern computing environments, four primary events initiate the creation of a new process:
-    </p>
-    <ol>
-      <li>
-        <strong>System Initialization:</strong> When an operating system boots, the kernel initializes hardware, builds core memory tables, and spawns the initial user-space root process (such as <code>init</code> or <code>systemd</code> on UNIX systems, with PID 1). This root process launches essential background services known as <em>daemons</em> (such as network managers, system loggers, and cron schedulers) as well as interactive login consoles.
-      </li>
-      <li>
-        <strong>Execution of a Process Creation System Call:</strong> A currently running process issues a dedicated kernel trap requesting the creation of a child process. For example, a web server listening on port 80 might spawn worker processes to handle incoming client connections concurrently.
-      </li>
-      <li>
-        <strong>User Request:</strong> An interactive user types a command into a terminal shell (such as <code>ls -la</code>) or double-clicks an icon on a graphical desktop. The underlying shell or window manager issues the appropriate system call on the user's behalf.
-      </li>
-      <li>
-        <strong>Initiation of a Batch Job:</strong> In mainframe, high-performance computing (HPC), or cloud batch systems, batch management daemons read job execution queues and instantiate processes as cluster compute resources become available.
-      </li>
-    </ol>
-
-    <h3>2. Process Hierarchies: UNIX Trees vs. Windows Flat Models</h3>
-    <p>
-      Operating systems differ fundamentally in how they track relationships between parent and child tasks:
+      Before the emergence of multithreading, concurrent applications relied entirely on multi-process architectures (such as calling <code>fork()</code>). While robust, multi-process concurrency imposes substantial performance bottlenecks:
     </p>
     <ul>
       <li>
-        <strong>The UNIX Process Hierarchy:</strong> In UNIX and Linux, processes are strictly organized into a single rooted parent-child tree. When process A forks process B, process A is permanently recorded as B's parent (<code>PPID</code>). Processes form process groups and session hierarchies, enabling terminal control signals (such as <code>SIGINT</code> on Ctrl+C) to broadcast to an entire pipeline of child processes. If a parent terminates before its child, the orphaned child is re-parented to <code>init</code> (PID 1) or a modern user subreaper daemon.
+        <strong>Shared Memory Access:</strong> Independent processes inhabit isolated virtual address spaces. Sharing data requires explicit inter-process communication (IPC)—such as pipes, message queues, sockets, or shared memory segments requiring complex synchronization. Threads inherently share the same address space, allowing pointers, buffers, and global variables to be accessed directly without serialization.
       </li>
       <li>
-        <strong>The Windows Flat Model:</strong> Windows does not maintain an inherent, permanent tree hierarchy. When a parent process calls <code>CreateProcess</code>, it receives an opaque security handle to the newly created process. The parent can pass or duplicate this handle to other processes. Once created, the child exists as an independent system object in the Windows Executive; there is no formal concept of ancestry or automatic tree re-parenting in the kernel core.
+        <strong>Creation and Teardown Economy:</strong> Creating a new process requires allocating a new page directory root, duplicating page tables via Copy-on-Write, and building file descriptor tables. Threads require only an execution stack and a lightweight Thread Control Block (TCB). Thread creation is routinely 10 to 100 times faster than process creation.
+      </li>
+      <li>
+        <strong>Context-Switch Overhead:</strong> Switching between processes requires invalidating or switching the Memory Management Unit (MMU) page table pointer (e.g., register <code>CR3</code> on x86-64), which forces a complete or partial flush of the Translation Lookaside Buffer (TLB). Switching between threads in the same process retains the exact same address space mappings, completely avoiding TLB flushes and cache misses.
+      </li>
+      <li>
+        <strong>Overlapping Computation with Blocking I/O:</strong> On a single CPU core, while one thread is blocked waiting for network packets or disk blocks, another thread within the same process can actively perform arithmetic calculations or render a user interface, preventing the entire application from freezing.
+      </li>
+      <li>
+        <strong>True Multi-Core Parallelism:</strong> On multicore processors, multiple threads of a single application run concurrently across distinct physical CPU cores, delivering near-linear throughput scaling for compute-bound algorithms.
       </li>
     </ul>
 
-    <!-- Directed Narrative Stepper Standard: Process Lifecycle -->
+    <h3>2. Resource Grouping vs. Execution</h3>
+    <p>
+      The classical thread model cleanly separates what a program <em>owns</em> from what a program <em>executes</em>:
+    </p>
+    <ul>
+      <li>
+        <strong>The Process (Resource Grouping Container):</strong> The process serves as the static resource grouping entity. It owns a private virtual address space (containing text, data, and heap segments), open file descriptors, child process linkages, signal action dispositions, network socket handles, and accounting quotas.
+      </li>
+      <li>
+        <strong>The Thread (Unit of Execution Scheduling):</strong> The thread serves as the lightweight entity scheduled for execution on a CPU core. Each thread possesses its own distinct Program Counter (PC), hardware register set, private stack, and scheduling state (Running, Ready, or Blocked).
+      </li>
+    </ul>
+
+    <div style="overflow-x: auto; margin: 20px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px; width: 50%;">Per-Process Resources (Shared by All Threads)</th>
+            <th style="padding: 10px 14px; width: 50%;">Per-Thread Items (Private to Each Thread)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;">Virtual Address Space (Text, Initialized Data, BSS)</td>
+            <td style="padding: 10px 14px; font-weight: 600; color: #0284c7;">Program Counter (PC / RIP)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;">Dynamic Memory Heap (Allocated via <code>malloc</code> / <code>brk</code>)</td>
+            <td style="padding: 10px 14px; font-weight: 600; color: #0284c7;">CPU Register Set (RAX, RBX, RCX, etc.)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;">Open File Descriptors (STDIN, STDOUT, Network Sockets)</td>
+            <td style="padding: 10px 14px; font-weight: 600; color: #0284c7;">Private Execution Stack (Local activation frames)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;">Child Processes &amp; Session Group ID</td>
+            <td style="padding: 10px 14px; font-weight: 600; color: #0284c7;">Stack Pointer (RSP) &amp; Base Pointer (RBP)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;">Signal Handlers &amp; Dispositions</td>
+            <td style="padding: 10px 14px; font-weight: 600; color: #0284c7;">Thread Execution State (Running, Ready, Blocked)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px;">User and Group Identification (UID, GID, Capabilities)</td>
+            <td style="padding: 10px 14px; font-weight: 600; color: #0284c7;">Thread-Specific Data (Thread-Local Storage / TLS)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Directed Narrative Stepper Standard: Classical Thread Model -->
     <div class="aid-wrapper">
       <div class="aid-header">
-        <h4>Interactive Stepper: Process Creation &amp; Termination Lifecycle</h4>
+        <h4>Interactive Stepper: Multithreaded Execution in a Shared Address Space</h4>
         <div class="dimension-toggles">
-          <button class="dim-btn active" id="dim-unix" onclick="setLifecycleDim('unix')">UNIX Model (fork/exec/wait)</button>
-          <button class="dim-btn" id="dim-win" onclick="setLifecycleDim('windows')">Windows Model (CreateProcess find.exe)</button>
+          <button class="dim-btn active" id="dim-threads" onclick="setThreadDim('threads')">Multithreaded Architecture</button>
+          <button class="dim-btn" id="dim-processes" onclick="setThreadDim('processes')">Multiprocess (fork) Model</button>
         </div>
       </div>
 
       <div class="scenario-banner">
         <span class="scenario-tag">Scenario Arc</span>
-        <span id="lifecycle-scenario-text">An interactive command shell (bash, PID 501) spawns an external utility (grep, PID 502) to search a file, waits for child completion, and reaps its exit status.</span>
+        <span id="thread-scenario-text">A multi-threaded Web Server (PID 2040) handles an incoming HTTP connection: Dispatcher (TID 1) receives the socket and hands it to Worker (TID 2), while Background Flusher (TID 3) syncs logs.</span>
       </div>
 
       <div class="telemetry-strip">
         <div class="telemetry-cell">
-          <span class="telemetry-label">Active Phase</span>
-          <span class="telemetry-val highlight" id="l-telem-phase">1. Parent Running (Shell Prompt)</span>
+          <span class="telemetry-label">Active Entity</span>
+          <span class="telemetry-val highlight" id="t-telem-entity">Thread 1: Dispatcher (TID 1)</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">Parent PID &amp; State</span>
-          <span class="telemetry-val" id="l-telem-parent">PID 501 (bash): RUNNING</span>
+          <span class="telemetry-label">Virtual Address Space</span>
+          <span class="telemetry-val" id="t-telem-vm">Shared: PID 2040 (CR3 Unchanged)</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">Child PID &amp; State</span>
-          <span class="telemetry-val" id="l-telem-child">None (Unspawned)</span>
+          <span class="telemetry-label">Active Stack Frame</span>
+          <span class="telemetry-val" id="t-telem-stack">Stack 1 (0x7FFF00 - 0x7FFE00)</span>
         </div>
         <div class="telemetry-cell">
-          <span class="telemetry-label">Syscall / Return Code</span>
-          <span class="telemetry-val" id="l-telem-trap">sys_read(stdin)</span>
+          <span class="telemetry-label">Memory Protection</span>
+          <span class="telemetry-val" id="t-telem-prot">Shared Heap &amp; Global Buffers</span>
         </div>
       </div>
 
       <div class="canvas-container">
-        <svg class="lifecycle-canvas" viewBox="0 0 720 220">
-          <defs>
-            <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
-            </marker>
-            <marker id="arrowhead-act" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
-            </marker>
-          </defs>
+        <svg class="thread-canvas" viewBox="0 0 720 250">
+          <!-- Shared Process Container -->
+          <rect class="mem-block" x="20" y="20" width="680" height="210" rx="8" />
+          <text id="container-title" x="40" y="44" font-family="system-ui" font-size="13" font-weight="700" fill="#0f172a">PROCESS CONTAINER (PID 2040: WebServer)</text>
+          <text id="container-sub" x="40" y="62" font-family="var(--font-mono)" font-size="11" fill="#64748b">Shared Resources: Code Segment | Global Variables | Dynamic Heap | Open Sockets (FD 3, 4)</text>
 
-          <!-- Parent Process Card -->
-          <g id="card-parent" class="proc-group active" transform="translate(40, 35)">
-            <rect class="proc-box" width="220" height="150" rx="8" />
-            <text id="parent-title-text" x="20" y="32" font-family="system-ui" font-size="13" font-weight="700" fill="#0f172a">PARENT (PID 501: bash)</text>
-            <text id="parent-ppid-text" x="20" y="52" font-family="var(--font-mono)" font-size="11" fill="#64748b">PPID: 1 (systemd)</text>
-            <rect x="20" y="65" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
-            <text id="parent-mem-text" x="30" y="83" font-family="var(--font-mono)" font-size="10" fill="#334155">Memory: /bin/bash Code</text>
-            <rect x="20" y="102" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
-            <text id="parent-fds-text" x="30" y="120" font-family="var(--font-mono)" font-size="10" fill="#334155">FD 0: stdin, FD 1: stdout</text>
-            <text id="parent-status-badge" x="20" y="145" font-family="system-ui" font-size="11" font-weight="700" fill="#0284c7">STATUS: RUNNING</text>
+          <!-- Shared Heap & Code Box -->
+          <rect x="40" y="75" width="220" height="135" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="55" y="98" font-family="system-ui" font-size="12" font-weight="700" fill="#0284c7">SHARED MEMORY</text>
+          <rect x="55" y="110" width="190" height="26" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+          <text x="65" y="127" font-family="var(--font-mono)" font-size="10" fill="#334155">Text: Compiled Server Code</text>
+          <rect x="55" y="142" width="190" height="26" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+          <text x="65" y="159" font-family="var(--font-mono)" font-size="10" fill="#334155">Heap: Dynamic Buffer Cache</text>
+          <rect x="55" y="174" width="190" height="26" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+          <text x="65" y="191" font-family="var(--font-mono)" font-size="10" fill="#334155">Globals: Server Connection Pool</text>
+
+          <!-- Thread 1 Card -->
+          <g id="card-t1" class="thread-group" transform="translate(280, 75)">
+            <rect class="thread-card active" width="130" height="135" rx="6" />
+            <text x="15" y="24" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">THREAD 1</text>
+            <text id="t1-role" x="15" y="40" font-family="var(--font-mono)" font-size="10" fill="#0284c7">Role: Dispatcher</text>
+            <text id="t1-state" x="15" y="56" font-family="var(--font-mono)" font-size="10" font-weight="600" fill="#059669">State: RUNNING</text>
+            <rect class="stack-segment active" x="12" y="70" width="106" height="52" rx="4"/>
+            <text x="20" y="90" font-family="var(--font-mono)" font-size="9" fill="#0369a1">Stack Frame 1</text>
+            <text id="t1-sp" x="20" y="106" font-family="var(--font-mono)" font-size="9" fill="#0369a1">RSP: 0x7FFE00</text>
           </g>
 
-          <!-- Connecting Lifecycle Path -->
-          <path id="path-lifecycle" class="flow-line" d="M 260 110 L 460 110" marker-end="url(#arrowhead)" />
-          <text id="path-label" x="360" y="100" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="#64748b">Awaiting Command</text>
+          <!-- Thread 2 Card -->
+          <g id="card-t2" class="thread-group" transform="translate(425, 75)">
+            <rect class="thread-card" width="130" height="135" rx="6" />
+            <text x="15" y="24" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">THREAD 2</text>
+            <text id="t2-role" x="15" y="40" font-family="var(--font-mono)" font-size="10" fill="#64748b">Role: Worker</text>
+            <text id="t2-state" x="15" y="56" font-family="var(--font-mono)" font-size="10" font-weight="600" fill="#d97706">State: READY</text>
+            <rect class="stack-segment" x="12" y="70" width="106" height="52" rx="4"/>
+            <text x="20" y="90" font-family="var(--font-mono)" font-size="9" fill="#475569">Stack Frame 2</text>
+            <text id="t2-sp" x="20" y="106" font-family="var(--font-mono)" font-size="9" fill="#475569">RSP: 0x7FCE00</text>
+          </g>
 
-          <!-- Child Process Card -->
-          <g id="card-child" class="proc-group reaped" transform="translate(460, 35)">
-            <rect class="proc-box" width="220" height="150" rx="8" />
-            <text id="child-title-text" x="20" y="32" font-family="system-ui" font-size="13" font-weight="700" fill="#0f172a">CHILD (Unspawned)</text>
-            <text id="child-ppid-text" x="20" y="52" font-family="var(--font-mono)" font-size="11" fill="#64748b">PPID: &mdash;</text>
-            <rect x="20" y="65" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
-            <text id="child-mem-text" x="30" y="83" font-family="var(--font-mono)" font-size="10" fill="#94a3b8">Address Space: None</text>
-            <rect x="20" y="102" width="180" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1"/>
-            <text id="child-fds-text" x="30" y="120" font-family="var(--font-mono)" font-size="10" fill="#94a3b8">File Descriptors: None</text>
-            <text id="child-status-badge" x="20" y="145" font-family="system-ui" font-size="11" font-weight="700" fill="#94a3b8">STATUS: UNBORN</text>
+          <!-- Thread 3 Card -->
+          <g id="card-t3" class="thread-group" transform="translate(570, 75)">
+            <rect class="thread-card" width="115" height="135" rx="6" />
+            <text x="12" y="24" font-family="system-ui" font-size="11" font-weight="700" fill="#0f172a">THREAD 3</text>
+            <text id="t3-role" x="12" y="40" font-family="var(--font-mono)" font-size="10" fill="#64748b">Role: Flusher</text>
+            <text id="t3-state" x="12" y="56" font-family="var(--font-mono)" font-size="10" font-weight="600" fill="#64748b">State: BLOCKED</text>
+            <rect class="stack-segment" x="10" y="70" width="95" height="52" rx="4"/>
+            <text x="16" y="90" font-family="var(--font-mono)" font-size="9" fill="#475569">Stack Frame 3</text>
+            <text id="t3-sp" x="16" y="106" font-family="var(--font-mono)" font-size="9" fill="#475569">RSP: 0x7FAE00</text>
           </g>
         </svg>
       </div>
@@ -450,13 +504,13 @@ MODULE_HTML = r"""<!DOCTYPE html>
       <!-- Stepper Controls & Current Step Summary Panel -->
       <div class="controls-narrative-strip">
         <div class="stepper-btn-group">
-          <button class="btn-step" id="l-btn-prev" onclick="stepLifecycle(-1)" disabled>&larr; Previous</button>
-          <button class="btn-step" id="l-btn-next" onclick="stepLifecycle(1)">Next Step &rarr;</button>
-          <button class="btn-step" id="l-btn-reset" onclick="resetLifecycle()">Reset</button>
+          <button class="btn-step" id="t-btn-prev" onclick="stepThread(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="t-btn-next" onclick="stepThread(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="t-btn-reset" onclick="resetThread()">Reset</button>
         </div>
         <div class="narrative-preview-panel">
           <strong>Current Step Summary</strong>
-          <span id="l-txt-narrative">The shell (PID 501) sits in user mode waiting for input. The system aims to accept user command string "grep pattern file.txt" from standard input before preparing to execute it as an independent process.</span>
+          <span id="t-txt-narrative">Thread 1 (Dispatcher) executes in user mode on the CPU, listening on port 80. The step aims to accept incoming network connections without delaying background threads.</span>
         </div>
       </div>
 
@@ -466,603 +520,300 @@ MODULE_HTML = r"""<!DOCTYPE html>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             What Is Happening
           </div>
-          <p class="pane-content" id="l-txt-what">Parent process 501 executes the bash shell read loop in user mode. It listens on terminal file descriptor 0, parsing user keystrokes into command line arguments.</p>
+          <p class="pane-content" id="t-txt-what">Thread 1 (Dispatcher) executes the network polling loop using its private stack frame. Thread 2 sits in the Ready queue waiting for request assignments.</p>
         </div>
         <div class="pane-card">
           <div class="pane-title why">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
             Why The System Does This
           </div>
-          <p class="pane-content" id="l-txt-why">The shell operates strictly in unprivileged user space. By decoupling input parsing from process creation, the shell remains safe from malicious command arguments without risking kernel instability.</p>
+          <p class="pane-content" id="t-txt-why">Dedication of a separate dispatcher thread ensures the server immediately accepts new TCP handshakes, maintaining high connection responsiveness under load.</p>
         </div>
       </div>
     </div>
 
-    <h3>3. Process Termination Conditions</h3>
+    <h3>3. Thread Usage in Applications</h3>
     <p>
-      No process runs indefinitely. Whether completing a short computational job or halting an operating system service, every process eventually transitions out of execution. Operating systems categorize all termination events across two governing dimensions: <strong>voluntary versus involuntary</strong> initiation, and <strong>successful versus erroneous</strong> conclusion.
+      Multi-threaded program design is best understood through concrete application architectures:
     </p>
 
-    <h4>1. Normal Exit (Voluntary, Successful)</h4>
+    <h4>1. Interactive Word Processors</h4>
     <p>
-      A process concludes voluntarily when it completes its assigned algorithm and deliberately requests that the kernel deallocate its execution context. In C and POSIX systems, this occurs when execution returns from <code>main()</code> or when the program invokes the standard library call <code>exit(int status)</code> with a status argument of <code>0</code> (or the symbolic constant <code>EXIT_SUCCESS</code>). On Windows architectures, a process achieves this by invoking <code>ExitProcess(0)</code>.
-    </p>
-    <h5>The Userspace Cleanup Sequence</h5>
-    <p>
-      Before the kernel trap is triggered, the C runtime library (CRT) orchestrates a controlled teardown sequence within user space:
+      Consider an interactive desktop word processor editing a 1,000-page book. If designed as a single-threaded process, the program must alternate sequentially between capturing keyboard events, reformatting paragraphs, and saving backups:
     </p>
     <ul>
-      <li><strong>Registered Teardown Callbacks:</strong> The runtime executes functions registered via <code>atexit()</code> and <code>on_exit()</code> in the reverse order of their registration (LIFO).</li>
-      <li><strong>Static and Global Destructors:</strong> In languages such as C++, destructors for global, static, and thread-local objects are systematically called to free application-level locks and resources.</li>
-      <li><strong>I/O Stream Flushing:</strong> The runtime invokes <code>fflush()</code> on all open standard I/O streams (<code>FILE*</code> pointers like <code>stdout</code> and <code>stderr</code>), writing buffered output buffers down to kernel file tables before file descriptors close.</li>
-      <li><strong>The Kernel Supervisor Trap:</strong> The CRT issues the low-level termination system call—<code>sys_exit_group</code> on Linux (x86-64 syscall 231) or <code>sys_exit</code> (syscall 60). The kernel switches the CPU to supervisor mode (Ring 0), updates the process state in its Process Control Block (PCB), releases its physical page frames, closes open file descriptors, and detaches virtual memory segments.</li>
+      <li><strong>Thread 1 (User Interface):</strong> Interacts with the user, handles mouse clicks, and updates keystrokes instantaneously on screen without perceptible latency.</li>
+      <li><strong>Thread 2 (Formatting Engine):</strong> Runs in the background, recalculating line breaks, page boundaries, and image alignments whenever text changes.</li>
+      <li><strong>Thread 3 (Autosave Daemon):</strong> Periodically awakens every two minutes to write dirty document buffers to the SSD, completely masking disk write delays from the typing user.</li>
     </ul>
 
-    <h4>2. Error Exit (Voluntary, Problematic)</h4>
+    <h4>2. High-Performance Web Servers</h4>
     <p>
-      An error exit occurs when a program discovers an operational condition that prevents further computation, yet retains enough control to format an error message and exit cleanly. Examples include a compiler discovering syntax errors in a source file, a database client encountering a refused TCP connection, or a file utility discovering that an input argument does not exist:
-    </p>
-    <pre>if ((fd = open("config.xml", O_RDONLY)) &lt; 0) {
-    perror("Configuration file missing");
-    exit(EXIT_FAILURE); /* Non-zero status: typically 1 */
-}</pre>
-    <p>
-      Unlike fatal crashes, an error exit is entirely under program control. The process returns a non-zero exit byte (conventionally between <code>1</code> and <code>255</code>) to the parent. UNIX shells inspect this code via <code>$?</code> to govern conditional execution scripts (such as <code>make</code> halting build pipelines when a compiler returns non-zero, or bash script short-circuit logic with <code>&amp;&amp;</code> and <code>||</code>).
-    </p>
-
-    <h4>3. Fatal Error (Involuntary, Hardware- or Exception-Triggered)</h4>
-    <p>
-      A fatal error occurs when a process attempts an illegal machine operation or violates memory protection boundaries enforced by silicon hardware. Because the violation represents an invalid CPU state, the process cannot handle the error normally; execution is trapped involuntarily into the kernel.
-    </p>
-    <p>
-      Modern processors categorize these violations through dedicated <strong>hardware exception vectors</strong>:
+      Web servers must process thousands of simultaneous HTTP requests without blocking:
     </p>
     <ul>
-      <li>
-        <strong>Divide-by-Zero / Arithmetic Fault (Vector 0, <code>#DE</code>):</strong> The CPU arithmetic logic unit encounters an impossible integer division instruction (e.g., dividing by zero or signed overflow in <code>IDIV</code>). The processor halts the user instruction and vectors into the kernel's fault handler, which generates a <code>SIGFPE</code> signal.
-      </li>
-      <li>
-        <strong>Page Fault / Segmentation Violation (Vector 14, <code>#PF</code>):</strong> The process attempts to read, write, or execute a virtual address outside its allocated memory mapping (such as dereferencing a NULL pointer, jumping to address <code>0x0</code>, or writing to a read-only code segment). The hardware Memory Management Unit (MMU) halts the instruction and loads the offending address into the <code>CR2</code> register. The kernel verifies the address in the process's memory descriptor (<code>mm_struct</code>); if invalid, it dispatches <code>SIGSEGV</code>.
-      </li>
-      <li>
-        <strong>Illegal Instruction (Vector 6, <code>#UD</code>):</strong> The CPU instruction decoder encounters a bit pattern that does not correspond to a valid machine opcode, or encounters a privileged supervisor instruction (such as <code>INVD</code> or modifying <code>CR3</code>) attempted while the CPU is in User Mode (Ring 3). The hardware traps with an invalid opcode fault, translating to <code>SIGILL</code>.
-      </li>
-      <li>
-        <strong>Bus Error / Alignment Fault (Vector 17, <code>#AC</code>):</strong> The CPU attempts an unaligned memory access on hardware architectures that strictly enforce alignment, or attempts to read a memory-mapped file offset that extends beyond the physical underlying storage block, generating <code>SIGBUS</code>.
-      </li>
+      <li><strong>Single-Threaded Model (Synchronous):</strong> A request arrives, and the server blocks on a disk read. While the disk arm moves, the server sits idle, refusing all other incoming network connections.</li>
+      <li><strong>Multi-Process Model (fork):</strong> The server forks a new child process for every client. While robust, spawning processes exhausts physical memory rapidly and incurs severe IPC context-switching penalties.</li>
+      <li><strong>Multi-Threaded Model (Worker Pool):</strong> A single master dispatcher thread reads requests from the network and places work tokens onto a shared job queue. A pool of pre-allocated worker threads picks up requests, fetches cached web pages from memory, and writes responses concurrently.</li>
     </ul>
-    <h5>Core Dump Diagnostics</h5>
-    <p>
-      By default, when a fatal hardware exception terminates a process, the kernel generates a <strong>core dump</strong> file (named <code>core</code> or managed by <code>systemd-coredump</code>). The kernel serializes the entire user-space address space—including the CPU registers at the exact microsecond of the fault, memory allocations, thread stacks, and execution frames—directly to disk, allowing developers to inspect the fault post-mortem using debuggers like GDB or LLDB:
-    </p>
-    <pre>$ gdb ./bad_program core
-Program terminated with signal SIGSEGV, Segmentation fault.
-#0  0x0000000000401142 in crash_routine () at bad_program.c:14
-14      *ptr = 42; /* ptr is 0x0 (NULL) */</pre>
 
-    <h4>4. Killed by Another Process (Involuntary, Inter-Process Signal)</h4>
+    <h3>4. Private Stacks and Thread-Local Storage</h3>
     <p>
-      A process can be terminated from the outside by another process possessing appropriate administrative authority. In POSIX operating systems, external termination is managed via the <code>kill(pid_t pid, int sig)</code> system call, while Windows utilizes the <code>TerminateProcess(HANDLE hProcess, UINT uExitCode)</code> Win32 API.
-    </p>
-    <h5>Signal Classes and Interception Barriers</h5>
-    <p>
-      Under UNIX, termination signals fall into two distinct operational classes:
+      While all threads share the process heap, global data, and open file descriptors, <em>each thread must possess its own independent execution stack</em>:
     </p>
     <ul>
-      <li>
-        <strong>Catchable / Graceful Termination Signals:</strong> Signals such as <code>SIGTERM</code> (signal 15, software termination request) and <code>SIGINT</code> (signal 2, terminal interrupt generated by Ctrl+C) notify the process that termination is requested. Because these signals can be trapped via <code>sigaction()</code>, well-engineered applications register custom signal handlers to flush database transactions, save in-flight documents, delete temporary socket files, and cleanly disconnect network peers before exiting.
-      </li>
-      <li>
-        <strong>Uncatchable / Forceful Termination Signals:</strong> Signal <code>SIGKILL</code> (signal 9) and <code>SIGSTOP</code> (signal 19) are fundamentally special: <em>they cannot be caught, blocked, or ignored by application code</em>. When <code>SIGKILL</code> is dispatched, the operating system kernel intercepts the signal before the target process is ever scheduled again. The kernel halts execution immediately and reclaims the process's address space without running userspace signal handlers or flushing buffers.
-      </li>
+      <li><strong>Separate Function Call Frames:</strong> Each thread executes different functions at different times. Thread 1 might be three levels deep in a string parsing function, while Thread 2 is calling a database library. Each stack stores return addresses, CPU frame pointers, and automatic local variables.</li>
+      <li><strong>Stack Placement in Virtual Memory:</strong> When a thread is created (e.g., via <code>pthread_create</code>), the thread runtime allocates a distinct memory region (typically 2MB to 8MB) within the shared address space to serve as that thread's stack.</li>
+      <li><strong>Stack Guard Pages:</strong> To prevent a thread stack from overflowing into an adjacent thread's memory, modern operating systems place an unmapped, read/write-protected <strong>guard page</strong> directly between consecutive thread stacks. Any stack overflow triggers a hardware page fault (<code>#PF</code>), terminating the faulty thread immediately.</li>
+      <li><strong>Thread-Local Storage (TLS):</strong> In addition to the stack, programming languages provide thread-local variables (e.g., <code>__thread</code> in C or <code>thread_local</code> in C++). Each thread receives its own unique instance of the variable, accessible via a specialized segment register (such as <code>FS</code> on x86-64).</li>
     </ul>
-    <h5>Security and Privilege Barriers</h5>
-    <p>
-      To prevent unprivileged users from terminating arbitrary system processes or interfering with other accounts, operating systems enforce strict security boundaries. In POSIX kernels, a calling process can only deliver signals to a target process if:
-    </p>
-    <ol>
-      <li>The effective or real User ID (UID) of the sending process matches the real or saved User ID of the receiving process.</li>
-      <li>The sending process runs with superuser privileges (<code>root</code>, UID 0) or possesses the POSIX <code>CAP_KILL</code> capability.</li>
-    </ol>
-    <p>
-      Attempting to send a signal to a process owned by another user without these permissions immediately fails with the kernel error <code>EPERM</code> (Operation not permitted).
-    </p>
-
-    <h4>Summary Matrix of Process Termination Conditions</h4>
-    <div style="overflow-x: auto; margin: 20px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 14px;">Termination Category</th>
-            <th style="padding: 10px 14px;">Initiator</th>
-            <th style="padding: 10px 14px;">Primary Cause</th>
-            <th style="padding: 10px 14px;">Kernel Vector / Signal</th>
-            <th style="padding: 10px 14px;">Post-Mortem Diagnostic</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">Normal Exit (Voluntary)</td>
-            <td style="padding: 10px 14px;">Running Process</td>
-            <td style="padding: 10px 14px;">Task completed successfully (return from <code>main</code>)</td>
-            <td style="padding: 10px 14px;"><code>sys_exit(0)</code> / <code>ExitProcess(0)</code></td>
-            <td style="padding: 10px 14px; color: var(--success); font-weight: 600;">Status code 0</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">Error Exit (Voluntary)</td>
-            <td style="padding: 10px 14px;">Running Process</td>
-            <td style="padding: 10px 14px;">Environmental error detected (missing file, bad args)</td>
-            <td style="padding: 10px 14px;"><code>sys_exit(n)</code> (n &gt; 0)</td>
-            <td style="padding: 10px 14px; color: var(--warning); font-weight: 600;">Non-zero exit code (1-255)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">Fatal Error (Involuntary)</td>
-            <td style="padding: 10px 14px;">Hardware CPU / MMU</td>
-            <td style="padding: 10px 14px;">Illegal CPU operation, NULL dereference, invalid opcode</td>
-            <td style="padding: 10px 14px;">CPU Exception &rarr; <code>SIGSEGV</code>, <code>SIGFPE</code>, <code>SIGILL</code></td>
-            <td style="padding: 10px 14px; color: var(--danger); font-weight: 600;">Core Dump image (registers + RAM)</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 600;">Killed by Process (Involuntary)</td>
-            <td style="padding: 10px 14px;">External Process / OS</td>
-            <td style="padding: 10px 14px;">Administrative kill, memory watchdog, user Ctrl+C</td>
-            <td style="padding: 10px 14px;"><code>kill(pid, sig)</code> &rarr; <code>SIGKILL</code>, <code>SIGTERM</code></td>
-            <td style="padding: 10px 14px; color: #7c3aed; font-weight: 600;">Terminating signal number recorded in PCB</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3>4. Zombies and Orphan Reaping</h3>
-    <p>
-      In a hierarchical operating system, process termination is rarely an isolated, instantaneous event. Because a parent process frequently delegates computations to child tasks—such as a compiler invoking an assembler, or a shell executing a pipeline—the parent requires a reliable mechanism to determine whether the child succeeded, encountered an error, or aborted abnormally.
-    </p>
-    <p>
-      To satisfy this requirement without introducing race conditions, the operating system splits termination into two distinct phases: <strong>resource teardown</strong> (handled immediately upon exit) and <strong>metadata reaping</strong> (handled when the parent acknowledges completion).
-    </p>
-
-    <h4>1. The Structural Anatomy of a Zombie</h4>
-    <p>
-      When a process invokes <code>sys_exit()</code>, the kernel immediately executes the bulk of resource reclamation:
-    </p>
-    <ul>
-      <li>Its virtual memory address space (page directory root, page tables, physical frames) is unmapped and returned to the OS free memory pool.</li>
-      <li>All open file descriptors are closed, decrementing underlying open-file-table reference counters.</li>
-      <li>Virtual file system locks, shared memory attachments, and POSIX semaphore bindings are released.</li>
-    </ul>
-    <p>
-      However, the kernel <em>cannot</em> delete the process's Process Control Block (represented in Linux by <code>struct task_struct</code>) or release its unique Process Identifier (PID). Instead, the kernel updates its execution state field to <code>EXIT_ZOMBIE</code>.
-    </p>
-    <p>
-      A <strong>Zombie process</strong> (displayed with state <code>Z</code> in utilities like <code>ps</code> and <code>top</code>, or designated as <code>&lt;defunct&gt;</code>) is a dead process that consumes no physical CPU or RAM. It exists solely as an entry in the kernel's process table, holding:
-    </p>
-    <ol>
-      <li>The 32-bit Process ID (PID) and Parent Process ID (PPID).</li>
-      <li>The process 16-bit termination status word (encoding the exit code or fatal signal number).</li>
-      <li>Resource accounting statistics (such as cumulative CPU user/system time, page faults, and peak memory usage stored in <code>struct rusage</code>).</li>
-    </ol>
-
-    <h4>2. The Wait System Call Family and Status Decoding</h4>
-    <p>
-      A parent process retrieves this preserved metadata by invoking one of the wait-family system calls:
-    </p>
-    <pre>pid_t wait(int *wstatus);
-pid_t waitpid(pid_t pid, int *wstatus, int options);
-int waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);</pre>
-
-    <h5>Waitpid Options and Non-Blocking Synchronization</h5>
-    <p>
-      While <code>wait(&amp;status)</code> blocks the parent unconditionally until <em>any</em> child terminates, <code>waitpid()</code> provides granular control via its first and third arguments:
-    </p>
-    <ul>
-      <li><code>pid &gt; 0</code>: Wait specifically for the child whose process ID matches <code>pid</code>.</li>
-      <li><code>pid == -1</code>: Wait for any arbitrary child process (equivalent to <code>wait()</code>).</li>
-      <li><code>pid == 0</code>: Wait for any child process residing in the same Process Group ID as the caller.</li>
-      <li><code>options = WNOHANG</code>: Return immediately without blocking if no child has exited (returning <code>0</code>). This allows interactive programs (like game loops or UI servers) to reap zombies non-blockingly.</li>
-    </ul>
-
-    <h5>Decoding the Status Word with POSIX Macros</h5>
-    <p>
-      The integer populated by the kernel into <code>wstatus</code> is not a simple integer value; it is a bitmask packing both termination mode and error codes. Applications must inspect it using standard POSIX macros:
-    </p>
-    <ul>
-      <li><code>WIFEXITED(wstatus)</code>: Evaluates to true if the child terminated normally via <code>exit()</code> or returning from <code>main()</code>.</li>
-      <li><code>WEXITSTATUS(wstatus)</code>: Extracts the actual 8-bit exit code (0–255) passed by the child to <code>exit()</code>.</li>
-      <li><code>WIFSIGNALED(wstatus)</code>: Evaluates to true if the child was killed involuntarily by an unhandled signal (such as <code>SIGSEGV</code> or <code>SIGKILL</code>).</li>
-      <li><code>WTERMSIG(wstatus)</code>: Extracts the exact signal number that caused the child process to abort.</li>
-      <li><code>WCOREDUMP(wstatus)</code>: Evaluates to true if the fatal signal caused the kernel to generate a post-mortem core dump file on disk.</li>
-    </ul>
-
-    <h4>3. The Orphan Lifecycle and Adoption Cascades</h4>
-    <p>
-      A process whose parent terminates before it does is termed an <strong>orphan process</strong>. If the original parent is dead, who calls <code>wait()</code> to reap the child when it eventually terminates?
-    </p>
-    <p>
-      To prevent terminated orphans from lingering as immortal zombies forever, POSIX operating systems enforce an <strong>adoption cascade</strong>:
-    </p>
-    <ol>
-      <li>When a process terminates, the kernel walks its child list. For every child whose parent is exiting, the kernel rewrites the child's <code>PPID</code> pointer.</li>
-      <li>Historically, the child was always re-parented directly to the system root process: <code>init</code> (PID 1). In modern Linux systems, a process can designate itself as an intermediate subreaper via <code>prctl(PR_SET_CHILD_SUBREAPER, 1)</code> (commonly used by desktop managers and container runtimes like Docker and containerd). If an ancestor subreaper exists in the process hierarchy, it adopts the orphan; otherwise, the orphan falls back to PID 1 (<code>systemd</code>).</li>
-      <li>The root init daemon contains an infinite background loop that intercepts the <code>SIGCHLD</code> signal and repeatedly issues <code>waitpid(-1, &amp;status, WNOHANG)</code>. Whenever an adopted orphan terminates, PID 1 reaps it immediately, cleanly purging its PCB from the process table.</li>
-    </ol>
-
-    <h4>4. The Danger of Zombie Accumulation (PID Starvation)</h4>
-    <p>
-      Zombie processes consume negligible memory because their address space is gone. However, they hold onto their entry in the operating system's process table and retain their allocated PID.
-    </p>
-    <p>
-      Because operating systems maintain a strict maximum limit on concurrent process IDs—configured in Linux via <code>/proc/sys/kernel/pid_max</code> (typically defaulting to 32,768 on 32-bit systems or 4,194,304 on 64-bit kernels)—a buggy parent process that repeatedly forks worker children without ever calling <code>wait()</code> will steadily leak PIDs:
-    </p>
-    <pre>/* Anti-pattern: The Zombie Leak Loop */
-while (1) {
-    if (fork() == 0) {
-        /* Child task executes briefly and exits */
-        exit(0);
-    }
-    /* Bug: Parent sleeps forever and NEVER calls wait() or waitpid()! */
-    sleep(1);
-}</pre>
-    <p>
-      Eventually, the system reaches the <code>pid_max</code> ceiling. When this occurs, any subsequent call to <code>fork()</code> across the <em>entire operating system</em> fails with the error <code>EAGAIN</code> (Resource temporarily unavailable). At this point, no user can launch a shell, execute a command, or log in via SSH.
-    </p>
-    <h5>Why kill -9 Cannot Eliminate a Zombie</h5>
-    <p>
-      System administrators often attempt to execute <code>kill -9 &lt;zombie_pid&gt;</code>, only to discover the zombie remains in the process table. This occurs because <code>SIGKILL</code> is an instruction directing the kernel to halt a running thread of execution. A zombie is <em>already dead</em>; it has no registers, no instruction pointer, and no thread of control to receive signals.
-    </p>
-    <p>
-      The only operational method to eliminate a zombie whose parent refuses to reap it is to <strong>terminate the negligent parent process</strong>. When the parent dies, the kernel detects the orphaned zombie, automatically re-parents it to <code>init</code> (PID 1), and <code>init</code> immediately reaps it via its internal wait loop.
-    </p>
-
-    <h4>5. The Double-Fork Daemonization Pattern</h4>
-    <p>
-      System programming exploits the orphan adoption mechanism to create background server daemons that are completely detached from controlling terminals and shell process groups. This architectural design is known as the <strong>double-fork pattern</strong>:
-    </p>
-    <ol>
-      <li>The initial process calls <code>fork()</code> to spawn Child 1. The parent immediately calls <code>waitpid()</code> to reap Child 1.</li>
-      <li>Child 1 calls <code>setsid()</code> to allocate a brand-new session and detach from the controlling terminal.</li>
-      <li>Child 1 immediately calls <code>fork()</code> a second time to spawn Grandchild 2, and Child 1 deliberately exits immediately.</li>
-      <li>Because its direct parent (Child 1) is dead, Grandchild 2 becomes an orphan and is instantly adopted by PID 1 (<code>init</code>).</li>
-      <li>Grandchild 2 continues running indefinitely in the background as an independent daemon. When it eventually terminates, <code>init</code> reaps it automatically, guaranteeing that Grandchild 2 can never become an uncollected zombie.</li>
-    </ol>
 
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
-      <a href="01-process-model.html">&larr; Previous: 01. Process Model</a>
+      <a href="02-process-lifecycle.html">&larr; Previous: 02. Process Lifecycle</a>
       <a href="index.html">&#127968; Week 2 Index</a>
-      <a href="03-classical-threads.html">Next: 03. Classical Threads &rarr;</a>
+      <a href="04-thread-implementation.html">Next: 04. Implementation &rarr;</a>
     </nav>
   </div>
 
   <script>
-    const lifecycleSteps = {
-      unix: [
+    const threadSteps = {
+      threads: [
         {
-          phase: "1. Parent Running (Shell Prompt)",
-          parentTitle: "PARENT (PID 501: bash)",
-          parentPpid: "PPID: 1 (systemd)",
-          parentMem: "Memory: /bin/bash Code",
-          parentFds: "FD 0: stdin, FD 1: stdout",
-          parentState: "PID 501 (bash): RUNNING",
-          childState: "None (Unspawned)",
-          trap: "sys_read(stdin)",
-          parentStatusBadge: "STATUS: RUNNING",
-          childStatusBadge: "STATUS: UNBORN",
-          childTitle: "CHILD (Unspawned)",
-          childPpid: "PPID: \u2014",
-          childMem: "Address Space: None",
-          childFds: "File Descriptors: None",
-          pathLabel: "Awaiting Command",
-          parentActive: true,
-          childClass: "reaped",
-          pathActive: false,
-          narrative: "The parent shell (PID 501) runs in user mode listening on standard input. The system aims to receive a user command before allocating any operating system resources for a child process.",
-          what: "Parent process 501 executes the bash shell read loop in user mode. It listens on terminal file descriptor 0, parsing user keystrokes into command line arguments.",
-          why: "The shell operates strictly in unprivileged user space. By decoupling input parsing from process creation, the shell remains safe from malicious command arguments without risking kernel instability."
+          entity: "Thread 1: Dispatcher (TID 1)",
+          vm: "Shared: PID 2040 (CR3 Unchanged)",
+          stack: "Stack 1 (0x7FFF00 - 0x7FFE00)",
+          prot: "Shared Heap & Global Buffers",
+          t1State: "State: RUNNING",
+          t2State: "State: READY",
+          t3State: "State: BLOCKED",
+          t1Color: "#059669",
+          t2Color: "#d97706",
+          t3Color: "#64748b",
+          activeCard: "card-t1",
+          narrative: "Thread 1 (Dispatcher) executes in user mode on the CPU, listening on port 80. The step aims to accept incoming network connections without delaying background threads.",
+          what: "Thread 1 (Dispatcher) executes the network polling loop using its private stack frame. Thread 2 sits in the Ready queue waiting for request assignments.",
+          why: "Dedication of a separate dispatcher thread ensures the server immediately accepts new TCP handshakes, maintaining high connection responsiveness under load."
         },
         {
-          phase: "2. fork() Invocation & Cloning",
-          parentTitle: "PARENT (PID 501: bash)",
-          parentPpid: "PPID: 1 (systemd)",
-          parentMem: "Memory: /bin/bash Code (COW)",
-          parentFds: "FD 0: stdin, FD 1: stdout",
-          parentState: "PID 501 (bash): TRAPPED",
-          childState: "PID 502: READY (Clone)",
-          trap: "sys_fork() [returns 502 to parent, 0 to child]",
-          parentStatusBadge: "STATUS: FORKING",
-          childStatusBadge: "STATUS: READY (CLONE)",
-          childTitle: "CHILD (PID 502: Clone)",
-          childPpid: "PPID: 501",
-          childMem: "Copy-on-Write Clone of PID 501",
-          childFds: "Inherited Duplicates of 0, 1, 2",
-          pathLabel: "fork() duplicate",
-          parentActive: true,
-          childClass: "active",
-          pathActive: true,
-          narrative: "Parent executes fork(). The kernel duplicates the parent's PCB, copies page tables via Copy-on-Write (COW), and returns child PID 502 to the parent and 0 to the child. The step aims to create an isolated duplicate execution context without copying memory pages upfront.",
-          what: "The kernel allocates PCB 502, copies the parent's file descriptor table, and marks all memory pages as read-only Copy-on-Write in hardware page tables.",
-          why: "Copy-on-Write prevents duplicating megabytes of physical RAM when the child is likely to immediately replace its image via execve()."
+          entity: "Thread 1 -> Shared Queue Hand-off",
+          vm: "Shared: PID 2040 (Zero Memory Copy)",
+          stack: "Queue Pointer Passed via Heap",
+          prot: "Direct Pointer Dereference",
+          t1State: "State: RUNNING",
+          t2State: "State: AWAKENING",
+          t3State: "State: BLOCKED",
+          t1Color: "#059669",
+          t2Color: "#0284c7",
+          t3Color: "#64748b",
+          activeCard: "card-t1",
+          narrative: "Dispatcher receives an HTTP GET request, allocates a request struct on the shared heap, and signals Worker Thread 2. The step aims to pass work using direct memory pointers without expensive inter-process data copying.",
+          what: "Thread 1 places the socket file descriptor directly into a shared job queue on the heap and signals a condition variable.",
+          why: "Because all threads share the same address space, communication requires only passing 8-byte memory pointers, eliminating serialization and pipe buffering overhead."
         },
         {
-          phase: "3. execve() Overlay",
-          parentTitle: "PARENT (PID 501: bash)",
-          parentPpid: "PPID: 1 (systemd)",
-          parentMem: "Memory: /bin/bash Code",
-          parentFds: "FD 0: stdin, FD 1: stdout",
-          parentState: "PID 501: Calling waitpid()",
-          childState: "PID 502 (grep): RUNNING",
-          trap: "sys_execve(\"/bin/grep\")",
-          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
-          childStatusBadge: "STATUS: RUNNING (GREP)",
-          childTitle: "CHILD (PID 502: grep)",
-          childPpid: "PPID: 501",
-          childMem: "Overlaid with /bin/grep ELF",
-          childFds: "Preserved stdin/stdout",
-          pathLabel: "execve() image replace",
-          parentActive: false,
-          childClass: "active",
-          pathActive: true,
-          narrative: "Child process 502 calls execve() with /bin/grep. The kernel tears down the cloned address space, loads the grep ELF binary into memory, resets registers to the ELF entry point, while preserving inherited file descriptors. The step aims to transform the clone into a completely new program.",
-          what: "The kernel releases old COW references, maps the grep text and data sections into physical RAM, initializes a fresh stack with argv/envp, and sets the instruction pointer to main().",
-          why: "Separating fork() from execve() gives the shell a critical window between cloning and execution to redirect file descriptors (e.g., pipes or < > redirections) without kernel intervention."
+          entity: "Thread 2: Worker Execution (TID 2)",
+          vm: "Shared: PID 2040 (CR3 Retained)",
+          stack: "Stack 2 (0x7FCE00 - 0x7FCD00)",
+          prot: "Cache-Warm TLB Retained",
+          t1State: "State: READY",
+          t2State: "State: RUNNING",
+          t3State: "State: BLOCKED",
+          t1Color: "#d97706",
+          t2Color: "#059669",
+          t3Color: "#64748b",
+          activeCard: "card-t2",
+          narrative: "The scheduler switches execution to Thread 2. Because Thread 2 inhabits the same process, the hardware page table register (CR3) remains unchanged and TLB caches stay warm. The step aims to execute worker logic with near-zero switching cost.",
+          what: "The kernel restores Thread 2's registers and Stack Pointer (RSP). The CPU executes Worker instructions using Stack 2.",
+          why: "Thread context switching requires only saving and restoring integer registers, completely avoiding the Translation Lookaside Buffer (TLB) flushes mandatory during process switches."
         },
         {
-          phase: "4. Child Termination -> Zombie State",
-          parentTitle: "PARENT (PID 501: bash)",
-          parentPpid: "PPID: 1 (systemd)",
-          parentMem: "Memory: /bin/bash Code",
-          parentFds: "FD 0: stdin, FD 1: stdout",
-          parentState: "PID 501: BLOCKED (WAIT)",
-          childState: "PID 502 (grep): ZOMBIE",
-          trap: "sys_exit(0) [Child Exit]",
-          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
-          childStatusBadge: "STATUS: ZOMBIE (EXIT 0)",
-          childTitle: "CHILD (PID 502: Zombie)",
-          childPpid: "PPID: 501",
-          childMem: "Deallocated from RAM",
-          childFds: "Closed and Released",
-          pathLabel: "SIGCHLD sent to parent",
-          parentActive: false,
-          childClass: "zombie",
-          pathActive: true,
-          narrative: "Child finishes search and calls exit(0). The kernel deallocates its physical memory, closes all open files, but retains its PCB entry containing exit code 0. The step aims to preserve the termination record until the parent is ready to inspect it.",
-          what: "Child address space is reclaimed, but PCB 502 remains in the kernel process table marked as a Zombie. A SIGCHLD signal is dispatched to parent PID 501.",
-          why: "If the kernel destroyed the PCB immediately, the parent could never inspect whether the child succeeded, failed, or was terminated by a signal."
-        },
-        {
-          phase: "5. waitpid() Reaping & PCB Cleanup",
-          parentTitle: "PARENT (PID 501: bash)",
-          parentPpid: "PPID: 1 (systemd)",
-          parentMem: "Memory: /bin/bash Code",
-          parentFds: "FD 0: stdin, FD 1: stdout",
-          parentState: "PID 501 (bash): RUNNING",
-          childState: "PID 502: REAPED",
-          trap: "sys_waitpid(502, &status)",
-          parentStatusBadge: "STATUS: RUNNING",
-          childStatusBadge: "STATUS: DESTROYED",
-          childTitle: "CHILD (Reaped / Free)",
-          childPpid: "PPID: \u2014",
-          childMem: "Table Entry Freed",
-          childFds: "PCB Deallocated",
-          pathLabel: "Exit Status Reaped",
-          parentActive: true,
-          childClass: "reaped",
-          pathActive: false,
-          narrative: "Parent unblocks from waitpid(), reads the exit code (0), and prints the prompt. The kernel deallocates PCB 502 entirely from the process table. The step aims to complete the process lifecycle and reclaim the PID.",
-          what: "The kernel copies the exit code from PCB 502 into the parent's memory space, deletes PCB 502 from the process table, and marks PID 502 as available for future allocation.",
-          why: "Reaping clears dead entries from the finite kernel process table, preventing PID exhaustion and resource leaks."
+          entity: "Thread 3: Background Flusher (TID 3)",
+          vm: "Shared: PID 2040 (Async I/O)",
+          stack: "Stack 3 (0x7FAE00 - 0x7FAD00)",
+          prot: "Non-Interfering Background Run",
+          t1State: "State: RUNNING",
+          t2State: "State: READY",
+          t3State: "State: RUNNING (Core 1)",
+          t1Color: "#059669",
+          t2Color: "#d97706",
+          t3Color: "#059669",
+          activeCard: "card-t3",
+          narrative: "Thread 3 wakes up on Core 1 to flush access logs to disk, while Thread 1 simultaneously accepts another request on Core 0. The step aims to achieve true multi-core parallel execution across distinct execution contexts.",
+          what: "Thread 3 executes disk write operations on a secondary CPU core while the Dispatcher continues listening on the primary core.",
+          why: "Multithreading enables true symmetric multiprocessing (SMP): multiple execution streams run simultaneously on separate silicon cores."
         }
       ],
-      windows: [
+      processes: [
         {
-          phase: "1. Parent Initial State (cmd.exe)",
-          parentTitle: "PARENT (PID 1100: cmd.exe)",
-          parentPpid: "Creator: explorer.exe",
-          parentMem: "Memory: cmd.exe PE Image",
-          parentFds: "Handles: hStdIn, hStdOut",
-          parentState: "PID 1100 (cmd.exe): RUNNING",
-          childState: "None (Unspawned)",
-          trap: "ReadFile(hStdIn)",
-          parentStatusBadge: "STATUS: RUNNING",
-          childStatusBadge: "STATUS: UNBORN",
-          childTitle: "CHILD (find.exe)",
-          childPpid: "Process Handle: None",
-          childMem: "Address Space: None",
-          childFds: "Handles: None",
-          pathLabel: "Awaiting Command",
-          parentActive: true,
-          childClass: "reaped",
-          pathActive: false,
-          narrative: "The Windows command interpreter (cmd.exe, PID 1100) sits in user mode waiting for input. The system aims to accept user command 'find.exe' from standard input before constructing Win32 process creation attributes.",
-          what: "Parent process 1100 executes a user-mode loop waiting on standard input handle hStdIn.",
-          why: "Decoupling user input parsing from process creation isolates command interpretation from kernel-level process object allocation."
+          entity: "Process 1 (Parent Master: PID 2040)",
+          vm: "Private: CR3 Root 0x1A000",
+          stack: "Isolated Stack Frame",
+          prot: "Hardware MMU Boundary Enforced",
+          t1State: "State: RUNNING",
+          t2State: "State: UNSPAWNED",
+          t3State: "State: UNSPAWNED",
+          t1Color: "#059669",
+          t2Color: "#94a3b8",
+          t3Color: "#94a3b8",
+          activeCard: "card-t1",
+          narrative: "In a multi-process architecture, the parent process runs in an isolated virtual address space. The step aims to accept connections while preparing to call fork() to instantiate completely separate memory spaces.",
+          what: "Master process listens on socket. It cannot share heap buffers directly with other tasks without configuring shared memory segments.",
+          why: "Processes prioritize strong memory isolation over low-overhead collaboration, ensuring bugs in one task cannot corrupt others."
         },
         {
-          phase: "2. Single-Step CreateProcess()",
-          parentTitle: "PARENT (PID 1100: cmd.exe)",
-          parentPpid: "Creator: explorer.exe",
-          parentMem: "cmd.exe (Active hProcess)",
-          parentFds: "Handles: hProcess (PID 1104)",
-          parentState: "PID 1100: Waiting on hProcess",
-          childState: "PID 1104 (find.exe): RUNNING",
-          trap: "CreateProcess(\"find.exe\", ...)",
-          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
-          childStatusBadge: "STATUS: RUNNING (find.exe)",
-          childTitle: "CHILD (PID 1104: find.exe)",
-          childPpid: "Parent Handle: hProcess",
-          childMem: "Mapped from find.exe PE",
-          childFds: "Inherited Standard Handles",
-          pathLabel: "CreateProcess find.exe",
-          parentActive: false,
-          childClass: "active",
-          pathActive: true,
-          narrative: "Parent invokes CreateProcess(\"find.exe\", ...). Unlike UNIX fork/exec, Windows creates an address space, loads the target PE executable find.exe, and spawns its initial thread in a single atomic system call. The parent receives an opaque process handle hProcess. The step aims to initialize find.exe directly without intermediate cloning.",
-          what: "The kernel Executive builds an EPROCESS object for find.exe, maps the find.exe binary sections, constructs an initial ETHREAD, and returns an access handle (hProcess) to PID 1100.",
-          why: "Windows combines creation and program loading into one call, avoiding the overhead of creating temporary address space copies."
+          entity: "fork() Invocation -> Memory Cloning",
+          vm: "Cloned Address Space: PID 2041",
+          stack: "Duplicate Stack Allocated",
+          prot: "Copy-on-Write Page Tables",
+          t1State: "State: FORKING",
+          t2State: "State: FORKED (PID 2041)",
+          t3State: "State: UNSPAWNED",
+          t1Color: "#0284c7",
+          t2Color: "#d97706",
+          t3Color: "#94a3b8",
+          activeCard: "card-t2",
+          narrative: "The master calls fork() to create child process 2041. The kernel allocates a new page directory root, duplicates page tables, and marks physical memory as Copy-on-Write. The step aims to establish process isolation at the cost of memory structures.",
+          what: "The kernel builds a new PCB, clones file descriptor tables, and sets up duplicate virtual memory mappings.",
+          why: "Memory isolation guarantees that if a worker process crashes on a malicious HTTP payload, the master process continues operating unharmed."
         },
         {
-          phase: "3. Child Execution & Parent Sync",
-          parentTitle: "PARENT (PID 1100: cmd.exe)",
-          parentPpid: "Creator: explorer.exe",
-          parentMem: "cmd.exe (Waiting)",
-          parentFds: "Handles: hProcess (Holding)",
-          parentState: "PID 1100: WaitForSingleObject",
-          childState: "PID 1104 (find.exe): EXECUTING",
-          trap: "WaitForSingleObject(hProcess)",
-          parentStatusBadge: "STATUS: BLOCKED (WAIT)",
-          childStatusBadge: "STATUS: RUNNING (find.exe)",
-          childTitle: "CHILD (PID 1104: find.exe)",
-          childPpid: "Parent Handle: hProcess",
-          childMem: "find.exe Active Code & Heap",
-          childFds: "Active Win32 Handles",
-          pathLabel: "Active Execution",
-          parentActive: false,
-          childClass: "active",
-          pathActive: true,
-          narrative: "Child process find.exe (PID 1104) executes its computational logic while parent process 1100 blocks on WaitForSingleObject(hProcess). The step aims to allow find.exe to execute concurrently while keeping the parent synchronized with its completion.",
-          what: "find.exe executes user-mode logic while the parent thread is placed on the wait queue of the EPROCESS kernel dispatcher object.",
-          why: "Kernel dispatcher objects allow parents to sleep efficiently until signaled, consuming zero CPU cycles while waiting."
+          entity: "IPC Data Serialization via Pipe",
+          vm: "Isolated: Separate CR3 Roots",
+          stack: "Separate Independent Stacks",
+          prot: "Kernel Buffer Copy Required",
+          t1State: "State: WRITING PIPE",
+          t2State: "State: READING PIPE",
+          t3State: "State: UNSPAWNED",
+          t1Color: "#0284c7",
+          t2Color: "#059669",
+          t3Color: "#94a3b8",
+          activeCard: "card-t2",
+          narrative: "To pass the client request to Child 2041, the master must write bytes through an IPC pipe. The kernel copies data from user space into a kernel buffer, switches CR3, and copies data into Child 2041. The step illustrates the data transfer tax of process isolation.",
+          what: "Data must be copied through the kernel boundary via system calls, incurring memory bus traffic and CPU cache pollution.",
+          why: "Because memory is strictly isolated, processes cannot directly read each other's memory pointers."
         },
         {
-          phase: "4. Child Termination & Signal State",
-          parentTitle: "PARENT (PID 1100: cmd.exe)",
-          parentPpid: "Creator: explorer.exe",
-          parentMem: "cmd.exe (Waking)",
-          parentFds: "Handles: hProcess (Signaled)",
-          parentState: "PID 1100: Signaled by Object",
-          childState: "PID 1104 (find.exe): TERMINATED",
-          trap: "ExitProcess(0) [find.exe Exit]",
-          parentStatusBadge: "STATUS: AWAKENING",
-          childStatusBadge: "STATUS: SIGNALED (DEAD)",
-          childTitle: "CHILD (PID 1104: Dead)",
-          childPpid: "Parent Handle: hProcess",
-          childMem: "Address Space Released",
-          childFds: "Handles Closed",
-          pathLabel: "hProcess Object Signaled",
-          parentActive: true,
-          childClass: "zombie",
-          pathActive: true,
-          narrative: "find.exe calls ExitProcess(0). The kernel releases the child's physical memory pages and sets the EPROCESS dispatcher object state to Signaled. However, the EPROCESS block is not freed because cmd.exe still holds an open handle (hProcess). The step aims to preserve the process object until all open handles are closed.",
-          what: "find.exe's threads and address space terminate, but the kernel retains the EPROCESS block as long as its handle reference count is greater than zero.",
-          why: "Windows uses reference-counted object security; as long as any process holds a valid handle, the underlying kernel object cannot be deleted."
-        },
-        {
-          phase: "5. CloseHandle() & Object Deallocation",
-          parentTitle: "PARENT (PID 1100: cmd.exe)",
-          parentPpid: "Creator: explorer.exe",
-          parentMem: "cmd.exe (Active Prompt)",
-          parentFds: "Handles: hStdIn, hStdOut",
-          parentState: "PID 1100 (cmd.exe): RUNNING",
-          childState: "PID 1104: DESTROYED",
-          trap: "CloseHandle(hProcess)",
-          parentStatusBadge: "STATUS: RUNNING",
-          childStatusBadge: "STATUS: DESTROYED",
-          childTitle: "CHILD (find.exe Destroyed)",
-          childPpid: "Process Handle: Released",
-          childMem: "EPROCESS Freed from RAM",
-          childFds: "Handle Deallocated",
-          pathLabel: "Reference Count Zero",
-          parentActive: true,
-          childClass: "reaped",
-          pathActive: false,
-          narrative: "Parent retrieves the exit code via GetExitCodeProcess and calls CloseHandle(hProcess). The reference count on the EPROCESS block drops to zero, and the kernel deallocates the object. The step aims to reclaim the kernel object and finish synchronization for find.exe.",
-          what: "Parent closes hProcess, decrementing the EPROCESS reference count to 0, which triggers kernel garbage collection of the process structure.",
-          why: "Explicit handle closing prevents kernel memory leaks in long-running services and server applications."
+          entity: "Process Context Switch (TLB Flushed)",
+          vm: "CR3 Swapped: 0x1A000 -> 0x2B000",
+          stack: "Swapped Kernel Stacks",
+          prot: "Complete TLB Eviction",
+          t1State: "State: READY",
+          t2State: "State: RUNNING",
+          t3State: "State: UNSPAWNED",
+          t1Color: "#d97706",
+          t2Color: "#059669",
+          t3Color: "#94a3b8",
+          activeCard: "card-t2",
+          narrative: "Switching execution between Parent 2040 and Child 2041 requires swapping CR3, flushing the Translation Lookaside Buffer (TLB), and repopulating CPU hardware caches. The step demonstrates the heavy overhead of multi-process scheduling.",
+          what: "The CPU flushes its address translation cache, reloads page tables, and incurs cache misses on subsequent instructions.",
+          why: "MMU page table roots must be updated to prevent process 2041 from accessing the physical memory pages of process 2040."
         }
       ]
     };
 
-    let activeLifecycleDim = "unix";
-    let activeLifecycleStep = 0;
+    let activeThreadDim = "threads";
+    let activeThreadStep = 0;
 
-    function renderLifecycleStepper() {
-      const steps = lifecycleSteps[activeLifecycleDim];
-      const step = steps[activeLifecycleStep];
+    function renderThreadStepper() {
+      const steps = threadSteps[activeThreadDim];
+      const step = steps[activeThreadStep];
 
       // Update Live Telemetry
-      document.getElementById("l-telem-phase").textContent = step.phase;
-      document.getElementById("l-telem-parent").textContent = step.parentState;
-      document.getElementById("l-telem-child").textContent = step.childState;
-      document.getElementById("l-telem-trap").textContent = step.trap;
+      document.getElementById("t-telem-entity").textContent = step.entity;
+      document.getElementById("t-telem-vm").textContent = step.vm;
+      document.getElementById("t-telem-stack").textContent = step.stack;
+      document.getElementById("t-telem-prot").textContent = step.prot;
 
-      // Update Parent SVG Card Dynamically
-      const cardParent = document.getElementById("card-parent");
-      cardParent.className.baseVal = step.parentActive ? "proc-group active" : "proc-group";
-      document.getElementById("parent-title-text").textContent = step.parentTitle;
-      document.getElementById("parent-ppid-text").textContent = step.parentPpid;
-      document.getElementById("parent-mem-text").textContent = step.parentMem;
-      document.getElementById("parent-fds-text").textContent = step.parentFds;
-      document.getElementById("parent-status-badge").textContent = step.parentStatusBadge;
+      // Update Thread States and Colors
+      document.getElementById("t1-state").textContent = step.t1State;
+      document.getElementById("t1-state").setAttribute("fill", step.t1Color);
+      document.getElementById("t2-state").textContent = step.t2State;
+      document.getElementById("t2-state").setAttribute("fill", step.t2Color);
+      document.getElementById("t3-state").textContent = step.t3State;
+      document.getElementById("t3-state").setAttribute("fill", step.t3Color);
 
-      // Update Child SVG Card Dynamically
-      const cardChild = document.getElementById("card-child");
-      cardChild.className.baseVal = `proc-group ${step.childClass}`;
-      document.getElementById("child-title-text").textContent = step.childTitle;
-      document.getElementById("child-ppid-text").textContent = step.childPpid;
-      document.getElementById("child-mem-text").textContent = step.childMem;
-      document.getElementById("child-fds-text").textContent = step.childFds;
-      document.getElementById("child-status-badge").textContent = step.childStatusBadge;
-
-      // Update Flow Path
-      const pathLine = document.getElementById("path-lifecycle");
-      pathLine.className.baseVal = step.pathActive ? "flow-line active" : "flow-line";
-      pathLine.setAttribute("marker-end", step.pathActive ? "url(#arrowhead-act)" : "url(#arrowhead)");
-      document.getElementById("path-label").textContent = step.pathLabel;
+      // Update Active Card Visual Highlights
+      ["card-t1", "card-t2", "card-t3"].forEach(id => {
+        const card = document.getElementById(id);
+        const rect = card.querySelector(".thread-card");
+        const stack = card.querySelector(".stack-segment");
+        if (id === step.activeCard) {
+          rect.classList.add("active");
+          stack.classList.add("active");
+        } else {
+          rect.classList.remove("active");
+          stack.classList.remove("active");
+        }
+      });
 
       // Update Dedicated Narrative Summary Panel
-      document.getElementById("l-txt-narrative").textContent = step.narrative;
-      document.getElementById("l-btn-prev").disabled = (activeLifecycleStep === 0);
-      document.getElementById("l-btn-next").disabled = (activeLifecycleStep === steps.length - 1);
+      document.getElementById("t-txt-narrative").textContent = step.narrative;
+      document.getElementById("t-btn-prev").disabled = (activeThreadStep === 0);
+      document.getElementById("t-btn-next").disabled = (activeThreadStep === steps.length - 1);
 
       // Update Analytical Panes
-      document.getElementById("l-txt-what").textContent = step.what;
-      document.getElementById("l-txt-why").textContent = step.why;
+      document.getElementById("t-txt-what").textContent = step.what;
+      document.getElementById("t-txt-why").textContent = step.why;
     }
 
-    function stepLifecycle(delta) {
-      const steps = lifecycleSteps[activeLifecycleDim];
-      activeLifecycleStep = Math.max(0, Math.min(steps.length - 1, activeLifecycleStep + delta));
-      renderLifecycleStepper();
+    function stepThread(delta) {
+      const steps = threadSteps[activeThreadDim];
+      activeThreadStep = Math.max(0, Math.min(steps.length - 1, activeThreadStep + delta));
+      renderThreadStepper();
     }
 
-    function resetLifecycle() {
-      activeLifecycleStep = 0;
-      renderLifecycleStepper();
+    function resetThread() {
+      activeThreadStep = 0;
+      renderThreadStepper();
     }
 
-    function setLifecycleDim(dim) {
-      activeLifecycleDim = dim;
-      activeLifecycleStep = 0;
-      document.getElementById("dim-unix").classList.toggle("active", dim === "unix");
-      document.getElementById("dim-win").classList.toggle("active", dim === "windows");
+    function setThreadDim(dim) {
+      activeThreadDim = dim;
+      activeThreadStep = 0;
+      document.getElementById("dim-threads").classList.toggle("active", dim === "threads");
+      document.getElementById("dim-processes").classList.toggle("active", dim === "processes");
 
-      const scenarioText = dim === "unix"
-        ? "An interactive command shell (bash, PID 501) spawns an external utility (grep, PID 502) to search a file, waits for child completion, and reaps its exit status."
-        : "A Windows command console (cmd.exe, PID 1100) invokes CreateProcess to spawn find.exe (PID 1104), synchronizes via an object handle, and closes the handle.";
-      document.getElementById("lifecycle-scenario-text").innerHTML = scenarioText;
+      const isThread = dim === "threads";
+      document.getElementById("container-title").textContent = isThread
+        ? "PROCESS CONTAINER (PID 2040: WebServer)"
+        : "ISOLATED PROCESS MODEL (Parent PID 2040 / Child PID 2041)";
+      document.getElementById("container-sub").textContent = isThread
+        ? "Shared Resources: Code Segment | Global Variables | Dynamic Heap | Open Sockets (FD 3, 4)"
+        : "Isolated Resources: Separate Address Spaces | Independent Heaps | IPC via Kernel Buffers";
 
-      renderLifecycleStepper();
+      document.getElementById("t1-role").textContent = isThread ? "Role: Dispatcher" : "Role: Master";
+      document.getElementById("t2-role").textContent = isThread ? "Role: Worker" : "Role: Child 2041";
+      document.getElementById("t3-role").textContent = isThread ? "Role: Flusher" : "Role: Unused";
+
+      const scenarioText = isThread
+        ? "A multi-threaded Web Server (PID 2040) handles an incoming HTTP connection: Dispatcher (TID 1) receives the socket and hands it to Worker (TID 2), while Background Flusher (TID 3) syncs logs."
+        : "A multi-process Web Server handles an HTTP connection by calling fork() to create Child 2041, transferring socket descriptors via IPC, and incurring TLB flush context switches.";
+      document.getElementById("thread-scenario-text").innerHTML = scenarioText;
+
+      renderThreadStepper();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      renderLifecycleStepper();
+      renderThreadStepper();
     });
   </script>
 </body>
 </html>
 """
 
-def execute_section_four_expansion():
+def execute_module_update():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully expanded Section 4 in {TARGET_FILE}")
+    print(f"--> Successfully expanded {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand process termination conditions in 02-process-lifecycle.html\n\n"
-            "Enrich Module 02 Section 4 with task_struct lifecycle, waitpid decoding,\n"
-            "subreaper cascades, PID exhaustion risks, and the double-fork pattern."
+            "Expand 03-classical-threads.html with interactive thread stepper\n\n"
+            "Enrich Module 03 with resource grouping vs execution analysis, per-thread\n"
+            "stacks, application usage patterns, and an interactive multithreading aid."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -1071,4 +822,4 @@ def execute_section_four_expansion():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    execute_section_four_expansion()
+    execute_module_update()
