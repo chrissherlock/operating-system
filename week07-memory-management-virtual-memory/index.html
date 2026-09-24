@@ -55,11 +55,88 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 36px;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
     h1 { margin: 0 0 12px 0; font-size: 2rem; color: var(--primary); letter-spacing: -0.02em; }
-    .hero-lead { font-size: 1.1rem; color: var(--text-muted); margin: 0 0 16px 0; }
+    .hero-lead { font-size: 1.05rem; color: var(--text-muted); margin: 0; }
+
+    /* Section Cards */
+    .section-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .section-card h2 {
+      margin: 0 0 16px 0;
+      font-size: 1.35rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* 2-Column Grid */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .info-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .info-item strong {
+      display: block;
+      color: var(--primary);
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+    .info-item p {
+      margin: 0;
+      font-size: 0.86rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* Checklist / Action Items */
+    .action-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .action-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 14px 16px;
+    }
+    .action-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .action-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    /* Modules Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -137,7 +214,7 @@
     .launch-btn:hover { background: var(--accent); }
     @media (max-width: 640px) {
       body { padding: 16px; }
-      .hero-card { padding: 24px; }
+      .hero-card, .section-card { padding: 20px; }
     }
   </style>
 </head>
@@ -149,6 +226,7 @@
       <a href="../week09-memory-management/index.html" class="nav-btn">Week 9: Memory Subsystems &rarr;</a>
     </nav>
 
+    <!-- Header Hero -->
     <div class="hero-card">
       <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Curriculum Track &bull; Week 07</span>
       <h1>Memory Management &amp; Virtual Memory</h1>
@@ -157,6 +235,53 @@
       </p>
     </div>
 
+    <!-- What You Will Learn -->
+    <div class="section-card">
+      <h2>&#128218; What You Will Learn</h2>
+      <div class="two-col-grid">
+        <div class="info-item">
+          <strong>1. Hardware Relocation &amp; Protection</strong>
+          <p>Understand the transition from monoprogrammed bare metal to multiprogramming using base and limit registers, dynamic relocation, and swapping mechanisms.</p>
+        </div>
+        <div class="info-item">
+          <strong>2. Dynamic Memory Partitioning</strong>
+          <p>Master contiguous free-space management algorithms (First-Fit, Best-Fit, Worst-Fit) and buddy-allocator power-of-two coalescing strategies.</p>
+        </div>
+        <div class="info-item">
+          <strong>3. Virtual Paging &amp; MMU Address Translation</strong>
+          <p>Deconstruct virtual addresses into Page Numbers ($p$) and Offsets ($d$), navigate multi-level hierarchical page tables, and evaluate PTE protection bit flags.</p>
+        </div>
+        <div class="info-item">
+          <strong>4. TLB Caching &amp; Memory Access Latency</strong>
+          <p>Calculate Effective Memory Access Times (EMAT) and analyze associative hardware TLB hit/miss penalties and inverted page table hashing schemes.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- What You Should Do -->
+    <div class="section-card">
+      <h2>&#9989; What You Should Do</h2>
+      <ul class="action-list">
+        <li class="action-card">
+          <div class="action-title">&#128214; 1. Core Textbook Readings</div>
+          <p class="action-desc">Read Tanenbaum &amp; Bos (Modern Operating Systems) Chapter 3 (Memory Management) and OSTEP Chapters 13–16 (Address Spaces &amp; Paging).</p>
+        </li>
+        <li class="action-card">
+          <div class="action-title">&#128187; 2. Complete Module Walkthroughs</div>
+          <p class="action-desc">Progress through Modules 01 to 04 sequentially, tracing address translation mathematics and paging bitfields.</p>
+        </li>
+        <li class="action-card">
+          <div class="action-title">&#129302; 3. Lab: Allocator Simulation</div>
+          <p class="action-desc">Implement a free-memory list tracker in Python or C to compare allocation fragmentation under First-Fit and Best-Fit policies.</p>
+        </li>
+        <li class="action-card">
+          <div class="action-title">&#128221; 4. Self-Assessment Exercises</div>
+          <p class="action-desc">Solve manual virtual-to-physical address translation problems and compute multi-level page table memory footprints.</p>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Modules Grid -->
     <div class="grid">
       <!-- Module 01 -->
       <div class="module-card">
