@@ -1,14 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create and structure Week 07 Memory Management Hub Index
-# =====================================================================
-import os
-import subprocess
-
-TARGET_DIR = "week07-memory-management-virtual-memory"
-TARGET_FILE = os.path.join(TARGET_DIR, "index.html")
-
-INDEX_CONTENT = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -249,34 +239,3 @@ INDEX_CONTENT = r"""<!DOCTYPE html>
   </div>
 </body>
 </html>
-"""
-
-def create_week07_index():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(INDEX_CONTENT.strip() + "\n")
-    print(f"--> Successfully created {TARGET_FILE}")
-
-    # Remove obsolete misspelled directory if present
-    spelling_error_dir = "week06-synchronisation-and-deadlock"
-    if os.path.exists(spelling_error_dir):
-        import shutil
-        shutil.rmtree(spelling_error_dir)
-        print(f"--> Cleaned up redundant misspelled folder {spelling_error_dir}")
-
-    return True
-
-if __name__ == "__main__":
-    if create_week07_index():
-        try:
-            subprocess.run(["git", "add", "fix.py", TARGET_DIR], check=True)
-            commit_msg = (
-                "Create Week 7 Memory Management hub index and curriculum structure\n\n"
-                "Add week07-memory-management-virtual-memory/index.html following course hub\n"
-                "standards, linking Week 6 and Week 9 with 4 core memory module cards."
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully!")
-        except Exception as e:
-            print(f"Git note: {e}")
