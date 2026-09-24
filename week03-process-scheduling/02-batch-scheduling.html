@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>02. Scheduling in Batch Systems | Week 3: CPU Scheduling</title>
+  <style>
+
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4, h5 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="01-scheduling-introduction.html">&larr; 01. Intro to Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <a href="03-interactive-scheduling.html">03. Interactive Scheduling &rarr;</a>
+    </nav>
+
+<h2>02. Scheduling in Batch Systems</h2>
+    <p>
+      Batch systems prioritize overall workflow efficiency and maximum computational throughput over instant interactive responsiveness. In these environments, jobs are submitted to a queue and executed without user intervention.
+    </p>
+
+    <h3>1. First-Come, First-Served (FCFS)</h3>
+    <p>
+      The simplest scheduling discipline: tasks are assigned the CPU strictly in the order they arrive in the ready queue (managed via a FIFO queue). FCFS is non-preemptive: once a task acquires the processor, it executes until it terminates or blocks for I/O.
+    </p>
+    <h4>The Convoy Effect</h4>
+    <p>
+      While simple and starvation-free, FCFS suffers severely from the <strong>convoy effect</strong>: if a massive compute-bound job enters the CPU ahead of several brief I/O-bound tasks, all I/O-bound tasks queue behind it. During this time, I/O devices sit idle. Once the compute job finally blocks, the short jobs execute rapidly and block on I/O, leaving the CPU idle. This results in poor average turnaround time and degraded hardware utilization.
+    </p>
+
+    <h3>2. Shortest Job First (SJF)</h3>
+    <p>
+      When job running times are known in advance, <strong>Shortest Job First (SJF)</strong> chooses the ready process with the smallest CPU burst time.
+    </p>
+    <p>
+      <strong>Provable Optimality:</strong> SJF is mathematically optimal in minimizing average turnaround time for non-preemptive batch scheduling when all jobs arrive simultaneously.
+    </p>
+
+    <h3>3. Shortest Remaining Time Next (SRTN)</h3>
+    <p>
+      The preemptive variant of Shortest Job First. When a new job arrives in the ready queue, its expected burst time is compared against the remaining execution time of the currently running job:
+    </p>
+    <ul>
+      <li>If the new job requires less time to finish than the current job has remaining, the current job is preempted and returned to the ready queue.</li>
+      <li>SRTN provides even lower average turnaround times than non-preemptive SJF, but introduces the risk of <strong>starvation</strong> for long-running compute jobs if short tasks arrive continuously.</li>
+    </ul>
+
+    <h3>4. Predicting Future Burst Times: Exponential Smoothing</h3>
+    <p>
+      In general-purpose systems, future CPU burst durations cannot be known in advance. The operating system estimates the next burst length by calculating an exponential moving average of past behavior:
+    </p>
+    <pre><code>tau_{n+1} = alpha * t_n + (1 - alpha) * tau_n</code></pre>
+    <p>
+      Here, <code>t_n</code> is the length of the most recent actual burst, <code>tau_n</code> is the past predicted value, and <code>alpha</code> (typically 0.5) balances the weight of recent history against older historical trends.
+    </p>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="01-scheduling-introduction.html">&larr; 01. Intro to Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <a href="03-interactive-scheduling.html">03. Interactive Scheduling &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>

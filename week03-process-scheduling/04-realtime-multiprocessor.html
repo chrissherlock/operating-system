@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04. Real-Time &amp; Multiprocessor Scheduling | Week 3: CPU Scheduling</title>
+  <style>
+
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4, h5 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="03-interactive-scheduling.html">&larr; 03. Interactive Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <span></span>
+    </nav>
+
+<h2>04. Real-Time &amp; Multiprocessor Scheduling</h2>
+    <p>
+      Modern systems increasingly operate under stringent timing deadlines (real-time systems) and distribute workloads across multiple physical CPU execution cores (symmetric multiprocessing).
+    </p>
+
+    <h3>1. Real-Time Systems: Hard vs. Soft</h3>
+    <ul>
+      <li><strong>Hard Real-Time:</strong> Missing a single deadline causes total system failure (e.g., automotive anti-lock braking, avionics flight control, pacemaker monitors).</li>
+      <li><strong>Soft Real-Time:</strong> Missing occasional deadlines degrades quality of service but does not cause system collapse (e.g., video streaming frames, audio playback, online gaming physics).</li>
+    </ul>
+
+    <h3>2. Periodic Real-Time Schedulability</h3>
+    <p>
+      Consider a set of $m$ periodic events where event $i$ occurs with period $P_i$ and requires $C_i$ seconds of CPU computation. The system is schedulable if and only if the total processor utilization does not exceed capacity:
+    </p>
+    <pre><code>sum_{i=1}^{m} (C_i / P_i) &lt;= 1</code></pre>
+
+    <h3>3. Real-Time Algorithms</h3>
+    <ul>
+      <li><strong>Rate Monotonic Scheduling (RMS):</strong> A static-priority assignment algorithm. Tasks with shorter periods (higher frequencies) are assigned higher static priorities. Optimal among all static-priority periodic scheduling algorithms.</li>
+      <li><strong>Earliest Deadline First (EDF):</strong> A dynamic-priority assignment algorithm. The runnable task whose deadline is closest in time is granted the CPU. EDF can theoretically achieve 100% CPU utilization without missing deadlines.</li>
+    </ul>
+
+    <h3>4. Multiprocessor Scheduling (SMP)</h3>
+    <p>
+      When scheduling across multiple CPU cores, operating systems must manage data structures and hardware caches:
+    </p>
+    <ul>
+      <li><strong>Single-Queue Multiprocessor Scheduling (SQMS):</strong> All CPUs pull tasks from a single shared ready queue. Suffers from lock contention on multi-core systems and lacks cache affinity.</li>
+      <li><strong>Multi-Queue Multiprocessor Scheduling (MQMS):</strong> Each CPU core maintains its own independent ready queue. Provides near-linear scaling and preserves warm CPU caches, requiring occasional load balancing (work stealing).</li>
+      <li><strong>Processor Affinity:</strong> Preferring to run a task on the exact same CPU core where it previously executed to maximize L1/L2 cache hit rates.</li>
+      <li><strong>Gang Scheduling:</strong> Scheduling all related threads of a parallel application simultaneously across distinct physical CPU cores so they can communicate via shared memory without spinning on descheduled peers.</li>
+    </ul>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="03-interactive-scheduling.html">&larr; 03. Interactive Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <span></span>
+    </nav>
+  </div>
+</body>
+</html>

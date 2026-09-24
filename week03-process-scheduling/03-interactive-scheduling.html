@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03. Scheduling in Interactive Systems | Week 3: CPU Scheduling</title>
+  <style>
+
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3, h4, h5 { color: #0f172a; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
+    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
+    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      margin: 16px 0;
+    }
+    pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="02-batch-scheduling.html">&larr; 02. Batch Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <a href="04-realtime-multiprocessor.html">04. Real-Time &amp; SMP &rarr;</a>
+    </nav>
+
+<h2>03. Scheduling in Interactive Systems</h2>
+    <p>
+      In desktop, mobile, and interactive server environments, short response time and fair allocation of resources among multiple users and background processes are critical.
+    </p>
+
+    <h3>1. Round-Robin (RR) Scheduling</h3>
+    <p>
+      Round-Robin is the oldest, most reliable, and most widely used general-purpose scheduling algorithm:
+    </p>
+    <ul>
+      <li>Each ready process is granted a fixed slice of execution time known as a <strong>time quantum</strong> (or time slice), typically between 10 ms and 100 ms.</li>
+      <li>If the process is still running when the hardware timer interrupt fires, the process is preempted and moved to the tail of the FIFO ready list.</li>
+    </ul>
+    <h4>The Quantum Sizing Dilemma</h4>
+    <ul>
+      <li><strong>Quantum Too Small (e.g., 1 ms):</strong> If a context switch consumes 0.1 ms (100 microseconds), 10% of total CPU time is wasted solely on context switching overhead and cache invalidation.</li>
+      <li><strong>Quantum Too Large (e.g., 500 ms):</strong> The system degenerates into FCFS; interactive tasks (such as mouse clicks or typing) stutter, producing unacceptable input latency.</li>
+    </ul>
+
+    <h3>2. Priority Scheduling &amp; Aging</h3>
+    <p>
+      Not all processes possess equal importance. Each task is assigned a priority integer, and the scheduler dispatches the highest-priority runnable process first:
+    </p>
+    <ul>
+      <li><strong>Static vs. Dynamic Priorities:</strong> Static priorities remain fixed throughout process lifetime. Dynamic priorities fluctuate based on behavior—boosting I/O-bound tasks that yield quickly, and penalizing CPU-bound tasks that exhaust their quantums.</li>
+      <li><strong>Starvation &amp; Aging:</strong> To prevent low-priority tasks from starving indefinitely, schedulers implement <strong>aging</strong>: gradually incrementing the priority of a process the longer it waits in the ready queue.</li>
+    </ul>
+
+    <h3>3. Multi-Level Feedback Queues (MLFQ)</h3>
+    <p>
+      The Multi-Level Feedback Queue is the foundational discipline of modern general-purpose schedulers. It establishes multiple distinct priority queues:
+    </p>
+    <ol>
+      <li>Rule 1: If Priority(A) &gt; Priority(B), A runs, B does not.</li>
+      <li>Rule 2: If Priority(A) == Priority(B), A &amp; B run in Round-Robin.</li>
+      <li>Rule 3: When a job enters the system, it is placed at the highest priority queue.</li>
+      <li>Rule 4: Once a job exhausts its time allotment at a given priority level (regardless of how many times it yielded), its priority is demoted one level down.</li>
+      <li>Rule 5: After some time period S, all jobs in the system are boosted to the top queue (Periodic Priority Boost to prevent starvation and accommodate changing task phases).</li>
+    </ol>
+
+    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
+      <a href="02-batch-scheduling.html">&larr; 02. Batch Scheduling</a>
+      <a href="index.html">&#127968; Week 3 Index</a>
+      <a href="04-realtime-multiprocessor.html">04. Real-Time &amp; SMP &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
