@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Fix priority boost arrow trajectory in 03-interactive-scheduling.html
+# fix.py: Reroute Priority Boost arrow directly into Queue Q0
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week03-process-scheduling", "03-interactive-scheduling.html")
 
-def repair_boost_arrow():
+def fix_boost_target():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -22,21 +22,24 @@ def repair_boost_arrow():
 
     end_idx = content.find(old_boost_end, start_idx) + len(old_boost_end)
 
-    # We construct a clean path that arches up and points cleanly UP into Queue Q0:
-    # From right-side of Q2 (x=460, y=210), curves out to x=500, travels upwards,
-    # and curves into Q0 terminating at (460, 46) pointing strictly LEFT into Q0,
-    # OR terminating going strictly UPWARDS into Q0 at (460, 42).
+    # Queue Q0 is at y=20 to 80 (Height=60)
+    # Queue Q1 is at y=105 to 165
+    # Queue Q2 is at y=190 to 250
     #
-    # Let's make it an unmistakable UPWARD promotion arrow:
-    # Starting at (475, 210), sweeping up through an arc, and rising straight UP into Q0:
-    # "M 475 210 C 510 210, 510 80, 480 80 C 470 80, 470 65, 470 52"
-    # Tangent at (470, 52) comes from (470, 65) -> dx=0, dy=-13 -> Angle is -90° (strictly UP).
+    # We route a dedicated upward promotion conduit along x = 430
+    # rising straight up from the top edge of Q2 (y=190) through the gap,
+    # right past Q1, and terminating cleanly at the bottom edge of Q0 (y=84).
+    #
+    # With orient="auto" and a line from (430, 190) to (430, 84), dy < 0:
+    # The arrow points strictly straight UP, terminating right against Q0's border!
     new_boost_block = r"""<g id="grp-mlfq-boost" style="display: none;">
-            <!-- Upward promotional path: loops out from Q2, rises up, and vectors straight UP into Q0 -->
-            <path d="M 465 210 C 505 210, 505 85, 475 85 C 465 85, 465 68, 465 52" fill="none" stroke="#059669" stroke-width="2.5" stroke-dasharray="4 3" marker-end="url(#m-arr-green)"/>
-            <rect x="425" y="125" width="85" height="26" rx="3" fill="#dcfce7" stroke="#059669" stroke-width="1.2"/>
-            <text x="467" y="138" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#166534">&uarr; PRIORITY BOOST</text>
-            <text x="467" y="147" text-anchor="middle" font-size="7.5" fill="#15803d">ALL QUEUES &rarr; Q0</text>
+            <!-- Vertical promotion shaft: rises from Q2 (y=190) directly UP into Q0 (y=84) -->
+            <line x1="435" y1="190" x2="435" y2="84" stroke="#059669" stroke-width="3" stroke-dasharray="4 3" marker-end="url(#m-arr-green)"/>
+
+            <!-- Clarifying text badge pinned to the shaft -->
+            <rect x="360" y="122" width="150" height="26" rx="4" fill="#dcfce7" stroke="#059669" stroke-width="1.5"/>
+            <text x="435" y="135" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#166534">&uarr; PRIORITY BOOST</text>
+            <text x="435" y="144" text-anchor="middle" font-size="7.5" fill="#15803d">PROMOTED: Q2 &amp; Q1 &rarr; Q0</text>
           </g>"""
 
     content = content[:start_idx] + new_boost_block + content[end_idx:]
@@ -44,16 +47,16 @@ def repair_boost_arrow():
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"--> Successfully updated boost arrow trajectory in {TARGET_FILE}")
+    print(f"--> Successfully rerouted priority boost arrow in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Fix priority boost arrow trajectory and endpoint tangent in Module 03\n\n"
-            "Adjust Bézier control points so the boost path terminates with a clear\n"
-            "upward-pointing vector into Queue Q0, eliminating rotated marker skew."
+            "Fix priority boost arrow routing and destination target in Module 03\n\n"
+            "Route the promotional boost path directly from Queue Q2 vertically up\n"
+            "into the entrance of Queue Q0 so the destination target is unambiguous."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -62,5 +65,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if repair_boost_arrow():
+    if fix_boost_target():
         run_git_sync()
