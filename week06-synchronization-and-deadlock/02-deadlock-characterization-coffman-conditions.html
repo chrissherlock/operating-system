@@ -196,44 +196,97 @@
         The Coffman conditions are <strong>necessary</strong> for deadlock (every deadlock exhibits all four), but depending on resource multiplicity, circular wait is only sometimes <strong>sufficient</strong>. In systems with multiple identical units per resource type, a cycle in the resource allocation graph is a necessary condition for deadlock, but not always sufficient.
       </div>
 
-      <h3>3. Resource Allocation Graphs (RAGs) &amp; Cycle Detection</h3>
-      <p>
-        Operating systems analyze deadlock topological states using directed graphs known as <strong>Resource Allocation Graphs (RAGs)</strong>:
-      </p>
+          <h3>3. Resource Allocation Graphs (RAGs) &amp; Cycle Detection</h3>
+    <p>
+      To formally analyze and detect system deadlocks algorithmically, operating systems frequently model resource state as a directed graph known as a <strong>Resource Allocation Graph (RAG)</strong>. Invented by Holt (1972), RAGs provide a rigorous graphical and topological framework to visualize process dependencies and evaluate deadlock existence in real time.
+    </p>
+
+    <h4>1. Formal Graph Structure &amp; Vertex Types</h4>
+    <p>
+      Mathematically, a Resource Allocation Graph is defined as a directed graph $G = (V, E)$ where the vertex set $V$ is partitioned into two disjoint subsets representing processes and resources:
+    </p>
+    <ul>
+      <li>
+        <strong>Process Vertices ($P$):</strong> Represented as circles ($P_1, P_2, \dots, P_n$). These denote active execution entities competing for system resources.
+      </li>
+      <li>
+        <strong>Resource Vertices ($R$):</strong> Represented as rectangular boxes ($R_1, R_2, \dots, R_m$). Each resource box may contain one or more black dots (tokens) representing identical available instances of that resource type.
+      </li>
+    </ul>
+
+    <h4>2. Directed Edge Semantics</h4>
+    <p>
+      The edge set $E$ consists of two distinct directed edge types that capture runtime allocation and waiting states:
+    </p>
+    <ul>
+      <li>
+        <strong>Request Edge ($P_i \to R_j$):</strong> A directed edge originating from process $P_i$ and pointing to resource type $R_j$. This signifies that process $P_i$ has requested an instance of resource $R_j$ and is currently blocked waiting for allocation.
+      </li>
+      <li>
+        <strong>Assignment Edge ($R_j \to P_i$):</strong> A directed edge originating from a specific resource instance within box $R_j$ and pointing to process $P_i$. This signifies that an instance of resource $R_j$ has been allocated to process $P_i$.
+      </li>
+    </ul>
+
+    <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+      <strong style="color: var(--primary);">Graph Reduction &amp; Deadlock Theorems:</strong>
+      <br><br>
       <ul>
-        <li><strong>Process Nodes ($P_i$):</strong> Represented as circles.</li>
-        <li><strong>Resource Nodes ($R_j$):</strong> Represented as rectangles (containing dots indicating available multi-unit instances).</li>
-        <li><strong>Request Edge ($P_i \to R_j$):</strong> A directed edge from process $P_i$ to resource type $R_j$, indicating that $P_i$ is currently blocked waiting for an instance of $R_j$.</li>
-        <li><strong>Assignment Edge ($R_j \to P_i$):</strong> A directed edge from resource instance $R_j$ to process $P_i$, indicating that an instance of $R_j$ has been allocated to $P_i$.</li>
+        <li><strong>Single-Instance Theorem:</strong> If a resource allocation graph contains <em>only single-instance resource types</em>, then a directed cycle in the graph is a <strong>necessary and sufficient condition</strong> for deadlock.</li>
+        <li><strong>Multi-Instance Theorem:</strong> If resource types contain multiple instances, a cycle is a <em>necessary</em> condition for deadlock, but <em>not sufficient</em>, because other non-deadlocked processes may release instances to break the wait chain.</li>
       </ul>
+    </div>
 
-      <pre><code><span class="syn-cmt">/* Graph Reduction Algorithm for Deadlock Detection */</span>
-<span class="syn-kw">bool</span> <span class="syn-fn">detect_deadlock</span>(rag_graph_t *g) {
-    <span class="syn-kw">bool</span> marked[MAX_PROCESSES] = { <span class="syn-num">false</span> };
-    <span class="syn-kw">int</span> work[MAX_RESOURCES];
-    <span class="syn-fn">memcpy</span>(work, g-&gt;available, <span class="syn-kw">sizeof</span>(work));
+    <h4>3. Algorithmic Cycle Detection (Python Implementation)</h4>
+    <p>
+      Operating systems kernels implement cycle detection algorithms (such as Depth-First Search with recursion stack tracking) to inspect RAG adjacency lists periodically. Below is a complete, syntax-highlighted Python module demonstrating directed graph representation and cycle detection:
+    </p>
 
-    <span class="syn-cmt">/* Find an unmarked process whose requests can be satisfied */</span>
-    <span class="syn-kw">bool</span> progress = <span class="syn-num">true</span>;
-    <span class="syn-kw">while</span> (progress) {
-        progress = <span class="syn-num">false</span>;
-        <span class="syn-kw">for</span> (<span class="syn-kw">int</span> i = <span class="syn-num">0</span>; i &lt; g-&gt;num_processes; i++) {
-            <span class="syn-kw">if</span> (!marked[i] &amp;&amp; <span class="syn-fn">can_satisfy_request</span>(i, work, g)) {
-                <span class="syn-cmt">/* Simulate process completion: reclaim held resources */</span>
-                <span class="syn-kw">for</span> (<span class="syn-kw">int</span> j = <span class="syn-num">0</span>; j &lt; g-&gt;num_resources; j++) {
-                    work[j] += g-&gt;allocation[i][j];
-                }
-                marked[i] = <span class="syn-num">true</span>;
-                progress = <span class="syn-num">true</span>;
-            }
-        }
-    }
-    <span class="syn-cmt>/* If any process remains unmarked, a deadlocked cycle exists! */</span>
-    <span class="syn-kw">for</span> (<span class="syn-kw">int</span> i = <span class="syn-num">0</span>; i &lt; g-&gt;num_processes; i++) {
-        <span class="syn-kw">if</span> (!marked[i]) <span class="syn-kw">return</span> <span class="syn-num">true</span>;
-    }
-    <span class="syn-kw">return</span> <span class="syn-num">false</span>;
-}</code></pre>
+    <!-- Syntax Highlighted Code Box -->
+    <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border);">
+      <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+        python &bull; rag_detector.py
+      </div>
+      <pre style="margin: 0; line-height: 1.5;"><span style="color: #94a3b8;">#!/usr/bin/env python3</span>
+<span style="color: #c084fc;">class</span> <span style="color: #6ee7b7;">ResourceAllocationGraph</span>:
+    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">__init__</span>(<span style="color: #f43f5e;">self</span>):
+        <span style="color: #f43f5e;">self</span>.adjacency_list = {}
+
+    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">add_edge</span>(<span style="color: #f43f5e;">self</span>, source, destination):
+        <span style="color: #c084fc;">if</span> source <span style="color: #e2e8f0;">not in</span> <span style="color: #f43f5e;">self</span>.adjacency_list:
+            <span style="color: #f43f5e;">self</span>.adjacency_list[source] = []
+        <span style="color: #f43f5e;">self</span>.adjacency_list[source].append(destination)
+
+    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">detect_cycle_util</span>(<span style="color: #f43f5e;">self</span>, node, visited, recursion_stack):
+        visited.add(node)
+        recursion_stack.add(node)
+
+        <span style="color: #c084fc;">for</span> neighbor <span style="color: #e2e8f0;">in</span> <span style="color: #f43f5e;">self</span>.adjacency_list.get(node, []):
+            <span style="color: #c084fc;">if</span> neighbor <span style="color: #e2e8f0;">not in</span> visited:
+                <span style="color: #c084fc;">if</span> <span style="color: #f43f5e;">self</span>.detect_cycle_util(neighbor, visited, recursion_stack):
+                    <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">True</span>
+            <span style="color: #c084fc;">elif</span> neighbor <span style="color: #e2e8f0;">in</span> recursion_stack:
+                <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">True</span>
+
+        recursion_stack.remove(node)
+        <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">False</span>
+
+    <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">contains_deadlock</span>(<span style="color: #f43f5e;">self</span>):
+        visited = <span style="color: #6ee7b7;">set</span>()
+        recursion_stack = <span style="color: #6ee7b7;">set</span>()
+        <span style="color: #c084fc;">for</span> node <span style="color: #e2e8f0;">in</span> <span style="color: #f43f5e;">self</span>.adjacency_list:
+            <span style="color: #c084fc;">if</span> node <span style="color: #e2e8f0;">not in</span> visited:
+                <span style="color: #c084fc;">if</span> <span style="color: #f43f5e;">self</span>.detect_cycle_util(node, visited, recursion_stack):
+                    <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">True</span>
+        <span style="color: #c084fc;">return</span> <span style="color: #fbbf24;">False</span>
+
+<span style="color: #c084fc;">if</span> __name__ == <span style="color: #34d399;">"__main__"</span>:
+    rag = <span style="color: #6ee7b7;">ResourceAllocationGraph</span>()
+    rag.add_edge(<span style="color: #34d399;">"P1"</span>, <span style="color: #34d399;">"R1"</span>)
+    rag.add_edge(<span style="color: #34d399;">"R1"</span>, <span style="color: #34d399;">"P2"</span>)
+    rag.add_edge(<span style="color: #34d399;">"P2"</span>, <span style="color: #34d399;">"R2"</span>)
+    rag.add_edge(<span style="color: #34d399;">"R2"</span>, <span style="color: #34d399;">"P1"</span>)
+
+    <span style="color: #c084fc;">print</span>(<span style="color: #34d399;">"Deadlock Detected:"</span>, rag.contains_deadlock())</pre>
     </div>
 
     <nav class="nav-bar">
