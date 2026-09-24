@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 1 of 04-raid-architectures.html
+# fix.py: Deeply expand Section 2 of 04-raid-architectures.html
 # =====================================================================
 import os
 import subprocess
@@ -10,324 +10,453 @@ TARGET_FILE = os.path.join(
     "04-raid-architectures.html"
 )
 
-EXPANDED_SECTION_ONE = r"""    <h3>1. The Three Orthogonal Design Axes &amp; Striping</h3>
+EXPANDED_SECTION_TWO = r"""    <h3>2. Taxonomy of Standard RAID Levels</h3>
     <p>
-      In 1988, David Patterson, Garth Gibson, and Randy Katz published their foundational paper at the University of California, Berkeley: <em>"A Case for Redundant Arrays of Inexpensive Disks (RAID)"</em>. The paper identified a widening architectural crisis: <strong>while microprocessors were doubling in computational throughput every 18 months in accordance with Moore's Law, physical disk access times were improving by only 7% to 10% per year due to mechanical inertia</strong>.
+      The 1988 Berkeley paper established five canonical RAID levels (RAID 1 through RAID 5). In the decades since, the storage industry codified non-redundant striping as RAID 0, introduced dual-parity RAID 6 to survive multi-terabyte rebuild failures, and developed nested topologies such as RAID 10.
     </p>
     <p>
-      Enterprise mainframes had historically addressed this latency gap by building <strong>SLEDs (Single Large Expensive Disks)</strong>&mdash;massive, custom-engineered platters with high spindle speeds and extreme manufacturing costs. Patterson, Gibson, and Katz proposed a radical counter-strategy: replace a single expensive disk with an array of multiple, commodity, low-cost disks developed for the personal computer market.
-    </p>
-    <p>
-      Organizing multiple independent physical drives into a single logical block storage volume requires balancing three competing, orthogonal architectural dimensions:
+      Each RAID level embodies a fundamentally different mathematical strategy for laying out data blocks and error-correcting codes across physical disk spindles:
     </p>
 
-    <!-- Structural Diagram: Design Axes and Striping Geometry -->
+    <!-- Structural Diagram: Comprehensive RAID Topology Matrix -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.0: The Three Orthogonal Design Axes &amp; Striping Chunk Distribution</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">The trade-off space between Capacity, Performance, and Reliability, alongside the mathematical mapping of linear file offsets to physical disk chunks.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.1: Block Allocation Mapping Across Standard RAID Architectures</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Comparing non-redundant striping, mirroring, dedicated parity bottlenecks, rotating distributed parity, and dual P+Q fault tolerance.</div>
 
-      <svg viewBox="0 0 760 300" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <defs>
-          <marker id="ax-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
-          </marker>
-          <marker id="ax-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
-          </marker>
-          <marker id="ax-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
-          </marker>
-        </defs>
+      <svg viewBox="0 0 760 260" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <!-- RAID 0 -->
+        <g transform="translate(10, 15)">
+          <rect width="135" height="230" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="67" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#0284c7">RAID 0: STRIPING</text>
+          <text x="67" y="34" text-anchor="middle" font-size="7" fill="#dc2626">0 Redundancy &bull; 0 Faults</text>
 
-        <!-- Left: The Three Orthogonal Axes Radar/Triad -->
-        <g transform="translate(15, 20)">
-          <rect width="260" height="260" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="130" y="24" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">THE THREE ORTHOGONAL AXES</text>
+          <rect x="12" y="44" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="37" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A0</text>
+          <rect x="72" y="44" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="97" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
 
-          <!-- Triangular Coordinate Framework -->
-          <g transform="translate(130, 140)">
-            <!-- Axis 1: Capacity (Top) -->
-            <line x1="0" y1="0" x2="0" y2="-90" stroke="#0284c7" stroke-width="2" marker-end="url(#ax-arr-blue)"/>
-            <text x="0" y="-98" text-anchor="middle" font-size="8" font-weight="700" fill="#0284c7">1. CAPACITY EFFICIENCY (&eta;)</text>
-            <text x="0" y="-108" text-anchor="middle" font-size="6.5" fill="#64748b">Usable Space / Raw Space</text>
+          <rect x="12" y="74" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="37" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B0</text>
+          <rect x="72" y="74" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="97" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
 
-            <!-- Axis 2: Performance (Bottom Right) -->
-            <line x1="0" y1="0" x2="78" y2="45" stroke="#059669" stroke-width="2" marker-end="url(#ax-arr-green)"/>
-            <text x="90" y="55" font-size="8" font-weight="700" fill="#166534">2. PERFORMANCE</text>
-            <text x="90" y="66" font-size="6.5" fill="#64748b">IOPS &bull; Throughput</text>
+          <text x="37" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 0</text>
+          <text x="97" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 1</text>
 
-            <!-- Axis 3: Reliability (Bottom Left) -->
-            <line x1="0" y1="0" x2="-78" y2="45" stroke="#dc2626" stroke-width="2" marker-end="url(#ax-arr-red)"/>
-            <text x="-90" y="55" text-anchor="end" font-size="8" font-weight="700" fill="#991b1b">3. RELIABILITY</text>
-            <text x="-90" y="66" text-anchor="end" font-size="6.5" fill="#64748b">MTTDL &bull; Fault Tolerance</text>
-
-            <!-- Center Polygon: RAID 5 Profile -->
-            <polygon points="0,-60 52,30 -52,30" fill="#bae6fd" stroke="#0284c7" stroke-width="1.5" opacity="0.6"/>
-            <circle cx="0" cy="-60" r="3" fill="#0284c7"/>
-            <circle cx="52" cy="30" r="3" fill="#059669"/>
-            <circle cx="-52" cy="30" r="3" fill="#dc2626"/>
-            <text x="0" y="5" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0369a1">RAID 5 Sweet Spot</text>
-          </g>
-
-          <text x="130" y="248" text-anchor="middle" font-size="6.5" fill="#475569">No architecture maximizes all three simultaneously!</text>
+          <rect x="10" y="132" width="115" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="67" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: N &times; C (100%)</text>
+          <text x="67" y="162" text-anchor="middle" font-size="7" fill="#059669">Throughput: N &times;</text>
         </g>
 
-        <!-- Right: Striping Block Allocation & Chunk Geometry -->
-        <g transform="translate(290, 20)">
-          <rect width="455" height="260" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
-          <text x="20" y="24" font-size="10" font-weight="700" fill="#0284c7">DATA STRIPING: LINEAR STREAM TO DISK CHUNKS</text>
-          <text x="20" y="38" font-size="7.5" fill="#64748b">Chunk Size (S) = 64 KB &bull; Stripe Width = 4 Disks &bull; Full Stripe = 256 KB</text>
+        <!-- RAID 1 -->
+        <g transform="translate(155, 15)">
+          <rect width="135" height="230" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="67" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#059669">RAID 1: MIRROR</text>
+          <text x="67" y="34" text-anchor="middle" font-size="7" fill="#166534">Tolerates 1 Fault</text>
 
-          <!-- Input Linear File Stream (Top) -->
-          <g transform="translate(20, 52)">
-            <rect width="415" height="26" rx="3" fill="#f1f5f9" stroke="#94a3b8"/>
-            <text x="10" y="17" font-size="7" font-weight="700" fill="#334155">LOGICAL FILE OFFSET:</text>
-            <rect x="110" y="3" width="70" height="20" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-            <text x="145" y="16" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 0 (0&ndash;64K)</text>
-            <rect x="185" y="3" width="70" height="20" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-            <text x="220" y="16" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 1 (64&ndash;128K)</text>
-            <rect x="260" y="3" width="70" height="20" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-            <text x="295" y="16" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 2 (128&ndash;192K)</text>
-            <rect x="335" y="3" width="70" height="20" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-            <text x="370" y="16" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 3 (192&ndash;256K)</text>
-          </g>
+          <rect x="12" y="44" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="37" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A0</text>
+          <rect x="72" y="44" width="50" height="26" rx="2" fill="#fef3c7" stroke="#d97706"/>
+          <text x="97" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#b45309">A0 (Mir)</text>
 
-          <!-- Parallel Striped Disks (Bottom) -->
-          <g transform="translate(20, 95)">
-            <!-- Disk 0 -->
-            <g transform="translate(0, 0)">
-              <rect width="95" height="145" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
-              <text x="47" y="16" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f172a">DISK 0</text>
-              <rect x="8" y="24" width="79" height="22" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-              <text x="47" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 0</text>
-              <rect x="8" y="50" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="64" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 4</text>
-              <rect x="8" y="76" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 8</text>
-              <rect x="8" y="102" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 12</text>
-            </g>
+          <rect x="12" y="74" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="37" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B0</text>
+          <rect x="72" y="74" width="50" height="26" rx="2" fill="#fef3c7" stroke="#d97706"/>
+          <text x="97" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#b45309">B0 (Mir)</text>
 
-            <!-- Disk 1 -->
-            <g transform="translate(107, 0)">
-              <rect width="95" height="145" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
-              <text x="47" y="16" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f172a">DISK 1</text>
-              <rect x="8" y="24" width="79" height="22" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-              <text x="47" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 1</text>
-              <rect x="8" y="50" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="64" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 5</text>
-              <rect x="8" y="76" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 9</text>
-              <rect x="8" y="102" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 13</text>
-            </g>
+          <text x="37" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 0 (Pri)</text>
+          <text x="97" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 1 (Mir)</text>
 
-            <!-- Disk 2 -->
-            <g transform="translate(214, 0)">
-              <rect width="95" height="145" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
-              <text x="47" y="16" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f172a">DISK 2</text>
-              <rect x="8" y="24" width="79" height="22" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-              <text x="47" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 2</text>
-              <rect x="8" y="50" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="64" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 6</text>
-              <rect x="8" y="76" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 10</text>
-              <rect x="8" y="102" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 14</text>
-            </g>
+          <rect x="10" y="132" width="115" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="67" y="148" text-anchor="middle" font-size="7" fill="#dc2626">Cap: 50% (High Cost)</text>
+          <text x="67" y="162" text-anchor="middle" font-size="7" fill="#059669">Read: 2 &times; IOPS</text>
+        </g>
 
-            <!-- Disk 3 -->
-            <g transform="translate(320, 0)">
-              <rect width="95" height="145" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
-              <text x="47" y="16" text-anchor="middle" font-size="7.5" font-weight="700" fill="#0f172a">DISK 3</text>
-              <rect x="8" y="24" width="79" height="22" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-              <text x="47" y="38" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">Chunk 3</text>
-              <rect x="8" y="50" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="64" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 7</text>
-              <rect x="8" y="76" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 11</text>
-              <rect x="8" y="102" width="79" height="22" rx="2" fill="#f1f5f9" stroke="#94a3b8"/>
-              <text x="47" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#475569">Chunk 15</text>
-            </g>
-          </g>
+        <!-- RAID 4 -->
+        <g transform="translate(300, 15)">
+          <rect width="145" height="230" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="72" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#d97706">RAID 4: FIXED PARITY</text>
+          <text x="72" y="34" text-anchor="middle" font-size="7" fill="#dc2626">Parity Disk Bottleneck</text>
+
+          <rect x="8" y="44" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="27" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">A0</text>
+          <rect x="52" y="44" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="71" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
+          <rect x="96" y="44" width="40" height="26" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="116" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Ap</text>
+
+          <rect x="8" y="74" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="27" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">B0</text>
+          <rect x="52" y="74" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="71" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
+          <rect x="96" y="74" width="40" height="26" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="116" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Bp</text>
+
+          <text x="27" y="118" text-anchor="middle" font-size="6.5" font-weight="700" fill="#475569">D0</text>
+          <text x="71" y="118" text-anchor="middle" font-size="6.5" font-weight="700" fill="#475569">D1</text>
+          <text x="116" y="118" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">Parity</text>
+
+          <rect x="8" y="132" width="129" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="72" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: (N - 1) &times; C</text>
+          <text x="72" y="162" text-anchor="middle" font-size="7" fill="#dc2626">Small writes serialize!</text>
+        </g>
+
+        <!-- RAID 5 -->
+        <g transform="translate(455, 15)">
+          <rect width="145" height="230" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="72" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#0284c7">RAID 5: ROTATING</text>
+          <text x="72" y="34" text-anchor="middle" font-size="7" fill="#166534">Distributed Parity &bull; Optimal</text>
+
+          <rect x="8" y="44" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="27" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">A0</text>
+          <rect x="52" y="44" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="71" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
+          <rect x="96" y="44" width="40" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="116" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Ap</text>
+
+          <rect x="8" y="72" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="27" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">B0</text>
+          <rect x="52" y="72" width="38" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="71" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Bp</text>
+          <rect x="96" y="72" width="40" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="116" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
+
+          <rect x="8" y="100" width="38" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="27" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Cp</text>
+          <rect x="52" y="100" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="71" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">C0</text>
+          <rect x="96" y="100" width="40" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="116" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">C1</text>
+
+          <rect x="8" y="132" width="129" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="72" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: (N - 1) &times; C</text>
+          <text x="72" y="162" text-anchor="middle" font-size="7" fill="#059669">No Parity Bottleneck!</text>
+        </g>
+
+        <!-- RAID 6 -->
+        <g transform="translate(610, 15)">
+          <rect width="140" height="230" rx="6" fill="#f8fafc" stroke="#059669" stroke-width="1.5"/>
+          <text x="70" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#059669">RAID 6: DUAL PAR</text>
+          <text x="70" y="34" text-anchor="middle" font-size="7" fill="#166534">Tolerates 2 Faults</text>
+
+          <rect x="8" y="44" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="22" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">A0</text>
+          <rect x="40" y="44" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="54" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">A1</text>
+          <rect x="72" y="44" width="28" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="86" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#991b1b">Ap</text>
+          <rect x="104" y="44" width="28" height="24" rx="2" fill="#fef3c7" stroke="#d97706"/>
+          <text x="118" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#b45309">Aq</text>
+
+          <rect x="8" y="72" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="22" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">B0</text>
+          <rect x="40" y="72" width="28" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="54" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#991b1b">Bp</text>
+          <rect x="72" y="72" width="28" height="24" rx="2" fill="#fef3c7" stroke="#d97706"/>
+          <text x="86" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#b45309">Bq</text>
+          <rect x="104" y="72" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="118" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">B1</text>
+
+          <rect x="8" y="100" width="28" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+          <text x="22" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#991b1b">Cp</text>
+          <rect x="40" y="100" width="28" height="24" rx="2" fill="#fef3c7" stroke="#d97706"/>
+          <text x="54" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#b45309">Cq</text>
+          <rect x="72" y="100" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="86" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">C0</text>
+          <rect x="104" y="100" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
+          <text x="118" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">C1</text>
+
+          <rect x="8" y="132" width="124" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="70" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: (N - 2) &times; C</text>
+          <text x="70" y="162" text-anchor="middle" font-size="7" fill="#166534">Survives URE during rebuild</text>
         </g>
       </svg>
     </div>
 
-    <h4>The Three Orthogonal Design Axes</h4>
+    <h4>1. RAID 0: Non-Redundant Block-Level Striping</h4>
     <p>
-      Every multi-disk storage topology represents a deliberate engineering compromise across three interdependent design criteria:
-    </p>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0;">
-      <!-- Capacity Efficiency Card -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.92rem;">1. Capacity Efficiency (&eta;)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">Storage Overhead Ratio</div>
-        <p style="margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.5;">
-          The fraction of raw installed storage available for user files:
-          <div style="margin: 8px 0; font-family: var(--font-mono); font-size: 0.75rem; color: #0369a1;">
-            &eta; = Usable / (<i>N</i> &times; <i>C</i>)
-          </div>
-          &bull; <strong>RAID 0:</strong> 100% (&eta; = 1.0)<br>
-          &bull; <strong>RAID 1:</strong> 50% (&eta; = 0.5)<br>
-          &bull; <strong>RAID 5:</strong> (<i>N</i>-1)/<i>N</i> (e.g. 87.5% on 8 disks)<br>
-          &bull; <strong>RAID 6:</strong> (<i>N</i>-2)/<i>N</i> (e.g. 75.0% on 8 disks)
-        </p>
-      </div>
-
-      <!-- Performance Multiplier Card -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.92rem;">2. Performance Multiplier</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase; margin-bottom: 8px;">IOPS &amp; Bandwidth Scaling</div>
-        <p style="margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.5;">
-          The degree of concurrency:
-          <br><br>
-          &bull; <strong>Throughput (MB/s):</strong> Aggregates up to <i>N</i> &times; single-disk bandwidth for large sequential transfers.<br>
-          &bull; <strong>Random IOPS:</strong> Scales with independent spindle count for reads, but is constrained by parity read-modify-write updates on writes.
-        </p>
-      </div>
-
-      <!-- Reliability & MTTDL Card -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.92rem;">3. Reliability (MTTDL)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 8px;">Mean Time to Data Loss</div>
-        <p style="margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.5;">
-          Tolerance against physical drive failures:
-          <br><br>
-          &bull; <strong>RAID 0:</strong> 0 drive failures tolerated.<br>
-          &bull; <strong>RAID 1 / 5:</strong> Exactly 1 drive failure.<br>
-          &bull; <strong>RAID 6:</strong> Exactly 2 concurrent drive failures.<br>
-          Accounts for rebuild windows and unrecoverable read errors (UREs).
-        </p>
-      </div>
-    </div>
-
-    <h4>The Reliability Multiplication Trap</h4>
-    <p>
-      Why did the 1988 Berkeley paper mandate redundancy? Why could computer architects not simply stripe data across 50 inexpensive disks to achieve 50 times the performance?
-    </p>
-    <p>
-      The answer lies in Poisson reliability probability. Suppose a single commodity drive has a Mean Time To Failure (MTTF) of <strong>1,000,000 hours</strong> (approximately 114 years):
+      RAID 0 partitions user data into discrete chunks (e.g. 64 KB) and stripes them across <i>N</i> physical disks in pure round-robin sequence without calculating parity or storing redundant copies:
     </p>
     <ul>
-      <li>If an array contains <i>N</i> = 100 identical independent disks, the failure rate of the array (&lambda;<sub>array</sub>) is the sum of the individual failure rates:
+      <li><strong>Usable Capacity:</strong> <i>N</i> &times; <i>C</i> (100% capacity efficiency). Zero storage is wasted on redundancy.</li>
+      <li><strong>Sequential Throughput:</strong> Scales linearly to <strong><i>N</i> &times; Single Disk Bandwidth</strong> for reads and writes.</li>
+      <li><strong>Random I/O Operations (IOPS):</strong> Scales to <strong><i>N</i> &times; IOPS</strong> because independent heads seek independently.</li>
+      <li>
+        <strong>The Fault Tolerance Disaster:</strong> RAID 0 has <strong>zero fault tolerance</strong>. If any single drive suffers hardware failure, unrecoverable media read error, or controller seizure, <strong>all data across the entire logical volume is permanently destroyed</strong>.
+        <br>
+        Because drive failures are statistically independent Poisson events, the array failure rate is additive, causing array Mean Time To Failure to drop precipitously:
         <div class="math-callout" style="text-align: center;">
-          &lambda;<sub>array</sub> = <i>N</i> &times; &lambda;<sub>single</sub> = <sup><i>N</i></sup>&frasl;<sub>MTTF<sub>single</sub></sub>
+          MTTF<sub>RAID 0</sub> = <sup>MTTF<sub>single</sub></sup>&frasl;<sub><i>N</i></sub>
         </div>
+        An array of 8 drives with an individual MTTF of 1,200,000 hours has an array MTTF of merely 150,000 hours (&asymp; 17 years). In a datacenter with 1,000 such arrays, one crashes every week!
       </li>
-      <li>The Mean Time To Failure of the unstriped array collapses linearly:
-        <div class="math-callout" style="text-align: center;">
-          MTTF<sub>array</sub> = <sup>MTTF<sub>single</sub></sup>&frasl;<sub><i>N</i></sub> = <sup>1,000,000 hours</sup>&frasl;<sub>100</sub> = <strong>10,000 hours &asymp; 1.14 years</strong>
-        </div>
-      </li>
-      <li>In a datacenter operating 1,000 unstriped disks, a catastrophic array failure destroying all user data would occur <strong>every 41 days</strong>!</li>
+      <li><strong>Industrial Role:</strong> Ephemeral scratch disks, compiler build directories, GPU training caches, and video rendering swap spaces where raw speed dominates and data can be reconstructed from source.</li>
     </ul>
-    <p>
-      Therefore, <strong>striping without redundancy (RAID 0) is a reliability disaster</strong>. To harvest the throughput and capacity benefits of multiple spindles, storage architectures must introduce mathematical redundancy (mirroring or parity codes) to survive drive deaths.
-    </p>
 
-    <h4>Data Striping Mechanics: Chunk Mapping Formulas</h4>
+    <h4>2. RAID 1: Mirroring / Shadowing</h4>
     <p>
-      <strong>Data Striping</strong> segments a contiguous linear logical address space into fixed-size chunks and interleaves those chunks across <i>N</i> physical disks in a round-robin cycle:
+      RAID 1 guarantees reliability through pure duplication: every logical block is written simultaneously to two (or more) completely independent physical disks:
     </p>
     <ul>
-      <li><strong>Stripe Unit / Chunk Size (<i>S</i>):</strong> The amount of contiguous data written to a single drive before stepping to the next drive (typically 64 KB, 128 KB, or 256 KB in production filesystems).</li>
-      <li><strong>Stripe Width:</strong> The number of physical data disks participating in the stripe.</li>
-      <li><strong>Full Stripe Size:</strong> The total capacity of data written across all data disks in one complete round-robin cycle:
-        <div style="margin: 6px 0; font-family: var(--font-mono); font-size: 0.85rem; color: #0284c7;">
-          Full Stripe Size = Stripe Width &times; <i>S</i>
+      <li><strong>Usable Capacity:</strong> <i>C</i> (50% capacity efficiency for 2-way mirroring). Storage cost per usable gigabyte is doubled.</li>
+      <li><strong>Write Throughput &amp; IOPS:</strong> Every write operation must be dispatched to both physical disks. Write throughput is bounded by the slowest disk in the mirror pair (1&times; speed).</li>
+      <li>
+        <strong>Read Optimization (Split-Head Scheduling):</strong> Because both disks hold identical data, the storage controller can schedule independent reads across both spindles in parallel:
+        <div class="math-callout" style="margin: 8px 0;">
+          <strong>Split-Head Seek Optimization:</strong> When an application issues a read for Sector <i>K</i>, the controller inspects the physical arm positions of both drives and dispatches the read to the head <strong>closest to the target cylinder</strong>, cutting average seek latency almost in half and achieving up to <strong>2 &times; Read IOPS</strong>!
         </div>
+      </li>
+      <li><strong>Fault Tolerance:</strong> Survives the total death of any one disk. If Disk 0 fails, the controller immediately switches all I/O to Disk 1 with zero downtime and zero rebuild delay.</li>
+      <li><strong>Industrial Role:</strong> Operating system boot drives (EFI system partitions), database transaction log journals (WAL), and mission-critical financial ledgers.</li>
+    </ul>
+
+    <h4>3. RAID 2: Bit-Level Striping with Hamming Code ECC</h4>
+    <p>
+      Historically developed at UC Berkeley, RAID 2 stripes data at the <strong>individual bit level</strong> across data drives, computing error-correcting <strong>Hamming Codes</strong> recorded onto multiple dedicated parity drives:
+    </p>
+    <ul>
+      <li>For example, in a 4-data-drive setup, 3 additional parity drives were required to implement a (7, 4) Hamming Code capable of single-bit error correction and double-bit error detection.</li>
+      <li>All spindle motors had to be synchronized in lockstep rotation; all heads sought in unison.</li>
+      <li>
+        <strong>Why RAID 2 is Completely Obsolete:</strong>
+        RAID 2 was designed under the assumption that physical disks did not provide internal error detection. Modern Integrated Drive Electronics (IDE/ATA/SCSI/SATA/SAS) controllers embed sophisticated Reed-Solomon and Low-Density Parity-Check (LDPC) error correction directly onto every sector on the platter. The drive controller itself reports whether a read sector is valid or unrecoverable. Adding external Hamming parity in software or RAID hardware is completely redundant.
       </li>
     </ul>
 
-    <div class="math-callout">
-      <strong>Mathematical Coordinate Transformation:</strong>
+    <h4>4. RAID 3: Byte-Level Striping with Dedicated Parity</h4>
+    <p>
+      RAID 3 stripes data at the <strong>byte level</strong> across <i>N</i> - 1 data drives, storing Boolean XOR parity on a <strong>single dedicated parity disk</strong>:
+    </p>
+    <ul>
+      <li>Like RAID 2, RAID 3 requires synchronized spindles rotating in strict lockstep.</li>
+      <li>Every read or write access touches every single drive in the array simultaneously.</li>
+      <li><strong>The Bottleneck:</strong> While RAID 3 achieves massive transfer rates for a single sequential stream (e.g. historical uncompressed satellite imagery or video editing), it cannot service multiple I/O requests concurrently. The entire array delivers the random IOPS of <strong>exactly one single drive</strong> (Random IOPS &asymp; 1&times;).</li>
+      <li>Obsoleted by block-level striping architectures (RAID 5).</li>
+    </ul>
+
+    <h4>5. RAID 4: Block-Level Striping with Dedicated Parity Disk</h4>
+    <p>
+      RAID 4 advances beyond RAID 3 by striping data in coarse <strong>blocks</strong> (e.g. 64 KB) across <i>N</i> - 1 data disks, allowing independent reads to execute concurrently. Redundancy is provided by writing computed XOR parity to a <strong>single dedicated parity disk</strong>.
+    </p>
+    <p>
+      While independent reads scale to (<i>N</i> - 1) &times; IOPS, RAID 4 introduces an infamous architectural bottleneck during write operations:
+    </p>
+
+    <div class="math-callout" style="background: #fef2f2; border-left-color: #dc2626;">
+      <strong style="color: #991b1b;">The Small-Write Parity Disk Bottleneck (The 4&times; Read-Modify-Write Penalty)</strong>
       <br>
-      Given an incoming logical byte offset <i>B</i> from an application write, the RAID controller determines the physical disk and on-disk offset using integer division and modulo arithmetic:
-      <div style="margin: 10px 0; font-family: var(--font-mono); font-size: 0.85rem; color: #0f172a; line-height: 1.8;">
-        Chunk Index = &lfloor; <i>B</i> / <i>S</i> &rfloor;<br>
-        Target Disk Index = Chunk Index mod <i>N</i><br>
-        Physical Offset on Target Disk = ( &lfloor; Chunk Index / <i>N</i> &rfloor; &times; <i>S</i> ) + ( <i>B</i> mod <i>S</i> )
+      Suppose an application updates a single 4 KB block on Disk 1 (transforming <i>D</i><sub>1 (old)</sub> into <i>D</i><sub>1 (new)</sub>).
+      <br>
+      The controller could recalculate parity by reading all other data disks (<i>D</i><sub>0</sub>, <i>D</i><sub>2</sub>, <i>D</i><sub>3</sub>) and computing the full stripe XOR sum. However, reading every disk in the array for a single block write is disastrously slow.
+      <br><br>
+      Instead, the controller calculates the new parity using the <strong>algebraic XOR difference</strong>:
+      <div style="margin: 8px 0; font-family: var(--font-mono); font-size: 0.88rem; color: #0f172a; text-align: center;">
+        <i>P</i><sub>new</sub> = ( <i>D</i><sub>1 (old)</sub> &oplus; <i>D</i><sub>1 (new)</sub> ) &oplus; <i>P</i><sub>old</sub>
       </div>
-      <em>Worked Example:</em> On a 4-disk array (<i>N</i> = 4) with chunk size <i>S</i> = 64 KB (65,536 bytes), where does logical byte offset <strong><i>B</i> = 300,000</strong> reside?
+      To execute this single-block write, the RAID controller must perform <strong>four distinct physical I/O operations (the Read-Modify-Write cycle)</strong>:
       <ol style="margin: 6px 0 0 16px; padding: 0; font-size: 0.82rem;">
-        <li>Chunk Index = &lfloor; 300,000 / 65,536 &rfloor; = <strong>4</strong> (the 5th chunk in the stream).</li>
-        <li>Target Disk Index = 4 mod 4 = <strong>Disk 0</strong>.</li>
-        <li>Physical Offset = ( &lfloor; 4 / 4 &rfloor; &times; 65,536 ) + ( 300,000 mod 65,536 ) = 65,536 + 37,856 = <strong>Byte 103,392 on Disk 0</strong>.</li>
+        <li><strong>Read</strong> old data block <i>D</i><sub>1 (old)</sub> from Disk 1.</li>
+        <li><strong>Read</strong> old parity block <i>P</i><sub>old</sub> from the Dedicated Parity Disk.</li>
+        <li><strong>Calculate</strong> new parity in memory: <i>P</i><sub>new</sub> = (<i>D</i><sub>1 (old)</sub> &oplus; <i>D</i><sub>1 (new)</sub>) &oplus; <i>P</i><sub>old</sub>.</li>
+        <li><strong>Write</strong> new data block <i>D</i><sub>1 (new)</sub> to Disk 1.</li>
+        <li><strong>Write</strong> new parity block <i>P</i><sub>new</sub> to the Dedicated Parity Disk.</li>
       </ol>
+      <strong>The Fatal Consequence:</strong>
+      Every single write in the entire storage subsystem&mdash;regardless of which data disk is updated&mdash;<strong>must read and write the single dedicated parity disk</strong>. The parity disk arm thrashes continuously, capping the entire array's write throughput at <sup>1</sup>&frasl;<sub>2</sub> the write speed of a single physical disk!
     </div>
 
-    <h4>Chunk Size Trade-off: Fine-Grained vs. Coarse-Grained Striping</h4>
+    <h4>6. RAID 5: Block-Level Striping with Distributed Rotating Parity</h4>
     <p>
-      The selection of chunk size <i>S</i> represents a critical performance tuning parameter that dictates how the storage array behaves under concurrent workloads:
+      RAID 5 eliminates the dedicated parity bottleneck by <strong>distributing and rotating parity blocks uniformly across all physical disks</strong> in a round-robin cycle:
+    </p>
+    <ul>
+      <li>In Stripe 0, Parity resides on Disk 3 (<i>A</i><sub>p</sub> = <i>A</i><sub>0</sub> &oplus; <i>A</i><sub>1</sub> &oplus; <i>A</i><sub>2</sub>).</li>
+      <li>In Stripe 1, Parity rotates to Disk 2 (<i>B</i><sub>p</sub> = <i>B</i><sub>0</sub> &oplus; <i>B</i><sub>1</sub> &oplus; <i>B</i><sub>2</sub>).</li>
+      <li>In Stripe 2, Parity rotates to Disk 1 (<i>C</i><sub>p</sub> = <i>C</i><sub>0</sub> &oplus; <i>C</i><sub>1</sub> &oplus; <i>C</i><sub>2</sub>).</li>
+      <li>In Stripe 3, Parity rotates to Disk 0 (<i>D</i><sub>p</sub> = <i>D</i><sub>0</sub> &oplus; <i>D</i><sub>1</sub> &oplus; <i>D</i><sub>2</sub>).</li>
+    </ul>
+
+    <h5>The Performance Breakthrough of Distributed Parity</h5>
+    <p>
+      Because parity blocks are distributed across all spindles, <strong>multiple independent small writes can execute simultaneously in parallel</strong>, provided they access different stripes. The single-disk parity bottleneck is permanently broken!
+    </p>
+    <ul>
+      <li><strong>Usable Capacity:</strong> (<i>N</i> - 1) &times; <i>C</i>. Parity consumes exactly one disk's worth of total capacity across the array (e.g. 87.5% usable on an 8-disk array).</li>
+      <li><strong>Read Performance:</strong> Scales to <strong><i>N</i> &times; IOPS</strong> and (<i>N</i> - 1) &times; sequential bandwidth.</li>
+      <li>
+        <strong>Write Performance Profiles:</strong>
+        <ul>
+          <li><strong>Large Full-Stripe Writes (Optimal):</strong> If an application writes a full stripe (e.g. updating <i>A</i><sub>0</sub>, <i>A</i><sub>1</sub>, and <i>A</i><sub>2</sub> simultaneously), the controller does not execute the Read-Modify-Write cycle! It computes <i>A</i><sub>p</sub> = <i>A</i><sub>0</sub> &oplus; <i>A</i><sub>1</sub> &oplus; <i>A</i><sub>2</sub> directly in memory and writes all blocks to all disks in a single parallel burst.</li>
+          <li><strong>Small Random Writes (RMW Penalty):</strong> Single-block updates still incur the 4&times; Read-Modify-Write penalty (2 reads + 2 writes), but the operations are balanced evenly across all spindles.</li>
+        </ul>
+      </li>
+      <li><strong>Fault Tolerance:</strong> Survives the physical loss of <strong>exactly one drive</strong>.</li>
+    </ul>
+
+    <h4>7. RAID 6: Dual Distributed Parity (P + Q Parity)</h4>
+    <p>
+      As physical hard drive capacities expanded from gigabytes to multi-terabytes (10 TB &ndash; 24 TB), RAID 5 became highly dangerous due to the <strong>Unrecoverable Read Error (URE) crisis</strong> during multi-day rebuilds.
+    </p>
+    <p>
+      To provide enterprise reliability, <strong>RAID 6 computes two completely independent parity blocks per stripe</strong> (labeled <i>P</i> and <i>Q</i>) and distributes both across all disks:
+    </p>
+    <ul>
+      <li>
+        <strong>Parity P (Linear XOR Code):</strong>
+        Standard Boolean parity across data blocks:
+        <div style="margin: 6px 0; font-family: var(--font-mono); font-size: 0.85rem; color: #0284c7; text-align: center;">
+          <i>P</i> = <i>D</i><sub>0</sub> &oplus; <i>D</i><sub>1</sub> &oplus; <i>D</i><sub>2</sub> &hellip; &oplus; <i>D</i><sub><i>N</i>-3</sub>
+        </div>
+      </li>
+      <li>
+        <strong>Parity Q (Reed-Solomon Galois Field Code):</strong>
+        A non-linear polynomial code computed using <strong>Galois Field arithmetic over GF(2<sup>8</sup>)</strong>:
+        <div style="margin: 6px 0; font-family: var(--font-mono); font-size: 0.85rem; color: #d97706; text-align: center;">
+          <i>Q</i> = ( <i>g</i><sup>0</sup> &otimes; <i>D</i><sub>0</sub> ) &oplus; ( <i>g</i><sup>1</sup> &otimes; <i>D</i><sub>1</sub> ) &oplus; &hellip; &oplus; ( <i>g</i><sup><i>N</i>-3</sup> &otimes; <i>D</i><sub><i>N</i>-3</sub> )
+        </div>
+        where <i>g</i> is a generator element of GF(2<sup>8</sup>) and &otimes; denotes Galois field multiplication.
+      </li>
+      <li><strong>Usable Capacity:</strong> (<i>N</i> - 2) &times; <i>C</i>. Two disks' worth of total capacity are dedicated to dual parity.</li>
+      <li><strong>The Small-Write Penalty (6&times; I/O Penalty):</strong> A single random block write requires updating <i>D</i>, <i>P</i>, and <i>Q</i>, forcing <strong>3 physical reads and 3 physical writes (6 total I/O operations)</strong>! Modern hardware RAID cards incorporate dedicated hardware Galois Field polynomial coprocessors to offload this math.</li>
+      <li>
+        <strong>Fault Tolerance:</strong> Survives <strong>two simultaneous, concurrent physical drive failures</strong> without data loss. If one drive physically dies and a second drive encounters an unrecoverable bad sector during the rebuild, RAID 6 uses the <i>Q</i> polynomial equations to solve for both missing blocks simultaneously!
+      </li>
+    </ul>
+
+    <h4>8. Nested RAID: RAID 10 (1+0) vs. RAID 01 (0+1)</h4>
+    <p>
+      Enterprise databases (such as Oracle, Microsoft SQL Server, and PostgreSQL) demand high random IOPS and zero Read-Modify-Write penalties. They deploy <strong>Nested / Hybrid RAID</strong>, combining the speed of striping (RAID 0) with the simplicity of mirroring (RAID 1):
     </p>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
-      <!-- Fine-Grained Striping Card -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--warning); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.92rem;">Fine-Grained Striping (Byte / Word Level)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--warning); text-transform: uppercase; margin-bottom: 8px;">RAID 2 &amp; RAID 3 &bull; Lockstep Spindles</div>
+      <!-- RAID 10 Card -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 16px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">RAID 10 (Stripe of Mirrors) &mdash; INDUSTRIAL STANDARD</h4>
+        <div style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase; margin-bottom: 8px;">RAID 1 First, Then RAID 0 on Top</div>
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Data is interleaved at the byte or 32-bit word level. Every single file read or write spans across all <i>N</i> disks concurrently.
+          Disks are paired into mirrored sets (Sub-array 0: Disk 0/1; Sub-array 1: Disk 2/3), and user data is striped across the mirrored pairs.
           <br><br>
-          <em>The Fundamental Limitation:</em>
+          <em>Rebuild Reliability Mathematics:</em>
           <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>All drive spindle motors must be synchronized in lockstep rotation.</li>
-            <li>All read/write heads seek to identical cylinder locations simultaneously.</li>
-            <li><strong>Zero Concurrency:</strong> The entire array acts as a single monolithic drive. The array can service only <strong>one I/O request at a time</strong> (Random IOPS &asymp; 1&times;). Ideal only for single-user sequential workloads like uncompressed video playback.</li>
+            <li>Suppose Disk 0 dies. The array continues operating from Disk 1.</li>
+            <li>If a second drive dies during the rebuild, the array <strong>survives as long as the second failed drive is NOT Disk 1</strong>!</li>
+            <li>In an 8-disk RAID 10 array, the mathematical probability of surviving a second independent drive failure is:
+              <div style="margin: 4px 0; font-family: var(--font-mono); font-weight: 700; color: #166534;">
+                P(Survival) = (<i>N</i> - 2) / (<i>N</i> - 1) = 6 / 7 &asymp; 85.7%!
+              </div>
+            </li>
           </ul>
         </p>
       </div>
 
-      <!-- Coarse-Grained Striping Card -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.92rem;">Coarse-Grained Striping (Block Level)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase; margin-bottom: 8px;">RAID 0, 4, 5, 6, 10 &bull; Independent Spindles</div>
+      <!-- RAID 01 Card -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 16px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">RAID 01 (Mirror of Stripes) &mdash; HAZARDOUS ARCHITECTURE</h4>
+        <div style="font-size: 0.72rem; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 8px;">RAID 0 First, Then RAID 1 on Top</div>
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Chunk size <i>S</i> is large (e.g. 64 KB &ndash; 256 KB), matching or exceeding typical operating system filesystem block allocations (4 KB &ndash; 16 KB).
+          Disks are grouped into two large striped sets (Stripe A: Disks 0, 1; Stripe B: Disks 2, 3), and the two stripes are mirrored.
           <br><br>
-          <em>The Multi-Spindle Throughput Advantage:</em>
+          <em>The Rebuild Vulnerability Trap:</em>
           <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>Small individual reads (e.g. an 8 KB database record) fit entirely inside a single chunk on a single disk.</li>
-            <li><strong>Maximum Multi-User Concurrency:</strong> Different disks can service completely unrelated read requests from different application threads simultaneously, scaling aggregate random performance to <strong><i>N</i> &times; IOPS</strong>!</li>
-            <li>Large sequential streaming requests automatically span across all <i>N</i> disks, harvesting <strong><i>N</i> &times; Transfer Bandwidth</strong>.</li>
+            <li>If Disk 0 dies, the <strong>entire Stripe A sub-array collapses</strong> and becomes inoperative.</li>
+            <li>The entire logical volume is now surviving on a single striped array (Stripe B).</li>
+            <li><strong>Any secondary drive failure on ANY disk in Stripe B destroys the entire storage volume</strong>!</li>
+            <li>Probability of surviving a second failure:
+              <div style="margin: 4px 0; font-family: var(--font-mono); font-weight: 700; color: #dc2626;">
+                P(Survival) = 0%! (Guaranteed Collapse)
+              </div>
+            </li>
           </ul>
         </p>
       </div>
     </div>
 
-    <div class="math-callout">
-      <strong>The Production Sizing Dilemma for Chunk Size (S):</strong>
-      <br>
-      Selecting <i>S</i> requires careful workload profiling:
-      <ul>
-        <li><strong>If <i>S</i> is too small (e.g. 4 KB):</strong> A modest 64 KB request fragments across all drives, forcing every spindle to seek and thrash, destroying independent concurrency.</li>
-        <li><strong>If <i>S</i> is too large (e.g. 4 MB):</strong> Small files concentrate onto a single physical drive, causing severe <strong>hotspotting</strong> (one disk hits 100% utilization while adjacent disks sit idle).</li>
-        <li><strong>Industrial Default:</strong> Most enterprise storage arrays standardize on <strong>64 KB or 128 KB chunk sizes</strong>, balancing single-request parallelism with multi-threaded independent IOPS.</li>
-      </ul>
+    <h4>Comprehensive RAID Level Synthesis Matrix</h4>
+    <div style="overflow-x: auto; margin: 18px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.86rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 10px; width: 12%;">RAID Level</th>
+            <th style="padding: 10px 10px; width: 15%;">Usable Capacity</th>
+            <th style="padding: 10px 10px; width: 11%;">Min Disks</th>
+            <th style="padding: 10px 10px; width: 15%;">Fault Tolerance</th>
+            <th style="padding: 10px 10px; width: 15%;">Small-Write Penalty</th>
+            <th style="padding: 10px 10px; width: 32%;">Primary Industrial Use Case</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 10px; font-weight: 700;">RAID 0</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #0284c7;"><i>N</i> &times; <i>C</i> (100%)</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono);">2</td>
+            <td style="padding: 10px 10px; color: #dc2626; font-weight: 700;">0 Disks</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #059669;">1&times; (0 Penalty)</td>
+            <td style="padding: 10px 10px;">Ephemeral high-speed scratchpad, swap space, GPU caches.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 10px; font-weight: 700;">RAID 1</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #dc2626;"><i>C</i> (50%)</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono);">2</td>
+            <td style="padding: 10px 10px; color: #166534; font-weight: 700;">1 Disk</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono);">2&times; Writes</td>
+            <td style="padding: 10px 10px;">OS boot volumes, transaction logs, mission-critical systems.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 10px; font-weight: 700;">RAID 4</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #059669;">(<i>N</i> - 1) &times; <i>C</i></td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono);">3</td>
+            <td style="padding: 10px 10px; color: #166534;">1 Disk</td>
+            <td style="padding: 10px 10px; color: #dc2626; font-weight: 700;">4&times; (Parity Bottleneck)</td>
+            <td style="padding: 10px 10px;">Historical interest; NetApp WAFL NVRAM write-gathering filesystems.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
+            <td style="padding: 10px 10px; font-weight: 700; color: #166534;">RAID 5</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #166534; font-weight: 700;">(<i>N</i> - 1) &times; <i>C</i></td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono);">3</td>
+            <td style="padding: 10px 10px; color: #166534;">1 Disk</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #d97706;">4&times; (RMW Cycle)</td>
+            <td style="padding: 10px 10px;">General file servers, web tiers, arrays with small (&le; 2 TB) disks.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
+            <td style="padding: 10px 10px; font-weight: 700; color: #166534;">RAID 6</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #166534; font-weight: 700;">(<i>N</i> - 2) &times; <i>C</i></td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono);">4</td>
+            <td style="padding: 10px 10px; color: #166534; font-weight: 700;">2 Disks (Dual Parity)</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #dc2626;">6&times; (P+Q Cycle)</td>
+            <td style="padding: 10px 10px;">Enterprise storage arrays with multi-terabyte SATA/SAS drives.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 10px; font-weight: 700;">RAID 10</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #dc2626;">(<i>N</i> / 2) &times; <i>C</i> (50%)</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono);">4</td>
+            <td style="padding: 10px 10px; color: #166534; font-weight: 700;">1 to <i>N</i>/2 Disks</td>
+            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #059669;">2&times; (Zero Parity RMW)</td>
+            <td style="padding: 10px 10px;">High-concurrency relational databases (Oracle, PostgreSQL, SQL Server).</td>
+          </tr>
+        </tbody>
+      </table>
     </div>"""
 
-def update_section_one():
+def update_section_two():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>1. The Three Orthogonal Design Axes &amp; Striping</h3>"
-    end_marker = "<h3>2. Taxonomy of Standard RAID Levels</h3>"
+    start_marker = "<h3>2. Taxonomy of Standard RAID Levels</h3>"
+    end_marker = "<h3>3. Mathematical Foundations: XOR Parity &amp; The URE Rebuild Crisis</h3>"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 1 boundaries in Module 04.")
+        print("Error: Could not locate Section 2 boundaries in Module 04.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_ONE + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 1 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
@@ -339,9 +468,9 @@ def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 1 of Module 04 on RAID Design Axes and Striping Math\n\n"
-            "Detail capacity efficiency, IOPS vs throughput scaling, MTTDL modeling,\n"
-            "LBA-to-disk chunk mapping formulas, fine vs coarse striping, and add SVG."
+            "Expand Section 2 in Module 04 on Standard and Nested RAID Taxonomy\n\n"
+            "Detail RAID 0-6 and RAID 10 vs 01, RMW penalty math, Galois field P+Q\n"
+            "parity, rebuild survival probabilities, and update the layout matrix."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -350,5 +479,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_one():
+    if update_section_two():
         run_git_sync()
