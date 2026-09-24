@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 2 of 01-concurrency-hazards-livelock-starvation.html
+# fix.py: Fully incorporate complete Priority Inversion and Pathfinder material
 # =====================================================================
 import os
 import subprocess
@@ -10,7 +10,7 @@ TARGET_FILE = os.path.join(
     "01-concurrency-hazards-livelock-starvation.html"
 )
 
-EXPANDED_SECTION_TWO = r"""    <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
+FULL_EXPANDED_SECTION_TWO = r"""    <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
     <p>
       Priority inversion represents one of the most insidious architectural failures in preemptive priority-based operating systems. It occurs when a high-priority task is indirectly delayed or preempted by a lower-priority task, subverting the core scheduling contract.
     </p>
@@ -56,7 +56,7 @@ EXPANDED_SECTION_TWO = r"""    <h3>2. Priority Inversion and The Mars Pathfinder
       To learn more about the exact telemetry logs and debugging steps used by NASA, check out this <a href="https://www.youtube.com/watch?v=gpttZW2hBMM" target="_blank" style="color: var(--accent); font-weight: 600; text-decoration: none;">Priority Inversion Explained video overview &rarr;</a>
     </p>"""
 
-def update_section_two():
+def update_section_two_fully():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: Target file {TARGET_FILE} not found.")
         return False
@@ -74,12 +74,12 @@ def update_section_two():
         print("Error: Could not locate Section 2 boundaries in Module 01.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    <nav class=\"nav-bar\">" + content[end_idx + len(end_marker):]
+    updated_content = content[:start_idx] + FULL_EXPANDED_SECTION_TWO + "\n\n    <nav class=\"nav-bar\">" + content[end_idx + len(end_marker):]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
+    print(f"--> Successfully updated and incorporated all material in Section 2 of {TARGET_FILE}")
     return True
 
 def run_git_sync():
@@ -91,9 +91,9 @@ def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 2 in Module 01 on Priority Inversion and Mars Pathfinder\n\n"
-            "Detail three-task dependency chains, priority inversion inequality math,\n"
-            "Mars Pathfinder VxWorks telemetry failures, PIP mechanics, and video link."
+            "Fully incorporate priority inversion and Mars Pathfinder case study text\n\n"
+            "Expand Section 2 in Module 01 to include complete architectural details\n"
+            "on the three-task dependency chain, Pathfinder anomaly, and PIP mechanics."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -102,5 +102,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_two():
+    if update_section_two_fully():
         run_git_sync()
