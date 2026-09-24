@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Remove raw LaTeX delimiters from 01-process-model.html
+# fix.py: Add interactive multiprogramming stepper to Section 3
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week02-processes", "01-process-model.html")
 
-CLEANED_HTML = r"""<!DOCTYPE html>
+MODULE_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -24,6 +24,9 @@ CLEANED_HTML = r"""<!DOCTYPE html>
       --text-muted: #475569;
       --accent: #0284c7;
       --accent-hover: #0369a1;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
     }
     * { box-sizing: border-box; }
     body {
@@ -35,7 +38,7 @@ CLEANED_HTML = r"""<!DOCTYPE html>
       line-height: 1.6;
     }
     .container {
-      max-width: 900px;
+      max-width: 960px;
       margin: 0 auto;
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -88,35 +91,37 @@ CLEANED_HTML = r"""<!DOCTYPE html>
       color: #ffffff;
     }
 
-    /* Interactive Stepper Visualizer */
-    .stepper-container {
-      margin: 28px 0;
+    /* Directed Narrative Stepper Standards */
+    .aid-wrapper {
+      margin: 32px 0;
       border: 1px solid var(--border);
       border-radius: 8px;
-      background: #f8fafc;
+      background: #ffffff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
       overflow: hidden;
     }
-    .stepper-header {
-      padding: 12px 16px;
+    .aid-header {
       background: #f1f5f9;
+      padding: 12px 18px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }
-    .stepper-title {
+    .aid-header h4 {
+      margin: 0;
+      font-size: 0.96rem;
       font-weight: 700;
-      font-size: 0.95rem;
       color: #0f172a;
     }
-    .perspective-toggles {
+    .dimension-toggles {
       display: flex;
       gap: 6px;
     }
-    .toggle-btn {
-      padding: 4px 10px;
+    .dim-btn {
+      padding: 4px 12px;
       font-size: 0.78rem;
       font-weight: 600;
       border-radius: 4px;
@@ -124,50 +129,108 @@ CLEANED_HTML = r"""<!DOCTYPE html>
       background: #ffffff;
       color: var(--text-muted);
       cursor: pointer;
+      transition: all 0.15s ease;
     }
-    .toggle-btn.active {
+    .dim-btn.active {
       background: var(--accent);
       color: #ffffff;
       border-color: var(--accent);
     }
-    .telemetry-bar {
-      padding: 10px 16px;
-      background: #0f172a;
-      color: #e2e8f0;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
+    .scenario-banner {
+      background: #f8fafc;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: #334155;
       display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+      align-items: center;
+      gap: 8px;
     }
-    .telemetry-item span {
+    .scenario-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .telemetry-strip {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 18px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .telemetry-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .telemetry-label {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .telemetry-val {
       color: #38bdf8;
       font-weight: 600;
     }
-    .stepper-canvas {
+    .telemetry-val.highlight { color: #4ade80; }
+    .telemetry-val.alert { color: #f87171; }
+
+    .status-explanation-banner {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 8px 18px;
+      font-size: 0.82rem;
+      font-family: var(--font-mono);
+      border-bottom: 1px solid #334155;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+    .status-explanation-banner strong {
+      color: #38bdf8;
+      white-space: nowrap;
+    }
+
+    .canvas-container {
       background: #ffffff;
-      padding: 24px 16px;
+      padding: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       border-bottom: 1px solid var(--border);
     }
-    .stepper-nav {
-      padding: 12px 16px;
-      background: #ffffff;
+    svg.state-canvas {
+      width: 100%;
+      max-width: 680px;
+      height: auto;
+      overflow: visible;
+    }
+
+    .controls-preview-strip {
+      padding: 12px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border);
       flex-wrap: wrap;
       gap: 12px;
     }
-    .stepper-controls {
+    .stepper-btn-group {
       display: flex;
       gap: 8px;
     }
-    .stepper-btn {
+    .btn-step {
       padding: 6px 14px;
       font-size: 0.82rem;
       font-weight: 600;
@@ -178,89 +241,104 @@ CLEANED_HTML = r"""<!DOCTYPE html>
       cursor: pointer;
       transition: all 0.15s ease;
     }
-    .stepper-btn:hover:not(:disabled) {
+    .btn-step:hover:not(:disabled) {
       background: #0f172a;
       color: #ffffff;
     }
-    .stepper-btn:disabled {
+    .btn-step:disabled {
       opacity: 0.4;
       cursor: not-allowed;
     }
-    .preview-panel {
+    .foreshadow-preview {
       font-size: 0.82rem;
       color: var(--text-muted);
       display: flex;
       align-items: center;
       gap: 6px;
     }
-    .preview-panel strong {
-      color: var(--accent);
-    }
-    .panes-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1px;
-      background: var(--border);
-    }
-    @media (max-width: 680px) {
-      .panes-grid { grid-template-columns: 1fr; }
-    }
-    .pane {
-      background: #ffffff;
-      padding: 16px;
-    }
-    .pane-header {
-      font-size: 0.82rem;
+    .foreshadow-preview span.preview-badge {
+      background: #e2e8f0;
+      color: #334155;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+    }
+    .foreshadow-preview strong {
+      color: var(--accent);
+    }
+
+    .analytical-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--border);
+      gap: 1px;
+    }
+    @media (max-width: 720px) {
+      .analytical-grid { grid-template-columns: 1fr; }
+    }
+    .pane-card {
+      background: #ffffff;
+      padding: 18px;
+    }
+    .pane-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 6px;
     }
-    .pane-header.what { color: #0284c7; }
-    .pane-header.why { color: #059669; }
-    .pane p {
+    .pane-title.what { color: var(--accent); }
+    .pane-title.why { color: var(--success); }
+    .pane-content {
       font-size: 0.88rem;
-      line-height: 1.5;
-      margin: 0;
+      line-height: 1.55;
       color: #334155;
+      margin: 0;
     }
 
-    /* State Diagram SVG Styles */
-    .state-node {
+    /* Node & Edge Styles */
+    .node-box {
+      fill: #ffffff;
+      stroke: #cbd5e1;
+      stroke-width: 2;
       transition: all 0.3s ease;
-      cursor: default;
     }
-    .state-node.active rect {
+    .node-group.active .node-box {
       stroke: #0284c7;
       stroke-width: 3;
-      fill: #e0f2fe;
+      fill: #f0f9ff;
     }
-    .state-node.active text.node-label {
+    .node-group.active text.node-title {
       fill: #0369a1;
       font-weight: 700;
     }
-    .transition-path {
+    .node-group.active text.node-sub {
+      fill: #0284c7;
+      font-weight: 600;
+    }
+    .svg-edge {
       stroke: #cbd5e1;
       stroke-width: 2;
       fill: none;
       transition: all 0.3s ease;
     }
-    .transition-path.active {
+    .svg-edge.active {
       stroke: #0284c7;
       stroke-width: 3.5;
       filter: drop-shadow(0 0 4px rgba(2, 132, 199, 0.4));
     }
-    .transition-label {
+    .edge-badge {
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 10px;
       fill: #64748b;
-      font-weight: 500;
       transition: all 0.3s ease;
     }
-    .transition-label.active {
+    .edge-badge.active {
       fill: #0284c7;
       font-weight: 700;
     }
@@ -328,101 +406,115 @@ CLEANED_HTML = r"""<!DOCTYPE html>
       <li><strong>Blocked (or Waiting):</strong> The process is structurally incapable of executing instructions, even if all CPU cores sit completely idle. It is suspended awaiting the resolution of an external event—such as a disk block read completing, a network packet arriving from an Ethernet controller, an inter-process communication (IPC) pipe buffer becoming writable, or a sleep timer expiring.</li>
     </ul>
 
-    <h4>The Four Fundamental State Transitions</h4>
-    <p>
-      As processes execute, perform system calls, and encounter hardware interrupts, they move deterministically through four core transitions:
-    </p>
-
-    <div class="stepper-container">
-      <div class="stepper-header">
-        <div class="stepper-title">Interactive Walkthrough: The 4 Process State Transitions</div>
-        <div class="perspective-toggles">
-          <button class="toggle-btn active" id="toggle-monolithic" onclick="switchPerspective('standard')">Standard OS</button>
-          <button class="toggle-btn" id="toggle-realtime" onclick="switchPerspective('realtime')">Real-Time / Preemptive</button>
+    <!-- Stepper 1: Process State Transitions -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Three-State Process Transitions</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="dim-desktop" onclick="setDimension('desktop')">Timesharing OS</button>
+          <button class="dim-btn" id="dim-rtos" onclick="setDimension('rtos')">Real-Time (RTOS)</button>
         </div>
       </div>
 
-      <div class="telemetry-bar">
-        <div class="telemetry-item">Active State: <span id="telem-state">Running</span></div>
-        <div class="telemetry-item">Transition: <span id="telem-trans">Initial Execution</span></div>
-        <div class="telemetry-item">Trigger Mechanism: <span id="telem-trigger">Hardware CPU Dispatch</span></div>
-        <div class="telemetry-item">CPU Core Status: <span id="telem-cpu">Occupied (PID 1042)</span></div>
+      <div class="scenario-banner">
+        <span class="scenario-tag">Scenario Arc</span>
+        <span id="scenario-text">Tracking interactive text editor <code>nano</code> (PID 1042) reading an encrypted config file while a background build (PID 2085) competes for compute cycles.</span>
       </div>
 
-      <div class="stepper-canvas">
-        <svg id="state-diagram" width="620" height="220" viewBox="0 0 620 220">
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Current Phase</span>
+          <span class="telemetry-val" id="telem-phase">1. Direct User Mode Execution</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Active PID &amp; Privilege</span>
+          <span class="telemetry-val highlight" id="telem-pid">PID 1042 (Ring 3: User)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Trap / IRQ Vector</span>
+          <span class="telemetry-val" id="telem-irq">None (User Execution)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">CPU Registers (PC / SP)</span>
+          <span class="telemetry-val" id="telem-regs">PC: 0x004012A0 | SP: 0x7FFF00</span>
+        </div>
+      </div>
+
+      <div class="status-explanation-banner">
+        <strong>Stage Explanation:</strong>
+        <span id="telem-explanation">Process 1042 is running directly on physical hardware; user registers update in silicon without kernel overhead.</span>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="state-canvas" viewBox="0 0 680 240">
           <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
             </marker>
-            <marker id="arrow-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <marker id="arr-active" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
               <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
             </marker>
           </defs>
 
-          <!-- Paths -->
-          <!-- Transition 1: Running -> Blocked -->
-          <path id="path-t1" class="transition-path" d="M 470 125 L 340 180" marker-end="url(#arrow)" />
-          <!-- Transition 2: Running -> Ready -->
-          <path id="path-t2" class="transition-path" d="M 450 70 C 370 15, 250 15, 170 70" marker-end="url(#arrow)" />
-          <!-- Transition 3: Ready -> Running -->
-          <path id="path-t3" class="transition-path" d="M 170 95 C 250 135, 370 135, 450 95" marker-end="url(#arrow)" />
-          <!-- Transition 4: Blocked -> Ready -->
-          <path id="path-t4" class="transition-path" d="M 280 180 L 150 125" marker-end="url(#arrow)" />
+          <!-- Edges -->
+          <path id="edge-t1" class="svg-edge" d="M 500 135 C 440 185, 390 190, 365 190" marker-end="url(#arr)" />
+          <path id="edge-t2" class="svg-edge" d="M 480 75 C 380 15, 260 15, 165 75" marker-end="url(#arr)" />
+          <path id="edge-t3" class="svg-edge" d="M 165 95 C 260 145, 380 145, 480 95" marker-end="url(#arr)" />
+          <path id="edge-t4" class="svg-edge" d="M 245 190 C 220 190, 170 185, 110 135" marker-end="url(#arr)" />
 
-          <!-- Path Labels -->
-          <text id="label-t1" class="transition-label" x="430" y="170">1. Block (I/O Wait)</text>
-          <text id="label-t2" class="transition-label" x="260" y="32">2. Preempt (Timer Tick)</text>
-          <text id="label-t3" class="transition-label" x="265" y="115">3. Scheduler Dispatch</text>
-          <text id="label-t4" class="transition-label" x="120" y="170">4. Event Occurs (I/O Done)</text>
+          <!-- Labels -->
+          <text id="lbl-t1" class="edge-badge" x="435" y="180">1. Block (read() Syscall)</text>
+          <text id="lbl-t2" class="edge-badge" x="265" y="32">2. Preempt (Timer Tick)</text>
+          <text id="lbl-t3" class="edge-badge" x="270" y="125">3. Scheduler Dispatch</text>
+          <text id="lbl-t4" class="edge-badge" x="90" y="180">4. Event Done (Disk IRQ)</text>
 
           <!-- State Nodes -->
-          <!-- READY -->
-          <g id="node-ready" class="state-node" transform="translate(70, 60)">
-            <rect width="110" height="60" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-            <text class="node-label" x="55" y="35" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">READY</text>
+          <g id="grp-ready" class="node-group" transform="translate(60, 65)">
+            <rect class="node-box" width="120" height="65" rx="8" />
+            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">READY</text>
+            <text class="node-sub" id="sub-ready" x="60" y="50" text-anchor="middle" fill="#64748b" font-family="var(--font-mono)" font-size="11">Queue: PID 2085</text>
           </g>
 
-          <!-- RUNNING -->
-          <g id="node-running" class="state-node active" transform="translate(440, 60)">
-            <rect width="110" height="60" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-            <text class="node-label" x="55" y="35" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">RUNNING</text>
+          <g id="grp-running" class="node-group active" transform="translate(480, 65)">
+            <rect class="node-box" width="120" height="65" rx="8" />
+            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">RUNNING</text>
+            <text class="node-sub" id="sub-running" x="60" y="50" text-anchor="middle" fill="#0284c7" font-family="var(--font-mono)" font-size="11">CPU: PID 1042</text>
           </g>
 
-          <!-- BLOCKED -->
-          <g id="node-blocked" class="state-node" transform="translate(255, 150)">
-            <rect width="110" height="55" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-            <text class="node-label" x="55" y="33" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">BLOCKED</text>
+          <g id="grp-blocked" class="node-group" transform="translate(245, 155)">
+            <rect class="node-box" width="120" height="65" rx="8" />
+            <text class="node-title" x="60" y="32" text-anchor="middle" fill="#0f172a" font-family="system-ui" font-size="14" font-weight="600">BLOCKED</text>
+            <text class="node-sub" id="sub-blocked" x="60" y="50" text-anchor="middle" fill="#64748b" font-family="var(--font-mono)" font-size="11">Waiting: [Empty]</text>
           </g>
         </svg>
       </div>
 
-      <div class="stepper-nav">
-        <div class="stepper-controls">
-          <button class="stepper-btn" id="btn-prev" onclick="stepTransition(-1)" disabled>&larr; Previous</button>
-          <button class="stepper-btn" id="btn-next" onclick="stepTransition(1)">Next Step &rarr;</button>
-          <button class="stepper-btn" id="btn-reset" onclick="resetStepper()">Reset</button>
+      <div class="controls-preview-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="btn-backward" onclick="moveStep(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="btn-forward" onclick="moveStep(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="btn-restart" onclick="restartWalkthrough()">Reset</button>
         </div>
-        <div class="preview-panel">
-          <span>Next Action:</span>
-          <strong id="preview-text">Transition 1: Running &rarr; Blocked (Process requests disk read)</strong>
+        <div class="foreshadow-preview">
+          <span class="preview-badge">Next Step</span>
+          <strong id="txt-preview">Transition 1: Process issues read() system call to load config file</strong>
         </div>
       </div>
 
-      <div class="panes-grid">
-        <div class="pane">
-          <div class="pane-header what">
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             What Is Happening
           </div>
-          <p id="pane-what">The process is currently running on the CPU in user mode, executing user-level instructions natively until it needs external resources or its quantum expires.</p>
+          <p class="pane-content" id="txt-what">Process 1042 holds the CPU core in unprivileged User Mode (Ring 3). The hardware program counter fetches instructions natively from its address space until a disk read call is encountered.</p>
         </div>
-        <div class="pane">
-          <div class="pane-header why">
+        <div class="pane-card">
+          <div class="pane-title why">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
             Why The System Does This
           </div>
-          <p id="pane-why">Direct execution ensures that applications run at full native hardware speed without software interpretation overhead, using hardware privilege rings to retain control.</p>
+          <p class="pane-content" id="txt-why">Direct execution ensures user programs run at the full speed of bare silicon without emulation overhead. Protection rings ensure user space cannot tamper with hardware or other processes.</p>
         </div>
       </div>
     </div>
@@ -509,15 +601,144 @@ CLEANED_HTML = r"""<!DOCTYPE html>
 
     <h3>3. Modeling Multiprogramming Efficiency</h3>
     <p>
-      Multiprogramming aims to maximize CPU utilization by keeping multiple processes in memory. If a compute-bound process spends only a fraction of its time executing before waiting for I/O, a uniprocessor would otherwise sit idle. We can model CPU utilization probabilistically:
+      Multiprogramming aims to maximize CPU utilization by keeping multiple processes resident in main memory simultaneously. If a compute-bound process spends only a fraction of its total lifetime executing before waiting for I/O, a uniprocessor system executing only that single program would sit idle for the vast majority of wall-clock time.
     </p>
     <p>
-      Let <i>p</i> represent the fraction of time a process spends waiting for I/O. If <i>n</i> independent processes reside in memory simultaneously, the probability that all <i>n</i> processes are waiting for I/O concurrently is <i>p</i><sup><i>n</i></sup>. Consequently, the estimated aggregate CPU utilization is expressed as:
+      We model this phenomenon probabilistically. Suppose a typical process spends a fraction <i>p</i> of its time waiting for I/O operations to complete. If <i>n</i> independent processes reside in memory simultaneously, the probability that all <i>n</i> processes are simultaneously waiting for I/O is <i>p</i><sup><i>n</i></sup>. Assuming process activities are mutually independent, the aggregate CPU utilization is expressed by the formula:
     </p>
     <pre>CPU Utilization = 1 - p^n</pre>
     <p>
-      This mathematical model demonstrates why increasing the degree of multiprogramming is vital for masking I/O latency and keeping processor cores saturated.
+      While real-world processes are not strictly independent (as multiple processes may contend for the same shared disk arm or network interface), this probabilistic model illustrates the core mathematical justification for multiprogramming: increasing the degree of multiprogramming <i>n</i> exponentially drives down idle waste and saturates CPU execution pipelines.
     </p>
+
+    <!-- Stepper 2: Multiprogramming Efficiency Standard Stepper -->
+    <div class="aid-wrapper">
+      <div class="aid-header">
+        <h4>Interactive Stepper: Multiprogramming Scaling &amp; CPU Saturation</h4>
+        <div class="dimension-toggles">
+          <button class="dim-btn active" id="dim-io" onclick="setMultiDim('io')">I/O-Intensive (p = 0.80)</button>
+          <button class="dim-btn" id="dim-cpu" onclick="setMultiDim('compute')">Compute-Intensive (p = 0.50)</button>
+        </div>
+      </div>
+
+      <div class="scenario-banner">
+        <span class="scenario-tag">Workload Scenario</span>
+        <span id="multi-scenario-text">Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under an I/O wait fraction of 80% (typical web server or database workload).</span>
+      </div>
+
+      <div class="telemetry-strip">
+        <div class="telemetry-cell">
+          <span class="telemetry-label">Degree of Multiprogramming (n)</span>
+          <span class="telemetry-val highlight" id="m-telem-n">n = 1 Process</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">I/O Wait Fraction (p)</span>
+          <span class="telemetry-val" id="m-telem-p">p = 0.80 (80% I/O Wait)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">All-Waiting Probability (p^n)</span>
+          <span class="telemetry-val alert" id="m-telem-pn">0.8000 (80.0% CPU Idle)</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="telemetry-label">CPU Utilization (1 - p^n)</span>
+          <span class="telemetry-val" id="m-telem-util">20.0% Utilization</span>
+        </div>
+      </div>
+
+      <div class="status-explanation-banner">
+        <strong>Stage Explanation:</strong>
+        <span id="m-telem-explanation">With only 1 process in memory, the CPU sits completely idle 80% of the time whenever the program waits for disk or network I/O.</span>
+      </div>
+
+      <div class="canvas-container">
+        <svg class="state-canvas" viewBox="0 0 680 230">
+          <!-- Memory Allocation Grid -->
+          <rect x="30" y="20" width="340" height="190" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+          <text x="45" y="42" fill="#0f172a" font-family="system-ui" font-size="12" font-weight="700">PHYSICAL RAM SLOTS (n = Resident Processes)</text>
+
+          <!-- 6 Process Slots in RAM -->
+          <g id="slot-1" transform="translate(45, 55)">
+            <rect width="90" height="65" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0369a1">P1 (Active)</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#64748b">In RAM</text>
+          </g>
+
+          <g id="slot-2" transform="translate(150, 55)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P2</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-3" transform="translate(255, 55)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P3</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-4" transform="translate(45, 130)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P4</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-5" transform="translate(150, 130)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P5</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <g id="slot-6" transform="translate(255, 130)" opacity="0.3">
+            <rect width="90" height="65" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <text x="45" y="30" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#475569">P6</text>
+            <text x="45" y="48" text-anchor="middle" font-family="system-ui" font-size="10" fill="#94a3b8">Unallocated</text>
+          </g>
+
+          <!-- CPU Saturation Meter -->
+          <rect x="400" y="20" width="250" height="190" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" />
+          <text x="415" y="42" fill="#0f172a" font-family="system-ui" font-size="12" font-weight="700">AGGREGATE CPU UTILIZATION</text>
+
+          <!-- Vertical Gauge Track -->
+          <rect x="420" y="60" width="40" height="130" rx="4" fill="#e2e8f0" />
+          <!-- Dynamic Utilization Fill -->
+          <rect id="gauge-fill" x="420" y="164" width="40" height="26" rx="4" fill="#0284c7" style="transition: all 0.4s ease;" />
+
+          <text x="475" y="80" font-family="var(--font-mono)" font-size="11" fill="#64748b">100% Saturation</text>
+          <text x="475" y="125" font-family="var(--font-mono)" font-size="11" fill="#64748b">50% Utilization</text>
+          <text x="475" y="190" font-family="var(--font-mono)" font-size="11" fill="#64748b">0% (Pure Idle)</text>
+
+          <text id="gauge-text" x="475" y="155" font-family="var(--font-mono)" font-size="18" font-weight="700" fill="#0284c7">20.0%</text>
+        </svg>
+      </div>
+
+      <div class="controls-preview-strip">
+        <div class="stepper-btn-group">
+          <button class="btn-step" id="m-btn-prev" onclick="stepMulti(-1)" disabled>&larr; Previous</button>
+          <button class="btn-step" id="m-btn-next" onclick="stepMulti(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="m-btn-reset" onclick="resetMulti()">Reset</button>
+        </div>
+        <div class="foreshadow-preview">
+          <span class="preview-badge">Next Step</span>
+          <strong id="m-txt-preview">Increase n = 2: Admit second concurrent process into memory</strong>
+        </div>
+      </div>
+
+      <div class="analytical-grid">
+        <div class="pane-card">
+          <div class="pane-title what">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            What Is Happening
+          </div>
+          <p class="pane-content" id="m-txt-what">A single process is loaded into memory (n = 1). Since this process spends 80% of its execution waiting for disk blocks or network packets, the physical CPU sits completely idle for 80% of total runtime.</p>
+        </div>
+        <div class="pane-card">
+          <div class="pane-title why">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            Why The System Does This
+          </div>
+          <p class="pane-content" id="m-txt-why">Single-programmed batch execution leaves fast silicon starved by slow peripheral I/O. Without another process ready to consume CPU cycles, expensive processing capability is wasted.</p>
+        </div>
+      </div>
+    </div>
 
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="index.html">&#127968; Week 2 Index</a>
@@ -526,175 +747,216 @@ CLEANED_HTML = r"""<!DOCTYPE html>
   </div>
 
   <script>
-    // Step Definitions for Directed Narrative Stepper
-    const stepData = {
-      standard: [
+    // --- Stepper 1 Script: Three-State Process Transitions ---
+    const stepperData = {
+      desktop: [
         {
-          state: "Running",
-          trans: "Execution Phase",
-          trigger: "CPU Execution",
-          cpu: "Occupied (PID 1042)",
-          activeNode: "node-running",
-          activePath: null,
+          phase: "1. Direct User Mode Execution",
+          pid: "PID 1042 (Ring 3: User)",
+          irq: "None (User Execution)",
+          regs: "PC: 0x004012A0 | SP: 0x7FFF00",
+          explanation: "Process 1042 is running directly on physical hardware; user registers update in silicon without kernel overhead.",
+          activeNode: "grp-running",
+          activeEdge: null,
           activeLabel: null,
-          nextAction: "Transition 1: Running \u2192 Blocked (Process issues read() system call)",
-          what: "Process 1042 is executing user instructions on CPU core 0. It executes regular arithmetic and logic until reaching a read() system call requesting data from disk.",
-          why: "Direct execution ensures optimal compute performance, letting instructions run on hardware until a privileged I/O operation is encountered."
+          subReady: "Queue: PID 2085 (gcc)",
+          subRunning: "CPU: PID 1042 (nano)",
+          subBlocked: "Waiting: [Empty]",
+          nextPreview: "Transition 1: PID 1042 requests disk read via syscall trap",
+          what: "Process 1042 (editor) executes user-level instructions in CPU registers. It executes until reaching a read() system call to load an encrypted configuration file.",
+          why: "Direct execution maximizes performance: user instructions run natively on silicon without software interpretation or kernel overhead."
         },
         {
-          state: "Transitioning (1)",
-          trans: "1. Running \u2192 Blocked",
-          trigger: "Trap Instruction (syscall)",
-          cpu: "Yielded (Context Saved)",
-          activeNode: "node-blocked",
-          activePath: "path-t1",
-          activeLabel: "label-t1",
-          nextAction: "Transition 3: Ready \u2192 Running (Scheduler picks next process to execute)",
-          what: "The kernel captures the trap, switches the CPU into supervisor mode, saves registers into PID 1042's PCB, and places PID 1042 into the I/O wait queue.",
-          why: "Because physical disk reads take milliseconds (millions of cycles), relinquishing the CPU prevents CPU cycles from being wasted in busy-wait polling."
+          phase: "2. Voluntary Trap to Kernel (Transition 1)",
+          pid: "PID 1042 -> Kernel (Ring 0)",
+          irq: "Vector 128 (Syscall Trap Gate)",
+          regs: "Saved into PCB 1042",
+          explanation: "Process 1042 executes syscall trap; kernel marks PCB 1042 as Blocked and puts it in the disk wait queue.",
+          activeNode: "grp-blocked",
+          activeEdge: "edge-t1",
+          activeLabel: "lbl-t1",
+          subReady: "Queue: PID 2085 (gcc)",
+          subRunning: "CPU: Context Switching...",
+          subBlocked: "Disk Wait: PID 1042",
+          nextPreview: "Transition 3: Kernel scheduler dispatches PID 2085 to CPU",
+          what: "Hardware traps into Ring 0. The kernel interrupt routine saves registers (RAX, RSP, RIP) into PCB 1042, moves it to the Blocked queue, and issues an async read to the NVMe controller.",
+          why: "Disk reads require thousands of CPU cycles. Yielding the CPU avoids wasteful busy-waiting polling and lets other productive processes run."
         },
         {
-          state: "Running (New Task)",
-          trans: "3. Ready \u2192 Running",
-          trigger: "Dispatcher Restore",
-          cpu: "Occupied (PID 2085)",
-          activeNode: "node-running",
-          activePath: "path-t3",
-          activeLabel: "label-t3",
-          nextAction: "Transition 2: Running \u2192 Ready (Timer interrupt preempts PID 2085)",
-          what: "The scheduler examines the Ready queue, chooses PID 2085, restores its registers from its PCB, and returns to user space via an iret/sysret instruction.",
-          why: "The core design goal of multiprogramming is zero CPU downtime: whenever one task blocks, another runnable task immediately saturates the core."
+          phase: "3. Scheduler Dispatch (Transition 3)",
+          pid: "PID 2085 (Ring 3: User)",
+          irq: "None (Restored via iret)",
+          regs: "PC: 0x0045A100 | SP: 0x7FFE40",
+          explanation: "Scheduler picks PID 2085 from Ready queue; hardware registers restored and CPU returns to user space.",
+          activeNode: "grp-running",
+          activeEdge: "edge-t3",
+          activeLabel: "lbl-t3",
+          subReady: "Queue: [Empty]",
+          subRunning: "CPU: PID 2085 (gcc)",
+          subBlocked: "Disk Wait: PID 1042",
+          nextPreview: "Transition 2: Hardware timer fires, preempting PID 2085",
+          what: "The kernel evaluates runnable candidates, selects PID 2085 (compiler) from the Ready queue, loads its page table root into CR3, restores registers, and executes sysret/iret.",
+          why: "Multiprogramming keeps CPU utilization near 100%. The moment one task blocks on I/O, the scheduler immediately saturates the core with another."
         },
         {
-          state: "Preempting (2)",
-          trans: "2. Running \u2192 Ready",
-          trigger: "Hardware Timer Interrupt",
-          cpu: "Preempted to Kernel",
-          activeNode: "node-ready",
-          activePath: "path-t2",
-          activeLabel: "label-t2",
-          nextAction: "Transition 4: Blocked \u2192 Ready (Disk controller signals DMA completion)",
-          what: "The programmable interval timer (PIT) decrements to zero, triggering interrupt vector 32. The kernel detects that PID 2085 expired its quantum and places it in the Ready queue.",
-          why: "Preemption enforces fairness and prevents uncooperative or infinite loops from monopolizing interactive user responsiveness."
+          phase: "4. Timer Tick Preemption (Transition 2)",
+          pid: "PID 2085 -> Kernel (Preempted)",
+          irq: "IRQ 0 / Vector 32 (Timer Interrupt)",
+          regs: "Saved into PCB 2085",
+          explanation: "Hardware timer expires PID 2085's quantum; kernel involuntarily moves PID 2085 into the Ready queue.",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t2",
+          activeLabel: "lbl-t2",
+          subReady: "Queue: PID 2085 (gcc)",
+          subRunning: "CPU: Kernel Scheduler",
+          subBlocked: "Disk Wait: PID 1042",
+          nextPreview: "Transition 4: NVMe disk controller finishes DMA transfer and interrupts CPU",
+          what: "The hardware interval timer fires interrupt vector 32. The kernel detects PID 2085 has consumed its 10ms quantum, saves its registers, and shifts its state from Running to Ready.",
+          why: "Preemptive timesharing guarantees fairness. Without involuntary preemption, a compute-heavy loop or buggy application could lock up the machine indefinitely."
         },
         {
-          state: "Event Handling (4)",
-          trans: "4. Blocked \u2192 Ready",
-          trigger: "Disk Interrupt (IRQ 14)",
-          cpu: "Ready Queue Enqueued",
-          activeNode: "node-ready",
-          activePath: "path-t4",
-          activeLabel: "label-t4",
-          nextAction: "Sequence Complete: Click Reset to run from start",
-          what: "The disk controller completes the sector read into memory via DMA and fires an IRQ. The ISR moves PID 1042 from the Blocked queue back to the Ready queue.",
-          why: "The process cannot jump directly back to Running because another process currently holds the CPU; it must await regular scheduler dispatch."
+          phase: "5. Asynchronous I/O Completion (Transition 4)",
+          pid: "PID 1042 -> Ready Queue",
+          irq: "IRQ 14 (Disk Controller DMA Interrupt)",
+          regs: "PCB 1042 Marked Runnable",
+          explanation: "Disk controller signals completion via hardware interrupt; kernel moves PID 1042 from Blocked to Ready.",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t4",
+          activeLabel: "lbl-t4",
+          subReady: "Queue: PID 2085, PID 1042",
+          subRunning: "CPU: Selecting Next...",
+          subBlocked: "Waiting: [Empty]",
+          nextPreview: "Cycle Complete: Click Reset to run simulation from start",
+          what: "The disk controller completes the DMA transfer into memory and fires an interrupt. The ISR locates PCB 1042, moves it to the Ready queue, and notifies the scheduler.",
+          why: "The newly awakened process cannot jump directly onto the CPU because another task may have priority. It must join the Ready queue and await fair dispatch."
         }
       ],
-      realtime: [
+      rtos: [
         {
-          state: "Running (RT Task)",
-          trans: "Deterministic Execution",
-          trigger: "Hard Deadline Core",
-          cpu: "Occupied (RT-PID 12)",
-          activeNode: "node-running",
-          activePath: null,
+          phase: "1. Real-Time Periodic Execution",
+          pid: "RT-PID 12 (Hard Deadline Task)",
+          irq: "None (Deterministic Burst)",
+          regs: "PC: 0x00004200 | SP: 0x200010",
+          explanation: "High-priority flight sensor task runs within guaranteed deterministic worst-case execution time (WCET).",
+          activeNode: "grp-running",
+          activeEdge: null,
           activeLabel: null,
-          nextAction: "Transition 1: Running \u2192 Blocked (Sensor frame synchronization)",
-          what: "High-priority real-time task executes periodic sensor sampling with fixed, bounded worst-case execution time (WCET).",
-          why: "Real-time systems prioritize strict timing predictability and latency bounds over general-purpose throughput."
+          subReady: "Ready: Low-Pri Telemetry",
+          subRunning: "CPU: RT-PID 12 (Sensor)",
+          subBlocked: "Waiting: [Empty]",
+          nextPreview: "Transition 1: RT task completes frame and sleeps until next clock barrier",
+          what: "The flight control task samples inertial measurement sensors and writes attitude corrections within a 1ms hard deadline window.",
+          why: "Hard real-time systems prioritize strict timing predictability and bounded latency above all else."
         },
         {
-          state: "Suspended (1)",
-          trans: "1. Running \u2192 Blocked",
-          trigger: "Clock Sleep / Barrier",
-          cpu: "Surrendered Immediately",
-          activeNode: "node-blocked",
-          activePath: "path-t1",
-          activeLabel: "label-t1",
-          nextAction: "Transition 3: Ready \u2192 Running (Background logger scheduled)",
-          what: "Task suspends itself waiting for the next 10ms hardware clock tick or external GPIO trigger.",
-          why: "Yielding early frees the processor for non-critical background maintenance tasks."
+          phase: "2. Self-Suspension on Barrier (Transition 1)",
+          pid: "RT-PID 12 -> Sleep Barrier",
+          irq: "Kernel Sleep System Call",
+          regs: "Saved into TCB 12",
+          explanation: "Sensor task finishes early and calls sleep_until(); kernel shifts it to Blocked to yield CPU.",
+          activeNode: "grp-blocked",
+          activeEdge: "edge-t1",
+          activeLabel: "lbl-t1",
+          subReady: "Ready: Low-Pri Telemetry",
+          subRunning: "CPU: RTOS Scheduler",
+          subBlocked: "Timer Barrier: RT-PID 12",
+          nextPreview: "Transition 3: RTOS schedules background telemetry logger",
+          what: "Having completed its processing in 200 microseconds, RT-PID 12 relinquishes the processor until the next hardware sampling interval.",
+          why: "Explicitly sleeping until the next period prevents CPU spinning and frees cycles for background maintenance."
         },
         {
-          state: "Background Run",
-          trans: "3. Ready \u2192 Running",
-          trigger: "Priority Scheduler",
-          cpu: "Occupied (Low-Priority Logger)",
-          activeNode: "node-running",
-          activePath: "path-t3",
-          activeLabel: "label-t3",
-          nextAction: "Transition 2: Immediate Preemption on Interrupt",
-          what: "A low-priority telemetry logging task executes while the real-time sensor task sleeps.",
-          why: "Idle cycles are used for secondary work, but must remain instantaneously preemptible."
+          phase: "3. Low-Priority Background Task (Transition 3)",
+          pid: "PID 99 (Telemetry Logger)",
+          irq: "None (Low-Priority Execution)",
+          regs: "PC: 0x00018020 | SP: 0x200080",
+          explanation: "RTOS executes background logging task, but keeps processor armed for immediate preemption.",
+          activeNode: "grp-running",
+          activeEdge: "edge-t3",
+          activeLabel: "lbl-t3",
+          subReady: "Ready: [Empty]",
+          subRunning: "CPU: PID 99 (Logger)",
+          subBlocked: "Timer Barrier: RT-PID 12",
+          nextPreview: "Transition 2: Sensor hardware trigger fires immediate priority preemption",
+          what: "A low-priority logger task transmits telemetry data while higher-priority control tasks are blocked.",
+          why: "Idle cycles are repurposed for non-critical work, provided background tasks can be preempted with microsecond latency."
         },
         {
-          state: "Instant Preemption (2)",
-          trans: "2. Running \u2192 Ready",
-          trigger: "Priority Preemption",
-          cpu: "Preempted Within 5\u03bcs",
-          activeNode: "node-ready",
-          activePath: "path-t2",
-          activeLabel: "label-t2",
-          nextAction: "Transition 4: Sensor interrupt wakes high-priority RT task",
-          what: "Timer or sensor interrupt fires. The kernel immediately halts the low-priority logger without waiting for a standard quantum to elapse.",
-          why: "Real-time kernels maintain ultra-low dispatch latency to avoid missing mission-critical deadlines."
+          phase: "4. Immediate Priority Preemption (Transition 2)",
+          pid: "PID 99 -> Ready Queue (Preempted)",
+          irq: "Hardware Sensor Clock IRQ",
+          regs: "Saved within 3 microseconds",
+          explanation: "Hardware timer tick wakes high-priority RT task; logger is instantly preempted without waiting for quantum.",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t2",
+          activeLabel: "lbl-t2",
+          subReady: "Ready: PID 99 (Logger)",
+          subRunning: "CPU: Preempting to RT",
+          subBlocked: "Timer Barrier: RT-PID 12",
+          nextPreview: "Transition 4: High-priority task moved to Ready and immediately dispatched",
+          what: "The periodic hardware clock fires. The kernel halts the low-priority logger immediately without waiting for a time slice to elapse.",
+          why: "Real-time operating systems cannot tolerate time slicing delays when a mission-critical deadline arrives."
         },
         {
-          state: "Wakeup & Re-arm (4)",
-          trans: "4. Blocked \u2192 Ready",
-          trigger: "Hardware Sensor IRQ",
-          cpu: "Priority Preemption Path",
-          activeNode: "node-ready",
-          activePath: "path-t4",
-          activeLabel: "label-t4",
-          nextAction: "Sequence Complete: Click Reset to run from start",
-          what: "The real-time task transitions from Blocked to Ready, immediately triggering a context switch that preempts any lower-priority task.",
-          why: "Strict priority preemptive scheduling ensures the highest-priority ready thread always possesses the CPU."
+          phase: "5. High-Priority Wakeup & Immediate Run (Transition 4)",
+          pid: "RT-PID 12 -> Preemptive Dispatch",
+          irq: "Vector 16 (Sensor Timer Acknowledge)",
+          regs: "Restored to RT-PID 12",
+          explanation: "RT-PID 12 transitions Blocked -> Ready and instantly seizes the CPU via strict priority scheduling.",
+          activeNode: "grp-ready",
+          activeEdge: "edge-t4",
+          activeLabel: "lbl-t4",
+          subReady: "Ready: PID 99 (Logger)",
+          subRunning: "CPU: Dispatched RT-PID 12",
+          subBlocked: "Waiting: [Empty]",
+          nextPreview: "Cycle Complete: Click Reset to run simulation from start",
+          what: "The RT task moves to Ready and, having the highest priority in the system, immediately preempts all other tasks to seize the CPU core.",
+          why: "Strict priority preemptive scheduling ensures zero jitter for safety-critical execution loops."
         }
       ]
     };
 
-    let activePerspective = "standard";
-    let currentStep = 0;
+    let activeDimension = "desktop";
+    let activeStepIdx = 0;
 
-    function renderActiveStep() {
-      const steps = stepData[activePerspective];
-      const step = steps[currentStep];
+    function renderStepper() {
+      const steps = stepperData[activeDimension];
+      const step = steps[activeStepIdx];
 
-      // Update Telemetry
-      document.getElementById("telem-state").textContent = step.state;
-      document.getElementById("telem-trans").textContent = step.trans;
-      document.getElementById("telem-trigger").textContent = step.trigger;
-      document.getElementById("telem-cpu").textContent = step.cpu;
+      document.getElementById("telem-phase").textContent = step.phase;
+      document.getElementById("telem-pid").textContent = step.pid;
+      document.getElementById("telem-irq").textContent = step.irq;
+      document.getElementById("telem-regs").textContent = step.regs;
+      document.getElementById("telem-explanation").textContent = step.explanation;
 
-      // Update SVG Nodes
-      ["node-ready", "node-running", "node-blocked"].forEach(id => {
+      document.getElementById("sub-ready").textContent = step.subReady;
+      document.getElementById("sub-running").textContent = step.subRunning;
+      document.getElementById("sub-blocked").textContent = step.subBlocked;
+
+      ["grp-ready", "grp-running", "grp-blocked"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove("active");
       });
       if (step.activeNode) {
-        const activeEl = document.getElementById(step.activeNode);
-        if (activeEl) activeEl.classList.add("active");
+        const activeNodeEl = document.getElementById(step.activeNode);
+        if (activeNodeEl) activeNodeEl.classList.add("active");
       }
 
-      // Update SVG Paths
-      ["path-t1", "path-t2", "path-t3", "path-t4"].forEach(id => {
+      ["edge-t1", "edge-t2", "edge-t3", "edge-t4"].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
           el.classList.remove("active");
-          el.setAttribute("marker-end", "url(#arrow)");
+          el.setAttribute("marker-end", "url(#arr)");
         }
       });
-      if (step.activePath) {
-        const activePathEl = document.getElementById(step.activePath);
-        if (activePathEl) {
-          activePathEl.classList.add("active");
-          activePathEl.setAttribute("marker-end", "url(#arrow-active)");
+      if (step.activeEdge) {
+        const activeEdgeEl = document.getElementById(step.activeEdge);
+        if (activeEdgeEl) {
+          activeEdgeEl.classList.add("active");
+          activeEdgeEl.setAttribute("marker-end", "url(#arr-active)");
         }
       }
 
-      // Update SVG Labels
-      ["label-t1", "label-t2", "label-t3", "label-t4"].forEach(id => {
+      ["lbl-t1", "lbl-t2", "lbl-t3", "lbl-t4"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove("active");
       });
@@ -703,56 +965,287 @@ CLEANED_HTML = r"""<!DOCTYPE html>
         if (activeLabelEl) activeLabelEl.classList.add("active");
       }
 
+      document.getElementById("txt-preview").textContent = step.nextPreview;
+      document.getElementById("btn-backward").disabled = (activeStepIdx === 0);
+      document.getElementById("btn-forward").disabled = (activeStepIdx === steps.length - 1);
+
+      document.getElementById("txt-what").textContent = step.what;
+      document.getElementById("txt-why").textContent = step.why;
+    }
+
+    function moveStep(delta) {
+      const steps = stepperData[activeDimension];
+      activeStepIdx = Math.max(0, Math.min(steps.length - 1, activeStepIdx + delta));
+      renderStepper();
+    }
+
+    function restartWalkthrough() {
+      activeStepIdx = 0;
+      renderStepper();
+    }
+
+    function setDimension(dim) {
+      activeDimension = dim;
+      activeStepIdx = 0;
+      document.getElementById("dim-desktop").classList.toggle("active", dim === "desktop");
+      document.getElementById("dim-rtos").classList.toggle("active", dim === "rtos");
+
+      const scenarioText = dim === "desktop"
+        ? "Tracking interactive text editor nano (PID 1042) reading an encrypted config file while a background build (PID 2085) competes for compute cycles."
+        : "Tracking mission-critical periodic flight sensor task (RT-PID 12) with hard 1ms deadline preempting background telemetry logger (PID 99).";
+      document.getElementById("scenario-text").innerHTML = scenarioText;
+
+      renderStepper();
+    }
+
+    // --- Stepper 2 Script: Multiprogramming Efficiency ---
+    const multiSteps = {
+      io: [
+        {
+          n: 1,
+          p: 0.80,
+          pn: 0.80,
+          util: 20.0,
+          explanation: "With only 1 process in memory, the CPU sits completely idle 80% of the time whenever the program waits for disk or network I/O.",
+          nextPreview: "Increase n = 2: Admit second concurrent process into memory",
+          what: "A single process is loaded into RAM (n = 1). Since it spends 80% of its time blocked on I/O, the processor executes instructions only 20% of the time.",
+          why: "Single-process execution forces the CPU to sit idle during unbuffered peripheral access, leaving fast silicon completely unutilized."
+        },
+        {
+          n: 2,
+          p: 0.80,
+          pn: 0.64,
+          util: 36.0,
+          explanation: "Admitting a second process reduces the probability of both being simultaneously blocked to 0.80^2 = 0.64 (64% idle).",
+          nextPreview: "Increase n = 3: Admit third concurrent process into memory",
+          what: "Two processes reside in RAM (n = 2). The probability that both are simultaneously blocked on I/O drops to 0.64. CPU utilization rises from 20% to 36%.",
+          why: "Whenever Process 1 blocks on a disk read, the operating system immediately switches the CPU to Process 2, reducing wasted cycles."
+        },
+        {
+          n: 3,
+          p: 0.80,
+          pn: 0.512,
+          util: 48.8,
+          explanation: "With 3 processes, the chance of all 3 being blocked drops to 0.80^3 = 51.2%, pushing CPU utilization close to 50%.",
+          nextPreview: "Increase n = 4: Admit fourth concurrent process into memory",
+          what: "Three processes reside concurrently in memory (n = 3). CPU utilization reaches 48.8%, more than double single-process throughput.",
+          why: "Statistically overlapping independent I/O bursts across multiple processes progressively masks physical device latency."
+        },
+        {
+          n: 4,
+          p: 0.80,
+          pn: 0.4096,
+          util: 59.0,
+          explanation: "Four processes in memory reduce joint I/O wait probability to 41.0%, bringing CPU utilization up to 59.0%.",
+          nextPreview: "Increase n = 5: Admit fifth concurrent process into memory",
+          what: "Four concurrent processes (n = 4) are scheduled. Total CPU utilization reaches 59.04%.",
+          why: "The system approaches stable multi-tasking where compute capacity is actively occupied for the majority of execution time."
+        },
+        {
+          n: 5,
+          p: 0.80,
+          pn: 0.3277,
+          util: 67.2,
+          explanation: "Five processes drive CPU utilization to 67.2%, with joint idle time dropping below one-third (32.8%).",
+          nextPreview: "Increase n = 6: Scale to high-density multiprogramming",
+          what: "Five processes reside in memory (n = 5). CPU utilization increases to 67.23%.",
+          why: "Increasing the degree of multiprogramming yields substantial gains, but begins showing diminishing returns per additional process."
+        },
+        {
+          n: 6,
+          p: 0.80,
+          pn: 0.2621,
+          util: 73.8,
+          explanation: "Six processes in memory achieve nearly 74% CPU utilization, recovering almost 4x the throughput of single-tasking.",
+          nextPreview: "Scale Max: Click Reset to run multiprogramming model from start",
+          what: "Six processes in memory achieve 73.79% utilization. Adding further processes yields diminishing CPU returns while escalating memory consumption.",
+          why: "The system balances high CPU saturation against memory exhaustion; adding too many tasks risks thrashing physical page frames."
+        }
+      ],
+      compute: [
+        {
+          n: 1,
+          p: 0.50,
+          pn: 0.50,
+          util: 50.0,
+          explanation: "Compute-intensive tasks spend 50% of time computing; a single process yields 50% utilization immediately.",
+          nextPreview: "Increase n = 2: Double the degree of multiprogramming",
+          what: "With p = 0.50, a single process yields 50% utilization on its own since half its cycles are dedicated purely to math and CPU operations.",
+          why: "Compute-bound tasks spend less time waiting on external devices, producing higher baseline single-process efficiency."
+        },
+        {
+          n: 2,
+          p: 0.50,
+          pn: 0.25,
+          util: 75.0,
+          explanation: "Admitting a second compute task drops joint idle time to 0.50^2 = 25%, rapidly reaching 75% utilization.",
+          nextPreview: "Increase n = 3: Approach 90% CPU saturation",
+          what: "Two compute-heavy processes in RAM (n = 2). Probability of simultaneous I/O wait is only 25%, pushing CPU utilization to 75%.",
+          why: "Because compute-bound tasks execute longer on-core bursts, having just two resident tasks satisfies most scheduler timeslots."
+        },
+        {
+          n: 3,
+          p: 0.50,
+          pn: 0.125,
+          util: 87.5,
+          explanation: "Three processes drive joint idle probability to 12.5%, achieving 87.5% CPU utilization.",
+          nextPreview: "Increase n = 4: Saturate CPU above 90%",
+          what: "Three compute tasks reside in RAM (n = 3). CPU utilization rises to 87.5%.",
+          why: "For compute-bound workloads, optimal CPU saturation is achieved with far fewer concurrent tasks than in I/O-heavy environments."
+        },
+        {
+          n: 4,
+          p: 0.50,
+          pn: 0.0625,
+          util: 93.8,
+          explanation: "Four compute processes push CPU utilization to 93.8%, leaving the processor idle only 6.25% of the time.",
+          nextPreview: "Increase n = 5: Near-complete silicon saturation",
+          what: "Four compute tasks in RAM (n = 4). CPU utilization reaches 93.75%.",
+          why: "At this stage, the processor is virtually fully occupied; almost no idle cycles remain unharvested."
+        },
+        {
+          n: 5,
+          p: 0.50,
+          pn: 0.0312,
+          util: 96.9,
+          explanation: "Five compute tasks achieve 96.9% utilization; adding further tasks yields negligible CPU gains.",
+          nextPreview: "Increase n = 6: Maximum saturation limit",
+          what: "Five tasks in RAM yield 96.88% utilization. CPU idle time is less than 3.2%.",
+          why: "Additional multiprogramming produces negligible compute gains while multiplying context-switching and cache-eviction overhead."
+        },
+        {
+          n: 6,
+          p: 0.50,
+          pn: 0.0156,
+          util: 98.4,
+          explanation: "Six compute processes achieve 98.4% CPU utilization, representing near-perfect hardware saturation.",
+          nextPreview: "Scale Max: Click Reset to run multiprogramming model from start",
+          what: "Six tasks yield 98.44% CPU utilization. The processor core is continuously saturated with executable instructions.",
+          why: "Further multiprogramming beyond this point offers zero throughput gains and begins degrading interactive responsiveness."
+        }
+      ]
+    };
+
+    let activeMultiDim = "io";
+    let activeMultiStep = 0;
+
+    function renderMultiStepper() {
+      const steps = multiSteps[activeMultiDim];
+      const step = steps[activeMultiStep];
+
+      // Update Live Telemetry
+      document.getElementById("m-telem-n").textContent = `n = ${step.n} Process${step.n > 1 ? 'es' : ''}`;
+      document.getElementById("m-telem-p").textContent = `p = ${step.p.toFixed(2)} (${(step.p * 100).toFixed(0)}% I/O Wait)`;
+      document.getElementById("m-telem-pn").textContent = `${step.pn.toFixed(4)} (${(step.pn * 100).toFixed(1)}% CPU Idle)`;
+      document.getElementById("m-telem-util").textContent = `${step.util.toFixed(1)}% Utilization`;
+      document.getElementById("m-telem-explanation").textContent = step.explanation;
+
+      // Update RAM Slots in SVG
+      for (let i = 1; i <= 6; i++) {
+        const slotEl = document.getElementById(`slot-${i}`);
+        if (!slotEl) continue;
+        const rect = slotEl.querySelector("rect");
+        const t1 = slotEl.querySelectorAll("text")[0];
+        const t2 = slotEl.querySelectorAll("text")[1];
+
+        if (i <= step.n) {
+          slotEl.setAttribute("opacity", "1");
+          rect.setAttribute("fill", "#e0f2fe");
+          rect.setAttribute("stroke", "#0284c7");
+          rect.setAttribute("stroke-width", "2");
+          rect.removeAttribute("stroke-dasharray");
+          t1.setAttribute("fill", "#0369a1");
+          t1.textContent = `P${i} (Active)`;
+          t2.textContent = "In RAM";
+        } else {
+          slotEl.setAttribute("opacity", "0.3");
+          rect.setAttribute("fill", "#f1f5f9");
+          rect.setAttribute("stroke", "#94a3b8");
+          rect.setAttribute("stroke-width", "1.5");
+          rect.setAttribute("stroke-dasharray", "3 3");
+          t1.setAttribute("fill", "#475569");
+          t1.textContent = `P${i}`;
+          t2.textContent = "Unallocated";
+        }
+      }
+
+      // Update Gauge Bar Height & Text
+      // Total gauge height = 130px, base y = 190. Height = 130 * (util / 100). y = 190 - height.
+      const gaugeHeight = 130 * (step.util / 100);
+      const gaugeY = 190 - gaugeHeight;
+      const gaugeFill = document.getElementById("gauge-fill");
+      gaugeFill.setAttribute("y", gaugeY);
+      gaugeFill.setAttribute("height", gaugeHeight);
+
+      // Color transition from blue to green as saturation approaches 90%+
+      if (step.util > 85) {
+        gaugeFill.setAttribute("fill", "#059669");
+      } else if (step.util > 50) {
+        gaugeFill.setAttribute("fill", "#0284c7");
+      } else {
+        gaugeFill.setAttribute("fill", "#d97706");
+      }
+
+      document.getElementById("gauge-text").textContent = `${step.util.toFixed(1)}%`;
+      document.getElementById("gauge-text").setAttribute("fill", step.util > 85 ? "#059669" : "#0284c7");
+
       // Update Navigation & Foreshadowed Preview
-      document.getElementById("preview-text").textContent = step.nextAction;
-      document.getElementById("btn-prev").disabled = (currentStep === 0);
-      document.getElementById("btn-next").disabled = (currentStep === steps.length - 1);
+      document.getElementById("m-txt-preview").textContent = step.nextPreview;
+      document.getElementById("m-btn-prev").disabled = (activeMultiStep === 0);
+      document.getElementById("m-btn-next").disabled = (activeMultiStep === steps.length - 1);
 
-      // Update Explanatory Panes
-      document.getElementById("pane-what").textContent = step.what;
-      document.getElementById("pane-why").textContent = step.why;
+      // Update Paired Analytical Panes
+      document.getElementById("m-txt-what").textContent = step.what;
+      document.getElementById("m-txt-why").textContent = step.why;
     }
 
-    function stepTransition(delta) {
-      const steps = stepData[activePerspective];
-      currentStep = Math.max(0, Math.min(steps.length - 1, currentStep + delta));
-      renderActiveStep();
+    function stepMulti(delta) {
+      const steps = multiSteps[activeMultiDim];
+      activeMultiStep = Math.max(0, Math.min(steps.length - 1, activeMultiStep + delta));
+      renderMultiStepper();
     }
 
-    function resetStepper() {
-      currentStep = 0;
-      renderActiveStep();
+    function resetMulti() {
+      activeMultiStep = 0;
+      renderMultiStepper();
     }
 
-    function switchPerspective(mode) {
-      activePerspective = mode;
-      currentStep = 0;
-      document.getElementById("toggle-monolithic").classList.toggle("active", mode === "standard");
-      document.getElementById("toggle-realtime").classList.toggle("active", mode === "realtime");
-      renderActiveStep();
+    function setMultiDim(dim) {
+      activeMultiDim = dim;
+      activeMultiStep = 0;
+      document.getElementById("dim-io").classList.toggle("active", dim === "io");
+      document.getElementById("dim-cpu").classList.toggle("active", dim === "compute");
+
+      const scenarioText = dim === "io"
+        ? "Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under an I/O wait fraction of 80% (typical web server or database workload)."
+        : "Observing CPU utilization as additional resident processes (n = 1 to 6) are loaded into RAM under a compute-bound workload with 50% I/O wait (typical compiler or simulation task).";
+      document.getElementById("multi-scenario-text").innerHTML = scenarioText;
+
+      renderMultiStepper();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      renderActiveStep();
+      renderStepper();
+      renderMultiStepper();
     });
   </script>
 </body>
 </html>
 """
 
-def apply_latex_fix():
+def apply_multiprogramming_stepper():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(CLEANED_HTML.strip() + "\n")
+        f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully replaced raw LaTeX delimiters in {TARGET_FILE}")
+    print(f"--> Successfully integrated multiprogramming stepper into {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Replace raw LaTeX delimiters with native HTML formatting\n\n"
-            "Strip raw mathematical dollar signs from 01-process-model.html and replace\n"
-            "with standard semantic HTML tags (<i>m</i> and <sup>) to prevent text leaks."
+            "Add interactive multiprogramming efficiency stepper to Section 3\n\n"
+            "Implement Directed Narrative Stepper visualizing CPU utilization formula\n"
+            "1 - p^n with synchronized RAM/CPU SVG canvas and paired analytical panes."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -761,4 +1254,4 @@ def apply_latex_fix():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    apply_latex_fix()
+    apply_multiprogramming_stepper()
