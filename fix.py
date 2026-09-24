@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Replace YouTube iframe with clickable high-res thumbnail card
+# fix.py: Sanitize raw LaTeX syntax across Module 01
 # =====================================================================
 import os
 import subprocess
@@ -10,102 +10,254 @@ TARGET_FILE = os.path.join(
     "01-concurrency-hazards-livelock-starvation.html"
 )
 
-THUMBNAIL_SECTION = r"""    <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
-    <p>
-      Priority inversion represents one of the most insidious architectural failures in preemptive priority-based operating systems. It occurs when a high-priority task is indirectly delayed or preempted by a lower-priority task, subverting the core scheduling contract.
-    </p>
+SANITIZED_MODULE_01 = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 01: Concurrency Hazards, Livelock, Starvation &amp; PIP - COSC240</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --text: #334155;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+    .container { max-width: 1040px; margin: 0 auto; }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+    .nav-btn:hover { background: #f0f9ff; }
+    .content-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
+    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 32px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    h4 { font-size: 1.05rem; color: var(--primary); margin-top: 24px; }
+    p, li { font-size: 0.95rem; color: var(--text); }
+    .math-callout {
+      background: #f8fafc;
+      border-left: 4px solid var(--accent);
+      padding: 16px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.9rem;
+    }
+    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="index.html" class="nav-btn">&larr; Week 6 Hub</a>
+      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
+      <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">Module 02 &rarr;</a>
+    </nav>
 
-    <h4>1. The Three-Task Dependency Chain</h4>
-    <p>
-      The classical priority inversion scenario involves three tasks across disparate priority levels ($P_{\text{High}} &gt; P_{\text{Medium}} &gt; P_{\text{Low}}$):
-    </p>
-    <ol>
-      <li><strong>Resource Acquisition:</strong> The low-priority task ($P_{\text{Low}}$) acquires a shared mutual exclusion lock (mutex) protecting a hardware bus or memory region.</li>
-      <li><strong>The Inversion Vector:</strong> While $P_{\text{Low}}$ holds the mutex, a medium-priority task ($P_{\text{Medium}}$) becomes ready to run. Because $P_{\text{Medium}}$ has a higher static priority than $P_{\text{Low}}$, the scheduler preempts $P_{\text{Low}}$.</li>
-      <li><strong>The Indirect Blockade:</strong> High-priority task ($P_{\text{High}}$) preempts $P_{\text{Medium}}$ when it requires execution, but immediately blocks when attempting to acquire the mutex held by $P_{\text{Low}}$. However, $P_{\text{Low}}$ cannot finish its critical section because it is being continuously starved by $P_{\text{Medium}}$.</li>
-      <li><strong>The Result:</strong> $P_{\text{High}}$ is blocked by $P_{\text{Low}}$, which is preempted by $P_{\text{Medium}}$. The relative priorities are effectively inverted: $P_{\text{Medium}}$ runs ahead of $P_{\text{High}}$ despite having a lower nominal importance.</li>
-    </ol>
+    <div class="content-card">
+      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 01 &bull; COSC240</span>
+      <h1>Concurrency Hazards: Livelock, Starvation, and Priority Inversion</h1>
+      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
+        Explore the spectrum of concurrent failure modes. Contrast CPU-burning livelock with blocking deadlocks, study scheduling starvation, and analyze Priority Inheritance Protocols (PIP) using the Mars Pathfinder anomaly.
+      </p>
 
-    <div class="math-callout" style="background: #fef2f2; border-left-color: #dc2626;">
-      <strong style="color: #991b1b;">Priority Inversion Inequality:</strong>
-      <br>
-      Nominal Priority Ordering: <code>P_High &gt; P_Medium &gt; P_Low</code>
-      <br>
-      Effective Execution Order under Inversion: <code>P_Medium runs while P_High starves</code>
+      <h3>1. The Spectrum of Concurrency Hazards</h3>
+      <p>
+        When designing concurrent multithreaded systems, preventing race conditions via mutexes and semaphores is only the first hurdle. Even when mutual exclusion is correctly implemented, thread interactions can lead to systemic operational failures where tasks fail to make forward progress.
+      </p>
+      <p>
+        Operating systems theory classifies these failures into three distinct concurrency hazards: <strong>Deadlock</strong>, <strong>Livelock</strong>, and <strong>Starvation</strong>. While superficially similar because all three prevent threads from completing, their underlying microarchitectural mechanics and CPU utilization profiles are fundamentally different.
+      </p>
+
+      <!-- Structural Comparison Table -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0; overflow-x: auto;">
+        <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Table 1.1: Microarchitectural Comparison of Concurrency Failure Modes</div>
+        <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Contrasting thread execution states, CPU consumption, and recovery triggers across system anomalies.</div>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+          <thead>
+            <tr style="background: #f1f5f9; text-align: left;">
+              <th style="padding: 10px; border: 1px solid var(--border);">Hazard Type</th>
+              <th style="padding: 10px; border: 1px solid var(--border);">Thread Execution State</th>
+              <th style="padding: 10px; border: 1px solid var(--border);">CPU Utilization</th>
+              <th style="padding: 10px; border: 1px solid var(--border);">Root System Cause</th>
+              <th style="padding: 10px; border: 1px solid var(--border);">Remediation Strategy</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 10px; border: 1px solid var(--border); font-weight: 700; color: #dc2626;">Deadlock</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Blocked / Sleeping (TASK_UNINTERRUPTIBLE)</td>
+              <td style="padding: 10px; border: 1px solid var(--border); color: #16a34a; font-weight: 600;">0% (Zero Burn)</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Simultaneous satisfaction of the Four Coffman Conditions.</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Lock ordering, Banker's Algorithm, or process termination.</td>
+            </tr>
+            <tr style="background: #f8fafc;">
+              <td style="padding: 10px; border: 1px solid var(--border); font-weight: 700; color: #d97706;">Livelock</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Active / Running (Executing instructions continuously)</td>
+              <td style="padding: 10px; border: 1px solid var(--border); color: #dc2626; font-weight: 600;">100% (Busy Waiting / Burn)</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Overly polite error-recovery logic causing continuous state oscillation.</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Randomized exponential backoff or lock relinquishment jitter.</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid var(--border); font-weight: 700; color: #0284c7;">Starvation</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Ready / Runnable (Willing to run, but bypassed by scheduler)</td>
+              <td style="padding: 10px; border: 1px solid var(--border); color: #475569; font-weight: 600;">Near 0% (For starved thread)</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Unfair scheduling heuristics prioritizing high-priority threads indefinitely.</td>
+              <td style="padding: 10px; border: 1px solid var(--border);">Aging algorithms, priority boosting, and fair queueing (CFS).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Detailed Mechanics of Livelock</h4>
+      <p>
+        Livelock occurs when two or more processes continuously change their internal states in response to changes in the other processes without doing any useful work. The classic real-world analogue is two polite people walking toward each other in a narrow corridor: both step to the left at the same time, then both step to the right at the same time, blocking each other indefinitely while actively moving back and forth.
+      </p>
+      <div class="math-callout" style="background: #fef2f2; border-left-color: #d97706;">
+        <strong style="color: #b45309;">Why Livelock Burns CPU Cycles:</strong>
+        <br>
+        Unlike deadlocked threads that yield the CPU and sleep, livelocked threads are fully active. A thread caught in a livelock executes lock acquisition attempts, fails due to contention, catches the failure exception, yields or backs off briefly, and immediately loops to retry. The OS scheduler continuously schedules these threads because they remain in the RUNNABLE state, driving core CPU utilization to 100% while accomplishing zero computational progress.
+      </div>
+
+      <h4>Real-World Architectural Examples of Livelock</h4>
+      <ul>
+        <li>
+          <strong>Network Collision Backoff Livelock:</strong>
+          In decentralized Ethernet or wireless collision domains, if two nodes transmit packets simultaneously, a collision occurs. If both nodes implement deterministic backoff algorithms (waiting an identical fixed interval before retransmitting), they will collide again in lockstep, oscillating forever between transmission and collision states. <em>Defense:</em> Implementing randomized exponential backoff (e.g., Ethernet CSMA/CD).
+        </li>
+        <li>
+          <strong>Optimistic Concurrency Control (OCC) Database Livelock:</strong>
+          In database management systems utilizing optimistic locking, two transactions read the same record, compute modifications, and attempt to commit. The DBMS validates that neither record was modified in the interim. Finding a conflict, the DBMS aborts Transaction A, rolls back, and restarts it. Simultaneously, Transaction B aborts, rolls back, and restarts. If their execution cadences overlap perfectly, they will abort and restart each other in an infinite livelock loop.
+        </li>
+      </ul>
+
+      <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
+      <p>
+        Priority inversion represents one of the most insidious architectural failures in preemptive priority-based operating systems. It occurs when a high-priority task is indirectly delayed or preempted by a lower-priority task, subverting the core scheduling contract.
+      </p>
+
+      <h4>1. The Three-Task Dependency Chain</h4>
+      <p>
+        The classical priority inversion scenario involves three tasks across disparate priority levels (P_High &gt; P_Medium &gt; P_Low):
+      </p>
+      <ol>
+        <li><strong>Resource Acquisition:</strong> The low-priority task (P_Low) acquires a shared mutual exclusion lock (mutex) protecting a hardware bus or memory region.</li>
+        <li><strong>The Inversion Vector:</strong> While P_Low holds the mutex, a medium-priority task (P_Medium) becomes ready to run. Because P_Medium has a higher static priority than P_Low, the scheduler preempts P_Low.</li>
+        <li><strong>The Indirect Blockade:</strong> High-priority task (P_High) preempts P_Medium when it requires execution, but immediately blocks when attempting to acquire the mutex held by P_Low. However, P_Low cannot finish its critical section because it is being continuously starved by P_Medium.</li>
+        <li><strong>The Result:</strong> P_High is blocked by P_Low, which is preempted by P_Medium. The relative priorities are effectively inverted: P_Medium runs ahead of P_High despite having a lower nominal importance.</li>
+      </ol>
+
+      <div class="math-callout" style="background: #fef2f2; border-left-color: #dc2626;">
+        <strong style="color: #991b1b;">Priority Inversion Inequality:</strong>
+        <br>
+        Nominal Priority Ordering: <code>P_High &gt; P_Medium &gt; P_Low</code>
+        <br>
+        Effective Execution Order under Inversion: <code>P_Medium runs while P_High starves</code>
+      </div>
+
+      <h4>2. The Mars Pathfinder Mission Failure (July 1997)</h4>
+      <p>
+        Days after landing on Mars, the spacecraft running the VxWorks real-time operating system began experiencing sporadic, unexplained total system resets that delayed daily science operations:
+      </p>
+      <ul>
+        <li><strong>The Culprits:</strong> An infrequent, low-priority meteorological data-gathering task (L) held a mutex protecting the shared information bus memory. A high-priority information bus management task (H) needed this mutex frequently. A medium-priority communications and science data task (M) handled continuous background data transfers.</li>
+        <li><strong>The Failure Cascade:</strong> When L held the mutex, M would preempt it. H would then attempt to read the bus, block on L, and starve because M consumed available CPU cycles.</li>
+        <li><strong>The Watchdog Trigger:</strong> An onboard watchdog timer noticed that high-priority communications task H had failed to check in within its allotted window, assumed a fatal kernel lockup, and commanded a hard system reboot.</li>
+      </ul>
+
+      <h4>3. The Priority Inheritance Protocol (PIP) Solution</h4>
+      <p>
+        Engineers diagnosed and fixed the bug remotely from Earth by uploading a one-line C patch via the onboard debugging interpreter to enable <strong>Priority Inheritance</strong>:
+      </p>
+      <ul>
+        <li>Under PIP, when a high-priority task blocks on a mutex held by a low-priority task, the kernel <strong>temporarily boosts the low-priority task's priority</strong> to match P_High.</li>
+        <li>This prevents medium-priority tasks (M) from preempting L. L finishes its critical section rapidly, releases the mutex, drops back to its base priority, and allows H to execute immediately.</li>
+      </ul>
+
+      <p style="margin-top: 24px; font-weight: 600; color: var(--primary);">
+        Visual Walkthrough &mdash; Priority Inversion &amp; Mars Pathfinder Analysis:
+      </p>
+
+      <!-- YouTube Thumbnail Card -->
+      <a href="https://www.youtube.com/watch?v=gpttZW2hBMM" target="_blank" style="display: block; position: relative; max-width: 640px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; background: #000; margin: 16px 0; transition: transform 0.15s ease, box-shadow 0.15s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06)';">
+        <img src="https://img.youtube.com/vi/gpttZW2hBMM/hqdefault.jpg" alt="Priority Inversion Explained Thumbnail" style="width: 100%; display: block; opacity: 0.9; transition: opacity 0.15s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.9';">
+        <!-- Play Button Overlay -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 48px; background: rgba(23, 23, 23, 0.85); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+          <div style="width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid #ffffff; margin-left: 3px;"></div>
+        </div>
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: #fff; font-size: 0.88rem; font-weight: 600;">
+          Watch Video: Priority Inversion &amp; Mars Pathfinder Analysis &rarr;
+        </div>
+      </a>
     </div>
 
-    <h4>2. The Mars Pathfinder Mission Failure (July 1997)</h4>
-    <p>
-      Days after landing on Mars, the spacecraft running the VxWorks real-time operating system began experiencing sporadic, unexplained total system resets that delayed daily science operations:
-    </p>
-    <ul>
-      <li><strong>The Culprits:</strong> An infrequent, low-priority meteorological data-gathering task ($L$) held a mutex protecting the shared "information bus" memory. A high-priority information bus management task ($H$) needed this mutex frequently. A medium-priority communications and science data task ($M$) handled continuous background data transfers.</li>
-      <li><strong>The Failure Cascade:</strong> When $L$ held the mutex, $M$ would preempt it. $H$ would then attempt to read the bus, block on $L$, and starve because $M$ consumed available CPU cycles.</li>
-      <li><strong>The Watchdog Trigger:</strong> An onboard watchdog timer noticed that high-priority communications task $H$ had failed to check in within its allotted window, assumed a fatal kernel lockup, and commanded a hard system reboot.</li>
-    </ul>
+    <nav class="nav-bar">
+      <a href="index.html" class="nav-btn">&larr; Week 6 Hub</a>
+      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
+      <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">Module 02 &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>
+"""
 
-    <h4>3. The Priority Inheritance Protocol (PIP) Solution</h4>
-    <p>
-      Engineers diagnosed and fixed the bug remotely from Earth by uploading a one-line C patch via the onboard debugging interpreter to enable <strong>Priority Inheritance</strong>:
-    </p>
-    <ul>
-      <li>Under PIP, when a high-priority task blocks on a mutex held by a low-priority task, the kernel <strong>temporarily boosts the low-priority task's priority</strong> to match $P_{\text{High}}$.</li>
-      <li>This prevents medium-priority tasks ($M$) from preempting $L$. $L$ finishes its critical section rapidly, releases the mutex, drops back to its base priority, and allows $H$ to execute immediately.</li>
-    </ul>
-
-    <p style="margin-top: 24px; font-weight: 600; color: var(--primary);">
-      Visual Walkthrough &mdash; Priority Inversion &amp; Mars Pathfinder Analysis:
-    </p>
-
-    <!-- YouTube Thumbnail Card -->
-    <a href="https://www.youtube.com/watch?v=gpttZW2hBMM" target="_blank" style="display: block; position: relative; max-width: 640px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.06); text-decoration: none; background: #000; margin: 16px 0; transition: transform 0.15s ease, box-shadow 0.15s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06)';">
-      <img src="https://img.youtube.com/vi/gpttZW2hBMM/hqdefault.jpg" alt="Priority Inversion Explained Thumbnail" style="width: 100%; display: block; opacity: 0.9; transition: opacity 0.15s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.9';">
-      <!-- Play Button Overlay -->
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 68px; height: 48px; background: rgba(23, 23, 23, 0.85); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-        <div style="width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid #ffffff; margin-left: 3px;"></div>
-      </div>
-      <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px 14px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: #fff; font-size: 0.88rem; font-weight: 600;">
-        Watch Video: Priority Inversion &amp; Mars Pathfinder Analysis &rarr;
-      </div>
-    </a>"""
-
-def apply_thumbnail_fix():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} not found.")
-        return False
-
-    with open(TARGET_FILE, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    start_marker = "<h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>"
-    end_marker = "<nav class=\"nav-bar\">"
-
-    start_idx = content.find(start_marker)
-    end_idx = content.find(end_marker, start_idx)
-
-    if start_idx == -1 or end_idx == -1:
-        print("Error: Markers not found.")
-        return False
-
-    updated = content[:start_idx] + THUMBNAIL_SECTION + "\n\n    <nav class=\"nav-bar\">" + content[end_idx + len(end_marker):]
-
+def sanitize_module_file():
+    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(updated)
-
-    print(f"--> Successfully replaced iframe with thumbnail card in {TARGET_FILE}")
-    return True
+        f.write(SANITIZED_MODULE_01.strip() + "\n")
+    print(f"--> Successfully sanitized Module 01 at {TARGET_FILE}")
 
 if __name__ == "__main__":
-    if apply_thumbnail_fix():
-        try:
-            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-            commit_msg = (
-                "Replace YouTube iframe with responsive thumbnail link in Module 01\n\n"
-                "Swap out embedded iframe for a high-res thumbnail preview card linking\n"
-                "directly to the YouTube video in a new tab, completely resolving Error 153."
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully!")
-        except Exception as e:
-            print(f"Git note: {e}")
+    sanitize_module_file()
+    try:
+        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        commit_msg = (
+            "Sanitize raw LaTeX syntax in Module 01 text and equations\n\n"
+            "Replace all unrendered LaTeX strings with clean semantic HTML elements\n"
+            "and inline code snippets to prevent text leakage in browser rendering."
+        )
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        subprocess.run(["git", "push", "origin", "main"], check=True)
+        print("--> Git sync completed successfully!")
+    except Exception as e:
+        print(f"Git note: {e}")
