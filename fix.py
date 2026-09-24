@@ -1,429 +1,427 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Update root index.html to remove lab links from Week 6
+# fix.py: Standardize all weekly hub index.html pages to match Week 6
 # =====================================================================
 import os
 import subprocess
 
-TARGET_FILE = "index.html"
+HUB_TEMPLATES = {
+    "week01-operating-system-concepts": {
+        "title": "Week 1: Operating System Concepts & Architecture",
+        "prev": None,
+        "next": "../week02-processes/index.html",
+        "prev_label": None,
+        "next_label": "Week 2: Processes & Threads",
+        "lead": "Explore the fundamental hardware-software interface, system call dispatch mechanisms, dual-mode CPU protection rings, and trap handling.",
+        "modules": [
+            ("01", "What is an Operating System & History", "Trace the historical evolution of mainframe, minicomputer, personal, and mobile operating systems.", ["Batch Systems", "Multiprogramming", "Time-Sharing", "VM"]),
+            ("02", "Hardware Review & CPU Modes", "Examine Von Neumann architecture, CPU execution cycles, memory hierarchies, and dual-mode user/kernel execution.", ["CPU Registers", "Cache Coherency", "Privileged Instructions", "MMU"]),
+            ("03", "Fundamental OS Concepts", "Analyze processes, address spaces, files, system calls, protection domains, and the shell interface.", ["Process Model", "Filesystem Tree", "System Calls", "API Abstraction"]),
+            ("04", "OS Structure & Kernel Models", "Contrast Monolithic kernels, Layered architectures, Microkernels, Exokernels, and Hybrid systems.", ["Monolithic", "Microkernel", "Layered", "Hybrid OS"])
+        ]
+    },
+    "week02-processes": {
+        "title": "Week 2: Processes & Threads",
+        "prev": "../week01-operating-system-concepts/index.html",
+        "next": "../week03-process-scheduling/index.html",
+        "prev_label": "Week 1: OS Concepts",
+        "next_label": "Week 3: Scheduling",
+        "lead": "Examine process address space anatomy, Process Control Blocks (PCB), Linux task_struct internals, lifecycle state transitions, and kernel threading models.",
+        "modules": [
+            ("01", "The Process Model & Memory Layout", "Dissect process memory segments (text, data, bss, heap, stack) and Process Control Block structures.", ["Address Space", "PCB", "task_struct", "Context Switch"]),
+            ("02", "Process Lifecycle & State Transitions", "Trace process creation (fork, exec), termination, zombie states, orphan processes, and waitpid synchronization.", ["fork()", "execve()", "Zombie Process", "Signals"]),
+            ("03", "Classical Thread Concepts", "Understand lightweight concurrency, shared address spaces, thread control blocks, and concurrency benefits.", ["Concurrency", "TCB", "Shared Memory", "Lightweight"]),
+            ("04", "Thread Implementation & POSIX APIs", "Master user-space threads vs. kernel-supported threads and POSIX pthread creation and synchronization.", ["pthread_create", "Mutexes", "Join/Detach", "TLS"])
+        ]
+    },
+    "week03-process-scheduling": {
+        "title": "Week 3: CPU Scheduling & Resource Allocation",
+        "prev": "../week02-processes/index.html",
+        "next": "../week04-concurrency-and-mutual-exclusion/index.html",
+        "prev_label": "Week 2: Processes",
+        "next_label": "Week 4: Concurrency",
+        "lead": "Analyze CPU burst distributions, dispatch latency, batch scheduling algorithms, interactive multi-level feedback queues, and real-time scheduling.",
+        "modules": [
+            ("01", "Introduction to Scheduling", "Examine scheduling criteria, CPU-I/O burst cycles, dispatcher latency, and preemptive vs. non-preemptive design.", ["CPU Burst", "Dispatcher", "Preemption", "Throughput"]),
+            ("02", "Batch Scheduling Algorithms", "Evaluate FCFS, SJF, Shortest Remaining Time Next (SRTN), and Highest Response Ratio Next (HRRN).", ["FCFS", "SJF", "SRTN", "Convoy Effect"]),
+            ("03", "Interactive Scheduling Algorithms", "Master Round Robin, Multi-Level Feedback Queues (MLFQ), and Stride scheduling.", ["Round Robin", "MLFQ", "Quantum", "Priority Boost"]),
+            ("04", "Real-Time & Multiprocessor Scheduling", "Explore Rate Monotonic Scheduling (RMS), Earliest Deadline First (EDF), and SMP work-stealing.", ["RMS", "EDF", "Work Stealing", "Affinity"])
+        ]
+    },
+    "week04-concurrency-and-mutual-exclusion": {
+        "title": "Week 4: Concurrency & Mutual Exclusion",
+        "prev": "../week03-process-scheduling/index.html",
+        "next": "../week05-io-and-disk-scheduling/index.html",
+        "prev_label": "Week 3: Scheduling",
+        "next_label": "Week 5: I/O & Disks",
+        "lead": "Confront race conditions on shared memory. Master critical sections, software synchronization, hardware atomic primitives, and semaphores.",
+        "modules": [
+            ("01", "Race Conditions & Critical Regions", "Define critical sections, mutual exclusion requirements, race conditions, and progress invariants.", ["Critical Section", "Race Condition", "Mutual Exclusion", "Progress"]),
+            ("02", "Hardware Primitives & Spinlocks", "Analyze disable interrupts, Test-And-Set (TAS), Compare-And-Swap (CAS), and busy-waiting spinlocks.", ["TAS", "CAS", "Spinlocks", "Atomic Instructions"]),
+            ("03", "Semaphores, Mutexes & Monitors", "Master Dijkstra counting semaphores, binary mutexes, condition variables, and language-level monitors.", ["Semaphores", "Mutexes", "Monitors", "Condition Variables"]),
+            ("04", "Classical Synchronization Problems", "Solve Producer-Consumer, Readers-Writers, and Dining Philosophers concurrency challenges.", ["Producer-Consumer", "Readers-Writers", "Bounded Buffer", "Synchronization"])
+        ]
+    },
+    "week05-io-and-disk-scheduling": {
+        "title": "Week 5: I/O Subsystems & Disk Scheduling",
+        "prev": "../week04-concurrency-and-mutual-exclusion/index.html",
+        "next": "../week06-synchronization-and-deadlock/index.html",
+        "prev_label": "Week 4: Concurrency",
+        "next_label": "Week 6: Deadlocks",
+        "lead": "Examine device controllers, programmed I/O vs. memory-mapped I/O, APIC interrupts, DMA transfers, mechanical disk geometry, and RAID architectures.",
+        "modules": [
+            ("01", "I/O Hardware & Device Controllers", "Explore device controller registers, data buffers, PMIO vs. MMIO hazards, and volatile memory fencing.", ["PMIO", "MMIO", "Device Registers", "Memory Fencing"]),
+            ("02", "Interrupts, APIC & DMA Transfers", "Study hardware interrupt vectors, top-halves vs. bottom-halves, MSI-X, and Direct Memory Access.", ["APIC", "MSI-X", "Softirqs", "DMA Controller"]),
+            ("03", "Disk Geometry & Arm Scheduling", "Analyze platters, seek time, rotational latency, ZBR, and arm algorithms (FCFS, SSTF, SCAN, C-LOOK).", ["Seek Time", "Rotational Delay", "SSTF", "C-LOOK"]),
+            ("04", "RAID Storage Architectures", "Evaluate RAID levels 0 through 6, XOR parity math, Galois Field P+Q codes, and MTTDL reliability modeling.", ["RAID 5", "RAID 6", "XOR Parity", "MTTDL"])
+        ]
+    },
+    "week06-synchronization-and-deadlock": {
+        "title": "Week 6: Synchronization & Deadlock",
+        "prev": "../week05-io-and-disk-scheduling/index.html",
+        "next": "../week09-memory-management/index.html",
+        "prev_label": "Week 5: I/O & Disks",
+        "next_label": "Week 7: Virtual Memory",
+        "lead": "Investigate synchronization pathologies including livelock, starvation, priority inversion, Coffman conditions, Banker's Algorithm, and kernel defenses.",
+        "modules": [
+            ("01", "Livelock, Starvation & PIP", "Contrast livelock and starvation, analyze the Mars Pathfinder anomaly, and study Priority Inheritance Protocols.", ["Livelock", "Starvation", "Priority Inversion", "Mars Pathfinder"]),
+            ("02", "Coffman Conditions & RAGs", "Dissect the four necessary and sufficient Coffman conditions and Resource Allocation Graph cycle detection.", ["Coffman Conditions", "RAGs", "Wait-For Graphs", "Cycle Detection"]),
+            ("03", "Banker's Algorithm & Prevention", "Master static deadlock prevention, the Ostrich algorithm, and Dijkstra's Banker's Algorithm safety vectors.", ["Banker's Algorithm", "Safe State", "Lock Ordering", "Prevention"]),
+            ("04", "Classic Problems & Defenses", "Analyze Dining Philosophers, Readers-Writers starvation, and modern OS static/runtime defenses (lockdep).", ["Dining Philosophers", "Readers-Writers", "lockdep", "Driver Verifier"])
+        ]
+    },
+    "week09-memory-management": {
+        "title": "Week 7 & 8: Memory Management & Virtual Memory",
+        "prev": "../week06-synchronization-and-deadlock/index.html",
+        "next": "../week10-file-management/index.html",
+        "prev_label": "Week 6: Deadlocks",
+        "next_label": "Week 9: File Systems",
+        "lead": "Master physical memory allocation, buddy allocators, hardware address translation, page tables, TLB caching, page faults, and replacement algorithms.",
+        "modules": [
+            ("01", "Free-Used Lists & Buddy Allocator", "Explore contiguous memory allocation, bitmap tracking, free lists, and binary buddy allocator splitting/merging.", ["Buddy Allocator", "Free Lists", "Fragmentation", "Allocation"]),
+            ("02", "Paging Hardware & Page Tables", "Examine PTE sandbox bit flags (present, dirty, user/kernel, read/write) and multi-level page tables.", ["Page Table Entry", "PTE Flags", "Multi-Level PT", "CR3 Register"]),
+            ("03", "Translation Lookaside Buffer (TLB)", "Understand hardware TLB caching, associative lookups, tagged entries, and context-switch flushing.", ["TLB", "Associative Memory", "Hit Ratio", "ASID"]),
+            ("04", "Virtual Memory & Replacement", "Analyze VM page faults, FIFO, Optimal, LRU, Clock, Aging, Working Set model, and WSClock policies.", ["Page Fault", "LRU", "Clock Algorithm", "Working Set"])
+        ]
+    },
+    "week10-file-management": {
+        "title": "Week 9: File System Architecture & Implementation",
+        "prev": "../week09-memory-management/index.html",
+        "next": "../week11-multiprocessors/index.html",
+        "prev_label": "Week 7/8: Memory",
+        "next_label": "Week 10: Multiprocessors",
+        "lead": "Explore file abstractions, directory structures, Unix inode design, extent allocation, journaling, and storage optimization.",
+        "modules": [
+            ("01", "The File Abstraction", "Study file types, file attributes, access methods (sequential vs. direct), and file control blocks.", ["File Abstraction", "Attributes", "Sequential Access", "FCB"]),
+            ("02", "Directories & Hierarchical Paths", "Examine single-level, two-level, and tree-structured directory namespaces and path resolution.", ["Directories", "Path Resolution", "Hard Links", "Symbolic Links"]),
+            ("03", "File System Implementation", "Dissect Unix inodes, direct/indirect block pointers, extent trees, and free-space bitmap management.", ["Inode", "Indirect Blocks", "Extent Tree", "Bitmap"]),
+            ("04", "Reliability, Layout & Optimization", "Master journaling filesystems (ext4), log-structured storage, block caching, and disk defragmentation.", ["Journaling", "Write-Ahead Log", "Block Cache", "Recovery"])
+        ]
+    },
+    "week11-multiprocessors": {
+        "title": "Week 10: Multiprocessors & Distributed Systems",
+        "prev": "../week10-file-management/index.html",
+        "next": "../week12-security/index.html",
+        "prev_label": "Week 9: File Systems",
+        "next_label": "Week 12: Security",
+        "lead": "Master symmetric multiprocessing (SMP), hardware cache coherency protocols (MESI), NUMA architectures, RPC, and distributed middleware.",
+        "modules": [
+            ("01", "Multiprocessor Hardware & Caches", "Study UMA vs. NUMA architectures, bus snooping, and MESI cache coherency state machines.", ["SMP", "NUMA", "Bus Snooping", "MESI Protocol"]),
+            ("02", "Multiprocessor Scheduling & Affinity", "Examine coarse-grained/fine-grained multithreading, load balancing, and processor affinity.", ["Processor Affinity", "Load Balancing", "Migration", "Gang Scheduling"]),
+            ("03", "Multicomputers & Interconnects", "Explore loosely coupled clusters, message passing interfaces, network topologies, and latency/bandwidth.", ["Clusters", "Message Passing", "Interconnect", "Latency"]),
+            ("04", "Distributed Shared Memory & RPC", "Master Remote Procedure Call (RPC) marshaling/stub generation and Distributed Shared Memory (DSM).", ["RPC", "Stub Generation", "DSM", "Marshalling"])
+        ]
+    },
+    "week12-security": {
+        "title": "Week 12: Operating System Security & Protection",
+        "prev": "../week11-multiprocessors/index.html",
+        "next": "../index.html",
+        "prev_label": "Week 10: Multiprocessors",
+        "next_label": "Course Index",
+        "lead": "Investigate operating system security environments, access control lists, capability lists, hardware protection rings, and vulnerability containment.",
+        "modules": [
+            ("01", "Protection Domains & Access Matrices", "Examine protection domains, access control lists (ACLs), capability lists, and reference monitor design.", ["Protection Domain", "ACL", "Capabilities", "Reference Monitor"]),
+            ("02", "Hardware Protection & Rings", "Master CPU privilege rings (Ring 0 to Ring 3), system call gates, and hardware virtualization separation.", ["Privilege Rings", "System Gate", "Virtualization", "Isolation"]),
+            ("03", "Security Vulnerabilities & Containment", "Analyze buffer overflows, stack smashing, privilege escalation, sandboxing, and modern exploit mitigation.", ["Buffer Overflow", "Stack Smashing", "Sandboxing", "ASLR/DEP"])
+        ]
+    }
+}
 
-INDEX_HTML = r"""<!DOCTYPE html>
+def generate_hub(dir_name, data):
+    folder_path = dir_name
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, "index.html")
+
+    prev_link = f'<a href="{data["prev"]}" class="nav-btn">&larr; {data["prev_label"]}</a>' if data["prev"] else '<span class="nav-btn" style="visibility:hidden;">&larr; Prev</span>'
+    next_link = f'<a href="{data["next"]}" class="nav-btn">{data["next_label"]} &rarr;</a>' if data["next"] else '<span class="nav-btn" style="visibility:hidden;">Next &rarr;</span>'
+
+    modules_html = ""
+    for num, title, desc, tags in data["modules"]:
+        tags_html = "".join([f'<span class="tag">{t}</span>' for t in tags])
+        mod_filename = f"{num.lower()}-{title.lower().replace('&', 'and').replace(' ', '-').replace('--', '-')}.html"
+        modules_html += f"""
+      <!-- Module {num} -->
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module {num}</div>
+          <h2 class="module-title">{title}</h2>
+          <p class="module-desc">{desc}</p>
+          <div class="module-tags">{tags_html}</div>
+        </div>
+        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+      </div>
+"""
+
+    html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>COSC240: Operating Systems &mdash; Course Materials</title>
+  <title>{data['title']} - COSC240</title>
   <style>
-    :root {
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --text: #1e293b;
-      --text-muted: #475569;
+    :root {{
+      --primary: #0f172a;
       --accent: #0284c7;
       --accent-hover: #0369a1;
-      --success: #059669;
-      --warning: #d97706;
-      --danger: #dc2626;
-    }
-    * { box-sizing: border-box; }
-    body {
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --text: #334155;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      margin: 0;
       font-family: var(--font-sans);
-      color: var(--text);
       background: var(--bg);
-      margin: 0;
-      padding: 40px 16px;
+      color: var(--text);
       line-height: 1.6;
-    }
-    .container {
-      max-width: 1060px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 40px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    header {
-      margin-bottom: 32px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    h1 {
-      font-size: 1.95rem;
-      color: #0f172a;
-      margin: 0 0 6px 0;
-    }
-    .subtitle {
-      font-size: 0.98rem;
-      color: var(--text-muted);
-      margin: 0;
-    }
-
-    .curriculum-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-      gap: 20px;
-      margin-top: 24px;
-    }
-    .week-card {
+      padding: 24px;
+    }}
+    .container {{ max-width: 1040px; margin: 0 auto; }}
+    .nav-bar {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: #ffffff;
       border: 1px solid var(--border);
+      padding: 12px 20px;
       border-radius: 8px;
+      margin-bottom: 24px;
+    }}
+    .nav-btn {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+    }}
+    .nav-btn:hover {{ background: #f0f9ff; }}
+    .hero-card {{
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }}
+    .week-tag {{
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }}
+    h1 {{ margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); }}
+    .lead-text {{ margin: 0 0 20px 0; font-size: 1.05rem; color: var(--text); line-height: 1.7; }}
+    .briefing-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }}
+    .briefing-box {{
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }}
+    .briefing-title {{
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }}
+    .briefing-list {{ margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text); }}
+    .briefing-list li {{ margin-bottom: 6px; }}
+    .modules-heading {{
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 28px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }}
+    .modules-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }}
+    .module-card {{
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
       padding: 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .week-card:hover {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }}
+    .module-card:hover {{
       transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.06);
-    }
-    .week-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .week-number {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }}
+    .module-num {{
+      font-size: 0.75rem;
       font-weight: 700;
-      color: #64748b;
+      color: var(--accent);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-    }
-    .status-badge {
-      display: inline-block;
+      margin-bottom: 6px;
+    }}
+    .module-title {{ font-size: 1.15rem; font-weight: 700; color: var(--primary); margin: 0 0 10px 0; }}
+    .module-desc {{ font-size: 0.88rem; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.55; }}
+    .module-tags {{ display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }}
+    .tag {{
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
       padding: 3px 8px;
       border-radius: 4px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .status-badge.complete { background: #dcfce7; color: #166534; }
-    .status-badge.active { background: #e0f2fe; color: #0369a1; }
-    .status-badge.ready { background: #fef3c7; color: #b45309; }
-
-    .week-title {
-      font-size: 1.16rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin: 0 0 8px 0;
-      line-height: 1.35;
-    }
-    .week-desc {
+    }}
+    .launch-btn {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--primary);
+      color: #ffffff;
+      text-decoration: none;
       font-size: 0.88rem;
-      color: var(--text-muted);
-      margin: 0 0 16px 0;
-      line-height: 1.5;
-      flex-grow: 1;
-    }
-    .module-links {
-      list-style: none;
-      padding: 0;
-      margin: 0 0 20px 0;
-      font-size: 0.84rem;
-    }
-    .module-links li {
-      margin-bottom: 8px;
-      padding-left: 14px;
-      position: relative;
-    }
-    .module-links li::before {
-      content: "\2022";
-      position: absolute;
-      left: 0;
-      color: var(--accent);
-      font-weight: bold;
-    }
-    .module-links a {
-      color: #0369a1;
-      text-decoration: none;
       font-weight: 600;
-    }
-    .module-links a:hover {
-      text-decoration: underline;
-    }
-    .week-card-footer {
-      margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid #f1f5f9;
-    }
-    .hub-link {
-      display: block;
-      text-align: center;
-      padding: 9px 14px;
-      background: #f1f5f9;
-      border: 1px solid var(--border);
+      padding: 10px 16px;
       border-radius: 6px;
-      color: #0f172a;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: all 0.15s ease;
-    }
-    .hub-link:hover {
-      background: #0f172a;
-      color: #ffffff;
-      border-color: #0f172a;
-    }
-    .hub-link.primary {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-    }
-    .hub-link.primary:hover {
-      background: var(--accent-hover);
-      border-color: var(--accent-hover);
-    }
+      transition: background 0.15s ease;
+      width: 100%;
+    }}
+    .launch-btn:hover {{ background: var(--accent-hover); }}
+    @media (max-width: 768px) {{
+      .briefing-grid, .modules-grid {{ grid-template-columns: 1fr; }}
+      body {{ padding: 16px; }}
+    }}
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>COSC240: Operating Systems</h1>
-      <p class="subtitle">Interactive Pedagogical Modules &amp; Systems Engineering Curriculum</p>
-    </header>
+    <nav class="nav-bar">
+      {prev_link}
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      {next_link}
+    </nav>
 
-    <div class="curriculum-grid">
-      <!-- Week 1 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 01</span>
-          <span class="status-badge complete">4 Modules</span>
-        </div>
-        <h2 class="week-title">Operating System Concepts &amp; Architecture</h2>
-        <p class="week-desc">
-          The hardware-software interface, system call dispatch mechanisms, dual-mode protection rings, and trap handling.
-        </p>
-        <ul class="module-links">
-          <li><a href="week01-operating-system-concepts/01-what-is-an-os-and-history.html">01. What is an OS &amp; History</a></li>
-          <li><a href="week01-operating-system-concepts/02-hardware-review.html">02. Hardware Review &amp; CPU Modes</a></li>
-          <li><a href="week01-operating-system-concepts/03-os-concepts.html">03. Fundamental OS Concepts</a></li>
-          <li><a href="week01-operating-system-concepts/04-os-structure.html">04. OS Structure &amp; Kernel Models</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week01-operating-system-concepts/index.html" class="hub-link">&#127968; Open Week 1 Hub &rarr;</a>
-        </div>
-      </div>
+    <div class="hero-card">
+      <span class="week-tag">COSC240 &bull; Operating Systems</span>
+      <h1>{data['title']}</h1>
+      <p class="lead-text">
+        {data['lead']}
+      </p>
 
-      <!-- Week 2 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 02</span>
-          <span class="status-badge complete">4 Modules</span>
+      <div class="briefing-grid">
+        <div class="briefing-box">
+          <div class="briefing-title">
+            <span>&#128218;</span> What You Will Learn
+          </div>
+          <ul class="briefing-list">
+            <li>Core architectural mechanics and low-level data structures.</li>
+            <li>Kernel operational states, hardware interrupts, and protection boundaries.</li>
+            <li>Theoretical trade-offs, performance implications, and industry standards.</li>
+          </ul>
         </div>
-        <h2 class="week-title">Processes &amp; Threads</h2>
-        <p class="week-desc">
-          Address space anatomy, Process Control Blocks (PCB), Linux task_struct, lifecycle transitions, and kernel threading models.
-        </p>
-        <ul class="module-links">
-          <li><a href="week02-processes/01-process-model.html">01. The Process Model &amp; Memory Layout</a></li>
-          <li><a href="week02-processes/02-process-lifecycle.html">02. Process Lifecycle &amp; State Transitions</a></li>
-          <li><a href="week02-processes/03-classical-threads.html">03. Classical Thread Concepts</a></li>
-          <li><a href="week02-processes/04-thread-implementation.html">04. Thread Implementation &amp; POSIX APIs</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week02-processes/index.html" class="hub-link">&#127968; Open Week 2 Hub &rarr;</a>
-        </div>
-      </div>
 
-      <!-- Week 3 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 03</span>
-          <span class="status-badge complete">4 Modules</span>
-        </div>
-        <h2 class="week-title">CPU Scheduling &amp; Resource Allocation</h2>
-        <p class="week-desc">
-          Burst distributions, dispatch latency, batch algorithms, multi-level feedback queues (MLFQ), and real-time multiprocessor systems.
-        </p>
-        <ul class="module-links">
-          <li><a href="week03-process-scheduling/01-scheduling-introduction.html">01. Intro to Scheduling (CR3, Latency)</a></li>
-          <li><a href="week03-process-scheduling/02-batch-scheduling.html">02. Batch Scheduling (FCFS, SJF, SRTN, HRRN)</a></li>
-          <li><a href="week03-process-scheduling/03-interactive-scheduling.html">03. Interactive Scheduling (RR, MLFQ, Stride)</a></li>
-          <li><a href="week03-process-scheduling/04-realtime-multiprocessor.html">04. Real-Time &amp; SMP (RMS, EDF, Work Stealing)</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week03-process-scheduling/index.html" class="hub-link">&#127968; Open Week 3 Hub &rarr;</a>
-        </div>
-      </div>
-
-      <!-- Week 4 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 04</span>
-          <span class="status-badge complete">4 Modules</span>
-        </div>
-        <h2 class="week-title">Concurrency &amp; Mutual Exclusion</h2>
-        <p class="week-desc">
-          Race conditions, critical regions, software solutions (Peterson's), hardware atomic instructions (TSL, CAS), and semaphores.
-        </p>
-        <ul class="module-links">
-          <li><a href="week04-concurrency-and-mutual-exclusion/01-race-conditions-critical-regions.html">01. Race Conditions &amp; Critical Regions</a></li>
-          <li><a href="week04-concurrency-and-mutual-exclusion/02-hardware-primitives-spinlocks.html">02. Hardware Primitives &amp; Spinlocks</a></li>
-          <li><a href="week04-concurrency-and-mutual-exclusion/03-semaphores-mutexes-monitors.html">03. Semaphores, Mutexes &amp; Monitors</a></li>
-          <li><a href="week04-concurrency-and-mutual-exclusion/04-classical-synchronization.html">04. Classical Synchronization Problems</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week04-concurrency-and-mutual-exclusion/index.html" class="hub-link">&#127968; Open Week 4 Hub &rarr;</a>
-        </div>
-      </div>
-
-      <!-- Week 5 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 05</span>
-          <span class="status-badge complete">4 Modules</span>
-        </div>
-        <h2 class="week-title">I/O Systems &amp; Disk Scheduling</h2>
-        <p class="week-desc">
-          Device controllers, polling vs. interrupts, Direct Memory Access (DMA), disk geometry, and rotational media arm scheduling.
-        </p>
-        <ul class="module-links">
-          <li><a href="week05-io-and-disk-scheduling/01-io-hardware-device-controllers.html">01. I/O Hardware &amp; Device Controllers</a></li>
-          <li><a href="week05-io-and-disk-scheduling/02-interrupts-and-dma.html">02. Interrupts, APIC &amp; DMA Transfers</a></li>
-          <li><a href="week05-io-and-disk-scheduling/03-disk-hardware-scheduling.html">03. Disk Geometry &amp; Arm Scheduling</a></li>
-          <li><a href="week05-io-and-disk-scheduling/04-raid-architectures.html">04. RAID Storage Architectures</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week05-io-and-disk-scheduling/index.html" class="hub-link">&#127968; Open Week 5 Hub &rarr;</a>
-        </div>
-      </div>
-
-      <!-- Week 6 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 06</span>
-          <span class="status-badge complete">4 Modules</span>
-        </div>
-        <h2 class="week-title">Synchronization &amp; Deadlocks</h2>
-        <p class="week-desc">
-          Semaphores, condition variables, Coffman conditions, Resource Allocation Graphs, and classical deadlock sandboxes.
-        </p>
-        <ul class="module-links">
-          <li><a href="week06-synchronization-and-deadlock/01-concurrency-hazards-livelock-starvation.html">01. Livelock, Starvation &amp; PIP</a></li>
-          <li><a href="week06-synchronization-and-deadlock/02-deadlock-characterization-coffman-conditions.html">02. Coffman Conditions &amp; RAGs</a></li>
-          <li><a href="week06-synchronization-and-deadlock/03-deadlock-handling-bankers-algorithm.html">03. Banker's Algorithm &amp; Prevention</a></li>
-          <li><a href="week06-synchronization-and-deadlock/04-classic-synchronization-real-world-defenses.html">04. Classic Problems &amp; Defenses</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week06-synchronization-and-deadlock/index.html" class="hub-link">&#127968; Open Week 6 Hub &rarr;</a>
-        </div>
-      </div>
-
-      <!-- Week 9 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 09</span>
-          <span class="status-badge complete">15+ Modules &amp; Aids</span>
-        </div>
-        <h2 class="week-title">Memory Management &amp; Virtual Memory</h2>
-        <p class="week-desc">
-          Physical allocation, buddy allocator, address translation, page tables, TLBs, page faults, and replacement algorithms.
-        </p>
-        <ul class="module-links">
-          <li><a href="week09-memory-management/buddy-allocator-tutorial.html">Buddy Allocator Interactive Tutorial</a></li>
-          <li><a href="week09-memory-management/pte-sandbox.html">Page Table Entry (PTE) Sandbox</a></li>
-          <li><a href="week09-memory-management/tlb-sandbox.html">Translation Lookaside Buffer (TLB) Tracer</a></li>
-          <li><a href="week09-memory-management/08-aging-algorithm.html">Page Replacement: Aging Algorithm</a></li>
-          <li><a href="week09-memory-management/wsclock.html">Working Set &amp; WSClock Sandboxes</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week09-memory-management/index.html" class="hub-link">&#127968; Open Week 9 Hub &rarr;</a>
-        </div>
-      </div>
-
-      <!-- Week 10 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 10</span>
-          <span class="status-badge complete">4 Modules</span>
-        </div>
-        <h2 class="week-title">File System Architecture &amp; Implementation</h2>
-        <p class="week-desc">
-          File abstractions, directory hierarchies, Unix inodes, extent trees, free space management, and performance caching.
-        </p>
-        <ul class="module-links">
-          <li><a href="week10-file-management/01-files-abstraction.html">01. The File Abstraction</a></li>
-          <li><a href="week10-file-management/02-directories.html">02. Directories &amp; Hierarchical Paths</a></li>
-          <li><a href="week10-file-management/03-filesystem-implementation.html">03. File System Implementation (Inodes)</a></li>
-          <li><a href="week10-file-management/04-management-optimization.html">04. Reliability, Layout &amp; Optimization</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week10-file-management/index.html" class="hub-link">&#127968; Open Week 10 Hub &rarr;</a>
-        </div>
-      </div>
-
-      <!-- Week 11 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 11</span>
-          <span class="status-badge complete">5 Modules</span>
-        </div>
-        <h2 class="week-title">Multiprocessor Systems &amp; Distributed Computing</h2>
-        <p class="week-desc">
-          SMP cache coherency (MESI), multicomputers, Remote Procedure Calls (RPC), Distributed Shared Memory (DSM), and middleware.
-        </p>
-        <ul class="module-links">
-          <li><a href="week11-multiprocessors/01-multiprocessor-hardware.html">01. Multiprocessor Hardware &amp; Caches</a></li>
-          <li><a href="week11-multiprocessors/02-multiprocessor-scheduling.html">02. Multiprocessor Scheduling &amp; Affinity</a></li>
-          <li><a href="week11-multiprocessors/03-multicomputers-interconnects.html">03. Multicomputers &amp; Interconnects</a></li>
-          <li><a href="week11-multiprocessors/04-rpc-dsm-load-balancing.html">04. Distributed Shared Memory &amp; RPC</a></li>
-          <li><a href="week11-multiprocessors/05-distributed-systems-middleware.html">05. Distributed Systems Middleware</a></li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week11-multiprocessors/index.html" class="hub-link">&#127968; Open Week 11 Hub &rarr;</a>
-        </div>
-      </div>
-
-      <!-- Week 12 -->
-      <div class="week-card">
-        <div class="week-card-header">
-          <span class="week-number">Week 12</span>
-          <span class="status-badge ready">Hub Ready</span>
-        </div>
-        <h2 class="week-title">Operating System Security &amp; Protection</h2>
-        <p class="week-desc">
-          Security environments, access control lists (ACLs), capabilities, protection rings, buffer overflows, and hardware containment.
-        </p>
-        <ul class="module-links">
-          <li><a href="week12-security/index.html">Week 12 Overview &amp; Learning Objectives</a></li>
-          <li>Access Matrix &amp; Protection Domains</li>
-          <li>Security Vulnerabilities &amp; Containment</li>
-        </ul>
-        <div class="week-card-footer">
-          <a href="week12-security/index.html" class="hub-link">&#127968; Open Week 12 Hub &rarr;</a>
+        <div class="briefing-box">
+          <div class="briefing-title">
+            <span>&#9989;</span> What You Should Do
+          </div>
+          <ul class="briefing-list">
+            <li>Review lecture notes and assigned textbook chapters.</li>
+            <li>Explore interactive pedagogical steppers and simulation modules.</li>
+            <li>Complete weekly tutorials, practical lab assignments, and review quizzes.</li>
+          </ul>
         </div>
       </div>
     </div>
+
+    <div class="modules-heading">
+      <span>&#128194;</span> Course Modules &amp; Deep-Dive Texts
+    </div>
+
+    <div class="modules-grid">
+      {modules_html}
+    </div>
+
+    <nav class="nav-bar">
+      {prev_link}
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      {next_link}
+    </nav>
   </div>
 </body>
 </html>
 """
 
-def update_root_index():
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(INDEX_HTML.strip() + "\n")
-    print(f"--> Successfully updated root index at {TARGET_FILE}")
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(html.strip() + "\n")
+    print(f"--> Updated hub index: {file_path}")
+
+def update_all_hubs():
+    for dir_name, data in HUB_TEMPLATES.items():
+        generate_hub(dir_name, data)
 
 def run_git_sync():
     try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+        subprocess.run(["git", "add", "fix.py"] + list(HUB_TEMPLATES.keys()), check=True)
         status = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
         if not status:
             print("--> Working tree is clean. Nothing to commit.")
             return
 
         commit_msg = (
-            "Remove lab links from Week 6 card in root course index\n\n"
-            "Streamline Week 6 card in the root course index by removing standalone\n"
-            "lab links and displaying only modules 01 through 04."
+            "Adopt Week 6 hub card format across all COSC240 weekly indices\n\n"
+            "Standardize Weeks 1 through 12 hub index pages with the responsive\n"
+            "two-column briefing and module grid layout."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -432,5 +430,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_root_index()
+    update_all_hubs()
     run_git_sync()
