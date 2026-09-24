@@ -147,30 +147,30 @@
         Examine the formal mathematical conditions that define system deadlock. Analyze the Four Coffman Conditions, trace Resource Allocation Graphs (RAGs), and evaluate cycle detection algorithms in single-resource and multi-resource topologies.
       </p>
 
-                      <h3>1. Formal Definition of System Deadlock</h3>
-    <p>
-      In operating systems and concurrent computing theory, a <strong>system deadlock</strong> is defined as a permanent blockade state where a set of two or more execution entities (threads or processes) are unable to make forward progress because each entity is waiting for a resource that is currently held by another entity in the set.
-    </p>
+      <h3>1. Formal Definition of System Deadlock</h3>
+      <p>
+        In operating systems and concurrent computing theory, a <strong>system deadlock</strong> is defined as a permanent blockade state where a set of two or more execution entities (threads or processes) are unable to make forward progress because each entity is waiting for a resource that is currently held by another entity in the set.
+      </p>
 
-    <h4>Formal Mathematical Formulation</h4>
-    <p>
-      Let $P = \{P_1, P_2, \dots, P_n\}$ be a finite set of concurrent processes, and let $R = \{R_1, R_2, \dots, R_m\}$ represent the available resource types in the operating system, where each resource type $R_j$ may consist of one or more identical instances.
-    </p>
-    <p>
-      A subset of processes $P' \subset P$ is said to be in a <strong>deadlock state</strong> if and only if every process $P_i \in P'$ is indefinitely waiting for an event that can only be caused by another process $P_k \in P'$ (where $k \neq i$).
-    </p>
+      <h4>Formal Mathematical Formulation</h4>
+      <p>
+        Let $P = \{P_1, P_2, \dots, P_n\}$ be a finite set of concurrent processes, and let $R = \{R_1, R_2, \dots, R_m\}$ represent the available resource types in the operating system, where each resource type $R_j$ may consist of one or more identical instances.
+      </p>
+      <p>
+        A subset of processes $P' \subset P$ is said to be in a <strong>deadlock state</strong> if and only if every process $P_i \in P'$ is indefinitely waiting for an event that can only be caused by another process $P_k \in P'$ (where $k \neq i$).
+      </p>
 
-    <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-      <strong style="color: var(--primary);">Closed-Set Deadlock Condition:</strong>
-      <br><br>
-      $$ \forall P_i \in P', \quad \text{State}(P_i) = \text{BLOCKED} \quad (\text{waiting on resource } R_j \text{ held by } P_k \in P') $$
-    </div>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Closed-Set Deadlock Condition:</strong>
+        <br><br>
+        $$\forall P_i \in P', \quad \text{State}(P_i) = \text{BLOCKED} \quad (\text{waiting on resource } R_j \text{ held by } P_k \in P')$$
+      </div>
 
-    <p>
-      Because every entity in the closed chain is blocked waiting for a predecessor or successor, no process can ever release its currently allocated resources. Consequently, the entire set remains frozen indefinitely unless an external agent intervenes (such as a kernel detection-and-recovery subsystem or a watchdog timer).
-    </p>
+      <p>
+        Because every entity in the closed chain is blocked waiting for a predecessor or successor, no process can ever release its currently allocated resources. Consequently, the entire set remains frozen indefinitely unless an external agent intervenes (such as a kernel detection-and-recovery subsystem or a watchdog timer).
+      </p>
 
-    <h3>2. The Four Coffman Conditions</h3>
+      <h3>2. The Four Coffman Conditions</h3>
       <p>
         In 1971, Edward G. Coffman Jr., Michael J. Elphick, and Arie Shoshani established the foundational theorem proving that a system can enter a deadlocked state if and only if <strong>all four of the following conditions occur simultaneously</strong>:
       </p>
@@ -196,57 +196,154 @@
         The Coffman conditions are <strong>necessary</strong> for deadlock (every deadlock exhibits all four), but depending on resource multiplicity, circular wait is only sometimes <strong>sufficient</strong>. In systems with multiple identical units per resource type, a cycle in the resource allocation graph is a necessary condition for deadlock, but not always sufficient.
       </div>
 
-          <h3>3. Resource Allocation Graphs (RAGs) &amp; Cycle Detection</h3>
-    <p>
-      To formally analyze and detect system deadlocks algorithmically, operating systems frequently model resource state as a directed graph known as a <strong>Resource Allocation Graph (RAG)</strong>. Invented by Holt (1972), RAGs provide a rigorous graphical and topological framework to visualize process dependencies and evaluate deadlock existence in real time.
-    </p>
+      <h3>3. Resource Allocation Graphs (RAGs) &amp; Cycle Detection</h3>
+      <p>
+        To formally analyze and detect system deadlocks algorithmically, operating systems frequently model resource state as a directed graph known as a <strong>Resource Allocation Graph (RAG)</strong>. Invented by Holt (1972), RAGs provide a rigorous graphical and topological framework to visualize process dependencies and evaluate deadlock existence in real time.
+      </p>
 
-    <h4>1. Formal Graph Structure &amp; Vertex Types</h4>
-    <p>
-      Mathematically, a Resource Allocation Graph is defined as a directed graph $G = (V, E)$ where the vertex set $V$ is partitioned into two disjoint subsets representing processes and resources:
-    </p>
-    <ul>
-      <li>
-        <strong>Process Vertices ($P$):</strong> Represented as circles ($P_1, P_2, \dots, P_n$). These denote active execution entities competing for system resources.
-      </li>
-      <li>
-        <strong>Resource Vertices ($R$):</strong> Represented as rectangular boxes ($R_1, R_2, \dots, R_m$). Each resource box may contain one or more black dots (tokens) representing identical available instances of that resource type.
-      </li>
-    </ul>
-
-    <h4>2. Directed Edge Semantics</h4>
-    <p>
-      The edge set $E$ consists of two distinct directed edge types that capture runtime allocation and waiting states:
-    </p>
-    <ul>
-      <li>
-        <strong>Request Edge ($P_i \to R_j$):</strong> A directed edge originating from process $P_i$ and pointing to resource type $R_j$. This signifies that process $P_i$ has requested an instance of resource $R_j$ and is currently blocked waiting for allocation.
-      </li>
-      <li>
-        <strong>Assignment Edge ($R_j \to P_i$):</strong> A directed edge originating from a specific resource instance within box $R_j$ and pointing to process $P_i$. This signifies that an instance of resource $R_j$ has been allocated to process $P_i$.
-      </li>
-    </ul>
-
-    <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-      <strong style="color: var(--primary);">Graph Reduction &amp; Deadlock Theorems:</strong>
-      <br><br>
+      <h4>1. Formal Graph Structure &amp; Vertex Types</h4>
+      <p>
+        Mathematically, a Resource Allocation Graph is defined as a directed graph $G = (V, E)$ where the vertex set $V$ is partitioned into two disjoint subsets representing processes and resources:
+      </p>
       <ul>
-        <li><strong>Single-Instance Theorem:</strong> If a resource allocation graph contains <em>only single-instance resource types</em>, then a directed cycle in the graph is a <strong>necessary and sufficient condition</strong> for deadlock.</li>
-        <li><strong>Multi-Instance Theorem:</strong> If resource types contain multiple instances, a cycle is a <em>necessary</em> condition for deadlock, but <em>not sufficient</em>, because other non-deadlocked processes may release instances to break the wait chain.</li>
+        <li>
+          <strong>Process Vertices ($P$):</strong> Represented as circles ($P_1, P_2, \dots, P_n$). These denote active execution entities competing for system resources.
+        </li>
+        <li>
+          <strong>Resource Vertices ($R$):</strong> Represented as rectangular boxes ($R_1, R_2, \dots, R_m$). Each resource box may contain one or more black dots (tokens) representing identical available instances of that resource type.
+        </li>
       </ul>
-    </div>
 
-    <h4>3. Algorithmic Cycle Detection (Python Implementation)</h4>
-    <p>
-      Operating systems kernels implement cycle detection algorithms (such as Depth-First Search with recursion stack tracking) to inspect RAG adjacency lists periodically. Below is a complete, syntax-highlighted Python module demonstrating directed graph representation and cycle detection:
-    </p>
+      <h4>2. Directed Edge Semantics</h4>
+      <p>
+        The edge set $E$ consists of two distinct directed edge types that capture runtime allocation and waiting states:
+      </p>
+      <ul>
+        <li>
+          <strong>Request Edge ($P_i \to R_j$):</strong> A directed edge originating from process $P_i$ and pointing to resource type $R_j$. This signifies that process $P_i$ has requested an instance of resource $R_j$ and is currently blocked waiting for allocation.
+        </li>
+        <li>
+          <strong>Assignment Edge ($R_j \to P_i$):</strong> A directed edge originating from a specific resource instance within box $R_j$ and pointing to process $P_i$. This signifies that an instance of resource $R_j$ has been allocated to process $P_i$.
+        </li>
+      </ul>
 
-    <!-- Syntax Highlighted Code Box -->
-    <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border);">
-      <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
-        python &bull; rag_detector.py
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Graph Reduction &amp; Deadlock Theorems:</strong>
+        <br><br>
+        <ul>
+          <li><strong>Single-Instance Theorem:</strong> If a resource allocation graph contains <em>only single-instance resource types</em>, then a directed cycle in the graph is a <strong>necessary and sufficient condition</strong> for deadlock.</li>
+          <li><strong>Multi-Instance Theorem:</strong> If resource types contain multiple instances, a cycle is a <em>necessary</em> condition for deadlock, but <em>not sufficient</em>, because other non-deadlocked processes may release instances to break the wait chain.</li>
+        </ul>
       </div>
-      <pre style="margin: 0; line-height: 1.5;"><span style="color: #94a3b8;">#!/usr/bin/env python3</span>
+
+      <!-- ================================================================= -->
+      <!-- INTERACTIVE PEDAGOGICAL AID: RAG SIMULATION STEPPER WIDGET        -->
+      <!-- ================================================================= -->
+      <div class="aid-wrapper">
+        <div class="aid-header">Interactive Walkthrough: RAG Construction &amp; Cycle Detection</div>
+        <div class="aid-subtitle">Trace step-by-step how Resource Allocation Graph edges form dependency chains and trigger cycle detection.</div>
+
+        <div class="aid-grid">
+          <div class="controls-panel">
+            <div class="preview-box" id="preview-text">
+              <strong>Step 1: Mutual Exclusion &amp; Hold-and-Wait.</strong> Process P1 acquires Resource R1 non-shareably and requests Resource R2.
+            </div>
+
+            <div class="stepper-btns">
+              <button class="step-btn" id="prev-btn" onclick="changeStep(-1)" disabled>&larr; Prev</button>
+              <button class="step-btn" id="next-btn" onclick="changeStep(1)">Next &rarr;</button>
+              <button class="step-btn" onclick="resetStepper()" style="background:#64748b;">Reset</button>
+            </div>
+
+            <div class="telemetry-bar" id="telemetry-bar">
+              PHASE: 1/4 | RAG_EDGES: P1&rarr;R2, R1&rarr;P1 | CYCLE: None | STATE: Safe
+            </div>
+
+            <div class="toggle-bar">
+              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">TOPOLOGY:</span>
+              <button class="toggle-btn active" onclick="setTopology('single')">Single-Instance</button>
+              <button class="toggle-btn" onclick="setTopology('multi')">Multi-Instance</button>
+            </div>
+          </div>
+
+          <div class="visual-canvas">
+            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 8px; color: var(--primary);">Synchronized Visual Canvas &mdash; RAG State</div>
+
+            <!-- SVG Step Graphics -->
+            <div id="step-1-gfx" style="display:block;">
+              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
+                <circle cx="70" cy="80" r="22" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                <text x="70" y="85" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">P1</text>
+                <rect x="180" y="65" width="40" height="30" rx="4" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+                <text x="200" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">R1</text>
+                <line x1="92" y1="75" x2="178" y2="75" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+                <text x="135" y="68" fill="#0284c7" font-size="9">Req</text>
+              </svg>
+            </div>
+
+            <div id="step-2-gfx" style="display:none;">
+              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
+                <circle cx="70" cy="50" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                <text x="70" y="54" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P1</text>
+                <circle cx="70" cy="110" r="18" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+                <text x="70" y="114" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P2</text>
+                <rect x="180" y="65" width="40" height="30" rx="4" fill="#1e293b" stroke="#fbbf24" stroke-width="2"/>
+                <text x="200" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">R2</text>
+                <line x1="88" y1="55" x2="178" y2="72" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+                <line x1="88" y1="105" x2="178" y2="88" stroke="#d97706" stroke-width="2" marker-end="url(#arrow)"/>
+              </svg>
+            </div>
+
+            <div id="step-3-gfx" style="display:none;">
+              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
+                <circle cx="60" cy="80" r="18" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
+                <text x="60" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P1</text>
+                <circle cx="220" cy="80" r="18" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
+                <text x="220" y="84" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">P2</text>
+                <rect x="125" y="30" width="30" height="24" rx="3" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
+                <text x="140" y="46" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">R1</text>
+                <rect x="125" y="110" width="30" height="24" rx="3" fill="#1e293b" stroke="#dc2626" stroke-width="2"/>
+                <text x="140" y="126" fill="#fff" font-size="10" font-weight="bold" text-anchor="middle">R2</text>
+                <line x1="75" y1="70" x2="125" y2="45" stroke="#dc2626" stroke-width="2"/>
+                <line x1="155" y1="45" x2="205" y2="70" stroke="#dc2626" stroke-width="2"/>
+                <line x1="205" y1="90" x2="155" y2="115" stroke="#dc2626" stroke-width="2"/>
+                <line x1="125" y1="115" x2="75" y2="90" stroke="#dc2626" stroke-width="2"/>
+              </svg>
+            </div>
+
+            <div id="step-4-gfx" style="display:none;">
+              <svg viewBox="0 0 280 160" style="width:100%; height:140px;">
+                <rect x="40" y="50" width="200" height="60" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+                <text x="140" y="75" fill="#dc2626" font-size="12" font-weight="bold" text-anchor="middle">DEADLOCK DETECTED</text>
+                <text x="140" y="92" fill="#7f1d1d" font-size="10" text-anchor="middle">Cycle = Deadlock (Single-Instance)</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="panes-grid">
+          <div class="pane-box" style="border-left: 3px solid var(--success);">
+            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
+            <div id="pane-what" style="color: var(--text);">Process P1 acquires R1 and requests R2, establishing mutual exclusion and hold-and-wait semantics.</div>
+          </div>
+          <div class="pane-box" style="border-left: 3px solid var(--accent);">
+            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
+            <div id="pane-why" style="color: var(--text);">Hardware peripherals and database rows require exclusive locks to prevent data corruption during concurrent modification.</div>
+          </div>
+        </div>
+      </div>
+
+      <h4>3. Algorithmic Cycle Detection (Python Implementation)</h4>
+      <p>
+        Operating systems kernels implement cycle detection algorithms (such as Depth-First Search with recursion stack tracking) to inspect RAG adjacency lists periodically. Below is a complete, syntax-highlighted Python module demonstrating directed graph representation and cycle detection:
+      </p>
+
+      <!-- Syntax Highlighted Code Box -->
+      <div style="background: #0f172a; color: #f8fafc; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; overflow-x: auto; margin: 20px 0; border: 1px solid var(--border);">
+        <div style="color: #64748b; margin-bottom: 10px; font-size: 0.78rem; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+          python &bull; rag_detector.py
+        </div>
+        <pre style="margin: 0; line-height: 1.5;"><span style="color: #94a3b8;">#!/usr/bin/env python3</span>
 <span style="color: #c084fc;">class</span> <span style="color: #6ee7b7;">ResourceAllocationGraph</span>:
     <span style="color: #c084fc;">def</span> <span style="color: #60a5fa;">__init__</span>(<span style="color: #f43f5e;">self</span>):
         <span style="color: #f43f5e;">self</span>.adjacency_list = {}
@@ -287,6 +384,8 @@
     rag.add_edge(<span style="color: #34d399;">"R2"</span>, <span style="color: #34d399;">"P1"</span>)
 
     <span style="color: #c084fc;">print</span>(<span style="color: #34d399;">"Deadlock Detected:"</span>, rag.contains_deadlock())</pre>
+      </div>
+
     </div>
 
     <nav class="nav-bar">
