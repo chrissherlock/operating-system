@@ -3,153 +3,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 10: File Management — COSC240</title>
+  <title>Week 10: File Management | COSC240</title>
   <style>
     :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border: #cbd5e1;
-      --border-dark: #94a3b8;
+      --text: #1e293b;
+      --text-muted: #475569;
       --accent: #0284c7;
       --accent-hover: #0369a1;
-      --text: #0f172a;
-      --text-muted: #475569;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --success: #059669;
+      --warning: #d97706;
+      --danger: #dc2626;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     body {
-      background-color: var(--bg);
+      font-family: var(--font-sans);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 18px;
+      background: var(--bg);
+      margin: 0;
+      padding: 40px 16px;
+      line-height: 1.6;
     }
-    header { text-align: center; max-width: 900px; }
-    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 6px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.95rem; }
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      width: 100%;
-      max-width: 1100px;
-    }
-    .card {
-      background-color: var(--card-bg);
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 20px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .nav-bar {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      transition: transform 0.15s ease, border-color 0.15s ease;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
     }
-    .card:hover {
-      border-color: var(--accent);
-    }
-    .card h2 {
-      font-size: 1.2rem;
-      color: var(--accent);
-    }
-    .card p {
-      font-size: 0.92rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .card a {
+    .nav-bar a {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-decoration: none;
-      color: var(--accent);
-      margin-top: 6px;
-    }
-    .card a:hover {
-      text-decoration: underline;
-    }
-    .nav-back {
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto 16px auto;
-      padding: 0 4px;
-      display: flex;
-    }
-    .nav-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      text-decoration: none;
-      color: #0284c7;
-      background-color: #f0f9ff;
-      border: 1px solid #bae6fd;
       padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
       border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
       transition: background-color 0.15s ease, color 0.15s ease;
     }
-    .nav-back a:hover {
-      background-color: #0284c7;
+    .nav-bar a:hover {
+      background-color: #0f172a;
       color: #ffffff;
     }
+    h1 {
+      font-size: 1.85rem;
+      color: #0f172a;
+      margin: 0 0 6px 0;
+    }
+    .subtitle {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin: 0 0 24px 0;
+    }
+    .lead-card {
+      background: #f0f9ff;
+      border-left: 4px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 6px 6px 0;
+      margin-bottom: 32px;
+      font-size: 0.92rem;
+      color: #0369a1;
+    }
+    .lead-card strong { color: #0f172a; }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .module-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .module-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+    }
+    .module-num {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .module-title {
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 8px 0;
+      line-height: 1.35;
+    }
+    .module-desc {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      margin: 0 0 16px 0;
+      line-height: 1.5;
+      flex-grow: 1;
+    }
+    .btn-module {
+      display: block;
+      text-align: center;
+      padding: 8px 14px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #0f172a;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.84rem;
+      transition: all 0.15s ease;
+    }
+    .btn-module:hover {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
   </style>
-  <!-- MathJax Configuration for LaTeX Rendering -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)',
-        displayMath: [['$$', '$$'], ['\\[', '\\]'
-      }
-    };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-  <div class="nav-back">
-    <a href="../index.html">&#127968; Back to Course Overview</a>
-  </div>
-  <header>
-    <h1>Week 10: File Management</h1>
-    <p class="subtitle">Tanenbaum Chapter 4: Files, Directories, Implementation, and System Optimization.</p>
-  </header>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="../index.html">&#127968; Course Index</a>
+      <a href="../week09-memory-management/index.html">&larr; Week 9 Hub</a>
+      <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Week 10: File Systems</span>
+      <a href="../week11-multiprocessors/index.html">Next: Week 11 Hub &rarr;</a>
+    </nav>
 
-  <div class="main-container">
+    <h1>Week 10: File System Architecture &amp; Implementation</h1>
+    <p class="subtitle">File Abstractions, Directory Paths, Inodes, Block Allocation, and Buffer Cache Optimization</p>
 
-    <!-- Module 1 -->
-    <div class="card">
-      <h2>01. Files &amp; Naming Abstractions</h2>
-      <p>Explore fundamental file abstractions, naming rules, structure types, sequential/random access models, attributes, and common POSIX system calls.</p>
-      <a href="01-files-abstraction.html">Launch Module &rarr;</a>
+    <div class="lead-card">
+      <strong>Core Conceptual Shift:</strong> Raw storage disks understand only linear block sectors (`LBA 0...N`). File systems transform these raw byte sectors into human-readable hierarchical namespaces with persistent metadata, crash-resistant indexing structures (inodes and extents), and high-performance buffer caches.
     </div>
 
-    <!-- Module 2 -->
-    <div class="card">
-      <h2>02. Directories &amp; Hierarchical Layouts</h2>
-      <p>Examine single-level vs. hierarchical directory structures, absolute and relative path resolution, and directory management system calls.</p>
-      <a href="02-directories.html">Launch Module &rarr;</a>
-    </div>
+    <div class="module-grid">
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 01</div>
+          <h2 class="module-title">The File Abstraction &amp; APIs</h2>
+          <p class="module-desc">
+            Byte streams, file types, access modes, file descriptors, file position offsets, and POSIX file system call mechanics.
+          </p>
+        </div>
+        <a href="01-files-abstraction.html" class="btn-module">Open Module 01 &rarr;</a>
+      </div>
 
-    <!-- Module 3 -->
-    <div class="card">
-      <h2>03. File-System Implementation</h2>
-      <p>Analyze disk layouts, superblock structures, allocation strategies (contiguous, FAT, i-nodes), shared links, journaling, and virtual file systems (VFS).</p>
-      <a href="03-filesystem-implementation.html">Launch Module &rarr;</a>
-    </div>
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 02</div>
+          <h2 class="module-title">Directories &amp; Path Resolution</h2>
+          <p class="module-desc">
+            Hierarchical directory entries, linear directories, B-Tree lookups, hard links vs. symbolic links, and path traversal.
+          </p>
+        </div>
+        <a href="02-directories.html" class="btn-module">Open Module 02 &rarr;</a>
+      </div>
 
-    <!-- Module 4 -->
-    <div class="card">
-      <h2>04. Management &amp; Optimization</h2>
-      <p>Study disk-space management, free-space bitmaps, backup policies, consistency checking (fsck), caching performance, and disk defragmentation.</p>
-      <a href="04-management-optimization.html">Launch Module &rarr;</a>
-    </div>
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 03</div>
+          <h2 class="module-title">File System Implementation &amp; Inodes</h2>
+          <p class="module-desc">
+            Contiguous allocation, linked lists (FAT), Unix multi-level direct/indirect index nodes (inodes), and extents.
+          </p>
+        </div>
+        <a href="03-filesystem-implementation.html" class="btn-module">Open Module 03 &rarr;</a>
+      </div>
 
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 04</div>
+          <h2 class="module-title">Layout, Free Space &amp; Optimization</h2>
+          <p class="module-desc">
+            Block size trade-offs, free space bitmaps, disk defragmentation, page cache read-ahead, and synchronous write flush policies.
+          </p>
+        </div>
+        <a href="04-management-optimization.html" class="btn-module">Open Module 04 &rarr;</a>
+      </div>
+    </div>
   </div>
 </body>
 </html>
