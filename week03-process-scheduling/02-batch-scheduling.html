@@ -135,9 +135,9 @@
     <p>
       In general-purpose systems, future CPU burst durations cannot be known in advance. The operating system estimates the next burst length by calculating an exponential moving average of past behavior:
     </p>
-    <pre><code>tau_{n+1} = alpha * t_n + (1 - alpha) * tau_n</code></pre>
+    <pre><code>&tau;<sub><i>n</i>+1</sub> = &alpha;<i>t</i><sub><i>n</i></sub> + (1 &minus; &alpha;)&tau;<sub><i>n</i></sub></code></pre>
     <p>
-      Here, <code>t_n</code> is the length of the most recent actual burst, <code>tau_n</code> is the past predicted value, and <code>alpha</code> (typically 0.5) balances the weight of recent history against older historical trends.
+      Here, <code><i>t</i><sub><i>n</i></sub></code> is the length of the most recent actual burst, <code>&tau;<sub><i>n</i></sub></code> is the past predicted value, and <code>&alpha;</code> (typically 0.5) balances the weight of recent history against older historical trends.
     </p>
 
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">

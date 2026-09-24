@@ -617,18 +617,18 @@
     <h4>Formal Scheduling Performance Metrics</h4>
     <ul>
       <li>
-        <strong>Turnaround Time ($T_{\text{turnaround}}$):</strong> The total elapsed time between a job's submission/arrival and its final completion:
-        <pre><code>T_turnaround = T_completion - T_arrival</code></pre>
+        <strong>Turnaround Time (<i>T</i><sub>turnaround</sub>):</strong> The total elapsed time between a job's submission/arrival and its final completion:
+        <pre><code><i>T</i><sub>turnaround</sub> = <i>T</i><sub>completion</sub> &minus; <i>T</i><sub>arrival</sub></code></pre>
         This metric includes time spent waiting in the ready queue, context switching overhead, executing on the CPU, and waiting on I/O. Minimizing turnaround time is the primary goal of batch systems.
       </li>
       <li>
-        <strong>Waiting Time ($T_{\text{wait}}$):</strong> The total time a process spends waiting in the Ready queue ready to execute, but unable to acquire a physical core:
-        <pre><code>T_wait = T_turnaround - T_burst</code></pre>
-        (where $T_{\text{burst}}$ is the actual time spent running CPU instructions).
+        <strong>Waiting Time (<i>T</i><sub>wait</sub>):</strong> The total time a process spends waiting in the Ready queue ready to execute, but unable to acquire a physical core:
+        <pre><code><i>T</i><sub>wait</sub> = <i>T</i><sub>turnaround</sub> &minus; <i>T</i><sub>burst</sub></code></pre>
+        (where <i>T</i><sub>burst</sub> is the actual time spent running CPU instructions).
       </li>
       <li>
-        <strong>Response Time ($T_{\text{response}}$):</strong> The elapsed duration from when a process becomes runnable to when it produces its very first observable execution response:
-        <pre><code>T_response = T_first_execution - T_arrival</code></pre>
+        <strong>Response Time (<i>T</i><sub>response</sub>):</strong> The elapsed duration from when a process becomes runnable to when it produces its very first observable execution response:
+        <pre><code><i>T</i><sub>response</sub> = <i>T</i><sub>first_execution</sub> &minus; <i>T</i><sub>arrival</sub></code></pre>
         In interactive systems, response time is far more important than turnaround time; users expect immediate tactile feedback (within 16 to 50 ms) even if the underlying background task requires several minutes to complete.
       </li>
       <li>
