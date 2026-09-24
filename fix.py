@@ -1,589 +1,176 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create Module 01 on Physical Address Spaces & Monoprogramming
+# fix.py: Deeply expand Memory Fragmentation in Week 7 Module 01
 # =====================================================================
 import os
 import subprocess
 
-TARGET_DIR = "week07-memory-management-virtual-memory"
-TARGET_FILE = os.path.join(TARGET_DIR, "01-physical-memory-abstractions.html")
+TARGET_FILE = os.path.join(
+    "week07-memory-management-virtual-memory",
+    "01-physical-memory-abstractions.html"
+)
 
-MODULE_ONE_CONTENT = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 01: Physical Address Spaces &amp; Monoprogramming - COSC240</title>
-  <style>
-    :root {
-      --primary: #0f172a;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --border: #e2e8f0;
-      --card-bg: #ffffff;
-      --text: #334155;
-      --text-muted: #64748b;
-      --bg: #f8fafc;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #d97706;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding: 24px;
-    }
-    .container { max-width: 1040px; margin: 0 auto; }
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-    }
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background 0.15s ease;
-    }
-    .nav-btn:hover { background: #f0f9ff; }
-    .content-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-      margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
-    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    h4 { font-size: 1.05rem; color: var(--primary); margin-top: 20px; }
-    p, li { font-size: 0.95rem; color: var(--text); }
-    .math-callout {
-      background: #f8fafc;
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 18px 0;
-      font-size: 0.92rem;
-    }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      margin: 16px 0;
-    }
-    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
-    pre code { background: none; padding: 0; color: inherit; }
-
-    /* Interactive Pedagogical Aid Styles */
-    .aid-wrapper {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-      margin: 28px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
-    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
-    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.86rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; height: 150px; max-height: 150px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
-    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
-    .step-btn {
-      flex: 1;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .step-btn:hover { background: var(--accent); }
-    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.75rem; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
-    .visual-canvas { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 240px; }
-    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
-    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .toggle-bar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-    .toggle-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
-    .toggle-btn.active { background: #e0f2fe; color: var(--accent); border-color: #bae6fd; }
-    @media (max-width: 768px) {
-      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
-      body { padding: 16px; }
-    }
-  </style>
-  <!-- KaTeX CSS & JS CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
-</head>
-<body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="index.html" class="nav-btn">&larr; Week 7 Hub</a>
-      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="02-dynamic-partitioning-free-lists.html" class="nav-btn">Module 02 &rarr;</a>
-    </nav>
-
-    <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 01 &bull; COSC240</span>
-      <h1>Physical Address Spaces &amp; Monoprogramming</h1>
-      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Trace the historical evolution of computer memory management from bare-metal monoprogramming without abstractions to hardware-assisted relocation and bounds protection using base and limit registers.
+FRAGMENTATION_EXPANSION = r"""      <h3>5. Memory Fragmentation: Internal vs. External</h3>
+      <p>
+        In any dynamic storage allocation system, memory fragmentation is the inevitable systemic inefficiency that arises as processes are allocated, expanded, and released over time. Understanding the exact mechanical distinction between <strong>Internal Fragmentation</strong> and <strong>External Fragmentation</strong> is fundamental to OS memory architecture.
       </p>
 
-      <h3>1. Bare-Metal Execution &amp; The Monoprogramming Era</h3>
+      <h4>1. Internal Fragmentation: Allocation Quantum Slack</h4>
       <p>
-        In the earliest digital computers—ranging from the vacuum-tube mainframes of the 1950s (such as the IBM 704 and 7094) to early personal computers running CP/M and MS-DOS—operating systems provided <strong>no memory abstraction</strong> whatsoever. Every program accessed raw physical memory directly.
-      </p>
-      <p>
-        When a compiler emitted an instruction such as:
-      </p>
-      <pre><code>MOV [0x1200], AX    ; Direct physical memory write
-JMP 0x4000          ; Direct jump to physical memory address 0x4000</code></pre>
-      <p>
-        The value <code>0x1200</code> or <code>0x4000</code> was placed directly onto the processor's hardware address bus pins. The hardware RAM circuit responded directly to these physical voltage lines.
-      </p>
-
-      <h4>Historical Physical Memory Layouts</h4>
-      <p>
-        Under a monoprogrammed operating system, only a single user program runs at any given moment. Memory was divided into at most two contiguous partitions: the operating system routines and the user program:
-      </p>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 20px 0;">
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-          <strong style="color: var(--primary); font-size: 0.95rem;">Model A: OS in ROM at Bottom</strong>
-          <p style="font-size: 0.85rem; color: var(--text); margin-top: 8px;">
-            Common in embedded controllers and early palmtop computers. The operating system resides in Read-Only Memory at low physical memory ($0 \times 0000$), while user RAM starts immediately above.
-          </p>
-        </div>
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-          <strong style="color: var(--primary); font-size: 0.95rem;">Model B: OS in RAM at Top</strong>
-          <p style="font-size: 0.85rem; color: var(--text); margin-top: 8px;">
-            The canonical MS-DOS model on the IBM PC. User applications start at low physical memory (offset <code>0x0100</code> for <code>.COM</code> executables), while the operating system and device drivers sit at the top of conventional 640 KB memory.
-          </p>
-        </div>
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
-          <strong style="color: var(--primary); font-size: 0.95rem;">Model C: OS in Low RAM with ROM Drivers</strong>
-          <p style="font-size: 0.85rem; color: var(--text); margin-top: 8px;">
-            Early minicomputer systems (PDP-11). Device drivers and BIOS reside in high ROM addresses, the kernel resides in low RAM, and user space occupies the middle band.
-          </p>
-        </div>
-      </div>
-
-      <p>
-        <strong>The Fundamental Failure of Monoprogramming:</strong> Because user code could write to any physical address, a stray pointer or rogue instruction could overwrite kernel interrupt vectors or device tables, instantly freezing the machine. Furthermore, CPU utilization was dismal: whenever the running application waited for punch card readers, magnetic tape, or disk I/O, the processor sat completely idle.
-      </p>
-
-      <h3>2. Multiprogramming via Static Relocation &amp; Linkage</h3>
-      <p>
-        To maximize CPU efficiency, operating systems needed to keep multiple programs resident in physical memory simultaneously. If Process $A$ blocked for I/O, the CPU could switch immediately to Process $B$.
-      </p>
-      <p>
-        However, if multiple programs are loaded concurrently, they cannot all occupy physical address <code>0x0000</code>. Consider two independently compiled binaries that both execute <code>JMP 0x1000</code>. If Process $B$ is loaded at physical address <code>0x8000</code>, its internal jump instruction must somehow jump to <code>0x9000</code> instead.
-      </p>
-
-      <h4>Static Software Relocation</h4>
-      <p>
-        Early systems solved this via <strong>static relocation</strong> during program loading (the IBM System/360 approach):
-      </p>
-      <ul>
-        <li>The compiler produces relocatable machine code accompanied by a <em>relocation dictionary</em> identifying every absolute address reference.</li>
-        <li>When the OS loader decides to load Process $B$ starting at physical address $L = \text{0x8000}$, the loader physically modifies the binary in RAM, adding offset $L$ to every jump and memory reference.</li>
-      </ul>
-      <p>
-        <strong>Limitations of Static Relocation:</strong>
-      </p>
-      <ol>
-        <li><strong>High Load Latency:</strong> Loading an application requires parsing and rewriting thousands of memory words.</li>
-        <li><strong>Immobility:</strong> Once loaded, a process cannot be easily swapped out to disk and returned to a different physical memory address without re-patching every pointer.</li>
-        <li><strong>Zero Protection:</strong> Process $A$ can still forge an address pointing into Process $B$'s memory space and corrupt its data.</li>
-      </ol>
-
-      <h3>3. Dynamic Hardware Relocation: Base &amp; Limit Registers</h3>
-      <p>
-        The breakthrough that enabled true, secure multiprogramming was <strong>dynamic hardware relocation</strong>, pioneered on computers such as the CDC 6600 and the GE-645.
-      </p>
-      <p>
-        Instead of modifying instructions at load time, the CPU incorporates two dedicated hardware registers into its execution pipeline: the <strong>Base Register</strong> and the <strong>Limit Register</strong> (also called the relocation and protection registers).
+        <strong>Internal fragmentation</strong> occurs when memory is assigned in fixed-size allocation quanta or granularity blocks (such as fixed partition slots, power-of-two blocks in buddy allocators, or 4 KB paging frames). When an application's requested memory footprint does not align perfectly with the hardware or allocator's unit size, the system must round up to the nearest whole block.
       </p>
 
       <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">Hardware Relocation Invariant:</strong>
+        <strong style="color: var(--primary);">Mathematical Definition of Internal Slack:</strong>
         <br><br>
-        $$ \text{Physical Address} = \text{Logical (Virtual) Address} + \text{Base} $$
-        $$ \text{Hardware Bounds Check: } 0 \le \text{Logical Address} < \text{Limit} $$
+        Let $S$ be the fixed allocation block size, and let $R$ be the requested payload size ($R > 0$). The allocated memory $A$ and internal slack $W_{\text{internal}}$ are given by:
+        $$ A = \lceil R / S \rceil \times S $$
+        $$ W_{\text{internal}} = A - R $$
       </div>
 
       <p>
-        Under this architecture, every program is compiled as if it owns an isolated address space starting at virtual address $0$. The CPU pipeline transparently translates every memory reference in real time:
+        Because this slack space lies <em>inside</em> the boundary of an allocated region, the kernel's memory allocator cannot assign it to any other process. It remains completely unusable for the entire lifetime of the process.
+      </p>
+
+      <h5>Statistical Expectation: The Half-Block Rule</h5>
+      <p>
+        If process payload requests $R$ are uniformly distributed across the interval $(k \cdot S, (k + 1) \cdot S]$, the expected amount of internal fragmentation per allocated segment is exactly half a block:
+      </p>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--primary);">
+        $$ \mathbb{E}[W_{\text{internal}}] = \frac{1}{S} \int_0^S (S - x) \, dx = \frac{S}{2} $$
+      </div>
+      <p>
+        In a system with $N$ active allocations and a 4 KB allocation granularity ($S = 4096$), the kernel wastes approximately $N \times 2048$ bytes of physical RAM simply through internal block rounding.
+      </p>
+
+      <h4>2. External Fragmentation: Checkerboard Hole Formation</h4>
+      <p>
+        <strong>External fragmentation</strong> emerges in variable-sized contiguous allocation schemes (such as dynamic partitioning with Base and Limit registers). As processes of varying sizes enter and terminate at arbitrary times, free contiguous memory is fragmented into a scattered collection of small, non-contiguous "holes."
+      </p>
+      <p>
+        A system suffers from external fragmentation when the <strong>sum total of all free memory holes is sufficient</strong> to satisfy a process allocation request, but <strong>no single contiguous hole is large enough</strong> to hold the process.
+      </p>
+
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--danger);">
+        <strong style="color: var(--danger);">External Fragmentation Condition:</strong>
+        <br><br>
+        $$ \sum_{k=1}^{M} \text{Size}(\text{Hole}_k) \ge \text{RequestedSize} \quad \land \quad \max_{1 \le k \le M} \big(\text{Size}(\text{Hole}_k)\big) < \text{RequestedSize} $$
+      </div>
+
+      <h5>Knuth's 50% Rule of Allocation</h5>
+      <p>
+        In <em>The Art of Computer Programming</em> (Vol. 1), Donald Knuth proved a fundamental statistical theorem governing contiguous dynamic storage allocation under steady-state conditions:
+      </p>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Knuth's 50% Rule:</strong>
+        <br><br>
+        $$ M \approx \frac{1}{2} N $$
+        <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
+          In steady state, if $N$ blocks are actively allocated, the number of isolated free holes $M$ tends asymptotically toward $N / 2$, regardless of whether First-Fit or Best-Fit allocation is used.
+        </p>
+      </div>
+      <p>
+        <strong>Consequence:</strong> If each hole is approximately the same average size as an allocated block, approximately <strong>one-third of all physical memory is rendered unusable</strong> due to external fragmentation:
+        $$ \text{Fraction of Memory in Holes} \approx \frac{M}{N + M} = \frac{0.5 N}{N + 0.5 N} = \frac{0.5}{1.5} \approx 33.3\% $$
+
+      <h4>3. Resolving External Fragmentation: Memory Compaction</h4>
+      <p>
+        To reclaim checkerboarded free memory in a contiguous system, the operating system must execute <strong>Memory Compaction</strong> (relocation defragmentation). The kernel shifts all active processes toward one end of physical memory (usually toward address $0$), coalescing all isolated holes into a single contiguous pool.
+      </p>
+
+      <h5>Compaction Mechanics &amp; Algorithms</h5>
+      <ul>
+        <li>
+          <strong>Sliding Compaction:</strong> Active segments are slid downward toward low memory while preserving their original relative ordering. This minimizes displacement distance and preserves data cache spatial locality.
+        </li>
+        <li>
+          <strong>Two-Finger Compaction (LISP-style):</strong> Uses two pointers moving toward each other: a free-space scanner starting at memory zero and a process scanner starting at high memory. Processes from the top are moved into free slots at the bottom. While faster, it scrambles process ordering.
+        </li>
+      </ul>
+
+      <h5>The Cost of Compaction</h5>
+      <p>
+        Compaction imposes severe architectural performance penalties:
       </p>
       <ol>
-        <li>The CPU hardware compares the logical address against the <strong>Limit Register</strong>.</li>
-        <li>If the logical address is $\ge \text{Limit}$, the CPU raises a hardware exception (a <em>segmentation fault</em> or memory protection trap), terminating the process.</li>
-        <li>If the bounds check passes, the <strong>Base Register</strong> is added to the logical address on the hardware bus to generate the physical address for RAM.</li>
+        <li>
+          <strong>Bus Saturation &amp; Latency:</strong> Compacting 16 GB of active RAM across memory channels at 25 GB/s stalls the system for over 600 milliseconds—an unacceptable latency spike for interactive and real-time operating systems.
+        </li>
+        <li>
+          <strong>Hardware Prerequisite:</strong> Compaction is <em>impossible</em> under static relocation. It requires hardware-assisted dynamic relocation (Base and Limit registers), because every moved process must have its Base Register updated to reflect its new physical offset.
+        </li>
+        <li>
+          <strong>Direct Memory Access (DMA) Lockout:</strong> If a network card or disk controller is currently executing a DMA transfer into a process's buffer, that process cannot be moved until the hardware I/O finishes, locking memory in place.
+        </li>
       </ol>
 
-      <!-- ================================================================= -->
-      <!-- INTERACTIVE PEDAGOGICAL AID: BASE & LIMIT RELOCATION STEPPER     -->
-      <!-- ================================================================= -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Walkthrough: Hardware Base &amp; Limit Relocation</div>
-        <div class="aid-subtitle">Trace step-by-step how hardware comparator and adder units translate logical addresses into physical RAM locations while enforcing memory protection.</div>
+      <h4>4. Summary Comparison</h4>
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.88rem;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px; text-align: left; color: var(--primary);">Attribute</th>
+            <th style="padding: 10px; text-align: left; color: var(--primary);">Internal Fragmentation</th>
+            <th style="padding: 10px; text-align: left; color: var(--primary);">External Fragmentation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; font-weight: 600;">Location of Wasted Space</td>
+            <td style="padding: 10px;"><em>Inside</em> the allocated partition or page boundary.</td>
+            <td style="padding: 10px;"><em>Between</em> distinct allocated partitions (holes in RAM).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; font-weight: 600;">Root Cause</td>
+            <td style="padding: 10px;">Fixed-size allocation granularity (quanta rounding).</td>
+            <td style="padding: 10px;">Variable-sized allocations combined with dynamic allocation/freeing.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px; font-weight: 600;">Typical Occurrences</td>
+            <td style="padding: 10px;">Paging systems (4 KB pages), Buddy allocators.</td>
+            <td style="padding: 10px;">Base/Limit dynamic partitioning, unpaged heap managers.</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; font-weight: 600;">Architectural Solution</td>
+            <td style="padding: 10px;">Smaller allocation quanta (e.g., fine-grained slab allocators).</td>
+            <td style="padding: 10px;"><strong>Paging:</strong> Decouple contiguous virtual space from physical frames.</td>
+          </tr>
+        </tbody>
+      </table>"""
 
-        <div class="aid-grid">
-          <div class="controls-panel">
-            <div class="preview-box" id="bl-preview-text">
-              <strong>Step 1: Instruction Fetch.</strong> CPU generates a logical memory reference (instruction read or data access) within its private 0-indexed virtual address space.
-            </div>
+def expand_memory_fragmentation():
+    if not os.path.exists(TARGET_FILE):
+        print(f"Error: {TARGET_FILE} not found.")
+        return False
 
-            <div class="stepper-btns">
-              <button class="step-btn" id="bl-prev-btn" onclick="changeBlStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="bl-next-btn" onclick="changeBlStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetBlStepper()" style="background:#64748b;">Reset</button>
-            </div>
+    with open(TARGET_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
 
-            <div class="telemetry-bar" id="bl-telemetry-bar">
-              <div><strong>Phase:</strong> <span id="bl-tel-phase" style="color: #38bdf8;">1/4</span></div>
-              <div><strong>Logical:</strong> <span id="bl-tel-logical">0x0400</span></div>
-              <div><strong>Base/Limit:</strong> <span id="bl-tel-regs">0x4000 / 0x2000</span></div>
-              <div><strong>Status:</strong> <span id="bl-tel-status" style="color: #4ade80; font-weight: 700;">Valid Address</span></div>
-            </div>
+    start_marker = "<h3>5. Memory Fragmentation: Internal vs. External</h3>"
+    end_marker = "</div>\n\n    <nav class=\"nav-bar\">"
 
-            <div class="toggle-bar">
-              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">ACCESS:</span>
-              <button class="toggle-btn active" id="bl-btn-valid" onclick="setBlMode('valid')">Valid Access</button>
-              <button class="toggle-btn" id="bl-btn-fault" onclick="setBlMode('fault')">Fault Access</button>
-            </div>
-          </div>
+    start_idx = content.find(start_marker)
+    end_idx = content.find(end_marker, start_idx)
 
-          <div class="visual-canvas">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; Hardware MMU Pipeline</div>
+    if start_idx == -1 or end_idx == -1:
+        print("Error: Could not locate Section 5 boundaries in target file.")
+        return False
 
-            <!-- Hardware Translation SVG Canvas -->
-            <svg viewBox="0 0 320 200" style="width: 100%; height: 100%; min-height: 200px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
-              <defs>
-                <marker id="mmu-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 2 L 10 5 L 0 8 z" fill="#0284c7"/>
-                </marker>
-              </defs>
+    updated_content = content[:start_idx] + FRAGMENTATION_EXPANSION + "\n    " + content[end_idx:]
 
-              <!-- Logical Address Box -->
-              <rect id="mmu-box-logical" x="10" y="30" width="70" height="35" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
-              <text x="45" y="47" fill="#64748b" font-size="8" font-weight="700" text-anchor="middle">LOGICAL</text>
-              <text id="mmu-txt-logical" x="45" y="59" fill="#0f172a" font-size="9" font-family="monospace" font-weight="bold" text-anchor="middle">0x0400</text>
-
-              <!-- Arrow: Logical to Comparator -->
-              <line x1="80" y1="47" x2="115" y2="47" stroke="#0284c7" stroke-width="2" marker-end="url(#mmu-arrow)" />
-
-              <!-- Limit Comparator (Diamond / Circle) -->
-              <polygon id="mmu-poly-cmp" points="135,27 155,47 135,67 115,47" fill="#ffffff" stroke="#d97706" stroke-width="2" />
-              <text x="135" y="50" fill="#d97706" font-size="9" font-weight="bold" text-anchor="middle">&lt;</text>
-
-              <!-- Limit Register Box (Above Comparator) -->
-              <rect x="105" y="2" width="60" height="20" rx="3" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" />
-              <text x="135" y="15" fill="#b45309" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">Limit: 2000</text>
-              <line x1="135" y1="22" x2="135" y2="27" stroke="#d97706" stroke-width="1.5" />
-
-              <!-- Fault Branch (Down from Comparator) -->
-              <line id="mmu-line-fault" x1="135" y1="67" x2="135" y2="105" stroke="#cbd5e1" stroke-width="2" />
-              <rect id="mmu-box-fault" x="95" y="105" width="80" height="24" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" />
-              <text id="mmu-txt-fault" x="135" y="120" fill="#94a3b8" font-size="8" font-weight="bold" text-anchor="middle">TRAP FAULT</text>
-
-              <!-- Arrow: Comparator to Adder -->
-              <line id="mmu-line-pass" x1="155" y1="47" x2="195" y2="47" stroke="#0284c7" stroke-width="2" marker-end="url(#mmu-arrow)" />
-
-              <!-- Base Adder Unit (Circle with +) -->
-              <circle id="mmu-circle-adder" cx="210" cy="47" r="15" fill="#ffffff" stroke="#16a34a" stroke-width="2" />
-              <text x="210" y="52" fill="#16a34a" font-size="14" font-weight="bold" text-anchor="middle">+</text>
-
-              <!-- Base Register Box (Above Adder) -->
-              <rect x="180" y="2" width="60" height="20" rx="3" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5" />
-              <text x="210" y="15" fill="#15803d" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">Base: 4000</text>
-              <line x1="210" y1="22" x2="210" y2="32" stroke="#16a34a" stroke-width="1.5" />
-
-              <!-- Arrow: Adder to Physical Memory -->
-              <line x1="225" y1="47" x2="255" y2="47" stroke="#16a34a" stroke-width="2" marker-end="url(#mmu-arrow)" />
-
-              <!-- Physical Memory Bar (Right side) -->
-              <rect id="mmu-box-ram" x="255" y="20" width="55" height="150" rx="4" fill="#ffffff" stroke="#334155" stroke-width="2" />
-              <text x="282" y="32" fill="#64748b" font-size="7" font-weight="700" text-anchor="middle">PHYSICAL RAM</text>
-              <rect id="mmu-box-target" x="258" y="70" width="49" height="30" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
-              <text id="mmu-txt-target" x="282" y="88" fill="#0369a1" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">0x4400</text>
-            </svg>
-
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="bl-canvas-banner">
-              Hardware Translation Status: <strong>Ready to step</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="panes-grid">
-          <div class="pane-box" style="border-left: 3px solid var(--success);">
-            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
-            <div id="bl-pane-what" style="color: var(--text);">CPU generates logical address 0x0400. Hardware comparator evaluates 0x0400 &lt; 0x2000 (Limit).</div>
-          </div>
-          <div class="pane-box" style="border-left: 3px solid var(--accent);">
-            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
-            <div id="bl-pane-why" style="color: var(--text);">Dynamic bounds evaluation confines user execution strictly within assigned physical boundaries, preventing rogue pointer memory corruption.</div>
-          </div>
-        </div>
-      </div>
-
-      <h3>4. Swapping vs. Overlays</h3>
-      <p>
-        In systems where physical RAM capacity is insufficient to hold all active applications simultaneously, operating systems resorted to two primary techniques:
-      </p>
-
-      <h4>Memory Overlays (Application-Managed)</h4>
-      <p>
-        In the 1960s and 1970s, programs were frequently larger than total core memory. Software engineers manually partitioned programs into a <em>root module</em> and mutually exclusive <strong>overlays</strong>:
-      </p>
-      <ul>
-        <li>The root module remained permanently in memory.</li>
-        <li>When Phase 1 of a compiler finished parsing, the overlay manager loaded Phase 2 (code generation) into the exact same memory partition previously occupied by Phase 1.</li>
-      </ul>
-      <p>
-        <strong>Defect:</strong> Overlays placed an immense intellectual burden on programmers, who had to manually construct complex overlay trees ($V = V_0 + \max(V_1, V_2)$) without kernel automation.
-      </p>
-
-      <h4>Process Swapping (Kernel-Managed)</h4>
-      <p>
-        Swapping automated multi-process concurrency by moving entire process memory images between RAM and a dedicated <em>backing store</em> (disk swap partition):
-      </p>
-      <ul>
-        <li>When a process blocks on user input or runs out of execution quantum, the OS swaps its entire contiguous address space out to disk.</li>
-        <li>Another ready process is swapped from disk into RAM.</li>
-        <li><strong>Base Register Benefit:</strong> Because base and limit registers relocate addresses dynamically at runtime, when a process is swapped back into RAM, it does not need to return to its original physical location. The OS simply loads it into any available contiguous free slot and updates its Base Register.</li>
-      </ul>
-
-      <h3>5. Memory Fragmentation: Internal vs. External</h3>
-      <p>
-        As processes are swapped into and out of memory, physical RAM develops fragmentation:
-      </p>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
-          <strong style="color: var(--primary); font-size: 1rem;">Internal Fragmentation</strong>
-          <p style="font-size: 0.88rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
-            Occurs when memory is allocated in fixed-size blocks (e.g., 4 KB blocks). If a process requires 5 KB, it is allocated two 4 KB blocks (8 KB total). The unused 3 KB internal slack space is wasted.
-          </p>
-          <div class="math-callout" style="margin: 10px 0 0 0; padding: 10px; font-size: 0.82rem;">
-            $$ \text{Wasted} = \text{Block Size} - \text{Requested Size} $$
-          </div>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 18px;">
-          <strong style="color: var(--primary); font-size: 1rem;">External Fragmentation</strong>
-          <p style="font-size: 0.88rem; color: var(--text); margin-top: 8px; line-height: 1.5;">
-            Occurs when free memory is broken into a checkerboard of small, non-contiguous holes over time. Total available memory may be 20 MB, but if the largest single contiguous hole is only 4 MB, an 8 MB process cannot be loaded.
-          </p>
-          <div class="math-callout" style="margin: 10px 0 0 0; padding: 10px; font-size: 0.82rem;">
-            $$ \sum \text{Holes} \ge \text{Process Size}, \quad \max(\text{Hole}) < \text{Process Size} $$
-          </div>
-        </div>
-      </div>
-
-      <p>
-        <strong>Memory Compaction:</strong> Operating systems can resolve external fragmentation by shifting all active processes downward in memory to coalesce small holes into one large contiguous free block. However, compaction requires reading and rewriting entire gigabytes of memory, burning thousands of CPU cycles, which motivated the ultimate invention of <strong>Paging</strong> (covered in Module 03).
-      </p>
-    </div>
-
-    <nav class="nav-bar">
-      <a href="index.html" class="nav-btn">&larr; Week 7 Hub</a>
-      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="02-dynamic-partitioning-free-lists.html" class="nav-btn">Module 02 &rarr;</a>
-    </nav>
-  </div>
-
-  <script>
-    let blStep = 1;
-    const blTotalSteps = 4;
-    let blMode = 'valid';
-
-    const blValidData = [
-      {
-        preview: "<strong>Step 1: Instruction Fetch.</strong> CPU generates logical memory reference <code>0x0400</code> within its private virtual address space.",
-        phase: "1/4", logical: "0x0400", regs: "0x4000 / 0x2000", status: "Logical Issued", statusColor: "#38bdf8",
-        what: "CPU executes instruction referencing offset 0x0400. Value placed on internal execution bus.",
-        why: "Programs compile with zero-based address assumptions, completely oblivious to physical RAM location.",
-        banner: "Translation Step: <strong>Logical Address Emitted by CPU Core</strong>"
-      },
-      {
-        preview: "<strong>Step 2: Hardware Bounds Verification.</strong> Hardware comparator compares logical address <code>0x0400</code> against Limit Register (<code>0x2000</code>).",
-        phase: "2/4", logical: "0x0400", regs: "0x4000 / 0x2000", status: "Bounds Passed", statusColor: "#4ade80",
-        what: "Comparator evaluates: 0x0400 &lt; 0x2000 is TRUE. Bounds check succeeds. No trap triggered.",
-        why: "Hardware protection prevents a rogue or malicious process from reading/writing memory outside its bounds.",
-        banner: "Protection Check: <strong>Bounds Check PASSED (0x0400 &lt; 0x2000)</strong>"
-      },
-      {
-        preview: "<strong>Step 3: Base Register Addition.</strong> Hardware adder computes Physical Address = Logical (<code>0x0400</code>) + Base (<code>0x4000</code>) = <code>0x4400</code>.",
-        phase: "3/4", logical: "0x0400", regs: "0x4000 / 0x2000", status: "Translating", statusColor: "#38bdf8",
-        what: "Hardware adder sums 0x0400 + 0x4000 = 0x4400 in a single clock cycle without software overhead.",
-        why: "Transparent dynamic hardware relocation allows the kernel to place the process anywhere in physical RAM.",
-        banner: "Address Calculation: <strong>0x0400 + 0x4000 = 0x4400 (Physical)</strong>"
-      },
-      {
-        preview: "<strong>Step 4: RAM Bus Access.</strong> Physical address <code>0x4400</code> is asserted on external memory bus pins. Word read/write completes successfully.",
-        phase: "4/4", logical: "0x0400", regs: "0x4000 / 0x2000", status: "Access Complete", statusColor: "#16a34a",
-        what: "Physical RAM responds to address 0x4400. Instruction or operand is transferred across data bus.",
-        why: "Safe, isolated, multi-process memory execution is achieved with full hardware protection.",
-        banner: "Access Verified: <strong>Physical RAM Read/Write at 0x4400 Complete</strong>"
-      }
-    ];
-
-    const blFaultData = [
-      {
-        preview: "<strong>Step 1: Out-of-Bounds Fetch.</strong> CPU generates logical reference <code>0x2800</code>, exceeding the allocated 8 KB (<code>0x2000</code>) limit.",
-        phase: "1/4", logical: "0x2800", regs: "0x4000 / 0x2000", status: "Illegal Offset", statusColor: "#f87171",
-        what: "Application dereferences invalid pointer at offset 0x2800.",
-        why: "Software bugs (buffer overflow, wild pointer) attempt to touch unallocated memory space.",
-        banner: "Hazard Triggered: <strong>Logical Offset Exceeds Segment Limit</strong>"
-      },
-      {
-        preview: "<strong>Step 2: Bounds Violation Detected.</strong> Hardware comparator evaluates <code>0x2800 &lt; 0x2000</code> &rarr; <strong>FALSE</strong>.",
-        phase: "2/4", logical: "0x2800", regs: "0x4000 / 0x2000", status: "BOUNDS VIOLATION", statusColor: "#dc2626",
-        what: "Comparator evaluates: 0x2800 &ge; 0x2000. Hardware signals memory protection exception line.",
-        why: "Hardware bounds detection arrests illegal memory access before physical RAM can be corrupted.",
-        banner: "Protection Triggered: <strong>COMPARATOR BOUNDS CHECK FAILED</strong>"
-      },
-      {
-        preview: "<strong>Step 3: Hardware Exception Trap.</strong> Memory bus access is aborted. CPU raises Trap (Interrupt Vector 13 / General Protection Fault).",
-        phase: "3/4", logical: "0x2800", regs: "0x4000 / 0x2000", status: "Kernel Trap", statusColor: "#dc2626",
-        what: "CPU saves program counter, switches to supervisor ring, and jumps to kernel exception handler.",
-        why: "The kernel must intercept segmentation violations to protect system integrity from crashing.",
-        banner: "Bus Aborted: <strong>CPU Trap Raised &mdash; Switch to Kernel Mode</strong>"
-      },
-      {
-        preview: "<strong>Step 4: Process Termination.</strong> Kernel receives segmentation fault trap, generates core dump, and terminates rogue process via SIGSEGV.",
-        phase: "4/4", logical: "0x2800", regs: "0x4000 / 0x2000", status: "SIGSEGV Terminated", statusColor: "#dc2626",
-        what: "OS sends SIGSEGV (signal 11) to thread. Application terminated; other processes remain safe.",
-        why: "Base and limit registers guarantee strict fault isolation among concurrent processes.",
-        banner: "Isolation Preserved: <strong>Rogue Task Killed (Segmentation Fault)</strong>"
-      }
-    ];
-
-    function changeBlStep(dir) {
-      blStep += dir;
-      if (blStep < 1) blStep = 1;
-      if (blStep > blTotalSteps) blStep = blTotalSteps;
-      updateBlUI();
-    }
-
-    function resetBlStepper() {
-      blStep = 1;
-      updateBlUI();
-    }
-
-    function setBlMode(mode) {
-      blMode = mode;
-      document.getElementById('bl-btn-valid').className = (mode === 'valid') ? 'toggle-btn active' : 'toggle-btn';
-      document.getElementById('bl-btn-fault').className = (mode === 'fault') ? 'toggle-btn active' : 'toggle-btn';
-      document.getElementById('bl-btn-valid').style.background = (mode === 'valid') ? '#e0f2fe' : '#f1f5f9';
-      document.getElementById('bl-btn-fault').style.background = (mode === 'fault') ? '#e0f2fe' : '#f1f5f9';
-      blStep = 1;
-      updateBlUI();
-    }
-
-    function updateBlUI() {
-      const dataset = (blMode === 'valid') ? blValidData : blFaultData;
-      const data = dataset[blStep - 1];
-
-      document.getElementById('bl-preview-text').innerHTML = data.preview;
-      document.getElementById('bl-tel-phase').innerText = data.phase;
-      document.getElementById('bl-tel-logical').innerText = data.logical;
-      document.getElementById('bl-tel-regs').innerText = data.regs;
-
-      const statusEl = document.getElementById('bl-tel-status');
-      statusEl.innerText = data.status;
-      statusEl.style.color = data.statusColor;
-
-      document.getElementById('bl-pane-what').innerHTML = data.what;
-      document.getElementById('bl-pane-why').innerHTML = data.why;
-      document.getElementById('bl-canvas-banner').innerHTML = data.banner;
-
-      // Update SVG dynamic values
-      document.getElementById('mmu-txt-logical').innerText = data.logical;
-
-      const faultBox = document.getElementById('mmu-box-fault');
-      const faultTxt = document.getElementById('mmu-txt-fault');
-      const faultLine = document.getElementById('mmu-line-fault');
-      const passLine = document.getElementById('mmu-line-pass');
-      const adder = document.getElementById('mmu-circle-adder');
-      const targetBox = document.getElementById('mmu-box-target');
-
-      if (blMode === 'fault' && blStep >= 2) {
-        faultBox.setAttribute('fill', '#fef2f2');
-        faultBox.setAttribute('stroke', '#dc2626');
-        faultTxt.setAttribute('fill', '#dc2626');
-        faultLine.setAttribute('stroke', '#dc2626');
-        passLine.setAttribute('stroke', '#cbd5e1');
-        adder.setAttribute('stroke', '#cbd5e1');
-        targetBox.setAttribute('fill', '#f1f5f9');
-        targetBox.setAttribute('stroke', '#cbd5e1');
-        document.getElementById('mmu-txt-target').innerText = 'BLOCKED';
-        document.getElementById('mmu-txt-target').setAttribute('fill', '#94a3b8');
-      } else {
-        faultBox.setAttribute('fill', '#f8fafc');
-        faultBox.setAttribute('stroke', '#cbd5e1');
-        faultTxt.setAttribute('fill', '#94a3b8');
-        faultLine.setAttribute('stroke', '#cbd5e1');
-        passLine.setAttribute('stroke', '#0284c7');
-        adder.setAttribute('stroke', '#16a34a');
-        targetBox.setAttribute('fill', '#e0f2fe');
-        targetBox.setAttribute('stroke', '#0284c7');
-        document.getElementById('mmu-txt-target').innerText = '0x4400';
-        document.getElementById('mmu-txt-target').setAttribute('fill', '#0369a1');
-      }
-
-      document.getElementById('bl-prev-btn').disabled = (blStep === 1);
-      document.getElementById('bl-next-btn').disabled = (blStep === blTotalSteps);
-    }
-  </script>
-</body>
-</html>
-"""
-
-def create_module_one():
-    os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_ONE_CONTENT.strip() + "\n")
-    print(f"--> Successfully created {TARGET_FILE}")
+        f.write(updated_content)
+
+    print(f"--> Successfully expanded Memory Fragmentation in {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if create_module_one():
+    if expand_memory_fragmentation():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Create Module 01 on Physical Address Spaces and Monoprogramming\n\n"
-                "Implement complete module on bare-metal memory, base-limit registers,\n"
-                "swapping vs overlays, fragmentation, and an interactive MMU stepper."
+                "Deeply expand Memory Fragmentation section in Week 7 Module 01\n\n"
+                "Add formal internal slack expectation, Knuth 50% rule of allocation,\n"
+                "sliding compaction mechanics, and memory bus bandwidth trade-offs."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
