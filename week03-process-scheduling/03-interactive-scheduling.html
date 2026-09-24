@@ -471,13 +471,14 @@
       <div class="canvas-container">
         <svg class="mlfq-canvas" viewBox="0 0 760 280">
           <defs>
-            <marker id="m-arr-down" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M 2 0 L 5 8 L 8 0 z" fill="#dc2626" />
+            <!-- Standard horizontal right-pointing markers (orient="auto" handles all curve tangents accurately) -->
+            <marker id="m-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
             </marker>
-            <marker id="m-arr-up" viewBox="0 0 10 10" refX="5" refY="2" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M 2 10 L 5 2 L 8 10 z" fill="#059669" />
+            <marker id="m-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
             </marker>
-            <marker id="m-arr-dispatch" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <marker id="m-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
               <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
             </marker>
           </defs>
@@ -517,8 +518,20 @@
           </g>
 
           <!-- Demotion / Promotion Path Indicators -->
-          <path id="path-mlfq-demote" d="M 250 80 L 250 102" stroke="#dc2626" stroke-width="2" marker-end="url(#m-arr-down)" style="display: none;"/>
-          <path id="path-mlfq-boost" d="M 470 215 C 495 215, 495 50, 483 50" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="3 2" marker-end="url(#m-arr-up)" style="display: none;"/>
+          <!-- Dynamic Demotion & Priority Boost Pathways -->
+          <g id="grp-mlfq-demote" style="display: none;">
+            <line x1="315" y1="80" x2="315" y2="103" stroke="#dc2626" stroke-width="2.5" marker-end="url(#m-arr-red)"/>
+            <rect x="325" y="84" width="90" height="18" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+            <text x="370" y="96" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#991b1b">DEMOTE Q0&rarr;Q1</text>
+          </g>
+
+          <g id="grp-mlfq-boost" style="display: none;">
+            <!-- Smooth upward curved path from bottom queue Q2 (y=220) to top queue Q0 (y=50) -->
+            <path d="M 470 220 C 510 220, 510 50, 483 50" fill="none" stroke="#059669" stroke-width="2.5" stroke-dasharray="4 3" marker-end="url(#m-arr-green)"/>
+            <rect x="425" y="125" width="85" height="24" rx="3" fill="#dcfce7" stroke="#059669" stroke-width="1"/>
+            <text x="467" y="137" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#166534">PRIORITY BOOST</text>
+            <text x="467" y="145" text-anchor="middle" font-size="7.5" fill="#15803d">ALL QUEUES&rarr;Q0</text>
+          </g>
         </svg>
       </div>
 
@@ -769,8 +782,8 @@
       document.getElementById("slot-q2").innerHTML = step.q2Content;
 
       // Update Path Arrows
-      document.getElementById("path-mlfq-demote").style.display = step.showDemote ? "block" : "none";
-      document.getElementById("path-mlfq-boost").style.display = step.showBoost ? "block" : "none";
+      document.getElementById("grp-mlfq-demote").style.display = step.showDemote ? "block" : "none";
+      document.getElementById("grp-mlfq-boost").style.display = step.showBoost ? "block" : "none";
 
       // Update Narrative Panel
       document.getElementById("m-txt-narrative").innerHTML = step.narrative;
