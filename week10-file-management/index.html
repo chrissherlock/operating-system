@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 9: File System Architecture & Implementation - COSC240</title>
+  <title>Week 10: File Management &amp; Storage Systems - COSC240</title>
   <style>
     :root {
       --primary: #0f172a;
@@ -164,8 +164,28 @@
       width: 100%;
     }
     .launch-btn:hover { background: var(--accent-hover); }
+    /* Interactive Lab Grid */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .lab-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .lab-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 6px 0; }
+    .lab-desc { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4; }
+    .lab-link { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 600; }
+    .lab-link:hover { text-decoration: underline; }
     @media (max-width: 768px) {
-      .briefing-grid, .modules-grid { grid-template-columns: 1fr; }
+      .briefing-grid, .modules-grid, .lab-grid { grid-template-columns: 1fr; }
       body { padding: 16px; }
     }
   </style>
@@ -173,16 +193,16 @@
 <body>
   <div class="container">
     <nav class="nav-bar">
-      <a href="../week09-memory-management/index.html" class="nav-btn">&larr; Week 7/8: Memory</a>
+      <a href="../week09-memory-management/index.html" class="nav-btn">&larr; Week 9: Memory Subsystems</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="../week11-multiprocessors/index.html" class="nav-btn">Week 10: Multiprocessors &rarr;</a>
+      <a href="../week11-multiprocessors/index.html" class="nav-btn">Week 11: Multiprocessors &rarr;</a>
     </nav>
 
     <div class="hero-card">
       <span class="week-tag">COSC240 &bull; Operating Systems</span>
-      <h1>Week 9: File System Architecture & Implementation</h1>
+      <h1>Week 10: File Management &amp; Storage Systems</h1>
       <p class="lead-text">
-        Explore file abstractions, directory structures, Unix inode design, extent allocation, journaling, and storage optimization.
+        Having examined process scheduling, synchronization, and volatile memory virtualization, we confront the challenge of <strong>persistence</strong>. We analyze how the kernel virtualizes non-volatile physical storage blocks into structured, named byte streams: <strong>File Abstractions</strong>, <strong>Directory Trees</strong>, <strong>Inode Allocation Schemes</strong>, and <strong>Crash Consistency via Journaling</strong>.
       </p>
 
       <div class="briefing-grid">
@@ -191,9 +211,11 @@
             <span>&#128218;</span> What You Will Learn
           </div>
           <ul class="briefing-list">
-            <li>Core architectural mechanics and low-level data structures.</li>
-            <li>Kernel operational states, hardware interrupts, and protection boundaries.</li>
-            <li>Theoretical trade-offs, performance implications, and industry standards.</li>
+            <li>The fundamental <strong>File Abstraction</strong>: unformatted byte streams vs. record sequences and database key trees.</li>
+            <li>POSIX file descriptors, open file description tables, and VFS inode table interaction across <code>fork()</code> and <code>dup()</code>.</li>
+            <li>Directory topologies, recursive path resolution, hard links vs. symbolic links, and link count invariants.</li>
+            <li>On-disk allocation structures: Contiguous allocation, File Allocation Tables (FAT), and UNIX Inode multi-level block pointers.</li>
+            <li>Crash consistency, Write-Ahead Logging (WAL), journaling modes (data vs. metadata), and filesystem recovery (<code>fsck</code>).</li>
           </ul>
         </div>
 
@@ -202,40 +224,52 @@
             <span>&#9989;</span> What You Should Do
           </div>
           <ul class="briefing-list">
-            <li>Review lecture notes and assigned textbook chapters.</li>
-            <li>Explore interactive pedagogical steppers and simulation modules.</li>
-            <li>Complete weekly tutorials, practical lab assignments, and review quizzes.</li>
+            <li>Read <strong>Tanenbaum &amp; Bos</strong> Chapter 4 (File Systems) and <strong>OSTEP</strong> Chapters 39–42.</li>
+            <li>Work through Modules 01 to 04 sequentially, tracing block pointer indirection and inode structures.</li>
+            <li>Complete <strong>Theory Tutorial 10</strong> (Inode Maximum File Size Calculations &amp; Indirect Blocks).</li>
+            <li>Complete <strong>Practical Tutorial 10</strong> (Implementing a Simple File System Directory Parser in C).</li>
+            <li>Prepare for <strong>Quiz 5</strong> (covering Virtual Memory, Paging, and File System Implementations).</li>
           </ul>
         </div>
       </div>
     </div>
 
+    <!-- Modules Section -->
     <div class="modules-heading">
       <span>&#128194;</span> Course Modules &amp; Deep-Dive Texts
     </div>
 
     <div class="modules-grid">
-      
       <!-- Module 01 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 01</div>
           <h2 class="module-title">The File Abstraction</h2>
-          <p class="module-desc">Study file types, file attributes, access methods (sequential vs. direct), and file control blocks.</p>
-          <div class="module-tags"><span class="tag">File Abstraction</span><span class="tag">Attributes</span><span class="tag">Sequential Access</span><span class="tag">FCB</span></div>
+          <p class="module-desc">Analyze how the operating system abstracts physical storage blocks into named, linear byte streams. Study file metadata (stat/inode), access modes, and the kernel's 3-tier descriptor architecture.</p>
+          <div class="module-tags">
+            <span class="tag">Byte Streams</span>
+            <span class="tag">struct stat</span>
+            <span class="tag">FD Table</span>
+            <span class="tag">VFS Inodes</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="01-files-abstraction.html" class="launch-btn">Launch Module 01 &rarr;</a>
       </div>
 
       <!-- Module 02 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 02</div>
-          <h2 class="module-title">Directories & Hierarchical Paths</h2>
-          <p class="module-desc">Examine single-level, two-level, and tree-structured directory namespaces and path resolution.</p>
-          <div class="module-tags"><span class="tag">Directories</span><span class="tag">Path Resolution</span><span class="tag">Hard Links</span><span class="tag">Symbolic Links</span></div>
+          <h2 class="module-title">Directories &amp; Path Resolution</h2>
+          <p class="module-desc">Investigate directory file layouts, linear and hashed directory entries, hierarchical pathname resolution from root, and the critical mechanical differences between hard links and symbolic links.</p>
+          <div class="module-tags">
+            <span class="tag">Directory Entries</span>
+            <span class="tag">Path Resolution</span>
+            <span class="tag">Hard Links</span>
+            <span class="tag">Symlinks</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="02-directories.html" class="launch-btn">Launch Module 02 &rarr;</a>
       </div>
 
       <!-- Module 03 -->
@@ -243,29 +277,74 @@
         <div>
           <div class="module-num">Module 03</div>
           <h2 class="module-title">File System Implementation</h2>
-          <p class="module-desc">Dissect Unix inodes, direct/indirect block pointers, extent trees, and free-space bitmap management.</p>
-          <div class="module-tags"><span class="tag">Inode</span><span class="tag">Indirect Blocks</span><span class="tag">Extent Tree</span><span class="tag">Bitmap</span></div>
+          <p class="module-desc">Dissect on-disk physical layouts: contiguous allocation, chained lists, File Allocation Tables (FAT), and UNIX Inodes with direct, indirect, double-indirect, and triple-indirect block pointers.</p>
+          <div class="module-tags">
+            <span class="tag">FAT Table</span>
+            <span class="tag">UNIX Inodes</span>
+            <span class="tag">Indirect Blocks</span>
+            <span class="tag">Free-Space Bitmaps</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="03-filesystem-implementation.html" class="launch-btn">Launch Module 03 &rarr;</a>
       </div>
 
       <!-- Module 04 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 04</div>
-          <h2 class="module-title">Reliability, Layout & Optimization</h2>
-          <p class="module-desc">Master journaling filesystems (ext4), log-structured storage, block caching, and disk defragmentation.</p>
-          <div class="module-tags"><span class="tag">Journaling</span><span class="tag">Write-Ahead Log</span><span class="tag">Block Cache</span><span class="tag">Recovery</span></div>
+          <h2 class="module-title">File System Management &amp; Optimization</h2>
+          <p class="module-desc">Examine buffer cache architectures, read-ahead caching, disk defragmentation, crash consistency protocols, Write-Ahead Logging (WAL), and journaling filesystems (ext4, NTFS, ZFS).</p>
+          <div class="module-tags">
+            <span class="tag">Buffer Cache</span>
+            <span class="tag">Journaling</span>
+            <span class="tag">Crash Consistency</span>
+            <span class="tag">fsck Recovery</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="04-management-optimization.html" class="launch-btn">Launch Module 04 &rarr;</a>
       </div>
+    </div>
 
+    <!-- Interactive Sandboxes -->
+    <div class="modules-heading">
+      <span>&#128302;</span> Interactive Visualizers &amp; Simulation Laboratories
+    </div>
+
+    <div class="lab-grid">
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Descriptor Tracer</h3>
+          <p class="lab-desc">Trace file descriptor indirection across fork(), dup2(), and independent open() calls.</p>
+        </div>
+        <a href="01-files-abstraction.html" class="lab-link">Open Tracer &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Directory Traversal</h3>
+          <p class="lab-desc">Step through recursive path resolution, inode lookups, and hard link link-count mechanics.</p>
+        </div>
+        <a href="02-directories.html" class="lab-link">Open Traversal Lab &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Inode Pointer Walk</h3>
+          <p class="lab-desc">Calculate file offsets and navigate direct, indirect, and double-indirect block arrays.</p>
+        </div>
+        <a href="03-filesystem-implementation.html" class="lab-link">Open Inode Calculator &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Journaling &amp; WAL</h3>
+          <p class="lab-desc">Simulate power loss mid-transaction to observe Write-Ahead Logging crash recovery.</p>
+        </div>
+        <a href="04-management-optimization.html" class="lab-link">Open Journaling Sim &rarr;</a>
+      </div>
     </div>
 
     <nav class="nav-bar">
-      <a href="../week09-memory-management/index.html" class="nav-btn">&larr; Week 7/8: Memory</a>
+      <a href="../week09-memory-management/index.html" class="nav-btn">&larr; Week 9: Memory Subsystems</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="../week11-multiprocessors/index.html" class="nav-btn">Week 10: Multiprocessors &rarr;</a>
+      <a href="../week11-multiprocessors/index.html" class="nav-btn">Week 11: Multiprocessors &rarr;</a>
     </nav>
   </div>
 </body>
