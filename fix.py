@@ -1,311 +1,324 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 3 of 02-interrupts-and-dma.html
+# fix.py: Deeply expand Section 1 of 03-disk-hardware-scheduling.html
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join(
     "week05-io-and-disk-scheduling",
-    "02-interrupts-and-dma.html"
+    "03-disk-hardware-scheduling.html"
 )
 
-EXPANDED_SECTION_THREE = r"""    <h3>3. Direct Memory Access (DMA) &amp; Cache Coherency</h3>
+EXPANDED_SECTION_ONE = r"""    <h3>1. Physical Disk Geometry: Platters, Cylinders, and Sectors</h3>
     <p>
-      Direct Memory Access (DMA) is the cornerstone of high-throughput operating system I/O. By delegating data movement to dedicated bus-mastering engines on peripheral controllers, the CPU is completely liberated from the cycle-wasting overhead of byte-by-byte Programmed I/O.
+      For over half a century, the <strong>magnetic hard disk drive (HDD)</strong> served as the primary secondary storage substrate in computing. Although solid-state flash drives (SSDs) have surpassed magnetic disks in random transaction performance, mechanical disk drives remain the dominant medium for massive, exabyte-scale datacenter storage due to their favorable cost-per-terabyte profile.
     </p>
     <p>
-      However, routing high-speed peripheral data directly into physical DRAM introduces a profound architectural conflict with modern CPU memory hierarchies: <strong>The Cache Coherency Dilemma</strong>.
+      From an operating system engineering perspective, magnetic disks provide a textbook case study in <strong>mechanical latency modeling, asymmetric access costs, and physical resource scheduling</strong>. To write efficient filesystem and buffer cache algorithms, kernel developers must understand the microscopic electro-mechanical physics governing disk hardware.
     </p>
 
-    <!-- Structural Diagram: DMA Cache Coherency and IOMMU Mapping -->
+    <!-- Structural Diagram: Comprehensive Physical Disk Anatomy -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.3: DMA Cache Coherency Snooping &amp; IOMMU Translation Pipeline</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How hardware snooping resolves stale cache lines, and how the IOMMU translates device IOVA addresses to physical host page frames.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.1: Electro-Mechanical Organization of a Modern Magnetic Hard Drive</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Platter stacking, aerodynamic slider flying height, embedded servo sectors, and Zoned Bit Recording (ZBR).</div>
 
-      <svg viewBox="0 0 760 290" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <svg viewBox="0 0 760 300" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <defs>
-          <marker id="dma-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="dg-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
           </marker>
-          <marker id="dma-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
-          </marker>
-          <marker id="dma-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="dg-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
           </marker>
         </defs>
 
-        <!-- Left: CPU Core & Cache Hierarchy -->
-        <g transform="translate(15, 20)">
-          <rect width="215" height="250" rx="8" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="107" y="24" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0284c7">CPU EXECUTION CORE</text>
+        <!-- Left: Platter Stack (Isometric 3D Projection) -->
+        <g transform="translate(145, 140)">
+          <!-- Central Spindle -->
+          <line x1="0" y1="-105" x2="0" y2="105" stroke="#334155" stroke-width="8"/>
+          <text x="0" y="125" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0f172a">FLUID BEARING SPINDLE</text>
+          <text x="0" y="137" text-anchor="middle" font-size="7.5" fill="#64748b">Constant Angular Velocity (7200 RPM)</text>
 
-          <!-- L1 / L2 Local Caches -->
-          <rect x="15" y="42" width="185" height="52" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="25" y="58" font-size="7.5" font-weight="700" fill="#334155">L1 / L2 CACHES (Write-Back)</text>
-          <text x="25" y="72" font-family="var(--font-mono)" font-size="7" fill="#dc2626">Cacheline [0x7000]: DIRTY (M)</text>
-          <text x="25" y="84" font-size="6.5" fill="#64748b">Holds modified CPU variables</text>
+          <!-- Platter 3 (Top Surface) -->
+          <g transform="translate(0, -65)">
+            <ellipse cx="0" cy="0" rx="115" ry="36" fill="#f8fafc" stroke="#0284c7" stroke-width="2"/>
+            <!-- Outer Track (ZBR High Density) -->
+            <ellipse cx="0" cy="0" rx="100" ry="31" fill="none" stroke="#0284c7" stroke-width="1.5"/>
+            <!-- Mid Track -->
+            <ellipse cx="0" cy="0" rx="70" ry="22" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+            <!-- Inner Track (ZBR Low Density) -->
+            <ellipse cx="0" cy="0" rx="40" ry="12" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+            <!-- Spindle Center Hole -->
+            <ellipse cx="0" cy="0" rx="14" ry="4" fill="#475569"/>
 
-          <!-- Coherency Snoop Logic -->
-          <rect x="15" y="104" width="185" height="60" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="25" y="122" font-size="7.5" font-weight="700" fill="#0369a1">BUS SNOOP CONTROLLER</text>
-          <text x="25" y="136" font-size="7" fill="#0284c7">&bull; Monitors PCIe interconnect</text>
-          <text x="25" y="148" font-size="7" fill="#0284c7">&bull; Broadcasts Invalidate / Write-Back</text>
+            <!-- Sector Arc Slice -->
+            <path d="M 0 0 L 95 18 A 100 31 0 0 0 100 0 Z" fill="#bae6fd" opacity="0.6"/>
+            <text x="75" y="16" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#0369a1">Sector</text>
+          </g>
 
-          <!-- MMU Page Tables -->
-          <rect x="15" y="174" width="185" height="56" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="25" y="192" font-size="7.5" font-weight="700" fill="#334155">CPU MMU (Paging Engine)</text>
-          <text x="25" y="206" font-size="7" fill="#475569">Translates Virtual &rarr; Physical</text>
-          <text x="25" y="218" font-size="6.5" fill="#64748b">Controls PAT / Memory Types (UC vs WB)</text>
+          <!-- Platter 2 (Middle) -->
+          <g transform="translate(0, 0)">
+            <ellipse cx="0" cy="0" rx="115" ry="36" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" opacity="0.9"/>
+            <ellipse cx="0" cy="0" rx="70" ry="22" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+            <ellipse cx="0" cy="0" rx="14" ry="4" fill="#475569"/>
+          </g>
+
+          <!-- Platter 1 (Bottom) -->
+          <g transform="translate(0, 65)">
+            <ellipse cx="0" cy="0" rx="115" ry="36" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" opacity="0.8"/>
+            <ellipse cx="0" cy="0" rx="70" ry="22" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
+            <ellipse cx="0" cy="0" rx="14" ry="4" fill="#475569"/>
+          </g>
+
+          <!-- Cylinder Visual Alignment (Vertical Dashed Lines) -->
+          <line x1="70" y1="-65" x2="70" y2="65" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <line x1="-70" y1="-65" x2="-70" y2="65" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <rect x="74" y="-12" width="68" height="24" rx="3" fill="#ffffff" stroke="#dc2626"/>
+          <text x="108" y="3" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">CYLINDER</text>
         </g>
 
-        <!-- Middle: System Interconnect & IOMMU -->
-        <g transform="translate(245, 20)">
-          <rect width="265" height="250" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2"/>
-          <text x="132" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">SYSTEM INTERCONNECT &amp; IOMMU</text>
-          <text x="132" y="38" text-anchor="middle" font-size="7" fill="#64748b">(PCIe Root Complex / VT-d / SMMU)</text>
+        <!-- Center-Right: Rotary Voice-Coil Actuator Arm -->
+        <g transform="translate(365, 140)">
+          <!-- Actuator Pivot Base -->
+          <circle cx="0" cy="0" r="22" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+          <circle cx="0" cy="0" r="8" fill="#0f172a"/>
+          <text x="0" y="-30" text-anchor="middle" font-size="8" font-weight="700" fill="#334155">VOICE-COIL PIVOT</text>
+          <text x="0" y="-18" text-anchor="middle" font-size="7" fill="#64748b">(Permanent Magnet + Coil)</text>
 
-          <!-- IOMMU Engine Box -->
-          <rect x="15" y="50" width="235" height="85" rx="5" fill="#f0fdf4" stroke="#16a34a"/>
-          <text x="25" y="68" font-size="8" font-weight="700" fill="#166534">IOMMU (IOVA &rarr; PHYSICAL TRANSLATOR)</text>
+          <!-- Arm Extensions to Platters -->
+          <polygon points="0,-12 0,12 -150,-67 -150,-63" fill="#64748b" opacity="0.95"/>
+          <polygon points="0,-12 0,12 -150,-2 -150,2" fill="#64748b" opacity="0.95"/>
+          <polygon points="0,-12 0,12 -150,63 -150,67" fill="#64748b" opacity="0.95"/>
 
-          <rect x="25" y="76" width="215" height="22" rx="3" fill="#ffffff" stroke="#86efac"/>
-          <text x="35" y="90" font-family="var(--font-mono)" font-size="7" fill="#166534">IOVA: 0x1000 &rarr; Physical DRAM: 0x8F400000</text>
+          <!-- Magnetic Head Sliders -->
+          <rect x="-156" y="-68" width="10" height="6" rx="1" fill="#dc2626"/>
+          <rect x="-156" y="-3" width="10" height="6" rx="1" fill="#dc2626"/>
+          <rect x="-156" y="62" width="10" height="6" rx="1" fill="#dc2626"/>
 
-          <text x="25" y="112" font-size="6.5" fill="#15803d">&bull; Hardware DMA isolation &amp; bounds checking</text>
-          <text x="25" y="124" font-size="6.5" fill="#15803d">&bull; Assembles scattered 4 KB pages into one IOVA</text>
-
-          <!-- Coherency Snoop Vector -->
-          <line x1="15" y1="145" x2="-10" y2="145" stroke="#0284c7" stroke-width="2" marker-end="url(#dma-arr-blue)"/>
-          <text x="65" y="152" font-size="6.5" font-family="var(--font-mono)" fill="#0284c7">Snoop Broadcast &rarr;</text>
-
-          <!-- Physical Host DRAM -->
-          <rect x="15" y="165" width="235" height="65" rx="5" fill="#f8fafc" stroke="#cbd5e1"/>
-          <text x="25" y="182" font-size="8" font-weight="700" fill="#0f172a">HOST PHYSICAL RAM (DRAM)</text>
-          <rect x="25" y="190" width="100" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="75" y="208" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">Page Frame A</text>
-          <rect x="135" y="190" width="100" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="185" y="208" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">Page Frame B</text>
+          <text x="-162" y="-76" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">R/W HEADS</text>
+          <text x="-162" y="-86" font-size="6.5" fill="#64748b">GMR / TMR Sensors</text>
         </g>
 
-        <!-- Right: Bus Master Peripheral Device -->
-        <g transform="translate(525, 20)">
-          <rect width="220" height="250" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="110" y="24" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">BUS-MASTER PERIPHERAL</text>
-          <text x="110" y="38" text-anchor="middle" font-size="7" fill="#64748b">(NVMe Controller / 100 GbE NIC)</text>
+        <!-- Right Panel: Micro-Scale Physics & ZBR Breakdown -->
+        <g transform="translate(500, 20)">
+          <rect width="245" height="260" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="16" y="24" font-size="9.5" font-weight="700" fill="#0f172a">AERODYNAMICS &amp; HEAD FLYING HEIGHT</text>
 
-          <!-- Device DMA Engine -->
-          <rect x="15" y="50" width="190" height="75" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="25" y="68" font-size="8" font-weight="700" fill="#334155">INTERNAL DMA CONTROLLER</text>
-          <text x="25" y="84" font-family="var(--font-mono)" font-size="7" fill="#059669">Target: IOVA 0x1000</text>
-          <text x="25" y="98" font-family="var(--font-mono)" font-size="7" fill="#059669">Count:  65,536 Bytes</text>
-          <text x="25" y="112" font-size="6.5" fill="#64748b">Issues PCIe Memory Writes</text>
+          <!-- Flying Height Comparison Graphic -->
+          <g transform="translate(12, 36)">
+            <rect width="220" height="96" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="10" y="16" font-size="7.5" font-weight="700" fill="#dc2626">THE NANOMETER CATASTROPHE:</text>
 
-          <!-- Outbound Vector to IOMMU -->
-          <line x1="15" y1="88" x2="-10" y2="88" stroke="#059669" stroke-width="2.5" marker-end="url(#dma-arr-green)"/>
+            <rect x="10" y="26" width="200" height="12" rx="2" fill="#e2e8f0"/>
+            <text x="15" y="35" font-size="7" fill="#334155">Human Hair Diameter: &sim;75,000 nm</text>
 
-          <!-- Ring Descriptors -->
-          <rect x="15" y="135" width="190" height="95" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="25" y="152" font-size="7.5" font-weight="700" fill="#334155">SCATTER-GATHER LIST (SGL)</text>
-          <text x="25" y="168" font-size="7" fill="#475569">&bull; Entry 0: Base 0x8F400000</text>
-          <text x="25" y="180" font-size="7" fill="#475569">&bull; Entry 1: Base 0x90200000</text>
-          <text x="25" y="194" font-size="6.5" fill="#64748b">Allows non-contiguous</text>
-          <text x="25" y="206" font-size="6.5" fill="#64748b">physical memory chaining</text>
-          <text x="25" y="218" font-size="6.5" font-weight="700" fill="#166534">&#10003; 1 Interrupt on Complete</text>
+            <rect x="10" y="42" width="140" height="12" rx="2" fill="#fef3c7"/>
+            <text x="15" y="51" font-size="7" fill="#92400e">Dust / Smoke Particle: &sim;1,500 nm</text>
+
+            <rect x="10" y="58" width="80" height="12" rx="2" fill="#fee2e2"/>
+            <text x="15" y="67" font-size="7" fill="#991b1b">Fingerprint Smear: &sim;600 nm</text>
+
+            <rect x="10" y="74" width="25" height="14" rx="2" fill="#dcfce7" stroke="#16a34a"/>
+            <text x="40" y="84" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#166534">Head Fly Height: 5 &ndash; 10 nm!</text>
+          </g>
+
+          <!-- Zoned Bit Recording (ZBR) Metric -->
+          <g transform="translate(12, 142)">
+            <rect width="220" height="106" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="10" y="18" font-size="7.5" font-weight="700" fill="#0284c7">ZONED BIT RECORDING (ZBR)</text>
+            <text x="10" y="34" font-size="7" fill="#475569">&bull; Outer tracks have larger circumference</text>
+            <text x="10" y="46" font-size="7" fill="#475569">  (<i>C</i> = 2&pi;<i>r</i>) than inner tracks.</text>
+            <text x="10" y="58" font-size="7" fill="#475569">&bull; Outer tracks hold up to <strong>2&times; more sectors</strong>.</text>
+            <text x="10" y="72" font-size="7" font-weight="700" fill="#059669">Throughput Asymmetry:</text>
+            <text x="10" y="86" font-family="var(--font-mono)" font-size="7" fill="#059669">Outer Zone: &sim;260 MB/s (High Speed)</text>
+            <text x="10" y="98" font-family="var(--font-mono)" font-size="7" fill="#dc2626">Inner Zone: &sim;120 MB/s (Slow Speed)</text>
+          </g>
         </g>
       </svg>
     </div>
 
-    <h4>The Fundamental Problem: The CPU-DRAM Semantic Gap</h4>
+    <h4>Anatomy of the Mechanical Hard Disk</h4>
     <p>
-      Central processing units read and write memory through high-speed, on-die write-back L1, L2, and L3 caches. A write instruction executed by the CPU does not immediately touch physical DRAM; instead, it updates the CPU's local cache line and marks the line as <strong>Dirty (Modified)</strong>.
-    </p>
-    <p>
-      In contrast, a Direct Memory Access engine is an independent bus master that reads and writes <strong>directly to physical DRAM across the system interconnect</strong>, bypassing CPU caches entirely. This creates two distinct data corruption hazards:
+      A modern hard disk drive is an ultra-precise, hermetically sealed unit containing several key mechanical and magnetic subsystems:
     </p>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
-      <!-- Hazard 1: Stale Reads -->
+      <!-- Platters and Spindle -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">1. Platters &amp; The Spindle Motor</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          The storage medium consists of one or more stacked, rigid circular disks called <strong>platters</strong>, fabricated from high-strength aluminum-magnesium alloys or specialized glass-ceramic substrates.
+          <br><br>
+          <em>Key Structural Details:</em>
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li>Both the top and bottom surfaces of each platter are coated with a sub-micron sputtered magnetic thin film (cobalt-chromium-platinum alloys) protected by an atomic-layer diamond-like carbon (DLC) wear barrier.</li>
+            <li>The platters rotate together on a central <strong>spindle motor</strong> operating at a strict <strong>Constant Angular Velocity (CAV)</strong>. Enterprise servers use drives spinning at 10,000 or 15,000 RPM, while consumer storage rotates at 5,400 or 7,200 RPM.</li>
+            <li>Enterprise drives replace internal air with <strong>Helium gas</strong> (which has one-seventh the density of air), dramatically reducing turbulent air drag, motor power consumption, and mechanical vibration across stacks of up to 10 platters.</li>
+          </ul>
+        </p>
+      </div>
+
+      <!-- Heads and Actuator -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">2. Read/Write Heads &amp; Voice-Coil Actuator</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          Data is sensed and recorded by microscopic electromagnetic read/write heads mounted on a shared rotary <strong>actuator arm</strong> driven by a high-speed Voice-Coil Motor (VCM).
+          <br><br>
+          <em>The Physics of Head Flying Height:</em>
+          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
+            <li>The heads <strong>never physically touch the platter surface</strong> during operation. The rapid rotation of the platter generates an aerodynamic air cushion (an <em>air bearing</em>) that lifts the head slider, causing it to "fly" merely <strong>5 to 10 nanometers</strong> above the spinning media.</li>
+            <li>For perspective, a single human hair is &sim;75,000 nm in diameter, a smoke particle is &sim;1,500 nm, and a fingerprint ridge is &sim;600 nm. If a dust particle enters the chamber, it hits the head at 120 km/h, causing a catastrophic <strong>Head Crash</strong> that scrapes off the magnetic recording layer and permanently destroys data!</li>
+            <li>Modern heads use separate technologies: <strong>Tunneling Magnetoresistive (TMR)</strong> sensors for reading minute magnetic fluctuations, and inductive coils for writing.</li>
+          </ul>
+        </p>
+      </div>
+    </div>
+
+    <h4>The Geometry Hierarchy: Tracks, Cylinders, and Sectors</h4>
+    <p>
+      Data recorded on platters is organized along three geometric dimensions:
+    </p>
+    <ul>
+      <li>
+        <strong>Tracks:</strong> Data is recorded along concentric circular rings called <strong>tracks</strong>. Unlike a vinyl phonograph record or an optical compact disc (which use a single continuous spiral), magnetic disk tracks are closed, discrete circles.
+        <br>
+        Track density is extraordinarily high, often exceeding <strong>300,000 to 500,000 Tracks Per Inch (TPI)</strong>. The width of an individual magnetic track is less than 50 nanometers!
+      </li>
+      <li>
+        <strong>Cylinders:</strong> The actuator arm moves all read/write heads simultaneously across all platter surfaces. The collection of all tracks across every platter surface situated at the identical radial arm distance forms an imaginary geometric vertical tube called a <strong>Cylinder</strong>:
+        <div class="math-callout" style="margin: 10px 0;">
+          <strong>The Cylinder Optimization Principle:</strong>
+          <br>
+          If a file spans multiple blocks, placing those blocks on the <strong>same cylinder across different platter surfaces</strong> allows the drive to switch from reading Head 0 to Head 1, 2, or 3 via purely electronic head-selection logic (consuming less than 0.5 milliseconds) <strong>without executing any physical, mechanical voice-coil movement</strong>!
+        </div>
+      </li>
+      <li>
+        <strong>Sectors:</strong> A track is partitioned into discrete arc segments called <strong>sectors</strong>. The sector is the smallest unit of physical storage and transfer that the disk controller can read or write atomically:
+        <ul>
+          <li><strong>Legacy Standard (512-Byte Sectors):</strong> Historically, sectors stored exactly 512 bytes of user data.</li>
+          <li><strong>Advanced Format (4Kn / 4096-Byte Sectors):</strong> Modern drives use 4 KB physical sectors. A 4096-byte sector reduces the overhead of inter-sector gaps and preambles, and significantly increases error-correction efficiency by providing larger data blocks for modern <strong>Low-Density Parity-Check (LDPC)</strong> error-correction codes.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h4>The Evolution of Addressing: From CHS to Logical Block Addressing (LBA)</h4>
+
+    <h5>1. Cylinder-Head-Sector (CHS) Addressing &amp; Historical Barriers</h5>
+    <p>
+      In early operating systems (such as MS-DOS and early Unix on IBM PCs), the kernel had to explicitly calculate and provide the 3-dimensional physical coordinates for every disk operation:
+    </p>
+    <pre><code><span class="syn-cmt">/* Historical CHS Access: Read Cylinder 20, Head 2, Sector 5 */</span>
+<span class="syn-kw">struct</span> chs_address {
+    <span class="syn-kw">uint16_t</span> cylinder; <span class="syn-cmt">/* 0 .. 1023 (10 bits) */</span>
+    <span class="syn-kw">uint8_t</span>  head;     <span class="syn-cmt">/* 0 .. 15 (4 bits)   */</span>
+    <span class="syn-kw">uint8_t</span>  sector;   <span class="syn-cmt">/* 1 .. 63 (6 bits - 1-indexed!) */</span>
+};</code></pre>
+    <p>
+      CHS addressing contained a fatal flaw: the combination of BIOS register limitations (10 bits for cylinders, 4 bits for heads, 6 bits for sectors) created the notorious <strong>504 MiB Barrier</strong>:
+    </p>
+    <div class="math-callout">
+      $$\text{Max CHS Capacity} = 1024\text{ Cylinders} \times 16\text{ Heads} \times 63\text{ Sectors} \times 512\text{ Bytes} = \mathbf{528{,}482{,}304\text{ Bytes (504 MiB)}}$$
+    </div>
+
+    <h5>2. Zoned Bit Recording (ZBR / Zone CAV)</h5>
+    <p>
+      Beyond the BIOS architectural limits, CHS was destroyed by basic physics: <strong>rigid geometry is geometrically inefficient</strong>.
+    </p>
+    <p>
+      Because a disk platter is circular, the circumference of an outer track is more than twice the circumference of an inner track:
+    </p>
+    <div class="math-callout">
+      $$\text{Track Circumference} = 2\pi r$$
+    </div>
+    <p>
+      Under historical CHS, every track was forced to contain the exact same number of sectors (e.g. 63 sectors per track). This meant magnetic bit transitions on outer tracks were spaced far apart, wasting massive amounts of surface area.
+    </p>
+    <p>
+      Modern drives implement <strong>Zoned Bit Recording (ZBR)</strong>:
+    </p>
+    <ul>
+      <li>The disk surface is grouped into 16 to 30 concentric <strong>zones</strong>.</li>
+      <li>Outer zones (with larger radii) pack significantly more sectors per track (e.g. 1,200 sectors per track) than inner zones (e.g. 600 sectors per track), maintaining a uniform magnetic recording density across the entire platter.</li>
+      <li><strong>Operating System Performance Consequence:</strong> Because the spindle motor rotates at a constant angular speed, <strong>outer tracks pass beneath the read/write heads faster, streaming data at more than double the throughput of inner tracks</strong> (e.g. 260 MB/s on outer tracks vs. 120 MB/s on inner tracks)! Operating system partition formatters deliberately place root filesystems and high-performance swap partitions on the outer edge of the disk.</li>
+    </ul>
+
+    <h5>3. Logical Block Addressing (LBA) &amp; Controller Virtualization</h5>
+    <p>
+      Because Zoned Bit Recording destroyed uniform CHS dimensions, the storage industry transitioned universally to <strong>Logical Block Addressing (LBA)</strong>:
+    </p>
+    <ul>
+      <li>The operating system completely abandons tracking cylinders, heads, and tracks.</li>
+      <li>The disk controller exposes the disk as a flat, linear array of 64-bit integer blocks:
+        <pre><code>LBA 0, LBA 1, LBA 2, LBA 3, &hellip;, LBA (TotalSectors - 1)</code></pre>
+      </li>
+      <li>The on-board disk controller firmware maintains an internal mathematical mapping table, translating logical LBA numbers to physical zones, cylinders, heads, and physical sectors.</li>
+    </ul>
+
+    <h4>Physical Latency Mitigations: Track and Cylinder Skewing</h4>
+    <p>
+      To prevent catastrophic rotational latency penalties during sequential reads, disk controllers implement microscopic angular offsets known as <strong>skewing</strong>:
+    </p>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+      <!-- Track Skewing -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Track Skewing</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          Suppose a sequential file spans Track 0 and Track 1. If Sector 0 on Track 1 is placed at the exact same angular position as Sector 0 on Track 0:
+          <br><br>
+          When the head finishes reading Track 0, it takes approximately <strong>0.8 milliseconds</strong> for the actuator arm to mechanically step to Track 1.
+          <br><br>
+          During those 0.8 ms, the platter spins past Sector 0! The head lands over Sector 4, forcing the disk to wait <strong>almost an entire physical revolution (8.3 ms at 7200 RPM)</strong> just to read Sector 0!
+          <br><br>
+          <strong>The Solution:</strong> The controller offsets (skews) Sector 0 on Track 1 by several angular positions, ensuring that exactly as the head settles onto Track 1, Sector 0 spins directly underneath it.
+        </p>
+      </div>
+
+      <!-- Defect Reallocation -->
       <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Hazard 1: Stale Reads (Device &rarr; RAM)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 8px;">Inbound DMA Data Corruption</div>
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Defect Management (G-List &amp; P-List)</h4>
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Occurs when the peripheral writes new data into physical DRAM while the CPU holds that same memory range in its local L1/L2 cache.
+          No physical platter is manufactured without microscopic silicon imperfections. Controllers maintain two defect lists:
           <br><br>
-          <em>The Sequence of Failure:</em>
-          <ol style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>CPU previously read buffer at address <code>0x1000</code>; data sits cached in L1.</li>
-            <li>NIC DMA writes a new incoming network packet directly into physical DRAM at <code>0x1000</code>.</li>
-            <li>CPU executes a read from <code>0x1000</code>. The CPU satisfies the load <strong>directly from its L1 cache</strong>!</li>
-            <li><strong>Outcome:</strong> The CPU processes stale, obsolete data, completely blind to the freshly arrived packet in DRAM.</li>
-          </ol>
+          <strong>1. Primary Defect List (P-List):</strong> Populated at the factory during low-level surface scanning. Defective sectors are skipped during initial track mapping (sector slipping).
+          <br><br>
+          <strong>2. Grown Defect List (G-List):</strong> When a sector fails in the field due to magnetic wear, the controller marks the sector bad and transparently remaps that LBA to an unallocated <strong>spare sector</strong> reserved on an inner or outer track.
+          <br><br>
+          <em>OS Performance Impact:</em> While remapping preserves data integrity, reading a remapped sector requires the actuator arm to seek to the spare track and back, causing sudden anomalous latency spikes during sequential reads.
         </p>
       </div>
+    </div>"""
 
-      <!-- Hazard 2: Dirty Overwrites -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--warning); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Hazard 2: Dirty Overwrites (Cache Eviction)</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--warning); text-transform: uppercase; margin-bottom: 8px;">Silent Data Destruction</div>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Occurs due to cacheline granularity (typically 64 bytes) and write-back caching policies.
-          <br><br>
-          <em>The Sequence of Failure:</em>
-          <ol style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>CPU modifies a variable located in the same 64-byte cache line as the DMA receive buffer; the line becomes <code>Dirty</code> in L1 cache.</li>
-            <li>Device DMAs fresh data into DRAM at that address.</li>
-            <li>Moments later, the CPU cache controller suffers a conflict miss and <strong>evicts the dirty cache line back to DRAM</strong>.</li>
-            <li><strong>Outcome:</strong> The obsolete CPU cache line overwrites the freshly arrived DMA payload in DRAM, silently destroying the received data!</li>
-          </ol>
-        </p>
-      </div>
-    </div>
-
-    <h4>Architectural Solutions: Hardware Snooping vs. Software Maintenance</h4>
-    <p>
-      Operating systems interface with two fundamentally different hardware caching topologies:
-    </p>
-
-    <h5>1. Hardware-Coherent Architectures (x86-64 &amp; Enterprise ARM)</h5>
-    <p>
-      On standard x86 and enterprise server architectures, cache coherency is enforced completely in silicon via <strong>Bus Snooping</strong> and directory protocols (such as MESI/MOESI):
-    </p>
-    <ul>
-      <li>When a PCIe device writes to physical DRAM, the PCIe Root Complex and Memory Controller broadcast a <strong>snoop transaction</strong> to all CPU cores across the internal coherent interconnect.</li>
-      <li>If a CPU core detects that the DMA write address is present in its L1/L2/L3 cache, the hardware cache controller automatically <strong>invalidates</strong> the local cache line.</li>
-      <li>If the device reads from DRAM while a CPU core holds dirty uncommitted data in its cache, the snoop controller forces the CPU core to flush its dirty line to the bus first, satisfying the device read with valid data.</li>
-      <li><strong>Operating System Impact:</strong> Device driver developers on x86 do not need to execute manual cache flushes. Hardware guarantees transparent memory coherency.</li>
-    </ul>
-
-    <h5>2. Non-Coherent Architectures (Embedded ARM, Mobile SoCs, DSPs)</h5>
-    <p>
-      To conserve silicon die area, reduce design complexity, and minimize battery power consumption, mobile and embedded System-on-Chip (SoC) architectures frequently omit bus snooping logic.
-    </p>
-    <p>
-      On non-coherent systems, <strong>the operating system kernel is legally responsible for executing manual cache maintenance operations before and after every DMA transfer</strong>:
-    </p>
-
-    <div style="overflow-x: auto; margin: 18px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
-        <thead>
-          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 12px; width: 25%;">DMA Operation</th>
-            <th style="padding: 10px 12px; width: 35%;">Required Software Cache Action</th>
-            <th style="padding: 10px 12px; width: 40%;">Underlying Silicon Purpose</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 12px; font-weight: 700;">DMA Transmit (Outbound)<br><span style="font-size: 0.75rem; color: #64748b;">Host RAM &rarr; Device</span></td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); color: #0284c7;"><strong>Cache Clean (Flush)</strong><br><span style="font-size: 0.75rem; color: #475569;">dma_sync_single_for_device()</span></td>
-            <td style="padding: 10px 12px;">Forces the CPU to push any dirty, modified cache lines out to physical DRAM so the peripheral reads fresh, updated data.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
-            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">DMA Receive (Inbound)<br><span style="font-size: 0.75rem; color: #166534;">Device &rarr; Host RAM</span></td>
-            <td style="padding: 10px 12px; font-family: var(--font-mono); color: #166534;"><strong>Cache Invalidate</strong><br><span style="font-size: 0.75rem; color: #166534;">dma_sync_single_for_cpu()</span></td>
-            <td style="padding: 10px 12px; color: #166534;">Discards all CPU cache lines over the destination buffer without writing them back. When the CPU subsequently reads the buffer, it misses L1/L2 and fetches the fresh data from physical DRAM.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h4>The Linux DMA Mapping API</h4>
-    <p>
-      To write portable device drivers that run identically on hardware-coherent x86 systems and non-coherent ARM platforms, Linux provides the unified <strong>DMA Mapping Framework</strong>:
-    </p>
-
-    <pre><code><span class="syn-cmt">/* 1. Consistent (Coherent) DMA Allocation:
-      Allocates physically contiguous memory that is mapped as Uncacheable (UC).
-      Ideal for circular ring descriptors and command mailboxes accessed continuously. */</span>
-<span class="syn-kw">dma_addr_t</span> dma_handle;
-<span class="syn-kw">void</span> *ring_buffer = <span class="syn-fn">dma_alloc_coherent</span>(
-    dev,
-    <span class="syn-num">4096</span>,
-    &amp;dma_handle,      <span class="syn-cmt">/* Physical address given to device */</span>
-    GFP_KERNEL
-);
-
-<span class="syn-cmt">/* 2. Streaming DMA Mapping:
-      Used for high-throughput packet and disk buffers allocated via standard kmalloc/page-alloc.
-      Automatically executes cache clean/invalidate instructions on non-coherent hardware! */</span>
-<span class="syn-kw">dma_addr_t</span> phys_addr = <span class="syn-fn">dma_map_single</span>(
-    dev,
-    packet_data,
-    packet_len,
-    DMA_FROM_DEVICE    <span class="syn-cmt">/* Direction: Inbound receive */</span>
-);
-
-<span class="syn-cmt">/* Give phys_addr to hardware controller... wait for completion interrupt */</span>
-
-<span class="syn-cmt">/* After interrupt arrives: unmap to invalidate CPU caches before CPU reads packet */</span>
-<span class="syn-fn">dma_unmap_single</span>(dev, phys_addr, packet_len, DMA_FROM_DEVICE);</code></pre>
-
-    <h4>The IOMMU: Translation, Isolation, and Virtualization</h4>
-    <p>
-      In early computer architectures, peripherals placed raw host physical addresses directly onto the system memory bus. In modern enterprise systems, all DMA transactions pass through a dedicated hardware memory management unit: the <strong>I/O Memory Management Unit (IOMMU)</strong> (known as Intel VT-d, AMD-Vi, or ARM SMMU).
-    </p>
-    <p>
-      The IOMMU solves three critical operating system challenges:
-    </p>
-
-    <h5>1. IOVA to Physical Address Translation (De-fragmenting Paged Memory)</h5>
-    <p>
-      User applications allocate large memory buffers that appear contiguous in virtual memory, but are fragmented across hundreds of arbitrary 4 KB page frames in physical DRAM.
-    </p>
-    <ul>
-      <li>Without an IOMMU, the driver must build complex Scatter-Gather Lists, and devices without scatter-gather hardware must copy data through intermediate <strong>Bounce Buffers</strong> (costing massive CPU memory-copy overhead).</li>
-      <li>With an IOMMU, the kernel programs <strong>I/O Page Tables</strong>. The IOMMU maps a single, contiguous range of <strong>I/O Virtual Addresses (IOVA)</strong> to the scattered physical page frames in DRAM. The peripheral executes a single, continuous DMA burst without knowing that physical memory is fragmented!</li>
-      <li>Furthermore, the IOMMU allows legacy 32-bit DMA devices (limited to 4 GB addressing) to access physical memory located above the 4 GB boundary in 64-bit systems without bounce buffers.</li>
-    </ul>
-
-    <h5>2. Memory Protection &amp; DMA Fault Isolation</h5>
-    <p>
-      Direct Memory Access is inherently hazardous: a compromised PCIe network card or a device with buggy firmware could issue rogue DMA memory writes over the top of the operating system kernel code, page tables, or security tokens.
-    </p>
-    <ul>
-      <li>The IOMMU implements strict <strong>Device Context Tables</strong> indexed by the peripheral's PCIe <strong>Bus/Device/Function (BDF)</strong> identifier.</li>
-      <li>Each device is restricted to its own private address translation space. If a peripheral attempts a DMA read or write to an address that has not been explicitly mapped by the OS kernel, the IOMMU blocks the transaction at the hardware layer, halts the transfer, and triggers an uncorrectable PCIe <strong>DMA Remapping Fault</strong> interrupt to the kernel.</li>
-    </ul>
-
-    <h5>3. Direct Hardware Passthrough in Virtualization (SR-IOV)</h5>
-    <p>
-      In cloud and hypervisor environments, operating systems virtualize I/O:
-    </p>
-    <ul>
-      <li>Normally, hypervisors emulate hardware devices in software, introducing significant latency.</li>
-      <li>With IOMMU support, the hypervisor can assign a physical PCIe network interface or GPU directly to a guest Virtual Machine (VM).</li>
-      <li>The IOMMU translates <strong>Guest Physical Addresses (GPA) directly into Host Physical Addresses (HPA)</strong> at wire speed. The guest VM controls the hardware directly with zero hypervisor intervention and bare-metal performance, while the IOMMU guarantees that the guest VM cannot access host memory outside its assigned slice.</li>
-    </ul>"""
-
-def update_section_three():
+def update_section_one():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>3. Direct Memory Access (DMA) &amp; Cache Coherency</h3>"
-    end_marker = '<nav class="nav-bar" style="margin-top: 36px;'
+    start_marker = "<h3>1. Physical Disk Geometry: Platters, Cylinders, and Sectors</h3>"
+    end_marker = "<h3>2. Modeling I/O Access Latency"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 3 boundaries in Module 02.")
+        print("Error: Could not locate Section 1 boundaries in Module 03.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_THREE + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_ONE + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 1 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 3 in Module 02 on DMA Coherency, Snooping, and IOMMUs\n\n"
-            "Detail stale reads, dirty evictions, non-coherent cache sync APIs,\n"
-            "IOMMU IOVA translation, bounce buffers, and add an SVG architecture."
+            "Expand Section 1 of Module 03 on Physical Disk Geometry & CHS/LBA\n\n"
+            "Detail fluid bearings, aerodynamic slider flying heights, ZBR zoning,\n"
+            "track/cylinder skewing, G-list defect reallocation, and add an SVG."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -314,5 +327,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_three():
+    if update_section_one():
         run_git_sync()
