@@ -420,13 +420,13 @@
         <strong>Zoned Bit Recording (ZBR):</strong> Outer tracks have a much larger circumference than inner tracks. Modern drives pack up to twice as many sectors on outer tracks as inner tracks. CHS assumed fixed sector counts per track, making physical addressing obsolete.
       </li>
       <li>
-        <strong>Logical Block Addressing (LBA):</strong> The disk controller abstracts geometry completely. The drive presents a simple linear array of logical blocks indexed from $0$ to $N - 1$:
+        <strong>Logical Block Addressing (LBA):</strong> The disk controller abstracts geometry completely. The drive presents a simple linear array of logical blocks indexed from $0$ to <i>N - 1</i>:
         <pre><code>LBA 0, LBA 1, LBA 2, ..., LBA 976,773,167</code></pre>
         The on-board disk firmware maps each LBA address to internal physical cylinder, head, and track locations, transparently managing bad sector remapping and track skewing.
       </li>
     </ul>
 
-    <h3>2. Modeling I/O Access Latency ($T_{\text{I/O}}$)</h3>
+    <h3>2. Modeling I/O Access Latency (<i>T<sub>I/O</sub></i>)</h3>
     <p>
       Reading or writing a block of data on a mechanical disk drive incurs four distinct physical delays:
     </p>
@@ -434,18 +434,18 @@
       <strong>The Fundamental Disk Access Latency Equation:</strong>
       <pre><code>T<sub>I/O</sub> = T<sub>seek</sub> + T<sub>rotational</sub> + T<sub>transfer</sub> + T<sub>controller</sub></code></pre>
       <ul>
-        <li><strong>Seek Time ($T_{\text{seek}}$):</strong> The time required for the voice-coil actuator arm to accelerate, travel mechanically across platters, decelerate, and settle precisely over the target cylinder. Average seek time is typically <strong>4 to 9 milliseconds</strong>.</li>
-        <li><strong>Rotational Latency ($T_{\text{rotational}}$):</strong> Once the head settles on the track, it must wait for the target sector to spin under the read head. On average, the disk must rotate half a revolution:
+        <li><strong>Seek Time (<i>T<sub>seek</sub></i>):</strong> The time required for the voice-coil actuator arm to accelerate, travel mechanically across platters, decelerate, and settle precisely over the target cylinder. Average seek time is typically <strong>4 to 9 milliseconds</strong>.</li>
+        <li><strong>Rotational Latency (<i>T<sub>rotational</sub></i>):</strong> Once the head settles on the track, it must wait for the target sector to spin under the read head. On average, the disk must rotate half a revolution:
           <pre><code>T<sub>rotational (avg)</sub> = 1/2 &times; (60 / RPM)</code></pre>
-          At 7,200 RPM, one revolution takes 8.33 ms &rarr; $T_{\text{rotational (avg)}} = \mathbf{4.17\text{ ms}}$.
+          At 7,200 RPM, one revolution takes 8.33 ms &rarr; <i>T<sub>rotational (avg)</sub> = <strong>4.17 ms</strong></i>.
           <br>
-          At 15,000 RPM, one revolution takes 4.00 ms &rarr; $T_{\text{rotational (avg)}} = \mathbf{2.00\text{ ms}}$.
+          At 15,000 RPM, one revolution takes 4.00 ms &rarr; <i>T<sub>rotational (avg)</sub> = <strong>2.00 ms</strong></i>.
         </li>
-        <li><strong>Transfer Time ($T_{\text{transfer}}$):</strong> The time to read the actual data bits off the platter as it spins underneath:
+        <li><strong>Transfer Time (<i>T<sub>transfer</sub></i>):</strong> The time to read the actual data bits off the platter as it spins underneath:
           <pre><code>T<sub>transfer</sub> = Byte Count / Internal Track Transfer Rate</code></pre>
-          For a 4 KB block at 200 MB/s, $T_{\text{transfer}} \approx \mathbf{0.02\text{ ms}}$ (negligible compared to seek and rotation!).
+          For a 4 KB block at 200 MB/s, <i>T<sub>transfer</sub> &asymp; <strong>0.02 ms</strong></i> (negligible compared to seek and rotation!).
         </li>
-        <li><strong>Controller Overhead ($T_{\text{controller}}$):</strong> Microprocessor setup, DMA bus command, and ECC verification (&lt; 0.01 ms).</li>
+        <li><strong>Controller Overhead (<i>T<sub>controller</sub></i>):</strong> Microprocessor setup, DMA bus command, and ECC verification (&lt; 0.01 ms).</li>
       </ul>
     </div>
     <p>

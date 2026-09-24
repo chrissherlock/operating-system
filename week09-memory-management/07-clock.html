@@ -359,7 +359,7 @@
       <div class="theory-section">
         <h2>1. The Need for Page Replacement</h2>
         <p>
-          When a page fault occurs and all physical memory frames are occupied, the operating system kernel must choose an existing page to evict from physical RAM. If the evicted page was modified while in memory ($M = 1$), it must be written back to disk; if unmodified, the incoming page overwrites the frame directly.
+          When a page fault occurs and all physical memory frames are occupied, the operating system kernel must choose an existing page to evict from physical RAM. If the evicted page was modified while in memory (<i>M = 1</i>), it must be written back to disk; if unmodified, the incoming page overwrites the frame directly.
         </p>
         <p>
           While the <strong>Least Recently Used (LRU)</strong> policy is theoretically optimal among practical algorithms, recording an exact LRU sequence in hardware requires updating a counter or moving a linked-list node on every single memory reference, introducing severe memory bus latency.
@@ -367,11 +367,11 @@
 
         <h2>2. Second-Chance and the Clock Optimization</h2>
         <p>
-          A practical approximation of LRU is the <strong>Second-Chance</strong> replacement policy. The OS examines the <strong>Referenced ($R$) bit</strong> in the hardware page table entry:
+          A practical approximation of LRU is the <strong>Second-Chance</strong> replacement policy. The OS examines the <strong>Referenced (<i>R</i>) bit</strong> in the hardware page table entry:
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
-          <li>If $R = 0$: The page is old and has not been referenced recently. It is evicted immediately.</li>
-          <li>If $R = 1$: The page was recently referenced. The OS clears $R 	o 0$, grants it a second chance, and inspects the next candidate.</li>
+          <li>If <i>R = 0</i>: The page is old and has not been referenced recently. It is evicted immediately.</li>
+          <li>If <i>R = 1</i>: The page was recently referenced. The OS clears <i>R 	o 0</i>, grants it a second chance, and inspects the next candidate.</li>
         </ul>
         <div class="theory-callout">
           <strong>Tanenbaum's Clock Optimization (Fig. 3-16):</strong><br>
@@ -506,7 +506,7 @@
         <div class="guide-grid">
           <div class="guide-box">
             <strong>1. Access a Page</strong>
-            <span>Type any page letter (e.g. <code>H</code>) in the input box and click <em>Access Page</em>. If resident &rarr; <strong>Hit</strong> ($R 	o 1$, hand stays put). If absent &rarr; <strong>Fault</strong> (hand sweeps to find and evict an $R=0$ victim).</span>
+            <span>Type any page letter (e.g. <code>H</code>) in the input box and click <em>Access Page</em>. If resident &rarr; <strong>Hit</strong> (<i>R 	o 1</i>, hand stays put). If absent &rarr; <strong>Fault</strong> (hand sweeps to find and evict an <i>R=0</i> victim).</span>
           </div>
           <div class="guide-box">
             <strong>2. Toggle R-Bits</strong>
@@ -514,11 +514,11 @@
           </div>
           <div class="guide-box">
             <strong>3. Periodic Timer Tick</strong>
-            <span>Click <em>Periodic Timer Tick</em> to simulate an OS interrupt clearing all $R$ bits across every frame to <code>0</code> simultaneously.</span>
+            <span>Click <em>Periodic Timer Tick</em> to simulate an OS interrupt clearing all <i>R</i> bits across every frame to <code>0</code> simultaneously.</span>
           </div>
         </div>
         <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; border-top: 1px dashed var(--border); padding-top: 8px;">
-          <strong>Suggested Experiment:</strong> Click <em>Reset Frames</em> to load Tanenbaum Figure 3-16. Enter absent page <code>I</code> and click <em>Access Page</em>. Watch the animated sweep step through Frame 0 (giving a second chance: $R=1 	o 0$) and evict Frame 1 (where $R=0$).
+          <strong>Suggested Experiment:</strong> Click <em>Reset Frames</em> to load Tanenbaum Figure 3-16. Enter absent page <code>I</code> and click <em>Access Page</em>. Watch the animated sweep step through Frame 0 (giving a second chance: <i>R=1 	o 0</i>) and evict Frame 1 (where <i>R=0</i>).
         </div>
       </div>
 

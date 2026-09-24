@@ -379,10 +379,10 @@
       <h3>2. Invocation Semantics &amp; Idempotency</h3>
       <ul>
         <li>
-          <strong>At-Least-Once Semantics:</strong> The client retransmits requests until an acknowledgment arrives. Guarantees that the procedure executes at least once, but may execute multiple times if replies are dropped. This is safe <em>only for idempotent operations</em> (e.g., reading block 4 of a file, or overwriting a balance with an exact value: $X = 500$).
+          <strong>At-Least-Once Semantics:</strong> The client retransmits requests until an acknowledgment arrives. Guarantees that the procedure executes at least once, but may execute multiple times if replies are dropped. This is safe <em>only for idempotent operations</em> (e.g., reading block 4 of a file, or overwriting a balance with an exact value: <i>X = 500</i>).
         </li>
         <li>
-          <strong>At-Most-Once Semantics:</strong> The server tracks request sequence IDs and suppresses duplicate executions. Guarantees the routine executes either exactly once or not at all if the server crashes permanently. Required for non-idempotent operations (e.g., transferring funds: $\text{balance} = \text{balance} + 100$).
+          <strong>At-Most-Once Semantics:</strong> The server tracks request sequence IDs and suppresses duplicate executions. Guarantees the routine executes either exactly once or not at all if the server crashes permanently. Required for non-idempotent operations (e.g., transferring funds: <i>balance = balance + 100</i>).
         </li>
       </ul>
 
@@ -500,7 +500,7 @@
         <tbody>
           <tr>
             <td><strong>Strict Consistency</strong></td>
-            <td>Any read to memory location $x$ returns the value stored by the most recent write to $x$ in absolute physical time.</td>
+            <td>Any read to memory location <i>x</i> returns the value stored by the most recent write to <i>x</i> in absolute physical time.</td>
             <td>Physically impossible in distributed systems without instantaneous zero-latency communication.</td>
           </tr>
           <tr>

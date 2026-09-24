@@ -364,7 +364,7 @@
       <ul>
         <li><strong>Small Blocks (e.g., 1 KB &ndash; 2 KB):</strong>
           <ul>
-            <li><em>Advantage:</em> Minimizes <strong>internal fragmentation</strong>. Because files rarely match block boundaries perfectly, the final block assigned to a file is partially filled. On average, each file wastes half of its final block ($B/2$). For a filesystem dominated by small files (e.g., source code trees, emails, configuration files), small blocks keep storage utilization high.</li>
+            <li><em>Advantage:</em> Minimizes <strong>internal fragmentation</strong>. Because files rarely match block boundaries perfectly, the final block assigned to a file is partially filled. On average, each file wastes half of its final block (<i>B/2</i>). For a filesystem dominated by small files (e.g., source code trees, emails, configuration files), small blocks keep storage utilization high.</li>
             <li><em>Disadvantage:</em> Degrades I/O throughput. Transferring a 10 MB file across 1 KB blocks requires issuing 10,240 discrete block requests, multiplying indirect pointer traversal overhead, seek latencies, and metadata footprint in memory.</li>
           </ul>
         </li>
@@ -426,7 +426,7 @@
         A dedicated allocation map represents the filesystem partition as an array of bits, where each bit corresponds to a single logical block: <code>0</code> indicates a free block, and <code>1</code> indicates an allocated block.
       </p>
       <ul>
-        <li><em>Space Overhead:</em> For a 1 TB drive with 4 KB blocks ($2^{28}$ blocks), the bitmap requires $2^{28}$ bits, which equals $2^{25}$ bytes (32 MB of storage)&mdash;a negligible 0.003% storage footprint.</li>
+        <li><em>Space Overhead:</em> For a 1 TB drive with 4 KB blocks (<i>2<sup>28</sup></i> blocks), the bitmap requires <i>2<sup>28</sup></i> bits, which equals <i>2<sup>25</sup></i> bytes (32 MB of storage)&mdash;a negligible 0.003% storage footprint.</li>
         <li><em>Contiguity Search:</em> Finding contiguous blocks is fast. Hardware word instructions (such as finding the first trailing zero) let the allocator scan 64 blocks per CPU instruction to allocate contiguous extents.</li>
         <li><em>Memory Caching:</em> Modern filesystems divide the volume into <strong>Block Groups</strong> (such as in <code>ext4</code>), giving each group its own local 1-block bitmap (e.g., 32,768 blocks per group), allowing allocation checks to operate fully within memory.</li>
       </ul>
@@ -535,7 +535,7 @@
       </p>
       <ul>
         <li><strong>Level 0 (Full Backup):</strong> Copies every active file and directory on the entire filesystem partition, regardless of its modification history. This serves as the foundational recovery baseline. Every incremental chain must trace its root back to a Level 0 dump.</li>
-        <li><strong>Level $N$ (Incremental Backup):</strong> Backs up only files and directories that have been created or modified since the last backup taken at a *lower* level than $N$ (i.e., any level $< N$).</li>
+        <li><strong>Level <i>N</i> (Incremental Backup):</strong> Backs up only files and directories that have been created or modified since the last backup taken at a *lower* level than <i>N</i> (i.e., any level <i>< N</i>).</li>
       </ul>
 
       <p>
@@ -621,8 +621,8 @@
         The checker builds two independent tracking arrays in memory:
       </p>
       <ul>
-        <li><code>Track_Block[B]</code>: Tracks how many times block $B$ is claimed by active inodes.</li>
-        <li><code>Free_Block[B]</code>: Tracks whether block $B$ is present in the filesystem's free list or allocation bitmap.</li>
+        <li><code>Track_Block[B]</code>: Tracks how many times block <i>B</i> is claimed by active inodes.</li>
+        <li><code>Free_Block[B]</code>: Tracks whether block <i>B</i> is present in the filesystem's free list or allocation bitmap.</li>
       </ul>
       <p>
         The checker reads every inode. For each direct and indirect pointer, it increments <code>Track_Block[B]</code>. It then inspects the free list or bitmap. In a healthy filesystem, every block on disk must satisfy mutually exclusive parity: <strong>it must either be referenced by exactly one inode ($1$) or marked free ($0$)</strong>. Discrepancies generate four critical error states:
@@ -689,7 +689,7 @@
       </p>
       <ol>
         <li>Start at the filesystem root directory (inode 2).</li>
-        <li>Walk all directory entries recursively, incrementing <code>Link_Count[I]</code> every time an entry references inode $I$.</li>
+        <li>Walk all directory entries recursively, incrementing <code>Link_Count[I]</code> every time an entry references inode <i>I</i>.</li>
         <li>Compare <code>Link_Count[I]</code> against the inode's internal hard link counter (<code>inode.i_nlink</code>).</li>
       </ol>
       <p>

@@ -722,11 +722,11 @@
         Duplicating executables across every user's directory wastes precious secondary storage. Two-level architectures resolved this by designating a special system directory (often indexed in the MFD as <code>SYS</code>, <code>SYSTEM</code>, or user number <code>0</code>) and altering the directory search rule:
       </p>
       <div class="callout">
-        $$\text{Search Target} = \begin{cases}
-        \text{Search Active UFD}, & \text{Step 1} \\
-        \text{If not found} \longrightarrow \text{Search SYSTEM UFD}, & \text{Step 2} \\
-        \text{If not found} \longrightarrow \text{Return Error (File Not Found)}, & \text{Step 3}
-        \end{cases}$$
+        <div class="math-callout">Search Target = \begincases
+        Search Active UFD, & Step 1 \\
+        If not found \longrightarrow Search SYSTEM UFD, & Step 2 \\
+        If not found \longrightarrow Return Error (File Not Found), & Step 3
+        \endcases</div>
       </div>
       <p>
         This fallback rule allowed all users to execute standard system binaries without duplicating blocks on disk. However, it introduced subtle shadowing issues: if Alice created a private data file or test script named <code>cc</code>, her local version shadowed the system compiler, causing unexpected command behavior.
@@ -787,7 +787,7 @@
             <td><strong>Directory Depth</strong></td>
             <td>Exactly 1</td>
             <td>Exactly 2 (Fixed)</td>
-            <td>Arbitrary ($N \ge 1$)</td>
+            <td>Arbitrary (<i>N &ge; 1</i>)</td>
           </tr>
           <tr>
             <td><strong>Namespace Isolation</strong></td>
@@ -811,7 +811,7 @@
             <td><strong>Path Traversal Cost</strong></td>
             <td>1 Directory block scan</td>
             <td>2 Directory block scans</td>
-            <td>$N$ Directory block scans</td>
+            <td><i>N</i> Directory block scans</td>
           </tr>
           <tr>
             <td><strong>System Utility Access</strong></td>
@@ -874,7 +874,7 @@
 
       <div class="callout">
         <strong>The Root Invariant:</strong> In the root directory (<code>/</code>), there is no higher parent. To prevent traversal algorithms from crashing or escaping volume boundaries, the kernel defines:<br>
-        $$\text{Root Directory Invariant: } \quad \text{inode}(\text{"/.."}) \equiv \text{inode}(\text{"/."}) \equiv \text{Root i-node}$$
+        <div class="math-callout">Root Directory Invariant:   &nbsp;  inode("/..") \equiv inode("/.") \equiv Root i-node</div>
         Attempting to traverse above the root simply circles back to the root itself.
       </div>
 
@@ -1108,7 +1108,7 @@
         <div style="background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--success-color); border-radius: 4px; padding: 12px;">
           <strong style="color: var(--success-color); display: block; margin-bottom: 4px;">2. i-Node Telemetry Panel</strong>
           <span style="font-size: 0.88rem; color: #334155; line-height: 1.5;">
-            Monitors target metadata. Watch how the <strong>Reference Count (nlink)</strong> transitions ($1 \rightarrow 2 \rightarrow 1 \rightarrow 0$). Physical data blocks are not copied when hard linking, and storage is only reclaimed when the reference count drops to zero.
+            Monitors target metadata. Watch how the <strong>Reference Count (nlink)</strong> transitions (<i>1 &rarr; 2 &rarr; 1 &rarr; 0</i>). Physical data blocks are not copied when hard linking, and storage is only reclaimed when the reference count drops to zero.
           </span>
         </div>
       </div>

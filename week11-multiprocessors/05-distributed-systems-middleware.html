@@ -509,22 +509,22 @@
           <tr>
             <td><code>out(t)</code></td>
             <td>Deposit</td>
-            <td>Evaluates tuple $t$ and deposits it into the shared tuple space.</td>
+            <td>Evaluates tuple <i>t</i> and deposits it into the shared tuple space.</td>
           </tr>
           <tr>
             <td><code>in(s)</code></td>
             <td>Consume &amp; Remove</td>
-            <td>Searches space for a tuple matching template $s$. Removes it. Blocks if no match exists.</td>
+            <td>Searches space for a tuple matching template <i>s</i>. Removes it. Blocks if no match exists.</td>
           </tr>
           <tr>
             <td><code>rd(s)</code></td>
             <td>Read Non-Destructively</td>
-            <td>Searches space for a tuple matching template $s$. Returns copy. Blocks if no match exists.</td>
+            <td>Searches space for a tuple matching template <i>s</i>. Returns copy. Blocks if no match exists.</td>
           </tr>
           <tr>
             <td><code>eval(t)</code></td>
             <td>Fork / Compute</td>
-            <td>Spawns active thread to evaluate fields in $t$ concurrently; converts to passive tuple on exit.</td>
+            <td>Spawns active thread to evaluate fields in <i>t</i> concurrently; converts to passive tuple on exit.</td>
           </tr>
         </tbody>
       </table>

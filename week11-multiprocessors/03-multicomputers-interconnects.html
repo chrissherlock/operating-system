@@ -328,29 +328,29 @@
           <tr>
             <td><strong>Ring</strong></td>
             <td>2</td>
-            <td>$\lfloor n / 2 \rfloor$</td>
+            <td><i>\lfloor n / 2 \rfloor</i></td>
             <td>2 links</td>
             <td>Simple wiring; prone to single-link bottlenecks and high hop counts.</td>
           </tr>
           <tr>
             <td><strong>2D Mesh / Grid</strong></td>
             <td>4 (interior)</td>
-            <td>$2(\sqrt{n} - 1)$</td>
-            <td>$\sqrt{n}$ links</td>
+            <td><i>2(\sqrtn - 1)</i></td>
+            <td><i>\sqrtn</i> links</td>
             <td>Planar mapping to silicon substrates; perimeter nodes have boundary penalties.</td>
           </tr>
           <tr>
             <td><strong>2D Torus</strong></td>
             <td>4</td>
-            <td>$2 \times \lfloor \sqrt{n} / 2 \rfloor$</td>
-            <td>$2\sqrt{n}$ links</td>
+            <td><i>2 &times; \lfloor \sqrtn / 2 \rfloor</i></td>
+            <td><i>2\sqrtn</i> links</td>
             <td>Wraparound edges create symmetry; every node observes identical topology.</td>
           </tr>
           <tr>
-            <td><strong>$k$-ary $d$-cube (Hypercube)</strong></td>
-            <td>$d = \log_2 n$</td>
-            <td>$d = \log_2 n$</td>
-            <td>$n / 2$ links</td>
+            <td><strong><i>k</i>-ary <i>d</i>-cube (Hypercube)</strong></td>
+            <td><i>d = \log<sub>2</sub> n</i></td>
+            <td><i>d = \log<sub>2</sub> n</i></td>
+            <td><i>n / 2</i> links</td>
             <td>Logarithmic diameter growth; excellent fault paths; high cable complexity.</td>
           </tr>
         </tbody>
@@ -428,12 +428,12 @@
       <ul>
         <li>
           <strong>Store-and-Forward:</strong> When a message traverses a path of intermediate routers, each router buffers the complete packet in local RAM before inspecting the header and transmitting it to the next link. Latency is proportional to:
-          $$\text{Latency} = h \times \left( \frac{\text{Packet Size}}{\text{Bandwidth}} + \text{Routing Delay} \right)$$
-          where $h$ is the number of hops. Long messages traveling across multiple hops incur significant queuing delay.
+          <div class="math-callout">Latency = h &times; &le;ft( \fracPacket SizeBandwidth + Routing Delay \right)</div>
+          where <i>h</i> is the number of hops. Long messages traveling across multiple hops incur significant queuing delay.
         </li>
         <li>
           <strong>Cut-Through &amp; Wormhole Routing:</strong> Packets are divided into small, fixed-size flow control units called <em>flits</em>. The router inspects the header flit and immediately establishes an outgoing circuit switch. Subsequent payload flits follow in a pipelined fashion behind the header across intermediate links. If the header flit blocks due to link contention, the remaining body flits stall in-place across the traversed links, forming a "worm" through the fabric. Latency is largely decoupled from distance:
-          $$\text{Latency} \approx \frac{\text{Packet Size}}{\text{Bandwidth}} + h \times (\text{Flit Delay})$$
+          <div class="math-callout">Latency &asymp; \fracPacket SizeBandwidth + h &times; (Flit Delay)</div>
         </li>
       </ul>
     </section>
@@ -577,15 +577,15 @@
       </p>
       <ul>
         <li>
-          <strong>Read Fault:</strong> If CPU 1 reads page $P$ which is currently unmapped locally, the MMU triggers a page fault. The OS fault routine intercepts the trap, issues a network request to the node holding page $P$, maps the page as read-only on both nodes, and resumes execution.
+          <strong>Read Fault:</strong> If CPU 1 reads page <i>P</i> which is currently unmapped locally, the MMU triggers a page fault. The OS fault routine intercepts the trap, issues a network request to the node holding page <i>P</i>, maps the page as read-only on both nodes, and resumes execution.
         </li>
         <li>
-          <strong>Write Fault &amp; Invalidation:</strong> If CPU 1 attempts to write to page $P$ (currently mapped as read-only), the MMU raises a protection fault. The local DSM layer sends an <em>invalidation message</em> to all other nodes holding copies of page $P$, marks its own copy as read-write, and completes the write.
+          <strong>Write Fault &amp; Invalidation:</strong> If CPU 1 attempts to write to page <i>P</i> (currently mapped as read-only), the MMU raises a protection fault. The local DSM layer sends an <em>invalidation message</em> to all other nodes holding copies of page <i>P</i>, marks its own copy as read-write, and completes the write.
         </li>
       </ul>
 
       <div class="callout">
-        <strong>The False Sharing Trap:</strong> Unlike hardware cache coherence which operates at 64-byte cache line granularity, page-based DSM operates at page granularity (typically 4096 bytes). If variable $A$ and variable $B$ reside on the exact same 4 KiB page, and Node 0 repeatedly writes $A$ while Node 1 repeatedly writes $B$, the entire 4 KiB page will continuously bounce back and forth across the network. Even though the processes touch independent variables, performance collapses due to <em>false sharing</em>.
+        <strong>The False Sharing Trap:</strong> Unlike hardware cache coherence which operates at 64-byte cache line granularity, page-based DSM operates at page granularity (typically 4096 bytes). If variable <i>A</i> and variable <i>B</i> reside on the exact same 4 KiB page, and Node 0 repeatedly writes <i>A</i> while Node 1 repeatedly writes <i>B</i>, the entire 4 KiB page will continuously bounce back and forth across the network. Even though the processes touch independent variables, performance collapses due to <em>false sharing</em>.
       </div>
 
       <!-- INTERACTIVE DSM SIMULATOR -->

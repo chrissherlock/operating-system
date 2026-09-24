@@ -371,7 +371,7 @@
 
   <header>
     <h1>9. The Working Set Model</h1>
-    <p class="subtitle">Tanenbaum Section 3.4.2 (Fig. 3-19): Locality of reference, working set size $w(k, t)$, and thrashing prevention.</p>
+    <p class="subtitle">Tanenbaum Section 3.4.2 (Fig. 3-19): Locality of reference, working set size <i>w(k, t)</i>, and thrashing prevention.</p>
   </header>
 
   <div class="main-container">
@@ -395,14 +395,14 @@
 
         <h2>2. The Working Set Model &amp; The Ideal Memory Footprint</h2>
         <p>
-          To prevent thrashing, <a href="https://en.wikipedia.org/wiki/Peter_J._Denning" target="_blank" style="color: var(--accent); text-decoration: underline;">Peter Denning</a> introduced the <strong>Working Set Model</strong>. The working set is the set of unique pages actively needed by a process right now due to its locality of reference (referenced during the last $k$ virtual memory references or time window $\tau$).
+          To prevent thrashing, <a href="https://en.wikipedia.org/wiki/Peter_J._Denning" target="_blank" style="color: var(--accent); text-decoration: underline;">Peter Denning</a> introduced the <strong>Working Set Model</strong>. The working set is the set of unique pages actively needed by a process right now due to its locality of reference (referenced during the last <i>k</i> virtual memory references or time window <i>\tau</i>).
         </p>
         <div class="theory-callout">
           <strong>The Kernel's Target Goal:</strong><br>
           The working set is not just whatever happens to sit in RAM; it is the <strong>ideal memory footprint</strong> that the operating system <em>should</em> keep resident in physical memory. It defines what the process needs to run smoothly without constantly faulting.<br><br>
-          <strong>Mathematical Formulation ($w(k, t)$):</strong><br>
-          - As $k$ grows very small, $w(k, t)$ captures only the immediate instruction.<br>
-          - As $k$ grows large enough to cover the active execution phase, it hits the optimal window ($\tau$).<br>
+          <strong>Mathematical Formulation (<i>w(k, t)</i>):</strong><br>
+          - As <i>k</i> grows very small, <i>w(k, t)</i> captures only the immediate instruction.<br>
+          - As <i>k</i> grows large enough to cover the active execution phase, it hits the optimal window (<i>\tau</i>).<br>
           - The OS strives to reach this target footprint for every active process before letting them execute.
         </div>
 
@@ -413,7 +413,7 @@
         <ul style="padding-left: 20px; display: block; gap: 6px; margin-bottom: 10px;">
           <li><strong>The Cost of Too Little Memory:</strong> Allocating too few frames leads directly to a spike in page faults and catastrophic thrashing.</li>
           <li><strong>The Cost of Too Much Memory:</strong> Allocating an oversized window wastes physical RAM that other processes could use to execute concurrently, lowering the overall multiprogramming level.</li>
-          <li><strong>The Knee of the Curve:</strong> The optimal window size (\(\tau\) or $k$) shown in Figure 3-19 represents the "knee of the curve"—the sweet spot where adding more memory yields diminishing returns in page fault reduction.</li>
+          <li><strong>The Knee of the Curve:</strong> The optimal window size (\(\tau\) or <i>k</i>) shown in Figure 3-19 represents the "knee of the curve"—the sweet spot where adding more memory yields diminishing returns in page fault reduction.</li>
         </ul>
         <p>
           <strong>Why Calculus Isn't Used in the Kernel:</strong> While this is conceptually an optimization problem, operating systems do not use formal calculus (like derivatives) to solve it in real time. Program execution is discrete and non-differentiable, and computing derivatives on the fly for dozens of threads introduces unacceptable CPU overhead. Instead, kernels rely on lightweight empirical heuristics (like the WSClock algorithm) to approximate working sets dynamically.
@@ -424,7 +424,7 @@
           Understanding the Working Set model is critical because real-world systems face memory pressure where ideal goals collide with hardware limits:
         </p>
         <ul style="padding-left: 20px; display: block; gap: 6px; margin-bottom: 10px;">
-          <li><strong>The Ideal vs. Reality:</strong> The working set is the kernel's ultimate target goal. However, when total physical RAM is smaller than the sum of all active working sets (\(\sum w > \text{Total RAM}\)), the OS cannot give every process everything it ideally needs.</li>
+          <li><strong>The Ideal vs. Reality:</strong> The working set is the kernel's ultimate target goal. However, when total physical RAM is smaller than the sum of all active working sets (\(\sum w > Total RAM\)), the OS cannot give every process everything it ideally needs.</li>
           <li><strong>The Cure for Thrashing:</strong> Without honoring working sets, allocating too few frames causes continuous page faults, plunging the CPU into <strong>thrashing</strong> (spending 100% of its time swapping pages to disk).</li>
           <li><strong>Admission &amp; Load Control:</strong> When system memory pressure makes it impossible to satisfy active working sets, the kernel uses admission control to completely suspend or swap out low-priority processes, preserving enough RAM for the remaining processes to run at full speed.</li>
         </ul>
@@ -493,9 +493,9 @@
         <div style="margin-top: 12px; padding: 12px 16px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; line-height: 1.6; color: #334155;">
           <strong style="color: var(--accent); font-family: var(--font-mono); font-size: 0.9rem; display: block; margin-bottom: 4px;">Anatomical Breakdown of Figure 3-19:</strong>
           <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 4px;">
-            <li><strong>Small $k$ (Immediate Scope):</strong> When the window size $k$ is extremely small, $w(k, t)$ captures only the single instruction or immediate micro-loop currently executing, severely underestimating the process's actual memory footprint.</li>
-            <li><strong>The Knee of the Curve &amp; Optimal Window ($\tau$):</strong> As $k$ grows, the curve rises steeply until it reaches the inflection point ("knee") exactly where the target allocation touches it. This optimal window size ($\tau$) represents the exact threshold where all active working set pages are encompassed. Allocating exactly $w(k, t)$ frames here achieves maximum performance without wasting RAM.</li>
-            <li><strong>Large $k$ (Plateau):</strong> Once $k$ covers the entire active execution phase, adding more references yields zero new unique pages, causing the curve to flatten into a horizontal plateau covering the program's full active footprint.</li>
+            <li><strong>Small <i>k</i> (Immediate Scope):</strong> When the window size <i>k</i> is extremely small, <i>w(k, t)</i> captures only the single instruction or immediate micro-loop currently executing, severely underestimating the process's actual memory footprint.</li>
+            <li><strong>The Knee of the Curve &amp; Optimal Window (<i>\tau</i>):</strong> As <i>k</i> grows, the curve rises steeply until it reaches the inflection point ("knee") exactly where the target allocation touches it. This optimal window size (<i>\tau</i>) represents the exact threshold where all active working set pages are encompassed. Allocating exactly <i>w(k, t)</i> frames here achieves maximum performance without wasting RAM.</li>
+            <li><strong>Large <i>k</i> (Plateau):</strong> Once <i>k</i> covers the entire active execution phase, adding more references yields zero new unique pages, causing the curve to flatten into a horizontal plateau covering the program's full active footprint.</li>
           </ul>
         </div>
       </div>
@@ -511,7 +511,7 @@
 
       <div class="split-grid">
         <div style="display:flex; flex-direction:column; gap:10px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:14px;">
-          <span style="font-family:var(--font-mono); font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Stream &amp; Active Window ($k=4$)</span>
+          <span style="font-family:var(--font-mono); font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Stream &amp; Active Window (<i>k=4</i>)</span>
           <div id="wtStreamBox" class="stream-box-row"></div>
           <div id="wtSetSummary" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--accent); font-weight:700; margin-top:6px;"></div>
         </div>
@@ -533,7 +533,7 @@
         <div>
           <h2 style="font-size:1.25rem; font-weight:700;">Part 3: Interactive Working Set Simulator</h2>
           <p style="font-size:0.85rem; color:var(--text-muted); margin-top:2px;">
-            Simulate reference streams, adjust window size $k$, and calculate active unique pages dynamically.
+            Simulate reference streams, adjust window size <i>k</i>, and calculate active unique pages dynamically.
           </p>
         </div>
         <div>
@@ -554,7 +554,7 @@
       <!-- Telemetry Banner -->
       <div class="telemetry-box">
         <span>Reference Stream History: <strong id="streamDisplay" style="color:#38bdf8;">[A, B, C, P]</strong></span>
-        <span>Working Set Size $w(k, t)$: <strong id="wsSizeDisplay" style="color:#4ade80;">4</strong></span>
+        <span>Working Set Size <i>w(k, t)</i>: <strong id="wsSizeDisplay" style="color:#4ade80;">4</strong></span>
       </div>
 
       <div class="split-grid">

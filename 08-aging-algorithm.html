@@ -336,19 +336,19 @@
       <div class="theory-section">
         <h2>1. The Limitation of Simple Second-Chance</h2>
         <p>
-          While the Clock algorithm (second-chance) avoids the heavy overhead of strict LRU, it is relatively coarse-grained. It only remembers whether a page was referenced during the <em>current</em> sweep cycle ($R = 1$ or $R = 0$). It cannot distinguish between a page referenced 10 instructions ago versus one referenced 10,000 instructions ago.
+          While the Clock algorithm (second-chance) avoids the heavy overhead of strict LRU, it is relatively coarse-grained. It only remembers whether a page was referenced during the <em>current</em> sweep cycle (<i>R = 1</i> or <i>R = 0</i>). It cannot distinguish between a page referenced 10 instructions ago versus one referenced 10,000 instructions ago.
         </p>
 
-        <h2>2. The Aging Algorithm Solution &amp; The Referenced ($R$) Bit</h2>
+        <h2>2. The Aging Algorithm Solution &amp; The Referenced (<i>R</i>) Bit</h2>
         <p>
           To capture more precise access history without full LRU matrix overhead, operating systems use the <strong>Aging Algorithm</strong>. Each physical page frame is assigned a fixed-width binary history register (typically 8 bits wide, corresponding to 8 consecutive clock ticks).
         </p>
         <p>
-          The foundation of aging relies on the hardware <strong>Referenced ($R$) bit</strong>. Whenever the CPU accesses a virtual address, the memory management unit (MMU) automatically sets the page's $R$ bit to $1$. Because the MMU never clears this bit on its own, the OS uses periodic clock ticks to read, shift, and reset it.
+          The foundation of aging relies on the hardware <strong>Referenced (<i>R</i>) bit</strong>. Whenever the CPU accesses a virtual address, the memory management unit (MMU) automatically sets the page's <i>R</i> bit to $1$. Because the MMU never clears this bit on its own, the OS uses periodic clock ticks to read, shift, and reset it.
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px;">
-          <li><strong>Clock Tick Interception:</strong> At regular hardware clock intervals, the OS interrupts execution and performs a right-shift operation on every page's counter: $R_i \to R_i \gg 1$.</li>
-          <li><strong>MSB Injection ($R \to \text{MSB}$):</strong> During the shift, the current hardware Referenced ($R$) bit is inserted into the most significant bit (MSB, position 7) of the register: $R_7 = R$.</li>
+          <li><strong>Clock Tick Interception:</strong> At regular hardware clock intervals, the OS interrupts execution and performs a right-shift operation on every page's counter: <i>R<sub>i</sub> \to R<sub>i</sub> \gg 1</i>.</li>
+          <li><strong>MSB Injection (<i>R \to MSB</i>):</strong> During the shift, the current hardware Referenced (<i>R</i>) bit is inserted into the most significant bit (MSB, position 7) of the register: <i>R<sub>7</sub> = R</i>.</li>
           <li><strong>Eviction Policy:</strong> When a page fault occurs, the kernel scans all frame registers as unsigned integers. The page with the <strong>lowest numerical value</strong> is chosen as the victim (indicating it has not been referenced for the longest sequence of ticks).</li>
         </ul>
         <div class="theory-callout">
@@ -458,11 +458,11 @@
         <div class="guide-grid">
           <div class="guide-box">
             <strong>1. Access a Page</strong>
-            <span>Type any page letter (e.g. <code>W</code>) and click <em>Access Page</em>. If resident, its hardware $R$-bit becomes 1. If absent, a page fault triggers, evicting the page with the lowest counter value.</span>
+            <span>Type any page letter (e.g. <code>W</code>) and click <em>Access Page</em>. If resident, its hardware <i>R</i>-bit becomes 1. If absent, a page fault triggers, evicting the page with the lowest counter value.</span>
           </div>
           <div class="guide-box">
             <strong>2. Trigger Clock Tick</strong>
-            <span>Click <em>Clock Tick (Shift >> 1)</em> to simulate the OS timer interrupt: all 8-bit registers shift right, and $R$ bits are inserted into the MSB (bit 7).</span>
+            <span>Click <em>Clock Tick (Shift >> 1)</em> to simulate the OS timer interrupt: all 8-bit registers shift right, and <i>R</i> bits are inserted into the MSB (bit 7).</span>
           </div>
           <div class="guide-box">
             <strong>3. Examine Counter Values</strong>

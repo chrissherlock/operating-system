@@ -808,7 +808,7 @@
       <!-- Section 4: Segment Cleaning & Garbage Collection -->
       <h3>4. Background Garbage Collection &amp; Segment Cleaning</h3>
       <p>
-        Segment cleaning reclaims fragmented dead space using the Cost-Benefit policy $((1-u) \times \text{Age}) / (1+u)$, balancing hot and cold data compaction.
+        Segment cleaning reclaims fragmented dead space using the Cost-Benefit policy <i>((1-u) &times; Age) / (1+u)</i>, balancing hot and cold data compaction.
       </p>
 
       <!-- WALKTHROUGH PART 2: THE 4-PHASE COMPACTION CYCLE -->
@@ -890,17 +890,17 @@
         A single high-level file modification rarely maps to a single physical disk write. Appending data to an existing file requires executing three distinct physical writes:
       </p>
       <ol>
-        <li><strong>Data Block Write:</strong> Writing user payload bytes into a newly allocated data block ($D$).</li>
-        <li><strong>Inode Metadata Update:</strong> Modifying the file's inode ($I$) to update file length, modification timestamps, and insert an address pointer referencing block $D$.</li>
-        <li><strong>Data Allocation Bitmap Update:</strong> Toggling the corresponding bit in the block allocation bitmap ($B$) from <code>0</code> (free) to <code>1</code> (allocated) to prevent other files from claiming block $D$.</li>
+        <li><strong>Data Block Write:</strong> Writing user payload bytes into a newly allocated data block (<i>D</i>).</li>
+        <li><strong>Inode Metadata Update:</strong> Modifying the file's inode (<i>I</i>) to update file length, modification timestamps, and insert an address pointer referencing block <i>D</i>.</li>
+        <li><strong>Data Allocation Bitmap Update:</strong> Toggling the corresponding bit in the block allocation bitmap (<i>B</i>) from <code>0</code> (free) to <code>1</code> (allocated) to prevent other files from claiming block <i>D</i>.</li>
       </ol>
       <p>
         Physical storage controllers guarantee atomic writes strictly at the granularity of a <strong>single physical sector</strong> (typically 512 bytes or 4 KB). Atomic writes across three completely separate disk blocks located thousands of sectors apart are physically impossible. If the system loses power between any of these operations, the filesystem enters an inconsistent failure state:
       </p>
       <ul>
-        <li><strong>Crash after Inode ($I$), before Bitmap ($B$):</strong> The inode references block $D$, but the bitmap marks block $D$ as free. When another process creates a file, the allocator will grant that exact same block $D$ to the new file, producing <strong>block cross-allocation and catastrophic data theft</strong>.</li>
-        <li><strong>Crash after Bitmap ($B$), before Inode ($I$):</strong> Block $D$ is marked occupied in the bitmap, but no inode in the entire file system points to it. This creates a permanent, silent <strong>storage space leak</strong>.</li>
-        <li><strong>Crash after Inode ($I$), before Data ($D$):</strong> The inode points to block $D$, but block $D$ was never written. Reading the file returns uninitialized remnants of whatever deleted data resided in that sector previously, causing <strong>data corruption and severe security information leakage</strong>.</li>
+        <li><strong>Crash after Inode (<i>I</i>), before Bitmap (<i>B</i>):</strong> The inode references block <i>D</i>, but the bitmap marks block <i>D</i> as free. When another process creates a file, the allocator will grant that exact same block <i>D</i> to the new file, producing <strong>block cross-allocation and catastrophic data theft</strong>.</li>
+        <li><strong>Crash after Bitmap (<i>B</i>), before Inode (<i>I</i>):</strong> Block <i>D</i> is marked occupied in the bitmap, but no inode in the entire file system points to it. This creates a permanent, silent <strong>storage space leak</strong>.</li>
+        <li><strong>Crash after Inode (<i>I</i>), before Data (<i>D</i>):</strong> The inode points to block <i>D</i>, but block <i>D</i> was never written. Reading the file returns uninitialized remnants of whatever deleted data resided in that sector previously, causing <strong>data corruption and severe security information leakage</strong>.</li>
       </ul>
 
       <h3>2. The Write-Ahead Logging (WAL) Protocol</h3>
@@ -920,7 +920,7 @@
       </p>
       <ol>
         <li><strong>Transaction Header (Tx Begin):</strong> A special descriptor block containing a unique monotonically increasing Transaction ID (TID), starting timestamp, and a manifest of the dirty metadata blocks scheduled for modification.</li>
-        <li><strong>Descriptor &amp; Payload Blocks:</strong> The operating system writes exact in-memory copies of the updated inode ($I$), the updated allocation bitmap ($B$), and any modified directory blocks into the sequential journal stream.</li>
+        <li><strong>Descriptor &amp; Payload Blocks:</strong> The operating system writes exact in-memory copies of the updated inode (<i>I</i>), the updated allocation bitmap (<i>B</i>), and any modified directory blocks into the sequential journal stream.</li>
         <li><strong>Write Barrier &amp; The Commit Block:</strong> The controller issues a strict hardware write barrier (e.g., <code>FLUSH CACHE</code> or <code>FUA</code> &ndash; Force Unit Access) to ensure all payload blocks are physically seated on persistent media. Only then does it append the <strong>Commit Block</strong>. The commit block contains the matching Transaction ID and a cryptographic/CRC32 checksum of the entire transaction payload. The instant this commit block reaches disk, the transaction is durable.</li>
         <li><strong>Checkpointing (In-Place Flushing):</strong> With the transaction safely recorded in the journal, the operating system writes the modified blocks out to their permanent locations across the disk (the real inode table, the real bitmap).</li>
         <li><strong>Transaction Release (Journal Free):</strong> Once in-place checkpointing finishes, the circular journal marks that transaction's ring buffer sectors as reclaimed, advancing the journal head pointer.</li>

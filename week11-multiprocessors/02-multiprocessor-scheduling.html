@@ -384,14 +384,14 @@
 
       <h3>2. Cache Warmth &amp; The Migration Penalty</h3>
       <p>
-        When thread $T$ executes on Core 0, it loads its working set (data structures, stack frames, loop variables) into Core 0's private L1 and L2 caches. This is called a <strong>warm cache</strong>.
+        When thread <i>T</i> executes on Core 0, it loads its working set (data structures, stack frames, loop variables) into Core 0's private L1 and L2 caches. This is called a <strong>warm cache</strong>.
       </p>
       <p>
-        If the operating system preempts $T$ and subsequently dispatches it to Core 1 to balance run queues:
+        If the operating system preempts <i>T</i> and subsequently dispatches it to Core 1 to balance run queues:
       </p>
       <ul>
-        <li><strong>Cold Cache Misses:</strong> Core 1's L1/L2 caches contain none of $T$'s data. Every instruction fetch and memory load incurs a cache miss, stalling the execution pipeline while data is fetched from shared L3 or physical DRAM (~40–80 ns vs. ~1 ns for L1).</li>
-        <li><strong>Coherence Invalidation Traffic:</strong> If $T$ mutates data on Core 1 that was left dirty in Core 0's cache, the hardware cache coherence protocol must broadcast invalidation messages, invalidating lines across the interconnect and adding bus contention.</li>
+        <li><strong>Cold Cache Misses:</strong> Core 1's L1/L2 caches contain none of <i>T</i>'s data. Every instruction fetch and memory load incurs a cache miss, stalling the execution pipeline while data is fetched from shared L3 or physical DRAM (~40–80 ns vs. ~1 ns for L1).</li>
+        <li><strong>Coherence Invalidation Traffic:</strong> If <i>T</i> mutates data on Core 1 that was left dirty in Core 0's cache, the hardware cache coherence protocol must broadcast invalidation messages, invalidating lines across the interconnect and adding bus contention.</li>
       </ul>
 
       <h3>3. Soft vs. Hard Affinity Scheduling</h3>
@@ -440,7 +440,7 @@
 
             <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
               <p style="color: #334155; font-size: 0.9rem; line-height: 1.5; margin: 0;">
-                <strong>Gang scheduling</strong> was pioneered by <strong>John Ousterhout</strong> in 1982 to address the coordination failure of independent thread schedulers on parallel hardware. By scheduling related threads across multiple cores simultaneously (a <strong>two-dimensional matrix of Cores $\times$ Time Quanta</strong>), gang scheduling prevents preemption delays and blocking when cooperating threads communicate.
+                <strong>Gang scheduling</strong> was pioneered by <strong>John Ousterhout</strong> in 1982 to address the coordination failure of independent thread schedulers on parallel hardware. By scheduling related threads across multiple cores simultaneously (a <strong>two-dimensional matrix of Cores <i>&times;</i> Time Quanta</strong>), gang scheduling prevents preemption delays and blocking when cooperating threads communicate.
               </p>
               <div>
                 <a href="https://en.wikipedia.org/wiki/Gang_scheduling" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline; font-weight: 500; font-size: 0.88rem;">Read more on Wikipedia: Gang Scheduling &rarr;</a>
@@ -572,7 +572,7 @@
         </div>
 
         <p style="font-size: 0.9rem; color: #334155; line-height: 1.55;">
-          <strong>Concept Overview:</strong> This walkthrough visually demonstrates the two-dimensional scheduling matrix (Cores $\times$ Time Quanta). Observe what happens when communicating threads are scheduled out of sync versus when they are dispatched synchronously as a coordinated gang.
+          <strong>Concept Overview:</strong> This walkthrough visually demonstrates the two-dimensional scheduling matrix (Cores <i>&times;</i> Time Quanta). Observe what happens when communicating threads are scheduled out of sync versus when they are dispatched synchronously as a coordinated gang.
         </p>
 
         <div class="instruction-card">

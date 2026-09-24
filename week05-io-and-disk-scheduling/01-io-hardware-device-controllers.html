@@ -327,7 +327,7 @@
 
     <h3>1. The Physical Spectrum &amp; Device Categorization</h3>
     <p>
-      The primary challenge in I/O engineering is the sheer disparity in transfer rates across peripheral devices. A human typing on a mechanical keyboard produces approximately 10 to 20 bytes per second, whereas a PCIe 5.0 x4 NVMe solid-state drive streams data at <strong>15 gigabytes per second</strong>&mdash;a performance difference exceeding <strong>nine orders of magnitude</strong> ($10^9\times$).
+      The primary challenge in I/O engineering is the sheer disparity in transfer rates across peripheral devices. A human typing on a mechanical keyboard produces approximately 10 to 20 bytes per second, whereas a PCIe 5.0 x4 NVMe solid-state drive streams data at <strong>15 gigabytes per second</strong>&mdash;a performance difference exceeding <strong>nine orders of magnitude</strong> (<i>10<sup>9</sup>&times;</i>).
     </p>
 
     <div style="overflow-x: auto; margin: 18px 0;">
@@ -511,7 +511,7 @@
         <h4 style="margin: 0 0 6px 0; color: #0f172a;">1. Port-Mapped I/O (PMIO)</h4>
         <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">Isolated I/O Space (x86 Architecture)</div>
         <p style="margin: 0; font-size: 0.84rem; color: #475569; line-height: 1.5;">
-          The CPU possesses a separate, dedicated 16-bit I/O address space ($0\text{x}0000 \dots 0\text{xFFFF}$) physically isolated from main RAM.
+          The CPU possesses a separate, dedicated 16-bit I/O address space (<i>0x0000 &hellip; 0xFFFF</i>) physically isolated from main RAM.
           <br><br>
           <strong>Special Instructions:</strong> Reading or writing requires special assembly instructions:
           <pre style="margin: 6px 0; padding: 8px; font-size: 0.78rem;"><code><span class="syn-kw">in</span> al, dx     <span class="syn-cmt">; Read byte from port in DX</span>

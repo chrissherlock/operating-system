@@ -469,11 +469,11 @@
 
     <h4>1. RAID 0: Non-Redundant Striping</h4>
     <ul>
-      <li><strong>Data Layout:</strong> Pure block-level striping without parity or mirroring. Block $0 \rightarrow \text{Disk } 0$, Block $1 \rightarrow \text{Disk } 1$, Block $2 \rightarrow \text{Disk } 0$, etc.</li>
-      <li><strong>Capacity:</strong> $N \times C$ ($100\%$ efficiency).</li>
-      <li><strong>Performance:</strong> $N \times$ sequential read and write throughput.</li>
+      <li><strong>Data Layout:</strong> Pure block-level striping without parity or mirroring. Block <i>0 &rarr; Disk  0</i>, Block <i>1 &rarr; Disk  1</i>, Block <i>2 &rarr; Disk  0</i>, etc.</li>
+      <li><strong>Capacity:</strong> <i>N &times; C</i> (<i>100\%</i> efficiency).</li>
+      <li><strong>Performance:</strong> <i>N &times;</i> sequential read and write throughput.</li>
       <li>
-        <strong>The Reliability Disaster:</strong> If any single physical disk suffers hardware failure, <strong>all data in the array is permanently destroyed</strong>. Because disk failures are independent Poisson processes, the Mean Time To Failure ($\text{MTTF}$) of a RAID 0 array drops precipitously:
+        <strong>The Reliability Disaster:</strong> If any single physical disk suffers hardware failure, <strong>all data in the array is permanently destroyed</strong>. Because disk failures are independent Poisson processes, the Mean Time To Failure (<i>MTTF</i>) of a RAID 0 array drops precipitously:
         <pre><code>MTTF<sub>RAID 0</sub> = MTTF<sub>single disk</sub> / N</code></pre>
         An array of 10 disks with an individual MTTF of 1,000,000 hours will experience an array failure every 100,000 hours (11.4 years).
       </li>
@@ -482,28 +482,28 @@
     <h4>2. RAID 1: Mirroring / Shadowing</h4>
     <ul>
       <li><strong>Data Layout:</strong> Every logical block is written identically to two (or more) separate physical disks.</li>
-      <li><strong>Capacity:</strong> $C$ ($50\%$ capacity efficiency for 2-way mirrors). Highly expensive per gigabyte.</li>
-      <li><strong>Performance:</strong> Write throughput equals a single disk (since both disks must be updated). Read throughput reaches $2 \times$, as the controller can schedule reads across both spindles in parallel.</li>
+      <li><strong>Capacity:</strong> <i>C</i> (<i>50\%</i> capacity efficiency for 2-way mirrors). Highly expensive per gigabyte.</li>
+      <li><strong>Performance:</strong> Write throughput equals a single disk (since both disks must be updated). Read throughput reaches <i>2 &times;</i>, as the controller can schedule reads across both spindles in parallel.</li>
       <li><strong>Reliability:</strong> Survives the physical death of any one disk. If a disk fails, the remaining disk continues servicing I/O with zero performance penalty.</li>
     </ul>
 
     <h4>3. RAID 4: Block Striping with Dedicated Parity Disk</h4>
     <p>
-      RAID 4 attempts to balance storage efficiency and fault tolerance by striping data blocks across $N - 1$ data disks, while writing computed parity blocks to a <strong>single dedicated parity disk</strong>.
+      RAID 4 attempts to balance storage efficiency and fault tolerance by striping data blocks across <i>N - 1</i> data disks, while writing computed parity blocks to a <strong>single dedicated parity disk</strong>.
     </p>
 
     <div class="math-callout">
       <strong>The Small-Write Parity Disk Bottleneck in RAID 4:</strong>
       <br>
-      Suppose an application updates a single 4 KB data block ($D_1 \rightarrow D_1'$). In order to update the corresponding parity block ($P \rightarrow P'$), the controller must calculate:
+      Suppose an application updates a single 4 KB data block (<i>D<sub>1</sub> &rarr; D<sub>1</sub>'</i>). In order to update the corresponding parity block (<i>P &rarr; P'</i>), the controller must calculate:
       <pre><code>P' = (D<sub>1 (old)</sub> &oplus; D<sub>1 (new)</sub>) &oplus; P<sub>(old)</sub></code></pre>
       This creates the notorious <strong>Read-Modify-Write Penalty</strong>:
       <ol>
-        <li>Read old data block $D_1$.</li>
-        <li>Read old parity block $P$.</li>
-        <li>Compute new parity: $P' = D_1 \oplus D_1' \oplus P$.</li>
-        <li>Write new data block $D_1'$.</li>
-        <li>Write new parity block $P'$.</li>
+        <li>Read old data block <i>D<sub>1</sub></i>.</li>
+        <li>Read old parity block <i>P</i>.</li>
+        <li>Compute new parity: <i>P' = D<sub>1</sub> &oplus; D<sub>1</sub>' &oplus; P</i>.</li>
+        <li>Write new data block <i>D<sub>1</sub>'</i>.</li>
+        <li>Write new parity block <i>P'</i>.</li>
       </ol>
       A single-block write requires <strong>2 physical disk reads and 2 physical disk writes</strong> (4 total I/O operations). Because <em>every write in the entire system must update the dedicated parity disk</em>, the parity disk arm thrashes continuously, capping system write throughput at the speed of one disk!
     </div>
@@ -513,23 +513,23 @@
       RAID 5 permanently eliminates the RAID 4 write bottleneck by <strong>rotating the parity blocks round-robin across all physical disks</strong>.
     </p>
     <ul>
-      <li>Stripe 0 stores parity on Disk 3 ($A_p$).</li>
-      <li>Stripe 1 stores parity on Disk 2 ($B_p$).</li>
-      <li>Stripe 2 stores parity on Disk 1 ($C_p$).</li>
-      <li>Stripe 3 stores parity on Disk 0 ($D_p$).</li>
+      <li>Stripe 0 stores parity on Disk 3 (<i>A<sub>p</sub></i>).</li>
+      <li>Stripe 1 stores parity on Disk 2 (<i>B<sub>p</sub></i>).</li>
+      <li>Stripe 2 stores parity on Disk 1 (<i>C<sub>p</sub></i>).</li>
+      <li>Stripe 3 stores parity on Disk 0 (<i>D<sub>p</sub></i>).</li>
     </ul>
     <p>
-      Because parity updates are distributed uniformly across all spindles, multiple independent write operations can execute in parallel. RAID 5 yields a usable capacity of $(N - 1) \times C$, tolerates the loss of <strong>exactly one disk</strong>, and remains the historical enterprise workhorse.
+      Because parity updates are distributed uniformly across all spindles, multiple independent write operations can execute in parallel. RAID 5 yields a usable capacity of <i>(N - 1) &times; C</i>, tolerates the loss of <strong>exactly one disk</strong>, and remains the historical enterprise workhorse.
     </p>
 
     <h4>5. RAID 6: Dual Distributed Parity (P + Q)</h4>
     <p>
-      RAID 6 extends RAID 5 by computing <strong>two independent parity blocks per stripe</strong> ($P$ and $Q$), distributing both across the array:
+      RAID 6 extends RAID 5 by computing <strong>two independent parity blocks per stripe</strong> (<i>P</i> and <i>Q</i>), distributing both across the array:
     </p>
     <ul>
-      <li><strong>Parity P:</strong> The standard linear XOR parity ($P = D_0 \oplus D_1 \oplus D_2$).</li>
-      <li><strong>Parity Q:</strong> A non-linear Reed-Solomon polynomial code computed over a Galois Field $\text{GF}(2^8)$ or diagonal dual-XOR matrix.</li>
-      <li><strong>Capacity:</strong> $(N - 2) \times C$.</li>
+      <li><strong>Parity P:</strong> The standard linear XOR parity (<i>P = D<sub>0</sub> &oplus; D<sub>1</sub> &oplus; D<sub>2</sub></i>).</li>
+      <li><strong>Parity Q:</strong> A non-linear Reed-Solomon polynomial code computed over a Galois Field <i>GF(2<sup>8</sup>)</i> or diagonal dual-XOR matrix.</li>
+      <li><strong>Capacity:</strong> <i>(N - 2) &times; C</i>.</li>
       <li><strong>Fault Tolerance:</strong> Survives <strong>two simultaneous physical disk failures</strong> without data loss.</li>
     </ul>
 
@@ -543,7 +543,7 @@
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
           Disks are mirrored in pairs (Disk 0/1, Disk 2/3), and data is striped across the mirrors.
           <br><br>
-          <em>Failure Resilience:</em> If Disk 0 fails, the array only loses data if its specific mirror (Disk 1) also fails. It can survive a secondary failure of Disk 2 or Disk 3! Probability of surviving a 2nd failure is $\mathbf{\frac{N-2}{N-1} \approx 67\%\text{--}80\%}$.
+          <em>Failure Resilience:</em> If Disk 0 fails, the array only loses data if its specific mirror (Disk 1) also fails. It can survive a secondary failure of Disk 2 or Disk 3! Probability of surviving a 2nd failure is <i><strong><sup>N-2</sup>&frasl;<sub>N-1</sub> &asymp; 67\%--80\%</strong></i>.
         </p>
       </div>
 
@@ -561,13 +561,13 @@
 
     <h4>Boolean XOR Reconstruction Mechanics</h4>
     <p>
-      The mathematical property that makes parity reconstruction computationally efficient is the self-inverting nature of the exclusive-OR ($\oplus$) operator:
+      The mathematical property that makes parity reconstruction computationally efficient is the self-inverting nature of the exclusive-OR (<i>&oplus;</i>) operator:
     </p>
     <div class="math-callout">
       <strong>The Parity Invariant:</strong>
       <pre><code>D<sub>0</sub> &oplus; D<sub>1</sub> &oplus; D<sub>2</sub> = P
 D<sub>0</sub> &oplus; D<sub>1</sub> &oplus; D<sub>2</sub> &oplus; P = 0</code></pre>
-      If Disk 1 physically dies, the missing data $D_1$ is reconstructed by reading the surviving data blocks and parity, and XORing them together:
+      If Disk 1 physically dies, the missing data <i>D<sub>1</sub></i> is reconstructed by reading the surviving data blocks and parity, and XORing them together:
       <pre><code>D<sub>1</sub> = D<sub>0</sub> &oplus; D<sub>2</sub> &oplus; P</code></pre>
     </div>
 
@@ -576,9 +576,9 @@ D<sub>0</sub> &oplus; D<sub>1</sub> &oplus; D<sub>2</sub> &oplus; P = 0</code></
       In modern storage engineering, RAID 5 is considered <strong>unfit for multi-terabyte mechanical drives</strong> due to a physical error phenomenon known as the <strong>Unrecoverable Read Error (URE)</strong>:
     </p>
     <ul>
-      <li>Consumer and enterprise SATA hard drives specify a non-recoverable read error rate of approximately <strong>1 sector error in every $10^{14}$ bits read</strong> (roughly 1 sector error per 12.5 Terabytes).</li>
+      <li>Consumer and enterprise SATA hard drives specify a non-recoverable read error rate of approximately <strong>1 sector error in every <i>10<sup>14</sup></i> bits read</strong> (roughly 1 sector error per 12.5 Terabytes).</li>
       <li>When a drive dies in an 8-disk RAID 5 array of 12 TB drives, the controller must read <strong>84 Terabytes</strong> of raw data from the surviving disks to rebuild the missing drive.</li>
-      <li>At $10^{14}$ bits per error, the mathematical probability of reading 84 TB without encountering a single URE is <strong>less than 1%</strong>!</li>
+      <li>At <i>10<sup>14</sup></i> bits per error, the mathematical probability of reading 84 TB without encountering a single URE is <strong>less than 1%</strong>!</li>
     </ul>
     <blockquote style="border-left: 4px solid var(--danger); padding: 8px 16px; margin: 16px 0; background: #fef2f2; color: #991b1b;">
       <strong>The RAID 5 Rebuild Trap:</strong> When a URE occurs on a surviving disk during a RAID 5 rebuild, the parity equation cannot be solved. The rebuild aborts, the array collapses, and <strong>all data across all disks is permanently lost</strong>. This physical reality forces all modern large-capacity arrays to utilize <strong>RAID 6 or RAID 10</strong>.

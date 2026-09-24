@@ -503,7 +503,7 @@
 
         <h2>1. Why Simple Working Set Is Too Expensive</h2>
         <p>
-          While the theoretical Working Set model prevents thrashing by ensuring a process's active pages ($w(k, t)$) remain resident in RAM, implementing it naively is impractical. In a basic working set algorithm, every single page fault triggers a linear scan across <strong>all</strong> allocated page table entries to evaluate whether their age exceeds $\tau$. On systems with gigabytes of RAM and hundreds of thousands of frames, this $O(N)$ traversal consumes an unacceptable number of CPU cycles.
+          While the theoretical Working Set model prevents thrashing by ensuring a process's active pages (<i>w(k, t)</i>) remain resident in RAM, implementing it naively is impractical. In a basic working set algorithm, every single page fault triggers a linear scan across <strong>all</strong> allocated page table entries to evaluate whether their age exceeds <i>\tau</i>. On systems with gigabytes of RAM and hundreds of thousands of frames, this <i>O(N)</i> traversal consumes an unacceptable number of CPU cycles.
         </p>
 
         <h2>2. The WSClock Innovation: Circular List with Asynchronous Flushing</h2>
@@ -512,11 +512,11 @@
         </p>
         <div class="theory-callout">
           <strong>WSClock Decision Logic per Frame:</strong><br>
-          Let $T_{\text{current}}$ be the process's current virtual execution time, and let $\tau$ be the working set age threshold.<br>
-          1. <strong>If $R = 1$:</strong> The page was referenced recently. Clear $R \leftarrow 0$, update $\text{Time of Last Use} \leftarrow T_{\text{current}}$, and advance the hand.<br>
-          2. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) \le \tau$:</strong> The page is still within the active working set window. Do not evict; advance the hand.<br>
-          3. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) > \tau$ and $M = 0$:</strong> The page is cold and clean. <strong>Immediate Victim!</strong> Evict this page, claim the frame, and finish.<br>
-          4. <strong>If $R = 0$ and $(T_{\text{current}} - \text{Time}) > \tau$ and $M = 1$:</strong> The page is cold but dirty. To avoid blocking the CPU, schedule an <strong>asynchronous disk write</strong> and keep advancing the hand in search of a clean candidate.
+          Let <i>T<sub>current</sub></i> be the process's current virtual execution time, and let <i>\tau</i> be the working set age threshold.<br>
+          1. <strong>If <i>R = 1</i>:</strong> The page was referenced recently. Clear <i>R &larr; 0</i>, update <i>Time of Last Use &larr; T<sub>current</sub></i>, and advance the hand.<br>
+          2. <strong>If <i>R = 0</i> and <i>(T<sub>current</sub> - Time) &le; \tau</i>:</strong> The page is still within the active working set window. Do not evict; advance the hand.<br>
+          3. <strong>If <i>R = 0</i> and <i>(T<sub>current</sub> - Time) > \tau</i> and <i>M = 0</i>:</strong> The page is cold and clean. <strong>Immediate Victim!</strong> Evict this page, claim the frame, and finish.<br>
+          4. <strong>If <i>R = 0</i> and <i>(T<sub>current</sub> - Time) > \tau</i> and <i>M = 1</i>:</strong> The page is cold but dirty. To avoid blocking the CPU, schedule an <strong>asynchronous disk write</strong> and keep advancing the hand in search of a clean candidate.
         </div>
 
         <!-- Static Textbook Decision Flowchart (Figure 2) -->
@@ -603,7 +603,7 @@
         </p>
         <ul style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
           <li><strong>If at least one write was scheduled:</strong> The hand continues advancing until the first scheduled write completes, allowing that newly clean frame to be reclaimed.</li>
-          <li><strong>If no writes were scheduled:</strong> All resident pages have $R=1$ or are within the working set $\tau$. The process is genuinely thrashing under severe memory pressure, so the OS picks the first clean page it encounters or falls back to standard Clock.</li>
+          <li><strong>If no writes were scheduled:</strong> All resident pages have <i>R=1</i> or are within the working set <i>\tau</i>. The process is genuinely thrashing under severe memory pressure, so the OS picks the first clean page it encounters or falls back to standard Clock.</li>
         </ul>
       </div>
 
@@ -879,7 +879,7 @@
           </div>
           <div class="guide-box">
             <strong>3. Trigger Page Faults</strong>
-            <span>Click <em>Trigger Page Fault</em> to advance the clock hand. Watch the terminal trace calculate the exact age delta ($(T_{\text{curr}} - T_{\text{last}})$) for each frame.</span>
+            <span>Click <em>Trigger Page Fault</em> to advance the clock hand. Watch the terminal trace calculate the exact age delta (<i>(T<sub>curr</sub> - T<sub>last</sub>)</i>) for each frame.</span>
           </div>
         </div>
         <div style="font-size: 0.84rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 6px;">

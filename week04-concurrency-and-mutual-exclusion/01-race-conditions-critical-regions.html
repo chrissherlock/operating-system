@@ -448,7 +448,7 @@
 Order 1 (T1 then T2): $1000 + $100 = $1100 &rarr; $1100 &minus; $50 = <strong>$1050</strong>
 Order 2 (T2 then T1): $1000 &minus; $50 = $950  &rarr; $950 + $100  = <strong>$1050</strong></code></pre>
     <p>
-      Yet under concurrent multi-threaded execution, if a context switch intervenes between reading <code>balance</code> and storing the result, the ledger balance can permanently end up as <strong>$1100</strong> (the withdrawal is lost) or <strong>$950</strong> (the deposit is lost).
+      Yet under concurrent multi-threaded execution, if a context switch intervenes between reading <code>balance</code> and storing the result, the ledger balance can permanently end up as <strong><i>1100</strong> (the withdrawal is lost) or <strong></i>950</strong> (the deposit is lost).
     </p>
 
     <h4>Why Compiler Optimizations Amplify the Hazard</h4>

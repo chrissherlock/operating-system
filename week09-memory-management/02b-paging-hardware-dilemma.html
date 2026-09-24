@@ -240,10 +240,10 @@
 
     <!-- Section 2: Mathematical Modeling (EAT) -->
     <div class="concept-box">
-      <strong>Quantifying Performance: Effective Access Time ($EAT$)</strong><br>
+      <strong>Quantifying Performance: Effective Access Time (<i>EAT</i>)</strong><br>
       To solve this, hardware engineers introduced the <strong>Translation Lookaside Buffer (TLB)</strong>—a small, ultra-fast associative hardware cache holding recent virtual-to-physical mappings. The Effective Access Time is modeled as:
-      $$EAT = h 	imes (t_{tlb} + t_{ram\_data}) + (1 - h) 	imes (t_{tlb} + t_{ram\_table} + t_{ram\_data})$$
-      Where $h$ is the TLB hit rate, $t_{tlb}$ is the TLB lookup latency (e.g., 1 ns), $t_{ram\_table}$ is the time to fetch a PTE from RAM, and $t_{ram\_data}$ is the payload fetch time. When $h \ge 99\%$, $EAT$ remains remarkably close to unpaged memory speeds!
+      <div class="math-callout">EAT = h 	imes (t<sub>tlb</sub> + t<sub>ram\<sub>data</sub></sub>) + (1 - h) 	imes (t<sub>tlb</sub> + t<sub>ram\<sub>table</sub></sub> + t<sub>ram\<sub>data</sub></sub>)</div>
+      Where <i>h</i> is the TLB hit rate, <i>t<sub>tlb</sub></i> is the TLB lookup latency (e.g., 1 ns), <i>t<sub>ram\<sub>table</sub></sub></i> is the time to fetch a PTE from RAM, and <i>t<sub>ram\<sub>data</sub></sub></i> is the payload fetch time. When <i>h &ge; 99\%</i>, <i>EAT</i> remains remarkably close to unpaged memory speeds!
     </div>
 
     <!-- Section 3: Interactive TLB Lookup Simulator -->
@@ -254,8 +254,8 @@
       </p>
 
       <div class="sim-controls">
-        <button id="hitBtn" class="active" onclick="setScenario('hit')">Simulate TLB Hit ($h = 99\%$)</button>
-        <button id="missBtn" class="btn-secondary" onclick="setScenario('miss')">Simulate TLB Miss ($h = 0\%$)</button>
+        <button id="hitBtn" class="active" onclick="setScenario('hit')">Simulate TLB Hit (<i>h = 99\%</i>)</button>
+        <button id="missBtn" class="btn-secondary" onclick="setScenario('miss')">Simulate TLB Miss (<i>h = 0\%</i>)</button>
       </div>
 
       <!-- Visual Hardware Flow Diagram -->

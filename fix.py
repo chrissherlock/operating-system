@@ -1,984 +1,157 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create Module 04 (04-raid-architectures.html) and update Index
+# fix.py: Safely sanitize leaked LaTeX across all HTML files
 # =====================================================================
 import os
+import re
 import subprocess
 
-TARGET_FILE = os.path.join(
-    "week05-io-and-disk-scheduling",
-    "04-raid-architectures.html"
-)
-INDEX_FILE = os.path.join(
-    "week05-io-and-disk-scheduling",
-    "index.html"
-)
-
-MODULE_HTML = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>04. RAID Architectures &amp; Reliability | Week 5: I/O &amp; Disk Scheduling</title>
-  <style>
-    :root {
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --border: #cbd5e1;
-      --text: #1e293b;
-      --text-muted: #475569;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --success: #059669;
-      --warning: #d97706;
-      --danger: #dc2626;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: var(--font-sans);
-      color: var(--text);
-      background: var(--bg);
-      margin: 0;
-      padding: 32px 16px;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 40px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    h1, h2, h3, h4, h5 { color: #0f172a; }
-    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
-    h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
-    h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
-    h5 { margin-top: 14px; margin-bottom: 4px; color: #475569; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.04em; }
-    p { color: var(--text-muted); margin-bottom: 12px; }
-    ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
-    li { margin-bottom: 6px; }
-    code { font-family: var(--font-mono); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.88rem; color: #0369a1; }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      margin: 16px 0;
-    }
-    pre code {
-      background: transparent !important;
-      color: inherit !important;
-      padding: 0 !important;
-      border-radius: 0 !important;
-      font-size: inherit !important;
-    }
-
-    /* Syntax Highlighting */
-    .syn-kw { color: #38bdf8; font-weight: 600; }
-    .syn-fn { color: #60a5fa; font-weight: 600; }
-    .syn-num { color: #f59e0b; }
-    .syn-str { color: #34d399; }
-    .syn-cmt { color: #64748b; font-style: italic; }
-
-    .math-callout {
-      background: #f8fafc;
-      border-left: 4px solid var(--accent);
-      padding: 14px 18px;
-      margin: 16px 0;
-      border-radius: 0 6px 6px 0;
-      font-size: 0.9rem;
-      color: #1e293b;
-    }
-    .math-callout strong { color: #0f172a; }
-
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-bar a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: #334155;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: background-color 0.15s ease, color 0.15s ease;
-    }
-    .nav-bar a:hover {
-      background-color: #0f172a;
-      color: #ffffff;
-    }
-
-    /* Directed Narrative Stepper Layout */
-    .aid-wrapper {
-      margin: 32px 0;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #ffffff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-      overflow: hidden;
-    }
-    .aid-header {
-      background: #f1f5f9;
-      padding: 12px 18px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .aid-header h4 {
-      margin: 0;
-      font-size: 0.96rem;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .dimension-toggles {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .dim-btn {
-      padding: 4px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .dim-btn.active {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-    }
-    .scenario-banner {
-      background: #f8fafc;
-      padding: 10px 18px;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
-      color: #334155;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .scenario-tag {
-      background: #e0f2fe;
-      color: #0369a1;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .telemetry-strip {
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 12px 18px;
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px 16px;
-      border-bottom: 1px solid #1e293b;
-    }
-    .telemetry-cell {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .telemetry-label {
-      color: #94a3b8;
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .telemetry-val {
-      color: #38bdf8;
-      font-weight: 600;
-    }
-    .telemetry-val.highlight { color: #4ade80; }
-    .telemetry-val.alert { color: #f87171; }
-
-    .canvas-container {
-      background: #ffffff;
-      padding: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-    svg.raid-canvas {
-      width: 100%;
-      max-width: 780px;
-      height: auto;
-      overflow: visible;
-    }
-
-    .controls-narrative-strip {
-      padding: 14px 18px;
-      background: #f8fafc;
-      border-bottom: 1px solid var(--border);
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 18px;
-    }
-    @media (max-width: 720px) {
-      .controls-narrative-strip {
-        grid-template-columns: 1fr;
-      }
-    }
-    .stepper-btn-group {
-      display: flex;
-      gap: 8px;
-      align-self: center;
-    }
-    .btn-step {
-      padding: 7px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: #ffffff;
-      color: #334155;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      white-space: nowrap;
-    }
-    .btn-step:hover:not(:disabled) {
-      background: #0f172a;
-      color: #ffffff;
-    }
-    .btn-step:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    .narrative-preview-panel {
-      font-size: 0.84rem;
-      line-height: 1.5;
-      color: #334155;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 4px;
-      padding: 10px 14px;
-    }
-    .narrative-preview-panel strong {
-      color: #0f172a;
-      display: block;
-      font-size: 0.78rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 2px;
-    }
-
-    .analytical-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: var(--border);
-      gap: 1px;
-    }
-    @media (max-width: 720px) {
-      .analytical-grid { grid-template-columns: 1fr; }
-    }
-    .pane-card {
-      background: #ffffff;
-      padding: 18px;
-    }
-    .pane-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .pane-title.what { color: var(--accent); }
-    .pane-title.why { color: var(--success); }
-    .pane-content {
-      font-size: 0.88rem;
-      line-height: 1.55;
-      color: #334155;
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="03-disk-hardware-scheduling.html">&larr; 03. Disk Geometry &amp; Scheduling</a>
-      <a href="index.html">&#127968; Week 5 Hub</a>
-      <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Week 5 Complete</span>
-    </nav>
-
-    <h2>04. RAID Architectures &amp; Reliability</h2>
-    <p>
-      In 1988, David Patterson, Garth Gibson, and Randy Katz published their foundational paper at UC Berkeley: <em>"A Case for Redundant Arrays of Inexpensive Disks (RAID)"</em>. The paper established a methodology for addressing a growing performance and reliability chasm in computer architecture: <strong>CPUs were doubling in speed every 18 months, while magnetic disk access times improved by only a few percent per year</strong>.
-    </p>
-    <p>
-      RAID organizes multiple physical storage disks into an integrated logical array, coordinated by hardware or operating system drivers along three design axes: <strong>Capacity</strong>, <strong>Performance</strong>, and <strong>Reliability</strong>.
-    </p>
-
-    <h3>1. The Three Orthogonal Design Axes &amp; Striping</h3>
-    <p>
-      When aggregating <i>N</i> identical physical disks of capacity <i>C</i> into an array:
-    </p>
-    <ul>
-      <li><strong>Capacity Efficiency:</strong> The fraction of raw disk storage usable for user data after reserving space for mirroring or parity blocks.</li>
-      <li><strong>Performance Multiplier:</strong> How many concurrent operations the array can service simultaneously. High-throughput workloads benefit from parallel read/write data transfers across multiple spindles.</li>
-      <li><strong>Reliability &amp; Fault Tolerance:</strong> How many physical drive failures the array can survive without permanent data loss.</li>
-    </ul>
-
-    <h4>Striping Fundamentals: Chunk Size Trade-offs</h4>
-    <p>
-      <strong>Data Striping</strong> partitions a contiguous stream of logical data into discrete chunks and writes successive chunks across different disks in round-robin sequence:
-    </p>
-    <div class="math-callout">
-      <strong>Chunk Size (Stripe Depth) Trade-off:</strong>
-      <ul>
-        <li><strong>Fine-Grained Striping (Byte or Word Level):</strong> Every I/O request accesses all disks concurrently. Delivers high transfer rates for large sequential transfers, but <em>prevents the array from servicing multiple independent I/O requests concurrently</em> (all disks seek in unison).</li>
-        <li><strong>Coarse-Grained Striping (Block Level, e.g. 64 KB &ndash; 256 KB):</strong> Small I/O requests fit entirely inside a single disk chunk. Multiple independent read requests can be serviced in parallel by different disks, yielding maximum <strong>IOPS (I/O Operations Per Second)</strong> for multi-threaded databases and web servers.</li>
-      </ul>
-    </div>
-
-    <h3>2. Taxonomy of Standard RAID Levels</h3>
-
-    <!-- Structural Diagram: Standard RAID Levels Comparison -->
-    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.1: Structural Topology of Standard RAID Levels</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Block allocation mapping showing striping, mirroring, dedicated parity, and distributed rotating parity.</div>
-
-      <svg viewBox="0 0 760 250" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <!-- RAID 0 -->
-        <g transform="translate(10, 20)">
-          <rect width="165" height="210" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="82" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#0284c7">RAID 0: STRIPING</text>
-          <text x="82" y="38" text-anchor="middle" font-size="7.5" fill="#dc2626">No Redundancy &bull; 0 Faults</text>
-
-          <rect x="15" y="48" width="60" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="45" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">Block 0</text>
-          <rect x="90" y="48" width="60" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="120" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">Block 1</text>
-
-          <rect x="15" y="86" width="60" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="45" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">Block 2</text>
-          <rect x="90" y="86" width="60" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="120" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">Block 3</text>
-
-          <text x="45" y="140" text-anchor="middle" font-size="7.5" font-weight="700" fill="#475569">Disk 0</text>
-          <text x="120" y="140" text-anchor="middle" font-size="7.5" font-weight="700" fill="#475569">Disk 1</text>
-
-          <rect x="15" y="155" width="135" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="82" y="172" text-anchor="middle" font-size="7.5" fill="#475569">Capacity: N &times; C (100%)</text>
-          <text x="82" y="186" text-anchor="middle" font-size="7.5" fill="#059669">Throughput: N &times; Speed</text>
-        </g>
-
-        <!-- RAID 1 -->
-        <g transform="translate(195, 20)">
-          <rect width="165" height="210" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="82" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">RAID 1: MIRRORING</text>
-          <text x="82" y="38" text-anchor="middle" font-size="7.5" fill="#166534">Survives 1 Disk Failure</text>
-
-          <rect x="15" y="48" width="60" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="45" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">Block 0</text>
-          <rect x="90" y="48" width="60" height="32" rx="3" fill="#fef3c7" stroke="#d97706"/>
-          <text x="120" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#b45309">Block 0</text>
-
-          <rect x="15" y="86" width="60" height="32" rx="3" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="45" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">Block 1</text>
-          <rect x="90" y="86" width="60" height="32" rx="3" fill="#fef3c7" stroke="#d97706"/>
-          <text x="120" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#b45309">Block 1</text>
-
-          <text x="45" y="140" text-anchor="middle" font-size="7.5" font-weight="700" fill="#475569">Disk 0 (Pri)</text>
-          <text x="120" y="140" text-anchor="middle" font-size="7.5" font-weight="700" fill="#475569">Disk 1 (Mir)</text>
-
-          <rect x="15" y="155" width="135" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="82" y="172" text-anchor="middle" font-size="7.5" fill="#dc2626">Capacity: 50% (Expensive)</text>
-          <text x="82" y="186" text-anchor="middle" font-size="7.5" fill="#059669">Read: 2 &times; &bull; Write: 1 &times;</text>
-        </g>
-
-        <!-- RAID 4 -->
-        <g transform="translate(380, 20)">
-          <rect width="175" height="210" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="87" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#d97706">RAID 4: FIXED PARITY</text>
-          <text x="87" y="38" text-anchor="middle" font-size="7.5" fill="#dc2626">Bottleneck on Parity Disk</text>
-
-          <rect x="10" y="48" width="45" height="32" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="32" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A0</text>
-          <rect x="62" y="48" width="45" height="32" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="84" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
-          <rect x="115" y="48" width="48" height="32" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="139" y="68" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">Ap (Par)</text>
-
-          <rect x="10" y="86" width="45" height="32" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="32" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B0</text>
-          <rect x="62" y="48" width="45" height="32" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="84" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
-          <rect x="115" y="86" width="48" height="32" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="139" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">Bp (Par)</text>
-
-          <text x="32" y="140" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">D0</text>
-          <text x="84" y="140" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">D1</text>
-          <text x="139" y="140" text-anchor="middle" font-size="7" font-weight="700" fill="#dc2626">Parity Dk</text>
-
-          <rect x="10" y="155" width="155" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="87" y="172" text-anchor="middle" font-size="7.5" fill="#475569">Capacity: (N - 1) &times; C</text>
-          <text x="87" y="186" text-anchor="middle" font-size="7.5" fill="#dc2626">Small writes serialize!</text>
-        </g>
-
-        <!-- RAID 5 -->
-        <g transform="translate(575, 20)">
-          <rect width="175" height="210" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="87" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#0284c7">RAID 5: ROTATING</text>
-          <text x="87" y="38" text-anchor="middle" font-size="7.5" fill="#166534">Distributed Parity &bull; Optimal</text>
-
-          <rect x="10" y="48" width="45" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="32" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A0</text>
-          <rect x="62" y="48" width="45" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="84" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
-          <rect x="115" y="48" width="48" height="28" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="139" y="66" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">Ap</text>
-
-          <rect x="10" y="80" width="45" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="32" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B0</text>
-          <rect x="62" y="80" width="45" height="28" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="84" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">Bp</text>
-          <rect x="115" y="80" width="48" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="139" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
-
-          <rect x="10" y="112" width="45" height="28" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="32" y="130" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#991b1b">Cp</text>
-          <rect x="62" y="112" width="45" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="84" y="130" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">C0</text>
-          <rect x="115" y="112" width="48" height="28" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="139" y="130" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">C1</text>
-
-          <rect x="10" y="155" width="155" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="87" y="172" text-anchor="middle" font-size="7.5" fill="#475569">Capacity: (N - 1) &times; C</text>
-          <text x="87" y="186" text-anchor="middle" font-size="7.5" fill="#059669">No Parity Bottleneck!</text>
-        </g>
-      </svg>
-    </div>
-
-    <h4>1. RAID 0: Non-Redundant Striping</h4>
-    <ul>
-      <li><strong>Data Layout:</strong> Pure block-level striping without parity or mirroring. Block $0 \rightarrow \text{Disk } 0$, Block $1 \rightarrow \text{Disk } 1$, Block $2 \rightarrow \text{Disk } 0$, etc.</li>
-      <li><strong>Capacity:</strong> $N \times C$ ($100\%$ efficiency).</li>
-      <li><strong>Performance:</strong> $N \times$ sequential read and write throughput.</li>
-      <li>
-        <strong>The Reliability Disaster:</strong> If any single physical disk suffers hardware failure, <strong>all data in the array is permanently destroyed</strong>. Because disk failures are independent Poisson processes, the Mean Time To Failure ($\text{MTTF}$) of a RAID 0 array drops precipitously:
-        <pre><code>MTTF<sub>RAID 0</sub> = MTTF<sub>single disk</sub> / N</code></pre>
-        An array of 10 disks with an individual MTTF of 1,000,000 hours will experience an array failure every 100,000 hours (11.4 years).
-      </li>
-    </ul>
-
-    <h4>2. RAID 1: Mirroring / Shadowing</h4>
-    <ul>
-      <li><strong>Data Layout:</strong> Every logical block is written identically to two (or more) separate physical disks.</li>
-      <li><strong>Capacity:</strong> $C$ ($50\%$ capacity efficiency for 2-way mirrors). Highly expensive per gigabyte.</li>
-      <li><strong>Performance:</strong> Write throughput equals a single disk (since both disks must be updated). Read throughput reaches $2 \times$, as the controller can schedule reads across both spindles in parallel.</li>
-      <li><strong>Reliability:</strong> Survives the physical death of any one disk. If a disk fails, the remaining disk continues servicing I/O with zero performance penalty.</li>
-    </ul>
-
-    <h4>3. RAID 4: Block Striping with Dedicated Parity Disk</h4>
-    <p>
-      RAID 4 attempts to balance storage efficiency and fault tolerance by striping data blocks across $N - 1$ data disks, while writing computed parity blocks to a <strong>single dedicated parity disk</strong>.
-    </p>
-
-    <div class="math-callout">
-      <strong>The Small-Write Parity Disk Bottleneck in RAID 4:</strong>
-      <br>
-      Suppose an application updates a single 4 KB data block ($D_1 \rightarrow D_1'$). In order to update the corresponding parity block ($P \rightarrow P'$), the controller must calculate:
-      <pre><code>P' = (D<sub>1 (old)</sub> &oplus; D<sub>1 (new)</sub>) &oplus; P<sub>(old)</sub></code></pre>
-      This creates the notorious <strong>Read-Modify-Write Penalty</strong>:
-      <ol>
-        <li>Read old data block $D_1$.</li>
-        <li>Read old parity block $P$.</li>
-        <li>Compute new parity: $P' = D_1 \oplus D_1' \oplus P$.</li>
-        <li>Write new data block $D_1'$.</li>
-        <li>Write new parity block $P'$.</li>
-      </ol>
-      A single-block write requires <strong>2 physical disk reads and 2 physical disk writes</strong> (4 total I/O operations). Because <em>every write in the entire system must update the dedicated parity disk</em>, the parity disk arm thrashes continuously, capping system write throughput at the speed of one disk!
-    </div>
-
-    <h4>4. RAID 5: Distributed Rotating Parity</h4>
-    <p>
-      RAID 5 permanently eliminates the RAID 4 write bottleneck by <strong>rotating the parity blocks round-robin across all physical disks</strong>.
-    </p>
-    <ul>
-      <li>Stripe 0 stores parity on Disk 3 ($A_p$).</li>
-      <li>Stripe 1 stores parity on Disk 2 ($B_p$).</li>
-      <li>Stripe 2 stores parity on Disk 1 ($C_p$).</li>
-      <li>Stripe 3 stores parity on Disk 0 ($D_p$).</li>
-    </ul>
-    <p>
-      Because parity updates are distributed uniformly across all spindles, multiple independent write operations can execute in parallel. RAID 5 yields a usable capacity of $(N - 1) \times C$, tolerates the loss of <strong>exactly one disk</strong>, and remains the historical enterprise workhorse.
-    </p>
-
-    <h4>5. RAID 6: Dual Distributed Parity (P + Q)</h4>
-    <p>
-      RAID 6 extends RAID 5 by computing <strong>two independent parity blocks per stripe</strong> ($P$ and $Q$), distributing both across the array:
-    </p>
-    <ul>
-      <li><strong>Parity P:</strong> The standard linear XOR parity ($P = D_0 \oplus D_1 \oplus D_2$).</li>
-      <li><strong>Parity Q:</strong> A non-linear Reed-Solomon polynomial code computed over a Galois Field $\text{GF}(2^8)$ or diagonal dual-XOR matrix.</li>
-      <li><strong>Capacity:</strong> $(N - 2) \times C$.</li>
-      <li><strong>Fault Tolerance:</strong> Survives <strong>two simultaneous physical disk failures</strong> without data loss.</li>
-    </ul>
-
-    <h4>6. Nested RAID: RAID 10 (1+0) vs. RAID 01 (0+1)</h4>
-    <p>
-      Enterprise databases frequently deploy hybrid arrays combining the throughput of striping with the resilience of mirroring:
-    </p>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0;">
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a;">RAID 10 (Stripe of Mirrors) &mdash; PREFERRED</h4>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Disks are mirrored in pairs (Disk 0/1, Disk 2/3), and data is striped across the mirrors.
-          <br><br>
-          <em>Failure Resilience:</em> If Disk 0 fails, the array only loses data if its specific mirror (Disk 1) also fails. It can survive a secondary failure of Disk 2 or Disk 3! Probability of surviving a 2nd failure is $\mathbf{\frac{N-2}{N-1} \approx 67\%\text{--}80\%}$.
-        </p>
-      </div>
-
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a;">RAID 01 (Mirror of Stripes) &mdash; FRAGILE</h4>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Data is striped across two sets of disks, and the two stripes are mirrored.
-          <br><br>
-          <em>Failure Hazard:</em> If Disk 0 fails, the entire Stripe A becomes inoperative. The array is reduced to a single surviving stripe (Stripe B). <strong>Any subsequent failure of any disk in Stripe B destroys the entire array!</strong>
-        </p>
-      </div>
-    </div>
-
-    <h3>3. Mathematical Foundations: XOR Parity &amp; The URE Rebuild Crisis</h3>
-
-    <h4>Boolean XOR Reconstruction Mechanics</h4>
-    <p>
-      The mathematical property that makes parity reconstruction computationally efficient is the self-inverting nature of the exclusive-OR ($\oplus$) operator:
-    </p>
-    <div class="math-callout">
-      <strong>The Parity Invariant:</strong>
-      <pre><code>D<sub>0</sub> &oplus; D<sub>1</sub> &oplus; D<sub>2</sub> = P
-D<sub>0</sub> &oplus; D<sub>1</sub> &oplus; D<sub>2</sub> &oplus; P = 0</code></pre>
-      If Disk 1 physically dies, the missing data $D_1$ is reconstructed by reading the surviving data blocks and parity, and XORing them together:
-      <pre><code>D<sub>1</sub> = D<sub>0</sub> &oplus; D<sub>2</sub> &oplus; P</code></pre>
-    </div>
-
-    <h4>The Modern URE Crisis: Why RAID 5 is Dead for Large Disks</h4>
-    <p>
-      In modern storage engineering, RAID 5 is considered <strong>unfit for multi-terabyte mechanical drives</strong> due to a physical error phenomenon known as the <strong>Unrecoverable Read Error (URE)</strong>:
-    </p>
-    <ul>
-      <li>Consumer and enterprise SATA hard drives specify a non-recoverable read error rate of approximately <strong>1 sector error in every $10^{14}$ bits read</strong> (roughly 1 sector error per 12.5 Terabytes).</li>
-      <li>When a drive dies in an 8-disk RAID 5 array of 12 TB drives, the controller must read <strong>84 Terabytes</strong> of raw data from the surviving disks to rebuild the missing drive.</li>
-      <li>At $10^{14}$ bits per error, the mathematical probability of reading 84 TB without encountering a single URE is <strong>less than 1%</strong>!</li>
-    </ul>
-    <blockquote style="border-left: 4px solid var(--danger); padding: 8px 16px; margin: 16px 0; background: #fef2f2; color: #991b1b;">
-      <strong>The RAID 5 Rebuild Trap:</strong> When a URE occurs on a surviving disk during a RAID 5 rebuild, the parity equation cannot be solved. The rebuild aborts, the array collapses, and <strong>all data across all disks is permanently lost</strong>. This physical reality forces all modern large-capacity arrays to utilize <strong>RAID 6 or RAID 10</strong>.
-    </blockquote>
-
-    <!-- Directed Narrative Stepper: RAID Rebuild & Parity Engine -->
-    <div class="aid-wrapper">
-      <div class="aid-header">
-        <h4>Interactive Stepper: The RAID 5 Rebuild Race &amp; Parity Engine</h4>
-        <div class="dimension-toggles">
-          <button class="dim-btn active" id="rb-dim-nom" onclick="setRbDim('nom')">Nominal Rebuild (Success)</button>
-          <button class="dim-btn" id="rb-dim-ure" onclick="setRbDim('ure')">URE Encountered (RAID 5 Crash)</button>
-          <button class="dim-btn" id="rb-dim-r6" onclick="setRbDim('r6')">RAID 6 Dual-Parity Rescue</button>
-        </div>
-      </div>
-
-      <div class="scenario-banner">
-        <span class="scenario-tag">Rebuild Simulator</span>
-        <span id="rb-scenario-text">A 4-disk RAID 5 array suffers a hardware failure on Disk 1. A hot-spare disk is inserted. Tracking how surviving disks stream data, evaluate XOR parity, and repopulate the replacement drive.</span>
-      </div>
-
-      <div class="telemetry-strip">
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Timeline Clock</span>
-          <span class="telemetry-val highlight" id="rb-telem-time">T = 0 Hours</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Array Health State</span>
-          <span class="telemetry-val alert" id="rb-telem-status">DEGRADED (1 Fault)</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Parity Math Engine</span>
-          <span class="telemetry-val highlight" id="rb-telem-math">D1 = D0 ^ D2 ^ P</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Hot Spare Rebuild %</span>
-          <span class="telemetry-val highlight" id="rb-telem-progress">0% Completed</span>
-        </div>
-        <div class="telemetry-cell">
-          <span class="telemetry-label">Rebuild Risk State</span>
-          <span class="telemetry-val alert" id="rb-telem-risk">Vulnerable to URE</span>
-        </div>
-      </div>
-
-      <div class="canvas-container">
-        <svg class="raid-canvas" viewBox="0 0 760 250">
-          <defs>
-            <marker id="rb-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
-            </marker>
-            <marker id="rb-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
-            </marker>
-            <marker id="rb-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
-            </marker>
-          </defs>
-
-          <!-- 4 Disk Enclosure -->
-          <g transform="translate(20, 20)">
-            <rect width="470" height="210" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-            <text x="20" y="24" font-size="10" font-weight="700" fill="#0f172a">RAID ARRAY DRIVE BAYS</text>
-
-            <!-- Disk 0 (Online) -->
-            <g transform="translate(15, 38)">
-              <rect width="95" height="150" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
-              <text x="47" y="20" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0284c7">DISK 0 [Online]</text>
-              <rect x="8" y="30" width="79" height="24" rx="2" fill="#e0f2fe"/>
-              <text x="47" y="46" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">A0 = 1011</text>
-              <rect x="8" y="60" width="79" height="24" rx="2" fill="#e0f2fe"/>
-              <text x="47" y="76" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">B0 = 0100</text>
-              <rect id="rb-rect-d0-c" x="8" y="90" width="79" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-              <text id="rb-txt-d0-c" x="47" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#991b1b">Cp = 1110</text>
-            </g>
-
-            <!-- Disk 1 (FAILED / Hot Spare) -->
-            <g transform="translate(125, 38)">
-              <rect id="rb-rect-d1-box" width="95" height="150" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-              <text id="rb-txt-d1-title" x="47" y="20" text-anchor="middle" font-size="8.5" font-weight="700" fill="#dc2626">DISK 1 [FAILED!]</text>
-              <rect id="rb-rect-d1-a" x="8" y="30" width="79" height="24" rx="2" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="3 3"/>
-              <text id="rb-txt-d1-a" x="47" y="46" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#94a3b8">[Missing A1]</text>
-              <rect id="rb-rect-d1-b" x="8" y="60" width="79" height="24" rx="2" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="3 3"/>
-              <text id="rb-txt-d1-b" x="47" y="76" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#94a3b8">[Missing Bp]</text>
-              <rect id="rb-rect-d1-c" x="8" y="90" width="79" height="24" rx="2" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="3 3"/>
-              <text id="rb-txt-d1-c" x="47" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#94a3b8">[Missing C0]</text>
-            </g>
-
-            <!-- Disk 2 (Online / Vulnerable) -->
-            <g transform="translate(235, 38)">
-              <rect id="rb-rect-d2-box" width="95" height="150" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
-              <text id="rb-txt-d2-title" x="47" y="20" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0284c7">DISK 2 [Online]</text>
-              <rect x="8" y="30" width="79" height="24" rx="2" fill="#e0f2fe"/>
-              <text x="47" y="46" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">A2 = 0110</text>
-              <rect x="8" y="60" width="79" height="24" rx="2" fill="#e0f2fe"/>
-              <text x="47" y="76" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">B1 = 1101</text>
-              <rect id="rb-rect-d2-c" x="8" y="90" width="79" height="24" rx="2" fill="#e0f2fe"/>
-              <text id="rb-txt-d2-c" x="47" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">C1 = 0011</text>
-            </g>
-
-            <!-- Disk 3 (Online) -->
-            <g transform="translate(345, 38)">
-              <rect width="95" height="150" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
-              <text x="47" y="20" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0284c7">DISK 3 [Online]</text>
-              <rect x="8" y="30" width="79" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-              <text x="47" y="46" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#991b1b">Ap = 1101</text>
-              <rect x="8" y="60" width="79" height="24" rx="2" fill="#e0f2fe"/>
-              <text x="47" y="76" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">B2 = 1010</text>
-              <rect x="8" y="90" width="79" height="24" rx="2" fill="#e0f2fe"/>
-              <text x="47" y="106" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#0369a1">C2 = 1101</text>
-            </g>
-          </g>
-
-          <!-- Parity Math & Status Box (Right) -->
-          <g transform="translate(510, 20)">
-            <rect width="230" height="210" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-            <text x="14" y="24" font-size="10" font-weight="700" fill="#0f172a">PARITY RECONSTRUCTION LOGIC</text>
-
-            <!-- Live Calculation Block -->
-            <rect id="rb-rect-math-box" x="12" y="38" width="206" height="85" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-            <text x="20" y="56" font-size="8" font-weight="700" fill="#475569">LIVE XOR EQUATION:</text>
-            <text id="rb-txt-line-1" x="20" y="74" font-family="var(--font-mono)" font-size="8" fill="#0284c7">A0: 1011</text>
-            <text id="rb-txt-line-2" x="20" y="90" font-family="var(--font-mono)" font-size="8" fill="#0284c7">&oplus; A2: 0110 &oplus; Ap: 1101</text>
-            <text id="rb-txt-result" x="20" y="110" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#059669">&rarr; A1 = 0000 (SOLVED)</text>
-
-            <!-- Status Indicator -->
-            <rect id="rb-rect-rebuild-badge" x="12" y="132" width="206" height="65" rx="4" fill="#dcfce7" stroke="#16a34a"/>
-            <text id="rb-txt-badge-title" x="115" y="154" text-anchor="middle" font-size="8.5" font-weight="700" fill="#166534">&#10003; REBUILD IN PROGRESS</text>
-            <text id="rb-txt-badge-sub" x="115" y="170" text-anchor="middle" font-size="7.5" fill="#15803d">Writing to hot-spare disk...</text>
-            <text id="rb-txt-badge-metric" x="115" y="186" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#166534">Speed: 180 MB/s (Streaming)</text>
-          </g>
-        </svg>
-      </div>
-
-      <div class="controls-narrative-strip">
-        <div class="stepper-btn-group">
-          <button class="btn-step" id="rb-btn-prev" onclick="stepRb(-1)" disabled>&larr; Previous</button>
-          <button class="btn-step" id="rb-btn-next" onclick="stepRb(1)">Next Step &rarr;</button>
-          <button class="btn-step" id="rb-btn-reset" onclick="resetRb()">Reset</button>
-        </div>
-        <div class="narrative-preview-panel">
-          <strong>Current Step Summary</strong>
-          <span id="rb-txt-narrative">Initial State: Disk 1 has suffered a mechanical spindle seizure. Array is operating in Degraded Mode. Hot spare is plugged in.</span>
-        </div>
-      </div>
-
-      <div class="analytical-grid">
-        <div class="pane-card">
-          <div class="pane-title what">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-            What Is Happening
-          </div>
-          <p class="pane-content" id="rb-txt-what">Disk 1 is dead. The controller arms a hot-spare disk and begins reading Stripe A across Disks 0, 2, and 3.</p>
-        </div>
-        <div class="pane-card">
-          <div class="pane-title why">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-            Why The System Does This
-          </div>
-          <p class="pane-content" id="rb-txt-why">RAID 5 can reconstruct any single missing block by streaming the surviving blocks and XORing them together.</p>
-        </div>
-      </div>
-    </div>
-
-    <h3>4. Software RAID vs. Hardware RAID &amp; Modern Filesystems</h3>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0;">
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a;">1. Hardware RAID Controllers</h4>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          A dedicated PCIe expansion card with on-board XOR acceleration chips and <strong>Battery-Backed Write Cache (BBWC)</strong>.
-          <br><br>
-          <em>The Write-Hole Defense:</em> If system power cuts out mid-write, the controller retains unwritten parity in NVRAM and flushes it upon reboot, preventing the array parity from becoming corrupt.
-        </p>
-      </div>
-
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a;">2. Software RAID &amp; Modern CoW (ZFS)</h4>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Managed directly by OS kernel drivers (Linux <code>mdadm</code>) or integrated into Copy-on-Write filesystems (<strong>ZFS RAID-Z</strong> / <strong>Btrfs</strong>).
-          <br><br>
-          <em>Eliminating the Write Hole:</em> ZFS never overwrites data in place; new blocks and dynamic parity are written to fresh unallocated sectors transactionally, rendering write-hole corruption architecturally impossible.
-        </p>
-      </div>
-    </div>
-
-    <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
-      <a href="03-disk-hardware-scheduling.html">&larr; 03. Disk Geometry &amp; Scheduling</a>
-      <a href="index.html">&#127968; Week 5 Hub</a>
-      <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Week 5 Complete</span>
-    </nav>
-  </div>
-
-  <script>
-    const rbSteps = {
-      nom: [
-        {
-          time: "T = 0 Hours", status: "DEGRADED (1 Fault)", math: "D1 = D0 ^ D2 ^ P", progress: "0% Completed", risk: "Vulnerable to URE",
-          d1Title: "HOT SPARE [Ready]", d1Fill: "#fef3c7", d1Stroke: "#d97706", d1Color: "#b45309",
-          d1A: "[Pending A1]", d1B: "[Pending Bp]", d1C: "[Pending C0]",
-          d2Title: "DISK 2 [Online]", d2Fill: "#ffffff", d2Stroke: "#0284c7",
-          line1: "A0: 1011", line2: "&oplus; A2: 0110 &oplus; Ap: 1101", result: "&rarr; A1 = 0000 (SOLVED)",
-          badgeTitle: "&#10003; REBUILD STARTED", badgeSub: "Streaming surviving disks...", badgeFill: "#dcfce7", badgeStroke: "#16a34a", badgeColor: "#166534",
-          narrative: "Rebuild Phase 1: Disk 1 died. Hot spare inserted. Controller begins streaming Stripe A across Disks 0, 2, and 3.",
-          what: "Controller loads block A0 (1011), A2 (0110), and Ap (1101) into XOR registers.",
-          why: "XORing surviving blocks reconstructs the exact original bit pattern of missing block A1."
-        },
-        {
-          time: "T = 4 Hours", status: "REBUILDING (50%)", math: "Bp = B0 ^ B1 ^ B2", progress: "50% Completed", risk: "Heavy Read Load",
-          d1Title: "HOT SPARE [Syncing]", d1Fill: "#f0fdf4", d1Stroke: "#16a34a", d1Color: "#166534",
-          d1A: "A1 = 0000 [RESTORED]", d1B: "[Syncing Bp...]", d1C: "[Pending C0]",
-          d2Title: "DISK 2 [Reading]", d2Fill: "#ffffff", d2Stroke: "#0284c7",
-          line1: "B0: 0100 &oplus; B1: 1101", line2: "&oplus; B2: 1010", result: "&rarr; Bp = 0011 (RECONSTRUCTED)",
-          badgeTitle: "&#10003; 50% REBUILT (NO ERRORS)", badgeSub: "Stripe B parity reconstructed", badgeFill: "#dcfce7", badgeStroke: "#16a34a", badgeColor: "#166534",
-          narrative: "Rebuild Phase 2: Stripe A complete. Stripe B parity reconstructed and written to hot spare. Array is 50% restored.",
-          what: "Parity block Bp is calculated via XOR and committed to disk.",
-          why: "Because parity rotates in RAID 5, the hot spare receives both data blocks and parity blocks."
-        },
-        {
-          time: "T = 8 Hours", status: "OPTIMAL (Healthy)", math: "Array Fully Restored", progress: "100% Completed", risk: "Tolerates 1 Fault",
-          d1Title: "DISK 1 [ONLINE!]", d1Fill: "#dcfce7", d1Stroke: "#16a34a", d1Color: "#166534",
-          d1A: "A1 = 0000 [VALID]", d1B: "Bp = 0011 [VALID]", d1C: "C0 = 0000 [VALID]",
-          d2Title: "DISK 2 [Online]", d2Fill: "#ffffff", d2Stroke: "#0284c7",
-          line1: "All Stripes Rebuilt", line2: "Integrity Verified", result: "&#10003; ARRAY RESTORED TO OPTIMAL",
-          badgeTitle: "&#10003; ARRAY FULLY HEALTHY", badgeSub: "Fault tolerance restored!", badgeFill: "#dcfce7", badgeStroke: "#16a34a", badgeColor: "#166534",
-          narrative: "Rebuild Phase 3: Hot spare successfully populated! Array returns to Optimal state. Full fault tolerance restored.",
-          what: "Rebuild finishes with zero read errors.",
-          why: "Successful rebuild restores single-fault redundancy."
-        }
-      ],
-      ure: [
-        {
-          time: "T = 0 Hours", status: "DEGRADED (1 Fault)", math: "D1 = D0 ^ D2 ^ P", progress: "0% Completed", risk: "Vulnerable to URE",
-          d1Title: "HOT SPARE [Ready]", d1Fill: "#fef3c7", d1Stroke: "#d97706", d1Color: "#b45309",
-          d1A: "[Pending A1]", d1B: "[Pending Bp]", d1C: "[Pending C0]",
-          d2Title: "DISK 2 [Online]", d2Fill: "#ffffff", d2Stroke: "#0284c7",
-          line1: "A0: 1011 &oplus; A2: 0110", line2: "&oplus; Ap: 1101", result: "&rarr; A1 = 0000 (Stripe A OK)",
-          badgeTitle: "REBUILD UNDERWAY", badgeSub: "Streaming surviving disks...", badgeFill: "#fef3c7", badgeStroke: "#d97706", badgeColor: "#92400e",
-          narrative: "URE Scenario: Rebuild starts normally. Stripe A succeeds. But surviving Disk 2 has an uncorrectable bad sector at Stripe C!",
-          what: "Stripe A is reconstructed without incident.",
-          why: "Surviving drives must be read completely from start to finish."
-        },
-        {
-          time: "T = 6 Hours", status: "URE ENCOUNTERED!", math: "FATAL READ FAILURE", progress: "70% (ABORTED)", risk: "DATA LOSS OCCURRED",
-          d1Title: "HOT SPARE [Aborted]", d1Fill: "#fee2e2", d1Stroke: "#dc2626", d1Color: "#dc2626",
-          d1A: "A1 = 0000 [Orphaned]", d1B: "Bp = 0011 [Orphaned]", d1C: "&times; C0 FAILED",
-          d2Title: "DISK 2 [BAD SECTOR!]", d2Fill: "#fee2e2", d2Stroke: "#dc2626",
-          line1: "C1 Read Error on Disk 2!", line2: "Unrecoverable Read Error (10^14)", result: "&times; CANNOT SOLVE XOR EQUATION!",
-          badgeTitle: "&times; ARRAY COLLAPSED!", badgeSub: "RAID 5 Rebuild Failed!", badgeFill: "#fee2e2", badgeStroke: "#dc2626", badgeColor: "#dc2626",
-          narrative: "CATASTROPHE: Disk 2 encounters an Unrecoverable Read Error (URE) at block C1! The XOR equation has TWO unknowns. Rebuild ABORTS!",
-          what: "Disk 2 reports uncorrectable ECC read error. Parity cannot be computed.",
-          why: "With two drives missing data simultaneously, RAID 5 suffers total permanent data loss."
-        }
-      ],
-      r6: [
-        {
-          time: "T = 6 Hours", status: "RAID 6 RESCUE!", math: "Q Parity GF(2^8) Engaged", progress: "70% (Rescued)", risk: "2-Disk Fault Tolerated",
-          d1Title: "REBUILDING DISK 1", d1Fill: "#dcfce7", d1Stroke: "#16a34a", d1Color: "#166534",
-          d1A: "A1 = 0000 [OK]", d1B: "Bp = 0011 [OK]", d1C: "C0 [Q-Rescued]",
-          d2Title: "DISK 2 [URE on C1]", d2Fill: "#fee2e2", d2Stroke: "#dc2626",
-          line1: "P Parity Failed on C1", line2: "Engaging Reed-Solomon Q Parity", result: "&#10003; C1 RESCUED VIA Q PARITY!",
-          badgeTitle: "&#10003; RAID 6 RESCUED ARRAY", badgeSub: "Survives URE during rebuild!", badgeFill: "#dcfce7", badgeStroke: "#16a34a", badgeColor: "#166534",
-          narrative: "RAID 6 Dual Parity Rescue: When Disk 2 encounters a URE on block C1, the controller invokes the secondary Q parity code. Both C0 and C1 are recovered!",
-          what: "Reed-Solomon dual parity solves for two simultaneous missing blocks.",
-          why: "RAID 6 tolerates a secondary drive failure or URE during active rebuild."
-        }
-      ]
-    };
-
-    let activeRbDim = "nom";
-    let activeRbStep = 0;
-
-    function renderRbStepper() {
-      const steps = rbSteps[activeRbDim];
-      const step = steps[activeRbStep];
-
-      // Telemetry
-      document.getElementById("rb-telem-time").textContent = step.time;
-      document.getElementById("rb-telem-status").textContent = step.status;
-      document.getElementById("rb-telem-math").textContent = step.math;
-      document.getElementById("rb-telem-progress").textContent = step.progress;
-      document.getElementById("rb-telem-risk").textContent = step.risk;
-
-      // Visuals
-      document.getElementById("rb-txt-d1-title").textContent = step.d1Title;
-      document.getElementById("rb-rect-d1-box").setAttribute("fill", step.d1Fill);
-      document.getElementById("rb-rect-d1-box").setAttribute("stroke", step.d1Stroke);
-      document.getElementById("rb-txt-d1-title").setAttribute("fill", step.d1Color);
-
-      document.getElementById("rb-txt-d1-a").textContent = step.d1A;
-      document.getElementById("rb-txt-d1-b").textContent = step.d1B;
-      document.getElementById("rb-txt-d1-c").textContent = step.d1C;
-
-      document.getElementById("rb-txt-d2-title").textContent = step.d2Title;
-      document.getElementById("rb-rect-d2-box").setAttribute("fill", step.d2Fill);
-      document.getElementById("rb-rect-d2-box").setAttribute("stroke", step.d2Stroke);
-
-      document.getElementById("rb-txt-line-1").innerHTML = step.line1;
-      document.getElementById("rb-txt-line-2").innerHTML = step.line2;
-      document.getElementById("rb-txt-result").innerHTML = step.result;
-
-      document.getElementById("rb-txt-badge-title").innerHTML = step.badgeTitle;
-      document.getElementById("rb-txt-badge-sub").textContent = step.badgeSub;
-      document.getElementById("rb-rect-rebuild-badge").setAttribute("fill", step.badgeFill);
-      document.getElementById("rb-rect-rebuild-badge").setAttribute("stroke", step.badgeStroke);
-      document.getElementById("rb-txt-badge-title").setAttribute("fill", step.badgeColor);
-
-      // Controls
-      document.getElementById("rb-txt-narrative").innerHTML = step.narrative;
-      document.getElementById("rb-btn-prev").disabled = (activeRbStep === 0);
-      document.getElementById("rb-btn-next").disabled = (activeRbStep === steps.length - 1);
-
-      // Panes
-      document.getElementById("rb-txt-what").innerHTML = step.what;
-      document.getElementById("rb-txt-why").innerHTML = step.why;
-    }
-
-    function stepRb(delta) {
-      const steps = rbSteps[activeRbDim];
-      activeRbStep = Math.max(0, Math.min(steps.length - 1, activeRbStep + delta));
-      renderRbStepper();
-    }
-
-    function resetRb() {
-      activeRbStep = 0;
-      renderRbStepper();
-    }
-
-    function setRbDim(dim) {
-      activeRbDim = dim;
-      activeRbStep = 0;
-      document.getElementById("rb-dim-nom").classList.toggle("active", dim === "nom");
-      document.getElementById("rb-dim-ure").classList.toggle("active", dim === "ure");
-      document.getElementById("rb-dim-r6").classList.toggle("active", dim === "r6");
-
-      let scenarioText = "";
-      if (dim === "nom") scenarioText = "A 4-disk RAID 5 array suffers a hardware failure on Disk 1. A hot-spare disk is inserted. Tracking how surviving disks stream data, evaluate XOR parity, and repopulate the replacement drive.";
-      else if (dim === "ure") scenarioText = "Simulating the catastrophic Unrecoverable Read Error (URE) failure mode. While rebuilding Disk 1, surviving Disk 2 encounters a media error, destroying the array.";
-      else if (dim === "r6") scenarioText = "RAID 6 Dual-Parity Protection. When a secondary read error strikes Disk 2 during rebuild, the independent Q parity polynomial rescues the missing block.";
-
-      document.getElementById("rb-scenario-text").innerHTML = scenarioText;
-      renderRbStepper();
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      renderRbStepper();
-    });
-  </script>
-</body>
-</html>
-"""
-
-def generate_module_four():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-    print(f"--> Successfully created {TARGET_FILE}")
-
-def update_week5_hub_card():
-    if not os.path.exists(INDEX_FILE):
-        return
-
-    with open(INDEX_FILE, "r", encoding="utf-8") as f:
+def format_sub_and_sup(content: str) -> str:
+    """Replaces LaTeX-style subscripts and superscripts in a string."""
+    # Subscripts: _{var} or _x
+    content = re.sub(r'_\{([^{}]+)\}', r'<sub>\1</sub>', content)
+    content = re.sub(r'_([a-zA-Z0-9]+)', r'<sub>\1</sub>', content)
+    # Superscripts: ^{var} or ^x
+    content = re.sub(r'\^\{([^{}]+)\}', r'<sup>\1</sup>', content)
+    content = re.sub(r'\^([a-zA-Z0-9]+)', r'<sup>\1</sup>', content)
+    return content
+
+def convert_latex_math(text: str) -> str:
+    # 1. Transform fractions: \frac{num}{den} -> <sup>num</sup>&frasl;<sub>den</sub>
+    def replace_frac(match):
+        num = match.group(1).strip()
+        den = match.group(2).strip()
+        return f"<sup>{num}</sup>&frasl;<sub>{den}</sub>"
+
+    text = re.sub(r'\\frac\{([^{}]+)\}\{([^{}]+)\}', replace_frac, text)
+
+    # 2. Map standard LaTeX symbols to HTML entities
+    latex_symbols = [
+        (r'\times', '&times;'),
+        (r'\cdot', '&sdot;'),
+        (r'\approx', '&asymp;'),
+        (r'\sim', '&sim;'),
+        (r'\oplus', '&oplus;'),
+        (r'\rightarrow', '&rarr;'),
+        (r'\leftarrow', '&larr;'),
+        (r'\leq', '&le;'),
+        (r'\geq', '&ge;'),
+        (r'\le', '&le;'),
+        (r'\ge', '&ge;'),
+        (r'\neq', '&ne;'),
+        (r'\ne', '&ne;'),
+        (r'\dots', '&hellip;'),
+        (r'\ldots', '&hellip;'),
+        (r'\mu s', '&mu;s'),
+        (r'\mu', '&mu;'),
+        (r'\,', ' '),
+        (r'\;', ' '),
+        (r'\quad', ' &nbsp; ')
+    ]
+    for symbol, entity in latex_symbols:
+        text = text.replace(symbol, entity)
+
+    # 3. Clean common font wrappers: \text{...}, \mathbf{...}, \mathit{...}
+    text = re.sub(r'\\text\{([^}]+)\}', r'\1', text)
+    text = re.sub(r'\\mathbf\{([^}]+)\}', r'<strong>\1</strong>', text)
+    text = re.sub(r'\\mathit\{([^}]+)\}', r'<i>\1</i>', text)
+
+    # 4. Display Math: $$ ... $$
+    def replace_display_math(match):
+        inner = match.group(1).strip()
+        inner = format_sub_and_sup(inner)
+        inner = inner.replace('{', '').replace('}', '')
+        return f'<div class="math-callout">{inner}</div>'
+
+    text = re.sub(r'\$\$(.*?)\$\$', replace_display_math, text, flags=re.DOTALL)
+
+    # 5. Inline Math: $ ... $
+    def replace_inline_math(match):
+        inner = match.group(1).strip()
+        # Avoid matching currency or single digit references
+        if not inner or inner.isdigit():
+            return f"${inner}$"
+        inner = format_sub_and_sup(inner)
+        inner = inner.replace('{', '').replace('}', '')
+        if inner.startswith('<div') or inner.startswith('<span'):
+            return inner
+        return f"<i>{inner}</i>"
+
+    text = re.sub(r'\$([^\$\n\r]+?)\$', replace_inline_math, text)
+
+    # 6. Specific mathematical notation cleanup
+    text = text.replace('<i>10^9&times;</i>', '10<sup>9</sup>&times;')
+    text = text.replace('10^{14}', '10<sup>14</sup>')
+    text = text.replace('10^{-14}', '10<sup>-14</sup>')
+    text = text.replace('10^{-15}', '10<sup>-15</sup>')
+    text = text.replace('GF(2^8)', 'GF(2<sup>8</sup>)')
+    text = text.replace('O(N^2)', '<i>O</i>(<i>N</i><sup>2</sup>)')
+
+    return text
+
+def sanitize_html_file(filepath: str) -> bool:
+    with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Update Module 04 button to active complete state
-    content = content.replace(
-        '<span class="module-tag pending-tag">Module 04 &bull; Upcoming</span>',
-        '<span class="module-tag">Module 04</span>'
-    )
-    content = content.replace(
-        '<span class="card-btn pending-btn">Upcoming Module</span>',
-        '<span class="card-btn">Open Module &rarr;</span>'
+    # Partition out <script>, <style>, and <pre> blocks so we don't alter JavaScript or CSS
+    protected_blocks = []
+    def stash_protected(match):
+        protected_blocks.append(match.group(0))
+        return f"___PROTECTED_BLOCK_{len(protected_blocks) - 1}___"
+
+    # Protect script, style, pre, and svg blocks
+    stashed_content = re.sub(
+        r'(<script[\s\S]*?</script>|<style[\s\S]*?</style>|<pre[\s\S]*?</pre>|<svg[\s\S]*?</svg>)',
+        stash_protected,
+        content,
+        flags=re.IGNORECASE
     )
 
-    with open(INDEX_FILE, "w", encoding="utf-8") as f:
-        f.write(content)
-    print(f"--> Successfully activated Module 04 in {INDEX_FILE}")
+    # Apply LaTeX conversion only on regular HTML markup & text
+    sanitized_body = convert_latex_math(stashed_content)
 
-def run_git_sync():
+    # Restore protected blocks
+    def restore_protected(match):
+        idx = int(match.group(1))
+        return protected_blocks[idx]
+
+    final_content = re.sub(r'___PROTECTED_BLOCK_(\d+)___', restore_protected, sanitized_body)
+
+    if final_content != content:
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(final_content)
+        return True
+    return False
+
+def scan_and_sanitize():
+    root_dir = os.path.dirname(os.path.abspath(__file__))
+    modified = []
+
+    for dirpath, _, filenames in os.walk(root_dir):
+        if ".git" in dirpath or "__pycache__" in dirpath:
+            continue
+        for filename in filenames:
+            if filename.endswith(".html"):
+                path = os.path.join(dirpath, filename)
+                if sanitize_html_file(path):
+                    rel = os.path.relpath(path, root_dir)
+                    modified.append(rel)
+                    print(f"--> Cleaned LaTeX in: {rel}")
+
+    return modified
+
+def run_git_sync(modified):
+    if not modified:
+        print("No files required sanitization.")
+        return
+
     try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE, INDEX_FILE], check=True)
+        subprocess.run(["git", "add", "fix.py"] + modified, check=True)
         commit_msg = (
-            "Add Module 04 RAID Architectures & Reliability in Week 5\n\n"
-            "Cover RAID 0-6, RAID 10, XOR parity math, MTTDL modeling, URE rebuild\n"
-            "hazards, write-hole defenses, and an interactive RAID rebuild stepper."
+            "Fix LaTeX sanitization regex handler and clean HTML math notation\n\n"
+            "Resolve AttributeError in string replacement pipeline, safely convert\n"
+            "inline and display LaTeX math into semantic HTML tags and entities,\n"
+            "and skip script/pre blocks to preserve code blocks."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -987,6 +160,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    generate_module_four()
-    update_week5_hub_card()
-    run_git_sync()
+    changed_files = scan_and_sanitize()
+    run_git_sync(changed_files)
