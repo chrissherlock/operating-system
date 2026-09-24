@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 1 of 03-disk-hardware-scheduling.html
+# fix.py: Deeply expand Section 2 of 03-disk-hardware-scheduling.html
 # =====================================================================
 import os
 import subprocess
@@ -10,315 +10,274 @@ TARGET_FILE = os.path.join(
     "03-disk-hardware-scheduling.html"
 )
 
-EXPANDED_SECTION_ONE = r"""    <h3>1. Physical Disk Geometry: Platters, Cylinders, and Sectors</h3>
+EXPANDED_SECTION_TWO = r"""    <h3>2. Modeling I/O Access Latency (<i>T</i><sub>I/O</sub>)</h3>
     <p>
-      For over half a century, the <strong>magnetic hard disk drive (HDD)</strong> served as the primary secondary storage substrate in computing. Although solid-state flash drives (SSDs) have surpassed magnetic disks in random transaction performance, mechanical disk drives remain the dominant medium for massive, exabyte-scale datacenter storage due to their favorable cost-per-terabyte profile.
+      To an operating system kernel, secondary storage operations are enormously expensive compared to register and cache access. Reading a block of data from main DRAM requires tens of nanoseconds, whereas reading a block from a mechanical hard disk requires <strong>millions of nanoseconds</strong>.
     </p>
     <p>
-      From an operating system engineering perspective, magnetic disks provide a textbook case study in <strong>mechanical latency modeling, asymmetric access costs, and physical resource scheduling</strong>. To write efficient filesystem and buffer cache algorithms, kernel developers must understand the microscopic electro-mechanical physics governing disk hardware.
+      To design effective disk scheduling algorithms and filesystem page caches, we must construct a rigorous mathematical latency model decomposed into its physical and electronic sub-components:
     </p>
 
-    <!-- Structural Diagram: Comprehensive Physical Disk Anatomy -->
+    <div class="math-callout" style="text-align: center; font-size: 1.05rem;">
+      <i>T</i><sub>I/O</sub> = <i>T</i><sub>seek</sub> + <i>T</i><sub>rotational</sub> + <i>T</i><sub>transfer</sub> + <i>T</i><sub>controller</sub>
+    </div>
+
+    <!-- Structural Diagram: Time-Domain Latency Timeline -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.1: Electro-Mechanical Organization of a Modern Magnetic Hard Drive</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Platter stacking, aerodynamic slider flying height, embedded servo sectors, and Zoned Bit Recording (ZBR).</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 2.2: Time-Domain Decomposition of a Random 4 KB Disk Read Operation (~10.2 ms)</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Visualizing how mechanical arm movement and platter rotation dwarf electronic transfer time by over 500 to 1.</div>
 
-      <svg viewBox="0 0 760 300" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <defs>
-          <marker id="dg-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
-          </marker>
-          <marker id="dg-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
-          </marker>
-        </defs>
+      <svg viewBox="0 0 760 220" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <!-- Timeline Bar Base -->
+        <g transform="translate(20, 40)">
+          <!-- Total Timeline Bar (720px width = 10.2 ms total) -->
+          <!-- Seek Phase: 6.0 ms = ~423px -->
+          <rect x="0" y="20" width="423" height="42" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="211" y="38" text-anchor="middle" font-size="8.5" font-weight="700" fill="#991b1b">SEEK TIME (T<sub>seek</sub>): 6.0 ms (58.8%)</text>
+          <text x="211" y="52" text-anchor="middle" font-size="7" fill="#7f1d1d">Arm acceleration, coasting, deceleration, head settling</text>
 
-        <!-- Left: Platter Stack (Isometric 3D Projection) -->
-        <g transform="translate(145, 140)">
-          <!-- Central Spindle -->
-          <line x1="0" y1="-105" x2="0" y2="105" stroke="#334155" stroke-width="8"/>
-          <text x="0" y="125" text-anchor="middle" font-size="8.5" font-weight="700" fill="#0f172a">FLUID BEARING SPINDLE</text>
-          <text x="0" y="137" text-anchor="middle" font-size="7.5" fill="#64748b">Constant Angular Velocity (7200 RPM)</text>
+          <!-- Rotational Phase: 4.17 ms = ~294px -->
+          <rect x="423" y="20" width="294" height="42" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+          <text x="570" y="38" text-anchor="middle" font-size="8.5" font-weight="700" fill="#92400e">ROTATIONAL DELAY (T<sub>rot</sub>): 4.17 ms (40.9%)</text>
+          <text x="570" y="52" text-anchor="middle" font-size="7" fill="#b45309">Waiting for sector to spin under head at 7200 RPM</text>
 
-          <!-- Platter 3 (Top Surface) -->
-          <g transform="translate(0, -65)">
-            <ellipse cx="0" cy="0" rx="115" ry="36" fill="#f8fafc" stroke="#0284c7" stroke-width="2"/>
-            <!-- Outer Track (ZBR High Density) -->
-            <ellipse cx="0" cy="0" rx="100" ry="31" fill="none" stroke="#0284c7" stroke-width="1.5"/>
-            <!-- Mid Track -->
-            <ellipse cx="0" cy="0" rx="70" ry="22" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
-            <!-- Inner Track (ZBR Low Density) -->
-            <ellipse cx="0" cy="0" rx="40" ry="12" fill="none" stroke="#dc2626" stroke-width="1.5"/>
-            <!-- Spindle Center Hole -->
-            <ellipse cx="0" cy="0" rx="14" ry="4" fill="#475569"/>
-
-            <!-- Sector Arc Slice -->
-            <path d="M 0 0 L 95 18 A 100 31 0 0 0 100 0 Z" fill="#bae6fd" opacity="0.6"/>
-            <text x="75" y="16" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#0369a1">Sector</text>
-          </g>
-
-          <!-- Platter 2 (Middle) -->
-          <g transform="translate(0, 0)">
-            <ellipse cx="0" cy="0" rx="115" ry="36" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" opacity="0.9"/>
-            <ellipse cx="0" cy="0" rx="70" ry="22" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
-            <ellipse cx="0" cy="0" rx="14" ry="4" fill="#475569"/>
-          </g>
-
-          <!-- Platter 1 (Bottom) -->
-          <g transform="translate(0, 65)">
-            <ellipse cx="0" cy="0" rx="115" ry="36" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" opacity="0.8"/>
-            <ellipse cx="0" cy="0" rx="70" ry="22" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4 3"/>
-            <ellipse cx="0" cy="0" rx="14" ry="4" fill="#475569"/>
-          </g>
-
-          <!-- Cylinder Visual Alignment (Vertical Dashed Lines) -->
-          <line x1="70" y1="-65" x2="70" y2="65" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <line x1="-70" y1="-65" x2="-70" y2="65" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <rect x="74" y="-12" width="68" height="24" rx="3" fill="#ffffff" stroke="#dc2626"/>
-          <text x="108" y="3" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">CYLINDER</text>
+          <!-- Transfer Phase: 0.02 ms = ~3px (exaggerated to 3px for visibility) -->
+          <rect x="717" y="20" width="3" height="42" fill="#16a34a"/>
         </g>
 
-        <!-- Center-Right: Rotary Voice-Coil Actuator Arm -->
-        <g transform="translate(365, 140)">
-          <!-- Actuator Pivot Base -->
-          <circle cx="0" cy="0" r="22" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
-          <circle cx="0" cy="0" r="8" fill="#0f172a"/>
-          <text x="0" y="-30" text-anchor="middle" font-size="8" font-weight="700" fill="#334155">VOICE-COIL PIVOT</text>
-          <text x="0" y="-18" text-anchor="middle" font-size="7" fill="#64748b">(Permanent Magnet + Coil)</text>
+        <!-- Callout Annotations -->
+        <g transform="translate(20, 115)">
+          <rect width="720" height="85" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
 
-          <!-- Arm Extensions to Platters -->
-          <polygon points="0,-12 0,12 -150,-67 -150,-63" fill="#64748b" opacity="0.95"/>
-          <polygon points="0,-12 0,12 -150,-2 -150,2" fill="#64748b" opacity="0.95"/>
-          <polygon points="0,-12 0,12 -150,63 -150,67" fill="#64748b" opacity="0.95"/>
-
-          <!-- Magnetic Head Sliders -->
-          <rect x="-156" y="-68" width="10" height="6" rx="1" fill="#dc2626"/>
-          <rect x="-156" y="-3" width="10" height="6" rx="1" fill="#dc2626"/>
-          <rect x="-156" y="62" width="10" height="6" rx="1" fill="#dc2626"/>
-
-          <text x="-162" y="-76" font-family="var(--font-mono)" font-size="7.5" font-weight="700" fill="#dc2626">R/W HEADS</text>
-          <text x="-162" y="-86" font-size="6.5" fill="#64748b">GMR / TMR Sensors</text>
-        </g>
-
-        <!-- Right Panel: Micro-Scale Physics & ZBR Breakdown -->
-        <g transform="translate(500, 20)">
-          <rect width="245" height="260" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-          <text x="16" y="24" font-size="9.5" font-weight="700" fill="#0f172a">AERODYNAMICS &amp; HEAD FLYING HEIGHT</text>
-
-          <!-- Flying Height Comparison Graphic -->
-          <g transform="translate(12, 36)">
-            <rect width="220" height="96" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-            <text x="10" y="16" font-size="7.5" font-weight="700" fill="#dc2626">THE NANOMETER CATASTROPHE:</text>
-
-            <rect x="10" y="26" width="200" height="12" rx="2" fill="#e2e8f0"/>
-            <text x="15" y="35" font-size="7" fill="#334155">Human Hair Diameter: &sim;75,000 nm</text>
-
-            <rect x="10" y="42" width="140" height="12" rx="2" fill="#fef3c7"/>
-            <text x="15" y="51" font-size="7" fill="#92400e">Dust / Smoke Particle: &sim;1,500 nm</text>
-
-            <rect x="10" y="58" width="80" height="12" rx="2" fill="#fee2e2"/>
-            <text x="15" y="67" font-size="7" fill="#991b1b">Fingerprint Smear: &sim;600 nm</text>
-
-            <rect x="10" y="74" width="25" height="14" rx="2" fill="#dcfce7" stroke="#16a34a"/>
-            <text x="40" y="84" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#166534">Head Fly Height: 5 &ndash; 10 nm!</text>
-          </g>
-
-          <!-- Zoned Bit Recording (ZBR) Metric -->
-          <g transform="translate(12, 142)">
-            <rect width="220" height="106" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-            <text x="10" y="18" font-size="7.5" font-weight="700" fill="#0284c7">ZONED BIT RECORDING (ZBR)</text>
-            <text x="10" y="34" font-size="7" fill="#475569">&bull; Outer tracks have larger circumference</text>
-            <text x="10" y="46" font-size="7" fill="#475569">  (<i>C</i> = 2&pi;<i>r</i>) than inner tracks.</text>
-            <text x="10" y="58" font-size="7" fill="#475569">&bull; Outer tracks hold up to <strong>2&times; more sectors</strong>.</text>
-            <text x="10" y="72" font-size="7" font-weight="700" fill="#059669">Throughput Asymmetry:</text>
-            <text x="10" y="86" font-family="var(--font-mono)" font-size="7" fill="#059669">Outer Zone: &sim;260 MB/s (High Speed)</text>
-            <text x="10" y="98" font-family="var(--font-mono)" font-size="7" fill="#dc2626">Inner Zone: &sim;120 MB/s (Slow Speed)</text>
-          </g>
+          <text x="15" y="22" font-size="8.5" font-weight="700" fill="#0f172a">THE MECHANICAL LATENCY REALITY:</text>
+          <text x="15" y="40" font-size="8" fill="#334155">&bull; <strong>Mechanical Latency (Seek + Rotation):</strong> Consumes <tspan font-weight="700" fill="#dc2626">10.17 ms (99.8% of total I/O time)</tspan>.</text>
+          <text x="15" y="56" font-size="8" fill="#334155">&bull; <strong>Electronic Media Transfer Time (4 KB):</strong> Consumes <tspan font-weight="700" fill="#16a34a">0.02 ms (less than 0.2% of total I/O time)</tspan>.</text>
+          <text x="15" y="72" font-size="8" fill="#334155">&bull; <strong>Conclusion:</strong> Random I/O is completely bound by the physical laws of mechanical inertia and electric motor torque!</text>
         </g>
       </svg>
     </div>
 
-    <h4>Anatomy of the Mechanical Hard Disk</h4>
+    <h4>1. Seek Time (<i>T</i><sub>seek</sub>): The Voice-Coil Mechanics</h4>
     <p>
-      A modern hard disk drive is an ultra-precise, hermetically sealed unit containing several key mechanical and magnetic subsystems:
+      <strong>Seek time</strong> is the physical delay required for the voice-coil actuator arm to position the read/write heads radially across the platters and align precisely over the target cylinder.
     </p>
+    <p>
+      An actuator movement is not an instantaneous, uniform velocity slide. The voice-coil motor must obey classical Newtonian mechanics across four distinct physical phases:
+    </p>
+    <ol>
+      <li><strong>Acceleration Phase:</strong> Maximum electrical current is driven through the coil, creating an intense magnetic field against the permanent rare-earth magnets to accelerate the mass of the arm.</li>
+      <li><strong>Coasting Phase:</strong> For long seeks across hundreds of cylinders, the arm reaches its maximum terminal velocity and coasts across the platter radius.</li>
+      <li><strong>Deceleration Phase:</strong> Reverse current is applied through the voice coil, exerting braking force to bring the high-speed arm to a controlled stop over the target cylinder.</li>
+      <li><strong>Head Settling Time:</strong> The heads vibrate slightly upon arrival. The closed-loop servo mechanism reads embedded magnetic servo bursts to dampen oscillations and settle the head within the target track boundary (a mechanical settling budget of <strong>0.5 to 1.5 milliseconds</strong>).</li>
+    </ol>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
-      <!-- Platters and Spindle -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">1. Platters &amp; The Spindle Motor</h4>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          The storage medium consists of one or more stacked, rigid circular disks called <strong>platters</strong>, fabricated from high-strength aluminum-magnesium alloys or specialized glass-ceramic substrates.
-          <br><br>
-          <em>Key Structural Details:</em>
-          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>Both the top and bottom surfaces of each platter are coated with a sub-micron sputtered magnetic thin film (cobalt-chromium-platinum alloys) protected by an atomic-layer diamond-like carbon (DLC) wear barrier.</li>
-            <li>The platters rotate together on a central <strong>spindle motor</strong> operating at a strict <strong>Constant Angular Velocity (CAV)</strong>. Enterprise servers use drives spinning at 10,000 or 15,000 RPM, while consumer storage rotates at 5,400 or 7,200 RPM.</li>
-            <li>Enterprise drives replace internal air with <strong>Helium gas</strong> (which has one-seventh the density of air), dramatically reducing turbulent air drag, motor power consumption, and mechanical vibration across stacks of up to 10 platters.</li>
-          </ul>
-        </p>
-      </div>
-
-      <!-- Heads and Actuator -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">2. Read/Write Heads &amp; Voice-Coil Actuator</h4>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Data is sensed and recorded by microscopic electromagnetic read/write heads mounted on a shared rotary <strong>actuator arm</strong> driven by a high-speed Voice-Coil Motor (VCM).
-          <br><br>
-          <em>The Physics of Head Flying Height:</em>
-          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>The heads <strong>never physically touch the platter surface</strong> during operation. The rapid rotation of the platter generates an aerodynamic air cushion (an <em>air bearing</em>) that lifts the head slider, causing it to "fly" merely <strong>5 to 10 nanometers</strong> above the spinning media.</li>
-            <li>For perspective, a single human hair is &sim;75,000 nm in diameter, a smoke particle is &sim;1,500 nm, and a fingerprint ridge is &sim;600 nm. If a dust particle enters the chamber, it hits the head at 120 km/h, causing a catastrophic <strong>Head Crash</strong> that scrapes off the magnetic recording layer and permanently destroys data!</li>
-            <li>Modern heads use separate technologies: <strong>Tunneling Magnetoresistive (TMR)</strong> sensors for reading minute magnetic fluctuations, and inductive coils for writing.</li>
-          </ul>
-        </p>
-      </div>
+    <div style="overflow-x: auto; margin: 18px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 12px; width: 25%;">Seek Classification</th>
+            <th style="padding: 10px 12px; width: 25%;">Typical Duration</th>
+            <th style="padding: 10px 12px; width: 50%;">Physical Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">Track-to-Track Seek</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #0284c7;">0.5 &ndash; 1.5 ms</td>
+            <td style="padding: 10px 12px;">Stepping between immediately adjacent cylinders (dominated entirely by settling time).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">Full-Stroke Seek</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #dc2626;">15.0 &ndash; 20.0 ms</td>
+            <td style="padding: 10px 12px;">Traveling across the entire radius of the disk (from innermost cylinder to outermost cylinder).</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
+            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">Average Seek Time</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #166534; font-weight: 700;">4.0 &ndash; 9.0 ms</td>
+            <td style="padding: 10px 12px; color: #166534;">The expected seek time between two uniformly distributed random cylinders across the disk.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <h4>The Geometry Hierarchy: Tracks, Cylinders, and Sectors</h4>
+    <div class="math-callout">
+      <strong>Mathematical Derivation: The <sup>1</sup>&frasl;<sub>3</sub> Disk Stroke Law</strong>
+      <br>
+      Suppose a disk has <i>N</i> cylinders numbered continuously from 0 to <i>N</i>. If target requests are uniformly and independently distributed across all cylinders, what is the average physical seek distance traveled between two consecutive random requests located at positions <i>x</i> and <i>y</i>?
+      <br><br>
+      The expected distance is given by the continuous double integral over the disk radius:
+      <div style="margin: 10px 0; text-align: center; font-size: 0.95rem;">
+        Expected Seek Distance = <sup>1</sup>&frasl;<sub><i>N</i><sup>2</sup></sub> &int;<sub>0</sub><sup><i>N</i></sup> &int;<sub>0</sub><sup><i>N</i></sup> |<i>x</i> - <i>y</i>| <i>dx</i> <i>dy</i> = <strong><sup><i>N</i></sup>&frasl;<sub>3</sub></strong>
+      </div>
+      On average, a completely random seek travels <strong>one-third of the entire disk surface stroke</strong>! This statistical law allows operating system simulators to accurately estimate average random seek times as approximately one-third of the full-stroke seek duration.
+    </div>
+
+    <h4>2. Rotational Latency (<i>T</i><sub>rotational</sub>): Platter RPM Physics</h4>
     <p>
-      Data recorded on platters is organized along three geometric dimensions:
+      Once the voice-coil arm settles precisely over the target cylinder, the read head cannot immediately begin reading data. The target sector may currently be on the opposite side of the rotating platter. The time required for the target sector to rotate underneath the read head is the <strong>Rotational Latency</strong>.
+    </p>
+    <p>
+      Because disk platters rotate at a strict <strong>Constant Angular Velocity (CAV)</strong> measured in Revolutions Per Minute (RPM), the period of one complete physical revolution (<i>T</i><sub>rev</sub>) is constant:
+    </p>
+
+    <div class="math-callout" style="text-align: center; font-size: 0.95rem;">
+      <i>T</i><sub>rev</sub> = ( <sup>60</sup>&frasl;<sub>RPM</sub> ) &times; 1000 ms
+    </div>
+
+    <p>
+      Assuming random access, the target sector may arrive immediately beneath the head (best case: 0 ms), or it may have just passed the head by a fraction of a millimeter (worst case: one full physical revolution, <i>T</i><sub>rev</sub>).
+      <br>
+      Under a uniform distribution, the <strong>Average Rotational Latency (<i>T</i><sub>rot (avg)</sub>)</strong> is exactly half a revolution:
+    </p>
+
+    <div class="math-callout" style="text-align: center; font-size: 0.95rem;">
+      <i>T</i><sub>rot (avg)</sub> = <sup>1</sup>&frasl;<sub>2</sub> &times; <i>T</i><sub>rev</sub> = ( <sup>30</sup>&frasl;<sub>RPM</sub> ) &times; 1000 ms
+    </div>
+
+    <div style="overflow-x: auto; margin: 18px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 12px; width: 25%;">Spindle Speed (RPM)</th>
+            <th style="padding: 10px 12px; width: 25%;">Full Revolution Period</th>
+            <th style="padding: 10px 12px; width: 25%;">Average Rotational Latency</th>
+            <th style="padding: 10px 12px; width: 25%;">Target Market Segment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">5,400 RPM</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">11.11 ms</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #dc2626;">5.56 ms</td>
+            <td style="padding: 10px 12px;">Consumer laptops, low-power NAS archives</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">7,200 RPM</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">8.33 ms</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #d97706;">4.17 ms</td>
+            <td style="padding: 10px 12px;">Standard desktop storage, datacenter bulk arrays</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 12px; font-weight: 700;">10,000 RPM</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">6.00 ms</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #0284c7;">3.00 ms</td>
+            <td style="padding: 10px 12px;">Enterprise mission-critical database storage</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
+            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">15,000 RPM</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">4.00 ms</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #166534; font-weight: 700;">2.00 ms</td>
+            <td style="padding: 10px 12px; color: #166534;">High-performance SAS enterprise drives</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>3. Transfer Time (<i>T</i><sub>transfer</sub>) &amp; Controller Overhead</h4>
+    <p>
+      Once the head settles over the cylinder and the target sector rotates underneath, the drive enters the <strong>Transfer Phase</strong>.
     </p>
     <ul>
       <li>
-        <strong>Tracks:</strong> Data is recorded along concentric circular rings called <strong>tracks</strong>. Unlike a vinyl phonograph record or an optical compact disc (which use a single continuous spiral), magnetic disk tracks are closed, discrete circles.
-        <br>
-        Track density is extraordinarily high, often exceeding <strong>300,000 to 500,000 Tracks Per Inch (TPI)</strong>. The width of an individual magnetic track is less than 50 nanometers!
-      </li>
-      <li>
-        <strong>Cylinders:</strong> The actuator arm moves all read/write heads simultaneously across all platter surfaces. The collection of all tracks across every platter surface situated at the identical radial arm distance forms an imaginary geometric vertical tube called a <strong>Cylinder</strong>:
-        <div class="math-callout" style="margin: 10px 0;">
-          <strong>The Cylinder Optimization Principle:</strong>
-          <br>
-          If a file spans multiple blocks, placing those blocks on the <strong>same cylinder across different platter surfaces</strong> allows the drive to switch from reading Head 0 to Head 1, 2, or 3 via purely electronic head-selection logic (consuming less than 0.5 milliseconds) <strong>without executing any physical, mechanical voice-coil movement</strong>!
+        <strong>Media Transfer Time:</strong> The time required for the sector's magnetic bits to sweep past the TMR sensor:
+        <div class="math-callout" style="text-align: center;">
+          <i>T</i><sub>transfer</sub> = <sup>Transfer Size (Bytes)</sup>&frasl;<sub>Internal Track Media Transfer Rate (Bytes/sec)</sub>
+        </div>
+        For a standard 4 KB (4,096 bytes) block read on an outer track streaming at 200 MB/s:
+        <div style="margin: 6px 0; text-align: center; font-family: var(--font-mono); font-size: 0.85rem; color: #059669;">
+          <i>T</i><sub>transfer</sub> = <sup>4,096 Bytes</sup>&frasl;<sub>200,000,000 Bytes/sec</sub> &asymp; <strong>0.0000205 seconds = 0.02 ms</strong>
         </div>
       </li>
       <li>
-        <strong>Sectors:</strong> A track is partitioned into discrete arc segments called <strong>sectors</strong>. The sector is the smallest unit of physical storage and transfer that the disk controller can read or write atomically:
-        <ul>
-          <li><strong>Legacy Standard (512-Byte Sectors):</strong> Historically, sectors stored exactly 512 bytes of user data.</li>
-          <li><strong>Advanced Format (4Kn / 4096-Byte Sectors):</strong> Modern drives use 4 KB physical sectors. A 4096-byte sector reduces the overhead of inter-sector gaps and preambles, and significantly increases error-correction efficiency by providing larger data blocks for modern <strong>Low-Density Parity-Check (LDPC)</strong> error-correction codes.</li>
-        </ul>
+        <strong>Controller Overhead (<i>T</i><sub>controller</sub>):</strong> The electronic setup time required for the controller's ASIC to decode commands, program DMA registers, verify ECC checksums, and trigger host interrupts (typically <strong>&lt; 0.02 milliseconds</strong>).
       </li>
     </ul>
 
-    <h4>The Evolution of Addressing: From CHS to Logical Block Addressing (LBA)</h4>
-
-    <h5>1. Cylinder-Head-Sector (CHS) Addressing &amp; Historical Barriers</h5>
+    <h4>The 500&times; Asymmetry: Random vs. Sequential Performance</h4>
     <p>
-      In early operating systems (such as MS-DOS and early Unix on IBM PCs), the kernel had to explicitly calculate and provide the 3-dimensional physical coordinates for every disk operation:
-    </p>
-    <pre><code><span class="syn-cmt">/* Historical CHS Access: Read Cylinder 20, Head 2, Sector 5 */</span>
-<span class="syn-kw">struct</span> chs_address {
-    <span class="syn-kw">uint16_t</span> cylinder; <span class="syn-cmt">/* 0 .. 1023 (10 bits) */</span>
-    <span class="syn-kw">uint8_t</span>  head;     <span class="syn-cmt">/* 0 .. 15 (4 bits)   */</span>
-    <span class="syn-kw">uint8_t</span>  sector;   <span class="syn-cmt">/* 1 .. 63 (6 bits - 1-indexed!) */</span>
-};</code></pre>
-    <p>
-      CHS addressing contained a fatal flaw: the combination of BIOS register limitations (10 bits for cylinders, 4 bits for heads, 6 bits for sectors) created the notorious <strong>504 MiB Barrier</strong>:
-    </p>
-    <div class="math-callout">
-      $$\text{Max CHS Capacity} = 1024\text{ Cylinders} \times 16\text{ Heads} \times 63\text{ Sectors} \times 512\text{ Bytes} = \mathbf{528{,}482{,}304\text{ Bytes (504 MiB)}}$$
-    </div>
-
-    <h5>2. Zoned Bit Recording (ZBR / Zone CAV)</h5>
-    <p>
-      Beyond the BIOS architectural limits, CHS was destroyed by basic physics: <strong>rigid geometry is geometrically inefficient</strong>.
-    </p>
-    <p>
-      Because a disk platter is circular, the circumference of an outer track is more than twice the circumference of an inner track:
-    </p>
-    <div class="math-callout">
-      $$\text{Track Circumference} = 2\pi r$$
-    </div>
-    <p>
-      Under historical CHS, every track was forced to contain the exact same number of sectors (e.g. 63 sectors per track). This meant magnetic bit transitions on outer tracks were spaced far apart, wasting massive amounts of surface area.
-    </p>
-    <p>
-      Modern drives implement <strong>Zoned Bit Recording (ZBR)</strong>:
-    </p>
-    <ul>
-      <li>The disk surface is grouped into 16 to 30 concentric <strong>zones</strong>.</li>
-      <li>Outer zones (with larger radii) pack significantly more sectors per track (e.g. 1,200 sectors per track) than inner zones (e.g. 600 sectors per track), maintaining a uniform magnetic recording density across the entire platter.</li>
-      <li><strong>Operating System Performance Consequence:</strong> Because the spindle motor rotates at a constant angular speed, <strong>outer tracks pass beneath the read/write heads faster, streaming data at more than double the throughput of inner tracks</strong> (e.g. 260 MB/s on outer tracks vs. 120 MB/s on inner tracks)! Operating system partition formatters deliberately place root filesystems and high-performance swap partitions on the outer edge of the disk.</li>
-    </ul>
-
-    <h5>3. Logical Block Addressing (LBA) &amp; Controller Virtualization</h5>
-    <p>
-      Because Zoned Bit Recording destroyed uniform CHS dimensions, the storage industry transitioned universally to <strong>Logical Block Addressing (LBA)</strong>:
-    </p>
-    <ul>
-      <li>The operating system completely abandons tracking cylinders, heads, and tracks.</li>
-      <li>The disk controller exposes the disk as a flat, linear array of 64-bit integer blocks:
-        <pre><code>LBA 0, LBA 1, LBA 2, LBA 3, &hellip;, LBA (TotalSectors - 1)</code></pre>
-      </li>
-      <li>The on-board disk controller firmware maintains an internal mathematical mapping table, translating logical LBA numbers to physical zones, cylinders, heads, and physical sectors.</li>
-    </ul>
-
-    <h4>Physical Latency Mitigations: Track and Cylinder Skewing</h4>
-    <p>
-      To prevent catastrophic rotational latency penalties during sequential reads, disk controllers implement microscopic angular offsets known as <strong>skewing</strong>:
+      We can now calculate the catastrophic performance penalty of random I/O versus sequential streaming on a modern 7,200 RPM mechanical drive:
     </p>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
-      <!-- Track Skewing -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Track Skewing</h4>
+      <!-- Random I/O Math -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 16px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Case 1: Random Access (4 KB Block)</h4>
+        <div style="font-size: 0.72rem; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 8px;">Physical Seek &amp; Rotation Paid on Every Block</div>
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Suppose a sequential file spans Track 0 and Track 1. If Sector 0 on Track 1 is placed at the exact same angular position as Sector 0 on Track 0:
+          Every 4 KB read accesses an arbitrary, disjoint cylinder:
           <br><br>
-          When the head finishes reading Track 0, it takes approximately <strong>0.8 milliseconds</strong> for the actuator arm to mechanically step to Track 1.
+          <i>T</i><sub>seek</sub> &asymp; 6.00 ms<br>
+          <i>T</i><sub>rot</sub> &asymp; 4.17 ms<br>
+          <i>T</i><sub>transfer</sub> &asymp; 0.02 ms<br>
+          <strong>Total Time (<i>T</i><sub>I/O</sub>): &asymp; 10.19 ms</strong>
           <br><br>
-          During those 0.8 ms, the platter spins past Sector 0! The head lands over Sector 4, forcing the disk to wait <strong>almost an entire physical revolution (8.3 ms at 7200 RPM)</strong> just to read Sector 0!
-          <br><br>
-          <strong>The Solution:</strong> The controller offsets (skews) Sector 0 on Track 1 by several angular positions, ensuring that exactly as the head settles onto Track 1, Sector 0 spins directly underneath it.
+          <span style="font-family: var(--font-mono); font-weight: 700; color: #dc2626; font-size: 0.88rem;">
+            IOPS = 1 / 0.01019 s &asymp; 98 IOPS<br>
+            Throughput = 98 &times; 4 KB &asymp; 0.39 MB/s!
+          </span>
         </p>
       </div>
 
-      <!-- Defect Reallocation -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 14px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Defect Management (G-List &amp; P-List)</h4>
+      <!-- Sequential I/O Math -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 16px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Case 2: Sequential Access (Streaming)</h4>
+        <div style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase; margin-bottom: 8px;">Seek &amp; Rotation Amortized to Zero</div>
         <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          No physical platter is manufactured without microscopic silicon imperfections. Controllers maintain two defect lists:
+          Blocks reside contiguously along the same track:
           <br><br>
-          <strong>1. Primary Defect List (P-List):</strong> Populated at the factory during low-level surface scanning. Defective sectors are skipped during initial track mapping (sector slipping).
+          Initial Seek + Rotation paid ONCE for the entire stream.<br>
+          Subsequent blocks stream continuously as the track rotates.<br>
+          Track skewing prevents rotational misses between tracks.
           <br><br>
-          <strong>2. Grown Defect List (G-List):</strong> When a sector fails in the field due to magnetic wear, the controller marks the sector bad and transparently remaps that LBA to an unallocated <strong>spare sector</strong> reserved on an inner or outer track.
-          <br><br>
-          <em>OS Performance Impact:</em> While remapping preserves data integrity, reading a remapped sector requires the actuator arm to seek to the spare track and back, causing sudden anomalous latency spikes during sequential reads.
+          <span style="font-family: var(--font-mono); font-weight: 700; color: #166534; font-size: 0.88rem;">
+            IOPS = Not seek-bound<br>
+            Throughput = Wire Media Rate &asymp; 200.00 MB/s!
+          </span>
         </p>
       </div>
+    </div>
+
+    <div class="math-callout" style="background: #fef2f2; border-left-color: #dc2626;">
+      <strong style="color: #991b1b;">The Core Architectural Lesson:</strong>
+      <br>
+      Sequential I/O is more than <strong>500 times faster</strong> than random I/O on mechanical storage ($200\text{ MB/s}$ vs. $0.39\text{ MB/s}$).
+      <br><br>
+      This vast performance disparity explains why operating system kernels incorporate:
+      <ul>
+        <li><strong>Read-Ahead (Prefetching):</strong> Detecting sequential reads and proactively loading dozens of subsequent sectors into the page cache ahead of user requests.</li>
+        <li><strong>Write Buffering &amp; Elevator Schedulers:</strong> Queueing writes in RAM to merge adjacent blocks and sort requests into sequential cylinder order before dispatching to physical hardware.</li>
+      </ul>
     </div>"""
 
-def update_section_one():
+def update_section_two():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>1. Physical Disk Geometry: Platters, Cylinders, and Sectors</h3>"
-    end_marker = "<h3>2. Modeling I/O Access Latency"
+    start_marker = "<h3>2. Modeling I/O Access Latency"
+    end_marker = "<h3>3. Disk Arm Scheduling Algorithms</h3>"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 1 boundaries in Module 03.")
+        print("Error: Could not locate Section 2 boundaries in Module 03.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_ONE + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 1 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 1 of Module 03 on Physical Disk Geometry & CHS/LBA\n\n"
-            "Detail fluid bearings, aerodynamic slider flying heights, ZBR zoning,\n"
-            "track/cylinder skewing, G-list defect reallocation, and add an SVG."
+            "Expand Section 2 in Module 03 on Modeling I/O Access Latency (T_I/O)\n\n"
+            "Detail seek time derivation, rotational latency math across RPM tiers,\n"
+            "transfer time formulas, the 500x random vs sequential gap, and add SVG."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -327,5 +286,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_one():
+    if update_section_two():
         run_git_sync()
