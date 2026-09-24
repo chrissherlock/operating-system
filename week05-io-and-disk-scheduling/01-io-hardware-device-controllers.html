@@ -646,7 +646,7 @@
       <li><strong>Physical Block Storage:</strong> <code>L"\\\\.\\PhysicalDrive0"</code> opens the raw physical disk directly (analogous to <code>/dev/sda</code> in Linux).</li>
       <li><strong>Volume Partitions:</strong> <code>L"\\\\.\\C:"</code> opens the volume partition container directly (analogous to <code>/dev/sda1</code>).</li>
       <li><strong>Character Ports:</strong> <code>L"\\\\.\\COM1"</code> opens physical serial UART port 1 (analogous to <code>/dev/ttyS0</code>).</li>
-      <li><strong>Console Streams:</strong> <code>L"CONIN$"</code> and <code>L"CONOUT$"</code> access the raw keyboard input and display output buffers (analogous to <code>/dev/stdin</code> and <code>/dev/stdout</code>).</li>
+      <li><strong>Console Streams:</strong> <code>L"CONIN<i>"</code> and <code>L"CONOUT</i>"</code> access the raw keyboard input and display output buffers (analogous to <code>/dev/stdin</code> and <code>/dev/stdout</code>).</li>
     </ul>
 
     <pre><code><span class="syn-cmt">/* Interfacing with Raw Hardware in Windows via Win32 */</span>
@@ -1142,7 +1142,7 @@ DWORD bytesRead;
 
     <h4>1. Port-Mapped I/O (PMIO / Isolated I/O)</h4>
     <p>
-      Port-Mapped I/O is an architectural design historically championed by Intel x86 microprocessors. The processor implements a completely separate, dedicated <strong>16-bit I/O address space</strong> ($0\text{x}0000 \dots 0\text{xFFFF}$), providing exactly 65,536 distinct 8-bit I/O ports.
+      Port-Mapped I/O is an architectural design historically championed by Intel x86 microprocessors. The processor implements a completely separate, dedicated <strong>16-bit I/O address space</strong> (<i>0x0000 &hellip; 0xFFFF</i>), providing exactly 65,536 distinct 8-bit I/O ports.
     </p>
     <ul>
       <li>
@@ -1306,7 +1306,7 @@ desc-&gt;length      = <span class="syn-num">4096</span>;
         <tbody>
           <tr style="border-bottom: 1px solid var(--border);">
             <td style="padding: 10px 12px; font-weight: 700;">Address Space</td>
-            <td style="padding: 10px 12px;">Separate, isolated 16-bit address space ($0\text{x}0000 \dots 0\text{xFFFF}$).</td>
+            <td style="padding: 10px 12px;">Separate, isolated 16-bit address space (<i>0x0000 &hellip; 0xFFFF</i>).</td>
             <td style="padding: 10px 12px;">Unified physical address space shared with DRAM.</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
@@ -1470,7 +1470,9 @@ desc-&gt;length      = <span class="syn-num">4096</span>;
         <li>
           <strong>The Double-Hop Bus Penalty:</strong> Moving a 32-bit word from the controller to RAM requires <strong>two distinct bus transactions</strong>:
           <br>
-          $$\text{Controller} \xrightarrow[\text{PCIe Bus}]{\text{Hop 1}} \text{CPU General-Purpose Register} \xrightarrow[\text{System Memory Interconnect}]{\text{Hop 2}} \text{DRAM}$$
+          <div class="math-callout" style="text-align: center; font-family: var(--font-mono); font-size: 0.88rem;">
+  Controller &mdash;[PCIe Bus (Hop 1)]&rarr; CPU Register &mdash;[Memory Interconnect (Hop 2)]&rarr; Host DRAM
+</div>
           This doubles the bandwidth consumed on internal processor interconnects.
         </li>
         <li>
@@ -1501,7 +1503,9 @@ desc-&gt;length      = <span class="syn-num">4096</span>;
       While interrupt-driven I/O is ideal for low-to-medium throughput devices (keyboards, serial ports, legacy disks), it encounters a fatal failure mode under modern multi-gigabit workloads: <strong>Interrupt Livelock</strong>.
       <br><br>
       Consider a 100 GbE network interface receiving a deluge of minimum-sized 64-byte packets:
-      $$\text{Packet Rate} = \frac{100 \times 10^9\text{ bits/sec}}{(64 + 20\text{ bytes preamble/gap}) \times 8\text{ bits/byte}} \approx \mathbf{148{,}800{,}000\text{ packets/second}}$$
+      <div class="math-callout" style="text-align: center; font-size: 0.92rem;">
+  <strong>Packet Rate</strong> = <sup>100 &times; 10<sup>9</sup> bits/sec</sup>&frasl;<sub>(64 + 20 bytes) &times; 8 bits/byte</sub> &asymp; <strong>148,800,000 packets/second</strong>
+</div>
       If the NIC fired a hardware interrupt for every packet:
       <ul>
         <li>Each interrupt cycle incurs register saving, pipeline flushes, IDT dispatch, and kernel stack switching (&asymp; 1,000 to 2,000 CPU cycles per interrupt).</li>
