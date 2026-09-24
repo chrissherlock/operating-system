@@ -1,14 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create Module 03 on Deadlock Handling Strategies & Banker's Algorithm
-# =====================================================================
-import os
-import subprocess
-
-TARGET_DIR = "week06-synchronization-and-deadlock"
-TARGET_FILE = os.path.join(TARGET_DIR, "03-deadlock-handling-bankers-algorithm.html")
-
-MODULE_HTML = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -410,33 +400,3 @@ MODULE_HTML = r"""<!DOCTYPE html>
   </script>
 </body>
 </html>
-"""
-
-def create_module_three():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-    print(f"--> Successfully created Module 03 at {TARGET_FILE}")
-
-def run_git_sync():
-    status = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
-    if not status:
-        print("--> Working tree is clean. Nothing to commit.")
-        return
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Create Module 03 on Deadlock Handling Strategies and Banker's Algorithm\n\n"
-            "Detail Ostrich algorithm, prevention via lock ordering, detection/recovery,\n"
-            "Dijkstra's Banker's algorithm matrices, safe states, and an SVG stepper."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    create_module_three()
-    run_git_sync()
