@@ -1,16 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create 02-disk-hardware-scheduling.html in Week 5
-# =====================================================================
-import os
-import subprocess
-
-TARGET_FILE = os.path.join(
-    "week05-io-and-disk-scheduling",
-    "02-disk-hardware-scheduling.html"
-)
-
-MODULE_HTML = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -776,27 +764,3 @@ MODULE_HTML = r"""<!DOCTYPE html>
   </script>
 </body>
 </html>
-"""
-
-def generate_module_two():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-
-    print(f"--> Successfully created {TARGET_FILE}")
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Add Disk Geometry & Arm Scheduling module in Week 5\n\n"
-            "Cover platters/tracks/sectors, CHS to LBA, seek and rotational math,\n"
-            "SSTF/SCAN/C-LOOK algorithms, and an interactive 200-cylinder arm stepper."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    generate_module_two()
