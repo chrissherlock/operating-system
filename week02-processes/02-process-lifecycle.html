@@ -513,7 +513,7 @@
         <strong>Divide-by-Zero / Arithmetic Fault (Vector 0, <code>#DE</code>):</strong> The CPU arithmetic logic unit encounters an impossible integer division instruction (e.g., dividing by zero or signed overflow in <code>IDIV</code>). The processor halts the user instruction and vectors into the kernel's fault handler, which generates a <code>SIGFPE</code> signal.
       </li>
       <li>
-        <strong>Page Fault / Segmentation Violation (Vector 14, <code>#PF</code>):</strong> The process attempts to read, write, or execute a virtual address outside its allocated memory mapping (such as dereferencing a NULL pointer, jumping to address <code>0x0</code>, or writing to a read-only code segment). The hardware Memory Management Unit (MMU) halts the instruction and loads the offending address into the <code>CR2</code> register. The kernel verifies the address in the process's memory descriptor (`mm_struct`); if invalid, it dispatches <code>SIGSEGV</code>.
+        <strong>Page Fault / Segmentation Violation (Vector 14, <code>#PF</code>):</strong> The process attempts to read, write, or execute a virtual address outside its allocated memory mapping (such as dereferencing a NULL pointer, jumping to address <code>0x0</code>, or writing to a read-only code segment). The hardware Memory Management Unit (MMU) halts the instruction and loads the offending address into the <code>CR2</code> register. The kernel verifies the address in the process's memory descriptor (<code>mm_struct</code>); if invalid, it dispatches <code>SIGSEGV</code>.
       </li>
       <li>
         <strong>Illegal Instruction (Vector 6, <code>#UD</code>):</strong> The CPU instruction decoder encounters a bit pattern that does not correspond to a valid machine opcode, or encounters a privileged supervisor instruction (such as <code>INVD</code> or modifying <code>CR3</code>) attempted while the CPU is in User Mode (Ring 3). The hardware traps with an invalid opcode fault, translating to <code>SIGILL</code>.
@@ -606,11 +606,115 @@ Program terminated with signal SIGSEGV, Segmentation fault.
 
     <h3>4. Zombies and Orphan Reaping</h3>
     <p>
-      When a UNIX child process terminates via <code>exit()</code>, the kernel releases its physical memory pages, closes its open file descriptors, and detaches its address space. However, the kernel cannot immediately destroy its Process Control Block (PCB).
+      In a hierarchical operating system, process termination is rarely an isolated, instantaneous event. Because a parent process frequently delegates computations to child tasks—such as a compiler invoking an assembler, or a shell executing a pipeline—the parent requires a reliable mechanism to determine whether the child succeeded, encountered an error, or aborted abnormally.
     </p>
     <p>
-      The PCB must remain in the process table in a <strong>Zombie</strong> state until the parent calls <code>wait()</code> or <code>waitpid()</code> to collect the child's exit status code. If a parent terminates without calling <code>wait()</code>, the child becomes an <strong>orphan</strong> and is automatically adopted by <code>init</code> (PID 1), which periodically executes <code>wait()</code> to reap accumulated zombies and prevent kernel process table starvation.
+      To satisfy this requirement without introducing race conditions, the operating system splits termination into two distinct phases: <strong>resource teardown</strong> (handled immediately upon exit) and <strong>metadata reaping</strong> (handled when the parent acknowledges completion).
     </p>
+
+    <h4>1. The Structural Anatomy of a Zombie</h4>
+    <p>
+      When a process invokes <code>sys_exit()</code>, the kernel immediately executes the bulk of resource reclamation:
+    </p>
+    <ul>
+      <li>Its virtual memory address space (page directory root, page tables, physical frames) is unmapped and returned to the OS free memory pool.</li>
+      <li>All open file descriptors are closed, decrementing underlying open-file-table reference counters.</li>
+      <li>Virtual file system locks, shared memory attachments, and POSIX semaphore bindings are released.</li>
+    </ul>
+    <p>
+      However, the kernel <em>cannot</em> delete the process's Process Control Block (represented in Linux by <code>struct task_struct</code>) or release its unique Process Identifier (PID). Instead, the kernel updates its execution state field to <code>EXIT_ZOMBIE</code>.
+    </p>
+    <p>
+      A <strong>Zombie process</strong> (displayed with state <code>Z</code> in utilities like <code>ps</code> and <code>top</code>, or designated as <code>&lt;defunct&gt;</code>) is a dead process that consumes no physical CPU or RAM. It exists solely as an entry in the kernel's process table, holding:
+    </p>
+    <ol>
+      <li>The 32-bit Process ID (PID) and Parent Process ID (PPID).</li>
+      <li>The process 16-bit termination status word (encoding the exit code or fatal signal number).</li>
+      <li>Resource accounting statistics (such as cumulative CPU user/system time, page faults, and peak memory usage stored in <code>struct rusage</code>).</li>
+    </ol>
+
+    <h4>2. The Wait System Call Family and Status Decoding</h4>
+    <p>
+      A parent process retrieves this preserved metadata by invoking one of the wait-family system calls:
+    </p>
+    <pre>pid_t wait(int *wstatus);
+pid_t waitpid(pid_t pid, int *wstatus, int options);
+int waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);</pre>
+
+    <h5>Waitpid Options and Non-Blocking Synchronization</h5>
+    <p>
+      While <code>wait(&amp;status)</code> blocks the parent unconditionally until <em>any</em> child terminates, <code>waitpid()</code> provides granular control via its first and third arguments:
+    </p>
+    <ul>
+      <li><code>pid &gt; 0</code>: Wait specifically for the child whose process ID matches <code>pid</code>.</li>
+      <li><code>pid == -1</code>: Wait for any arbitrary child process (equivalent to <code>wait()</code>).</li>
+      <li><code>pid == 0</code>: Wait for any child process residing in the same Process Group ID as the caller.</li>
+      <li><code>options = WNOHANG</code>: Return immediately without blocking if no child has exited (returning <code>0</code>). This allows interactive programs (like game loops or UI servers) to reap zombies non-blockingly.</li>
+    </ul>
+
+    <h5>Decoding the Status Word with POSIX Macros</h5>
+    <p>
+      The integer populated by the kernel into <code>wstatus</code> is not a simple integer value; it is a bitmask packing both termination mode and error codes. Applications must inspect it using standard POSIX macros:
+    </p>
+    <ul>
+      <li><code>WIFEXITED(wstatus)</code>: Evaluates to true if the child terminated normally via <code>exit()</code> or returning from <code>main()</code>.</li>
+      <li><code>WEXITSTATUS(wstatus)</code>: Extracts the actual 8-bit exit code (0–255) passed by the child to <code>exit()</code>.</li>
+      <li><code>WIFSIGNALED(wstatus)</code>: Evaluates to true if the child was killed involuntarily by an unhandled signal (such as <code>SIGSEGV</code> or <code>SIGKILL</code>).</li>
+      <li><code>WTERMSIG(wstatus)</code>: Extracts the exact signal number that caused the child process to abort.</li>
+      <li><code>WCOREDUMP(wstatus)</code>: Evaluates to true if the fatal signal caused the kernel to generate a post-mortem core dump file on disk.</li>
+    </ul>
+
+    <h4>3. The Orphan Lifecycle and Adoption Cascades</h4>
+    <p>
+      A process whose parent terminates before it does is termed an <strong>orphan process</strong>. If the original parent is dead, who calls <code>wait()</code> to reap the child when it eventually terminates?
+    </p>
+    <p>
+      To prevent terminated orphans from lingering as immortal zombies forever, POSIX operating systems enforce an <strong>adoption cascade</strong>:
+    </p>
+    <ol>
+      <li>When a process terminates, the kernel walks its child list. For every child whose parent is exiting, the kernel rewrites the child's <code>PPID</code> pointer.</li>
+      <li>Historically, the child was always re-parented directly to the system root process: <code>init</code> (PID 1). In modern Linux systems, a process can designate itself as an intermediate subreaper via <code>prctl(PR_SET_CHILD_SUBREAPER, 1)</code> (commonly used by desktop managers and container runtimes like Docker and containerd). If an ancestor subreaper exists in the process hierarchy, it adopts the orphan; otherwise, the orphan falls back to PID 1 (<code>systemd</code>).</li>
+      <li>The root init daemon contains an infinite background loop that intercepts the <code>SIGCHLD</code> signal and repeatedly issues <code>waitpid(-1, &amp;status, WNOHANG)</code>. Whenever an adopted orphan terminates, PID 1 reaps it immediately, cleanly purging its PCB from the process table.</li>
+    </ol>
+
+    <h4>4. The Danger of Zombie Accumulation (PID Starvation)</h4>
+    <p>
+      Zombie processes consume negligible memory because their address space is gone. However, they hold onto their entry in the operating system's process table and retain their allocated PID.
+    </p>
+    <p>
+      Because operating systems maintain a strict maximum limit on concurrent process IDs—configured in Linux via <code>/proc/sys/kernel/pid_max</code> (typically defaulting to 32,768 on 32-bit systems or 4,194,304 on 64-bit kernels)—a buggy parent process that repeatedly forks worker children without ever calling <code>wait()</code> will steadily leak PIDs:
+    </p>
+    <pre>/* Anti-pattern: The Zombie Leak Loop */
+while (1) {
+    if (fork() == 0) {
+        /* Child task executes briefly and exits */
+        exit(0);
+    }
+    /* Bug: Parent sleeps forever and NEVER calls wait() or waitpid()! */
+    sleep(1);
+}</pre>
+    <p>
+      Eventually, the system reaches the <code>pid_max</code> ceiling. When this occurs, any subsequent call to <code>fork()</code> across the <em>entire operating system</em> fails with the error <code>EAGAIN</code> (Resource temporarily unavailable). At this point, no user can launch a shell, execute a command, or log in via SSH.
+    </p>
+    <h5>Why kill -9 Cannot Eliminate a Zombie</h5>
+    <p>
+      System administrators often attempt to execute <code>kill -9 &lt;zombie_pid&gt;</code>, only to discover the zombie remains in the process table. This occurs because <code>SIGKILL</code> is an instruction directing the kernel to halt a running thread of execution. A zombie is <em>already dead</em>; it has no registers, no instruction pointer, and no thread of control to receive signals.
+    </p>
+    <p>
+      The only operational method to eliminate a zombie whose parent refuses to reap it is to <strong>terminate the negligent parent process</strong>. When the parent dies, the kernel detects the orphaned zombie, automatically re-parents it to <code>init</code> (PID 1), and <code>init</code> immediately reaps it via its internal wait loop.
+    </p>
+
+    <h4>5. The Double-Fork Daemonization Pattern</h4>
+    <p>
+      System programming exploits the orphan adoption mechanism to create background server daemons that are completely detached from controlling terminals and shell process groups. This architectural design is known as the <strong>double-fork pattern</strong>:
+    </p>
+    <ol>
+      <li>The initial process calls <code>fork()</code> to spawn Child 1. The parent immediately calls <code>waitpid()</code> to reap Child 1.</li>
+      <li>Child 1 calls <code>setsid()</code> to allocate a brand-new session and detach from the controlling terminal.</li>
+      <li>Child 1 immediately calls <code>fork()</code> a second time to spawn Grandchild 2, and Child 1 deliberately exits immediately.</li>
+      <li>Because its direct parent (Child 1) is dead, Grandchild 2 becomes an orphan and is instantly adopted by PID 1 (<code>init</code>).</li>
+      <li>Grandchild 2 continues running indefinitely in the background as an independent daemon. When it eventually terminates, <code>init</code> reaps it automatically, guaranteeing that Grandchild 2 can never become an uncollected zombie.</li>
+    </ol>
 
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="01-process-model.html">&larr; Previous: 01. Process Model</a>
