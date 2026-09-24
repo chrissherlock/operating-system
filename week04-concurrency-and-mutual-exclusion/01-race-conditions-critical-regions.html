@@ -307,7 +307,7 @@
     <nav class="nav-bar">
       <a href="index.html">&#127968; Week 4 Hub</a>
       <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Module 01: Race Conditions</span>
-      <a href="02-hardware-primitives-spinlocks.html">Next: 02. Hardware Primitives &rarr;</a>
+      <a href="02-hardware-primitives-spinlocks.html">Next: 02. Hardware Primitives →</a>
     </nav>
 
     <h2>01. Race Conditions &amp; Critical Regions</h2>
@@ -371,7 +371,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
       <div class="telemetry-strip">
         <div class="telemetry-cell">
           <span class="telemetry-label">Timeline Clock</span>
-          <span class="telemetry-val highlight" id="r-telem-time">T = 0 &mu;s</span>
+          <span class="telemetry-val highlight" id="r-telem-time">T = 0 μs</span>
         </div>
         <div class="telemetry-cell">
           <span class="telemetry-label">Active Thread</span>
@@ -434,17 +434,17 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
             <!-- Dynamic Bus Flow Vectors -->
             <g id="grp-bus-load" style="display: none;">
               <line x1="110" y1="120" x2="10" y2="120" stroke="#0284c7" stroke-width="2.5" marker-end="url(#r-arr-bus-right)"/>
-              <text x="60" y="112" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">&larr; READ 1000</text>
+              <text x="60" y="112" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">← READ 1000</text>
             </g>
 
             <g id="grp-bus-store" style="display: none;">
               <line x1="10" y1="120" x2="110" y2="120" stroke="#dc2626" stroke-width="2.5" marker-end="url(#r-arr-bus-left)"/>
-              <text x="60" y="112" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#dc2626">WRITE &rarr;</text>
+              <text x="60" y="112" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#dc2626">WRITE →</text>
             </g>
 
             <g id="grp-bus-store-green" style="display: none;">
               <line x1="10" y1="120" x2="110" y2="120" stroke="#059669" stroke-width="2.5" marker-end="url(#r-arr-bus-green)"/>
-              <text x="60" y="112" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#059669">WRITE &rarr;</text>
+              <text x="60" y="112" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#059669">WRITE →</text>
             </g>
           </g>
 
@@ -461,7 +461,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
 
             <!-- Lock / Concurrency State Badge -->
             <rect id="rect-lock-badge" x="15" y="168" width="250" height="38" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-            <text id="txt-lock-status" x="140" y="192" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="#991b1b">&times; NO LOCK (RACE HAZARD ACTIVE)</text>
+            <text id="txt-lock-status" x="140" y="192" text-anchor="middle" font-family="var(--font-mono)" font-size="9.5" font-weight="700" fill="#991b1b">× NO LOCK (RACE HAZARD ACTIVE)</text>
           </g>
         </svg>
       </div>
@@ -469,8 +469,8 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
       <!-- Stepper Controls & Current Step Narrative Panel -->
       <div class="controls-narrative-strip">
         <div class="stepper-btn-group">
-          <button class="btn-step" id="r-btn-prev" onclick="stepRace(-1)" disabled>&larr; Previous</button>
-          <button class="btn-step" id="r-btn-next" onclick="stepRace(1)">Next Step &rarr;</button>
+          <button class="btn-step" id="r-btn-prev" onclick="stepRace(-1)" disabled>← Previous</button>
+          <button class="btn-step" id="r-btn-next" onclick="stepRace(1)">Next Step →</button>
           <button class="btn-step" id="r-btn-reset" onclick="resetRace()">Reset</button>
         </div>
         <div class="narrative-preview-panel">
@@ -580,7 +580,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="index.html">&#127968; Week 4 Hub</a>
       <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Module 01: Race Conditions</span>
-      <a href="02-hardware-primitives-spinlocks.html">Next: 02. Hardware Primitives &rarr;</a>
+      <a href="02-hardware-primitives-spinlocks.html">Next: 02. Hardware Primitives →</a>
     </nav>
   </div>
 
@@ -588,7 +588,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
     const raceSteps = {
       race: [
         {
-          time: "T = 0 &mu;s",
+          time: "T = 0 μs",
           thread: "Thread 1 (Deposit)",
           eax: "0x00000000 (0)",
           mem: "$1000",
@@ -601,7 +601,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: true,
           busStore: false,
           busStoreGreen: false,
-          lockStatus: "&times; NO LOCK (RACE HAZARD ACTIVE)",
+          lockStatus: "× NO LOCK (RACE HAZARD ACTIVE)",
           lockFill: "#fee2e2",
           lockStroke: "#dc2626",
           lockTextFill: "#991b1b",
@@ -610,7 +610,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           why: "All arithmetic requires operands to reside inside CPU registers."
         },
         {
-          time: "T = 1 &mu;s",
+          time: "T = 1 μs",
           thread: "Thread 1 (Deposit)",
           eax: "0x0000044C (1100)",
           mem: "$1000",
@@ -623,7 +623,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: false,
           busStore: false,
           busStoreGreen: false,
-          lockStatus: "&times; NO LOCK (RACE HAZARD ACTIVE)",
+          lockStatus: "× NO LOCK (RACE HAZARD ACTIVE)",
           lockFill: "#fee2e2",
           lockStroke: "#dc2626",
           lockTextFill: "#991b1b",
@@ -632,7 +632,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           why: "Preemptive schedulers enforce fair quantum slices regardless of user code completion."
         },
         {
-          time: "T = 2 &mu;s",
+          time: "T = 2 μs",
           thread: "Thread 2 (Withdrawal)",
           eax: "0x000003B6 (950)",
           mem: "$950",
@@ -645,7 +645,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: false,
           busStore: true,
           busStoreGreen: false,
-          lockStatus: "&times; NO LOCK (RACE HAZARD ACTIVE)",
+          lockStatus: "× NO LOCK (RACE HAZARD ACTIVE)",
           lockFill: "#fee2e2",
           lockStroke: "#dc2626",
           lockTextFill: "#991b1b",
@@ -654,7 +654,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           why: "Thread 2 ran its full Load-Modify-Store sequence without preemption."
         },
         {
-          time: "T = 3 &mu;s",
+          time: "T = 3 μs",
           thread: "Thread 1 (Resumes)",
           eax: "0x0000044C (1100)",
           mem: "$1100",
@@ -667,7 +667,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: false,
           busStore: true,
           busStoreGreen: false,
-          lockStatus: "&times; CORRUPTED: $50 DEBIT LOST!",
+          lockStatus: "× CORRUPTED: $50 DEBIT LOST!",
           lockFill: "#fee2e2",
           lockStroke: "#dc2626",
           lockTextFill: "#991b1b",
@@ -678,7 +678,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
       ],
       mutex: [
         {
-          time: "T = 0 &mu;s",
+          time: "T = 0 μs",
           thread: "Thread 1 (Deposit)",
           eax: "0x00000000 (0)",
           mem: "$1000",
@@ -691,7 +691,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: true,
           busStore: false,
           busStoreGreen: false,
-          lockStatus: "&check; MUTEX LOCKED BY THREAD 1",
+          lockStatus: "✓ MUTEX LOCKED BY THREAD 1",
           lockFill: "#dcfce7",
           lockStroke: "#16a34a",
           lockTextFill: "#166534",
@@ -700,7 +700,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           why: "Mutual exclusion guarantees that no other thread can access the variable until the lock is released."
         },
         {
-          time: "T = 1 &mu;s",
+          time: "T = 1 μs",
           thread: "Thread 2 (Blocked)",
           eax: "Thread 2 Asleep",
           mem: "$1000",
@@ -713,7 +713,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: false,
           busStore: false,
           busStoreGreen: false,
-          lockStatus: "&check; THREAD 2 SLEEPING ON QUEUE",
+          lockStatus: "✓ THREAD 2 SLEEPING ON QUEUE",
           lockFill: "#fef3c7",
           lockStroke: "#d97706",
           lockTextFill: "#b45309",
@@ -722,7 +722,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           why: "Condition 1 in action: Thread 2 is barred from entering the critical region."
         },
         {
-          time: "T = 2 &mu;s",
+          time: "T = 2 μs",
           thread: "Thread 1 (Exit Section)",
           eax: "0x0000044C (1100)",
           mem: "$1100",
@@ -735,7 +735,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: false,
           busStore: false,
           busStoreGreen: true,
-          lockStatus: "&check; LOCK RELEASED &rarr; WAKING T2",
+          lockStatus: "✓ LOCK RELEASED → WAKING T2",
           lockFill: "#dcfce7",
           lockStroke: "#16a34a",
           lockTextFill: "#166534",
@@ -744,7 +744,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           why: "Thread 1 leaves the critical region before Thread 2 is allowed to proceed."
         },
         {
-          time: "T = 3 &mu;s",
+          time: "T = 3 μs",
           thread: "Thread 2 (Executes Safely)",
           eax: "0x0000041A (1050)",
           mem: "$1050",
@@ -757,7 +757,7 @@ Balance<sub>final</sub> = $1000 + $100 &minus; $50 = <strong>$1050</strong></cod
           busLoad: false,
           busStore: false,
           busStoreGreen: true,
-          lockStatus: "&check; CONSISTENT: EXACTLY $1050",
+          lockStatus: "✓ CONSISTENT: EXACTLY $1050",
           lockFill: "#dcfce7",
           lockStroke: "#16a34a",
           lockTextFill: "#166534",
