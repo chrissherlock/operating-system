@@ -1,127 +1,204 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Reconcile Week 5 module numbering and link topology
+# fix.py: Fully rewrite week05-io-and-disk-scheduling/index.html
 # =====================================================================
 import os
 import subprocess
 
-WEEK5_DIR = "week05-io-and-disk-scheduling"
-OLD_DISK_FILE = os.path.join(WEEK5_DIR, "02-disk-hardware-scheduling.html")
-NEW_DISK_FILE = os.path.join(WEEK5_DIR, "03-disk-hardware-scheduling.html")
-MOD01_FILE = os.path.join(WEEK5_DIR, "01-io-hardware-device-controllers.html")
-MOD02_FILE = os.path.join(WEEK5_DIR, "02-interrupts-and-dma.html")
-INDEX_FILE = os.path.join(WEEK5_DIR, "index.html")
+TARGET_INDEX = os.path.join("week05-io-and-disk-scheduling", "index.html")
 
-def reconcile_files():
-    # 1. Rename 02-disk-hardware-scheduling.html -> 03-disk-hardware-scheduling.html
-    if os.path.exists(OLD_DISK_FILE):
-        os.rename(OLD_DISK_FILE, NEW_DISK_FILE)
-        print(f"--> Renamed {OLD_DISK_FILE} -> {NEW_DISK_FILE}")
+INDEX_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 5: I/O Hardware &amp; Disk Scheduling | Operating Systems</title>
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #cbd5e1;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --success: #059669;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 32px 16px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    h1, h2, h3 { color: #0f172a; margin-top: 0; }
+    h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    .lead {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 24px;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-bar a:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .module-card {
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .module-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+    }
+    .module-num {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      background: #e0f2fe;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      align-self: flex-start;
+    }
+    .module-card h3 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+    .module-card p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .status-badge {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-active { color: var(--success); }
+    .status-pending { color: #d97706; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="../week04-concurrency-and-mutual-exclusion/index.html">&larr; Week 4: Concurrency</a>
+      <a href="../index.html">&#127968; Course Overview</a>
+      <a href="../week06-synchronisation-and-deadlock/index.html">Week 6: Deadlock &rarr;</a>
+    </nav>
 
-    # 2. Update Module 01 navigation: Next -> 02-interrupts-and-dma.html
-    if os.path.exists(MOD01_FILE):
-        with open(MOD01_FILE, "r", encoding="utf-8") as f:
-            m1 = f.read()
+    <h1>Week 5: I/O Hardware &amp; Disk Scheduling</h1>
+    <p class="lead">
+      Architectural bridging of mechanical and electronic peripherals, bus-mastering DMA, interrupt virtualization, and physical disk head optimization algorithms.
+    </p>
 
-        m1 = m1.replace(
-            '<a href="02-disk-hardware-scheduling.html">Next: 02. Disk Hardware &amp; Scheduling &rarr;</a>',
-            '<a href="02-interrupts-and-dma.html">Next: 02. Interrupts &amp; DMA &rarr;</a>'
-        )
-        with open(MOD01_FILE, "w", encoding="utf-8") as f:
-            f.write(m1)
-        print(f"--> Updated navigation in {MOD01_FILE}")
-
-    # 3. Update Module 02 navigation: Next -> 03-disk-hardware-scheduling.html
-    if os.path.exists(MOD02_FILE):
-        with open(MOD02_FILE, "r", encoding="utf-8") as f:
-            m2 = f.read()
-
-        m2 = m2.replace(
-            '<a href="03-io-software-layers-buffering.html">Next: 03. I/O Software Layers &rarr;</a>',
-            '<a href="03-disk-hardware-scheduling.html">Next: 03. Disk Geometry &amp; Arm Scheduling &rarr;</a>'
-        )
-        with open(MOD02_FILE, "w", encoding="utf-8") as f:
-            f.write(m2)
-        print(f"--> Updated navigation in {MOD02_FILE}")
-
-    # 4. Update Module 03 navigation & header title
-    if os.path.exists(NEW_DISK_FILE):
-        with open(NEW_DISK_FILE, "r", encoding="utf-8") as f:
-            m3 = f.read()
-
-        # Update title and heading number
-        m3 = m3.replace(
-            "<title>02. Disk Geometry &amp; Arm Scheduling | Week 5: I/O &amp; Disk Scheduling</title>",
-            "<title>03. Disk Geometry &amp; Arm Scheduling | Week 5: I/O &amp; Disk Scheduling</title>"
-        )
-        m3 = m3.replace(
-            "<h2>02. Disk Geometry &amp; Arm Scheduling</h2>",
-            "<h2>03. Disk Geometry &amp; Arm Scheduling</h2>"
-        )
-
-        # Update nav-bar links
-        m3 = m3.replace(
-            '<a href="01-io-hardware-device-controllers.html">&larr; 01. I/O Hardware &amp; Controllers</a>',
-            '<a href="02-interrupts-and-dma.html">&larr; 02. Interrupts &amp; DMA</a>'
-        )
-        m3 = m3.replace(
-            '<a href="03-io-software-layers-buffering.html">Next: 03. I/O Software Layers &rarr;</a>',
-            '<a href="04-raid-architectures.html">Next: 04. RAID Architectures &rarr;</a>'
-        )
-
-        with open(NEW_DISK_FILE, "w", encoding="utf-8") as f:
-            f.write(m3)
-        print(f"--> Updated numbering and navigation in {NEW_DISK_FILE}")
-
-    # 5. Synchronize Week 5 Hub (index.html)
-    if os.path.exists(INDEX_FILE):
-        with open(INDEX_FILE, "r", encoding="utf-8") as f:
-            idx = f.read()
-
-        # Ensure Module 01, 02, 03 are correctly linked in the card list
-        if "01-io-hardware-device-controllers.html" not in idx or "02-interrupts-and-dma.html" not in idx:
-            # Replace placeholder or stale links with active module cards
-            stale_block_start = idx.find('<div class="modules-grid">')
-            stale_block_end = idx.find('</div>\n  </div>\n</body>')
-            if stale_block_start != -1 and stale_block_end != -1:
-                replacement_grid = """<div class="modules-grid">
+    <div class="modules-grid">
+      <!-- Module 01 -->
       <a class="module-card" href="01-io-hardware-device-controllers.html">
         <span class="module-num">Module 01</span>
         <h3>I/O Hardware &amp; Device Controllers</h3>
-        <p>Device classes, PMIO vs. MMIO, hardware status/command registers, and PIO vs. DMA data transfers.</p>
+        <p>Device classifications, PMIO vs. MMIO, controller internals, status/command registers, and PIO vs. DMA data transfers.</p>
+        <span class="status-badge status-active">&#10003; Complete</span>
       </a>
 
+      <!-- Module 02 -->
       <a class="module-card" href="02-interrupts-and-dma.html">
         <span class="module-num">Module 02</span>
         <h3>Interrupts &amp; Direct Memory Access (DMA)</h3>
-        <p>APIC/MSI-X vectoring, top-half vs. bottom-half deferral, Windows DPCs, and cache coherency snooping.</p>
+        <p>APIC and MSI-X vectoring, dual-phase interrupt lifecycles (Linux Top/Bottom-Half, Windows DPCs), cache coherency, and IOMMU translation.</p>
+        <span class="status-badge status-active">&#10003; Complete</span>
       </a>
 
+      <!-- Module 03 -->
       <a class="module-card" href="03-disk-hardware-scheduling.html">
         <span class="module-num">Module 03</span>
         <h3>Disk Geometry &amp; Arm Scheduling</h3>
-        <p>Platters, cylinders, CHS to LBA translation, seek/rotational latency math, and SSTF/SCAN/C-LOOK algorithms.</p>
+        <p>Platters, tracks, CHS to LBA translation, seek/rotational latency formulas, and FCFS, SSTF, SCAN, and C-LOOK arm schedulers.</p>
+        <span class="status-badge status-active">&#10003; Complete</span>
       </a>
 
+      <!-- Module 04 -->
       <a class="module-card" href="04-raid-architectures.html">
         <span class="module-num">Module 04</span>
         <h3>RAID Architectures &amp; Reliability</h3>
-        <p>Striping, mirroring, parity math, RAID 0 through RAID 6, MTTF reliability modeling, and rebuild rebuild delays.</p>
-      </a>"""
-                idx = idx[:stale_block_start] + replacement_grid + idx[stale_block_end:]
-                with open(INDEX_FILE, "w", encoding="utf-8") as f:
-                    f.write(idx)
-                print(f"--> Synchronized Week 5 Hub cards in {INDEX_FILE}")
+        <p>Data striping, mirroring, XOR parity calculations, RAID levels 0 through 6, MTTF reliability modeling, and rebuild contention.</p>
+        <span class="status-badge status-pending">&bull; Upcoming</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+def rewrite_index():
+    os.makedirs(os.path.dirname(TARGET_INDEX), exist_ok=True)
+    with open(TARGET_INDEX, "w", encoding="utf-8") as f:
+        f.write(INDEX_HTML.strip() + "\n")
+    print(f"--> Successfully rewrote {TARGET_INDEX} with active module cards.")
 
 def run_git_sync():
     try:
-        # Check if old file was in git and remove it
-        subprocess.run(["git", "rm", "-f", OLD_DISK_FILE], stderr=subprocess.DEVNULL)
-        subprocess.run(["git", "add", "fix.py", WEEK5_DIR], check=True)
+        subprocess.run(["git", "add", "fix.py", TARGET_INDEX], check=True)
         commit_msg = (
-            "Reconcile Week 5 module numbering and link topology\n\n"
-            "Rename 02-disk-hardware-scheduling to 03-disk-hardware-scheduling,\n"
-            "correct sequential navigation links, and synchronize Week 5 hub index."
+            "Rewrite Week 5 hub index with active module links and standard layout\n\n"
+            "Replace stale placeholder links with active links to modules 01, 02,\n"
+            "and 03, and update grid styling to match course design system."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -130,5 +207,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    reconcile_files()
+    rewrite_index()
     run_git_sync()
