@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Embed YouTube video iframe directly into Module 01 Section 2
+# fix.py: Fix YouTube Error 153 by updating iframe attributes & domain
 # =====================================================================
 import os
 import subprocess
@@ -10,7 +10,7 @@ TARGET_FILE = os.path.join(
     "01-concurrency-hazards-livelock-starvation.html"
 )
 
-SECTION_TWO_WITH_EMBED = r"""    <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
+FIXED_IFRAME_SECTION = r"""    <h3>2. Priority Inversion and The Mars Pathfinder Anomaly</h3>
     <p>
       Priority inversion represents one of the most insidious architectural failures in preemptive priority-based operating systems. It occurs when a high-priority task is indirectly delayed or preempted by a lower-priority task, subverting the core scheduling contract.
     </p>
@@ -21,7 +21,7 @@ SECTION_TWO_WITH_EMBED = r"""    <h3>2. Priority Inversion and The Mars Pathfind
     </p>
     <ol>
       <li><strong>Resource Acquisition:</strong> The low-priority task ($P_{\text{Low}}$) acquires a shared mutual exclusion lock (mutex) protecting a hardware bus or memory region.</li>
-      <li><strong>The Inversion Vector:</strong> While $P_{\text{Low}}$ holds the mutex, a medium-priority task ($P_{\text{Medium}}$) becomes ready to run. Because $P_{\text{Medium}}$ has a higher static priority than $P_{\text{Low}}$, the scheduler preempts $P_{\text{Low}}$</li>
+      <li><strong>The Inversion Vector:</strong> While $P_{\text{Low}}$ holds the mutex, a medium-priority task ($P_{\text{Medium}}$) becomes ready to run. Because $P_{\text{Medium}}$ has a higher static priority than $P_{\text{Low}}$, the scheduler preempts $P_{\text{Low}}$.</li>
       <li><strong>The Indirect Blockade:</strong> High-priority task ($P_{\text{High}}$) preempts $P_{\text{Medium}}$ when it requires execution, but immediately blocks when attempting to acquire the mutex held by $P_{\text{Low}}$. However, $P_{\text{Low}}$ cannot finish its critical section because it is being continuously starved by $P_{\text{Medium}}$.</li>
       <li><strong>The Result:</strong> $P_{\text{High}}$ is blocked by $P_{\text{Low}}$, which is preempted by $P_{\text{Medium}}$. The relative priorities are effectively inverted: $P_{\text{Medium}}$ runs ahead of $P_{\text{High}}$ despite having a lower nominal importance.</li>
     </ol>
@@ -57,10 +57,10 @@ SECTION_TWO_WITH_EMBED = r"""    <h3>2. Priority Inversion and The Mars Pathfind
       Visual Walkthrough &mdash; Priority Inversion &amp; Mars Pathfinder Analysis:
     </p>
     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; border: 1px solid var(--border); margin: 16px 0;">
-      <iframe src="https://www.youtube.com/embed/gpttZW2hBMM" title="Priority Inversion Explained" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <iframe src="https://www.youtube-nocookie.com/embed/gpttZW2hBMM" title="Priority Inversion Explained" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>"""
 
-def update_file_with_iframe():
+def fix_error_153():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return False
@@ -78,22 +78,22 @@ def update_file_with_iframe():
         print("Error: Markers not found.")
         return False
 
-    updated = content[:start_idx] + SECTION_TWO_WITH_EMBED + "\n\n    <nav class=\"nav-bar\">" + content[end_idx + len(end_marker):]
+    updated = content[:start_idx] + FIXED_IFRAME_SECTION + "\n\n    <nav class=\"nav-bar\">" + content[end_idx + len(end_marker):]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated)
 
-    print(f"--> Successfully embedded YouTube iframe into {TARGET_FILE}")
+    print(f"--> Successfully updated iframe to resolve Error 153 in {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if update_file_with_iframe():
+    if fix_error_153():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Embed YouTube video iframe directly into Section 2 of Module 01\n\n"
-                "Add responsive iframe container for the Priority Inversion video overview\n"
-                "within the Mars Pathfinder case study section."
+                "Fix YouTube Error 153 in embedded video iframe\n\n"
+                "Add referrerpolicy and switch embed URL to youtube-nocookie.com\n"
+                "to satisfy YouTube's embedded player header requirements."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
