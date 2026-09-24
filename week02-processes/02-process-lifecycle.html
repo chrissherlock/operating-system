@@ -37,10 +37,11 @@
       padding: 40px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    h1, h2, h3, h4 { color: #0f172a; }
+    h1, h2, h3, h4, h5 { color: #0f172a; }
     h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 28px; }
     h3 { margin-top: 24px; margin-bottom: 8px; color: var(--accent); font-size: 1.2rem; }
     h4 { margin-top: 18px; margin-bottom: 6px; color: #334155; font-size: 1.02rem; }
+    h5 { margin-top: 14px; margin-bottom: 4px; color: #475569; font-size: 0.92rem; text-transform: uppercase; letter-spacing: 0.04em; }
     p { color: var(--text-muted); margin-bottom: 12px; }
     ul, ol { margin-left: 20px; color: var(--text-muted); margin-bottom: 12px; }
     li { margin-bottom: 6px; }
@@ -470,22 +471,138 @@
 
     <h3>3. Process Termination Conditions</h3>
     <p>
-      Every running process eventually terminates, exiting through one of four conditions:
+      No process runs indefinitely. Whether completing a short computational job or halting an operating system service, every process eventually transitions out of execution. Operating systems categorize all termination events across two governing dimensions: <strong>voluntary versus involuntary</strong> initiation, and <strong>successful versus erroneous</strong> conclusion.
+    </p>
+
+    <h4>1. Normal Exit (Voluntary, Successful)</h4>
+    <p>
+      A process concludes voluntarily when it completes its assigned algorithm and deliberately requests that the kernel deallocate its execution context. In C and POSIX systems, this occurs when execution returns from <code>main()</code> or when the program invokes the standard library call <code>exit(int status)</code> with a status argument of <code>0</code> (or the symbolic constant <code>EXIT_SUCCESS</code>). On Windows architectures, a process achieves this by invoking <code>ExitProcess(0)</code>.
+    </p>
+    <h5>The Userspace Cleanup Sequence</h5>
+    <p>
+      Before the kernel trap is triggered, the C runtime library (CRT) orchestrates a controlled teardown sequence within user space:
+    </p>
+    <ul>
+      <li><strong>Registered Teardown Callbacks:</strong> The runtime executes functions registered via <code>atexit()</code> and <code>on_exit()</code> in the reverse order of their registration (LIFO).</li>
+      <li><strong>Static and Global Destructors:</strong> In languages such as C++, destructors for global, static, and thread-local objects are systematically called to free application-level locks and resources.</li>
+      <li><strong>I/O Stream Flushing:</strong> The runtime invokes <code>fflush()</code> on all open standard I/O streams (<code>FILE*</code> pointers like <code>stdout</code> and <code>stderr</code>), writing buffered output buffers down to kernel file tables before file descriptors close.</li>
+      <li><strong>The Kernel Supervisor Trap:</strong> The CRT issues the low-level termination system call—<code>sys_exit_group</code> on Linux (x86-64 syscall 231) or <code>sys_exit</code> (syscall 60). The kernel switches the CPU to supervisor mode (Ring 0), updates the process state in its Process Control Block (PCB), releases its physical page frames, closes open file descriptors, and detaches virtual memory segments.</li>
+    </ul>
+
+    <h4>2. Error Exit (Voluntary, Problematic)</h4>
+    <p>
+      An error exit occurs when a program discovers an operational condition that prevents further computation, yet retains enough control to format an error message and exit cleanly. Examples include a compiler discovering syntax errors in a source file, a database client encountering a refused TCP connection, or a file utility discovering that an input argument does not exist:
+    </p>
+    <pre>if ((fd = open("config.xml", O_RDONLY)) &lt; 0) {
+    perror("Configuration file missing");
+    exit(EXIT_FAILURE); /* Non-zero status: typically 1 */
+}</pre>
+    <p>
+      Unlike fatal crashes, an error exit is entirely under program control. The process returns a non-zero exit byte (conventionally between <code>1</code> and <code>255</code>) to the parent. UNIX shells inspect this code via <code>$?</code> to govern conditional execution scripts (such as <code>make</code> halting build pipelines when a compiler returns non-zero, or bash script short-circuit logic with <code>&amp;&amp;</code> and <code>||</code>).
+    </p>
+
+    <h4>3. Fatal Error (Involuntary, Hardware- or Exception-Triggered)</h4>
+    <p>
+      A fatal error occurs when a process attempts an illegal machine operation or violates memory protection boundaries enforced by silicon hardware. Because the violation represents an invalid CPU state, the process cannot handle the error normally; execution is trapped involuntarily into the kernel.
+    </p>
+    <p>
+      Modern processors categorize these violations through dedicated <strong>hardware exception vectors</strong>:
+    </p>
+    <ul>
+      <li>
+        <strong>Divide-by-Zero / Arithmetic Fault (Vector 0, <code>#DE</code>):</strong> The CPU arithmetic logic unit encounters an impossible integer division instruction (e.g., dividing by zero or signed overflow in <code>IDIV</code>). The processor halts the user instruction and vectors into the kernel's fault handler, which generates a <code>SIGFPE</code> signal.
+      </li>
+      <li>
+        <strong>Page Fault / Segmentation Violation (Vector 14, <code>#PF</code>):</strong> The process attempts to read, write, or execute a virtual address outside its allocated memory mapping (such as dereferencing a NULL pointer, jumping to address <code>0x0</code>, or writing to a read-only code segment). The hardware Memory Management Unit (MMU) halts the instruction and loads the offending address into the <code>CR2</code> register. The kernel verifies the address in the process's memory descriptor (`mm_struct`); if invalid, it dispatches <code>SIGSEGV</code>.
+      </li>
+      <li>
+        <strong>Illegal Instruction (Vector 6, <code>#UD</code>):</strong> The CPU instruction decoder encounters a bit pattern that does not correspond to a valid machine opcode, or encounters a privileged supervisor instruction (such as <code>INVD</code> or modifying <code>CR3</code>) attempted while the CPU is in User Mode (Ring 3). The hardware traps with an invalid opcode fault, translating to <code>SIGILL</code>.
+      </li>
+      <li>
+        <strong>Bus Error / Alignment Fault (Vector 17, <code>#AC</code>):</strong> The CPU attempts an unaligned memory access on hardware architectures that strictly enforce alignment, or attempts to read a memory-mapped file offset that extends beyond the physical underlying storage block, generating <code>SIGBUS</code>.
+      </li>
+    </ul>
+    <h5>Core Dump Diagnostics</h5>
+    <p>
+      By default, when a fatal hardware exception terminates a process, the kernel generates a <strong>core dump</strong> file (named <code>core</code> or managed by <code>systemd-coredump</code>). The kernel serializes the entire user-space address space—including the CPU registers at the exact microsecond of the fault, memory allocations, thread stacks, and execution frames—directly to disk, allowing developers to inspect the fault post-mortem using debuggers like GDB or LLDB:
+    </p>
+    <pre>$ gdb ./bad_program core
+Program terminated with signal SIGSEGV, Segmentation fault.
+#0  0x0000000000401142 in crash_routine () at bad_program.c:14
+14      *ptr = 42; /* ptr is 0x0 (NULL) */</pre>
+
+    <h4>4. Killed by Another Process (Involuntary, Inter-Process Signal)</h4>
+    <p>
+      A process can be terminated from the outside by another process possessing appropriate administrative authority. In POSIX operating systems, external termination is managed via the <code>kill(pid_t pid, int sig)</code> system call, while Windows utilizes the <code>TerminateProcess(HANDLE hProcess, UINT uExitCode)</code> Win32 API.
+    </p>
+    <h5>Signal Classes and Interception Barriers</h5>
+    <p>
+      Under UNIX, termination signals fall into two distinct operational classes:
+    </p>
+    <ul>
+      <li>
+        <strong>Catchable / Graceful Termination Signals:</strong> Signals such as <code>SIGTERM</code> (signal 15, software termination request) and <code>SIGINT</code> (signal 2, terminal interrupt generated by Ctrl+C) notify the process that termination is requested. Because these signals can be trapped via <code>sigaction()</code>, well-engineered applications register custom signal handlers to flush database transactions, save in-flight documents, delete temporary socket files, and cleanly disconnect network peers before exiting.
+      </li>
+      <li>
+        <strong>Uncatchable / Forceful Termination Signals:</strong> Signal <code>SIGKILL</code> (signal 9) and <code>SIGSTOP</code> (signal 19) are fundamentally special: <em>they cannot be caught, blocked, or ignored by application code</em>. When <code>SIGKILL</code> is dispatched, the operating system kernel intercepts the signal before the target process is ever scheduled again. The kernel halts execution immediately and reclaims the process's address space without running userspace signal handlers or flushing buffers.
+      </li>
+    </ul>
+    <h5>Security and Privilege Barriers</h5>
+    <p>
+      To prevent unprivileged users from terminating arbitrary system processes or interfering with other accounts, operating systems enforce strict security boundaries. In POSIX kernels, a calling process can only deliver signals to a target process if:
     </p>
     <ol>
-      <li>
-        <strong>Normal Exit (Voluntary):</strong> The process finishes its task and invokes an exit system call (such as <code>exit(0)</code> in C/UNIX or <code>ExitProcess</code> on Windows). Compilers, text formatters, and utility programs terminate normally upon reaching end-of-file.
-      </li>
-      <li>
-        <strong>Error Exit (Voluntary):</strong> The process discovers an operational error—such as a missing configuration file or invalid command-line flags—and voluntarily calls <code>exit(2)</code> returning a non-zero diagnostic exit code.
-      </li>
-      <li>
-        <strong>Fatal Error (Involuntary):</strong> The program attempts an illegal hardware or memory operation—such as dividing by zero, executing an invalid opcode, or dereferencing an unmapped memory address (triggering a segmentation fault / <code>SIGSEGV</code>). The kernel hardware exception handler halts execution immediately.
-      </li>
-      <li>
-        <strong>Killed by Another Process (Involuntary):</strong> A process receives an external termination signal (such as <code>SIGKILL</code> via the <code>kill()</code> system call) sent by an authorized administrative shell or supervisory daemon. The receiving process is terminated unconditionally by the kernel.
-      </li>
+      <li>The effective or real User ID (UID) of the sending process matches the real or saved User ID of the receiving process.</li>
+      <li>The sending process runs with superuser privileges (<code>root</code>, UID 0) or possesses the POSIX <code>CAP_KILL</code> capability.</li>
     </ol>
+    <p>
+      Attempting to send a signal to a process owned by another user without these permissions immediately fails with the kernel error <code>EPERM</code> (Operation not permitted).
+    </p>
+
+    <h4>Summary Matrix of Process Termination Conditions</h4>
+    <div style="overflow-x: auto; margin: 20px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px;">Termination Category</th>
+            <th style="padding: 10px 14px;">Initiator</th>
+            <th style="padding: 10px 14px;">Primary Cause</th>
+            <th style="padding: 10px 14px;">Kernel Vector / Signal</th>
+            <th style="padding: 10px 14px;">Post-Mortem Diagnostic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Normal Exit (Voluntary)</td>
+            <td style="padding: 10px 14px;">Running Process</td>
+            <td style="padding: 10px 14px;">Task completed successfully (return from <code>main</code>)</td>
+            <td style="padding: 10px 14px;"><code>sys_exit(0)</code> / <code>ExitProcess(0)</code></td>
+            <td style="padding: 10px 14px; color: var(--success); font-weight: 600;">Status code 0</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Error Exit (Voluntary)</td>
+            <td style="padding: 10px 14px;">Running Process</td>
+            <td style="padding: 10px 14px;">Environmental error detected (missing file, bad args)</td>
+            <td style="padding: 10px 14px;"><code>sys_exit(n)</code> (n &gt; 0)</td>
+            <td style="padding: 10px 14px; color: var(--warning); font-weight: 600;">Non-zero exit code (1-255)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Fatal Error (Involuntary)</td>
+            <td style="padding: 10px 14px;">Hardware CPU / MMU</td>
+            <td style="padding: 10px 14px;">Illegal CPU operation, NULL dereference, invalid opcode</td>
+            <td style="padding: 10px 14px;">CPU Exception &rarr; <code>SIGSEGV</code>, <code>SIGFPE</code>, <code>SIGILL</code></td>
+            <td style="padding: 10px 14px; color: var(--danger); font-weight: 600;">Core Dump image (registers + RAM)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Killed by Process (Involuntary)</td>
+            <td style="padding: 10px 14px;">External Process / OS</td>
+            <td style="padding: 10px 14px;">Administrative kill, memory watchdog, user Ctrl+C</td>
+            <td style="padding: 10px 14px;"><code>kill(pid, sig)</code> &rarr; <code>SIGKILL</code>, <code>SIGTERM</code></td>
+            <td style="padding: 10px 14px; color: #7c3aed; font-weight: 600;">Terminating signal number recorded in PCB</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>4. Zombies and Orphan Reaping</h3>
     <p>
