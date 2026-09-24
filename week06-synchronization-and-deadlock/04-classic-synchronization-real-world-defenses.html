@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 04: Classic Synchronization Problems &amp; Real-World Defenses - COSC240</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #0284c7;
+      --accent-hover: #0369a1;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --text: #334155;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 24px;
+    }
+    .container { max-width: 1040px; margin: 0 auto; }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+    .nav-btn:hover { background: #f0f9ff; }
+    .content-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
+    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    p, li { font-size: 0.95rem; color: var(--text); }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      margin: 16px 0;
+    }
+    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
+    pre code { background: none; padding: 0; color: inherit; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="nav-bar">
+      <a href="03-deadlock-handling-bankers-algorithm.html" class="nav-btn">&larr; Module 03</a>
+      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
+      <a href="../week07-memory-management-virtual-memory/index.html" class="nav-btn">Week 7 Hub &rarr;</a>
+    </nav>
+
+    <div class="content-card">
+      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 04 &bull; COSC240</span>
+      <h1>Classic Synchronization Problems &amp; Real-World Defenses</h1>
+      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
+        Analyze classical synchronization challenges including the Dining Philosophers, Readers-Writers starvation, and database lock contention. Examine production OS kernel deadlock defenses such as Linux <code>lockdep</code> and Windows Driver Verifier.
+      </p>
+
+      <h3>1. The Dining Philosophers Problem</h3>
+      <p>
+        Introduced by Edsger Dijkstra, the Dining Philosophers problem models <i>N</i> concurrent processes competing for a limited set of exclusive resources (forks/chopsticks).
+      </p>
+      <ul>
+        <li><strong>The Deadlock Hazard:</strong> If all 5 philosophers pick up their left fork simultaneously, every right fork is held by a neighbor, creating a symmetric 5-way circular wait deadlock.</li>
+        <li><strong>Tanenbaum's Solution:</strong> Protect fork acquisition inside a critical region guarded by a mutex, checking philosopher states (Thinking, Hungry, Eating) and only transitioning to Eating if both neighbors are not eating.</li>
+      </ul>
+
+      <h3>2. Readers-Writers Starvation &amp; Database 2PL</h3>
+      <p>
+        In database management systems, multiple concurrent readers can share access to data items, but writers require exclusive access.
+      </p>
+      <ul>
+        <li><strong>Two-Phase Locking (2PL):</strong> Guarantees serializability by dividing transactions into a growing phase (acquiring locks without releasing any) and a shrinking phase (releasing locks without acquiring new ones).</li>
+        <li><strong>Deadlock Resolution:</strong> DBMS engines run background lock-manager deadlock detectors, aborting and rolling back victim transactions when circular waits occur.</li>
+      </ul>
+
+      <h3>3. Real-World Kernel Defenses: Linux lockdep &amp; Driver Verifier</h3>
+      <p>
+        Modern operating systems do not rely solely on prevention algorithms; they employ aggressive static and runtime diagnostic subsystems:
+      </p>
+      <ul>
+        <li><strong>Linux <code>lockdep</code>:</strong> A runtime lock validation subsystem that tracks every lock acquisition dependency in the running kernel, building a directed graph of lock classes to warn developers instantly upon observing potential lock-order inversions.</li>
+        <li><strong>Windows Driver Verifier:</strong> An OS kernel driver testing framework that stresses kernel-mode drivers by injecting resource shortages, forcing deadlock detection checks, and trapping invalid IRQL lock operations.</li>
+      </ul>
+    </div>
+
+    <nav class="nav-bar">
+      <a href="03-deadlock-handling-bankers-algorithm.html" class="nav-btn">&larr; Module 03</a>
+      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
+      <a href="../week07-memory-management-virtual-memory/index.html" class="nav-btn">Week 7 Hub &rarr;</a>
+    </nav>
+  </div>
+</body>
+</html>

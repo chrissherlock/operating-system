@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 6: Synchronization & Deadlock - COSC240</title>
+  <title>Week 6: Synchronization &amp; Deadlock - COSC240</title>
   <style>
     :root {
       --primary: #0f172a;
@@ -164,8 +164,28 @@
       width: 100%;
     }
     .launch-btn:hover { background: var(--accent-hover); }
+    /* Interactive Lab Grid */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .lab-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .lab-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 6px 0; }
+    .lab-desc { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4; }
+    .lab-link { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 600; }
+    .lab-link:hover { text-decoration: underline; }
     @media (max-width: 768px) {
-      .briefing-grid, .modules-grid { grid-template-columns: 1fr; }
+      .briefing-grid, .modules-grid, .lab-grid { grid-template-columns: 1fr; }
       body { padding: 16px; }
     }
   </style>
@@ -173,16 +193,16 @@
 <body>
   <div class="container">
     <nav class="nav-bar">
-      <a href="../week05-io-and-disk-scheduling/index.html" class="nav-btn">&larr; Week 5: I/O & Disks</a>
+      <a href="../week05-io-and-disk-scheduling/index.html" class="nav-btn">&larr; Week 5: I/O &amp; Disks</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="../week09-memory-management/index.html" class="nav-btn">Week 7: Virtual Memory &rarr;</a>
+      <a href="../week07-memory-management-virtual-memory/index.html" class="nav-btn">Week 7 Hub &rarr;</a>
     </nav>
 
     <div class="hero-card">
       <span class="week-tag">COSC240 &bull; Operating Systems</span>
-      <h1>Week 6: Synchronization & Deadlock</h1>
+      <h1>Week 6: Synchronization &amp; Deadlock</h1>
       <p class="lead-text">
-        Investigate synchronization pathologies including livelock, starvation, priority inversion, Coffman conditions, Banker's Algorithm, and kernel defenses.
+        Now that our operating system supports true multiprocessing and preemptive scheduling, we confront the structural pathologies of concurrent execution. Expanding beyond race conditions on shared memory, we examine the systemic failure states that emerge when threads compete for scarce system resources: <strong>Deadlock</strong>, <strong>Livelock</strong>, and <strong>Starvation</strong>.
       </p>
 
       <div class="briefing-grid">
@@ -191,9 +211,11 @@
             <span>&#128218;</span> What You Will Learn
           </div>
           <ul class="briefing-list">
-            <li>Core architectural mechanics and low-level data structures.</li>
-            <li>Kernel operational states, hardware interrupts, and protection boundaries.</li>
-            <li>Theoretical trade-offs, performance implications, and industry standards.</li>
+            <li>Differentiating <strong>Deadlock</strong> (permanent blockage), <strong>Livelock</strong> (active state oscillation), and <strong>Starvation</strong> (scheduling unfairness).</li>
+            <li>The <strong>Four Coffman Conditions</strong> governing necessary and sufficient deadlock states.</li>
+            <li>Resource Allocation Graphs (RAGs), wait-for graph reduction, and cycle detection algorithms.</li>
+            <li>The four canonical handling strategies: The Ostrich Algorithm, Deadlock Prevention, Detection/Recovery, and Dijkstra's <strong>Banker's Algorithm</strong>.</li>
+            <li>Classic synchronization problems: Dining Philosophers, Readers-Writers starvation, and modern kernel defenses (Linux <code>lockdep</code>).</li>
           </ul>
         </div>
 
@@ -202,70 +224,127 @@
             <span>&#9989;</span> What You Should Do
           </div>
           <ul class="briefing-list">
-            <li>Review lecture notes and assigned textbook chapters.</li>
-            <li>Explore interactive pedagogical steppers and simulation modules.</li>
-            <li>Complete weekly tutorials, practical lab assignments, and review quizzes.</li>
+            <li>Review the Week 6 concurrency lecture recordings and guided notes.</li>
+            <li>Engage with the interactive directed narrative steppers embedded in each module.</li>
+            <li>Complete <strong>Theory Tutorial 06</strong> (Resource Allocation Graphs &amp; Coffman Analysis).</li>
+            <li>Complete <strong>Practical Tutorial 06</strong> (Deadlock Detection &amp; POSIX Lock Ordering in C).</li>
+            <li>Prepare for <strong>Quiz 3</strong> (covering Week 5 I/O / Disks and Week 6 Synchronization / Deadlock).</li>
           </ul>
         </div>
       </div>
     </div>
 
+    <!-- Modules Section -->
     <div class="modules-heading">
       <span>&#128194;</span> Course Modules &amp; Deep-Dive Texts
     </div>
 
     <div class="modules-grid">
-      
       <!-- Module 01 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 01</div>
-          <h2 class="module-title">Livelock, Starvation & PIP</h2>
-          <p class="module-desc">Contrast livelock and starvation, analyze the Mars Pathfinder anomaly, and study Priority Inheritance Protocols.</p>
-          <div class="module-tags"><span class="tag">Livelock</span><span class="tag">Starvation</span><span class="tag">Priority Inversion</span><span class="tag">Mars Pathfinder</span></div>
+          <h2 class="module-title">Concurrency Hazards: Livelock, Starvation &amp; PIP</h2>
+          <p class="module-desc">Contrast CPU-burning livelock with blocking deadlocks, study scheduling starvation, and analyze Priority Inheritance Protocols (PIP) using the Mars Pathfinder anomaly.</p>
+          <div class="module-tags">
+            <span class="tag">Livelock</span>
+            <span class="tag">Starvation</span>
+            <span class="tag">Priority Inversion</span>
+            <span class="tag">PIP Protocol</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="01-concurrency-hazards-livelock-starvation.html" class="launch-btn">Launch Module 01 &rarr;</a>
       </div>
 
       <!-- Module 02 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 02</div>
-          <h2 class="module-title">Coffman Conditions & RAGs</h2>
-          <p class="module-desc">Dissect the four necessary and sufficient Coffman conditions and Resource Allocation Graph cycle detection.</p>
-          <div class="module-tags"><span class="tag">Coffman Conditions</span><span class="tag">RAGs</span><span class="tag">Wait-For Graphs</span><span class="tag">Cycle Detection</span></div>
+          <h2 class="module-title">Deadlock Characterization &amp; Coffman Conditions</h2>
+          <p class="module-desc">Dissect the four necessary and sufficient Coffman conditions: Mutual Exclusion, Hold and Wait, No Preemption, and Circular Wait. Construct Resource Allocation Graphs (RAGs) and execute graph cycle detection.</p>
+          <div class="module-tags">
+            <span class="tag">Coffman Conditions</span>
+            <span class="tag">RAG Matrices</span>
+            <span class="tag">Wait-For Graphs</span>
+            <span class="tag">Cycle Detection</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="02-deadlock-characterization-coffman-conditions.html" class="launch-btn">Launch Module 02 &rarr;</a>
       </div>
 
       <!-- Module 03 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 03</div>
-          <h2 class="module-title">Banker's Algorithm & Prevention</h2>
-          <p class="module-desc">Master static deadlock prevention, the Ostrich algorithm, and Dijkstra's Banker's Algorithm safety vectors.</p>
-          <div class="module-tags"><span class="tag">Banker's Algorithm</span><span class="tag">Safe State</span><span class="tag">Lock Ordering</span><span class="tag">Prevention</span></div>
+          <h2 class="module-title">Deadlock Handling Strategies &amp; The Banker's Algorithm</h2>
+          <p class="module-desc">Evaluate the Ostrich policy, static prevention via global lock hierarchy, runtime detection with victim preemption, and Dijkstra's Banker's Algorithm for multi-unit resource allocation.</p>
+          <div class="module-tags">
+            <span class="tag">Banker's Algorithm</span>
+            <span class="tag">Safe Sequence</span>
+            <span class="tag">Deadlock Prevention</span>
+            <span class="tag">Victim Selection</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="03-deadlock-handling-bankers-algorithm.html" class="launch-btn">Launch Module 03 &rarr;</a>
       </div>
 
       <!-- Module 04 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 04</div>
-          <h2 class="module-title">Classic Problems & Defenses</h2>
-          <p class="module-desc">Analyze Dining Philosophers, Readers-Writers starvation, and modern OS static/runtime defenses (lockdep).</p>
-          <div class="module-tags"><span class="tag">Dining Philosophers</span><span class="tag">Readers-Writers</span><span class="tag">lockdep</span><span class="tag">Driver Verifier</span></div>
+          <h2 class="module-title">Classic Synchronization Problems &amp; Real-World Defenses</h2>
+          <p class="module-desc">Analyze the Dining Philosophers, Readers-Writers starvation, and Sleeping Barber challenges. Investigate production OS deadlock defenses, including Linux <code>lockdep</code> validation and Windows Driver Verifier.</p>
+          <div class="module-tags">
+            <span class="tag">Dining Philosophers</span>
+            <span class="tag">Readers-Writers</span>
+            <span class="tag">Linux lockdep</span>
+            <span class="tag">Static Analysis</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="04-classic-synchronization-real-world-defenses.html" class="launch-btn">Launch Module 04 &rarr;</a>
       </div>
+    </div>
 
+    <!-- Interactive Sandboxes -->
+    <div class="modules-heading">
+      <span>&#128302;</span> Interactive Visualizers &amp; Simulation Laboratories
+    </div>
+
+    <div class="lab-grid">
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Deadlock Detector</h3>
+          <p class="lab-desc">Interactive graph cycle detection sandbox for Resource Allocation Graphs.</p>
+        </div>
+        <a href="deadlock-detector.html" class="lab-link">Open Detector &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Dining Philosophers</h3>
+          <p class="lab-desc">Simulate concurrent resource contention, deadlocks, and asymmetric fork solutions.</p>
+        </div>
+        <a href="dining-philosophers.html" class="lab-link">Open Simulation &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Database Deadlock</h3>
+          <p class="lab-desc">Trace lock contention, two-phase locking (2PL), and transaction abort/rollback.</p>
+        </div>
+        <a href="database-deadlock.html" class="lab-link">Open Database 2PL &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">IPC Deadlock</h3>
+          <p class="lab-desc">Explore synchronous rendezvous message queues and circular wait deadlocks.</p>
+        </div>
+        <a href="ipc-deadlock.html" class="lab-link">Open IPC Lab &rarr;</a>
+      </div>
     </div>
 
     <nav class="nav-bar">
-      <a href="../week05-io-and-disk-scheduling/index.html" class="nav-btn">&larr; Week 5: I/O & Disks</a>
+      <a href="../week05-io-and-disk-scheduling/index.html" class="nav-btn">&larr; Week 5: I/O &amp; Disks</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="../week09-memory-management/index.html" class="nav-btn">Week 7: Virtual Memory &rarr;</a>
+      <a href="../week07-memory-management-virtual-memory/index.html" class="nav-btn">Week 7 Hub &rarr;</a>
     </nav>
   </div>
 </body>
