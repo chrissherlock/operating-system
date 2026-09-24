@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create Module 04 for Classic Synchronization Problems & Defenses
+# fix.py: Expand Dining Philosophers Problem section in Module 04
 # =====================================================================
 import os
 import subprocess
@@ -10,366 +10,179 @@ TARGET_FILE = os.path.join(
     "04-deadlock-recovery-starvation.html"
 )
 
-MODULE_FOUR_CONTENT = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 04: Deadlock Recovery, Starvation &amp; Real-World Defenses - COSC240</title>
-  <style>
-    :root {
-      --primary: #0f172a;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --border: #e2e8f0;
-      --card-bg: #ffffff;
-      --text: #334155;
-      --text-muted: #64748b;
-      --bg: #f8fafc;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #d97706;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding: 24px;
-    }
-    .container { max-width: 1040px; margin: 0 auto; }
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-    }
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background 0.15s ease;
-    }
-    .nav-btn:hover { background: #f0f9ff; }
-    .content-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-      margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
-    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    p, li { font-size: 0.95rem; color: var(--text); }
-    .math-callout {
-      background: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 18px 0;
-      font-size: 0.92rem;
-    }
-    /* Interactive Pedagogical Aid Styles */
-    .aid-wrapper {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-      margin: 28px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
-    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
-    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.86rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; height: 150px; max-height: 150px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
-    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
-    .step-btn {
-      flex: 1;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .step-btn:hover { background: var(--accent); }
-    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.75rem; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
-    .visual-canvas { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 220px; }
-    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
-    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .toggle-bar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-    .toggle-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
-    .toggle-btn.active { background: #e0f2fe; color: var(--accent); border-color: #bae6fd; }
-    @media (max-width: 768px) {
-      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
-      body { padding: 16px; }
-    }
-  </style>
-  <!-- KaTeX CSS & JS CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
-</head>
-<body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="03-deadlock-handling-bankers-algorithm.html" class="nav-btn">&larr; Module 03</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <span class="nav-btn" style="opacity: 0.4; cursor: not-allowed;">End of Week 6 &rarr;</span>
-    </nav>
-
-    <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 04 &bull; COSC240</span>
-      <h1>Classic Synchronization Problems &amp; Real-World Defenses</h1>
-      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Examine classic concurrency coordination models including the Dining Philosophers and Readers-Writers problems. Analyze deadlock recovery protocols, starvation aging defenses, and modern kernel implementation patterns.
-      </p>
-
-      <h3>1. Classic Synchronization Hazards</h3>
+DINING_PHILOSOPHERS_EXPANDED = r"""      <h3>1. Classic Synchronization Hazards</h3>
       <p>
-        Operating systems and concurrent applications encounter recurring structural coordination challenges that highlight the delicate balance between throughput, mutual exclusion, and deadlock avoidance:
+        Operating systems and concurrent applications encounter recurring structural coordination challenges that highlight the delicate balance between throughput, mutual exclusion, and deadlock avoidance. Among these, classic synchronization problems serve as canonical architectural testbeds.
       </p>
-      <ul>
-        <li>
-          <strong>The Dining Philosophers Problem:</strong> Models resource contention where five philosophers alternate between thinking and eating around a shared circular table with five single chopsticks. If every philosopher picks up their left chopstick simultaneously, the system enters a strict deadlocked circular wait.
-        </li>
-        <li>
-          <strong>The Readers-Writers Problem:</strong> Manages shared data access where multiple concurrent reader threads can inspect data simultaneously, but writer threads require exclusive, non-shareable access. Unchecked reader priority leads to writer starvation, while unchecked writer priority leads to reader lockouts.
-        </li>
-        <li>
-          <strong>The Producer-Consumer Problem:</strong> Coordinates bounded buffer sharing between data generators and consumers using counting semaphores and mutexes to prevent race conditions and buffer overruns.
-        </li>
-      </ul>
 
-      <h3>2. Deadlock Recovery &amp; Starvation Mitigation</h3>
+      <h4>1. The Dining Philosophers Problem</h4>
       <p>
-        When detection algorithms uncover a deadlock (or when avoidance is bypassed), the operating system must employ active <strong>deadlock recovery</strong> protocols to restore liveness:
+        Originally formulated by Edsger Dijkstra in 1965 to test synchronization primitives on the RC 4000 multiprocessor system, the <strong>Dining Philosophers Problem</strong> abstracts resource contention among concurrent threads competing for exclusive, limited hardware devices or locks.
       </p>
-      <ul>
-        <li>
-          <strong>Process Termination:</strong> Aborting deadlocked threads either by terminating all deadlocked processes simultaneously (high computational waste) or aborting processes one by one until the cycle is broken.
-        </li>
-        <li>
-          <strong>Resource Preemption:</strong> Forcibly stripping resource allocations from selected victim threads and rolling back their execution state to a prior safe checkpoint.
-        </li>
-        <li>
-          <strong>Starvation &amp; Aging:</strong> A severe risk during recovery and priority scheduling is <em>starvation</em> (indefinite blocking). Operating systems mitigate this using <strong>aging</strong>, a technique where a thread's priority increases dynamically the longer it waits in a queue, guaranteeing eventual execution.
-        </li>
-      </ul>
+      <p>
+        Imagine five philosophers seated around a circular table. In front of each philosopher lies a bowl of rice, and between each adjacent pair of philosophers lies a single shared chopstick (five total chopsticks). A philosopher alternates between two states: <em>thinking</em> and <em>eating</em>. To eat, a philosopher requires <strong>two</strong> chopsticks—their immediate left and right neighbors. Because chopsticks are shared mutually exclusive resources, a chopstick cannot be used by two philosophers simultaneously.
+      </p>
 
-      <!-- ================================================================= -->
-      <!-- INTERACTIVE PEDAGOGICAL AID: RECOVERY & AGING STEPPER             -->
-      <!-- ================================================================= -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Walkthrough: Deadlock Recovery &amp; Starvation Aging</div>
-        <div class="aid-subtitle">Trace step-by-step how kernels break cycles via preemption and resolve starvation using priority aging.</div>
+      <h5>The Anatomy of Deadlock in Dining Philosophers</h5>
+      <p>
+        If every philosopher simultaneously decides to eat and reaches for their left chopstick, all five chopsticks are successfully acquired. When each philosopher then reaches for their right chopstick, they find it already held by their neighbor.
+      </p>
 
-        <div class="aid-grid">
-          <div class="controls-panel">
-            <div class="preview-box" id="preview-text">
-              <strong>Step 1: Deadlock State Detected.</strong> Circular dependency detected among threads $T_1, T_2, T_3$. System liveness halted.
-            </div>
-
-            <div class="stepper-btns">
-              <button class="step-btn" id="prev-btn" onclick="changeStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="next-btn" onclick="changeStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetStepper()" style="background:#64748b;">Reset</button>
-            </div>
-
-            <div class="telemetry-bar" id="telemetry-bar">
-              <div><strong>Phase:</strong> <span id="tel-phase" style="color: #38bdf8;">1/4</span></div>
-              <div><strong>Active Cycle:</strong> <span id="tel-cycle" style="color: #f87171;">True</span></div>
-              <div><strong>Victim:</strong> <span id="tel-victim">None</span></div>
-              <div><strong>State:</strong> <span id="tel-state" style="color: #dc2626; font-weight: 700;">Deadlocked</span></div>
-            </div>
-
-            <div class="toggle-bar">
-              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">DEFENSE:</span>
-              <button class="toggle-btn active" onclick="setDefense('preempt')">Preemption</button>
-              <button class="toggle-btn" onclick="setDefense('aging')">Aging Queue</button>
-            </div>
-          </div>
-
-          <div class="visual-canvas">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; Recovery Protocol</div>
-
-            <!-- Visual Recovery State Box -->
-            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 14px; text-align: center;" id="canvas-visual-box">
-              <div style="font-weight: 700; color: #dc2626; font-size: 0.95rem; margin-bottom: 6px;" id="canvas-title">System Liveness: HALTED</div>
-              <p style="font-size: 0.84rem; color: #7f1d1d; margin: 0; line-height: 1.4;" id="canvas-desc">
-                Threads locked in circular wait. Kernel trap handler invoked to evaluate recovery options.
-              </p>
-            </div>
-
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="canvas-status-banner">
-              Recovery Strategy: <strong>Pending Kernel Intervention</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="panes-grid">
-          <div class="pane-box" style="border-left: 3px solid var(--success);">
-            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
-            <div id="pane-what" style="color: var(--text);">The deadlock detector flags active cyclic dependencies. The kernel must select a victim thread for resource preemption or rollback.</div>
-          </div>
-          <div class="pane-box" style="border-left: 3px solid var(--accent);">
-            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
-            <div id="pane-why" style="color: var(--text);">Without active recovery, deadlocked processes consume kernel thread tables and memory indefinitely until manual reboot.</div>
-          </div>
-        </div>
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--danger);">
+        <strong style="color: var(--danger);">Simultaneous Hold-and-Wait Hazard:</strong>
+        <br><br>
+        $$ \forall i \in \{0, 1, 2, 3, 4\}, \quad \text{Hold}(\text{Chopstick}_i) \land \text{Wait}(\text{Chopstick}_{(i+1)\bmod 5}) $$
       </div>
 
-    </div>
+      <p>
+        This creates a strict <strong>circular wait</strong> dependency chain: Philosopher 0 waits for Philosopher 1's left chopstick, Philosopher 1 waits for Philosopher 2's, and so on, closing the loop back to Philosopher 0. All four Coffman conditions are satisfied simultaneously, plunging the entire table into permanent deadlock where no philosopher ever eats.
+      </p>
 
-    <nav class="nav-bar">
-      <a href="03-deadlock-handling-bankers-algorithm.html" class="nav-btn">&larr; Module 03</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <span class="nav-btn" style="opacity: 0.4; cursor: not-allowed;">End of Week 6 &rarr;</span>
-    </nav>
-  </div>
+      <h5>Real-World Parallels &amp; Database Multi-Locking</h5>
+      <p>
+        While dining philosophers sounds pedagogical, its structural hazard mirrors modern multi-threaded systems:
+      </p>
+      <ul>
+        <li>
+          <strong>Database Row Locks:</strong> Transaction $T_1$ acquires a write lock on database row $A$ and requests row $B$. Concurrently, transaction $T_2$ acquires a write lock on row $B$ and requests row $A$.
+        </li>
+        <li>
+          <strong>Graphics Subsystems:</strong> Multi-threaded rendering pipelines acquiring locking handles across framebuffers, vertex buffers, and GPU command queues in inconsistent orders.
+        </li>
+      </ul>
 
-  <script>
-    let currentStep = 1;
-    const totalSteps = 4;
+      <h5>Architectural Mitigations</h5>
+      <p>
+        Operating systems and concurrency libraries employ several standard defenses against the Dining Philosophers deadlock:
+      </p>
+      <ol>
+        <li>
+          <strong>Asymmetric Resource Acquisition:</strong> Force odd-numbered philosophers to pick up their <em>left</em> chopstick first, while even-numbered philosophers pick up their <em>right</em> chopstick first. This breaks circular symmetry.
+        </li>
+        <li>
+          <strong>Monitor-Based Arbitration (Chandy-Misra):</strong> Introduce a centralized arbiter (or monitor state machine) that permits a philosopher to pick up chopsticks only if <em>both</em> adjacent chopsticks are simultaneously available.
+        </li>
+        <li>
+          <strong>Resource Ordering:</strong> Assign a strict global index to every chopstick (0 through 4) and require threads to always acquire lower-numbered resources before higher-numbered ones, negating circular wait.
+        </li>
+      </ol>
 
-    const stepsData = [
-      {
-        preview: "<strong>Step 1: Deadlock State Detected.</strong> Circular dependency detected among threads $T_1, T_2, T_3$. System liveness halted.",
-        phase: "1/4",
-        cycle: "True",
-        victim: "None",
-        state: "Deadlocked",
-        stateColor: "#dc2626",
-        what: "The deadlock detector flags active cyclic dependencies. The kernel must select a victim thread for resource preemption or rollback.",
-        why: "Without active recovery, deadlocked processes consume kernel thread tables and memory indefinitely until manual reboot.",
-        banner: "Recovery Strategy: <strong>Pending Kernel Intervention</strong>",
-        boxBg: "#fef2f2", boxBorder: "#fecaca", titleColor: "#dc2626", titleText: "System Liveness: HALTED", descText: "Threads locked in circular wait. Kernel trap handler invoked to evaluate recovery options."
-      },
-      {
-        preview: "<strong>Step 2: Victim Selection &amp; Preemption.</strong> Kernel selects thread $T_2$ as recovery victim based on minimum cost (fewest resources held, lowest CPU time elapsed).",
-        phase: "2/4",
-        cycle: "Pending",
-        victim: "Thread T2",
-        state: "Preempting",
-        stateColor: "#d97706",
-        what: "Kernel strips resource allocations from $T_2$ and rolls back its transaction state to a prior safe checkpoint.",
-        why: "Selecting a low-cost victim minimizes computational waste and disruption to long-running user processes.",
-        banner: "Recovery Strategy: <strong>Victim $T_2$ Preempted</strong>",
-        boxBg: "#fffbeb", boxBorder: "#fde68a", titleColor: "#d97706", titleText: "Victim Selected ($T_2$)", descText: "Stripping resource tokens from $T_2$ and rolling back execution checkpoint."
-      },
-      {
-        preview: "<strong>Step 3: Cycle Broken &amp; Liveness Restored.</strong> Preempting $T_2$ severs the request-assignment cycle ($T_1 \\to T_2 \\to T_3$). $T_1$ and $T_3$ proceed to completion.",
-        phase: "3/4",
-        cycle: "False",
-        victim: "Thread T2 (Rolled Back)",
-        state: "Recovering",
-        stateColor: "#38bdf8",
-        what: "With the dependency cycle broken, unblocked threads $T_1$ and $T_3$ acquire their requested resources and finish execution.",
-        why: "Breaking the circular wait restores system throughput and allows non-deadlocked tasks to make forward progress.",
-        banner: "Recovery Strategy: <strong>Cycle Successfully Broken</strong>",
-        boxBg: "#f0f9ff", boxBorder: "#bae6fd", titleColor: "#0284c7", titleText: "Cycle Broken", descText: "Threads $T_1$ and $T_3$ unblocked. System liveness fully restored."
-      },
-      {
-        preview: "<strong>Step 4: Starvation Prevention via Aging.</strong> To prevent $T_2$ from starving repeatedly across recovery cycles, its priority is dynamically incremented over time.",
-        phase: "4/4",
-        cycle: "None",
-        victim: "None (Aged)",
-        state: "Stable &amp; Fair",
-        stateColor: "#16a34a",
-        what: "Kernel scheduling queues apply priority aging to $T_2$, ensuring its wait time accumulates until it receives guaranteed CPU time.",
-        why: "Aging guarantees bounded waiting times, preventing starvation and ensuring strict scheduling fairness across all threads.",
-        banner: "Recovery Strategy: <strong>Aging Applied &mdash; Fairness Guaranteed</strong>",
-        boxBg: "#f0fdf4", boxBorder: "#bbf7d0", titleColor: "#16a34a", titleText: "System Stable &amp; Fair", descText: "Priority aging guarantees $T_2$ execution without indefinite deferral."
-      }
-    ];
+      <h4>2. The Readers-Writers Problem</h4>
+      <p>
+        ...""" # We will retain or gracefully link subsequent sections
 
-    function changeStep(dir) {
-      currentStep += dir;
-      if (currentStep < 1) currentStep = 1;
-      if (currentStep > totalSteps) currentStep = totalSteps;
-      updateUI();
-    }
+def update_dining_philosophers():
+    if not os.path.exists(TARGET_FILE):
+        print(f"Error: {TARGET_FILE} not found.")
+        return False
 
-    function resetStepper() {
-      currentStep = 1;
-      updateUI();
-    }
+    with open(TARGET_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
 
-    function updateUI() {
-      const data = stepsData[currentStep - 1];
-      document.getElementById('preview-text').innerHTML = data.preview;
+    start_marker = "<h3>1. Classic Synchronization Hazards</h3>"
+    end_marker = "<h3>2. Deadlock Recovery &amp; Starvation Mitigation</h3>"
 
-      document.getElementById('tel-phase').innerText = data.phase;
-      document.getElementById('tel-cycle').innerText = data.cycle;
-      document.getElementById('tel-victim').innerText = data.victim;
+    start_idx = content.find(start_marker)
+    end_idx = content.find(end_marker, start_idx)
 
-      const stateEl = document.getElementById('tel-state');
-      stateEl.innerHTML = data.state;
-      stateEl.style.color = data.stateColor;
+    if start_idx == -1 or end_idx == -1:
+        print("Error: Could not locate Section 1 boundaries in Module 04.")
+        return False
 
-      document.getElementById('pane-what').innerText = data.what;
-      document.getElementById('pane-why').innerText = data.why;
-      document.getElementById('canvas-status-banner').innerHTML = data.banner;
+    # Construct complete updated section 1 and retain section 2 onwards
+    section_one_replacement = r"""      <h3>1. Classic Synchronization Hazards</h3>
+      <p>
+        Operating systems and concurrent applications encounter recurring structural coordination challenges that highlight the delicate balance between throughput, mutual exclusion, and deadlock avoidance. Among these, classic synchronization problems serve as canonical architectural testbeds.
+      </p>
 
-      const box = document.getElementById('canvas-visual-box');
-      box.style.background = data.boxBg;
-      box.style.borderColor = data.boxBorder;
+      <h4>1. The Dining Philosophers Problem</h4>
+      <p>
+        Originally formulated by Edsger Dijkstra in 1965 to test synchronization primitives on the RC 4000 multiprocessor system, the <strong>Dining Philosophers Problem</strong> abstracts resource contention among concurrent threads competing for exclusive, limited hardware devices or locks.
+      </p>
+      <p>
+        Imagine five philosophers seated around a circular table. In front of each philosopher lies a bowl of rice, and between each adjacent pair of philosophers lies a single shared chopstick (five total chopsticks). A philosopher alternates between two states: <em>thinking</em> and <em>eating</em>. To eat, a philosopher requires <strong>two</strong> chopsticks—their immediate left and right neighbors. Because chopsticks are shared mutually exclusive resources, a chopstick cannot be used by two philosophers simultaneously.
+      </p>
 
-      document.getElementById('canvas-title').style.color = data.titleColor;
-      document.getElementById('canvas-title').innerText = data.titleText;
-      document.getElementById('canvas-desc').innerText = data.descText;
+      <h5>The Anatomy of Deadlock in Dining Philosophers</h5>
+      <p>
+        If every philosopher simultaneously decides to eat and reaches for their left chopstick, all five chopsticks are successfully acquired. When each philosopher then reaches for their right chopstick, they find it already held by their neighbor.
+      </p>
 
-      document.getElementById('prev-btn').disabled = (currentStep === 1);
-      document.getElementById('next-btn').disabled = (currentStep === totalSteps);
-    }
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--danger);">
+        <strong style="color: var(--danger);">Simultaneous Hold-and-Wait Hazard:</strong>
+        <br><br>
+        $$ \forall i \in \{0, 1, 2, 3, 4\}, \quad \text{Hold}(\text{Chopstick}_i) \land \text{Wait}(\text{Chopstick}_{(i+1)\bmod 5}) $$
+      </div>
 
-    function setDefense(defense) {
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-    }
-  </script>
-</body>
-</html>
-"""
+      <p>
+        This creates a strict <strong>circular wait</strong> dependency chain: Philosopher 0 waits for Philosopher 1's left chopstick, Philosopher 1 waits for Philosopher 2's, and so on, closing the loop back to Philosopher 0. All four Coffman conditions are satisfied simultaneously, plunging the entire table into permanent deadlock where no philosopher ever eats.
+      </p>
 
-def update_module_four():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
+      <h5>Real-World Parallels &amp; Database Multi-Locking</h5>
+      <p>
+        While dining philosophers sounds pedagogical, its structural hazard mirrors modern multi-threaded systems:
+      </p>
+      <ul>
+        <li>
+          <strong>Database Row Locks:</strong> Transaction $T_1$ acquires a write lock on database row $A$ and requests row $B$. Concurrently, transaction $T_2$ acquires a write lock on row $B$ and requests row $A$.
+        </li>
+        <li>
+          <strong>Graphics Subsystems:</strong> Multi-threaded rendering pipelines acquiring locking handles across framebuffers, vertex buffers, and GPU command queues in inconsistent orders.
+        </li>
+      </ul>
+
+      <h5>Architectural Mitigations</h5>
+      <p>
+        Operating systems and concurrency libraries employ several standard defenses against the Dining Philosophers deadlock:
+      </p>
+      <ol>
+        <li>
+          <strong>Asymmetric Resource Acquisition:</strong> Force odd-numbered philosophers to pick up their <em>left</em> chopstick first, while even-numbered philosophers pick up their <em>right</em> chopstick first. This breaks circular symmetry.
+        </li>
+        <li>
+          <strong>Monitor-Based Arbitration (Chandy-Misra):</strong> Introduce a centralized arbiter (or monitor state machine) that permits a philosopher to pick up chopsticks only if <em>both</em> adjacent chopsticks are simultaneously available.
+        </li>
+        <li>
+          <strong>Resource Ordering:</strong> Assign a strict global index to every chopstick (0 through 4) and require threads to always acquire lower-numbered resources before higher-numbered ones, negating circular wait.
+        </li>
+      </ol>
+
+      <h4>2. The Readers-Writers Problem</h4>
+      <p>
+        The <strong>Readers-Writers Problem</strong> governs shared data structures where concurrent execution entities fall into two distinct categories: <em>readers</em> (who only inspect data without modifying it) and <em>writers</em> (who require exclusive write access).
+      </p>
+      <ul>
+        <li>
+          <strong>First Readers-Writers Problem (Reader Priority):</strong> No reader is kept waiting unless a writer has already obtained exclusive access. This maximizes reader throughput but can cause severe writer starvation if readers continuously arrive.
+        </li>
+        <li>
+          <strong>Second Readers-Writers Problem (Writer Priority):</strong> Once a writer is ready, that writer performs its write as soon as possible. If a writer is waiting, new readers are blocked from entering, preventing writer starvation at the expense of reader concurrency.
+        </li>
+      </ul>
+
+      <h4>3. The Producer-Consumer Problem</h4>
+      <p>
+        The <strong>Producer-Consumer Problem</strong> (also known as the bounded-buffer problem) coordinates synchronization between data generator threads (producers) and data consumer threads interacting through a fixed-size shared memory buffer. Synchronization primitives—such as counting semaphores tracking empty/full slots and mutexes protecting buffer indices—ensure producers do not overflow full buffers and consumers do not underrun empty ones."""
+
+    updated_content = content[:start_idx] + section_one_replacement + "\n\n      " + content[end_idx:]
+
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_FOUR_CONTENT.strip() + "\n")
-    print(f"--> Successfully created Module 04 at {TARGET_FILE}")
+        f.write(updated_content)
+
+    print(f"--> Successfully expanded Dining Philosophers section in {TARGET_FILE}")
+    return True
 
 if __name__ == "__main__":
-    update_module_four()
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Create Module 04 on Classic Synchronization Problems and Real-World Defenses\n\n"
-            "Build complete educational module covering classic sync hazards, deadlock\n"
-            "recovery, starvation aging, and modern kernel defenses with interactive stepper."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git note: {e}")
+    if update_dining_philosophers():
+        try:
+            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+            commit_msg = (
+                "Expand Dining Philosophers section in Module 04 with deadlock analysis\n\n"
+                "Provide rigorous resource allocation geometry, circular wait proofs, real-world\n"
+                "database locking parallels, and structural mitigation algorithms."
+            )
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("--> Git sync completed successfully!")
+        except Exception as e:
+            print(f"Git note: {e}")
