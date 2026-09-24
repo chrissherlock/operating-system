@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 3 in 03-semaphores-mutexes-monitors.html
+# fix.py: Deeply expand Section 4 in 03-semaphores-mutexes-monitors.html
 # =====================================================================
 import os
 import subprocess
@@ -10,245 +10,286 @@ TARGET_FILE = os.path.join(
     "03-semaphores-mutexes-monitors.html"
 )
 
-EXPANDED_SECTION_THREE = r"""    <h3>3. Kernel Sleep Queues &amp; Linux Futexes</h3>
+EXPANDED_SECTION_FOUR = r"""    <h3>4. Monitors &amp; Condition Variables</h3>
     <p>
-      In Section 2, we analyzed how the operating system kernel implements semaphores and sleep locks using internal spinlocks to guard wait queues. However, that design introduces a major performance bottleneck for user-space applications: <strong>every lock acquisition and release requires a kernel system call</strong>.
+      While semaphores and futexes provide powerful low-level primitives for operating system kernels, building large-scale, correct multi-threaded applications using unstructured semaphores is notoriously error-prone.
     </p>
     <p>
-      A system call trap instruction (<code>syscall</code> on x86-64, <code>svc</code> on ARM) forces the processor through an involuntary privilege boundary transition from Ring 3 (User Space) to Ring 0 (Kernel Mode). The CPU flushes pipeline queues, changes the stack pointer to the kernel stack, updates page-table permissions, and validates parameters. This sequence consumes <strong>100 to 300 nanoseconds</strong> per invocation.
+      Consider the fragility of semaphore code in production systems:
     </p>
-
-    <h4>The Empirical Uncontended Invariant</h4>
+    <ul>
+      <li><strong>Omission Defects:</strong> A developer who writes <code>down(&amp;mutex)</code> but omits <code>up(&amp;mutex)</code> due to an early <code>return</code> or uncaught exception leaves the critical region permanently locked, deadlocking the application.</li>
+      <li><strong>Inversion Hazards:</strong> Swapping the sequence of two semaphores (e.g., acquiring a resource lock before checking buffer bounds) introduces catastrophic circular wait deadlocks.</li>
+      <li><strong>Scattered Invariants:</strong> Semaphore operations are dispersed across disparate functions and files, making formal verification of program correctness nearly impossible.</li>
+    </ul>
     <p>
-      Extensive benchmarking of production software (databases, web servers, GUI toolkits) reveals a universal concurrency profile:
-    </p>
-    <div class="math-callout">
-      <strong>The 90-99% Uncontended Rule:</strong>
-      <br>
-      In well-architected multi-threaded programs, <strong>over 90% to 99% of all mutex lock acquisitions encounter zero contention</strong>. The lock is free when the thread requests it, and no other thread is attempting to acquire it at that exact instant.
-    </div>
-    <p>
-      Paying a 200 ns system call penalty millions of times per second just to set an uncontended integer flag in memory is an immense waste of CPU cycles. Conversely, relying purely on spinlocks in user space wastes entire scheduling quanta when a lock is contended.
-    </p>
-    <p>
-      To bridge this performance divide, Rusty Russell, Ulrich Drepper, and Ingo Molnar engineered the <strong>Futex</strong> (<em>Fast Userspace Mutex</em>) for the Linux kernel.
+      To resolve these architectural weaknesses, C. A. R. Hoare (1974) and Per Brinch Hansen (1975) pioneered the <strong>Monitor</strong>: a high-level programming language construct that encapsulates shared variables, access procedures, and synchronization gates into a unified, compiler-enforced boundary.
     </p>
 
-    <h4>The Futex Architecture: Fast-Path vs. Slow-Path</h4>
+    <h4>The Anatomy of a Monitor</h4>
     <p>
-      A futex is not an individual kernel object created with an explicit allocation API; it is an ordinary <strong>32-bit integer variable allocated directly in the application's user-space virtual memory</strong>.
-    </p>
-    <p>
-      The core philosophy of the futex subsystem is strict separation of concerns:
+      A monitor is an object-oriented or module-level abstraction consisting of:
     </p>
     <ol>
+      <li><strong>Private Shared State:</strong> Internal variables (buffers, counters, queues) that can <em>only</em> be accessed by procedures defined inside the monitor. External threads cannot read or write them directly.</li>
+      <li><strong>Public Interface Procedures:</strong> Methods that external threads call to interact with the shared data.</li>
       <li>
-        <strong>The Fast Path (Uncontended &mdash; Pure User Space):</strong>
-        When a thread wants to acquire a lock, it executes an atomic Compare-and-Swap (<code>cmpxchg</code>) directly on the 32-bit integer in user memory. If the lock was free (<code>0</code>), CAS sets it to <code>1</code> (held) and returns immediately.
-        <br>
-        <strong>Zero system calls, zero kernel entries, executing in ~5 nanoseconds.</strong>
-      </li>
-      <li>
-        <strong>The Slow Path (Contended &mdash; Kernel Fallback):</strong>
-        Only if the atomic CAS fails (because the lock is already held) does the thread fall back to the kernel. The thread invokes the <code>futex()</code> system call, asking the kernel to suspend the calling thread on a sleep queue until the lock holder wakes it.
-      </li>
-      <li>
-        <strong>The Unlock Path:</strong>
-        When unlocking, the thread atomically decrements or clears the integer. If no other threads are waiting, the unlock finishes in user space (~5 ns). If waiting threads are detected, the thread issues a <code>futex()</code> system call instructing the kernel to wake the sleeping threads.
+        <strong>Compiler-Enforced Mutual Exclusion:</strong> The language compiler automatically injects synchronization guards at procedure entry and exit. <strong>At most one thread may be actively executing inside any procedure of the monitor at any given instant.</strong>
       </li>
     </ol>
 
-    <!-- Structural Diagram: Futex Dual-Domain Architecture -->
+    <!-- Structural Diagram: Monitor Internal Architecture -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 3.3: The Linux Futex Dual-Domain Architecture</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How user-space atomic CAS handles uncontended paths in nanoseconds while kernel hash buckets manage sleeping threads.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 3.4: Internal Architecture of a Monitor with Condition Variables</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">How the external entry queue, active monitor lock, and internal condition variable sleep queues coordinate threads.</div>
 
-      <svg viewBox="0 0 760 250" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <svg viewBox="0 0 760 260" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
         <defs>
-          <marker id="fx-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="mon-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
           </marker>
-          <marker id="fx-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
-          </marker>
-          <marker id="fx-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <marker id="mon-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
+          </marker>
+          <marker id="mon-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
           </marker>
         </defs>
 
-        <!-- User Space Chamber -->
-        <g transform="translate(20, 15)">
-          <rect width="720" height="95" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="16" y="22" font-size="10" font-weight="700" fill="#0284c7">RING 3: USER-SPACE VIRTUAL ADDRESS SPACE</text>
+        <!-- External Entry Queue (Left) -->
+        <g transform="translate(20, 20)">
+          <rect width="170" height="220" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="14" y="24" font-size="9.5" font-weight="700" fill="#0f172a">EXTERNAL ENTRY QUEUE</text>
+          <text x="14" y="38" font-size="7.5" fill="#64748b">Threads waiting to enter</text>
 
-          <!-- Fast Path Box -->
-          <rect x="15" y="32" width="225" height="52" rx="4" fill="#dcfce7" stroke="#16a34a"/>
-          <text x="25" y="48" font-size="8" font-weight="700" fill="#166534">FAST PATH: UNCONTENDED</text>
-          <text x="25" y="62" font-family="var(--font-mono)" font-size="8" fill="#14532d">atomic_cmpxchg(uaddr, 0, 1)</text>
-          <text x="25" y="74" font-size="7.5" font-weight="700" fill="#059669">&#10003; 5 ns | ZERO Syscalls</text>
+          <rect x="12" y="50" width="146" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="85" y="68" text-anchor="middle" font-size="8" font-weight="700" fill="#334155">Thread #4 (Blocked)</text>
+          <text x="85" y="80" text-anchor="middle" font-size="7" fill="#64748b">Awaiting Monitor Lock</text>
 
-          <!-- Futex Memory Word -->
-          <rect x="255" y="32" width="210" height="52" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-          <text x="265" y="48" font-size="8" font-weight="700" fill="#475569">USER WORD: uint32_t *uaddr</text>
-          <text x="265" y="64" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0284c7">0=Free | 1=Held | 2=Contended</text>
-          <text x="265" y="76" font-size="7.5" fill="#64748b">Shared variable in user heap/mmap</text>
+          <rect x="12" y="96" width="146" height="38" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="85" y="114" text-anchor="middle" font-size="8" font-weight="700" fill="#334155">Thread #5 (Blocked)</text>
+          <text x="85" y="126" text-anchor="middle" font-size="7" fill="#64748b">Awaiting Monitor Lock</text>
 
-          <!-- Slow Path Trigger -->
-          <rect x="480" y="32" width="225" height="52" rx="4" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="490" y="48" font-size="8" font-weight="700" fill="#991b1b">SLOW PATH: CONTENTION</text>
-          <text x="490" y="62" font-family="var(--font-mono)" font-size="8" fill="#7f1d1d">syscall(SYS_futex, uaddr, ...)</text>
-          <text x="490" y="74" font-size="7.5" font-weight="700" fill="#dc2626">&darr; Drops into Ring 0 Kernel</text>
+          <text x="14" y="160" font-size="7.5" fill="#475569">&bull; Enqueued automatically</text>
+          <text x="14" y="174" font-size="7.5" fill="#475569">&bull; Mutex held by active thread</text>
         </g>
 
-        <!-- Privilege Transition Line -->
-        <line x1="20" y1="122" x2="740" y2="122" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4"/>
-        <text x="380" y="126" text-anchor="middle" font-size="7.5" font-weight="700" fill="#64748b">PRIVILEGE BOUNDARY (syscall / sysret)</text>
+        <!-- Entry Gate Vector -->
+        <line x1="190" y1="120" x2="225" y2="120" stroke="#0284c7" stroke-width="2" marker-end="url(#mon-arr-blue)"/>
 
-        <!-- Kernel Space Chamber -->
-        <g transform="translate(20, 136)">
-          <rect width="720" height="100" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="16" y="20" font-size="10" font-weight="700" fill="#0f172a">RING 0: KERNEL SPACE (futex_queues Hash Buckets)</text>
+        <!-- Monitor Enclosure Boundary -->
+        <g transform="translate(230, 20)">
+          <rect width="510" height="220" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+          <text x="20" y="26" font-size="11" font-weight="700" fill="#0284c7">MONITOR ENCAPSULATION BOUNDARY (Single Active Thread Invariant)</text>
 
-          <!-- Hash Function -->
-          <rect x="15" y="30" width="160" height="58" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="25" y="46" font-size="8" font-weight="700" fill="#334155">1. PIN MEMORY &amp; HASH</text>
-          <text x="25" y="60" font-family="var(--font-mono)" font-size="7.5" fill="#0284c7">key = hash(phys_addr)</text>
-          <text x="25" y="74" font-size="7" fill="#64748b">Locates global bucket</text>
+          <!-- Active Execution Zone -->
+          <g transform="translate(15, 40)">
+            <rect width="210" height="165" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+            <text x="14" y="22" font-size="9" font-weight="700" fill="#166534">ACTIVE EXECUTION REGION</text>
+            <rect x="12" y="34" width="186" height="50" rx="4" fill="#ffffff" stroke="#86efac"/>
+            <text x="20" y="52" font-size="8.5" font-weight="700" fill="#15803d">Thread #1 [HOLDS LOCK]</text>
+            <text x="20" y="68" font-family="var(--font-mono)" font-size="8" fill="#166534">Executing: insert_item()</text>
 
-          <line x1="175" y1="58" x2="195" y2="58" stroke="#0284c7" stroke-width="1.5" marker-end="url(#fx-arr-blue)"/>
+            <rect x="12" y="94" width="186" height="58" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
+            <text x="20" y="112" font-size="7.5" font-weight="700" fill="#334155">PRIVATE MONITOR STATE:</text>
+            <text x="20" y="126" font-family="var(--font-mono)" font-size="8" fill="#0284c7">int count = 100 (Full)</text>
+            <text x="20" y="140" font-family="var(--font-mono)" font-size="8" fill="#64748b">buffer[0..N-1]</text>
+          </g>
 
-          <!-- Hash Bucket Queue -->
-          <rect x="200" y="30" width="290" height="58" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="210" y="46" font-size="8" font-weight="700" fill="#0284c7">2. BUCKET SPINLOCK &amp; QUEUE</text>
-          <text x="210" y="60" font-family="var(--font-mono)" font-size="7.5" fill="#334155">spin_lock(&amp;bucket-&gt;lock);</text>
-          <text x="210" y="74" font-family="var(--font-mono)" font-size="7.5" fill="#dc2626">enqueue(current); *uaddr == val check</text>
+          <!-- Wait / Condition Variable Queues -->
+          <g transform="translate(245, 40)">
+            <rect width="250" height="165" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+            <text x="14" y="22" font-size="9" font-weight="700" fill="#0f172a">INTERNAL CONDITION QUEUES</text>
 
-          <line x1="490" y1="58" x2="510" y2="58" stroke="#0284c7" stroke-width="1.5" marker-end="url(#fx-arr-blue)"/>
+            <!-- Condition Variable 1 -->
+            <rect x="12" y="34" width="226" height="54" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="20" y="50" font-size="8" font-weight="700" fill="#0284c7">cond_t not_full (Wait Queue)</text>
+            <rect x="20" y="58" width="80" height="22" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="60" y="73" text-anchor="middle" font-size="7.5" font-weight="700" fill="#991b1b">Thread #2 (Wait)</text>
+            <text x="110" y="73" font-size="7" fill="#64748b">&larr; Slept on full buffer</text>
 
-          <!-- Context Switch / Sleep -->
-          <rect x="515" y="30" width="190" height="58" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="525" y="46" font-size="8" font-weight="700" fill="#334155">3. SCHEDULER</text>
-          <text x="525" y="60" font-family="var(--font-mono)" font-size="7.5" fill="#0284c7">schedule();</text>
-          <text x="525" y="74" font-size="7" fill="#166534">Thread enters TASK_BLOCKED</text>
+            <!-- Condition Variable 2 -->
+            <rect x="12" y="98" width="226" height="54" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="20" y="114" font-size="8" font-weight="700" fill="#0284c7">cond_t not_empty (Wait Queue)</text>
+            <rect x="20" y="122" width="80" height="22" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="60" y="137" text-anchor="middle" font-size="7.5" font-weight="700" fill="#991b1b">Thread #3 (Wait)</text>
+            <text x="110" y="137" font-size="7" fill="#64748b">&larr; Slept on empty buffer</text>
+          </g>
         </g>
       </svg>
     </div>
 
-    <h4>The Multiplexed System Call: FUTEX_WAIT and FUTEX_WAKE</h4>
+    <h4>Condition Variables: Solving the In-Monitor Sleep Problem</h4>
     <p>
-      The Linux kernel exposes the futex subsystem through a single multiplexed system call:
+      Compiler-enforced mutual exclusion creates a critical synchronization dilemma:
     </p>
-    <pre><code><span class="syn-kw">#include</span> <span class="syn-str">&lt;linux/futex.h&gt;</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;sys/syscall.h&gt;</span>
-<span class="syn-kw">#include</span> <span class="syn-str">&lt;unistd.h&gt;</span>
-
-<span class="syn-kw">long</span> syscall(SYS_futex, <span class="syn-kw">uint32_t</span> *uaddr, <span class="syn-kw">int</span> futex_op, <span class="syn-kw">uint32_t</span> val,
-             <span class="syn-kw">const struct</span> timespec *timeout, <span class="syn-kw">uint32_t</span> *uaddr2, <span class="syn-kw">uint32_t</span> val3);</code></pre>
-
+    <blockquote style="border-left: 4px solid var(--danger); padding: 8px 16px; margin: 16px 0; background: #fef2f2; color: #991b1b;">
+      <strong>The In-Monitor Sleep Dilemma:</strong> If Thread 1 enters a monitor method and discovers that a necessary condition is not met (e.g., the bounded buffer is full), it cannot simply execute a standard <code>sleep()</code> system call. If Thread 1 went to sleep while holding the monitor's mutual exclusion lock, <strong>no other thread could ever enter the monitor</strong>. A consumer could never enter to extract an item, and the producer would sleep forever, freezing the application permanently.
+    </blockquote>
     <p>
-      The two most critical operations defined by <code>futex_op</code> are:
-    </p>
-
-    <h5>1. FUTEX_WAIT: The Atomic Check-and-Sleep Primitive</h5>
-    <pre><code>syscall(SYS_futex, uaddr, FUTEX_WAIT, val, timeout, NULL, <span class="syn-num">0</span>);</code></pre>
-    <p>
-      This command asks the kernel: <em>"If the integer at <code>*uaddr</code> still equals <code>val</code>, put my thread to sleep. If <code>*uaddr != val</code>, do not sleep; return immediately."</em>
-    </p>
-
-    <div class="math-callout">
-      <strong>How FUTEX_WAIT Completely Eliminates the Lost Wakeup Defect:</strong>
-      <br>
-      Recall from Section 1 that primitive <code>sleep()</code> caused lost wakeups because a thread could be preempted between checking the condition and sleeping.
-      <br>
-      The kernel's implementation of <code>FUTEX_WAIT</code> guarantees <strong>atomicity between checking memory and sleeping</strong>:
-      <ol>
-        <li>The kernel pins the physical memory page backing <code>uaddr</code> and hashes the physical address to find the corresponding kernel wait bucket.</li>
-        <li>The kernel acquires the bucket's internal spinlock: <code>spin_lock(&amp;bucket-&gt;lock)</code>.</li>
-        <li>While holding the spinlock, the kernel dereferences <code>uaddr</code>. If another thread unlocked the mutex in user space while the calling thread was entering the kernel (such that <code>*uaddr != val</code>), the kernel <strong>aborts the sleep operation immediately</strong>, unlocks the bucket, and returns <code>-EWOULDBLOCK</code>.</li>
-        <li>If and only if <code>*uaddr == val</code>, the calling thread is added to the bucket's wait queue, its state is changed to <code>TASK_INTERRUPTIBLE</code>, the bucket spinlock is released, and <code>schedule()</code> is invoked.</li>
-      </ol>
-      A wakeup signal can never be lost because the check and the enqueue occur atomically under the kernel bucket lock!
-    </div>
-
-    <h5>2. FUTEX_WAKE: Waking Waiters</h5>
-    <pre><code>syscall(SYS_futex, uaddr, FUTEX_WAKE, val, NULL, NULL, <span class="syn-num">0</span>);</code></pre>
-    <p>
-      This command instructs the kernel to look up the bucket associated with <code>uaddr</code>, dequeue up to <code>val</code> threads (typically <code>val = 1</code> for mutexes, or <code>val = INT_MAX</code> for broadcast signals), and transition them to <code>TASK_RUNNING</code>.
-    </p>
-
-    <h4>Building a Minimal Production Futex Mutex</h4>
-    <p>
-      Using <code>FUTEX_WAIT</code> and <code>FUTEX_WAKE</code>, we can construct an industrial-grade user-space mutex using a tri-state integer protocol:
+      To resolve this, monitors introduce <strong>Condition Variables</strong> (e.g., <code>cond_t</code> in C/POSIX, <code>Condition</code> in Java/C#):
     </p>
     <ul>
-      <li><code>0</code>: Lock is free (unlocked).</li>
-      <li><code>1</code>: Lock is held by a thread, and <em>no other threads are waiting</em>.</li>
-      <li><code>2</code>: Lock is held by a thread, and <em>one or more threads are sleeping in the kernel</em>.</li>
+      <li><code>wait(&amp;cond, &amp;mutex)</code>: <strong>Atomically releases the monitor lock and suspends the calling thread</strong> on the condition variable's wait queue. Because the monitor lock is released, other threads can now enter the monitor to mutate state. When the sleeping thread is eventually signaled and awakened, it <strong>automatically re-acquires the monitor lock</strong> before <code>wait()</code> returns to user code.</li>
+      <li><code>signal(&amp;cond)</code>: Wakes up exactly one thread waiting on the condition variable. If no threads are waiting, the signal is quietly discarded with zero side effects.</li>
+      <li><code>broadcast(&amp;cond)</code>: Wakes up <em>all</em> threads currently waiting on the condition variable.</li>
     </ul>
 
-    <pre><code><span class="syn-kw">typedef struct</span> {
-    <span class="syn-kw">uint32_t</span> val; <span class="syn-cmt">/* 0 = Free, 1 = Held (no waiters), 2 = Held (waiters exist) */</span>
-} futex_mutex_t;
+    <div class="math-callout">
+      <strong>Semaphores vs. Condition Variables &mdash; The Vital Difference:</strong>
+      <br>
+      A common student misconception is confusing semaphores with condition variables:
+      <ul>
+        <li><strong>Semaphores Have Memory:</strong> A semaphore has an internal integer counter. If an <code>up()</code> is called when no threads are waiting, the counter increments to <code>1</code>. A subsequent <code>down()</code> consumes that saved permit without sleeping.</li>
+        <li><strong>Condition Variables Are Stateless:</strong> A condition variable has <strong>no integer counter and zero memory</strong>. If a thread calls <code>signal(&amp;cond)</code> when no threads are currently suspended in <code>wait()</code>, the signal vanishes completely into the ether. It does <em>not</em> save credit for a future <code>wait()</code>.</li>
+      </ul>
+    </div>
 
-<span class="syn-kw">void</span> futex_mutex_lock(futex_mutex_t *m) {
-    <span class="syn-kw">uint32_t</span> c;
+    <h4>Canonical Bounded-Buffer Monitor Implementation</h4>
+    <p>
+      Below is the classical bounded-buffer implemented via an explicit monitor pattern in C using POSIX threads:
+    </p>
 
-    <span class="syn-cmt">/* 1. FAST PATH: Attempt to atomically transition 0 -> 1 */</span>
-    <span class="syn-kw">if</span> (__atomic_compare_exchange_n(&amp;m-&gt;val, &amp;(c = <span class="syn-num">0</span>), <span class="syn-num">1</span>, <span class="syn-kw">false</span>,
-                                    __ATOMIC_ACQUIRE, __ATOMIC_RELAXED)) {
-        <span class="syn-kw">return</span>; <span class="syn-cmt">/* Acquired immediately in user space! ~5 ns */</span>
+    <pre><code><span class="syn-cmt">/* Thread-Safe Bounded-Buffer Monitor using POSIX Threads */</span>
+<span class="syn-kw">#include</span> <span class="syn-str">&lt;pthread.h&gt;</span>
+<span class="syn-kw">#include</span> <span class="syn-str">&lt;stdbool.h&gt;</span>
+
+<span class="syn-kw">#define</span> BUFFER_SIZE <span class="syn-num">100</span>
+
+<span class="syn-kw">typedef struct</span> {
+    <span class="syn-kw">int</span> buffer[BUFFER_SIZE];
+    <span class="syn-kw">int</span> count;                  <span class="syn-cmt">/* Number of populated slots */</span>
+    <span class="syn-kw">int</span> head;                   <span class="syn-cmt">/* Write index pointer */</span>
+    <span class="syn-kw">int</span> tail;                   <span class="syn-cmt">/* Read index pointer */</span>
+    <span class="syn-kw">pthread_mutex_t</span> lock;       <span class="syn-cmt">/* Monitor entry gatekeeper */</span>
+    <span class="syn-kw">pthread_cond_t</span> not_full;    <span class="syn-cmt">/* Condition: buffer has room for insert */</span>
+    <span class="syn-kw">pthread_cond_t</span> not_empty;   <span class="syn-cmt">/* Condition: buffer has item for removal */</span>
+} bounded_buffer_monitor_t;
+
+<span class="syn-kw">void</span> monitor_insert(bounded_buffer_monitor_t *m, <span class="syn-kw">int</span> item) {
+    <span class="syn-fn">pthread_mutex_lock</span>(&amp;m-&gt;lock); <span class="syn-cmt">/* 1. Enter Monitor (Acquire Mutex) */</span>
+
+    <span class="syn-cmt">/* 2. Wait while condition is not met (MESA INVARIANT: while loop!) */</span>
+    <span class="syn-kw">while</span> (m-&gt;count == BUFFER_SIZE) {
+        <span class="syn-fn">pthread_cond_wait</span>(&amp;m-&gt;not_full, &amp;m-&gt;lock); <span class="syn-cmt">/* Releases lock &amp; sleeps */</span>
     }
 
-    <span class="syn-cmt">/* 2. SLOW PATH: Contention detected */</span>
-    <span class="syn-kw">do</span> {
-        <span class="syn-cmt">/* If already 2, or if we transition 1 -> 2: announce waiters exist */</span>
-        <span class="syn-kw">if</span> (c == <span class="syn-num">2</span> || __atomic_compare_exchange_n(&amp;m-&gt;val, &amp;(c = <span class="syn-num">1</span>), <span class="syn-num">2</span>, <span class="syn-kw">false</span>,
-                                                   __ATOMIC_ACQUIRE, __ATOMIC_RELAXED)) {
-            <span class="syn-cmt">/* Sleep in the kernel only if value is still 2 */</span>
-            <span class="syn-fn">syscall</span>(SYS_futex, &amp;m-&gt;val, FUTEX_WAIT, <span class="syn-num">2</span>, NULL, NULL, <span class="syn-num">0</span>);
-        }
-        <span class="syn-cmt">/* Upon wakeup, attempt to claim the lock while setting state to 2 */</span>
-    } <span class="syn-kw">while</span> (__atomic_exchange_n(&amp;m-&gt;val, <span class="syn-num">2</span>, __ATOMIC_ACQUIRE) != <span class="syn-num">0</span>);
+    <span class="syn-cmt">/* 3. Mutate private state (Guaranteed Exclusive Access) */</span>
+    m-&gt;buffer[m-&gt;head] = item;
+    m-&gt;head = (m-&gt;head + <span class="syn-num">1</span>) % BUFFER_SIZE;
+    m-&gt;count++;
+
+    <span class="syn-cmt">/* 4. Signal waiting consumers that buffer is no longer empty */</span>
+    <span class="syn-fn">pthread_cond_signal</span>(&amp;m-&gt;not_empty);
+
+    <span class="syn-fn">pthread_mutex_unlock</span>(&amp;m-&gt;lock); <span class="syn-cmt">/* 5. Exit Monitor (Release Mutex) */</span>
 }
 
-<span class="syn-kw">void</span> futex_mutex_unlock(futex_mutex_t *m) {
-    <span class="syn-cmt">/* 1. FAST PATH: If value was 1, no waiters exist. Atomically set to 0 */</span>
-    <span class="syn-kw">if</span> (__atomic_exchange_n(&amp;m-&gt;val, <span class="syn-num">0</span>, __ATOMIC_RELEASE) == <span class="syn-num">1</span>) {
-        <span class="syn-kw">return</span>; <span class="syn-cmt">/* Released in user space! Zero system calls */</span>
+<span class="syn-kw">int</span> monitor_remove(bounded_buffer_monitor_t *m) {
+    <span class="syn-fn">pthread_mutex_lock</span>(&amp;m-&gt;lock); <span class="syn-cmt">/* 1. Enter Monitor */</span>
+
+    <span class="syn-kw">while</span> (m-&gt;count == <span class="syn-num">0</span>) {
+        <span class="syn-fn">pthread_cond_wait</span>(&amp;m-&gt;not_empty, &amp;m-&gt;lock);
     }
 
-    <span class="syn-cmt">/* 2. SLOW PATH: Value was 2 (waiters exist). Wake up 1 sleeping thread */</span>
-    <span class="syn-fn">syscall</span>(SYS_futex, &amp;m-&gt;val, FUTEX_WAKE, <span class="syn-num">1</span>, NULL, NULL, <span class="syn-num">0</span>);
+    <span class="syn-kw">int</span> item = m-&gt;buffer[m-&gt;tail];
+    m-&gt;tail = (m-&gt;tail + <span class="syn-num">1</span>) % BUFFER_SIZE;
+    m-&gt;count--;
+
+    <span class="syn-fn">pthread_cond_signal</span>(&amp;m-&gt;not_full); <span class="syn-cmt">/* Signal waiting producers */</span>
+
+    <span class="syn-fn">pthread_mutex_unlock</span>(&amp;m-&gt;lock); <span class="syn-cmt">/* Exit Monitor */</span>
+    <span class="syn-kw">return</span> item;
 }</code></pre>
 
-    <h4>Advanced Futex Primitives: Requeueing and Priority Inheritance</h4>
+    <h4>Signaling Semantics: Hoare vs. Mesa vs. Brinch Hansen</h4>
     <p>
-      Modern implementations of <code>pthread_mutex_t</code> and <code>pthread_cond_t</code> rely on two specialized extensions to the futex system call:
+      When a thread inside a monitor calls <code>signal(&amp;cond)</code> and wakes a suspended thread, a fundamental concurrency question arises: <strong>Which thread is allowed to execute next?</strong> Both the signaling thread and the awakened thread now demand access to the monitor, but the monitor invariant permits only <em>one</em> thread inside!
+    </p>
+    <p>
+      This problem divided computer scientists into three distinct schools of monitor semantics:
     </p>
 
-    <h5>1. The Thundering Herd &amp; FUTEX_REQUEUE</h5>
-    <p>
-      When multiple threads are waiting on a condition variable (e.g. <code>pthread_cond_broadcast()</code>), waking all 100 threads simultaneously causes a <strong>thundering herd storm</strong>: all 100 threads wake up, enter user space, and immediately contend for the associated mutex. Exactly one thread acquires the mutex, and the remaining 99 threads are immediately forced to issue <code>FUTEX_WAIT</code> to go back to sleep!
-    </p>
-    <p>
-      To prevent this, Linux provides <strong><code>FUTEX_CMP_REQUEUE</code></strong>:
-    </p>
-    <pre><code><span class="syn-fn">syscall</span>(SYS_futex, cond_uaddr, FUTEX_CMP_REQUEUE, <span class="syn-num">1</span>, (void*)INT_MAX, mutex_uaddr, expected_val);</code></pre>
-    <p>
-      The kernel wakes exactly <strong>one</strong> thread on <code>cond_uaddr</code>, and directly shifts all other 99 waiting threads from the condition variable's hash bucket queue over to the mutex's hash bucket queue <em>inside the kernel without waking them into user space</em>.
-    </p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0;">
+      <!-- Hoare Semantics -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Hoare Semantics</h4>
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 8px;">Signal-and-Wait</div>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          The signaling thread <strong>immediately yields the monitor lock and CPU</strong> to the awakened thread.
+          <br><br>
+          The awakened thread runs instantaneously. Because no intervening thread could run, the predicate condition is <strong>guaranteed to be strictly true</strong>.
+          <br><br>
+          <em>Code Pattern:</em> Simple <code>if</code> checks are theoretically valid:
+          <pre style="margin: 6px 0 0 0; padding: 6px; font-size: 0.75rem;"><code><span class="syn-kw">if</span> (count == N)
+    <span class="syn-fn">wait</span>(&amp;cond);</code></pre>
+          <br>
+          <em>Drawback:</em> Forces two immediate, costly CPU context switches.
+        </p>
+      </div>
 
-    <h5>2. Priority Inheritance Futexes (FUTEX_LOCK_PI)</h5>
-    <p>
-      For real-time systems vulnerable to priority inversion (as explored in Module 02), the Linux kernel provides <strong>PI-futexes</strong>:
-    </p>
-    <ul>
-      <li>The lower 29 bits of <code>uaddr</code> store the Thread ID (TID) of the lock-owning task.</li>
-      <li>If a high-priority thread blocks on <code>FUTEX_LOCK_PI</code>, the kernel inspects the TID in <code>uaddr</code> and temporarily boosts the scheduling priority of the owner task to match the waiter's priority.</li>
-      <li>Once the owner releases the lock via <code>FUTEX_UNLOCK_PI</code>, the kernel drops the owner's priority back to its nominal level.</li>
-    </ul>"""
+      <!-- Mesa Semantics -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Mesa Semantics</h4>
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--success); text-transform: uppercase; margin-bottom: 8px;">Signal-and-Continue</div>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          Developed at Xerox PARC (Lampson &amp; Redell, 1980). The signaling thread <strong>retains the lock and continues running</strong> until it leaves the monitor.
+          <br><br>
+          The awakened thread is moved to the monitor's entry queue. When it finally reacquires the lock, <em>another thread may have sneaked in and invalidated the condition</em>!
+          <br><br>
+          <em>The Invariant:</em> <strong>Threads MUST re-check conditions in a <code>while</code> loop</strong>:
+          <pre style="margin: 6px 0 0 0; padding: 6px; font-size: 0.75rem;"><code><span class="syn-kw">while</span> (count == N)
+    <span class="syn-fn">wait</span>(&amp;cond);</code></pre>
+          <br>
+          <em>Standard:</em> Universal standard in POSIX (pthreads), Java, C++, and Go.
+        </p>
+      </div>
 
-def update_section_three():
+      <!-- Brinch Hansen -->
+      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid #7c3aed; border-radius: 6px; padding: 14px;">
+        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">Brinch Hansen</h4>
+        <div style="font-size: 0.75rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; margin-bottom: 8px;">Signal-and-Exit</div>
+        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
+          A compromise design: a thread is permitted to call <code>signal()</code> <strong>only as the very final instruction</strong> before returning from the monitor procedure.
+          <br><br>
+          Because the signaler exits immediately, lock ownership transfers cleanly to the awakened thread without creating two active contenders.
+          <br><br>
+          <em>Drawback:</em> Restrictive programming model; prevents sending signals mid-calculation.
+        </p>
+      </div>
+    </div>
+
+    <h4>Why You Must Always Use a WHILE Loop (Spurious Wakeups)</h4>
+    <p>
+      In production systems programming, replacing <code>while (!condition)</code> with <code>if (!condition)</code> around a condition wait is considered a <strong>critical bug</strong>. There are three distinct engineering reasons why threads must always re-check conditions in a loop:
+    </p>
+    <ol>
+      <li>
+        <strong>Mesa Semantics (Intervening Threads):</strong> Under Mesa semantics, signaling only makes the waiter runnable. By the time the awakened thread is scheduled and regains the monitor lock, a third thread may have entered the monitor and consumed the available resource.
+      </li>
+      <li>
+        <strong>Broadcast Waking (Thundering Herd):</strong> If a thread calls <code>pthread_cond_broadcast()</code>, multiple sleeping threads wake up. The first thread to acquire the lock claims the available slot; all subsequent threads awaken to find the condition false once again.
+      </li>
+      <li>
+        <strong>Spurious Wakeups (Kernel Micro-architecture):</strong> Under POSIX specifications and operating system implementations (Linux, macOS, Windows), <strong>a condition variable wait can return successfully even if NO thread signaled the condition variable</strong>!
+        <br>
+        Spurious wakeups occur due to low-level kernel implementation constraints: OS signals (such as <code>SIGINT</code> or <code>SIGALRM</code>) interrupting a sleep primitive, multi-core cache invalidation races in the futex hash table, or context switch preemption during wait queue rebalancing.
+      </li>
+    </ol>
+    <div class="math-callout">
+      <strong>The Immutable Rule of Condition Variables:</strong>
+      <pre><code><span class="syn-cmt">/* NEVER WRITE THIS (BUG): */</span>
+<span class="syn-kw">if</span> (!condition_is_met) {
+    <span class="syn-fn">pthread_cond_wait</span>(&amp;cond, &amp;mutex);
+}
+
+<span class="syn-cmt">/* ALWAYS WRITE THIS (CORRECT &amp; SAFE): */</span>
+<span class="syn-kw">while</span> (!condition_is_met) {
+    <span class="syn-fn">pthread_cond_wait</span>(&amp;cond, &amp;mutex);
+}</code></pre>
+    </div>"""
+
+def update_section_four():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -258,32 +299,32 @@ def update_section_three():
         if style_end != -1:
             content = content[:style_end] + "\n" + SYNTAX_CSS + "\n  " + content[style_end:]
 
-    # 2. Locate Section 3 boundaries
-    start_marker = "<h3>3. Kernel Sleep Queues &amp; Linux Futexes</h3>"
-    end_marker = "<!-- Interactive Aid: Linux Futex Fast-Path vs Slow-Path -->"
+    # 2. Locate Section 4 boundaries
+    start_marker = "<h3>4. Monitors &amp; Condition Variables</h3>"
+    end_marker = '<nav class="nav-bar" style="margin-top: 36px;'
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 3 boundaries in Module 03.")
+        print("Error: Could not locate Section 4 boundaries in Module 03.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_THREE + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_FOUR + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 4 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 3 in Module 03 with Linux futex architecture and hash queues\n\n"
-            "Detail fast/slow path mechanics, FUTEX_WAIT check-and-sleep validation,\n"
-            "global hash bucket wait queues, FUTEX_REQUEUE, and add an SVG diagram."
+            "Expand Section 4 of Module 03 with monitor mechanics and signaling models\n\n"
+            "Detail Hoare vs. Mesa semantics, condition variable wait/signal atomicity,\n"
+            "spurious wakeups, the while-loop invariant, and add an SVG monitor diagram."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -292,5 +333,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_three():
+    if update_section_four():
         run_git_sync()
