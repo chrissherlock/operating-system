@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Incorporate Dining Philosophers Simulator into Week 6
+# fix.py: Incorporate Database Deadlock Simulator into Week 6
 # =====================================================================
 import os
 import subprocess
 
 TARGET_DIR = "week06-synchronization-and-deadlock"
-TARGET_FILE = os.path.join(TARGET_DIR, "dining-philosophers.html")
+TARGET_FILE = os.path.join(TARGET_DIR, "database-deadlock.html")
 
 SIMULATOR_HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dining Philosophers Simulator (Tanenbaum vs. Deadlock) - COSC240</title>
+    <title>Database Deadlock Simulator - COSC240</title>
     <style>
         :root {
             --primary: #0f172a;
@@ -32,8 +32,8 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
             font-family: var(--font-sans);
             background-color: var(--bg);
             color: var(--text);
-            max-width: 1200px;
-            margin: 20px auto;
+            max-width: 1000px;
+            margin: 30px auto;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.06);
@@ -49,148 +49,119 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
         p.instruction {
             text-align: center;
             color: var(--text-muted);
-            margin-bottom: 20px;
-        }
-        .generator-controls {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            font-size: 0.95em;
+            margin-bottom: 25px;
         }
         #alert-banner {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto 20px auto;
-            padding: 12px 15px;
+            padding: 15px;
             border-radius: 6px;
             text-align: center;
             font-weight: 600;
-            font-size: 0.95em;
-            display: none;
-        }
-        #alert-banner.safe-alert {
+            font-size: 1.05em;
             background-color: #f0fdf4;
             color: #166534;
             border: 1px solid #bbf7d0;
-            display: block;
+            transition: all 0.3s;
         }
-        #alert-banner.deadlock-alert {
+        #alert-banner.deadlock {
             background-color: #fee2e2;
             color: #991b1b;
             border: 1px solid #fecaca;
-            display: block;
         }
-        .main-container {
+        #alert-banner.resolved {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .grid-container {
             display: flex;
-            gap: 30px;
+            gap: 20px;
             flex-wrap: wrap;
         }
-        .visual-side, .code-side {
+        .column {
             flex: 1;
-            min-width: 450px;
-        }
-        .table-container {
-            position: relative;
-            width: 440px;
-            height: 440px;
-            margin: 0 auto;
-            border: 4px dashed var(--border);
-            border-radius: 50%;
-            background: #f8fafc;
-        }
-        .philosopher {
-            position: absolute;
-            width: 85px;
-            height: 85px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 2px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8em;
-            font-weight: 700;
-            transition: background 0.3s, transform 0.3s;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            z-index: 2;
-        }
-        .philosopher.thinking { background-color: #f8fafc; color: var(--text-muted); }
-        .philosopher.hungry { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
-        .philosopher.eating { background-color: #dcfce7; color: #166534; border-color: #22c55e; transform: scale(1.05); }
-        .philosopher.deadlocked { background-color: #fee2e2; color: #991b1b; border-color: #ef4444; }
-
-        #phil-0 { top: 10px; left: 177px; }
-        #phil-1 { top: 130px; left: 340px; }
-        #phil-2 { top: 310px; left: 275px; }
-        #phil-3 { top: 310px; left: 80px; }
-        #phil-4 { top: 130px; left: 15px; }
-
-        .fork {
-            position: absolute;
-            width: 32px;
-            height: 32px;
-            background: #cbd5e1;
-            color: var(--primary);
-            border-radius: 50%;
-            font-size: 0.7em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            z-index: 1;
-        }
-        .fork.in-use {
-            background: #16a34a;
-            color: #ffffff;
-            transform: scale(1.15);
-            box-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-        }
-
-        #fork-0 { top: 65px; left: 280px; }
-        #fork-1 { top: 240px; left: 360px; }
-        #fork-2 { top: 375px; left: 200px; }
-        #fork-3 { top: 240px; left: 50px; }
-        #fork-4 { top: 65px; left: 120px; }
-
-        .code-box {
-            background: #0f172a;
-            color: #e2e8f0;
-            padding: 16px;
+            min-width: 300px;
+            background: #fdfefe;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            font-family: var(--font-mono);
-            font-size: 0.85em;
-            line-height: 1.6;
-            overflow-x: auto;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .column h3 {
+            margin-top: 0;
+            text-align: center;
+            font-size: 1.05em;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 6px;
+            overflow: hidden;
             border: 1px solid var(--border);
         }
-        .code-line { padding: 2px 4px; border-radius: 3px; }
-        .legend {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 24px;
-            font-size: 0.85em;
+        th, td {
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: center;
+            font-size: 0.95em;
         }
-        .legend-item { display: flex; align-items: center; gap: 6px; }
-        .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .lock-status {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .locked-a { background-color: #e0f2fe; color: #0369a1; font-weight: 700; }
+        .locked-b { background-color: #f3e8ff; color: #6b21a8; font-weight: 700; }
+
+        .code-line {
+            font-family: var(--font-mono);
+            font-size: 0.82em;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            background: #f8fafc;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .code-line.active-a { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700; }
+        .code-line.active-b { background: #f3e8ff; color: #6b21a8; border-color: #e9d5ff; font-weight: 700; }
+        .code-line.waiting { background: #fee2e2; color: #991b1b; border-color: #fecaca; font-weight: 700; border-style: dashed; }
+        .code-line.aborted { background: #f1f5f9; color: #94a3b8; text-decoration: line-through; }
+        .code-line.success { background: #dcfce7; color: #166534; border-color: #bbf7d0; font-weight: 700; }
+
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
         button {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 10px 20px;
             font-size: 0.95em;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
             transition: background 0.15s;
+            margin: 0 8px;
         }
         button:hover { background-color: var(--accent); }
-        button.deadlock-btn { background-color: #dc2626; }
-        button.deadlock-btn:hover { background-color: #b91c1c; }
+        button:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        button.btn-reset { background-color: #64748b; }
+        button.btn-reset:hover { background-color: #475569; }
 
         .module-nav-bar {
             display: flex;
@@ -222,257 +193,194 @@ SIMULATOR_HTML = r"""<!DOCTYPE html>
 </head>
 <body>
 <nav class="module-nav-bar">
-    <a href="deadlock-detector.html" class="module-nav-btn">&larr; Deadlock Detector</a>
+    <a href="dining-philosophers.html" class="module-nav-btn">&larr; Dining Philosophers</a>
     <a href="index.html" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #ffffff; border: 1px solid var(--border); border-radius: 6px; color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.85rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&#127968; Week 6 Hub</a>
     <a href="ipc-deadlock.html" class="module-nav-btn">IPC Deadlock &rarr;</a>
 </nav>
 
-    <h2>Dining Philosophers Problem</h2>
-    <p class="instruction">Compare Tanenbaum's deadlock-free solution against the classic naive algorithm that causes total deadlock.</p>
+    <h2>Database Transaction Deadlock Simulator</h2>
+    <p class="instruction">Step through time to watch two concurrent database transactions acquire row-level locks, enter a circular wait, and trigger a DBMS rollback.</p>
 
-    <div class="generator-controls">
-        <button onclick="switchMode('safe')">Run Tanenbaum Solution (Safe)</button>
-        <button class="deadlock-btn" onclick="switchMode('deadlock')">Trigger Naive Deadlock Algorithm</button>
+    <div id="alert-banner">Step 0: Transactions initialized. Click "Execute Next Time Step" to begin executing SQL statements.</div>
+
+    <div class="grid-container">
+        <!-- Transaction A -->
+        <div class="column" style="border-top: 4px solid #0284c7;">
+            <h3>Transaction A (Transfer $100)</h3>
+            <div id="ta-1" class="code-line">BEGIN TRANSACTION;</div>
+            <div id="ta-2" class="code-line">UPDATE Accounts SET bal = bal - 100 WHERE id = 101;</div>
+            <div id="ta-3" class="code-line">UPDATE Accounts SET bal = bal + 100 WHERE id = 102;</div>
+            <div id="ta-4" class="code-line">COMMIT;</div>
+        </div>
+
+        <!-- Database State -->
+        <div class="column">
+            <h3>Database: Accounts Table</h3>
+            <table>
+                <tr>
+                    <th>Account ID</th>
+                    <th>Balance</th>
+                    <th>Row Lock Status</th>
+                </tr>
+                <tr id="row-101">
+                    <td>101 (Alice)</td>
+                    <td id="bal-101">$500</td>
+                    <td id="lock-101" class="lock-status">Unlocked</td>
+                </tr>
+                <tr id="row-102">
+                    <td>102 (Bob)</td>
+                    <td id="bal-102">$500</td>
+                    <td id="lock-102" class="lock-status">Unlocked</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Transaction B -->
+        <div class="column" style="border-top: 4px solid #7c3aed;">
+            <h3>Transaction B (Transfer $50)</h3>
+            <div id="tb-1" class="code-line">BEGIN TRANSACTION;</div>
+            <div id="tb-2" class="code-line">UPDATE Accounts SET bal = bal - 50 WHERE id = 102;</div>
+            <div id="tb-3" class="code-line">UPDATE Accounts SET bal = bal + 50 WHERE id = 101;</div>
+            <div id="tb-4" class="code-line">COMMIT;</div>
+        </div>
     </div>
 
-    <!-- Alert Status Banner -->
-    <div id="alert-banner"></div>
-
-    <div class="main-container">
-        <!-- Visual Table Side -->
-        <div class="visual-side">
-            <div class="table-container">
-                <!-- 5 Forks -->
-                <div id="fork-0" class="fork">F0</div>
-                <div id="fork-1" class="fork">F1</div>
-                <div id="fork-2" class="fork">F2</div>
-                <div id="fork-3" class="fork">F3</div>
-                <div id="fork-4" class="fork">F4</div>
-
-                <!-- 5 Philosophers -->
-                <div id="phil-0" class="philosopher thinking">P0<br><span class="p-status">Thinking</span></div>
-                <div id="phil-1" class="philosopher thinking">P1<br><span class="p-status">Thinking</span></div>
-                <div id="phil-2" class="philosopher thinking">P2<br><span class="p-status">Thinking</span></div>
-                <div id="phil-3" class="philosopher thinking">P3<br><span class="p-status">Thinking</span></div>
-                <div id="phil-4" class="philosopher thinking">P4<br><span class="p-status">Thinking</span></div>
-            </div>
-
-            <div class="legend">
-                <div class="legend-item"><div class="legend-color" style="background: #f8fafc; border: 1px solid var(--border);"></div> Thinking</div>
-                <div class="legend-item"><div class="legend-color" style="background: #fef3c7;"></div> Hungry</div>
-                <div class="legend-item"><div class="legend-color" style="background: #dcfce7;"></div> Eating</div>
-                <div class="legend-item"><div class="legend-color" style="background: #fee2e2;"></div> Deadlocked</div>
-            </div>
-        </div>
-
-        <!-- Code Inspection Side -->
-        <div class="code-side">
-            <h3 id="code-title" style="margin-top:0; font-size:1.1rem; color:var(--primary);">Annotated Solution Code (Tanenbaum Fig 2-46)</h3>
-            <div class="code-box" id="code-display"></div>
-        </div>
+    <div class="controls">
+        <button id="btn-next" onclick="nextStep()">Execute Next Time Step &rarr;</button>
+        <button class="btn-reset" onclick="resetSim()">Reset Simulation</button>
     </div>
 
 <script>
-    const N = 5;
-    const THINKING = 0, HUNGRY = 1, EATING = 2, DEADLOCKED = 3;
-    let state = [THINKING, THINKING, THINKING, THINKING, THINKING];
-    let running = true;
-    let currentMode = 'safe';
-    let threadIdCounter = 0;
+    let step = 0;
 
-    const safeCodeHTML = `
-<div class="code-line">void take_forks(int i) {</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;down(&amp;mutex);             /* enter critical region */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;state[i] = HUNGRY;         /* record hunger */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;test(i);                   /* try to acquire 2 forks */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;up(&amp;mutex);                /* exit critical region */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;down(&amp;s[i]);               /* block if forks denied */</div>
-<div class="code-line">}</div>
-<div class="code-line">void put_forks(int i) {</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;down(&amp;mutex);              /* enter critical region */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;state[i] = THINKING;       /* finished eating */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;test(LEFT);                /* let left neighbor eat */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;test(RIGHT);               /* let right neighbor eat */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;up(&amp;mutex);                /* exit critical region */</div>
-<div class="code-line">}</div>`;
+    function resetUI() {
+        document.querySelectorAll('.code-line').forEach(el => {
+            el.className = 'code-line';
+        });
 
-    const deadlockCodeHTML = `
-<div class="code-line">void philosopher(int i) {</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;while(true) {</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;think();</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grab(left_fork[i]);   /* Naive: grab left fork first */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;grab(right_fork[i]);  /* DEADLOCK: Right fork held by neighbor! */</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;eat();</div>
-<div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;}</div>
-<div class="code-line">}</div>`;
+        document.getElementById('row-101').className = '';
+        document.getElementById('row-102').className = '';
+        document.getElementById('lock-101').innerText = 'Unlocked';
+        document.getElementById('lock-102').innerText = 'Unlocked';
+        document.getElementById('bal-101').innerText = '$500';
+        document.getElementById('bal-102').innerText = '$500';
 
-    function LEFT(i) { return (i + N - 1) % N; }
-    function RIGHT(i) { return (i + 1) % N; }
-
-    function showAlert(message, isDeadlock) {
         const banner = document.getElementById('alert-banner');
-        banner.className = isDeadlock ? 'deadlock-alert' : 'safe-alert';
-        banner.innerText = message;
+        banner.className = '';
+        banner.innerText = 'Step 0: Transactions initialized. Click "Execute Next Time Step" to begin.';
+
+        document.getElementById('btn-next').disabled = false;
     }
 
-    function switchMode(mode) {
-        running = false;
-        threadIdCounter++;
-        currentMode = mode;
-        state = [THINKING, THINKING, THINKING, THINKING, THINKING];
+    function setLineState(id, stateClass) {
+        document.getElementById(id).classList.add(stateClass);
+    }
 
-        const codeDisplay = document.getElementById('code-display');
-        const codeTitle = document.getElementById('code-title');
+    function removeLineState(id, stateClass) {
+        document.getElementById(id).classList.remove(stateClass);
+    }
 
-        if (mode === 'safe') {
-            codeTitle.innerText = "Annotated Solution Code (Tanenbaum Fig 2-46)";
-            codeDisplay.innerHTML = safeCodeHTML;
-            showAlert("Running Tanenbaum Solution: Deadlock-free concurrent execution.", false);
-            running = true;
-            startSafeThreads(threadIdCounter);
-        } else {
-            codeTitle.innerText = "Naive Algorithm (Causes Total Deadlock)";
-            codeDisplay.innerHTML = deadlockCodeHTML;
-            showAlert("⚠️ TOTAL DEADLOCK DETECTED! All 5 philosophers grabbed their left fork simultaneously and are permanently blocked waiting for the right fork.", true);
-            running = true;
-            startDeadlockThreads(threadIdCounter);
+    function nextStep() {
+        step++;
+        const banner = document.getElementById('alert-banner');
+
+        if (step === 1) {
+            setLineState('ta-1', 'active-a');
+            setLineState('tb-1', 'active-b');
+            banner.innerText = "Step 1: Both transactions begin concurrently.";
         }
-        updateForks();
-    }
+        else if (step === 2) {
+            removeLineState('ta-1', 'active-a');
+            removeLineState('tb-1', 'active-b');
 
-    async function startSafeThreads(myToken) {
-        for (let i = 0; i < N; i++) {
-            safePhilosopherThread(i, myToken);
+            setLineState('ta-2', 'active-a');
+            document.getElementById('row-101').className = 'locked-a';
+            document.getElementById('lock-101').innerText = 'Exclusive Lock (Tx A)';
+            document.getElementById('bal-101').innerText = '$400';
+
+            banner.innerText = "Step 2: Transaction A locks Row 101 and deducts $100.";
         }
-    }
+        else if (step === 3) {
+            removeLineState('ta-2', 'active-a');
 
-    async function safePhilosopherThread(i, myToken) {
-        await sleep(i * 300);
-        while (running && currentMode === 'safe' && myToken === threadIdCounter) {
-            updateUI(i, THINKING);
-            await sleep(rand(2000, 4000));
-            if (!running || myToken !== threadIdCounter) break;
+            setLineState('tb-2', 'active-b');
+            document.getElementById('row-102').className = 'locked-b';
+            document.getElementById('lock-102').innerText = 'Exclusive Lock (Tx B)';
+            document.getElementById('bal-102').innerText = '$450';
 
-            updateUI(i, HUNGRY);
-            state[i] = HUNGRY;
-            updateForks();
-            await sleep(500);
-
-            test(i);
-            updateUI(i, state[i]);
-            updateForks();
-            await sleep(500);
-
-            while (state[i] !== EATING && running && currentMode === 'safe' && myToken === threadIdCounter) {
-                await sleep(200);
-            }
-            if (!running || myToken !== threadIdCounter) break;
-
-            updateUI(i, EATING);
-            updateForks();
-            await sleep(rand(2000, 3500));
-            if (!running || myToken !== threadIdCounter) break;
-
-            state[i] = THINKING;
-            updateForks();
-            test(LEFT(i));
-            test(RIGHT(i));
-            updateForks();
-            await sleep(500);
+            banner.innerText = "Step 3: Transaction B concurrently locks Row 102 and deducts $50.";
         }
-    }
+        else if (step === 4) {
+            removeLineState('tb-2', 'active-b');
 
-    async function startDeadlockThreads(myToken) {
-        for (let i = 0; i < N; i++) {
-            deadlockPhilosopherThread(i, myToken);
+            setLineState('ta-3', 'waiting');
+            banner.innerText = "Step 4: Transaction A attempts to lock Row 102, but must WAIT because Transaction B holds the lock.";
         }
-    }
+        else if (step === 5) {
+            setLineState('tb-3', 'waiting');
 
-    async function deadlockPhilosopherThread(i, myToken) {
-        updateUI(i, THINKING);
-        await sleep(rand(400, 1000));
-        if (!running || myToken !== threadIdCounter) return;
-
-        state[i] = DEADLOCKED;
-        updateUI(i, DEADLOCKED);
-        updateForks();
-    }
-
-    function test(i) {
-        if (state[i] === HUNGRY && state[LEFT(i)] !== EATING && state[RIGHT(i)] !== EATING) {
-            state[i] = EATING;
+            banner.className = 'deadlock';
+            banner.innerText = "Step 5: DEADLOCK! Transaction B attempts to lock Row 101 but must WAIT on Transaction A. Circular wait detected.";
         }
-    }
+        else if (step === 6) {
+            setLineState('tb-1', 'aborted');
+            setLineState('tb-2', 'aborted');
+            setLineState('tb-3', 'aborted');
+            setLineState('tb-4', 'aborted');
+            removeLineState('tb-3', 'waiting');
 
-    function updateUI(philIndex, st) {
-        const el = document.getElementById(`phil-${philIndex}`);
-        if (!el) return;
-        const statusSpan = el.querySelector('.p-status');
+            document.getElementById('row-102').className = '';
+            document.getElementById('lock-102').innerText = 'Unlocked';
+            document.getElementById('bal-102').innerText = '$500';
 
-        el.className = 'philosopher ';
-        if (st === THINKING) {
-            el.classList.add('thinking');
-            statusSpan.innerText = "Thinking";
-        } else if (st === HUNGRY) {
-            el.classList.add('hungry');
-            statusSpan.innerText = "Left Fork OK";
-        } else if (st === EATING) {
-            el.classList.add('eating');
-            statusSpan.innerText = "Eating";
-        } else if (st === DEADLOCKED) {
-            el.classList.add('deadlocked');
-            statusSpan.innerText = "Deadlocked!";
+            banner.className = 'resolved';
+            banner.innerText = "Step 6: DBMS Deadlock Detector intervenes! It ABORTS and ROLLS BACK Transaction B, releasing its locks.";
+        }
+        else if (step === 7) {
+            removeLineState('ta-3', 'waiting');
+            setLineState('ta-3', 'active-a');
+
+            document.getElementById('row-102').className = 'locked-a';
+            document.getElementById('lock-102').innerText = 'Exclusive Lock (Tx A)';
+            document.getElementById('bal-102').innerText = '$600';
+
+            banner.className = '';
+            banner.innerText = "Step 7: Because Row 102 is now free, Transaction A successfully acquires the lock and continues.";
+        }
+        else if (step === 8) {
+            removeLineState('ta-3', 'active-a');
+            setLineState('ta-4', 'success');
+
+            document.getElementById('row-101').className = '';
+            document.getElementById('row-102').className = '';
+            document.getElementById('lock-101').innerText = 'Unlocked';
+            document.getElementById('lock-102').innerText = 'Unlocked';
+
+            banner.innerText = "Step 8: Transaction A COMMITs successfully and releases all locks. Transaction B can now be safely retried.";
+            document.getElementById('btn-next').disabled = true;
         }
     }
 
-    function updateForks() {
-        for (let f = 0; f < N; f++) {
-            let forkEl = document.getElementById(`fork-${f}`);
-            if (!forkEl) continue;
-
-            if (currentMode === 'safe') {
-                let leftNeighbor = f;
-                let rightNeighbor = (f - 1 + N) % N;
-                if (state[leftNeighbor] === EATING || state[rightNeighbor] === EATING) {
-                    forkEl.classList.add('in-use');
-                } else {
-                    forkEl.classList.remove('in-use');
-                }
-            } else {
-                if (state[f] === DEADLOCKED) {
-                    forkEl.classList.add('in-use');
-                } else {
-                    forkEl.classList.remove('in-use');
-                }
-            }
-        }
+    function resetSim() {
+        step = 0;
+        resetUI();
     }
-
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    function rand(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    switchMode('safe');
 </script>
 
 <nav class="module-nav-bar bottom">
-    <a href="deadlock-detector.html" class="module-nav-btn">&larr; Deadlock Detector</a>
+    <a href="dining-philosophers.html" class="module-nav-btn">&larr; Dining Philosophers</a>
     <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Week 6: Synchronization &amp; Deadlock</span>
-    <a href="ipc-deadlock.html" class="module-nav-btn">IPC Deadlock &rarr;</a>
+    <a href="deadlock-detector.html" class="module-nav-btn">Next: Deadlock Detector &rarr;</a>
 </nav>
 </body>
 </html>
 """
 
-def update_dining():
+def update_database_deadlock():
     os.makedirs(TARGET_DIR, exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(SIMULATOR_HTML.strip() + "\n")
-    print(f"--> Successfully updated dining philosophers simulator at {TARGET_FILE}")
+    print(f"--> Successfully updated database deadlock simulator at {TARGET_FILE}")
 
 def run_git_sync():
     status = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
@@ -483,9 +391,9 @@ def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Incorporate Dining Philosophers Simulator sandbox into Week 6\n\n"
-            "Add interactive Dining Philosophers simulation comparing Tanenbaum's\n"
-            "deadlock-free solution against the naive circular deadlock algorithm."
+            "Incorporate Database Deadlock Simulator sandbox into Week 6\n\n"
+            "Add interactive database transaction deadlock simulator illustrating row-level\n"
+            "locking, circular wait, DBMS deadlock detection, and transaction rollback."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -494,5 +402,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    update_dining()
+    update_database_deadlock()
     run_git_sync()
