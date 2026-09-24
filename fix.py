@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Deeply expand Section 2 of 04-raid-architectures.html
+# fix.py: Deeply expand Section 3 of 04-raid-architectures.html
 # =====================================================================
 import os
 import subprocess
@@ -10,453 +10,358 @@ TARGET_FILE = os.path.join(
     "04-raid-architectures.html"
 )
 
-EXPANDED_SECTION_TWO = r"""    <h3>2. Taxonomy of Standard RAID Levels</h3>
+EXPANDED_SECTION_THREE_PRE_AID = r"""    <h3>3. Mathematical Foundations: XOR Parity &amp; The URE Rebuild Crisis</h3>
     <p>
-      The 1988 Berkeley paper established five canonical RAID levels (RAID 1 through RAID 5). In the decades since, the storage industry codified non-redundant striping as RAID 0, introduced dual-parity RAID 6 to survive multi-terabyte rebuild failures, and developed nested topologies such as RAID 10.
+      At the core of redundant storage arrays lies discrete linear algebra. Rather than paying the 100% capacity overhead of full physical mirroring, parity-based architectures (RAID 4, 5, and 6) exploit algebraic invariants to reconstruct missing information from surviving physical channels.
     </p>
     <p>
-      Each RAID level embodies a fundamentally different mathematical strategy for laying out data blocks and error-correcting codes across physical disk spindles:
+      However, the mathematical assumptions established in the 1988 Berkeley paper assumed small mechanical drives (20 MB to 100 MB). In modern architectures with 16 TB to 24 TB physical disks, the physical interaction between long rebuild times and magnetic recording noise introduces a catastrophic failure phenomenon known as the <strong>Unrecoverable Read Error (URE) Rebuild Crisis</strong>.
     </p>
 
-    <!-- Structural Diagram: Comprehensive RAID Topology Matrix -->
+    <!-- Structural Diagram: URE Rebuild Collision vs RAID 6 Rescue -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0;">
-      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.1: Block Allocation Mapping Across Standard RAID Architectures</div>
-      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Comparing non-redundant striping, mirroring, dedicated parity bottlenecks, rotating distributed parity, and dual P+Q fault tolerance.</div>
+      <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 4.2: The URE Rebuild Collision &mdash; Single Parity Collapse vs. Galois Field Q Rescue</div>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;">Why a secondary bad sector during a RAID 5 rebuild permanently destroys data, and how RAID 6 solves the dual-unknown equation.</div>
 
-      <svg viewBox="0 0 760 260" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <!-- RAID 0 -->
-        <g transform="translate(10, 15)">
-          <rect width="135" height="230" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="67" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#0284c7">RAID 0: STRIPING</text>
-          <text x="67" y="34" text-anchor="middle" font-size="7" fill="#dc2626">0 Redundancy &bull; 0 Faults</text>
+      <svg viewBox="0 0 760 270" style="width: 100%; height: auto; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <defs>
+          <marker id="ure-arr-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
+          </marker>
+          <marker id="ure-arr-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
+          </marker>
+          <marker id="ure-arr-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
+          </marker>
+        </defs>
 
-          <rect x="12" y="44" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="37" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A0</text>
-          <rect x="72" y="44" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="97" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
+        <!-- Column 1: RAID 5 URE Rebuild Trap (Left) -->
+        <g transform="translate(15, 20)">
+          <rect width="345" height="230" rx="8" fill="#f8fafc" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="172" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">RAID 5: REBUILD COLLISION (TOTAL LOSS)</text>
+          <text x="172" y="38" text-anchor="middle" font-size="7.5" fill="#dc2626">1 Dead Drive + 1 URE = 2 Unknowns (Unsolvable)</text>
 
-          <rect x="12" y="74" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="37" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B0</text>
-          <rect x="72" y="74" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="97" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
+          <!-- Drive Bay Strip -->
+          <g transform="translate(15, 52)">
+            <!-- Disk 0 (Online) -->
+            <rect x="0" y="0" width="70" height="60" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="35" y="16" text-anchor="middle" font-size="7" font-weight="700" fill="#334155">DISK 0</text>
+            <rect x="5" y="22" width="60" height="18" rx="2" fill="#e0f2fe"/>
+            <text x="35" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">A0 = 1011</text>
+            <text x="35" y="52" text-anchor="middle" font-size="6.5" fill="#059669">&#10003; Read OK</text>
 
-          <text x="37" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 0</text>
-          <text x="97" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 1</text>
+            <!-- Disk 1 (Dead) -->
+            <rect x="80" y="0" width="70" height="60" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="115" y="16" text-anchor="middle" font-size="7" font-weight="700" fill="#dc2626">DISK 1</text>
+            <rect x="85" y="22" width="60" height="18" rx="2" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="2 2"/>
+            <text x="115" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#94a3b8">A1 = ?</text>
+            <text x="115" y="52" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">&times; DEAD</text>
 
-          <rect x="10" y="132" width="115" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="67" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: N &times; C (100%)</text>
-          <text x="67" y="162" text-anchor="middle" font-size="7" fill="#059669">Throughput: N &times;</text>
+            <!-- Disk 2 (URE Bad Sector!) -->
+            <rect x="160" y="0" width="75" height="60" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="197" y="16" text-anchor="middle" font-size="7" font-weight="700" fill="#dc2626">DISK 2</text>
+            <rect x="165" y="22" width="65" height="18" rx="2" fill="#dc2626"/>
+            <text x="197" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#ffffff">URE SECTOR!</text>
+            <text x="197" y="52" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">&times; A2 = ?</text>
+
+            <!-- Disk 3 (Parity) -->
+            <rect x="245" y="0" width="70" height="60" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="280" y="16" text-anchor="middle" font-size="7" font-weight="700" fill="#334155">DISK 3</text>
+            <rect x="250" y="22" width="60" height="18" rx="2" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="280" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#991b1b">Ap = 1101</text>
+            <text x="280" y="52" text-anchor="middle" font-size="6.5" fill="#059669">&#10003; Read OK</text>
+          </g>
+
+          <!-- Algebraic Failure Box -->
+          <rect x="15" y="125" width="315" height="90" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="25" y="142" font-size="7.5" font-weight="700" fill="#dc2626">ALGEBRAIC IMPOSSIBILITY IN GF(2):</text>
+          <text x="25" y="158" font-family="var(--font-mono)" font-size="7.5" fill="#334155">Equation: A0 &oplus; <tspan fill="#dc2626" font-weight="700">A1</tspan> &oplus; <tspan fill="#dc2626" font-weight="700">A2</tspan> = Ap</text>
+          <text x="25" y="174" font-family="var(--font-mono)" font-size="7.5" fill="#334155">&rarr; 1011 &oplus; <tspan fill="#dc2626" font-weight="700">A1</tspan> &oplus; <tspan fill="#dc2626" font-weight="700">A2</tspan> = 1101 &implies; <tspan fill="#dc2626" font-weight="700">A1 &oplus; A2 = 0110</tspan></text>
+          <text x="25" y="190" font-size="7" fill="#dc2626">1 Equation, 2 Unknowns &rarr; Infinite solutions!</text>
+          <text x="25" y="204" font-size="7" font-weight="700" fill="#991b1b">&times; ARRAY ABORTS &bull; REBUILD FAILS &bull; DATA DESTROYED</text>
         </g>
 
-        <!-- RAID 1 -->
-        <g transform="translate(155, 15)">
-          <rect width="135" height="230" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="67" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#059669">RAID 1: MIRROR</text>
-          <text x="67" y="34" text-anchor="middle" font-size="7" fill="#166534">Tolerates 1 Fault</text>
+        <!-- Column 2: RAID 6 Dual-Parity Rescue (Right) -->
+        <g transform="translate(385, 20)">
+          <rect width="360" height="230" rx="8" fill="#f8fafc" stroke="#059669" stroke-width="2"/>
+          <text x="180" y="24" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">RAID 6: GALOIS FIELD RESCUE (DATA SAVED)</text>
+          <text x="180" y="38" text-anchor="middle" font-size="7.5" fill="#166534">Dual Parity (P + Q) Solves 2 Independent Equations</text>
 
-          <rect x="12" y="44" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="37" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A0</text>
-          <rect x="72" y="44" width="50" height="26" rx="2" fill="#fef3c7" stroke="#d97706"/>
-          <text x="97" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#b45309">A0 (Mir)</text>
+          <!-- Drive Bay Strip -->
+          <g transform="translate(15, 52)">
+            <!-- Disk 0 -->
+            <rect x="0" y="0" width="58" height="60" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="29" y="16" text-anchor="middle" font-size="6.5" font-weight="700" fill="#334155">D0</text>
+            <text x="29" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6" fill="#0369a1">A0: OK</text>
 
-          <rect x="12" y="74" width="50" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="37" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B0</text>
-          <rect x="72" y="74" width="50" height="26" rx="2" fill="#fef3c7" stroke="#d97706"/>
-          <text x="97" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#b45309">B0 (Mir)</text>
+            <!-- Disk 1 (Dead) -->
+            <rect x="66" y="0" width="58" height="60" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="95" y="16" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">D1 [Dead]</text>
+            <text x="95" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6" fill="#dc2626">A1 = ?</text>
 
-          <text x="37" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 0 (Pri)</text>
-          <text x="97" y="118" text-anchor="middle" font-size="7" font-weight="700" fill="#475569">Disk 1 (Mir)</text>
+            <!-- Disk 2 (URE) -->
+            <rect x="132" y="0" width="58" height="60" rx="3" fill="#fee2e2" stroke="#dc2626"/>
+            <text x="161" y="16" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">D2 [URE]</text>
+            <text x="161" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6" fill="#dc2626">A2 = ?</text>
 
-          <rect x="10" y="132" width="115" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="67" y="148" text-anchor="middle" font-size="7" fill="#dc2626">Cap: 50% (High Cost)</text>
-          <text x="67" y="162" text-anchor="middle" font-size="7" fill="#059669">Read: 2 &times; IOPS</text>
-        </g>
+            <!-- Disk 3 (P) -->
+            <rect x="198" y="0" width="62" height="60" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="229" y="16" text-anchor="middle" font-size="6.5" font-weight="700" fill="#334155">D3 [P-Par]</text>
+            <text x="229" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6" fill="#991b1b">P: Valid</text>
 
-        <!-- RAID 4 -->
-        <g transform="translate(300, 15)">
-          <rect width="145" height="230" rx="6" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-          <text x="72" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#d97706">RAID 4: FIXED PARITY</text>
-          <text x="72" y="34" text-anchor="middle" font-size="7" fill="#dc2626">Parity Disk Bottleneck</text>
+            <!-- Disk 4 (Q) -->
+            <rect x="268" y="0" width="62" height="60" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
+            <text x="299" y="16" text-anchor="middle" font-size="6.5" font-weight="700" fill="#334155">D4 [Q-Par]</text>
+            <text x="299" y="34" text-anchor="middle" font-family="var(--font-mono)" font-size="6" fill="#b45309">Q: Valid</text>
+          </g>
 
-          <rect x="8" y="44" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="27" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">A0</text>
-          <rect x="52" y="44" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="71" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
-          <rect x="96" y="44" width="40" height="26" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="116" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Ap</text>
-
-          <rect x="8" y="74" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="27" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">B0</text>
-          <rect x="52" y="74" width="38" height="26" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="71" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
-          <rect x="96" y="74" width="40" height="26" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="116" y="90" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Bp</text>
-
-          <text x="27" y="118" text-anchor="middle" font-size="6.5" font-weight="700" fill="#475569">D0</text>
-          <text x="71" y="118" text-anchor="middle" font-size="6.5" font-weight="700" fill="#475569">D1</text>
-          <text x="116" y="118" text-anchor="middle" font-size="6.5" font-weight="700" fill="#dc2626">Parity</text>
-
-          <rect x="8" y="132" width="129" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="72" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: (N - 1) &times; C</text>
-          <text x="72" y="162" text-anchor="middle" font-size="7" fill="#dc2626">Small writes serialize!</text>
-        </g>
-
-        <!-- RAID 5 -->
-        <g transform="translate(455, 15)">
-          <rect width="145" height="230" rx="6" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5"/>
-          <text x="72" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#0284c7">RAID 5: ROTATING</text>
-          <text x="72" y="34" text-anchor="middle" font-size="7" fill="#166534">Distributed Parity &bull; Optimal</text>
-
-          <rect x="8" y="44" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="27" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">A0</text>
-          <rect x="52" y="44" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="71" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">A1</text>
-          <rect x="96" y="44" width="40" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="116" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Ap</text>
-
-          <rect x="8" y="72" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="27" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="7" fill="#0369a1">B0</text>
-          <rect x="52" y="72" width="38" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="71" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Bp</text>
-          <rect x="96" y="72" width="40" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="116" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">B1</text>
-
-          <rect x="8" y="100" width="38" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="27" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="7" font-weight="700" fill="#991b1b">Cp</text>
-          <rect x="52" y="100" width="38" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="71" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">C0</text>
-          <rect x="96" y="100" width="40" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="116" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="7.5" fill="#0369a1">C1</text>
-
-          <rect x="8" y="132" width="129" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="72" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: (N - 1) &times; C</text>
-          <text x="72" y="162" text-anchor="middle" font-size="7" fill="#059669">No Parity Bottleneck!</text>
-        </g>
-
-        <!-- RAID 6 -->
-        <g transform="translate(610, 15)">
-          <rect width="140" height="230" rx="6" fill="#f8fafc" stroke="#059669" stroke-width="1.5"/>
-          <text x="70" y="22" text-anchor="middle" font-size="9" font-weight="700" fill="#059669">RAID 6: DUAL PAR</text>
-          <text x="70" y="34" text-anchor="middle" font-size="7" fill="#166534">Tolerates 2 Faults</text>
-
-          <rect x="8" y="44" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="22" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">A0</text>
-          <rect x="40" y="44" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="54" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">A1</text>
-          <rect x="72" y="44" width="28" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="86" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#991b1b">Ap</text>
-          <rect x="104" y="44" width="28" height="24" rx="2" fill="#fef3c7" stroke="#d97706"/>
-          <text x="118" y="60" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#b45309">Aq</text>
-
-          <rect x="8" y="72" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="22" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">B0</text>
-          <rect x="40" y="72" width="28" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="54" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#991b1b">Bp</text>
-          <rect x="72" y="72" width="28" height="24" rx="2" fill="#fef3c7" stroke="#d97706"/>
-          <text x="86" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#b45309">Bq</text>
-          <rect x="104" y="72" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="118" y="88" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">B1</text>
-
-          <rect x="8" y="100" width="28" height="24" rx="2" fill="#fee2e2" stroke="#dc2626"/>
-          <text x="22" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#991b1b">Cp</text>
-          <rect x="40" y="100" width="28" height="24" rx="2" fill="#fef3c7" stroke="#d97706"/>
-          <text x="54" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" font-weight="700" fill="#b45309">Cq</text>
-          <rect x="72" y="100" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="86" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">C0</text>
-          <rect x="104" y="100" width="28" height="24" rx="2" fill="#e0f2fe" stroke="#0284c7"/>
-          <text x="118" y="116" text-anchor="middle" font-family="var(--font-mono)" font-size="6.5" fill="#0369a1">C1</text>
-
-          <rect x="8" y="132" width="124" height="42" rx="3" fill="#ffffff" stroke="#cbd5e1"/>
-          <text x="70" y="148" text-anchor="middle" font-size="7" fill="#475569">Cap: (N - 2) &times; C</text>
-          <text x="70" y="162" text-anchor="middle" font-size="7" fill="#166534">Survives URE during rebuild</text>
+          <!-- Algebraic Rescue Box -->
+          <rect x="15" y="125" width="330" height="90" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="25" y="142" font-size="7.5" font-weight="700" fill="#166534">LINEAR SYSTEM SOLVED IN GF(2^8):</text>
+          <text x="25" y="158" font-family="var(--font-mono)" font-size="7.5" fill="#334155">Eq 1: A1 &oplus; A2 = P &oplus; A0</text>
+          <text x="25" y="174" font-family="var(--font-mono)" font-size="7.5" fill="#334155">Eq 2: (g^1 &otimes; A1) &oplus; (g^2 &otimes; A2) = Q &oplus; (g^0 &otimes; A0)</text>
+          <text x="25" y="190" font-size="7" fill="#166534">2 Linearly Independent Equations &rarr; Unique Solution!</text>
+          <text x="25" y="204" font-size="7" font-weight="700" fill="#15803d">&#10003; BOTH MISSING BLOCKS RESTORED &bull; ARRAY SURVIVES</text>
         </g>
       </svg>
     </div>
 
-    <h4>1. RAID 0: Non-Redundant Block-Level Striping</h4>
+    <h4>1. Boolean XOR Algebraic Mechanics</h4>
     <p>
-      RAID 0 partitions user data into discrete chunks (e.g. 64 KB) and stripes them across <i>N</i> physical disks in pure round-robin sequence without calculating parity or storing redundant copies:
+      The exclusive-OR operator (denoted by &oplus; in Boolean algebra and <code>^</code> in C/C++) forms an <strong>Abelian (commutative) group</strong> over binary fields. Parity encoding and decoding rely on four elementary algebraic properties:
     </p>
-    <ul>
-      <li><strong>Usable Capacity:</strong> <i>N</i> &times; <i>C</i> (100% capacity efficiency). Zero storage is wasted on redundancy.</li>
-      <li><strong>Sequential Throughput:</strong> Scales linearly to <strong><i>N</i> &times; Single Disk Bandwidth</strong> for reads and writes.</li>
-      <li><strong>Random I/O Operations (IOPS):</strong> Scales to <strong><i>N</i> &times; IOPS</strong> because independent heads seek independently.</li>
-      <li>
-        <strong>The Fault Tolerance Disaster:</strong> RAID 0 has <strong>zero fault tolerance</strong>. If any single drive suffers hardware failure, unrecoverable media read error, or controller seizure, <strong>all data across the entire logical volume is permanently destroyed</strong>.
-        <br>
-        Because drive failures are statistically independent Poisson events, the array failure rate is additive, causing array Mean Time To Failure to drop precipitously:
-        <div class="math-callout" style="text-align: center;">
-          MTTF<sub>RAID 0</sub> = <sup>MTTF<sub>single</sub></sup>&frasl;<sub><i>N</i></sub>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0;">
+      <div style="background: #ffffff; border: 1px solid var(--border); border-left: 4px solid var(--accent); padding: 10px 14px; border-radius: 4px;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #0284c7;">1. Commutativity &amp; Associativity:</span>
+        <div style="font-family: var(--font-mono); font-size: 0.82rem; color: #1e293b; margin-top: 4px;">
+          <i>A</i> &oplus; <i>B</i> = <i>B</i> &oplus; <i>A</i><br>
+          (<i>A</i> &oplus; <i>B</i>) &oplus; <i>C</i> = <i>A</i> &oplus; (<i>B</i> &oplus; <i>C</i>)
         </div>
-        An array of 8 drives with an individual MTTF of 1,200,000 hours has an array MTTF of merely 150,000 hours (&asymp; 17 years). In a datacenter with 1,000 such arrays, one crashes every week!
-      </li>
-      <li><strong>Industrial Role:</strong> Ephemeral scratch disks, compiler build directories, GPU training caches, and video rendering swap spaces where raw speed dominates and data can be reconstructed from source.</li>
-    </ul>
-
-    <h4>2. RAID 1: Mirroring / Shadowing</h4>
-    <p>
-      RAID 1 guarantees reliability through pure duplication: every logical block is written simultaneously to two (or more) completely independent physical disks:
-    </p>
-    <ul>
-      <li><strong>Usable Capacity:</strong> <i>C</i> (50% capacity efficiency for 2-way mirroring). Storage cost per usable gigabyte is doubled.</li>
-      <li><strong>Write Throughput &amp; IOPS:</strong> Every write operation must be dispatched to both physical disks. Write throughput is bounded by the slowest disk in the mirror pair (1&times; speed).</li>
-      <li>
-        <strong>Read Optimization (Split-Head Scheduling):</strong> Because both disks hold identical data, the storage controller can schedule independent reads across both spindles in parallel:
-        <div class="math-callout" style="margin: 8px 0;">
-          <strong>Split-Head Seek Optimization:</strong> When an application issues a read for Sector <i>K</i>, the controller inspects the physical arm positions of both drives and dispatches the read to the head <strong>closest to the target cylinder</strong>, cutting average seek latency almost in half and achieving up to <strong>2 &times; Read IOPS</strong>!
-        </div>
-      </li>
-      <li><strong>Fault Tolerance:</strong> Survives the total death of any one disk. If Disk 0 fails, the controller immediately switches all I/O to Disk 1 with zero downtime and zero rebuild delay.</li>
-      <li><strong>Industrial Role:</strong> Operating system boot drives (EFI system partitions), database transaction log journals (WAL), and mission-critical financial ledgers.</li>
-    </ul>
-
-    <h4>3. RAID 2: Bit-Level Striping with Hamming Code ECC</h4>
-    <p>
-      Historically developed at UC Berkeley, RAID 2 stripes data at the <strong>individual bit level</strong> across data drives, computing error-correcting <strong>Hamming Codes</strong> recorded onto multiple dedicated parity drives:
-    </p>
-    <ul>
-      <li>For example, in a 4-data-drive setup, 3 additional parity drives were required to implement a (7, 4) Hamming Code capable of single-bit error correction and double-bit error detection.</li>
-      <li>All spindle motors had to be synchronized in lockstep rotation; all heads sought in unison.</li>
-      <li>
-        <strong>Why RAID 2 is Completely Obsolete:</strong>
-        RAID 2 was designed under the assumption that physical disks did not provide internal error detection. Modern Integrated Drive Electronics (IDE/ATA/SCSI/SATA/SAS) controllers embed sophisticated Reed-Solomon and Low-Density Parity-Check (LDPC) error correction directly onto every sector on the platter. The drive controller itself reports whether a read sector is valid or unrecoverable. Adding external Hamming parity in software or RAID hardware is completely redundant.
-      </li>
-    </ul>
-
-    <h4>4. RAID 3: Byte-Level Striping with Dedicated Parity</h4>
-    <p>
-      RAID 3 stripes data at the <strong>byte level</strong> across <i>N</i> - 1 data drives, storing Boolean XOR parity on a <strong>single dedicated parity disk</strong>:
-    </p>
-    <ul>
-      <li>Like RAID 2, RAID 3 requires synchronized spindles rotating in strict lockstep.</li>
-      <li>Every read or write access touches every single drive in the array simultaneously.</li>
-      <li><strong>The Bottleneck:</strong> While RAID 3 achieves massive transfer rates for a single sequential stream (e.g. historical uncompressed satellite imagery or video editing), it cannot service multiple I/O requests concurrently. The entire array delivers the random IOPS of <strong>exactly one single drive</strong> (Random IOPS &asymp; 1&times;).</li>
-      <li>Obsoleted by block-level striping architectures (RAID 5).</li>
-    </ul>
-
-    <h4>5. RAID 4: Block-Level Striping with Dedicated Parity Disk</h4>
-    <p>
-      RAID 4 advances beyond RAID 3 by striping data in coarse <strong>blocks</strong> (e.g. 64 KB) across <i>N</i> - 1 data disks, allowing independent reads to execute concurrently. Redundancy is provided by writing computed XOR parity to a <strong>single dedicated parity disk</strong>.
-    </p>
-    <p>
-      While independent reads scale to (<i>N</i> - 1) &times; IOPS, RAID 4 introduces an infamous architectural bottleneck during write operations:
-    </p>
-
-    <div class="math-callout" style="background: #fef2f2; border-left-color: #dc2626;">
-      <strong style="color: #991b1b;">The Small-Write Parity Disk Bottleneck (The 4&times; Read-Modify-Write Penalty)</strong>
-      <br>
-      Suppose an application updates a single 4 KB block on Disk 1 (transforming <i>D</i><sub>1 (old)</sub> into <i>D</i><sub>1 (new)</sub>).
-      <br>
-      The controller could recalculate parity by reading all other data disks (<i>D</i><sub>0</sub>, <i>D</i><sub>2</sub>, <i>D</i><sub>3</sub>) and computing the full stripe XOR sum. However, reading every disk in the array for a single block write is disastrously slow.
-      <br><br>
-      Instead, the controller calculates the new parity using the <strong>algebraic XOR difference</strong>:
-      <div style="margin: 8px 0; font-family: var(--font-mono); font-size: 0.88rem; color: #0f172a; text-align: center;">
-        <i>P</i><sub>new</sub> = ( <i>D</i><sub>1 (old)</sub> &oplus; <i>D</i><sub>1 (new)</sub> ) &oplus; <i>P</i><sub>old</sub>
       </div>
-      To execute this single-block write, the RAID controller must perform <strong>four distinct physical I/O operations (the Read-Modify-Write cycle)</strong>:
-      <ol style="margin: 6px 0 0 16px; padding: 0; font-size: 0.82rem;">
-        <li><strong>Read</strong> old data block <i>D</i><sub>1 (old)</sub> from Disk 1.</li>
-        <li><strong>Read</strong> old parity block <i>P</i><sub>old</sub> from the Dedicated Parity Disk.</li>
-        <li><strong>Calculate</strong> new parity in memory: <i>P</i><sub>new</sub> = (<i>D</i><sub>1 (old)</sub> &oplus; <i>D</i><sub>1 (new)</sub>) &oplus; <i>P</i><sub>old</sub>.</li>
-        <li><strong>Write</strong> new data block <i>D</i><sub>1 (new)</sub> to Disk 1.</li>
-        <li><strong>Write</strong> new parity block <i>P</i><sub>new</sub> to the Dedicated Parity Disk.</li>
-      </ol>
-      <strong>The Fatal Consequence:</strong>
-      Every single write in the entire storage subsystem&mdash;regardless of which data disk is updated&mdash;<strong>must read and write the single dedicated parity disk</strong>. The parity disk arm thrashes continuously, capping the entire array's write throughput at <sup>1</sup>&frasl;<sub>2</sub> the write speed of a single physical disk!
+      <div style="background: #ffffff; border: 1px solid var(--border); border-left: 4px solid var(--success); padding: 10px 14px; border-radius: 4px;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #166534;">2. Identity &amp; Self-Inversion:</span>
+        <div style="font-family: var(--font-mono); font-size: 0.82rem; color: #1e293b; margin-top: 4px;">
+          <i>A</i> &oplus; 0 = <i>A</i><br>
+          <i>A</i> &oplus; <i>A</i> = 0 &nbsp; (Self-Inverting Inverse)
+        </div>
+      </div>
     </div>
 
-    <h4>6. RAID 5: Block-Level Striping with Distributed Rotating Parity</h4>
+    <h5>The Parity Invariant and Recovery Derivation</h5>
     <p>
-      RAID 5 eliminates the dedicated parity bottleneck by <strong>distributing and rotating parity blocks uniformly across all physical disks</strong> in a round-robin cycle:
+      In a RAID 5 stripe composed of <i>N</i> - 1 data blocks (<i>D</i><sub>0</sub>, <i>D</i><sub>1</sub>, &hellip;, <i>D</i><sub><i>N</i>-2</sub>) and one parity block <i>P</i>, the parity is defined as:
     </p>
-    <ul>
-      <li>In Stripe 0, Parity resides on Disk 3 (<i>A</i><sub>p</sub> = <i>A</i><sub>0</sub> &oplus; <i>A</i><sub>1</sub> &oplus; <i>A</i><sub>2</sub>).</li>
-      <li>In Stripe 1, Parity rotates to Disk 2 (<i>B</i><sub>p</sub> = <i>B</i><sub>0</sub> &oplus; <i>B</i><sub>1</sub> &oplus; <i>B</i><sub>2</sub>).</li>
-      <li>In Stripe 2, Parity rotates to Disk 1 (<i>C</i><sub>p</sub> = <i>C</i><sub>0</sub> &oplus; <i>C</i><sub>1</sub> &oplus; <i>C</i><sub>2</sub>).</li>
-      <li>In Stripe 3, Parity rotates to Disk 0 (<i>D</i><sub>p</sub> = <i>D</i><sub>0</sub> &oplus; <i>D</i><sub>1</sub> &oplus; <i>D</i><sub>2</sub>).</li>
-    </ul>
+    <div class="math-callout" style="text-align: center; font-size: 0.95rem;">
+      <i>P</i> = <i>D</i><sub>0</sub> &oplus; <i>D</i><sub>1</sub> &oplus; &hellip; &oplus; <i>D</i><sub><i>N</i>-2</sub>
+    </div>
+    <p>
+      XORing both sides of this equation with <i>P</i> yields the fundamental <strong>Stripe Invariant</strong>:
+    </p>
+    <div class="math-callout" style="text-align: center; font-size: 0.95rem;">
+      <i>D</i><sub>0</sub> &oplus; <i>D</i><sub>1</sub> &oplus; &hellip; &oplus; <i>D</i><sub><i>N</i>-2</sub> &oplus; <i>P</i> = 0
+    </div>
+    <p>
+      Suppose physical drive <i>k</i> suffers a hardware head crash, losing block <i>D</i><sub><i>k</i></sub>. To reconstruct the missing data, the RAID controller reads all surviving data blocks and the parity block, and XORs them together:
+    </p>
+    <div class="math-callout" style="text-align: center; font-size: 0.95rem;">
+      <i>D</i><sub><i>k</i></sub> = <i>P</i> &oplus; &sum;<sub><i>i</i> &ne; <i>k</i></sub><sup>&oplus;</sup> <i>D</i><sub><i>i</i></sub>
+    </div>
+    <p>
+      Because XOR is self-inverting (<i>D</i><sub><i>i</i></sub> &oplus; <i>D</i><sub><i>i</i></sub> = 0 for all surviving blocks), every surviving block cancels itself out, leaving the exact bit pattern of the lost block <i>D</i><sub><i>k</i></sub>.
+    </p>
 
-    <h5>The Performance Breakthrough of Distributed Parity</h5>
+    <h5>Two Parity Update Strategies: RMW vs. Reconstruct-Write</h5>
     <p>
-      Because parity blocks are distributed across all spindles, <strong>multiple independent small writes can execute simultaneously in parallel</strong>, provided they access different stripes. The single-disk parity bottleneck is permanently broken!
-    </p>
-    <ul>
-      <li><strong>Usable Capacity:</strong> (<i>N</i> - 1) &times; <i>C</i>. Parity consumes exactly one disk's worth of total capacity across the array (e.g. 87.5% usable on an 8-disk array).</li>
-      <li><strong>Read Performance:</strong> Scales to <strong><i>N</i> &times; IOPS</strong> and (<i>N</i> - 1) &times; sequential bandwidth.</li>
-      <li>
-        <strong>Write Performance Profiles:</strong>
-        <ul>
-          <li><strong>Large Full-Stripe Writes (Optimal):</strong> If an application writes a full stripe (e.g. updating <i>A</i><sub>0</sub>, <i>A</i><sub>1</sub>, and <i>A</i><sub>2</sub> simultaneously), the controller does not execute the Read-Modify-Write cycle! It computes <i>A</i><sub>p</sub> = <i>A</i><sub>0</sub> &oplus; <i>A</i><sub>1</sub> &oplus; <i>A</i><sub>2</sub> directly in memory and writes all blocks to all disks in a single parallel burst.</li>
-          <li><strong>Small Random Writes (RMW Penalty):</strong> Single-block updates still incur the 4&times; Read-Modify-Write penalty (2 reads + 2 writes), but the operations are balanced evenly across all spindles.</li>
-        </ul>
-      </li>
-      <li><strong>Fault Tolerance:</strong> Survives the physical loss of <strong>exactly one drive</strong>.</li>
-    </ul>
-
-    <h4>7. RAID 6: Dual Distributed Parity (P + Q Parity)</h4>
-    <p>
-      As physical hard drive capacities expanded from gigabytes to multi-terabytes (10 TB &ndash; 24 TB), RAID 5 became highly dangerous due to the <strong>Unrecoverable Read Error (URE) crisis</strong> during multi-day rebuilds.
-    </p>
-    <p>
-      To provide enterprise reliability, <strong>RAID 6 computes two completely independent parity blocks per stripe</strong> (labeled <i>P</i> and <i>Q</i>) and distributes both across all disks:
+      When an application modifies disk data, the RAID controller dynamically selects one of two algorithms to update parity:
     </p>
     <ul>
       <li>
-        <strong>Parity P (Linear XOR Code):</strong>
-        Standard Boolean parity across data blocks:
+        <strong>Read-Modify-Write (RMW / Sub-Stripe Update):</strong>
+        If an application updates a single block (<i>D</i><sub><i>k</i> (new)</sub>), reading the entire remaining stripe is wasteful. The controller computes the differential parity change:
         <div style="margin: 6px 0; font-family: var(--font-mono); font-size: 0.85rem; color: #0284c7; text-align: center;">
+          <i>P</i><sub>new</sub> = ( <i>D</i><sub><i>k</i> (old)</sub> &oplus; <i>D</i><sub><i>k</i> (new)</sub> ) &oplus; <i>P</i><sub>old</sub>
+        </div>
+        <em>Cost:</em> 2 physical reads (<i>D</i><sub>old</sub>, <i>P</i><sub>old</sub>) + 2 physical writes (<i>D</i><sub>new</sub>, <i>P</i><sub>new</sub>) = <strong>4 physical I/Os</strong>.
+      </li>
+      <li>
+        <strong>Reconstruct-Write (RCW / Full-Stripe Write):</strong>
+        If an application issues a large sequential write that modifies more than half of the data blocks in a stripe (or the entire stripe), RMW becomes inefficient. The controller does not read old parity; instead, it reads the few <em>unmodified</em> data blocks, computes the new parity directly in RAM from the new data, and writes the new data and new parity concurrently.
+      </li>
+    </ul>
+
+    <h4>2. Galois Field GF(2<sup>8</sup>) Dual-Parity Mechanics (RAID 6)</h4>
+    <p>
+      Why can RAID 5 not survive two drive failures?
+      If two drives fail in the same stripe (e.g. <i>D</i><sub>1</sub> and <i>D</i><sub>2</sub>), the parity equation becomes:
+    </p>
+    <div style="margin: 8px 0; font-family: var(--font-mono); font-size: 0.85rem; color: #dc2626; text-align: center;">
+      <i>D</i><sub>1</sub> &oplus; <i>D</i><sub>2</sub> = <i>P</i> &oplus; &sum;<sub><i>i</i> &ne; 1,2</sub><sup>&oplus;</sup> <i>D</i><sub><i>i</i></sub>
+    </div>
+    <p>
+      This represents <strong>one linear equation with two unknowns</strong>. In binary arithmetic, there are $2^{32}$ valid pairs of (<i>D</i><sub>1</sub>, <i>D</i><sub>2</sub>) that satisfy this sum. The data is mathematically unrecoverable.
+    </p>
+
+    <h5>The Reed-Solomon P+Q Formulation</h5>
+    <p>
+      To resolve two unknowns, linear algebra mandates <strong>two linearly independent equations</strong>. In RAID 6, the storage controller evaluates operations over the <strong>Galois Field GF(2<sup>8</sup>)</strong> (a finite field of 256 elements where each byte is treated as an 8-bit polynomial modulo an irreducible primitive polynomial <i>p</i>(<i>x</i>) = <i>x</i><sup>8</sup> + <i>x</i><sup>4</sup> + <i>x</i><sup>3</sup> + <i>x</i><sup>2</sup> + 1):
+    </p>
+    <ul>
+      <li><strong>Parity P (Linear XOR Code):</strong>
+        <div style="margin: 4px 0; font-family: var(--font-mono); font-size: 0.82rem; color: #0284c7; text-align: center;">
           <i>P</i> = <i>D</i><sub>0</sub> &oplus; <i>D</i><sub>1</sub> &oplus; <i>D</i><sub>2</sub> &hellip; &oplus; <i>D</i><sub><i>N</i>-3</sub>
         </div>
       </li>
-      <li>
-        <strong>Parity Q (Reed-Solomon Galois Field Code):</strong>
-        A non-linear polynomial code computed using <strong>Galois Field arithmetic over GF(2<sup>8</sup>)</strong>:
-        <div style="margin: 6px 0; font-family: var(--font-mono); font-size: 0.85rem; color: #d97706; text-align: center;">
-          <i>Q</i> = ( <i>g</i><sup>0</sup> &otimes; <i>D</i><sub>0</sub> ) &oplus; ( <i>g</i><sup>1</sup> &otimes; <i>D</i><sub>1</sub> ) &oplus; &hellip; &oplus; ( <i>g</i><sup><i>N</i>-3</sup> &otimes; <i>D</i><sub><i>N</i>-3</sub> )
+      <li><strong>Parity Q (Galois Field Polynomial Code):</strong>
+        <div style="margin: 4px 0; font-family: var(--font-mono); font-size: 0.82rem; color: #d97706; text-align: center;">
+          <i>Q</i> = ( <i>g</i><sup>0</sup> &otimes; <i>D</i><sub>0</sub> ) &oplus; ( <i>g</i><sup>1</sup> &otimes; <i>D</i><sub>1</sub> ) &oplus; ( <i>g</i><sup>2</sup> &otimes; <i>D</i><sub>2</sub> ) &hellip; &oplus; ( <i>g</i><sup><i>N</i>-3</sup> &otimes; <i>D</i><sub><i>N</i>-3</sub> )
         </div>
-        where <i>g</i> is a generator element of GF(2<sup>8</sup>) and &otimes; denotes Galois field multiplication.
-      </li>
-      <li><strong>Usable Capacity:</strong> (<i>N</i> - 2) &times; <i>C</i>. Two disks' worth of total capacity are dedicated to dual parity.</li>
-      <li><strong>The Small-Write Penalty (6&times; I/O Penalty):</strong> A single random block write requires updating <i>D</i>, <i>P</i>, and <i>Q</i>, forcing <strong>3 physical reads and 3 physical writes (6 total I/O operations)</strong>! Modern hardware RAID cards incorporate dedicated hardware Galois Field polynomial coprocessors to offload this math.</li>
-      <li>
-        <strong>Fault Tolerance:</strong> Survives <strong>two simultaneous, concurrent physical drive failures</strong> without data loss. If one drive physically dies and a second drive encounters an unrecoverable bad sector during the rebuild, RAID 6 uses the <i>Q</i> polynomial equations to solve for both missing blocks simultaneously!
+        where <i>g</i> is the primitive generator of GF(2<sup>8</sup>) (typically <i>g</i> = 0x02) and &otimes; represents polynomial Galois multiplication.
       </li>
     </ul>
 
-    <h4>8. Nested RAID: RAID 10 (1+0) vs. RAID 01 (0+1)</h4>
+    <h5>Dual-Drive Recovery in RAID 6</h5>
     <p>
-      Enterprise databases (such as Oracle, Microsoft SQL Server, and PostgreSQL) demand high random IOPS and zero Read-Modify-Write penalties. They deploy <strong>Nested / Hybrid RAID</strong>, combining the speed of striping (RAID 0) with the simplicity of mirroring (RAID 1):
+      If both Drive <i>x</i> and Drive <i>y</i> fail simultaneously, the controller measures the residual syndromic differences:
+    </p>
+    <div class="math-callout" style="font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.8;">
+      <i>D</i><sub><i>x</i></sub> &oplus; <i>D</i><sub><i>y</i></sub> = <i>P</i> &oplus; &sum;<sub><i>i</i> &ne; <i>x</i>,<i>y</i></sub> <i>D</i><sub><i>i</i></sub> = <i>P</i>'<br>
+      ( <i>g</i><sup><i>x</i></sup> &otimes; <i>D</i><sub><i>x</i></sub> ) &oplus; ( <i>g</i><sup><i>y</i></sup> &otimes; <i>D</i><sub><i>y</i></sub> ) = <i>Q</i> &oplus; &sum;<sub><i>i</i> &ne; <i>x</i>,<i>y</i></sub> ( <i>g</i><sup><i>i</i></sup> &otimes; <i>D</i><sub><i>i</i></sub> ) = <i>Q</i>'
+    </div>
+    <p>
+      This represents a $2 \times 2$ <strong>Vandermonde linear system</strong> over GF(2<sup>8</sup>). Because the generator powers $g^x$ and $g^y$ are distinct, the system matrix determinant is strictly non-zero. By multiplying through by $(g^x \oplus g^y)^{-1}$, the controller solves uniquely for both <i>D</i><sub><i>x</i></sub> and <i>D</i><sub><i>y</i></sub>, restoring all data without loss.
     </p>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
-      <!-- RAID 10 Card -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--success); border-radius: 6px; padding: 16px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">RAID 10 (Stripe of Mirrors) &mdash; INDUSTRIAL STANDARD</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--success); text-transform: uppercase; margin-bottom: 8px;">RAID 1 First, Then RAID 0 on Top</div>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Disks are paired into mirrored sets (Sub-array 0: Disk 0/1; Sub-array 1: Disk 2/3), and user data is striped across the mirrored pairs.
-          <br><br>
-          <em>Rebuild Reliability Mathematics:</em>
-          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>Suppose Disk 0 dies. The array continues operating from Disk 1.</li>
-            <li>If a second drive dies during the rebuild, the array <strong>survives as long as the second failed drive is NOT Disk 1</strong>!</li>
-            <li>In an 8-disk RAID 10 array, the mathematical probability of surviving a second independent drive failure is:
-              <div style="margin: 4px 0; font-family: var(--font-mono); font-weight: 700; color: #166534;">
-                P(Survival) = (<i>N</i> - 2) / (<i>N</i> - 1) = 6 / 7 &asymp; 85.7%!
-              </div>
-            </li>
-          </ul>
-        </p>
-      </div>
-
-      <!-- RAID 01 Card -->
-      <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 16px;">
-        <h4 style="margin: 0 0 6px 0; color: #0f172a; font-size: 0.95rem;">RAID 01 (Mirror of Stripes) &mdash; HAZARDOUS ARCHITECTURE</h4>
-        <div style="font-size: 0.72rem; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 8px;">RAID 0 First, Then RAID 1 on Top</div>
-        <p style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.5;">
-          Disks are grouped into two large striped sets (Stripe A: Disks 0, 1; Stripe B: Disks 2, 3), and the two stripes are mirrored.
-          <br><br>
-          <em>The Rebuild Vulnerability Trap:</em>
-          <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.8rem;">
-            <li>If Disk 0 dies, the <strong>entire Stripe A sub-array collapses</strong> and becomes inoperative.</li>
-            <li>The entire logical volume is now surviving on a single striped array (Stripe B).</li>
-            <li><strong>Any secondary drive failure on ANY disk in Stripe B destroys the entire storage volume</strong>!</li>
-            <li>Probability of surviving a second failure:
-              <div style="margin: 4px 0; font-family: var(--font-mono); font-weight: 700; color: #dc2626;">
-                P(Survival) = 0%! (Guaranteed Collapse)
-              </div>
-            </li>
-          </ul>
-        </p>
-      </div>
-    </div>
-
-    <h4>Comprehensive RAID Level Synthesis Matrix</h4>
-    <div style="overflow-x: auto; margin: 18px 0;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 0.86rem; text-align: left;">
+    <h4>3. Mean Time to Data Loss (MTTDL) Reliability Modeling</h4>
+    <p>
+      To quantitatively evaluate array resilience, storage engineers model disk failures using continuous-time <strong>Markov Chains</strong>:
+    </p>
+    <div style="overflow-x: auto; margin: 16px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
         <thead>
           <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 10px; width: 12%;">RAID Level</th>
-            <th style="padding: 10px 10px; width: 15%;">Usable Capacity</th>
-            <th style="padding: 10px 10px; width: 11%;">Min Disks</th>
-            <th style="padding: 10px 10px; width: 15%;">Fault Tolerance</th>
-            <th style="padding: 10px 10px; width: 15%;">Small-Write Penalty</th>
-            <th style="padding: 10px 10px; width: 32%;">Primary Industrial Use Case</th>
+            <th style="padding: 10px 12px; width: 25%;">System State</th>
+            <th style="padding: 10px 12px; width: 35%;">Transition Out</th>
+            <th style="padding: 10px 12px; width: 40%;">Physical Reality</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 10px; font-weight: 700;">RAID 0</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #0284c7;"><i>N</i> &times; <i>C</i> (100%)</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono);">2</td>
-            <td style="padding: 10px 10px; color: #dc2626; font-weight: 700;">0 Disks</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #059669;">1&times; (0 Penalty)</td>
-            <td style="padding: 10px 10px;">Ephemeral high-speed scratchpad, swap space, GPU caches.</td>
+            <td style="padding: 10px 12px; font-weight: 700; color: #166534;">State 0: Optimal</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">Rate = <i>N</i> &times; &lambda;</td>
+            <td style="padding: 10px 12px;">All <i>N</i> drives healthy. Any drive can fail with Poisson arrival rate &lambda; = 1 / MTTF.</td>
           </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 10px; font-weight: 700;">RAID 1</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #dc2626;"><i>C</i> (50%)</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono);">2</td>
-            <td style="padding: 10px 10px; color: #166534; font-weight: 700;">1 Disk</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono);">2&times; Writes</td>
-            <td style="padding: 10px 10px;">OS boot volumes, transaction logs, mission-critical systems.</td>
+          <tr style="border-bottom: 1px solid var(--border); background: #fffbeb;">
+            <td style="padding: 10px 12px; font-weight: 700; color: #b45309;">State 1: Degraded</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem;">Repair Rate = &mu; = 1 / MTTR<br>Failure Rate = (<i>N</i> - 1) &times; &lambda;</td>
+            <td style="padding: 10px 12px;">One drive dead. Rebuild underway to hot spare. Array is vulnerable to secondary failures.</td>
           </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 10px; font-weight: 700;">RAID 4</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #059669;">(<i>N</i> - 1) &times; <i>C</i></td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono);">3</td>
-            <td style="padding: 10px 10px; color: #166534;">1 Disk</td>
-            <td style="padding: 10px 10px; color: #dc2626; font-weight: 700;">4&times; (Parity Bottleneck)</td>
-            <td style="padding: 10px 10px;">Historical interest; NetApp WAFL NVRAM write-gathering filesystems.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
-            <td style="padding: 10px 10px; font-weight: 700; color: #166534;">RAID 5</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #166534; font-weight: 700;">(<i>N</i> - 1) &times; <i>C</i></td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono);">3</td>
-            <td style="padding: 10px 10px; color: #166534;">1 Disk</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #d97706;">4&times; (RMW Cycle)</td>
-            <td style="padding: 10px 10px;">General file servers, web tiers, arrays with small (&le; 2 TB) disks.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border); background: #f0fdf4;">
-            <td style="padding: 10px 10px; font-weight: 700; color: #166534;">RAID 6</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #166534; font-weight: 700;">(<i>N</i> - 2) &times; <i>C</i></td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono);">4</td>
-            <td style="padding: 10px 10px; color: #166534; font-weight: 700;">2 Disks (Dual Parity)</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #dc2626;">6&times; (P+Q Cycle)</td>
-            <td style="padding: 10px 10px;">Enterprise storage arrays with multi-terabyte SATA/SAS drives.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 10px; font-weight: 700;">RAID 10</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #dc2626;">(<i>N</i> / 2) &times; <i>C</i> (50%)</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono);">4</td>
-            <td style="padding: 10px 10px; color: #166534; font-weight: 700;">1 to <i>N</i>/2 Disks</td>
-            <td style="padding: 10px 10px; font-family: var(--font-mono); color: #059669;">2&times; (Zero Parity RMW)</td>
-            <td style="padding: 10px 10px;">High-concurrency relational databases (Oracle, PostgreSQL, SQL Server).</td>
+          <tr style="border-bottom: 1px solid var(--border); background: #fef2f2;">
+            <td style="padding: 10px 12px; font-weight: 700; color: #dc2626;">State 2: Data Loss</td>
+            <td style="padding: 10px 12px; font-family: var(--font-mono); font-size: 0.82rem; color: #dc2626;">Absorbing State</td>
+            <td style="padding: 10px 12px; color: #dc2626;">A second drive dies before the rebuild completes. Array collapses; data lost permanently.</td>
           </tr>
         </tbody>
       </table>
-    </div>"""
+    </div>
 
-def update_section_two():
+    <div class="math-callout">
+      <strong>The Analytical MTTDL Formulation (Single-Fault Tolerant Arrays):</strong>
+      <br>
+      Solving the Markov differential equations yields the classical MTTDL formula for RAID 1 and RAID 5 arrays:
+      <div style="margin: 8px 0; font-size: 1.05rem; text-align: center;">
+        MTTDL = <sup>MTTF<sub>disk</sub><sup>2</sup></sup>&frasl;<sub><i>N</i>(<i>N</i> - 1) &times; MTTR</sub>
+      </div>
+      where:
+      <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.82rem;">
+        <li><strong>MTTF<sub>disk</sub>:</strong> Mean Time To Failure of an individual drive (typically 1,000,000 to 1,500,000 hours &asymp; 114 to 170 years).</li>
+        <li><strong><i>N</i>:</strong> Total number of drives in the array.</li>
+        <li><strong>MTTR:</strong> Mean Time To Repair (the time required to detect failure, insert a hot spare, and rebuild all parity data).</li>
+      </ul>
+      <strong>The Critical Vulnerability:</strong> Notice that MTTR resides in the denominator. As hard drive capacity ballooned from 500 GB to 18 TB, <strong>rebuild times stretched from 2 hours to 48&ndash;72 hours</strong>. Increasing MTTR directly degrades MTTDL by orders of magnitude!
+    </div>
+
+    <h4>4. The Modern URE Crisis: Why RAID 5 is Dead for Large Disks</h4>
+    <p>
+      While mechanical motor seizures and head crashes are visible, hard drives suffer from an insidious, microscopic physical flaw: <strong>Unrecoverable Read Errors (UREs)</strong> (also known as Non-Recoverable Read Errors).
+    </p>
+    <ul>
+      <li>
+        <strong>The Physics of a URE:</strong> Platter magnetic domains experience thermal decay, micro-shock head contact, or electromagnetic crosstalk. When a sector degrades beyond the internal ECC engine's capability to correct, the drive's firmware attempts multiple internal retries, fails, and returns an uncorrectable I/O read error (e.g. <code>EIO</code> or <code>UNC</code> in Linux).
+      </li>
+      <li>
+        <strong>Manufacturer Specifications:</strong>
+        Hard drive manufacturers specify the statistical frequency of UREs in drive technical datasheets:
+        <ul>
+          <li><strong>Consumer SATA Drives:</strong> Rated at <strong>1 sector error in every 10<sup>14</sup> bits read</strong> (roughly 1 error per 12.5 TB read).</li>
+          <li><strong>Enterprise SAS / NVMe Drives:</strong> Rated at <strong>1 sector error in every 10<sup>15</sup> bits read</strong> (roughly 1 error per 125 TB read).</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h5>The Statistical Impossibility of RAID 5 Rebuilds</h5>
+    <p>
+      During normal operation, a single URE on a healthy RAID 5 array is harmless: the controller simply reconstructs the bad sector on the fly from the surviving data and parity disks.
+    </p>
+    <p>
+      <strong>However, during an active RAID 5 rebuild, a URE is catastrophic.</strong>
+      When Drive 1 fails, the controller must read <em>every single sector from start to finish</em> across all remaining <i>N</i> - 1 surviving drives to reconstruct Drive 1 onto the replacement drive.
+    </p>
+    <p>
+      The probability of reading <i>B</i> bits without encountering an unrecoverable read error obeys the Bernoulli trial distribution:
+    </p>
+
+    <div class="math-callout" style="text-align: center; font-size: 1.05rem;">
+      <i>P</i>(Successful Rebuild) = ( 1 - <i>p</i><sub>error</sub> )<sup><i>B</i><sub>rebuild</sub></sup> &asymp; <i>e</i><sup>- <i>B</i><sub>rebuild</sub> &times; <i>p</i><sub>error</sub></sup>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid var(--border); border-top: 4px solid var(--danger); border-radius: 6px; padding: 16px; margin: 18px 0;">
+      <h4 style="margin: 0 0 8px 0; color: #0f172a; font-size: 0.95rem;">Concrete Numerical Proof: 8-Disk Array with 16 TB Drives</h4>
+      <p style="margin: 0; font-size: 0.84rem; color: #475569; line-height: 1.6;">
+        Consider an 8-disk RAID 5 array populated with 16 TB consumer SATA drives (<i>p</i><sub>error</sub> = 10<sup>-14</sup>):
+        <ol style="margin: 8px 0 0 16px; padding: 0; font-size: 0.82rem;">
+          <li>One drive dies. To rebuild the spare, the controller must read all 7 surviving 16 TB drives:
+            <div style="font-family: var(--font-mono); margin: 4px 0; color: #1e293b;">
+              Total Data to Read = 7 &times; 16 TB = 112 TB = 112 &times; 10<sup>12</sup> Bytes &times; 8 = <strong>8.96 &times; 10<sup>14</sup> bits</strong>
+            </div>
+          </li>
+          <li>Calculate the probability of reading 8.96 &times; 10<sup>14</sup> bits without a single URE:
+            <div style="font-family: var(--font-mono); margin: 4px 0; color: #dc2626; font-weight: 700;">
+              <i>P</i>(Survival) = ( 1 - 10<sup>-14</sup> )<sup>8.96 &times; 10<sup>14</sup></sup> &asymp; <i>e</i><sup>-8.96</sup> &asymp; <strong>0.000128 &asymp; 0.01%</strong>
+            </div>
+          </li>
+          <li><strong>The Catastrophic Reality:</strong>
+            The probability of successfully rebuilding this array is <strong>less than 0.02%</strong>! The probability of encountering a fatal URE that destroys the entire volume is <strong>99.98%</strong>!
+          </li>
+        </ol>
+      </p>
+    </div>
+
+    <blockquote style="border-left: 4px solid var(--danger); padding: 10px 18px; margin: 18px 0; background: #fef2f2; color: #991b1b; font-size: 0.88rem;">
+      <strong>The Modern Storage Law:</strong>
+      Because consumer and enterprise mechanical drive capacities now routinely exceed 12 TB, <strong>RAID 5 is considered architecturally obsolete and hazardous for spinning disks</strong>. All modern enterprise storage engineering mandates <strong>RAID 6 (dual parity)</strong> or <strong>RAID 10 (mirrored striping)</strong> to ensure that secondary UREs encountered during multi-terabyte rebuilds do not destroy customer data.
+    </blockquote>"""
+
+def update_section_three():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    start_marker = "<h3>2. Taxonomy of Standard RAID Levels</h3>"
-    end_marker = "<h3>3. Mathematical Foundations: XOR Parity &amp; The URE Rebuild Crisis</h3>"
+    start_marker = "<h3>3. Mathematical Foundations: XOR Parity &amp; The URE Rebuild Crisis</h3>"
+    end_marker = "<!-- Directed Narrative Stepper: RAID Rebuild & Parity Engine -->"
 
     start_idx = content.find(start_marker)
     end_idx = content.find(end_marker)
 
     if start_idx == -1 or end_idx == -1:
-        print("Error: Could not locate Section 2 boundaries in Module 04.")
+        print("Error: Could not locate Section 3 boundaries before the interactive aid.")
         return False
 
-    updated_content = content[:start_idx] + EXPANDED_SECTION_TWO + "\n\n    " + content[end_idx:]
+    updated_content = content[:start_idx] + EXPANDED_SECTION_THREE_PRE_AID + "\n\n    " + content[end_idx:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(updated_content)
 
-    print(f"--> Successfully expanded Section 2 in {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
     return True
 
 def run_git_sync():
@@ -468,9 +373,9 @@ def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand Section 2 in Module 04 on Standard and Nested RAID Taxonomy\n\n"
-            "Detail RAID 0-6 and RAID 10 vs 01, RMW penalty math, Galois field P+Q\n"
-            "parity, rebuild survival probabilities, and update the layout matrix."
+            "Expand Section 3 in Module 04 on XOR Parity Math and the URE Crisis\n\n"
+            "Detail Boolean XOR invariants, Galois Field GF(2^8) Reed-Solomon math,\n"
+            "Markov MTTDL modeling, and the Bernoulli probability of rebuild UREs."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -479,5 +384,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    if update_section_two():
+    if update_section_three():
         run_git_sync()
