@@ -521,15 +521,15 @@
 
       <svg viewBox="0 0 820 420" style="width: 100%; height: auto; font-family: system-ui, -apple-system, sans-serif;">
         <defs>
-          <!-- Explicit Directional Arrowheads to eliminate browser rotation bugs -->
-          <marker id="arr-right" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 0 2 L 8 5 L 0 8 z" fill="#0284c7" />
+          <!-- Standard horizontal right-pointing markers (orient="auto" handles 0°, 90°, 270° rotations accurately) -->
+          <marker id="dc-arrow-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#dc2626" />
           </marker>
-          <marker id="arr-down" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 2 0 L 5 8 L 8 0 z" fill="#dc2626" />
+          <marker id="dc-arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
           </marker>
-          <marker id="arr-up" viewBox="0 0 10 10" refX="5" refY="2" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 2 10 L 5 2 L 8 10 z" fill="#059669" />
+          <marker id="dc-arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
           </marker>
         </defs>
 
@@ -602,22 +602,22 @@
           </g>
         </g>
 
-        <!-- Downward Trap Path: Task A into Step 1 -->
-        <path d="M 150 98 L 150 171" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-down)" />
-        <text x="158" y="118" font-size="9" font-weight="700" fill="#dc2626">Trap / IRQ</text>
-        <text x="158" y="129" font-size="8" fill="#64748b">(Ring 3 &rarr; Ring 0)</text>
+        <!-- Downward Trap Path: Task A into Step 1 (M 150 98 to 150 173) -->
+        <path d="M 150 98 L 150 173" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#dc-arrow-red)" />
+        <text x="158" y="125" font-size="9" font-weight="700" fill="#dc2626">Trap / IRQ</text>
+        <text x="158" y="137" font-size="8" fill="#64748b">(Ring 3 &rarr; Ring 0)</text>
 
-        <!-- Step 1 to Step 2 Horizontal Connector -->
-        <path d="M 255 222 L 301 222" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-right)" />
+        <!-- Step 1 to Step 2 Horizontal Connector (M 255 222 to 303 222) -->
+        <path d="M 255 222 L 303 222" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#dc-arrow-blue)" />
 
-        <!-- Step 2 to Step 3 Direct Vertical Connector -->
-        <path d="M 410 270 L 410 286" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-down)" />
-        <text x="420" y="280" text-anchor="start" font-size="8.5" font-weight="700" fill="#0284c7">switch_to()</text>
+        <!-- Step 2 to Step 3 Clean Vertical Drop (M 410 270 to 410 288) -->
+        <path d="M 410 270 L 410 288" fill="none" stroke="#0284c7" stroke-width="2" marker-end="url(#dc-arrow-blue)" />
+        <text x="418" y="282" font-size="8.5" font-weight="700" fill="#0284c7">switch_to()</text>
 
-        <!-- Upward Return Path: Step 3 into Task B -->
-        <path d="M 670 290 L 670 102" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#arr-up)" />
-        <text x="678" y="118" font-size="9" font-weight="700" fill="#059669">IRETQ / SYSRETQ</text>
-        <text x="678" y="129" font-size="8" fill="#64748b">(Ring 0 &rarr; Ring 3)</text>
+        <!-- Upward Return Path: Step 3 to Task B (M 670 290 to 670 100) -->
+        <path d="M 670 290 L 670 100" fill="none" stroke="#059669" stroke-width="2" marker-end="url(#dc-arrow-green)" />
+        <text x="678" y="125" font-size="9" font-weight="700" fill="#059669">IRETQ / SYSRETQ</text>
+        <text x="678" y="137" font-size="8" fill="#64748b">(Ring 0 &rarr; Ring 3)</text>
       </svg>
     </div>
 
