@@ -1,14 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create Module 01 on Physical Address Spaces & Monoprogramming
-# =====================================================================
-import os
-import subprocess
-
-TARGET_DIR = "week07-memory-management-virtual-memory"
-TARGET_FILE = os.path.join(TARGET_DIR, "01-physical-memory-abstractions.html")
-
-MODULE_ONE_CONTENT = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -567,26 +557,3 @@ JMP 0x4000          ; Direct jump to physical memory address 0x4000</code></pre>
   </script>
 </body>
 </html>
-"""
-
-def create_module_one():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_ONE_CONTENT.strip() + "\n")
-    print(f"--> Successfully created {TARGET_FILE}")
-    return True
-
-if __name__ == "__main__":
-    if create_module_one():
-        try:
-            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-            commit_msg = (
-                "Create Module 01 on Physical Address Spaces and Monoprogramming\n\n"
-                "Implement complete module on bare-metal memory, base-limit registers,\n"
-                "swapping vs overlays, fragmentation, and an interactive MMU stepper."
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully!")
-        except Exception as e:
-            print(f"Git note: {e}")
