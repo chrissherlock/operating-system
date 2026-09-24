@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 03: Deadlock Handling Strategies &amp; The Banker's Algorithm - COSC240</title>
+  <title>Module 03: Deadlock Avoidance &amp; Banker's Algorithm - COSC240</title>
   <style>
     :root {
       --primary: #0f172a;
@@ -63,20 +63,7 @@
     }
     h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
     h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    h5 { font-size: 0.95rem; color: var(--primary); margin: 18px 0 6px 0; }
     p, li { font-size: 0.95rem; color: var(--text); }
-    pre {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 16px;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      margin: 16px 0;
-    }
-    code { font-family: var(--font-mono); font-size: 0.88rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #0f172a; }
-    pre code { background: none; padding: 0; color: inherit; }
     .math-callout {
       background: #f0f9ff;
       border-left: 4px solid var(--accent);
@@ -85,7 +72,7 @@
       margin: 18px 0;
       font-size: 0.92rem;
     }
-    /* Interactive Stepper Widget Styles */
+    /* Interactive Pedagogical Aid Styles */
     .aid-wrapper {
       background: #ffffff;
       border: 1px solid var(--border);
@@ -98,7 +85,7 @@
     .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
     .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
     .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.45; }
+    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.86rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; height: 150px; max-height: 150px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
     .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
     .step-btn {
       flex: 1;
@@ -114,8 +101,8 @@
     }
     .step-btn:hover { background: var(--accent); }
     .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.72rem; padding: 10px; border-radius: 4px; }
-    .visual-canvas { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.75rem; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
+    .visual-canvas { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 220px; }
     .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
     .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
     .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
@@ -127,211 +114,125 @@
       body { padding: 16px; }
     }
   </style>
+  <!-- KaTeX CSS & JS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
 </head>
 <body>
   <div class="container">
     <nav class="nav-bar">
       <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">&larr; Module 02</a>
       <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="04-classic-synchronization-real-world-defenses.html" class="nav-btn">Module 04 &rarr;</a>
+      <a href="04-deadlock-recovery-starvation.html" class="nav-btn">Module 04 &rarr;</a>
     </nav>
 
     <div class="content-card">
       <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 03 &bull; COSC240</span>
-      <h1>Deadlock Handling Strategies &amp; The Banker's Algorithm</h1>
+      <h1>Deadlock Avoidance &amp; Banker's Algorithm</h1>
       <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Explore the four foundational operating system strategies for managing deadlock. Contrast the Ostrich algorithm with static prevention, dynamic detection and recovery, and Dijkstra's Banker's Algorithm for resource allocation avoidance.
+        Explore deadlock avoidance strategies through Edsger Dijkstra's Banker's Algorithm. Evaluate safety state invariants, resource request vectors, and matrix inequality tests.
       </p>
 
-      <h3>1. The Four Strategic Deadlock Regimes</h3>
+      <h3>1. Deadlock Prevention vs. Avoidance</h3>
       <p>
-        Operating systems address the threat of deadlock through four primary architectural philosophies, balancing runtime overhead against catastrophic failure risk:
+        While <em>deadlock prevention</em> restricts system design by negating one of the four Coffman conditions statically, <em>deadlock avoidance</em> allows the system to accept resource requests dynamically while inspecting future allocation states to ensure the system never slips into an unsafe region.
       </p>
 
-      <ul>
-        <li>
-          <strong>1. The Ostrich Algorithm (Ignorance):</strong>
-          Pretend that deadlocks never occur. If deadlocks happen only once a year, the performance cost of continuous prevention, detection, or avoidance outweighs the cost of occasional manual reboots or process termination. <em>(Used by Linux, macOS, and Windows for general user-space applications).</em>
-        </li>
-        <li>
-          <strong>2. Deadlock Prevention:</strong>
-          Ensure that the system <em>never enters deadlock</em> by structurally violating at least one of the four Coffman conditions beforehand.
-        </li>
-        <li>
-          <strong>3. Deadlock Detection &amp; Recovery:</strong>
-          Allow the system to enter deadlock freely. Periodically run background graph-reduction algorithms to detect cycles, then recover by aborting processes or rolling back transactions.
-        </li>
-        <li>
-          <strong>4. Deadlock Avoidance (The Banker's Algorithm):</strong>
-          Require processes to declare their maximum resource needs in advance. Dynamically evaluate every resource request to ensure the system never departs a <strong>Safe State</strong>.
-        </li>
-      </ul>
+      <h3>2. Dijkstra's Banker's Algorithm</h3>
+      <p>
+        The Banker's Algorithm evaluates resource allocation requests by simulating whether granting a request leaves the system in a <strong>safe state</strong> (where a safe execution sequence $\langle P_0, P_1, \dots, P_n \rangle$ exists).
+      </p>
 
-      <!-- Directed Narrative Stepper: Banker's Algorithm Stepper -->
+      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
+        <strong style="color: var(--primary);">Safety Matrix Inequality Test:</strong>
+        <br><br>
+        $$ \text{Need}_{i} = \text{Max}_{i} - \text{Allocation}_{i} $$
+        $$ \text{Find process } P_i \text{ such that Finish}[i] == \text{false } \land \text{Need}_{i} \le \text{Available} $$
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- INTERACTIVE PEDAGOGICAL AID: BANKER'S ALGORITHM SAFETY STEPPER    -->
+      <!-- ================================================================= -->
       <div class="aid-wrapper">
-        <div class="aid-header">Interactive Aid: Dijkstra's Banker's Algorithm Safety Stepper</div>
-        <div class="aid-subtitle">Scenario: Multi-process resource allocation engine verifying safety vectors before granting requests.</div>
+        <div class="aid-header">Interactive Walkthrough: Banker's Algorithm Safety State Stepper</div>
+        <div class="aid-subtitle">Trace step-by-step how the Banker's Algorithm evaluates process needs against available resource vectors.</div>
 
         <div class="aid-grid">
-          <!-- Controls & Preview Panel -->
           <div class="controls-panel">
             <div class="preview-box" id="preview-text">
-              <strong>Step 1: Initial State Inspection.</strong> Available Vector = [3, 3, 2]. Evaluating Process P0's maximum declared needs against available resources.
+              <strong>Step 1: Initialization.</strong> Initial system vectors loaded. Available = [3, 3, 2]. Evaluating initial Need matrix vectors against Available.
             </div>
+
             <div class="stepper-btns">
               <button class="step-btn" id="prev-btn" onclick="changeStep(-1)" disabled>&larr; Prev</button>
               <button class="step-btn" id="next-btn" onclick="changeStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetStepper()">Reset</button>
+              <button class="step-btn" onclick="resetStepper()" style="background:#64748b;">Reset</button>
             </div>
+
             <div class="telemetry-bar" id="telemetry-bar">
-              PHASE: 1/4 | AVAILABLE: [3,3,2] | SAFE_SEQUENCE: P1 &rarr; P3 &rarr; P4 &rarr; P2 &rarr; P0
+              <div><strong>Phase:</strong> <span id="tel-phase" style="color: #38bdf8;">1/4</span></div>
+              <div><strong>Available:</strong> <span id="tel-avail">[3, 3, 2]</span></div>
+              <div><strong>Checked:</strong> <span id="tel-checked">None</span></div>
+              <div><strong>State:</strong> <span id="tel-state" style="color: #4ade80; font-weight: 700;">Safe Initial</span></div>
+            </div>
+
+            <div class="toggle-bar">
+              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">MODEL:</span>
+              <button class="toggle-btn active" onclick="setDomain('multi')">Multi-Resource</button>
+              <button class="toggle-btn" onclick="setDomain('single')">Single-Resource</button>
             </div>
           </div>
 
-          <!-- Visual Canvas -->
           <div class="visual-canvas">
-            <svg id="stepper-svg" viewBox="0 0 420 180" style="width: 100%; height: auto;">
-              <rect width="420" height="180" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-              <!-- Step 1 Graphics -->
-              <g id="step-1-gfx">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#f8fafc" stroke="#cbd5e1"/>
-                <text x="210" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0f172a">SYSTEM RESOURCE MATRIX</text>
-                <text x="50" y="70" font-family="var(--font-mono)" font-size="8" fill="#334155">Process | Allocation | Max | Need</text>
-                <text x="50" y="92" font-family="var(--font-mono)" font-size="8" fill="#0284c7">P0      | [0, 1, 0]  | [7,5,3]| [7,4,3]</text>
-                <text x="50" y="112" font-family="var(--font-mono)" font-size="8" fill="#166534">P1      | [2, 0, 0]  | [3,2,2]| [1,2,2] &larr; Satisfiable!</text>
-                <text x="50" y="132" font-family="var(--font-mono)" font-size="8" fill="#334155">Available: [3, 3, 2]</text>
-              </g>
-              <!-- Step 2 Graphics -->
-              <g id="step-2-gfx" style="display:none;">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#f0fdf4" stroke="#16a34a"/>
-                <text x="210" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="#166534">STEP 1: EXECUTE PROCESS P1</text>
-                <text x="50" y="75" font-family="var(--font-mono)" font-size="8.5" fill="#15803d">Need[P1] = [1, 2, 2] &le; Available [3, 3, 2] &rarr; PASS</text>
-                <text x="50" y="100" font-family="var(--font-mono)" font-size="8.5" fill="#15803d">Simulate Completion: P1 releases allocation [2, 0, 0]</text>
-                <text x="50" y="125" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#166534">New Available = [3,3,2] + [2,0,0] = [5, 3, 2]</text>
-              </g>
-              <!-- Step 3 Graphics -->
-              <g id="step-3-gfx" style="display:none;">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#e0f2fe" stroke="#0284c7"/>
-                <text x="210" y="42" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0369a1">STEP 2: EXECUTE P3 &rarr; P4 &rarr; P2</text>
-                <text x="40" y="75" font-family="var(--font-mono)" font-size="8" fill="#334155">P3 Need [0, 1, 1] &le; [5,3,2] &rarr; New Avail: [7, 4, 3]</text>
-                <text x="40" y="95" font-family="var(--font-mono)" font-size="8" fill="#334155">P4 Need [4, 3, 1] &le; [7,4,3] &rarr; New Avail: [7, 4, 5]</text>
-                <text x="40" y="115" font-family="var(--font-mono)" font-size="8" fill="#334155">P2 Need [6, 0, 0] &le; [7,4,5] &rarr; New Avail: [9, 0, 2]</text>
-                <text x="40" y="138" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#0284c7">All processes marked successfully!</text>
-              </g>
-              <!-- Step 4 Graphics -->
-              <g id="step-4-gfx" style="display:none;">
-                <rect x="20" y="20" width="380" height="140" rx="4" fill="#dcfce7" stroke="#16a34a"/>
-                <text x="210" y="45" text-anchor="middle" font-size="11" font-weight="700" fill="#166534">&#10003; SYSTEM IS IN A SAFE STATE</text>
-                <text x="210" y="75" text-anchor="middle" font-size="9" font-weight="700" fill="#15803d">Valid Safe Sequence Found:</text>
-                <text x="210" y="105" text-anchor="middle" font-family="var(--font-mono)" font-size="11" font-weight="700" fill="#0f172a">&lang; P1, P3, P4, P2, P0 &rang;</text>
-                <text x="210" y="135" text-anchor="middle" font-size="8" fill="#166534">Zero deadlock risk &bull; Request granted safely.</text>
-              </g>
-            </svg>
+            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; System Safety Vectors</div>
+
+            <!-- Dynamic Vector Matrix Canvas -->
+            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: var(--font-mono); font-size: 0.78rem;">
+              <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 6px; color: var(--primary);">
+                <span>Proc</span><span>Allocation</span><span>Max</span><span>Need</span>
+              </div>
+              <div id="matrix-row-p0" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight:700; color:#0284c7;">P0</span><span>[0, 1, 0]</span><span>[7, 5, 3]</span><span style="color:#d97706;">[7, 4, 3]</span>
+              </div>
+              <div id="matrix-row-p1" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight:700; color:#0284c7;">P1</span><span>[2, 0, 0]</span><span>[3, 2, 2]</span><span style="color:#16a34a; font-weight:700;">[1, 2, 2] &check;</span>
+              </div>
+              <div id="matrix-row-p2" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight:700; color:#0284c7;">P2</span><span>[3, 0, 2]</span><span>[9, 0, 2]</span><span style="color:#d97706;">[6, 0, 0]</span>
+              </div>
+              <div id="matrix-row-p3" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight:700; color:#0284c7;">P3</span><span>[2, 1, 1]</span><span>[2, 2, 2]</span><span style="color:#d97706;">[0, 1, 1]</span>
+              </div>
+              <div id="matrix-row-p4" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0;">
+                <span style="font-weight:700; color:#0284c7;">P4</span><span>[0, 0, 2]</span><span>[4, 3, 3]</span><span style="color:#d97706;">[4, 3, 1]</span>
+              </div>
+            </div>
+
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="canvas-status-banner">
+              Active Safe Sequence Progress: <strong>[ P1 ]</strong> &rarr; Pending...
+            </div>
           </div>
         </div>
 
-        <!-- Paired Analytical Panes -->
         <div class="panes-grid">
-          <div class="pane-box">
-            <div class="pane-title" style="color: #0369a1;">1. What Is Happening</div>
-            <div id="pane-what" style="color: #334155;">
-              Inspecting the allocation and maximum demand matrices to verify if a safe execution sequence exists.
-            </div>
+          <div class="pane-box" style="border-left: 3px solid var(--success);">
+            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
+            <div id="pane-what" style="color: var(--text);">Process P1 has Need [1, 2, 2] &le; Available [3, 3, 2]. P1 can execute, finish, and release its allocation [2, 0, 0] back to Available.</div>
           </div>
-          <div class="pane-box">
-            <div class="pane-title" style="color: #991b1b;">2. Why The System Does This</div>
-            <div id="pane-why" style="color: #334155;">
-              Dynamic avoidance prevents uncoordinated resource grants that would inevitably steer the system into an unsafe deadlocked region.
-            </div>
+          <div class="pane-box" style="border-left: 3px solid var(--accent);">
+            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
+            <div id="pane-why" style="color: var(--text);">Simulating completion guarantees that granting current resource claims preserves at least one valid execution sequence, avoiding deadlocked states.</div>
           </div>
-        </div>
-
-        <div class="toggle-bar">
-          <span style="font-size: 0.75rem; font-weight: 700; align-self: center; margin-right: 4px;">Strategy:</span>
-          <button class="toggle-btn active" onclick="setStrategy('banker')">Banker's Algorithm</button>
-          <button class="toggle-btn" onclick="setStrategy('prevention')">Lock Ordering Prevention</button>
         </div>
       </div>
 
-      <h3>2. Deadlock Prevention: Violating Coffman Conditions</h3>
-      <p>
-        Deadlock prevention designs static architectural rules that guarantee at least one Coffman condition can never hold true:
-      </p>
-      <ul>
-        <li>
-          <strong>Violating Mutual Exclusion:</strong> Make resources shareable. For example, using spooling for printers so multiple processes write concurrently to disk buffers rather than seizing the printer device directly. (<em>Limitation:</em> Fundamental hardware resources like mutexes and write locks cannot be shared).
-        </li>
-        <li>
-          <strong>Violating Hold and Wait:</strong> Require each process to request and be allocated <strong>all</strong> its required resources at once before execution begins. (<em>Limitation:</em> Extremely poor resource utilization; resources sit idle while waiting for long-lived tasks).
-        </li>
-        <li>
-          <strong>Violating No Preemption:</strong> If a process holding certain resources requests another resource that cannot be immediately allocated to it, the OS forcibly preempts all currently held resources, releasing them back to the system.
-        </li>
-        <li>
-          <strong>Violating Circular Wait (Global Lock Ordering):</strong> Assign a strict numerical ordering to all resource types ($R_1 < R_2 < \dots < R_n$). Enforce a global rule that threads <strong>must acquire resources in strictly ascending numerical order</strong>. If Thread A holds $R_5$, it cannot request $R_2$. This mathematically eliminates circular wait cycles.
-        </li>
-      </ul>
-
-      <h3>3. Dijkstra's Banker's Algorithm (Deadlock Avoidance)</h3>
-      <p>
-        Proposed by Edsger Dijkstra, the <strong>Banker's Algorithm</strong> operates on the principle that the operating system acts like a banker managing cash liquidity with clients.
-      </p>
-      <div class="math-callout">
-        <strong>Mathematical Data Structures for Banker's Algorithm:</strong>
-        <br>
-        Let <i>n</i> be the number of processes and <i>m</i> be the number of resource types:
-        <ul style="margin: 6px 0 0 16px; padding: 0; font-size: 0.85rem;">
-          <li><strong>Available Vector [m]:</strong> A vector of length <i>m</i> indicating how many free instances of each resource type are currently available.</li>
-          <li><strong>Max Matrix [n &times; m]:</strong> Defines the maximum demand of each process <i>i</i> for resource type <i>j</i>.</li>
-          <li><strong>Allocation Matrix [n &times; m]:</strong> Defines the number of resources of each type currently allocated to process <i>i</i>.</li>
-          <li><strong>Need Matrix [n &times; m]:</strong> Represents the remaining resource instances each process may still request:
-            <div style="font-family: var(--font-mono); margin-top: 4px; color: #0369a1;">
-              Need[<i>i</i>][<i>j</i>] = Max[<i>i</i>][<i>j</i>] - Allocation[<i>i</i>][<i>j</i>]
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <pre><code><span class="syn-cmt">/* Banker's Safety Algorithm Implementation */</span>
-<span class="syn-kw">bool</span> <span class="syn-fn">is_system_safe</span>(<span class="syn-kw">int</span> n, <span class="syn-kw">int</span> m, <span class="syn-kw">int</span> available[], <span class="syn-kw">int</span> max[][MAX_RES], <span class="syn-kw">int</span> alloc[][MAX_RES]) {
-    <span class="syn-kw">int</span> work[MAX_RES];
-    <span class="syn-fn">memcpy</span>(work, available, m * <span class="syn-kw">sizeof</span>(<span class="syn-kw">int</span>));
-    <span class="syn-kw">bool</span> finish[MAX_PROC] = { <span class="syn-num">false</span> };
-
-    <span class="syn-kw">int</span> safe_sequence[MAX_PROC];
-    <span class="syn-kw">int</span> count = <span class="syn-num">0</span>;
-
-    <span class="syn-kw">while</span> (count &lt; n) {
-        <span class="syn-kw">bool</span> found = <span class="syn-num">false</span>;
-        <span class="syn-kw">for</span> (<span class="syn-kw">int</span> i = <span class="syn-num">0</span>; i &lt; n; i++) {
-            <span class="syn-kw">if</span> (!finish[i]) {
-                <span class="syn-kw">bool</span> can_allocate = <span class="syn-num">true</span>;
-                <span class="syn-kw">for</span> (<span class="syn-kw">int</span> j = <span class="syn-num">0</span>; j &lt; m; j++) {
-                    <span class="syn-kw">if</span> ((max[i][j] - alloc[i][j]) &gt; work[j]) {
-                        can_allocate = <span class="syn-num">false</span>;
-                        <span class="syn-kw">break</span>;
-                    }
-                }
-                <span class="syn-kw">if</span> (can_allocate) {
-                    <span class="syn-kw">for</span> (<span class="syn-kw">int</span> j = <span class="syn-num">0</span>; j &lt; m; j++) {
-                        work[j] += alloc[i][j];
-                    }
-                    safe_sequence[count++] = i;
-                    finish[i] = <span class="syn-num">true</span>;
-                    found = <span class="syn-num">true</span>;
-                }
-            }
-        }
-        <span class="syn-kw">if</span> (!found) <span class="syn-kw">return</span> <span class="syn-num">false</span>; <span class="syn-cmt">/* Unsafe state! */</span>
-    }
-    <span class="syn-kw">return</span> <span class="syn-num">true</span>; <span class="syn-cmt">/* System is safe */</span>
-}</code></pre>
     </div>
 
     <nav class="nav-bar">
       <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">&larr; Module 02</a>
       <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="04-classic-synchronization-real-world-defenses.html" class="nav-btn">Module 04 &rarr;</a>
+      <a href="04-deadlock-recovery-starvation.html" class="nav-btn">Module 04 &rarr;</a>
     </nav>
   </div>
 
@@ -341,28 +242,48 @@
 
     const stepsData = [
       {
-        preview: "<strong>Step 1: Initial State Inspection.</strong> Available Vector = [3, 3, 2]. Evaluating Process P0's maximum declared needs against available resources.",
-        telemetry: "PHASE: 1/4 | AVAILABLE: [3,3,2] | SAFE_SEQUENCE: P1 &rarr; P3 &rarr; P4 &rarr; P2 &rarr; P0",
-        what: "Inspecting the allocation and maximum demand matrices to verify if a safe execution sequence exists.",
-        why: "Dynamic avoidance prevents uncoordinated resource grants that would inevitably steer the system into an unsafe deadlocked region."
+        preview: "<strong>Step 1: Initialization &amp; First Pass.</strong> Available vector is [3, 3, 2]. We evaluate Need matrices against Available to find an eligible process.",
+        phase: "1/4",
+        avail: "[3, 3, 2]",
+        checked: "P1 Eligible",
+        state: "Safe (Pass 1)",
+        stateColor: "#4ade80",
+        what: "Process P1 has Need [1, 2, 2] &le; Available [3, 3, 2]. P1 can execute, finish, and release its allocation [2, 0, 0] back to Available.",
+        why: "Simulating completion guarantees that granting current resource claims preserves at least one valid execution sequence, avoiding deadlocked states.",
+        banner: "Active Safe Sequence Progress: <strong>[ P1 ]</strong> &rarr; Pending..."
       },
       {
-        preview: "<strong>Step 2: Evaluating Process P1.</strong> Need[P1] = [1, 2, 2] &le; Available [3, 3, 2]. P1 can finish and release its allocation [2, 0, 0]. New Available = [5, 3, 2].",
-        telemetry: "PHASE: 2/4 | ACTIVE: P1 | NEW_AVAIL: [5,3,2] | STATUS: Satisfied",
-        what: "Simulating process P1 execution, verifying that its remaining need can be fully satisfied by current available resources.",
-        why: "Granting resources to processes whose maximum needs are satisfiable guarantees forward progress."
+        preview: "<strong>Step 2: Process P1 Finishes.</strong> P1 completes and returns resources. Available updates to [3, 3, 2] + [2, 0, 0] = [5, 3, 2]. Next eligible process is P3.",
+        phase: "2/4",
+        avail: "[5, 3, 2]",
+        checked: "P1 &rarr; P3",
+        state: "Safe (Pass 2)",
+        stateColor: "#38bdf8",
+        what: "With Available now [5, 3, 2], process P3 (Need [0, 1, 1]) can execute. P3 finishes and releases [2, 1, 1].",
+        why: "Incremental resource pooling builds cumulative system capacity, allowing previously blocked processes to satisfy their maximum claims.",
+        banner: "Active Safe Sequence Progress: <strong>[ P1, P3 ]</strong> &rarr; Pending..."
       },
       {
-        preview: "<strong>Step 3: Processing P3, P4, and P2.</strong> Step-by-step simulation confirms P3, P4, and P2 can execute sequentially as available vector expands.",
-        telemetry: "PHASE: 3/4 | PROGRESS: 4/5 Complete | WORK_VECTOR: [9,0,2]",
-        what: "Iteratively testing remaining unfinished processes against the expanding work vector.",
-        why: "Determining whether a safe traversal order exists across all concurrent tasks."
+        preview: "<strong>Step 3: Process P3 &amp; P4 Complete.</strong> Available updates to [7, 4, 3]. Process P4 (Need [4, 3, 1]) and P2 (Need [6, 0, 0]) execute sequentially.",
+        phase: "3/4",
+        avail: "[7, 4, 3] &rarr; [7, 4, 5]",
+        checked: "P1, P3, P4, P2",
+        state: "Safe (Pass 3)",
+        stateColor: "#38bdf8",
+        what: "P4 finishes, releasing [0, 0, 2] (Available becomes [7, 4, 5]). Then P2 finishes, releasing [3, 0, 2] (Available becomes [10, 4, 7]).",
+        why: "The algorithm systematically explores task completion permutations until all pending resource demands are fully accounted for.",
+        banner: "Active Safe Sequence Progress: <strong>[ P1, P3, P4, P2 ]</strong> &rarr; Pending P0..."
       },
       {
-        preview: "<strong>Step 4: Safe State Verified.</strong> Valid safe sequence &lang; P1, P3, P4, P2, P0 &rang; established successfully. Request granted.",
-        telemetry: "PHASE: 4/4 | RESULT: Safe State | ACTION: Request Approved",
-        what: "All processes marked successfully without triggering deadlock thresholds.",
-        why: "The Banker's Algorithm ensures the system only grants resource requests that maintain at least one guaranteed safe execution trajectory."
+        preview: "<strong>Step 4: All Processes Finish (Safe State Proven).</strong> P0 executes last with Available [10, 4, 7]. Valid safe execution sequence verified: $\\langle P_1, P_3, P_4, P_2, P_0 \\rangle$.",
+        phase: "4/4",
+        avail: "[10, 5, 7]",
+        checked: "All Finished",
+        state: "SAFE STATE PROVEN",
+        stateColor: "#16a34a",
+        what: "Process P0 completes successfully. All processes have Finish[i] == true without encountering a deadlock.",
+        why: "Finding a complete safe sequence proves the system is currently in a secure avoidance state. Resource requests can be granted safely.",
+        banner: "Safe State Verified! Valid Execution Sequence: <strong>&lang; P1, P3, P4, P2, P0 &rang;</strong>"
       }
     ];
 
@@ -379,21 +300,26 @@
     }
 
     function updateUI() {
-      document.getElementById('preview-text').innerHTML = stepsData[currentStep - 1].preview;
-      document.getElementById('telemetry-bar').innerText = stepsData[currentStep - 1].telemetry;
-      document.getElementById('pane-what').innerText = stepsData[currentStep - 1].what;
-      document.getElementById('pane-why').innerText = stepsData[currentStep - 1].why;
+      const data = stepsData[currentStep - 1];
+      document.getElementById('preview-text').innerHTML = data.preview;
 
-      for (let i = 1; i <= totalSteps; i++) {
-        const gfx = document.getElementById(`step-${i}-gfx`);
-        if (gfx) gfx.style.display = (i === currentStep) ? 'block' : 'none';
-      }
+      document.getElementById('tel-phase').innerText = data.phase;
+      document.getElementById('tel-avail').innerText = data.avail;
+      document.getElementById('tel-checked').innerText = data.checked;
+
+      const stateEl = document.getElementById('tel-state');
+      stateEl.innerText = data.state;
+      stateEl.style.color = data.stateColor;
+
+      document.getElementById('pane-what').innerText = data.what;
+      document.getElementById('pane-why').innerText = data.why;
+      document.getElementById('canvas-status-banner').innerHTML = data.banner;
 
       document.getElementById('prev-btn').disabled = (currentStep === 1);
       document.getElementById('next-btn').disabled = (currentStep === totalSteps);
     }
 
-    function setStrategy(strat) {
+    function setDomain(domain) {
       document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
       event.target.classList.add('active');
     }
