@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 3: CPU Scheduling &amp; Resource Allocation | COSC240</title>
+  <title>Week 1: Introduction to Operating Systems | COSC240</title>
   <style>
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -151,16 +151,15 @@
   <div class="container">
     <nav class="nav-bar">
       <a href="../index.html">&#127968; Course Index</a>
-      <a href="../week02-processes/index.html">&larr; Week 2 Hub</a>
-      <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Week 3: CPU Scheduling</span>
-      <a href="../week04-concurrency/index.html">Next: Week 4 Hub &rarr;</a>
+      <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Week 1: Introduction</span>
+      <a href="../week02-processes/index.html">Next: Week 2 Hub &rarr;</a>
     </nav>
 
-    <h1>Week 3: CPU Scheduling &amp; Resource Allocation</h1>
-    <p class="subtitle">Burst Distributions, Dispatch Latency, Feedback Queues, and Multiprocessor Systems</p>
+    <h1>Week 1: Introduction to Operating Systems</h1>
+    <p class="subtitle">The Hardware-Software Interface, Dual-Mode Protection, and System Calls</p>
 
     <div class="lead-card">
-      <strong>Core Conceptual Shift:</strong> When multiple runnable threads compete for finite hardware cores, the operating system must decide who runs, for how long, and when to forcibly intervene. Scheduling policies balance irreconcilable trade-offs: minimizing turnaround time in batch computing, guaranteeing responsive interaction on user terminals, and satisfying deterministic deadlines in real-time avionics.
+      <strong>Core Conceptual Shift:</strong> Software cannot be trusted with raw hardware access. The operating system acts as an illusionist and an arbiter: virtualizing physical devices to provide safe abstractions, while using CPU hardware privilege rings to enforce strict protection boundaries between untrusted user code and the privileged supervisor kernel.
     </div>
 
     <div class="module-grid">
@@ -168,48 +167,36 @@
       <div class="module-card">
         <div>
           <div class="module-num">Module 01</div>
-          <h2 class="module-title">Introduction to CPU Scheduling</h2>
+          <h2 class="module-title">Operating System Fundamentals</h2>
           <p class="module-desc">
-            CPU vs. I/O burst distributions, scheduler vs. dispatcher separation, CR3/PCID register switches, direct/indirect dispatch latency, and preemption triggers.
+            The dual role of the OS as extended machine and resource manager, kernel architectures (monolithic vs. microkernels), and the hardware boundary.
           </p>
         </div>
-        <a href="01-scheduling-introduction.html" class="btn-module">Open Module 01 &rarr;</a>
+        <a href="01-os-fundamentals.html" class="btn-module">Open Module 01 &rarr;</a>
       </div>
 
       <!-- Module 02 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 02</div>
-          <h2 class="module-title">Scheduling in Batch Systems</h2>
+          <h2 class="module-title">Dual-Mode Operation &amp; Protection</h2>
           <p class="module-desc">
-            FCFS convoy effects, SJF turnaround optimality proofs, preemptive SRTN, exponential burst smoothing (&tau;), and Highest Response Ratio Next (HRRN).
+            Hardware privilege rings (Ring 0 vs. Ring 3), privileged instruction enforcement, memory protection registers, and hardware timer interrupt preemption.
           </p>
         </div>
-        <a href="02-batch-scheduling.html" class="btn-module">Open Module 02 &rarr;</a>
+        <a href="02-dual-mode-protection.html" class="btn-module">Open Module 02 &rarr;</a>
       </div>
 
       <!-- Module 03 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 03</div>
-          <h2 class="module-title">Scheduling in Interactive Systems</h2>
+          <h2 class="module-title">System Call Mechanics &amp; Traps</h2>
           <p class="module-desc">
-            Round-Robin quantum dilemmas, Priority Inversion and Priority Inheritance, the 5 MLFQ rules, lottery scheduling, and deterministic Stride fair-share.
+            The low-level anatomy of a system call, software interrupt traps (syscall/sysenter), register calling conventions, and user-to-kernel stack switching.
           </p>
         </div>
-        <a href="03-interactive-scheduling.html" class="btn-module">Open Module 03 &rarr;</a>
-      </div>
-
-      <!-- Module 04 -->
-      <div class="module-card">
-        <div>
-          <div class="module-num">Module 04</div>
-          <h2 class="module-title">Real-Time &amp; Multiprocessor Scheduling</h2>
-          <p class="module-desc">
-            Hard vs. soft real-time constraints, Rate-Monotonic Liu &amp; Layland bounds, Earliest Deadline First (EDF), SMP cache affinity, NUMA nodes, and work stealing.
-          </p>
-        </div>
-        <a href="04-realtime-multiprocessor.html" class="btn-module">Open Module 04 &rarr;</a>
+        <a href="03-system-calls.html" class="btn-module">Open Module 03 &rarr;</a>
       </div>
     </div>
   </div>
