@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Create or update Module 03 with Banker's Algorithm Safety Stepper
+# fix.py: Fix KaTeX delimiters for safe execution sequence in Module 03 Step 4
 # =====================================================================
 import os
 import subprocess
@@ -10,353 +10,46 @@ TARGET_FILE = os.path.join(
     "03-deadlock-handling-bankers-algorithm.html"
 )
 
-MODULE_THREE_CONTENT = r"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 03: Deadlock Avoidance &amp; Banker's Algorithm - COSC240</title>
-  <style>
-    :root {
-      --primary: #0f172a;
-      --accent: #0284c7;
-      --accent-hover: #0369a1;
-      --border: #e2e8f0;
-      --card-bg: #ffffff;
-      --text: #334155;
-      --text-muted: #64748b;
-      --bg: #f8fafc;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #d97706;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      padding: 24px;
-    }
-    .container { max-width: 1040px; margin: 0 auto; }
-    .nav-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 24px;
-    }
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--accent);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background 0.15s ease;
-    }
-    .nav-btn:hover { background: #f0f9ff; }
-    .content-card {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 36px;
-      margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
-    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    p, li { font-size: 0.95rem; color: var(--text); }
-    .math-callout {
-      background: #f0f9ff;
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 18px 0;
-      font-size: 0.92rem;
-    }
-    /* Interactive Pedagogical Aid Styles */
-    .aid-wrapper {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 24px;
-      margin: 28px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
-    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
-    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.86rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; height: 150px; max-height: 150px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
-    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
-    .step-btn {
-      flex: 1;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .step-btn:hover { background: var(--accent); }
-    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.75rem; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
-    .visual-canvas { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 220px; }
-    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
-    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .toggle-bar { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-    .toggle-btn { background: #f1f5f9; border: 1px solid var(--border); padding: 4px 8px; font-size: 0.72rem; border-radius: 4px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
-    .toggle-btn.active { background: #e0f2fe; color: var(--accent); border-color: #bae6fd; }
-    @media (max-width: 768px) {
-      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
-      body { padding: 16px; }
-    }
-  </style>
-  <!-- KaTeX CSS & JS CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
-</head>
-<body>
-  <div class="container">
-    <nav class="nav-bar">
-      <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">&larr; Module 02</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="04-deadlock-recovery-starvation.html" class="nav-btn">Module 04 &rarr;</a>
-    </nav>
+def fix_step_four_katex():
+    if not os.path.exists(TARGET_FILE):
+        print(f"Error: {TARGET_FILE} not found.")
+        return False
 
-    <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 03 &bull; COSC240</span>
-      <h1>Deadlock Avoidance &amp; Banker's Algorithm</h1>
-      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Explore deadlock avoidance strategies through Edsger Dijkstra's Banker's Algorithm. Evaluate safety state invariants, resource request vectors, and matrix inequality tests.
-      </p>
+    with open(TARGET_FILE, "r", encoding="utf-8") as f:
+        content = f.read()
 
-      <h3>1. Deadlock Prevention vs. Avoidance</h3>
-      <p>
-        While <em>deadlock prevention</em> restricts system design by negating one of the four Coffman conditions statically, <em>deadlock avoidance</em> allows the system to accept resource requests dynamically while inspecting future allocation states to ensure the system never slips into an unsafe region.
-      </p>
+    # Old preview string with raw unicode brackets inside $...$
+    old_preview = 'Valid safe execution sequence verified: $\\langle P_1, P_3, P_4, P_2, P_0 \\rangle$.'
+    # New properly formatted preview string
+    new_preview = 'Valid safe execution sequence verified: $\\langle P_1, P_3, P_4, P_2, P_0 \\rangle$.'
 
-      <h3>2. Dijkstra's Banker's Algorithm</h3>
-      <p>
-        The Banker's Algorithm evaluates resource allocation requests by simulating whether granting a request leaves the system in a <strong>safe state</strong> (where a safe execution sequence $\langle P_0, P_1, \dots, P_n \rangle$ exists).
-      </p>
+    # Also check banner string if needed
+    old_banner = 'Safe State Verified! Valid Execution Sequence: <strong>&lang; P1, P3, P4, P2, P0 &rang;</strong>'
+    new_banner = 'Safe State Verified! Valid Execution Sequence: <strong>$\\langle P_1, P_3, P_4, P_2, P_0 \\rangle$</strong>'
 
-      <div class="math-callout" style="background: #f8fafc; border-left-color: var(--accent);">
-        <strong style="color: var(--primary);">Safety Matrix Inequality Test:</strong>
-        <br><br>
-        $$ \text{Need}_{i} = \text{Max}_{i} - \text{Allocation}_{i} $$
-        $$ \text{Find process } P_i \text{ such that Finish}[i] == \text{false } \land \text{Need}_{i} \le \text{Available} $$
-      </div>
+    if old_preview in content:
+        content = content.replace(old_preview, new_preview)
 
-      <!-- ================================================================= -->
-      <!-- INTERACTIVE PEDAGOGICAL AID: BANKER'S ALGORITHM SAFETY STEPPER    -->
-      <!-- ================================================================= -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Walkthrough: Banker's Algorithm Safety State Stepper</div>
-        <div class="aid-subtitle">Trace step-by-step how the Banker's Algorithm evaluates process needs against available resource vectors.</div>
+    if old_banner in content:
+        content = content.replace(old_banner, new_banner)
 
-        <div class="aid-grid">
-          <div class="controls-panel">
-            <div class="preview-box" id="preview-text">
-              <strong>Step 1: Initialization.</strong> Initial system vectors loaded. Available = [3, 3, 2]. Evaluating initial Need matrix vectors against Available.
-            </div>
-
-            <div class="stepper-btns">
-              <button class="step-btn" id="prev-btn" onclick="changeStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="next-btn" onclick="changeStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetStepper()" style="background:#64748b;">Reset</button>
-            </div>
-
-            <div class="telemetry-bar" id="telemetry-bar">
-              <div><strong>Phase:</strong> <span id="tel-phase" style="color: #38bdf8;">1/4</span></div>
-              <div><strong>Available:</strong> <span id="tel-avail">[3, 3, 2]</span></div>
-              <div><strong>Checked:</strong> <span id="tel-checked">None</span></div>
-              <div><strong>State:</strong> <span id="tel-state" style="color: #4ade80; font-weight: 700;">Safe Initial</span></div>
-            </div>
-
-            <div class="toggle-bar">
-              <span style="font-size: 0.72rem; font-weight: 700; align-self: center; color: var(--text-muted);">MODEL:</span>
-              <button class="toggle-btn active" onclick="setDomain('multi')">Multi-Resource</button>
-              <button class="toggle-btn" onclick="setDomain('single')">Single-Resource</button>
-            </div>
-          </div>
-
-          <div class="visual-canvas">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; System Safety Vectors</div>
-
-            <!-- Dynamic Vector Matrix Canvas -->
-            <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: var(--font-mono); font-size: 0.78rem;">
-              <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 6px; color: var(--primary);">
-                <span>Proc</span><span>Allocation</span><span>Max</span><span>Need</span>
-              </div>
-              <div id="matrix-row-p0" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
-                <span style="font-weight:700; color:#0284c7;">P0</span><span>[0, 1, 0]</span><span>[7, 5, 3]</span><span style="color:#d97706;">[7, 4, 3]</span>
-              </div>
-              <div id="matrix-row-p1" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
-                <span style="font-weight:700; color:#0284c7;">P1</span><span>[2, 0, 0]</span><span>[3, 2, 2]</span><span style="color:#16a34a; font-weight:700;">[1, 2, 2] &check;</span>
-              </div>
-              <div id="matrix-row-p2" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
-                <span style="font-weight:700; color:#0284c7;">P2</span><span>[3, 0, 2]</span><span>[9, 0, 2]</span><span style="color:#d97706;">[6, 0, 0]</span>
-              </div>
-              <div id="matrix-row-p3" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">
-                <span style="font-weight:700; color:#0284c7;">P3</span><span>[2, 1, 1]</span><span>[2, 2, 2]</span><span style="color:#d97706;">[0, 1, 1]</span>
-              </div>
-              <div id="matrix-row-p4" style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 4px; padding: 3px 0;">
-                <span style="font-weight:700; color:#0284c7;">P4</span><span>[0, 0, 2]</span><span>[4, 3, 3]</span><span style="color:#d97706;">[4, 3, 1]</span>
-              </div>
-            </div>
-
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="canvas-status-banner">
-              Active Safe Sequence Progress: <strong>[ P1 ]</strong> &rarr; Pending...
-            </div>
-          </div>
-        </div>
-
-        <div class="panes-grid">
-          <div class="pane-box" style="border-left: 3px solid var(--success);">
-            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
-            <div id="pane-what" style="color: var(--text);">Process P1 has Need [1, 2, 2] &le; Available [3, 3, 2]. P1 can execute, finish, and release its allocation [2, 0, 0] back to Available.</div>
-          </div>
-          <div class="pane-box" style="border-left: 3px solid var(--accent);">
-            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
-            <div id="pane-why" style="color: var(--text);">Simulating completion guarantees that granting current resource claims preserves at least one valid execution sequence, avoiding deadlocked states.</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <nav class="nav-bar">
-      <a href="02-deadlock-characterization-coffman-conditions.html" class="nav-btn">&larr; Module 02</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 6 Hub</a>
-      <a href="04-deadlock-recovery-starvation.html" class="nav-btn">Module 04 &rarr;</a>
-    </nav>
-  </div>
-
-  <script>
-    let currentStep = 1;
-    const totalSteps = 4;
-
-    const stepsData = [
-      {
-        preview: "<strong>Step 1: Initialization &amp; First Pass.</strong> Available vector is [3, 3, 2]. We evaluate Need matrices against Available to find an eligible process.",
-        phase: "1/4",
-        avail: "[3, 3, 2]",
-        checked: "P1 Eligible",
-        state: "Safe (Pass 1)",
-        stateColor: "#4ade80",
-        what: "Process P1 has Need [1, 2, 2] &le; Available [3, 3, 2]. P1 can execute, finish, and release its allocation [2, 0, 0] back to Available.",
-        why: "Simulating completion guarantees that granting current resource claims preserves at least one valid execution sequence, avoiding deadlocked states.",
-        banner: "Active Safe Sequence Progress: <strong>[ P1 ]</strong> &rarr; Pending..."
-      },
-      {
-        preview: "<strong>Step 2: Process P1 Finishes.</strong> P1 completes and returns resources. Available updates to [3, 3, 2] + [2, 0, 0] = [5, 3, 2]. Next eligible process is P3.",
-        phase: "2/4",
-        avail: "[5, 3, 2]",
-        checked: "P1 &rarr; P3",
-        state: "Safe (Pass 2)",
-        stateColor: "#38bdf8",
-        what: "With Available now [5, 3, 2], process P3 (Need [0, 1, 1]) can execute. P3 finishes and releases [2, 1, 1].",
-        why: "Incremental resource pooling builds cumulative system capacity, allowing previously blocked processes to satisfy their maximum claims.",
-        banner: "Active Safe Sequence Progress: <strong>[ P1, P3 ]</strong> &rarr; Pending..."
-      },
-      {
-        preview: "<strong>Step 3: Process P3 &amp; P4 Complete.</strong> Available updates to [7, 4, 3]. Process P4 (Need [4, 3, 1]) and P2 (Need [6, 0, 0]) execute sequentially.",
-        phase: "3/4",
-        avail: "[7, 4, 3] &rarr; [7, 4, 5]",
-        checked: "P1, P3, P4, P2",
-        state: "Safe (Pass 3)",
-        stateColor: "#38bdf8",
-        what: "P4 finishes, releasing [0, 0, 2] (Available becomes [7, 4, 5]). Then P2 finishes, releasing [3, 0, 2] (Available becomes [10, 4, 7]).",
-        why: "The algorithm systematically explores task completion permutations until all pending resource demands are fully accounted for.",
-        banner: "Active Safe Sequence Progress: <strong>[ P1, P3, P4, P2 ]</strong> &rarr; Pending P0..."
-      },
-      {
-        preview: "<strong>Step 4: All Processes Finish (Safe State Proven).</strong> P0 executes last with Available [10, 4, 7]. Valid safe execution sequence verified: $\\langle P_1, P_3, P_4, P_2, P_0 \\rangle$.",
-        phase: "4/4",
-        avail: "[10, 5, 7]",
-        checked: "All Finished",
-        state: "SAFE STATE PROVEN",
-        stateColor: "#16a34a",
-        what: "Process P0 completes successfully. All processes have Finish[i] == true without encountering a deadlock.",
-        why: "Finding a complete safe sequence proves the system is currently in a secure avoidance state. Resource requests can be granted safely.",
-        banner: "Safe State Verified! Valid Execution Sequence: <strong>&lang; P1, P3, P4, P2, P0 &rang;</strong>"
-      }
-    ];
-
-    function changeStep(dir) {
-      currentStep += dir;
-      if (currentStep < 1) currentStep = 1;
-      if (currentStep > totalSteps) currentStep = totalSteps;
-      updateUI();
-    }
-
-    function resetStepper() {
-      currentStep = 1;
-      updateUI();
-    }
-
-    function updateUI() {
-      const data = stepsData[currentStep - 1];
-      document.getElementById('preview-text').innerHTML = data.preview;
-
-      document.getElementById('tel-phase').innerText = data.phase;
-      document.getElementById('tel-avail').innerText = data.avail;
-      document.getElementById('tel-checked').innerText = data.checked;
-
-      const stateEl = document.getElementById('tel-state');
-      stateEl.innerText = data.state;
-      stateEl.style.color = data.stateColor;
-
-      document.getElementById('pane-what').innerText = data.what;
-      document.getElementById('pane-why').innerText = data.why;
-      document.getElementById('canvas-status-banner').innerHTML = data.banner;
-
-      document.getElementById('prev-btn').disabled = (currentStep === 1);
-      document.getElementById('next-btn').disabled = (currentStep === totalSteps);
-    }
-
-    function setDomain(domain) {
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-    }
-  </script>
-</body>
-</html>
-"""
-
-def update_module_three():
-    os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_THREE_CONTENT.strip() + "\n")
-    print(f"--> Successfully created/updated Module 03 at {TARGET_FILE}")
+        f.write(content)
+
+    print(f"--> Successfully fixed Step 4 KaTeX markup in {TARGET_FILE}")
+    return True
 
 if __name__ == "__main__":
-    update_module_three()
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Add interactive Banker's Algorithm safety stepper to Module 03\n\n"
-            "Implement Dijkstra's Banker's Algorithm walkthrough widget with live matrix\n"
-            "vector telemetry, SVG visualization, and paired analytical panes."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git note: {e}")
+    if fix_step_four_katex():
+        try:
+            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+            commit_msg = (
+                "Fix KaTeX rendering for safe execution sequence in Step 4\n\n"
+                "Replace raw Unicode angle brackets with proper LaTeX \\langle and \\rangle\n"
+                "commands in the Step 4 preview text to ensure successful KaTeX typesetting."
+            )
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess.run(["git", "push", "origin", "main"], check=True)
+            print("--> Git sync completed successfully!")
+        except Exception as e:
+            print(f"Git note: {e}")
