@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Update Windows lifecycle stepper to properly spawn fine.exe
+# fix.py: Update Windows lifecycle stepper references to find.exe
 # =====================================================================
 import os
 import subprocess
@@ -377,7 +377,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
         <h4>Interactive Stepper: Process Creation &amp; Termination Lifecycle</h4>
         <div class="dimension-toggles">
           <button class="dim-btn active" id="dim-unix" onclick="setLifecycleDim('unix')">UNIX Model (fork/exec/wait)</button>
-          <button class="dim-btn" id="dim-win" onclick="setLifecycleDim('windows')">Windows Model (CreateProcess fine.exe)</button>
+          <button class="dim-btn" id="dim-win" onclick="setLifecycleDim('windows')">Windows Model (CreateProcess find.exe)</button>
         </div>
       </div>
 
@@ -642,7 +642,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
           trap: "ReadFile(hStdIn)",
           parentStatusBadge: "STATUS: RUNNING",
           childStatusBadge: "STATUS: UNBORN",
-          childTitle: "CHILD (fine.exe)",
+          childTitle: "CHILD (find.exe)",
           childPpid: "Process Handle: None",
           childMem: "Address Space: None",
           childFds: "Handles: None",
@@ -650,7 +650,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
           parentActive: true,
           childClass: "reaped",
           pathActive: false,
-          narrative: "The Windows command interpreter (cmd.exe, PID 1100) sits in user mode waiting for input. The system aims to accept user command 'fine.exe' from standard input before constructing Win32 process creation attributes.",
+          narrative: "The Windows command interpreter (cmd.exe, PID 1100) sits in user mode waiting for input. The system aims to accept user command 'find.exe' from standard input before constructing Win32 process creation attributes.",
           what: "Parent process 1100 executes a user-mode loop waiting on standard input handle hStdIn.",
           why: "Decoupling user input parsing from process creation isolates command interpretation from kernel-level process object allocation."
         },
@@ -661,20 +661,20 @@ MODULE_HTML = r"""<!DOCTYPE html>
           parentMem: "cmd.exe (Active hProcess)",
           parentFds: "Handles: hProcess (PID 1104)",
           parentState: "PID 1100: Waiting on hProcess",
-          childState: "PID 1104 (fine.exe): RUNNING",
-          trap: "CreateProcess(\"fine.exe\", ...)",
+          childState: "PID 1104 (find.exe): RUNNING",
+          trap: "CreateProcess(\"find.exe\", ...)",
           parentStatusBadge: "STATUS: BLOCKED (WAIT)",
-          childStatusBadge: "STATUS: RUNNING (fine.exe)",
-          childTitle: "CHILD (PID 1104: fine.exe)",
+          childStatusBadge: "STATUS: RUNNING (find.exe)",
+          childTitle: "CHILD (PID 1104: find.exe)",
           childPpid: "Parent Handle: hProcess",
-          childMem: "Mapped from fine.exe PE",
+          childMem: "Mapped from find.exe PE",
           childFds: "Inherited Standard Handles",
-          pathLabel: "CreateProcess fine.exe",
+          pathLabel: "CreateProcess find.exe",
           parentActive: false,
           childClass: "active",
           pathActive: true,
-          narrative: "Parent invokes CreateProcess(\"fine.exe\", ...). Unlike UNIX fork/exec, Windows creates an address space, loads the target PE executable fine.exe, and spawns its initial thread in a single atomic system call. The parent receives an opaque process handle hProcess. The step aims to initialize fine.exe directly without intermediate cloning.",
-          what: "The kernel Executive builds an EPROCESS object for fine.exe, maps the fine.exe binary sections, constructs an initial ETHREAD, and returns an access handle (hProcess) to PID 1100.",
+          narrative: "Parent invokes CreateProcess(\"find.exe\", ...). Unlike UNIX fork/exec, Windows creates an address space, loads the target PE executable find.exe, and spawns its initial thread in a single atomic system call. The parent receives an opaque process handle hProcess. The step aims to initialize find.exe directly without intermediate cloning.",
+          what: "The kernel Executive builds an EPROCESS object for find.exe, maps the find.exe binary sections, constructs an initial ETHREAD, and returns an access handle (hProcess) to PID 1100.",
           why: "Windows combines creation and program loading into one call, avoiding the overhead of creating temporary address space copies."
         },
         {
@@ -684,20 +684,20 @@ MODULE_HTML = r"""<!DOCTYPE html>
           parentMem: "cmd.exe (Waiting)",
           parentFds: "Handles: hProcess (Holding)",
           parentState: "PID 1100: WaitForSingleObject",
-          childState: "PID 1104 (fine.exe): EXECUTING",
+          childState: "PID 1104 (find.exe): EXECUTING",
           trap: "WaitForSingleObject(hProcess)",
           parentStatusBadge: "STATUS: BLOCKED (WAIT)",
-          childStatusBadge: "STATUS: RUNNING (fine.exe)",
-          childTitle: "CHILD (PID 1104: fine.exe)",
+          childStatusBadge: "STATUS: RUNNING (find.exe)",
+          childTitle: "CHILD (PID 1104: find.exe)",
           childPpid: "Parent Handle: hProcess",
-          childMem: "fine.exe Active Code & Heap",
+          childMem: "find.exe Active Code & Heap",
           childFds: "Active Win32 Handles",
           pathLabel: "Active Execution",
           parentActive: false,
           childClass: "active",
           pathActive: true,
-          narrative: "Child process fine.exe (PID 1104) executes its computational logic while parent process 1100 blocks on WaitForSingleObject(hProcess). The step aims to allow fine.exe to execute concurrently while keeping the parent synchronized with its completion.",
-          what: "fine.exe executes user-mode logic while the parent thread is placed on the wait queue of the EPROCESS kernel dispatcher object.",
+          narrative: "Child process find.exe (PID 1104) executes its computational logic while parent process 1100 blocks on WaitForSingleObject(hProcess). The step aims to allow find.exe to execute concurrently while keeping the parent synchronized with its completion.",
+          what: "find.exe executes user-mode logic while the parent thread is placed on the wait queue of the EPROCESS kernel dispatcher object.",
           why: "Kernel dispatcher objects allow parents to sleep efficiently until signaled, consuming zero CPU cycles while waiting."
         },
         {
@@ -707,8 +707,8 @@ MODULE_HTML = r"""<!DOCTYPE html>
           parentMem: "cmd.exe (Waking)",
           parentFds: "Handles: hProcess (Signaled)",
           parentState: "PID 1100: Signaled by Object",
-          childState: "PID 1104 (fine.exe): TERMINATED",
-          trap: "ExitProcess(0) [fine.exe Exit]",
+          childState: "PID 1104 (find.exe): TERMINATED",
+          trap: "ExitProcess(0) [find.exe Exit]",
           parentStatusBadge: "STATUS: AWAKENING",
           childStatusBadge: "STATUS: SIGNALED (DEAD)",
           childTitle: "CHILD (PID 1104: Dead)",
@@ -719,8 +719,8 @@ MODULE_HTML = r"""<!DOCTYPE html>
           parentActive: true,
           childClass: "zombie",
           pathActive: true,
-          narrative: "fine.exe calls ExitProcess(0). The kernel releases the child's physical memory pages and sets the EPROCESS dispatcher object state to Signaled. However, the EPROCESS block is not freed because cmd.exe still holds an open handle (hProcess). The step aims to preserve the process object until all open handles are closed.",
-          what: "fine.exe's threads and address space terminate, but the kernel retains the EPROCESS block as long as its handle reference count is greater than zero.",
+          narrative: "find.exe calls ExitProcess(0). The kernel releases the child's physical memory pages and sets the EPROCESS dispatcher object state to Signaled. However, the EPROCESS block is not freed because cmd.exe still holds an open handle (hProcess). The step aims to preserve the process object until all open handles are closed.",
+          what: "find.exe's threads and address space terminate, but the kernel retains the EPROCESS block as long as its handle reference count is greater than zero.",
           why: "Windows uses reference-counted object security; as long as any process holds a valid handle, the underlying kernel object cannot be deleted."
         },
         {
@@ -734,7 +734,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
           trap: "CloseHandle(hProcess)",
           parentStatusBadge: "STATUS: RUNNING",
           childStatusBadge: "STATUS: DESTROYED",
-          childTitle: "CHILD (fine.exe Destroyed)",
+          childTitle: "CHILD (find.exe Destroyed)",
           childPpid: "Process Handle: Released",
           childMem: "EPROCESS Freed from RAM",
           childFds: "Handle Deallocated",
@@ -742,7 +742,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
           parentActive: true,
           childClass: "reaped",
           pathActive: false,
-          narrative: "Parent retrieves the exit code via GetExitCodeProcess and calls CloseHandle(hProcess). The reference count on the EPROCESS block drops to zero, and the kernel deallocates the object. The step aims to reclaim the kernel object and finish synchronization for fine.exe.",
+          narrative: "Parent retrieves the exit code via GetExitCodeProcess and calls CloseHandle(hProcess). The reference count on the EPROCESS block drops to zero, and the kernel deallocates the object. The step aims to reclaim the kernel object and finish synchronization for find.exe.",
           what: "Parent closes hProcess, decrementing the EPROCESS reference count to 0, which triggers kernel garbage collection of the process structure.",
           why: "Explicit handle closing prevents kernel memory leaks in long-running services and server applications."
         }
@@ -815,7 +815,7 @@ MODULE_HTML = r"""<!DOCTYPE html>
 
       const scenarioText = dim === "unix"
         ? "An interactive command shell (bash, PID 501) spawns an external utility (grep, PID 502) to search a file, waits for child completion, and reaps its exit status."
-        : "A Windows command console (cmd.exe, PID 1100) invokes CreateProcess to spawn fine.exe (PID 1104), synchronizes via an object handle, and closes the handle.";
+        : "A Windows command console (cmd.exe, PID 1100) invokes CreateProcess to spawn find.exe (PID 1104), synchronizes via an object handle, and closes the handle.";
       document.getElementById("lifecycle-scenario-text").innerHTML = scenarioText;
 
       renderLifecycleStepper();
@@ -834,14 +834,14 @@ def execute_module_update():
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully updated {TARGET_FILE} to spawn fine.exe on Windows.")
+    print(f"--> Successfully updated {TARGET_FILE} to reference find.exe on Windows.")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Update Windows stepper to dynamically display spawning fine.exe\n\n"
-            "Ensure parent and child SVG cards dynamically update to show cmd.exe\n"
-            "spawning fine.exe via CreateProcess when toggling to the Windows model."
+            "Update Windows lifecycle stepper references to find.exe\n\n"
+            "Correct executable target from fine.exe to find.exe across the Windows\n"
+            "dimension button, telemetry strip, SVG cards, and step narratives."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
