@@ -225,12 +225,12 @@
       </div>
 
       <!-- Week 3 -->
-      <div class="week-card" style="border-color: var(--accent);">
+      <div class="week-card">
         <div class="week-card-header">
-          <span class="week-number" style="color: var(--accent);">Week 03</span>
-          <span class="status-badge active">4 Modules</span>
+          <span class="week-number">Week 03</span>
+          <span class="status-badge complete">4 Modules</span>
         </div>
-        <h2 class="week-title" style="color: var(--accent);">CPU Scheduling &amp; Resource Allocation</h2>
+        <h2 class="week-title">CPU Scheduling &amp; Resource Allocation</h2>
         <p class="week-desc">
           Burst distributions, dispatch latency, batch algorithms, multi-level feedback queues (MLFQ), and real-time multiprocessor systems.
         </p>
@@ -241,7 +241,7 @@
           <li><a href="week03-process-scheduling/04-realtime-multiprocessor.html">04. Real-Time &amp; SMP (RMS, EDF, Work Stealing)</a></li>
         </ul>
         <div class="week-card-footer">
-          <a href="week03-process-scheduling/index.html" class="hub-link primary">&#127968; Open Week 3 Hub &rarr;</a>
+          <a href="week03-process-scheduling/index.html" class="hub-link">&#127968; Open Week 3 Hub &rarr;</a>
         </div>
       </div>
 
@@ -249,16 +249,17 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 04</span>
-          <span class="status-badge ready">Hub Ready</span>
+          <span class="status-badge complete">4 Modules</span>
         </div>
         <h2 class="week-title">Concurrency &amp; Mutual Exclusion</h2>
         <p class="week-desc">
-          Race conditions, critical regions, software solutions (Peterson's), hardware atomic instructions (TSL, CAS), and spinlocks.
+          Race conditions, critical regions, software solutions (Peterson's), hardware atomic instructions (TSL, CAS), and semaphores.
         </p>
         <ul class="module-links">
-          <li><a href="week04-concurrency-and-mutual-exclusion/index.html">Week 4 Overview &amp; Learning Objectives</a></li>
-          <li>Shared State Hazards &amp; Non-Atomic Code</li>
-          <li>The 4 Conditions for Mutual Exclusion</li>
+          <li><a href="week04-concurrency-and-mutual-exclusion/01-race-conditions-critical-regions.html">01. Race Conditions &amp; Critical Regions</a></li>
+          <li><a href="week04-concurrency-and-mutual-exclusion/02-hardware-primitives-spinlocks.html">02. Hardware Primitives &amp; Spinlocks</a></li>
+          <li><a href="week04-concurrency-and-mutual-exclusion/03-semaphores-mutexes-monitors.html">03. Semaphores, Mutexes &amp; Monitors</a></li>
+          <li><a href="week04-concurrency-and-mutual-exclusion/04-classical-synchronization.html">04. Classical Synchronization Problems</a></li>
         </ul>
         <div class="week-card-footer">
           <a href="week04-concurrency-and-mutual-exclusion/index.html" class="hub-link">&#127968; Open Week 4 Hub &rarr;</a>
@@ -269,16 +270,17 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 05</span>
-          <span class="status-badge ready">Hub Ready</span>
+          <span class="status-badge complete">4 Modules</span>
         </div>
         <h2 class="week-title">I/O Systems &amp; Disk Scheduling</h2>
         <p class="week-desc">
           Device controllers, polling vs. interrupts, Direct Memory Access (DMA), disk geometry, and rotational media arm scheduling.
         </p>
         <ul class="module-links">
-          <li><a href="week05-io-and-disk-scheduling/index.html">Week 5 Overview &amp; Architecture</a></li>
-          <li>Device Controllers &amp; DMA Hardware</li>
-          <li>Rotational Head Scheduling (SSTF, SCAN, C-SCAN)</li>
+          <li><a href="week05-io-and-disk-scheduling/01-io-hardware-device-controllers.html">01. I/O Hardware &amp; Device Controllers</a></li>
+          <li><a href="week05-io-and-disk-scheduling/02-interrupts-and-dma.html">02. Interrupts, APIC &amp; DMA Transfers</a></li>
+          <li><a href="week05-io-and-disk-scheduling/03-disk-hardware-scheduling.html">03. Disk Geometry &amp; Arm Scheduling</a></li>
+          <li><a href="week05-io-and-disk-scheduling/04-raid-architectures.html">04. RAID Storage Architectures</a></li>
         </ul>
         <div class="week-card-footer">
           <a href="week05-io-and-disk-scheduling/index.html" class="hub-link">&#127968; Open Week 5 Hub &rarr;</a>
@@ -289,20 +291,24 @@
       <div class="week-card">
         <div class="week-card-header">
           <span class="week-number">Week 06</span>
-          <span class="status-badge complete">4 Interactive Aids</span>
+          <span class="status-badge complete">4 Modules &amp; Labs</span>
         </div>
         <h2 class="week-title">Synchronization &amp; Deadlocks</h2>
         <p class="week-desc">
           Semaphores, condition variables, Coffman conditions, Resource Allocation Graphs, and classical deadlock sandboxes.
         </p>
         <ul class="module-links">
-          <li><a href="week06-synchronisation-and-deadlock/deadlock-detector.html">Deadlock Detector &amp; RAG Simulator</a></li>
-          <li><a href="week06-synchronisation-and-deadlock/dining-philosophers.html">Dining Philosophers Problem Sandbox</a></li>
-          <li><a href="week06-synchronisation-and-deadlock/ipc-deadlock.html">IPC Deadlock &amp; Mutex Analysis</a></li>
-          <li><a href="week06-synchronisation-and-deadlock/database-deadlock.html">Database Two-Phase Locking Deadlock</a></li>
+          <li><a href="week06-synchronization-and-deadlock/01-concurrency-hazards-livelock-starvation.html">01. Livelock, Starvation &amp; PIP</a></li>
+          <li><a href="week06-synchronization-and-deadlock/02-deadlock-characterization-coffman-conditions.html">02. Coffman Conditions &amp; RAGs</a></li>
+          <li><a href="week06-synchronization-and-deadlock/03-deadlock-handling-bankers-algorithm.html">03. Banker's Algorithm &amp; Prevention</a></li>
+          <li><a href="week06-synchronization-and-deadlock/04-classic-synchronization-real-world-defenses.html">04. Classic Problems &amp; Defenses</a></li>
+          <li><a href="week06-synchronization-and-deadlock/deadlock-detector.html">Lab: Deadlock Detector Simulator</a></li>
+          <li><a href="week06-synchronization-and-deadlock/dining-philosophers.html">Lab: Dining Philosophers Simulator</a></li>
+          <li><a href="week06-synchronization-and-deadlock/database-deadlock.html">Lab: Database 2PL Simulator</a></li>
+          <li><a href="week06-synchronization-and-deadlock/ipc-deadlock.html">Lab: IPC Deadlock Simulator</a></li>
         </ul>
         <div class="week-card-footer">
-          <a href="week06-synchronisation-and-deadlock/index.html" class="hub-link">&#127968; Open Week 6 Hub &rarr;</a>
+          <a href="week06-synchronization-and-deadlock/index.html" class="hub-link">&#127968; Open Week 6 Hub &rarr;</a>
         </div>
       </div>
 
