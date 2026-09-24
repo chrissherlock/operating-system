@@ -1,14 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create Module 01 on Concurrency Hazards (Livelock, Starvation, PIP)
-# =====================================================================
-import os
-import subprocess
-
-TARGET_DIR = "week06-synchronization-and-deadlock"
-TARGET_FILE = os.path.join(TARGET_DIR, "01-concurrency-hazards-livelock-starvation.html")
-
-MODULE_HTML = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -430,33 +420,3 @@ MODULE_HTML = r"""<!DOCTYPE html>
   </script>
 </body>
 </html>
-"""
-
-def create_module_one():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_HTML.strip() + "\n")
-    print(f"--> Successfully created Module 01 at {TARGET_FILE}")
-
-def run_git_sync():
-    status = subprocess.check_output(["git", "status", "--porcelain"]).decode("utf-8").strip()
-    if not status:
-        print("--> Working tree is clean. Nothing to commit.")
-        return
-
-    try:
-        subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-        commit_msg = (
-            "Create Module 01 on Livelock, Starvation, and Priority Inversion\n\n"
-            "Detail live hazard scenarios, Mars Pathfinder case study, priority\n"
-            "inheritance protocol math, and add an interactive directed stepper SVG."
-        )
-        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        subprocess.run(["git", "push", "origin", "main"], check=True)
-        print("--> Git sync completed successfully!")
-    except Exception as e:
-        print(f"Git execution note: {e}")
-
-if __name__ == "__main__":
-    create_module_one()
-    run_git_sync()
