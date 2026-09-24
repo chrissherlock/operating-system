@@ -1,17 +1,45 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Fix text overflow in Module 02 Gantt stepper
+# fix.py: Correct arrows, marker orientation, and alignment in Module 02
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week03-process-scheduling", "02-batch-scheduling.html")
 
-def fix_text_overflow():
+def adjust_gantt_arrows_and_lines():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Replacement script with properly fitted bar widths and text sizes
+    # 1. Fix SVG defs inside 02-batch-scheduling.html
+    # Replace the defs block to ensure standard horizontal right-pointing markers
+    old_defs_start = '<defs>'
+    old_defs_end = '</defs>'
+
+    canvas_pos = content.find('<svg class="gantt-canvas"')
+    defs_start = content.find(old_defs_start, canvas_pos)
+    defs_end = content.find(old_defs_end, defs_start) + len(old_defs_end)
+
+    clean_defs = r"""<defs>
+            <pattern id="wait-stripe" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="8" stroke="#fcd34d" stroke-width="4" />
+              <line x1="4" y1="0" x2="4" y2="8" stroke="#fef3c7" stroke-width="4" />
+            </pattern>
+            <!-- Standard horizontal right-pointing markers (orient="auto" handles vertical lines perfectly) -->
+            <marker id="arr-arrival-amber" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#d97706" />
+            </marker>
+            <marker id="arr-arrival-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#0284c7" />
+            </marker>
+            <marker id="arr-arrival-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M 1 2 L 8 5 L 1 8 z" fill="#059669" />
+            </marker>
+          </defs>"""
+
+    content = content[:defs_start] + clean_defs + content[defs_end:]
+
+    # 2. Update JavaScript step renderers to use the corrected markers and exact coordinates
     new_script = r"""  <script>
     const batchSteps = {
       fcfs: [
@@ -24,8 +52,9 @@ def fix_text_overflow():
           showQueueC: false,
           showQueueA: false,
           cpuBars: `
-            <rect x="15" y="55" width="40" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="35" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A</text>
+            <!-- T=0 to T=2 is 30px (x=15 to 45) -->
+            <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="30" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A</text>
           `,
           waitBars: `
             <text x="25" y="152" font-size="9" fill="#94a3b8">Ready queue empty (No waiting tasks)</text>
@@ -44,20 +73,22 @@ def fix_text_overflow():
           showQueueA: false,
           bTimer: "Wait: 0ms (Just arrived)",
           cpuBars: `
-            <!-- Process A active up to T=2 marker (45px on timeline) -->
-            <rect x="15" y="55" width="45" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="37" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Run)</text>
-            <text x="75" y="80" font-size="9" font-weight="600" fill="#dc2626">&rarr; A continues...</text>
+            <!-- Process A active from T=0 past T=2 (30px = 2ms) -->
+            <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="30" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A</text>
+            <path d="M 45 76 L 75 76" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <text x="82" y="80" font-size="9" font-weight="600" fill="#dc2626">A continues running...</text>
           `,
           waitBars: `
-            <!-- Process B Arrival Marker at T=2 (x=45) -->
-            <path d="M 45 110 L 45 126" stroke="#d97706" stroke-width="2" marker-end="url(#arr-arrival)"/>
-            <text x="45" y="104" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#d97706">B Arrives</text>
+            <!-- Process B Arrival Arrow at exact T=2 mark (x=45) pointing directly down into wait box -->
+            <line x1="45" y1="102" x2="45" y2="126" stroke="#d97706" stroke-width="2" marker-end="url(#arr-arrival-amber)"/>
+            <text x="45" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#d97706">B Arrives</text>
 
-            <rect x="45" y="132" width="75" height="34" rx="3" fill="url(#wait-stripe)" stroke="#f59e0b" stroke-width="1.5"/>
-            <text x="82" y="153" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b45309">B Trapped</text>
+            <!-- Process B wait bar starting at T=2 (x=45) -->
+            <rect x="45" y="132" width="60" height="34" rx="3" fill="url(#wait-stripe)" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="75" y="153" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b45309">B Trapped</text>
           `,
-          narrative: "Process B (burst: 3ms) arrives at T=2. Notice the arrival marker &amp; striped amber wait bar: under non-preemptive FCFS, Process A cannot be interrupted. Process B is trapped in the Ready queue.",
+          narrative: "Process B (burst: 3ms) arrives at T=2. Notice the downward arrival arrow at T=2: under non-preemptive FCFS, Process A cannot be interrupted. Process B is trapped in the Ready queue.",
           what: "Process B enters the Ready queue at T=2. Even though Process B requires only 3ms of computation, it cannot preempt Process A and begins accumulating waiting time.",
           why: "Non-preemptive FCFS adheres strictly to FIFO arrival order without inspecting burst length; running tasks own the processor until voluntary yield or termination."
         },
@@ -72,21 +103,24 @@ def fix_text_overflow():
           bTimer: "Wait: 2ms in queue",
           cTimer: "Wait: 0ms (Just arrived)",
           cpuBars: `
-            <rect x="15" y="55" width="75" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-            <text x="52" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Locked)</text>
-            <text x="105" y="80" font-size="9" font-weight="600" fill="#dc2626">&rarr; A continues to T=24...</text>
+            <!-- Process A active from T=0 past T=4 (x=15 to 75 = 60px) -->
+            <rect x="15" y="55" width="60" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+            <text x="45" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">A (Locked)</text>
+            <path d="M 75 76 L 110 76" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <text x="118" y="80" font-size="9" font-weight="600" fill="#dc2626">A runs to T=24...</text>
           `,
           waitBars: `
-            <!-- Process B Arrival at T=2 -->
-            <text x="45" y="104" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#d97706">B (T=2)</text>
+            <!-- Process B Arrival at T=2 (x=45) -->
+            <line x1="45" y1="102" x2="45" y2="126" stroke="#d97706" stroke-width="1.5" marker-end="url(#arr-arrival-amber)"/>
+            <text x="45" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="8" fill="#d97706">B (T=2)</text>
             <rect x="45" y="132" width="60" height="34" rx="3" fill="url(#wait-stripe)" stroke="#f59e0b" stroke-width="1.5"/>
-            <text x="75" y="153" text-anchor="middle" font-size="8" font-weight="700" fill="#b45309">B Waiting</text>
+            <text x="75" y="153" text-anchor="middle" font-size="8.5" font-weight="700" fill="#b45309">B Waiting</text>
 
             <!-- Process C Arrival at T=4 (x=75) -->
-            <path d="M 75 110 L 75 126" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-arrival)"/>
-            <text x="75" y="104" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">C Arrives</text>
-            <rect x="110" y="132" width="55" height="34" rx="3" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-            <text x="137" y="153" text-anchor="middle" font-size="8" font-weight="700" fill="#0369a1">C Queued</text>
+            <line x1="75" y1="102" x2="75" y2="126" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-arrival-blue)"/>
+            <text x="75" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">C Arrives</text>
+            <rect x="110" y="132" width="60" height="34" rx="2" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="140" y="153" text-anchor="middle" font-size="8" font-weight="700" fill="#0369a1">C Queued</text>
           `,
           narrative: "Process C (burst: 3ms) arrives at T=4. Both Process B and Process C are now stalled in the Ready queue behind Process A. This is the Convoy Effect.",
           what: "Two fast tasks (B and C) are trapped. Meanwhile, disk and network controllers sit completely idle waiting for B and C to run.",
@@ -102,8 +136,10 @@ def fix_text_overflow():
           showQueueA: false,
           cTimer: "Wait: 20ms in queue",
           cpuBars: `
+            <!-- Process A finished at T=24 (x=375) -->
             <rect x="15" y="55" width="360" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
             <text x="195" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">Process A Finished (0-24ms)</text>
+            <!-- Process B running from T=24 to 27 (x=375 to 420) -->
             <rect x="375" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2"/>
             <text x="397" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
           `,
@@ -168,14 +204,18 @@ def fix_text_overflow():
           showQueueC: false,
           showQueueA: true,
           cpuBars: `
+            <!-- Process A ran 0 to 2ms (x=15 to 45) -->
             <rect x="15" y="55" width="30" height="42" rx="3" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
             <text x="30" y="80" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">A</text>
+            <!-- Process B preempts and runs at T=2 (x=45 to 90) -->
             <rect x="45" y="55" width="45" height="42" rx="3" fill="#f0fdf4" stroke="#059669" stroke-width="2.5"/>
             <text x="67" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B (Run)</text>
           `,
           waitBars: `
-            <path d="M 45 110 L 45 126" stroke="#059669" stroke-width="2" marker-end="url(#arr-arrival)"/>
-            <text x="45" y="104" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#059669">B Arrives</text>
+            <!-- Process B Arrival Arrow at T=2 (x=45) pointing down to B's start -->
+            <line x1="45" y1="102" x2="45" y2="126" stroke="#059669" stroke-width="2" marker-end="url(#arr-arrival-green)"/>
+            <text x="45" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="8.5" font-weight="700" fill="#059669">B Arrives</text>
+            <!-- Preempted A waiting in Ready queue -->
             <rect x="45" y="132" width="160" height="34" rx="3" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3 3"/>
             <text x="125" y="153" text-anchor="middle" font-size="8.5" font-weight="700" fill="#dc2626">Proc A Preempted (22ms left)</text>
           `,
@@ -199,8 +239,9 @@ def fix_text_overflow():
             <text x="67" y="80" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">B</text>
           `,
           waitBars: `
-            <path d="M 75 110 L 75 126" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-arrival)"/>
-            <text x="75" y="104" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">C Arrives</text>
+            <!-- Process C Arrival Arrow at T=4 (x=75) -->
+            <line x1="75" y1="102" x2="75" y2="126" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-arrival-blue)"/>
+            <text x="75" y="98" text-anchor="middle" font-family="var(--font-mono)" font-size="8" font-weight="700" fill="#0284c7">C Arrives</text>
             <rect x="95" y="132" width="65" height="34" rx="2" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
             <text x="127" y="153" text-anchor="middle" font-size="8" font-weight="700" fill="#0369a1">C Queued</text>
           `,
@@ -343,14 +384,14 @@ def fix_text_overflow():
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"--> Successfully resolved text overflow in {TARGET_FILE}")
+    print(f"--> Successfully aligned arrows and timeline ticks in {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Fix SVG text overflow in Module 02 batch scheduling stepper\n\n"
-            "Adjust font sizes, center text anchors, and scale Gantt bars and wait\n"
-            "track containers so annotations remain strictly within box boundaries."
+            "Fix arrival arrows and timeline alignment in Module 02 Gantt stepper\n\n"
+            "Standardize marker definitions to horizontal base vectors with\n"
+            "orient=\"auto\" and align arrival arrows directly with timeline ticks."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -359,4 +400,4 @@ def fix_text_overflow():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    fix_text_overflow()
+    adjust_gantt_arrows_and_lines()
