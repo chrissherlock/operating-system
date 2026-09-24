@@ -701,43 +701,120 @@
       Because (1 &minus; &alpha;) &lt; 1, the term (1 &minus; &alpha;)<sup><i>j</i></sup> shrinks exponentially as <i>j</i> increases. Older burst lengths rapidly lose their mathematical weight. If a process historically performed long 100 ms calculations but recently transitions into an interactive I/O phase (producing 2 ms bursts), &tau; adjusts downward within 3 to 4 scheduling cycles, dynamically reclassifying the task as short.
     </p>
 
-    <h3>5. Comprehensive Batch Scheduling Comparison</h3>
+        <h3>5. Comprehensive Batch Scheduling Comparison</h3>
+    <p>
+      Selecting or designing a batch scheduling discipline requires evaluating trade-offs across four foundational axes: average turnaround latency, algorithmic complexity, runtime estimation feasibility, and starvation resistance.
+    </p>
+
+    <h4>1. Bridging the Gap: Highest Response Ratio Next (HRRN)</h4>
+    <p>
+      Non-preemptive Shortest Job First (SJF) minimizes average turnaround time, but leaves long compute jobs vulnerable to indefinite starvation if short jobs arrive continuously. Preemptive Shortest Remaining Time Next (SRTN) eliminates this arrival vulnerability, but requires hardware timer preemption and incurs continuous context-switching overhead.
+    </p>
+    <p>
+      To resolve the starvation dilemma in strictly non-preemptive batch architectures without timer interrupts, Brinch Hansen developed <strong>Highest Response Ratio Next (HRRN)</strong>.
+    </p>
+
+    <div class="math-callout">
+      <strong>The HRRN Priority Formula:</strong>
+      <br>
+      Whenever the CPU core becomes free, the scheduler calculates the <strong>Response Ratio (<i>R</i>)</strong> for every waiting process in the Ready queue and dispatches the task with the maximum ratio:
+      <pre><code><i>R</i> = (<i>w</i> + <i>s</i>) / <i>s</i> = 1 + (<i>w</i> / <i>s</i>)</code></pre>
+      where:
+      <ul>
+        <li><code><i>w</i></code> = Time spent waiting in the Ready queue so far.</li>
+        <li><code><i>s</i></code> = Expected CPU service / burst time (estimated via &tau;).</li>
+      </ul>
+      <strong>Mechanisms of Built-In Aging:</strong>
+      <ul>
+        <li><em>Favors Short Jobs:</em> When a new task arrives (<code><i>w</i> = 0</code>), its ratio is <code><i>R</i> = 1.0</code>. As soon as it waits, a small expected burst <code><i>s</i></code> in the denominator causes <code><i>w</i> / <i>s</i></code> to grow rapidly, giving short jobs quick escalation.</li>
+        <li><em>Prevents Starvation:</em> A massive compute job with large <code><i>s</i></code> starts with a sluggish ratio. However, as it sits in the queue, its waiting time <code><i>w</i></code> accumulates monotonically in the numerator. Eventually, <code><i>w</i></code> becomes large enough that the long job's ratio surpasses newly arrived short jobs, guaranteeing execution without preemption.</li>
+      </ul>
+    </div>
+
+    <h4>2. Multi-Dimensional Batch Comparison Matrix</h4>
     <div style="overflow-x: auto; margin: 18px 0;">
       <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
         <thead>
           <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
-            <th style="padding: 10px 14px; width: 22%;">Algorithm</th>
-            <th style="padding: 10px 14px; width: 18%;">Execution Discipline</th>
-            <th style="padding: 10px 14px; width: 20%;">Average Turnaround</th>
-            <th style="padding: 10px 14px; width: 20%;">Starvation Hazard</th>
-            <th style="padding: 10px 14px; width: 20%;">Overhead &amp; Feasibility</th>
+            <th style="padding: 10px 14px; width: 18%;">Algorithm</th>
+            <th style="padding: 10px 14px; width: 16%;">Selection Rule</th>
+            <th style="padding: 10px 14px; width: 14%;">Preemption</th>
+            <th style="padding: 10px 14px; width: 18%;">Turnaround Profile</th>
+            <th style="padding: 10px 14px; width: 18%;">Starvation Risk</th>
+            <th style="padding: 10px 14px; width: 16%;">Data Structure &amp; Cost</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 700; color: #0284c7;">First-Come First-Served (FCFS)</td>
-            <td style="padding: 10px 14px;">Non-Preemptive (FIFO)</td>
-            <td style="padding: 10px 14px; color: #dc2626;">Poor (Degraded severely by Convoy Effect)</td>
-            <td style="padding: 10px 14px; color: #059669;">Zero (Arrival order is monotonic)</td>
-            <td style="padding: 10px 14px;">Trivial (<i>O</i>(1) linked list operations).</td>
+            <td style="padding: 10px 14px; font-weight: 700; color: #0284c7;">FCFS</td>
+            <td style="padding: 10px 14px;"><code>MIN(Arrival)</code></td>
+            <td style="padding: 10px 14px;">Non-Preemptive</td>
+            <td style="padding: 10px 14px; color: #dc2626;">Poor (Degraded by Convoy Effect)</td>
+            <td style="padding: 10px 14px; color: #059669;">Zero (Monotonic arrival order)</td>
+            <td style="padding: 10px 14px;">FIFO Queue: <code><i>O</i>(1)</code> enqueue &amp; dequeue.</td>
           </tr>
           <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 700; color: #059669;">Shortest Job First (SJF)</td>
-            <td style="padding: 10px 14px;">Non-Preemptive (Smallest Burst)</td>
-            <td style="padding: 10px 14px; color: #059669;">Mathematically Optimal for simultaneous arrivals</td>
-            <td style="padding: 10px 14px; color: #dc2626;">High (Long jobs starve if short jobs arrive continuously)</td>
-            <td style="padding: 10px 14px;">Requires burst prediction (&tau;) or batch declarations.</td>
-          </tr>
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 10px 14px; font-weight: 700; color: #7c3aed;">Shortest Remaining Time Next (SRTN)</td>
-            <td style="padding: 10px 14px;">Preemptive (Smallest Remaining)</td>
-            <td style="padding: 10px 14px; color: #059669;">Optimal among all dynamic arrival environments</td>
+            <td style="padding: 10px 14px; font-weight: 700; color: #059669;">SJF</td>
+            <td style="padding: 10px 14px;"><code>MIN(Burst &tau;)</code></td>
+            <td style="padding: 10px 14px;">Non-Preemptive</td>
+            <td style="padding: 10px 14px; color: #059669;">Optimal for simultaneous arrivals</td>
             <td style="padding: 10px 14px; color: #dc2626;">High (Continuous short jobs starve long jobs)</td>
-            <td style="padding: 10px 14px;">Context switch overhead + active elapsed time tracking.</td>
+            <td style="padding: 10px 14px;">Min-Heap: <code><i>O</i>(log <i>n</i>)</code> insert/extract.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 700; color: #7c3aed;">SRTN</td>
+            <td style="padding: 10px 14px;"><code>MIN(Remaining &tau;)</code></td>
+            <td style="padding: 10px 14px;">Preemptive</td>
+            <td style="padding: 10px 14px; color: #059669;">Optimal across dynamic arrivals</td>
+            <td style="padding: 10px 14px; color: #dc2626;">High (Long tasks can be repeatedly interrupted)</td>
+            <td style="padding: 10px 14px;">Min-Heap: <code><i>O</i>(log <i>n</i>)</code> + context switch cost.</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 700; color: #d97706;">HRRN</td>
+            <td style="padding: 10px 14px;"><code>MAX((<i>w</i>+<i>s</i>)/<i>s</i>)</code></td>
+            <td style="padding: 10px 14px;">Non-Preemptive</td>
+            <td style="padding: 10px 14px; color: #059669;">Near-Optimal (Balances short/long)</td>
+            <td style="padding: 10px 14px; color: #059669;">Zero (Waiting time <i>w</i> guarantees aging)</td>
+            <td style="padding: 10px 14px;">Linear scan: <code><i>O</i>(<i>n</i>)</code> per dispatch.</td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <h4>3. Analytical Edge Cases &amp; Theorems</h4>
+    <ul>
+      <li>
+        <strong>The Identical-Burst Degeneracy Theorem:</strong>
+        If all processes in a workload require identical CPU burst durations (<i>s</i><sub>1</sub> = <i>s</i><sub>2</sub> = ... = <i>s</i><sub><i>n</i></sub> = <i>K</i>), then SJF, SRTN, and HRRN all collapse into standard First-Come First-Served (FCFS). Under this condition, preemption in SRTN provides zero mathematical benefit and serves only to waste CPU cycles in pointless context switching.
+      </li>
+      <li>
+        <strong>The Starvation Threshold:</strong>
+        Under SJF or SRTN, a long job requiring <i>S</i> seconds of CPU time will starve indefinitely if the arrival rate of short jobs &lambda;<sub>short</sub> and their mean service duration <i>E</i>[<i>S</i><sub>short</sub>] satisfy:
+        <pre><code>&rho;<sub>short</sub> = &lambda;<sub>short</sub> &times; <i>E</i>[<i>S</i><sub>short</sub>] &ge; 1.0</code></pre>
+        When the utilization generated solely by short tasks equals or exceeds 100% of CPU capacity, the ready queue never clears of short tasks, driving the waiting time of the long job to infinity:
+        <pre><code><i>T</i><sub>wait</sub>(Long Job) &rarr; &infin;</code></pre>
+      </li>
+    </ul>
+
+    <h4>4. Production Batch Systems &amp; HPC Scheduling</h4>
+    <p>
+      In modern High-Performance Computing (HPC) clusters and supercomputer workload managers (such as <strong>SLURM</strong>, <strong>PBS Pro</strong>, or <strong>HTCondor</strong>), CPU cores are scheduled across thousands of nodes executing multi-day scientific simulations.
+    </p>
+    <p>
+      Because general-purpose exponential smoothing (&tau;) cannot reliably predict whether a climate model will run for 10 minutes or 48 hours, production HPC systems bypass estimation entirely:
+    </p>
+    <ul>
+      <li><strong>Mandatory Wall-Clock Declarations:</strong> Users submit jobs with an explicit declared execution ceiling (<code>#SBATCH --time=04:00:00</code>). If the job exceeds this duration, the kernel immediately terminates it via <code>SIGKILL</code>.</li>
+      <li><strong>Reservation Scheduling &amp; Backfilling:</strong>
+        To prevent the convoy effect without killing long compute jobs, modern batch systems use <strong>Backfilling</strong>:
+        <br>
+        1. A massive 512-core simulation is queued and assigned an upcoming start reservation at <i>T</i> = 14:00.
+        <br>
+        2. Rather than leaving cores idle while waiting for earlier jobs to drain, the scheduler scans the queue for short jobs that can start immediately and finish <em>before</em> the 14:00 reservation.
+        <br>
+        3. These short jobs are "backfilled" into the execution gaps, achieving 95%+ CPU utilization across the cluster while honoring the reservation of the primary batch job.
+      </li>
+    </ul>
 
     <nav class="nav-bar" style="margin-top: 36px; border-bottom: none; border-top: 1px solid var(--border); padding-top: 16px;">
       <a href="01-scheduling-introduction.html">&larr; 01. Intro to Scheduling</a>
