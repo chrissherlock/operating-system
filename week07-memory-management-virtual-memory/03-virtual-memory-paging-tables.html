@@ -1,14 +1,4 @@
-#!/usr/bin/env python3
-# =====================================================================
-# fix.py: Create Module 03 on Virtual Memory & Paging Architectures
-# =====================================================================
-import os
-import subprocess
-
-TARGET_DIR = "week07-memory-management-virtual-memory"
-TARGET_FILE = os.path.join(TARGET_DIR, "03-virtual-memory-paging-tables.html")
-
-MODULE_THREE_CONTENT = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -593,26 +583,3 @@ Binary:           0000 0000 0000 0000 1000 | 0100 0000 1100
   </script>
 </body>
 </html>
-"""
-
-def create_module_three():
-    os.makedirs(TARGET_DIR, exist_ok=True)
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(MODULE_THREE_CONTENT.strip() + "\n")
-    print(f"--> Successfully created Module 03 at {TARGET_FILE}")
-    return True
-
-if __name__ == "__main__":
-    if create_module_three():
-        try:
-            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
-            commit_msg = (
-                "Create Module 03 on Virtual Memory and Paging Architectures\n\n"
-                "Implement virtual address decomposition, PTE bitfields, multi-level\n"
-                "hierarchical paging, and an interactive MMU address translation stepper."
-            )
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push", "origin", "main"], check=True)
-            print("--> Git sync completed successfully!")
-        except Exception as e:
-            print(f"Git note: {e}")
