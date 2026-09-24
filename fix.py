@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Fully rewrite week05-io-and-disk-scheduling/index.html
+# fix.py: Align Week 5 hub index with standardized button layout
 # =====================================================================
 import os
 import subprocess
@@ -36,7 +36,7 @@ INDEX_HTML = r"""<!DOCTYPE html>
       line-height: 1.6;
     }
     .container {
-      max-width: 960px;
+      max-width: 860px;
       margin: 0 auto;
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -44,12 +44,16 @@ INDEX_HTML = r"""<!DOCTYPE html>
       padding: 40px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    h1, h2, h3 { color: #0f172a; margin-top: 0; }
-    h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    h1 {
+      color: #0f172a;
+      font-size: 1.85rem;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
     .lead {
       color: var(--text-muted);
       font-size: 1.05rem;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     .nav-bar {
       display: flex;
@@ -77,31 +81,39 @@ INDEX_HTML = r"""<!DOCTYPE html>
       background-color: #0f172a;
       color: #ffffff;
     }
-    .modules-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .module-card {
+
+    /* Standard Full-Width Module Button Stack */
+    .module-stack {
       display: flex;
       flex-direction: column;
+      gap: 14px;
+      margin-top: 24px;
+    }
+    .module-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 20px;
+      padding: 18px 22px;
       text-decoration: none;
       color: inherit;
       transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .module-card:hover {
-      transform: translateY(-2px);
+    .module-btn:hover {
+      transform: translateX(4px);
       border-color: var(--accent);
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
     }
-    .module-num {
+    .module-btn-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .module-tag {
       display: inline-block;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -109,30 +121,35 @@ INDEX_HTML = r"""<!DOCTYPE html>
       background: #e0f2fe;
       padding: 2px 8px;
       border-radius: 4px;
-      margin-bottom: 12px;
       align-self: flex-start;
+      margin-bottom: 2px;
     }
-    .module-card h3 {
-      font-size: 1.15rem;
-      margin-bottom: 8px;
+    .module-title {
+      font-size: 1.12rem;
+      font-weight: 700;
       color: #0f172a;
+      margin: 0;
     }
-    .module-card p {
+    .module-desc {
       font-size: 0.88rem;
       color: var(--text-muted);
       margin: 0;
-      line-height: 1.5;
     }
-    .status-badge {
-      display: inline-block;
-      margin-top: 14px;
-      font-size: 0.72rem;
+    .module-arrow {
+      font-size: 1.3rem;
+      color: #94a3b8;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      padding-left: 16px;
+      transition: color 0.15s ease, transform 0.15s ease;
     }
-    .status-active { color: var(--success); }
-    .status-pending { color: #d97706; }
+    .module-btn:hover .module-arrow {
+      color: var(--accent);
+      transform: translateX(3px);
+    }
+    .pending-tag {
+      color: #b45309;
+      background: #fef3c7;
+    }
   </style>
 </head>
 <body>
@@ -148,37 +165,45 @@ INDEX_HTML = r"""<!DOCTYPE html>
       Architectural bridging of mechanical and electronic peripherals, bus-mastering DMA, interrupt virtualization, and physical disk head optimization algorithms.
     </p>
 
-    <div class="modules-grid">
-      <!-- Module 01 -->
-      <a class="module-card" href="01-io-hardware-device-controllers.html">
-        <span class="module-num">Module 01</span>
-        <h3>I/O Hardware &amp; Device Controllers</h3>
-        <p>Device classifications, PMIO vs. MMIO, controller internals, status/command registers, and PIO vs. DMA data transfers.</p>
-        <span class="status-badge status-active">&#10003; Complete</span>
+    <div class="module-stack">
+      <!-- Module 01 Button -->
+      <a class="module-btn" href="01-io-hardware-device-controllers.html">
+        <div class="module-btn-content">
+          <span class="module-tag">Module 01</span>
+          <h2 class="module-title">I/O Hardware &amp; Device Controllers</h2>
+          <p class="module-desc">Device classifications, PMIO vs. MMIO, controller internals, status/command registers, and PIO vs. DMA data transfers.</p>
+        </div>
+        <span class="module-arrow">&rarr;</span>
       </a>
 
-      <!-- Module 02 -->
-      <a class="module-card" href="02-interrupts-and-dma.html">
-        <span class="module-num">Module 02</span>
-        <h3>Interrupts &amp; Direct Memory Access (DMA)</h3>
-        <p>APIC and MSI-X vectoring, dual-phase interrupt lifecycles (Linux Top/Bottom-Half, Windows DPCs), cache coherency, and IOMMU translation.</p>
-        <span class="status-badge status-active">&#10003; Complete</span>
+      <!-- Module 02 Button -->
+      <a class="module-btn" href="02-interrupts-and-dma.html">
+        <div class="module-btn-content">
+          <span class="module-tag">Module 02</span>
+          <h2 class="module-title">Interrupts &amp; Direct Memory Access (DMA)</h2>
+          <p class="module-desc">APIC and MSI-X vectoring, dual-phase interrupt lifecycles (Linux Top/Bottom-Half, Windows DPCs), cache coherency, and IOMMU translation.</p>
+        </div>
+        <span class="module-arrow">&rarr;</span>
       </a>
 
-      <!-- Module 03 -->
-      <a class="module-card" href="03-disk-hardware-scheduling.html">
-        <span class="module-num">Module 03</span>
-        <h3>Disk Geometry &amp; Arm Scheduling</h3>
-        <p>Platters, tracks, CHS to LBA translation, seek/rotational latency formulas, and FCFS, SSTF, SCAN, and C-LOOK arm schedulers.</p>
-        <span class="status-badge status-active">&#10003; Complete</span>
+      <!-- Module 03 Button -->
+      <a class="module-btn" href="03-disk-hardware-scheduling.html">
+        <div class="module-btn-content">
+          <span class="module-tag">Module 03</span>
+          <h2 class="module-title">Disk Geometry &amp; Arm Scheduling</h2>
+          <p class="module-desc">Platters, tracks, CHS to LBA translation, seek/rotational latency formulas, and FCFS, SSTF, SCAN, and C-LOOK arm schedulers.</p>
+        </div>
+        <span class="module-arrow">&rarr;</span>
       </a>
 
-      <!-- Module 04 -->
-      <a class="module-card" href="04-raid-architectures.html">
-        <span class="module-num">Module 04</span>
-        <h3>RAID Architectures &amp; Reliability</h3>
-        <p>Data striping, mirroring, XOR parity calculations, RAID levels 0 through 6, MTTF reliability modeling, and rebuild contention.</p>
-        <span class="status-badge status-pending">&bull; Upcoming</span>
+      <!-- Module 04 Button -->
+      <a class="module-btn" href="04-raid-architectures.html">
+        <div class="module-btn-content">
+          <span class="module-tag pending-tag">Module 04 &bull; Upcoming</span>
+          <h2 class="module-title">RAID Architectures &amp; Reliability</h2>
+          <p class="module-desc">Data striping, mirroring, XOR parity calculations, RAID levels 0 through 6, MTTF reliability modeling, and rebuild contention.</p>
+        </div>
+        <span class="module-arrow">&rarr;</span>
       </a>
     </div>
   </div>
@@ -186,19 +211,19 @@ INDEX_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def rewrite_index():
+def update_index_buttons():
     os.makedirs(os.path.dirname(TARGET_INDEX), exist_ok=True)
     with open(TARGET_INDEX, "w", encoding="utf-8") as f:
         f.write(INDEX_HTML.strip() + "\n")
-    print(f"--> Successfully rewrote {TARGET_INDEX} with active module cards.")
+    print(f"--> Successfully updated {TARGET_INDEX} with standard module buttons.")
 
 def run_git_sync():
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_INDEX], check=True)
         commit_msg = (
-            "Rewrite Week 5 hub index with active module links and standard layout\n\n"
-            "Replace stale placeholder links with active links to modules 01, 02,\n"
-            "and 03, and update grid styling to match course design system."
+            "Align Week 5 hub index with standardized full-width button layout\n\n"
+            "Replace multi-column card grid with full-width module action buttons\n"
+            "matching Week 2, 3, and 4 hub navigation patterns."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -207,5 +232,5 @@ def run_git_sync():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    rewrite_index()
+    update_index_buttons()
     run_git_sync()
