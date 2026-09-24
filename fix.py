@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Expand week02-processes/03-classical-threads.html
+# fix.py: Deeply expand Section 3 in 03-classical-threads.html
 # =====================================================================
 import os
 import subprocess
@@ -534,27 +534,155 @@ MODULE_HTML = r"""<!DOCTYPE html>
 
     <h3>3. Thread Usage in Applications</h3>
     <p>
-      Multi-threaded program design is best understood through concrete application architectures:
+      The genuine architectural value of multithreading becomes evident when examining systems that balance real-time user responsiveness with computationally demanding or blocking background operations. Without threads, software developers are forced to invent convoluted asynchronous callback loops or incur the steep overhead of multi-process architectures.
     </p>
 
-    <h4>1. Interactive Word Processors</h4>
+    <h4>1. Interactive Desktop Applications: The Collaborative Word Processor</h4>
     <p>
-      Consider an interactive desktop word processor editing a 1,000-page book. If designed as a single-threaded process, the program must alternate sequentially between capturing keyboard events, reformatting paragraphs, and saving backups:
+      Consider an interactive desktop word processor managing a manuscript of several thousand pages with embedded vector diagrams and typographical styling. The software must accomplish three distinct operational tasks concurrently:
     </p>
     <ul>
-      <li><strong>Thread 1 (User Interface):</strong> Interacts with the user, handles mouse clicks, and updates keystrokes instantaneously on screen without perceptible latency.</li>
-      <li><strong>Thread 2 (Formatting Engine):</strong> Runs in the background, recalculating line breaks, page boundaries, and image alignments whenever text changes.</li>
-      <li><strong>Thread 3 (Autosave Daemon):</strong> Periodically awakens every two minutes to write dirty document buffers to the SSD, completely masking disk write delays from the typing user.</li>
+      <li><strong>Task 1: Keystroke &amp; Pointer Interaction:</strong> Processing hardware keyboard input events, drawing the blinking text insertion caret, and rendering typed characters on the display canvas within a 16-millisecond frame deadline (60 frames per second).</li>
+      <li><strong>Task 2: Continuous Paragraph &amp; Layout Reformatting:</strong> Whenever a user types a new sentence on page 20, the reflow of text may push lines down across all subsequent 980 pages, altering line breaks, hyphenation points, footnotes, and page numbers. On a modern CPU, recomputing the page layout of a massive document can consume hundreds of milliseconds of intense integer and floating-point computation.</li>
+      <li><strong>Task 3: Periodic Disk Snapshot &amp; Autosave:</strong> Every two minutes, the entire document state must be committed to permanent non-volatile storage (SSD) to prevent data loss in the event of a power failure or system crash. Writing megabytes of formatted binary XML down through the virtual file system layer forces blocking disk I/O traps.</li>
     </ul>
 
-    <h4>2. High-Performance Web Servers</h4>
+    <h5>The Single-Threaded Failure Mode</h5>
     <p>
-      Web servers must process thousands of simultaneous HTTP requests without blocking:
+      If the word processor is constructed as a single-threaded process, its sole execution thread must execute an interleaved loop:
+    </p>
+    <pre>while (application_running) {
+    check_keyboard_and_mouse_events();
+    recalculate_entire_document_pagination();
+    if (autosave_timer_expired) {
+        write_document_to_disk_blocking(); /* Stalls for 50-200ms */
+    }
+}</pre>
+    <p>
+      Under this design, whenever the user types a single character that triggers page reformatting, the event processing loop stops dead. Keyboard input queues back up, characters appear on screen with jarring delays, and during autosave events, the entire window freezes, leading the operating system desktop manager to display an unresponsive "beach ball" or "not responding" banner.
+    </p>
+
+    <h5>The Multi-Process Failure Mode</h5>
+    <p>
+      Attempting to solve this using independent processes via <code>fork()</code> introduces severe IPC latency. While a child process could handle autosaving using Copy-on-Write snapshots, the background reformatting engine must continually read and modify the active document data structure (such as a gap buffer or piece table). Serializing large document graphs over IPC pipes or managing synchronized shared memory regions adds immense software complexity and cache thrashing.
+    </p>
+
+    <h5>The Three-Thread Solution</h5>
+    <p>
+      Organizing the application into three collaborative threads operating within a single shared address space resolves all constraints elegantly:
     </p>
     <ul>
-      <li><strong>Single-Threaded Model (Synchronous):</strong> A request arrives, and the server blocks on a disk read. While the disk arm moves, the server sits idle, refusing all other incoming network connections.</li>
-      <li><strong>Multi-Process Model (fork):</strong> The server forks a new child process for every client. While robust, spawning processes exhausts physical memory rapidly and incurs severe IPC context-switching penalties.</li>
-      <li><strong>Multi-Threaded Model (Worker Pool):</strong> A single master dispatcher thread reads requests from the network and places work tokens onto a shared job queue. A pool of pre-allocated worker threads picks up requests, fetches cached web pages from memory, and writes responses concurrently.</li>
+      <li><strong>Thread 1 (Interactive Dispatcher):</strong> Bounded strictly to window event queues. It captures keystrokes, inserts characters into the in-memory document piece table, and renders glyphs to the framebuffer immediately. It never executes complex layout math or blocking disk system calls.</li>
+      <li><strong>Thread 2 (Formatting Worker):</strong> Awakens whenever Thread 1 notifies a condition variable indicating that text has changed. It runs concurrently on a secondary CPU core, calculating line wraps, kerning, and pagination, updating page boundary pointers directly in the shared heap using reader-writer locks (<code>pthread_rwlock_t</code>).</li>
+      <li><strong>Thread 3 (Disk Autosave Worker):</strong> Sleeps on a periodic timer barrier. Upon waking, it acquires a shared read-lock on the document buffer, writes the snapshot to the SSD via asynchronous file I/O, and returns to sleep. Even if the underlying NVMe storage controller experiences a momentary I/O queue stall, Thread 1 continues rendering keystrokes at native display refresh rates without a single dropped frame.</li>
+    </ul>
+
+    <h4>2. High-Performance Web Servers: Architectural Comparisons</h4>
+    <p>
+      Network server design represents the canonical engineering domain for concurrency paradigms. A production web server listening on TCP port 80 or 443 must process thousands of incoming HTTP requests concurrently, retrieve static files from disk or query memory caches, and transmit HTTP responses over varying network connection speeds.
+    </p>
+    <p>
+      Operating systems support three primary architectural patterns for constructing web servers:
+    </p>
+
+    <h5>Model A: The Multi-Threaded Worker Pool Architecture</h5>
+    <p>
+      In a classical multi-threaded server (such as Apache HTTP Server with the <code>worker</code> or <code>event</code> MPM), the process instantiates an initial pool of worker threads during startup. A dedicated master <strong>dispatcher thread</strong> executes a blocking <code>accept()</code> system call on the listening socket:
+    </p>
+    <ol>
+      <li>When a client TCP connection arrives, <code>accept()</code> returns a new connected socket file descriptor.</li>
+      <li>The dispatcher thread places the client socket descriptor into an in-memory job queue residing in the shared heap and signals a condition variable (<code>pthread_cond_signal</code>).</li>
+      <li>An idle worker thread in the pool unblocks, dequeues the socket descriptor, parses the HTTP request headers, issues a blocking disk read (or cache lookup) for the requested resource, writes the HTTP response body over the network socket, and closes the connection.</li>
+      <li>The worker thread returns itself to the idle pool to await another client.</li>
+    </ol>
+    <p>
+      <strong>Key Advantage:</strong> The programming model is straightforward and sequential. A worker thread can invoke standard blocking I/O calls (such as <code>read()</code> and <code>write()</code>) because a block on one thread does not stall the execution of competing threads in the pool.
+    </p>
+    <p>
+      <strong>Key Limitation:</strong> Thread scalability is constrained by per-thread memory footprint. If each thread requires an 8MB virtual stack, running 50,000 concurrent threads would consume 400GB of virtual address space. Furthermore, scheduling tens of thousands of active threads incurs severe CPU cache degradation and kernel runqueue lock contention.
+    </p>
+
+    <h5>Model B: The Single-Threaded Event-Driven State Machine (Reactor Pattern)</h5>
+    <p>
+      To circumvent the thread stack and context-switch limits (the classic <em>C10K problem</em>), servers like NGINX and Node.js implement a single-threaded, event-driven architecture based on the Reactor design pattern.
+    </p>
+    <p>
+      In this model, a single thread executes an infinite event loop driving an operating system <strong>I/O multiplexing mechanism</strong> (such as <code>epoll</code> on Linux, <code>kqueue</code> on FreeBSD/macOS, or IOCP on Windows):
+    </p>
+    <ol>
+      <li>All client network sockets are marked as <strong>non-blocking</strong> (via <code>fcntl(fd, F_SETFL, O_NONBLOCK)</code>).</li>
+      <li>The server registers thousands of open sockets with an <code>epoll</code> descriptor and enters a dormant state inside <code>epoll_wait()</code>.</li>
+      <li>When the network interface card (NIC) receives packets, the kernel wakes the event loop, returning a batch list of file descriptors that are ready for immediate read or write operations.</li>
+      <li>The single thread executes a non-blocking state machine for each active descriptor: reading available bytes into a buffer, updating the protocol state, and returning immediately without ever sleeping on I/O.</li>
+    </ol>
+    <p>
+      <strong>Key Advantage:</strong> Zero context-switching overhead, zero synchronization locks, and minuscule memory consumption per connection (often less than 4KB for connection state buffers). A single core can sustain 100,000+ concurrent idle connections.
+    </p>
+    <p>
+      <strong>The Fatal Vulnerability:</strong> <em>Any compute-heavy operation or unbuffered disk operation destroys the server.</em> Because there is only one thread of execution, if a request triggers a complex mathematical calculation, an image resize, or a page fault that stalls on disk retrieval, the entire event loop halts. Thousands of other active client connections freeze instantly until that single thread resumes spinning.
+    </p>
+
+    <h5>Model C: The Multi-Process Architecture (Historical Precursor)</h5>
+    <p>
+      Historically utilized by classic Apache 1.3 (<code>prefork</code> MPM), the server forks an independent child process for each connected client:
+    </p>
+    <p>
+      <strong>Key Advantage:</strong> Total hardware fault isolation. If a worker process contains a memory leak, corrupts its heap, or encounters a fatal segmentation fault (<code>SIGSEGV</code>) caused by a malicious exploit payload, only that isolated process crashes. The master daemon and all other client connections continue executing unharmed.
+    </p>
+    <p>
+      <strong>Key Limitation:</strong> Heavy memory waste, slow process creation latency, and inability to share dynamic caches directly without constructing complex shared memory arenas.
+    </p>
+
+    <h4>Comparative Matrix of Server Concurrency Architectures</h4>
+    <div style="overflow-x: auto; margin: 20px 0;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 2px solid var(--border);">
+            <th style="padding: 10px 14px;">Architecture Model</th>
+            <th style="padding: 10px 14px;">Concurrency Primitive</th>
+            <th style="padding: 10px 14px;">Memory Footprint per Connection</th>
+            <th style="padding: 10px 14px;">CPU Scheduling Overhead</th>
+            <th style="padding: 10px 14px;">Blocking I/O Vulnerability</th>
+            <th style="padding: 10px 14px;">Failure Blast Radius</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Multi-Threaded Pool</td>
+            <td style="padding: 10px 14px;">Kernel Threads (Pthreads)</td>
+            <td style="padding: 10px 14px; color: var(--warning); font-weight: 600;">Moderate (Stack: 2MB&ndash;8MB)</td>
+            <td style="padding: 10px 14px;">Moderate (Kernel thread switches, warm TLB)</td>
+            <td style="padding: 10px 14px; color: var(--success); font-weight: 600;">Low (Only the calling thread blocks)</td>
+            <td style="padding: 10px 14px; color: var(--danger); font-weight: 600;">High (Crash kills entire shared process)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Event-Driven Reactor</td>
+            <td style="padding: 10px 14px;">Single Thread + <code>epoll</code></td>
+            <td style="padding: 10px 14px; color: var(--success); font-weight: 600;">Minimal (Connection state: ~4KB)</td>
+            <td style="padding: 10px 14px; color: var(--success); font-weight: 600;">Minimal (Zero thread context switches)</td>
+            <td style="padding: 10px 14px; color: var(--danger); font-weight: 600;">Severe (One block stalls all connections)</td>
+            <td style="padding: 10px 14px; color: var(--danger); font-weight: 600;">High (Crash terminates the entire event loop)</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border);">
+            <td style="padding: 10px 14px; font-weight: 600;">Multi-Process Model</td>
+            <td style="padding: 10px 14px;">Forked Processes (<code>fork</code>)</td>
+            <td style="padding: 10px 14px; color: var(--danger); font-weight: 600;">Heavy (Full page tables &amp; address space)</td>
+            <td style="padding: 10px 14px; color: var(--danger); font-weight: 600;">High (Full TLB flushes &amp; cache misses)</td>
+            <td style="padding: 10px 14px; color: var(--success); font-weight: 600;">Low (Only the calling process blocks)</td>
+            <td style="padding: 10px 14px; color: var(--success); font-weight: 600;">Minimal (Isolated; other processes survive)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>3. Asynchronous Data Processing &amp; Pipeline Streaming</h4>
+    <p>
+      In high-throughput distributed systems, real-time analytics engines, and machine learning pipelines, multithreading organizes sequential computational tasks into <strong>pipelined stages</strong> connected by lock-free circular ring buffers:
+    </p>
+    <ul>
+      <li><strong>Ingress Producer Thread:</strong> Polls incoming high-speed network interfaces (e.g., streaming market data feeds or raw camera frames) and writes unparsed binary buffers into a pre-allocated shared memory ring buffer.</li>
+      <li><strong>Transformation Worker Threads:</strong> A pool of parallel computational worker threads reads raw frames, decrypts or decompresses payloads, runs tensor inference or analytical filtering across multiple CPU cores, and stores formatted results in an egress queue.</li>
+      <li><strong>Telemetry &amp; Health Monitor Thread:</strong> Operates at low priority on a distinct scheduler timer, periodically verifying thread health, emitting heartbeat pings to orchestrators (like Kubernetes), and recording latency histograms without interrupting ingress packet flows.</li>
     </ul>
 
     <h3>4. Private Stacks and Thread-Local Storage</h3>
@@ -801,19 +929,19 @@ MODULE_HTML = r"""<!DOCTYPE html>
 </html>
 """
 
-def execute_module_update():
+def execute_expansion():
     os.makedirs(os.path.dirname(TARGET_FILE), exist_ok=True)
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(MODULE_HTML.strip() + "\n")
 
-    print(f"--> Successfully expanded {TARGET_FILE}")
+    print(f"--> Successfully expanded Section 3 in {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Expand 03-classical-threads.html with interactive thread stepper\n\n"
-            "Enrich Module 03 with resource grouping vs execution analysis, per-thread\n"
-            "stacks, application usage patterns, and an interactive multithreading aid."
+            "Expand thread usage patterns and server architectures in Module 03\n\n"
+            "Provide deep analysis of word processor concurrency, comparative web server\n"
+            "architectures (worker pools vs event-driven state machines), and pipelines."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -822,4 +950,4 @@ def execute_module_update():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    execute_module_update()
+    execute_expansion()
