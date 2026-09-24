@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Correct dashed line paths in Figure 3.1 of Module 04
+# fix.py: Fix SVG arrowheads and trajectories in Figure 3.1 of Module 04
 # =====================================================================
 import os
 import subprocess
 
 TARGET_FILE = os.path.join("week02-processes", "04-thread-implementation.html")
 
-def correct_thread_group_paths():
+def adjust_figure_arrows():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Replacement for Figure 3.1 SVG block with clean, mathematically aligned paths
-    old_figure = content[content.find("Figure 3.1: Linux Thread Group Hierarchy") - 120 : content.find("</svg>\n    </div>", content.find("Figure 3.1")) + 17]
+    # Locate Figure 3.1 container
+    start_idx = content.find("Figure 3.1: Linux Thread Group Hierarchy")
+    if start_idx == -1:
+        print("Error: Figure 3.1 not found in target file.")
+        return
+
+    div_start = content.rfind("<div style=", 0, start_idx)
+    div_end = content.find("</div>", start_idx)
+    div_end = content.find("</div>", div_end + 1) + 6  # Outer wrapper closing div
 
     clean_svg_block = r"""<div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 24px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
       <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 4px;">Figure 3.1: Linux Thread Group Hierarchy (PID vs. TGID Representation)</div>
@@ -20,11 +27,20 @@ def correct_thread_group_paths():
 
       <svg viewBox="0 0 820 330" style="width: 100%; height: auto; font-family: system-ui, -apple-system, sans-serif;">
         <defs>
-          <marker id="nptl-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7" />
+          <!-- Blue Arrow for Horizontal Sibling Links -->
+          <marker id="nptl-arr-right" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 2 L 8 5 L 0 8 z" fill="#0284c7" />
           </marker>
-          <marker id="parent-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+          <marker id="nptl-arr-left" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 2 L 8 5 L 0 8 z" fill="#0284c7" />
+          </marker>
+          <!-- Slate Upward Arrow for Parent Linkage -->
+          <marker id="parent-up-arr" viewBox="0 0 10 10" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 8 L 5 1 L 9 8 z" fill="#475569" />
+          </marker>
+          <!-- Upward Arrow for Circular List Return Arc -->
+          <marker id="circ-up-arr" viewBox="0 0 10 10" refX="5" refY="3" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1 8 L 5 1 L 9 8 z" fill="#0284c7" />
           </marker>
         </defs>
 
@@ -32,7 +48,7 @@ def correct_thread_group_paths():
         <g id="box-parent-bash" transform="translate(270, 10)">
           <rect width="280" height="46" rx="6" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3"/>
           <text x="140" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">PARENT PROCESS: bash (PID 2000)</text>
-          <text x="140" y="37" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#64748b">Direct real_parent of all threads below</text>
+          <text x="140" y="37" text-anchor="middle" font-family="var(--font-mono)" font-size="9" fill="#64748b">Shared real_parent for all thread tasks</text>
         </g>
 
         <!-- Task 1: Thread Group Leader -->
@@ -101,42 +117,44 @@ def correct_thread_group_paths():
           <text x="25" y="163" font-family="var(--font-mono)" font-size="9" fill="#334155">mm, files, sighand (Shared)</text>
         </g>
 
-        <!-- Upward Dashed Lines: real_parent pointers from each task to bash -->
-        <!-- From Task 1 (x=145) upward to bash bottom (x=330, y=56) -->
-        <path d="M 145 95 C 145 72, 330 72, 330 56" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#parent-arr)"/>
-        <!-- From Task 2 (x=410) upward to bash bottom (x=410, y=56) -->
-        <path d="M 410 95 L 410 56" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#parent-arr)"/>
-        <!-- From Task 3 (x=675) upward to bash bottom (x=490, y=56) -->
-        <path d="M 675 95 C 675 72, 490 72, 490 56" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#parent-arr)"/>
+        <!-- Upward Lines pointing into bottom of bash (PID 2000) -->
+        <!-- Task 1 upward link -->
+        <path d="M 145 95 C 145 74, 320 74, 320 58" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#parent-up-arr)"/>
+        <!-- Task 2 upward link -->
+        <path d="M 410 95 L 410 58" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#parent-up-arr)"/>
+        <!-- Task 3 upward link -->
+        <path d="M 675 95 C 675 74, 500 74, 500 58" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#parent-up-arr)"/>
 
-        <!-- thread_group Circular Doubly-Linked List Pointers Between Siblings -->
-        <!-- Link between Task 1 and Task 2 -->
-        <path d="M 260 215 L 295 215" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr)"/>
-        <path d="M 295 228 L 260 228" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr)"/>
+        <!-- Horizontal Bidirectional Sibling Links (thread_group) -->
+        <!-- Task 1 -> Task 2 -->
+        <path d="M 260 215 L 293 215" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr-right)"/>
+        <!-- Task 2 -> Task 1 -->
+        <path d="M 295 230 L 262 230" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr-left)"/>
 
-        <!-- Link between Task 2 and Task 3 -->
-        <path d="M 525 215 L 560 215" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr)"/>
-        <path d="M 560 228 L 525 228" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr)"/>
+        <!-- Task 2 -> Task 3 -->
+        <path d="M 525 215 L 558 215" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr-right)"/>
+        <!-- Task 3 -> Task 2 -->
+        <path d="M 560 230 L 527 230" fill="none" stroke="#0284c7" stroke-width="1.8" marker-end="url(#nptl-arr-left)"/>
 
-        <!-- Clean Bottom Circular Return Arc: Task 3 back to Task 1 -->
-        <path d="M 675 285 C 675 315, 145 315, 145 285" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#nptl-arr)"/>
+        <!-- Circular Return Link: Task 3 (bottom) returning upward into Task 1 -->
+        <path d="M 675 285 C 675 318, 145 318, 145 288" fill="none" stroke="#0284c7" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#circ-up-arr)"/>
         <text x="410" y="322" text-anchor="middle" font-family="var(--font-mono)" font-size="9" font-weight="600" fill="#0284c7">thread_group circular list (sibling 3 &rarr; leader 1)</text>
       </svg>
     </div>"""
 
-    content = content.replace(old_figure, clean_svg_block)
+    content = content[:div_start] + clean_svg_block + content[div_end:]
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"--> Successfully cleaned dashed paths in Figure 3.1 of {TARGET_FILE}")
+    print(f"--> Successfully corrected arrow endpoints in Figure 3.1 of {TARGET_FILE}")
 
     try:
         subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
         commit_msg = (
-            "Fix dashed connector lines in Linux thread group diagram in Module 04\n\n"
-            "Correct orientation and coordinate anchors for real_parent pointers to\n"
-            "bash and clean up the thread_group circular linked list path in Figure 3.1."
+            "Fix arrow directions and marker orientations in Figure 3.1\n\n"
+            "Correct SVG marker definitions and path vector trajectories so arrowheads\n"
+            "point directly into target nodes for parent linkages and circular lists."
         )
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push", "origin", "main"], check=True)
@@ -145,4 +163,4 @@ def correct_thread_group_paths():
         print(f"Git execution note: {e}")
 
 if __name__ == "__main__":
-    correct_thread_group_paths()
+    adjust_figure_arrows()
