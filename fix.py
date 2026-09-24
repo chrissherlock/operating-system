@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Stabilize stepper button positioning by fixing preview box height
+# fix.py: Lock preview box dimensions to eliminate stepper button jumping
 # =====================================================================
 import os
 import subprocess
@@ -10,7 +10,7 @@ TARGET_FILE = os.path.join(
     "02-deadlock-characterization-coffman-conditions.html"
 )
 
-def stabilize_stepper_buttons():
+def fix_button_jumping():
     if not os.path.exists(TARGET_FILE):
         print(f"Error: {TARGET_FILE} not found.")
         return False
@@ -18,33 +18,30 @@ def stabilize_stepper_buttons():
     with open(TARGET_FILE, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Update CSS definition for preview-box to include a stable min-height
-    old_preview_css = """.preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.45; }"""
-    new_preview_css = """.preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.45; min-height: 72px; display: flex; align-items: center; }"""
+    # Replace the preview-box CSS rule with a strictly locked height
+    old_css = """.preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.45; min-height: 72px; display: flex; align-items: center; }"""
+    new_css = """.preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; line-height: 1.45; height: 85px; max-height: 85px; display: flex; align-items: center; overflow: hidden; }"""
 
-    if old_preview_css in content:
-        content = content.replace(old_preview_css, new_preview_css)
+    if old_css in content:
+        content = content.replace(old_css, new_css)
     else:
-        # Fallback search if spacing differs slightly
-        content = content.replace(
-            "padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px;",
-            "padding: 12px; font-size: 0.82rem; color: var(--text); margin-bottom: 14px; min-height: 72px; display: flex; align-items: center;"
-        )
+        # Fallback replacement if exact string varies slightly
+        content = content.replace("min-height: 72px; display: flex; align-items: center;", "height: 85px; max-height: 85px; display: flex; align-items: center; overflow: hidden;")
 
     with open(TARGET_FILE, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"--> Successfully stabilized button positioning in {TARGET_FILE}")
+    print(f"--> Successfully locked preview box height in {TARGET_FILE}")
     return True
 
 if __name__ == "__main__":
-    if stabilize_stepper_buttons():
+    if fix_button_jumping():
         try:
             subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
             commit_msg = (
-                "Fix button vertical shifting in RAG interactive stepper controls\n\n"
-                "Add fixed min-height to preview summary box to prevent Prev and Next buttons\n"
-                "from jumping or shifting vertically when switching steps."
+                "Lock preview box height to prevent stepper button jumping\n\n"
+                "Enforce rigid height constraints and overflow handling on the preview box\n"
+                "so the control buttons remain completely stationary across all steps."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
