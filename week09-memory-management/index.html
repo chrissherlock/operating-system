@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 7 & 8: Memory Management & Virtual Memory - COSC240</title>
+  <title>Week 9: Memory Management &amp; Virtual Memory - COSC240</title>
   <style>
     :root {
       --primary: #0f172a;
@@ -164,8 +164,28 @@
       width: 100%;
     }
     .launch-btn:hover { background: var(--accent-hover); }
+    /* Interactive Lab Grid */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .lab-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .lab-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 6px 0; }
+    .lab-desc { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4; }
+    .lab-link { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 600; }
+    .lab-link:hover { text-decoration: underline; }
     @media (max-width: 768px) {
-      .briefing-grid, .modules-grid { grid-template-columns: 1fr; }
+      .briefing-grid, .modules-grid, .lab-grid { grid-template-columns: 1fr; }
       body { padding: 16px; }
     }
   </style>
@@ -173,16 +193,16 @@
 <body>
   <div class="container">
     <nav class="nav-bar">
-      <a href="../week06-synchronization-and-deadlock/index.html" class="nav-btn">&larr; Week 6: Deadlocks</a>
+      <a href="../week06-synchronization-and-deadlock/index.html" class="nav-btn">&larr; Week 6: Synchronization &amp; Deadlock</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="../week10-file-management/index.html" class="nav-btn">Week 9: File Systems &rarr;</a>
+      <a href="../week10-file-management/index.html" class="nav-btn">Week 10: File Management &rarr;</a>
     </nav>
 
     <div class="hero-card">
       <span class="week-tag">COSC240 &bull; Operating Systems</span>
-      <h1>Week 7 & 8: Memory Management & Virtual Memory</h1>
+      <h1>Week 9: Memory Management &amp; Virtual Memory</h1>
       <p class="lead-text">
-        Master physical memory allocation, buddy allocators, hardware address translation, page tables, TLB caching, page faults, and replacement algorithms.
+        Following the mid-trimester break, we bridge the chasm between raw physical hardware addressing and isolated virtual memory abstractions. We analyze <strong>Address Relocation</strong>, <strong>Dynamic Partitioning</strong>, <strong>Paging Architectures</strong>, <strong>Hardware TLB Caching</strong>, and <strong>Page Replacement Algorithms</strong>.
       </p>
 
       <div class="briefing-grid">
@@ -191,9 +211,12 @@
             <span>&#128218;</span> What You Will Learn
           </div>
           <ul class="briefing-list">
-            <li>Core architectural mechanics and low-level data structures.</li>
-            <li>Kernel operational states, hardware interrupts, and protection boundaries.</li>
-            <li>Theoretical trade-offs, performance implications, and industry standards.</li>
+            <li>The evolution from <strong>bare-metal monoprogramming</strong> to dynamic hardware relocation via Base and Limit registers.</li>
+            <li>Contiguous allocation algorithms (First-Fit, Best-Fit, Worst-Fit) and buddy-system power-of-two coalescing.</li>
+            <li>Internal vs. external <strong>memory fragmentation</strong>, Knuth's 50% rule, and compaction overheads.</li>
+            <li>Hardware page tables, virtual address decomposition ($p, d$), and MMU translation mechanics.</li>
+            <li>Hardware acceleration via <strong>Translation Lookaside Buffers (TLBs)</strong> and Effective Memory Access Time (EMAT).</li>
+            <li>Page replacement algorithms: FIFO, Optimal (Belady), LRU, Clock, Aging, and Working Set (WSClock).</li>
           </ul>
         </div>
 
@@ -202,70 +225,191 @@
             <span>&#9989;</span> What You Should Do
           </div>
           <ul class="briefing-list">
-            <li>Review lecture notes and assigned textbook chapters.</li>
-            <li>Explore interactive pedagogical steppers and simulation modules.</li>
-            <li>Complete weekly tutorials, practical lab assignments, and review quizzes.</li>
+            <li>Read <strong>Tanenbaum &amp; Bos</strong> Chapter 3 (Memory Management) and <strong>OSTEP</strong> Chapters 13–23.</li>
+            <li>Work through Modules 01 to 04 sequentially, tracing address translation formulas.</li>
+            <li>Engage with the Page Replacement Deep-Dives (Clock, Aging, Working Set).</li>
+            <li>Complete <strong>Theory Tutorial 07/09</strong> (Multi-Level Page Table Footprints &amp; EMAT).</li>
+            <li>Complete <strong>Practical Tutorial 07/09</strong> (Simulating Free List Allocation Policies in C).</li>
+            <li>Prepare for <strong>Quiz 4</strong> (covering Virtual Memory, Paging, and Address Translation).</li>
           </ul>
         </div>
       </div>
     </div>
 
+    <!-- Core Foundational Modules -->
     <div class="modules-heading">
-      <span>&#128194;</span> Course Modules &amp; Deep-Dive Texts
+      <span>&#128194;</span> Foundational Memory Virtualization Modules
     </div>
 
     <div class="modules-grid">
-      
       <!-- Module 01 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 01</div>
-          <h2 class="module-title">Free-Used Lists & Buddy Allocator</h2>
-          <p class="module-desc">Explore contiguous memory allocation, bitmap tracking, free lists, and binary buddy allocator splitting/merging.</p>
-          <div class="module-tags"><span class="tag">Buddy Allocator</span><span class="tag">Free Lists</span><span class="tag">Fragmentation</span><span class="tag">Allocation</span></div>
+          <h2 class="module-title">Physical Address Spaces &amp; Monoprogramming</h2>
+          <p class="module-desc">Trace the evolution from early bare-metal execution to dynamic hardware relocation using Base and Limit registers, swapping, and memory overlays.</p>
+          <div class="module-tags">
+            <span class="tag">Monoprogramming</span>
+            <span class="tag">Base &amp; Limit</span>
+            <span class="tag">Address Relocation</span>
+            <span class="tag">Fragmentation</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="01-physical-memory-abstractions.html" class="launch-btn">Launch Module 01 &rarr;</a>
       </div>
 
       <!-- Module 02 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 02</div>
-          <h2 class="module-title">Paging Hardware & Page Tables</h2>
-          <p class="module-desc">Examine PTE sandbox bit flags (present, dirty, user/kernel, read/write) and multi-level page tables.</p>
-          <div class="module-tags"><span class="tag">Page Table Entry</span><span class="tag">PTE Flags</span><span class="tag">Multi-Level PT</span><span class="tag">CR3 Register</span></div>
+          <h2 class="module-title">Dynamic Partitioning &amp; Free Space Management</h2>
+          <p class="module-desc">Analyze contiguous memory allocation policies (First-Fit, Best-Fit, Worst-Fit), bitmap tracking vs. free linked lists, and power-of-two buddy allocators.</p>
+          <div class="module-tags">
+            <span class="tag">Dynamic Partitioning</span>
+            <span class="tag">Free Lists</span>
+            <span class="tag">Buddy Allocator</span>
+            <span class="tag">Compaction</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="02-dynamic-partitioning-free-lists.html" class="launch-btn">Launch Module 02 &rarr;</a>
       </div>
 
       <!-- Module 03 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 03</div>
-          <h2 class="module-title">Translation Lookaside Buffer (TLB)</h2>
-          <p class="module-desc">Understand hardware TLB caching, associative lookups, tagged entries, and context-switch flushing.</p>
-          <div class="module-tags"><span class="tag">TLB</span><span class="tag">Associative Memory</span><span class="tag">Hit Ratio</span><span class="tag">ASID</span></div>
+          <h2 class="module-title">Virtual Memory &amp; Paging Architectures</h2>
+          <p class="module-desc">Examine the Memory Management Unit (MMU), virtual address split ($p, d$), Page Table Entries (PTE flags), and 64-bit multi-level hierarchical page tables.</p>
+          <div class="module-tags">
+            <span class="tag">Virtual Memory</span>
+            <span class="tag">MMU Translation</span>
+            <span class="tag">Page Tables</span>
+            <span class="tag">PTE Flags</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="03-virtual-memory-paging-tables.html" class="launch-btn">Launch Module 03 &rarr;</a>
       </div>
 
       <!-- Module 04 -->
       <div class="module-card">
         <div>
           <div class="module-num">Module 04</div>
-          <h2 class="module-title">Virtual Memory & Replacement</h2>
-          <p class="module-desc">Analyze VM page faults, FIFO, Optimal, LRU, Clock, Aging, Working Set model, and WSClock policies.</p>
-          <div class="module-tags"><span class="tag">Page Fault</span><span class="tag">LRU</span><span class="tag">Clock Algorithm</span><span class="tag">Working Set</span></div>
+          <h2 class="module-title">TLB Acceleration &amp; Inverted Page Tables</h2>
+          <p class="module-desc">Study hardware TLB caching, associative address matching, hardware vs. software walks, EMAT calculations, and inverted page tables with hash anchors.</p>
+          <div class="module-tags">
+            <span class="tag">TLB Cache</span>
+            <span class="tag">EMAT Formula</span>
+            <span class="tag">Inverted Page Tables</span>
+            <span class="tag">Hardware Walk</span>
+          </div>
         </div>
-        <a href="#" class="launch-btn">Module Overview &rarr;</a>
+        <a href="04-tlb-hardware-inverted-page-tables.html" class="launch-btn">Launch Module 04 &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Page Replacement Algorithms Deep-Dives -->
+    <div class="modules-heading">
+      <span>&#9881;</span> Page Replacement &amp; Thrashing Subsystems
+    </div>
+
+    <div class="modules-grid">
+      <div class="module-card">
+        <div>
+          <div class="module-num">Algorithm 07</div>
+          <h2 class="module-title">Clock Page Replacement</h2>
+          <p class="module-desc">The circular first-in, first-out buffer using hardware referenced bits to approximate Least Recently Used (LRU) eviction with minimal software overhead.</p>
+          <div class="module-tags">
+            <span class="tag">Clock Pointer</span>
+            <span class="tag">Reference Bit</span>
+            <span class="tag">Second-Chance</span>
+          </div>
+        </div>
+        <a href="07-clock.html" class="launch-btn">Explore Clock Algorithm &rarr;</a>
       </div>
 
+      <div class="module-card">
+        <div>
+          <div class="module-num">Algorithm 08</div>
+          <h2 class="module-title">Aging Algorithm in Software</h2>
+          <p class="module-desc">Simulating true LRU eviction through shift registers updated at timer clock ticks, tracking recent page reference recency.</p>
+          <div class="module-tags">
+            <span class="tag">Aging Registers</span>
+            <span class="tag">Shift Vectors</span>
+            <span class="tag">LRU Approximation</span>
+          </div>
+        </div>
+        <a href="08-aging-algorithm.html" class="launch-btn">Explore Aging Algorithm &rarr;</a>
+      </div>
+
+      <div class="module-card">
+        <div>
+          <div class="module-num">Algorithm 09 &amp; 10</div>
+          <h2 class="module-title">Working Set &amp; WSClock</h2>
+          <p class="module-desc">Peter Denning's working set principle: calculating page sets referenced in virtual time window $\tau$ to prevent thrashing and maintain multiprogramming equilibrium.</p>
+          <div class="module-tags">
+            <span class="tag">Working Set W(t, &tau;)</span>
+            <span class="tag">WSClock</span>
+            <span class="tag">Thrashing Control</span>
+          </div>
+        </div>
+        <a href="10-wsclock.html" class="launch-btn">Explore WSClock &rarr;</a>
+      </div>
+
+      <div class="module-card">
+        <div>
+          <div class="module-num">Policy 11</div>
+          <h2 class="module-title">Local vs. Global Allocation Policies</h2>
+          <p class="module-desc">Contrasting fixed process partition boundaries with dynamic page stealing across competing processes, Page Fault Frequency (PFF), and load control.</p>
+          <div class="module-tags">
+            <span class="tag">Local Allocation</span>
+            <span class="tag">Global Allocation</span>
+            <span class="tag">PFF Tracing</span>
+          </div>
+        </div>
+        <a href="11-local-vs-global.html" class="launch-btn">Explore Allocation Policies &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Interactive Sandboxes -->
+    <div class="modules-heading">
+      <span>&#128302;</span> Interactive Visualizers &amp; Simulation Laboratories
+    </div>
+
+    <div class="lab-grid">
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">PTE Sandbox</h3>
+          <p class="lab-desc">Inspect bitfields, protection flags, and dirty/accessed states in Page Table Entries.</p>
+        </div>
+        <a href="pte-sandbox.html" class="lab-link">Open PTE Sandbox &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">TLB Sandbox</h3>
+          <p class="lab-desc">Trace associative TLB lookups, cache misses, and multi-level page table walks.</p>
+        </div>
+        <a href="03-tlb-sandbox.html" class="lab-link">Open TLB Sandbox &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Buddy Allocator</h3>
+          <p class="lab-desc">Interactive visualization of block splitting and power-of-two buddy coalescing.</p>
+        </div>
+        <a href="buddy-allocator-tutorial.html" class="lab-link">Open Allocator &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Multi-Level Page Tables</h3>
+          <p class="lab-desc">Step through x86-64 4-level hierarchical page walks (PML4 &rarr; PDPT &rarr; PD &rarr; PT).</p>
+        </div>
+        <a href="multilevel-pt.html" class="lab-link">Open Hierarchy Lab &rarr;</a>
+      </div>
     </div>
 
     <nav class="nav-bar">
-      <a href="../week06-synchronization-and-deadlock/index.html" class="nav-btn">&larr; Week 6: Deadlocks</a>
+      <a href="../week06-synchronization-and-deadlock/index.html" class="nav-btn">&larr; Week 6: Synchronization &amp; Deadlock</a>
       <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
-      <a href="../week10-file-management/index.html" class="nav-btn">Week 9: File Systems &rarr;</a>
+      <a href="../week10-file-management/index.html" class="nav-btn">Week 10: File Management &rarr;</a>
     </nav>
   </div>
 </body>

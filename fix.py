@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 # =====================================================================
-# fix.py: Harmonize week10-file-management/02-directories.html
+# fix.py: Merge Week 7 into Week 9 Memory Management and prune Week 7
 # =====================================================================
 import os
+import shutil
 import subprocess
 
-TARGET_FILE = os.path.join("week10-file-management", "02-directories.html")
+SRC_DIR = "week07-memory-management-virtual-memory"
+DEST_DIR = "week09-memory-management"
 
-HARMONIZED_CONTENT = r"""<!DOCTYPE html>
+WEEK09_INDEX_CONTENT = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Module 02: Directories &amp; Path Resolution - COSC240</title>
+  <title>Week 9: Memory Management &amp; Virtual Memory - COSC240</title>
   <style>
     :root {
       --primary: #0f172a;
@@ -23,9 +25,6 @@ HARMONIZED_CONTENT = r"""<!DOCTYPE html>
       --text: #334155;
       --text-muted: #64748b;
       --bg: #f8fafc;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #d97706;
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     }
@@ -62,906 +61,444 @@ HARMONIZED_CONTENT = r"""<!DOCTYPE html>
       transition: background 0.15s ease;
     }
     .nav-btn:hover { background: #f0f9ff; }
-    .content-card {
+    .hero-card {
       background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 36px;
+      padding: 32px;
       margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
-    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); letter-spacing: -0.02em; }
-    h3 { font-size: 1.25rem; color: var(--primary); margin-top: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-    h4 { font-size: 1.05rem; color: var(--primary); margin-top: 20px; }
-    p, li { font-size: 0.95rem; color: var(--text); }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-      font-size: 0.88rem;
+    .week-tag {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
     }
-    th, td {
-      border: 1px solid var(--border);
-      padding: 10px 12px;
-      text-align: left;
+    h1 { margin: 0 0 12px 0; font-size: 1.85rem; color: var(--primary); }
+    .lead-text { margin: 0 0 20px 0; font-size: 1.05rem; color: var(--text); line-height: 1.7; }
+    .briefing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
     }
-    th {
-      background-color: #f1f5f9;
-      color: var(--primary);
-      font-weight: 600;
-    }
-    .math-callout {
+    .briefing-box {
       background: #f8fafc;
-      border-left: 4px solid var(--accent);
-      padding: 16px;
-      border-radius: 0 6px 6px 0;
-      margin: 18px 0;
-      font-size: 0.92rem;
-    }
-    .figure-container {
-      width: 100%;
-      margin: 16px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
+      padding: 16px 20px;
     }
-    code {
-      font-family: var(--font-mono);
-      font-size: 0.88rem;
-      background: #f1f5f9;
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: #0f172a;
+    .briefing-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-
-    /* Interactive Pedagogical Aid Styles */
-    .aid-wrapper {
-      background: #ffffff;
+    .briefing-list { margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text); }
+    .briefing-list li { margin-bottom: 6px; }
+    .modules-heading {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 28px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .module-card {
+      background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 24px;
-      margin: 28px 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-    .aid-header { font-weight: 700; font-size: 1.05rem; color: var(--primary); margin-bottom: 4px; }
-    .aid-subtitle { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
-    .aid-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
-    .controls-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-    .preview-box { background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 14px; font-size: 0.86rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; height: 150px; max-height: 150px; display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
-    .stepper-btns { display: flex; gap: 8px; margin-bottom: 14px; }
-    .step-btn {
-      flex: 1;
+    .module-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    }
+    .module-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .module-title { font-size: 1.15rem; font-weight: 700; color: var(--primary); margin: 0 0 10px 0; }
+    .module-desc { font-size: 0.88rem; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.55; }
+    .module-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .tag {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .launch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       background: var(--primary);
       color: #ffffff;
-      border: none;
-      padding: 8px 12px;
-      font-size: 0.8rem;
+      text-decoration: none;
+      font-size: 0.88rem;
       font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .step-btn:hover { background: var(--accent); }
-    .step-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .telemetry-bar { background: #0f172a; color: #e2e8f0; font-family: var(--font-mono); font-size: 0.75rem; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; }
-    .visual-canvas { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; height: 100%; min-height: 240px; }
-    .panes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
-    .pane-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 0.82rem; }
-    .pane-title { font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-
-    /* Interactive Tree Simulator Container */
-    .sim-container {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px 0;
-      color: #f8fafc;
-    }
-    .sim-grid {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 820px) {
-      .sim-grid { grid-template-columns: 1fr; }
-    }
-    .fs-tree-view {
-      background: #020617;
-      border: 1px solid #1e293b;
+      padding: 10px 16px;
       border-radius: 6px;
-      padding: 14px;
-      height: 260px;
-      overflow-y: auto;
-      line-height: 1.6;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-    }
-    .fs-node {
-      cursor: pointer;
-      padding: 2px 6px;
-      border-radius: 4px;
-      display: inline-block;
-      user-select: none;
       transition: background 0.15s ease;
-    }
-    .fs-node:hover { background: #1e293b; color: #38bdf8; }
-    .fs-node.active { background: #0284c7; color: #ffffff; font-weight: 700; }
-    .fs-node.file { color: #94a3b8; cursor: default; }
-    .fs-table-view {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-    }
-    .fs-table {
       width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
     }
-    .fs-table th, .fs-table td {
-      border: 1px solid #334155;
-      padding: 5px 8px;
-      text-align: left;
+    .launch-btn:hover { background: var(--accent-hover); }
+    /* Interactive Lab Grid */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
     }
-    .fs-table th { background: #0f172a; color: #94a3b8; }
-    .fs-terminal {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 12px 14px;
+    .lab-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      font-family: var(--font-mono);
-      margin-top: 14px;
+      justify-content: space-between;
     }
-    .fs-term-log {
-      color: #38bdf8;
-      min-height: 48px;
-      white-space: pre-wrap;
-      line-height: 1.45;
-      font-size: 0.82rem;
-    }
-    .fs-term-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-top: 1px dashed #1e293b;
-      padding-top: 8px;
-      font-size: 0.85rem;
-    }
-    .fs-prompt { color: #34d399; font-weight: 700; }
-    .fs-input {
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #ffffff;
-      font-family: inherit;
-      font-size: inherit;
-      flex-grow: 1;
-    }
-    .fs-quick-btn {
-      background: #1e293b;
-      color: #f8fafc;
-      border: 1px solid #334155;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      cursor: pointer;
-      font-family: var(--font-mono);
-    }
-    .fs-quick-btn:hover { background: #334155; }
+    .lab-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 6px 0; }
+    .lab-desc { font-size: 0.78rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.4; }
+    .lab-link { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-weight: 600; }
+    .lab-link:hover { text-decoration: underline; }
     @media (max-width: 768px) {
-      .aid-grid, .panes-grid { grid-template-columns: 1fr; }
+      .briefing-grid, .modules-grid, .lab-grid { grid-template-columns: 1fr; }
       body { padding: 16px; }
     }
   </style>
-  <!-- KaTeX CSS & JS CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous" onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
 </head>
 <body>
   <div class="container">
     <nav class="nav-bar">
-      <a href="01-files-abstraction.html" class="nav-btn">&larr; Module 01: Files Abstraction</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 10 Hub</a>
-      <a href="03-filesystem-implementation.html" class="nav-btn">Module 03: FS Implementation &rarr;</a>
+      <a href="../week06-synchronization-and-deadlock/index.html" class="nav-btn">&larr; Week 6: Synchronization &amp; Deadlock</a>
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      <a href="../week10-file-management/index.html" class="nav-btn">Week 10: File Management &rarr;</a>
     </nav>
 
-    <div class="content-card">
-      <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Module 02 &bull; COSC240</span>
-      <h1>Directories &amp; Path Resolution</h1>
-      <p style="font-size: 1.05rem; color: var(--text-muted); margin-bottom: 24px;">
-        Examine how operating systems structure, search, and protect the file system namespace: single-level directories, two-level Master/User architectures, recursive tree hierarchies, structural self/parent links, path resolution, and hard versus symbolic links.
+    <div class="hero-card">
+      <span class="week-tag">COSC240 &bull; Operating Systems</span>
+      <h1>Week 9: Memory Management &amp; Virtual Memory</h1>
+      <p class="lead-text">
+        Following the mid-trimester break, we bridge the chasm between raw physical hardware addressing and isolated virtual memory abstractions. We analyze <strong>Address Relocation</strong>, <strong>Dynamic Partitioning</strong>, <strong>Paging Architectures</strong>, <strong>Hardware TLB Caching</strong>, and <strong>Page Replacement Algorithms</strong>.
       </p>
 
-      <h3>1. Single-Level Directory Systems</h3>
-      <p>
-        To track files stored on secondary storage media, the operating system maintains a mapping between human-readable file names and physical storage locations. The simplest design is a <strong>single-level directory system</strong> (a flat directory structure).
-      </p>
-
-      <h4>Architectural Characteristics</h4>
-      <ul>
-        <li><strong>Unified Global Namespace:</strong> A single directory contains every file present on the entire storage volume. There are no subdirectories or partitions by user account.</li>
-        <li><strong>Global Name Uniqueness:</strong> Every file must have a globally unique identifier. If Alice creates <code>assignment.c</code>, Bob cannot create <code>assignment.c</code> on that disk volume.</li>
-        <li><strong>Direct Linear Mapping:</strong> The directory entry directly pairs each file name with its file attributes and disk allocation addresses (or a pointer to a metadata block).</li>
-      </ul>
-
-      <h4>Practical Applications &amp; Limitations</h4>
-      <p>
-        Single-level directory systems appeared in early mainframe operating systems and first-generation personal microcomputers, such as early CP/M and original MS-DOS 1.0 on 160 KB / 360 KB 5.25-inch diskettes. With only dozens of files per disk, flat tables were computationally inexpensive.
-      </p>
-      <ol>
-        <li><strong>Name Collisions:</strong> In multi-user systems, coordinate naming breaks down, forcing artificial prefixes like <code>alice_prog.c</code> and <code>bob_prog.c</code>.</li>
-        <li><strong>Project Segmentation Failure:</strong> Even for a single user, storing thousands of source modules, binaries, and data records in a single flat list makes cataloging difficult.</li>
-        <li><strong>Linear Search Bottlenecks:</strong> Directory lookup requires scanning an increasingly large linear table ($\mathcal{O}(N)$), driving up disk access latency.</li>
-      </ol>
-
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-1: Single-Level Flat Directory Layout</span>
-        <svg viewBox="0 0 760 140" width="100%" height="100%" style="font-family: var(--font-sans);">
-          <rect x="20" y="15" width="720" height="45" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5" rx="6"/>
-          <text x="380" y="34" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Root / Master Directory (Flat Table)</text>
-          <text x="380" y="48" font-size="9" fill="#0369a1" text-anchor="middle">All users share one namespace | High collision probability</text>
-
-          <g transform="translate(45, 75)">
-            <rect width="110" height="45" fill="#ffffff" stroke="#94a3b8" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">file1.txt</text>
-            <text x="55" y="34" font-size="8" fill="#64748b" text-anchor="middle">Blocks: 10, 11</text>
-          </g>
-          <g transform="translate(190, 75)">
-            <rect width="110" height="45" fill="#ffffff" stroke="#94a3b8" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">notes.c</text>
-            <text x="55" y="34" font-size="8" fill="#64748b" text-anchor="middle">Blocks: 14, 15</text>
-          </g>
-          <g transform="translate(335, 75)">
-            <rect width="110" height="45" fill="#ffffff" stroke="#94a3b8" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="600" fill="#0f172a" text-anchor="middle">game.exe</text>
-            <text x="55" y="34" font-size="8" fill="#64748b" text-anchor="middle">Blocks: 22, 23</text>
-          </g>
-          <g transform="translate(480, 75)">
-            <rect width="110" height="45" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">memo.txt</text>
-            <text x="55" y="34" font-size="8" fill="#b91c1c" text-anchor="middle">Alice's Copy</text>
-          </g>
-          <g transform="translate(615, 75)">
-            <rect width="110" height="45" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,3" rx="4"/>
-            <text x="55" y="20" font-size="10" font-weight="700" fill="#dc2626" text-anchor="middle">memo.txt</text>
-            <text x="55" y="34" font-size="8" fill="#b91c1c" text-anchor="middle">COLLISION (Denied)</text>
-          </g>
-
-          <line x1="100" y1="60" x2="100" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="245" y1="60" x2="245" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="390" y1="60" x2="390" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="535" y1="60" x2="535" y2="75" stroke="#94a3b8" stroke-width="1.5"/>
-          <line x1="670" y1="60" x2="670" y2="75" stroke="#dc2626" stroke-width="1.5"/>
-        </svg>
-      </div>
-
-      <h3>2. Two-Level Directory Systems</h3>
-      <p>
-        The shift to multi-user time-sharing architectures (such as MIT's CTSS and DEC TOPS-10) demanded isolated namespaces. Operating systems introduced a fixed two-tier hierarchy:
-      </p>
-      <ul>
-        <li><strong>Master File Directory (MFD):</strong> The root-level administrative table containing one entry per user account or project group. It contains account metadata and pointers to individual user directory tables.</li>
-        <li><strong>User File Directory (UFD):</strong> An isolated directory table created for each user, mapping their private file names to inode/FCB metadata. Alice and Bob can each create <code>main.c</code> without conflict.</li>
-      </ul>
-
-      <div class="figure-container">
-        <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Figure 4-2A: Two-Level Directory Structural Topology (MFD to UFD)</span>
-        <svg viewBox="0 0 760 190" width="100%" height="100%" style="font-family: var(--font-sans);">
-          <rect x="230" y="15" width="300" height="42" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" rx="4"/>
-          <text x="380" y="32" font-size="11" font-weight="700" fill="#0284c7" text-anchor="middle">Master File Directory (MFD)</text>
-          <text x="380" y="47" font-size="9" fill="#64748b" text-anchor="middle">[ALICE] | [BOB] | [SYSTEM]</text>
-
-          <path d="M 300 57 L 140 85" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 380 57 L 380 85" stroke="#94a3b8" stroke-width="1.5"/>
-          <path d="M 460 57 L 620 85" stroke="#94a3b8" stroke-width="1.5"/>
-
-          <rect x="50" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="140" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: ALICE</text>
-          <rect x="65" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="124" font-size="8.5" fill="#065f46" text-anchor="middle">main.c (i-node #108)</text>
-          <rect x="65" y="134" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="148" font-size="8.5" fill="#065f46" text-anchor="middle">test.dat (i-node #109)</text>
-          <rect x="65" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="140" y="169" font-size="8" fill="#065f46" text-anchor="middle">output.log</text>
-
-          <rect x="290" y="85" width="180" height="92" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" rx="4"/>
-          <text x="380" y="102" font-size="10" font-weight="700" fill="#047857" text-anchor="middle">UFD: BOB</text>
-          <rect x="305" y="110" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="124" font-size="8.5" fill="#065f46" text-anchor="middle">main.c (i-node #214)</text>
-          <rect x="305" y="134" width="150" height="20" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="148" font-size="8.5" fill="#065f46" text-anchor="middle">project.asm (i-node #215)</text>
-          <rect x="305" y="158" width="150" height="15" fill="#ffffff" stroke="#a7f3d0" rx="3"/>
-          <text x="380" y="169" font-size="8" fill="#065f46" text-anchor="middle">notes.txt</text>
-
-          <rect x="530" y="85" width="180" height="92" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" rx="4"/>
-          <text x="620" y="102" font-size="10" font-weight="700" fill="#b45309" text-anchor="middle">UFD: SYSTEM (SYS:)</text>
-          <rect x="545" y="110" width="150" height="20" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="620" y="124" font-size="8.5" fill="#92400e" text-anchor="middle">cc (Compiler binary)</text>
-          <rect x="545" y="134" width="150" height="20" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="620" y="148" font-size="8.5" fill="#92400e" text-anchor="middle">ed (Editor binary)</text>
-          <rect x="545" y="158" width="150" height="15" fill="#ffffff" stroke="#fde68a" rx="3"/>
-          <text x="620" y="169" font-size="8" fill="#92400e" text-anchor="middle">as (Assembler binary)</text>
-        </svg>
-      </div>
-
-      <h4>The System Utility &amp; Fallback Search Dilemma</h4>
-      <p>
-        While account segregation prevents conflicts, duplicating common executables (<code>cc</code>, <code>ed</code>, <code>as</code>) across every user's UFD exhausts storage. Systems introduced a dedicated system directory and a <strong>Two-Stage Fallback Search Rule</strong>:
-      </p>
-
-      <div class="math-callout">
-        <strong style="color: var(--primary);">Two-Stage Search Rule:</strong>
-        <br><br>
-        $$ \text{SearchTarget} = \begin{cases}
-          \text{Step 1:} & \text{Search Active Caller UFD} \\
-          \text{Step 2:} & \text{If not found } \longrightarrow \text{Search SYSTEM UFD} \\
-          \text{Step 3:} & \text{If not found } \longrightarrow \text{Return Error (ENOENT)}
-        \end{cases} $$
-      </div>
-
-      <h3>3. Hierarchical (Tree-Structured) Directory Systems</h3>
-      <p>
-        Pioneered by Multics and UNIX, the generalization from two tiers to arbitrary depth is straightforward: <strong>allow directory entries to point to other directories as well as regular files</strong>.
-      </p>
-
-      <h4>Directories as Specialized Files</h4>
-      <ul>
-        <li><strong>Readable Like Data Files:</strong> Directories are linear arrays of entry records. In POSIX, access is wrapped via standard functions (<code>opendir()</code>, <code>readdir()</code>, <code>closedir()</code>) to decouple applications from on-disk data structures (e.g., ext4 directory hashes, B-trees).</li>
-        <li><strong>Kernel-Guarded Writes:</strong> User processes are strictly prohibited from writing directly to directories via <code>write()</code>. Only the kernel may modify directory bytes during system calls (<code>creat</code>, <code>mkdir</code>, <code>link</code>, <code>unlink</code>).</li>
-      </ul>
-
-      <h4>Self and Parent Links: <code>.</code> and <code>..</code></h4>
-      <p>
-        Every directory created in a hierarchical file system is initialized with two structural entries:
-      </p>
-      <ul>
-        <li><code>.</code> (Current Directory / Self): Points directly to the directory's own metadata node (inode / FCB).</li>
-        <li><code>..</code> (Parent Directory): Points directly to the metadata node of the parent directory.</li>
-      </ul>
-
-      <div class="math-callout">
-        <strong style="color: var(--primary);">The Root Invariant:</strong>
-        <br><br>
-        $$ \text{inode}("/..") \equiv \text{inode}("/.") \equiv \text{Root Inode (typically Inode 2)} $$
-        <p style="margin: 8px 0 0 0; font-size: 0.88rem; color: var(--text);">
-          Traversing above the root cycles back to the root, preventing file system traversal escapes.
-        </p>
-      </div>
-
-      <h4>Path Name Classification</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>Path Class</th>
-            <th>Starting Anchor</th>
-            <th>Syntax Signature</th>
-            <th>Example</th>
-            <th>Resolution Mechanics</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Absolute Path</strong></td>
-            <td>Root directory (<code>/</code> or <code>C:\</code>)</td>
-            <td>Leading slash or drive specifier</td>
-            <td><code>/home/alice/src/main.c</code></td>
-            <td>MMU/VFS begins traversal unconditionally at the root inode.</td>
-          </tr>
-          <tr>
-            <td><strong>Relative Path</strong></td>
-            <td>Current Working Directory (CWD)</td>
-            <td>No leading slash</td>
-            <td><code>src/main.c</code> or <code>../bob/notes.txt</code></td>
-            <td>Traversal begins from the CWD inode recorded in the process PCB.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Embedded Hierarchical Tree Simulator -->
-      <div class="sim-container">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:8px; margin-bottom:14px;">
-          <span style="font-size:0.95rem; font-weight:700; color:#38bdf8; text-transform:uppercase; font-family:var(--font-mono);">Hierarchical Tree &amp; Path Resolution Sandbox</span>
-          <span style="color:#94a3b8; font-size:0.75rem; font-family:var(--font-mono);">Tanenbaum &sect;4.2.3</span>
+      <div class="briefing-grid">
+        <div class="briefing-box">
+          <div class="briefing-title">
+            <span>&#128218;</span> What You Will Learn
+          </div>
+          <ul class="briefing-list">
+            <li>The evolution from <strong>bare-metal monoprogramming</strong> to dynamic hardware relocation via Base and Limit registers.</li>
+            <li>Contiguous allocation algorithms (First-Fit, Best-Fit, Worst-Fit) and buddy-system power-of-two coalescing.</li>
+            <li>Internal vs. external <strong>memory fragmentation</strong>, Knuth's 50% rule, and compaction overheads.</li>
+            <li>Hardware page tables, virtual address decomposition ($p, d$), and MMU translation mechanics.</li>
+            <li>Hardware acceleration via <strong>Translation Lookaside Buffers (TLBs)</strong> and Effective Memory Access Time (EMAT).</li>
+            <li>Page replacement algorithms: FIFO, Optimal (Belady), LRU, Clock, Aging, and Working Set (WSClock).</li>
+          </ul>
         </div>
 
-        <div class="sim-grid">
-          <div class="fs-tree-view" id="treeDisplay"></div>
-
-          <div class="fs-table-view">
-            <div style="font-size:0.82rem; color:#fbbf24; font-weight:700; text-transform:uppercase;" id="activeTableTitle">On-Disk Table for: /</div>
-            <table class="fs-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>i-node</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody id="dirTableBody"></tbody>
-            </table>
+        <div class="briefing-box">
+          <div class="briefing-title">
+            <span>&#9989;</span> What You Should Do
           </div>
-        </div>
-
-        <div class="fs-terminal">
-          <div class="fs-term-log" id="termLog">$ session started. Active working directory set to /</div>
-          <div class="fs-term-input-row">
-            <span class="fs-prompt" id="promptPath">/ $</span>
-            <input type="text" class="fs-input" id="cmdInput" placeholder="Try: cd home/alice, cd .., cd /bin, ls" autocomplete="off" />
-          </div>
-        </div>
-
-        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px;">
-          <span style="font-size:0.75rem; color:#94a3b8; margin-right:4px; font-family:var(--font-mono);">Quick Jumps:</span>
-          <button class="fs-quick-btn" onclick="execCd('/')">cd /</button>
-          <button class="fs-quick-btn" onclick="execCd('home/alice')">cd home/alice</button>
-          <button class="fs-quick-btn" onclick="execCd('src')">cd src</button>
-          <button class="fs-quick-btn" onclick="execCd('..')">cd ..</button>
-          <button class="fs-quick-btn" onclick="execCd('../../bin')">cd ../../bin</button>
-        </div>
-      </div>
-
-      <h3>4. Directory System Calls &amp; Link Mechanics</h3>
-      <ul>
-        <li><strong><code>mkdir()</code> &amp; <code>rmdir()</code>:</strong> <code>mkdir</code> allocates an inode and automatically populates <code>.</code> and <code>..</code>. <code>rmdir</code> enforces an <strong>emptiness invariant</strong>: deletion is denied with <code>ENOTEMPTY</code> unless the directory contains exclusively <code>.</code> and <code>..</code>.</li>
-        <li><strong>Hard Links (<code>link</code>):</strong> Creates an additional directory entry pointing to an existing inode. The target inode's <code>nlink</code> reference count increments. Both names have identical status.</li>
-        <li><strong>Symbolic Links:</strong> Creates a separate file with type <code>S_IFLNK</code> containing a target path string. If the target is deleted, the symlink dangles.</li>
-        <li><strong>Unlink Mechanics (<code>unlink</code>):</strong> Removes a directory entry and decrements <code>nlink</code>. Physical blocks are reclaimed only when <code>nlink == 0</code> and all open file descriptors to that inode are closed.</li>
-      </ul>
-
-      <!-- ================================================================= -->
-      <!-- INTERACTIVE PEDAGOGICAL AID: DIRECTORY LIFECYCLE STEPPER        -->
-      <!-- ================================================================= -->
-      <div class="aid-wrapper">
-        <div class="aid-header">Interactive Walkthrough: Directory Operations &amp; Link-Count Lifecycle</div>
-        <div class="aid-subtitle">Trace step-by-step how the kernel updates directory blocks, enforces the emptiness invariant, tracks reference counts, and reclaims disk blocks.</div>
-
-        <div class="aid-grid">
-          <div class="controls-panel">
-            <div class="preview-box" id="dir-preview-text">
-              <strong>Step 1: Directory Created.</strong> Kernel executes <code>mkdir("/home/project")</code>. Allocates directory inode #115 and formats initial <code>.</code> and <code>..</code> entries.
-            </div>
-
-            <div class="stepper-btns">
-              <button class="step-btn" id="dir-prev-btn" onclick="changeDirStep(-1)" disabled>&larr; Prev</button>
-              <button class="step-btn" id="dir-next-btn" onclick="changeDirStep(1)">Next &rarr;</button>
-              <button class="step-btn" onclick="resetDirStepper()" style="background:#64748b;">Reset</button>
-            </div>
-
-            <div class="telemetry-bar" id="dir-telemetry-bar">
-              <div><strong>Phase:</strong> <span id="dir-tel-phase" style="color: #38bdf8;">1/5</span></div>
-              <div><strong>Target Inode:</strong> <span id="dir-tel-inode">#115 (DIR)</span></div>
-              <div><strong>Link Count:</strong> <span id="dir-tel-nlink">nlink = 2</span></div>
-              <div><strong>Storage:</strong> <span id="dir-tel-blocks" style="color: #4ade80; font-weight: 700;">1 Block</span></div>
-            </div>
-          </div>
-
-          <div class="visual-canvas">
-            <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 6px; color: var(--primary);">Synchronized Visual Canvas &mdash; Directory Table &amp; Inode Blocks</div>
-
-            <!-- SVG Representation of Directory Slots and Target Inode -->
-            <svg viewBox="0 0 320 180" style="width: 100%; height: 100%; min-height: 190px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 6px;">
-              <!-- Directory Block Container -->
-              <rect x="10" y="20" width="145" height="145" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
-              <text x="82" y="14" fill="#0284c7" font-size="7.5" font-weight="bold" text-anchor="middle">DIR TABLE: /home/project</text>
-
-              <rect id="slot-0" x="15" y="25" width="135" height="25" rx="3" fill="#e0f2fe" stroke="#0284c7" />
-              <text id="txt-slot-0" x="82" y="41" fill="#0369a1" font-size="8" font-family="monospace" text-anchor="middle">. &rarr; Inode #115 (Self)</text>
-
-              <rect id="slot-1" x="15" y="55" width="135" height="25" rx="3" fill="#e0f2fe" stroke="#0284c7" />
-              <text id="txt-slot-1" x="82" y="71" fill="#0369a1" font-size="8" font-family="monospace" text-anchor="middle">.. &rarr; Inode #4 (Parent)</text>
-
-              <rect id="slot-2" x="15" y="85" width="135" height="25" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="2,2" />
-              <text id="txt-slot-2" x="82" y="101" fill="#94a3b8" font-size="8" font-family="monospace" text-anchor="middle">[Unallocated Slot 2]</text>
-
-              <rect id="slot-3" x="15" y="115" width="135" height="25" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="2,2" />
-              <text id="txt-slot-3" x="82" y="131" fill="#94a3b8" font-size="8" font-family="monospace" text-anchor="middle">[Unallocated Slot 3]</text>
-
-              <!-- Inode Container -->
-              <rect x="180" y="30" width="130" height="120" rx="4" fill="#ffffff" stroke="#16a34a" stroke-width="1.5" />
-              <text x="245" y="22" fill="#16a34a" font-size="7.5" font-weight="bold" text-anchor="middle">INODE METADATA RECORD</text>
-
-              <text id="inode-id" x="245" y="50" fill="#0f172a" font-size="9" font-family="monospace" font-weight="bold" text-anchor="middle">Inode #120 (Regular)</text>
-              <text id="inode-links" x="245" y="70" fill="#0369a1" font-size="8.5" font-family="monospace" text-anchor="middle">nlink = 0</text>
-              <text id="inode-blocks" x="245" y="90" fill="#64748b" font-size="8" font-family="monospace" text-anchor="middle">Blocks: 0</text>
-              <rect id="inode-status-box" x="195" y="105" width="100" height="25" rx="3" fill="#fef2f2" stroke="#dc2626" />
-              <text id="inode-status-txt" x="245" y="121" fill="#dc2626" font-size="8" font-weight="bold" text-anchor="middle">UNALLOCATED</text>
-            </svg>
-
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 8px;" id="dir-canvas-banner">
-              Status: <strong>Directory /home/project formatted with . and ..</strong>
-            </div>
-          </div>
-        </div>
-
-        <div class="panes-grid">
-          <div class="pane-box" style="border-left: 3px solid var(--success);">
-            <div class="pane-title" style="color: var(--success);">&#128269; What Is Happening</div>
-            <div id="dir-pane-what" style="color: var(--text);">The kernel allocates directory inode #115 and immediately formats data block with entries . (self) and .. (parent).</div>
-          </div>
-          <div class="pane-box" style="border-left: 3px solid var(--accent);">
-            <div class="pane-title" style="color: var(--accent);">&#9881; Why The System Does This</div>
-            <div id="dir-pane-why" style="color: var(--text);">Directories are never truly empty; self and parent bindings guarantee that relative path resolution works recursively across all subtrees.</div>
-          </div>
+          <ul class="briefing-list">
+            <li>Read <strong>Tanenbaum &amp; Bos</strong> Chapter 3 (Memory Management) and <strong>OSTEP</strong> Chapters 13–23.</li>
+            <li>Work through Modules 01 to 04 sequentially, tracing address translation formulas.</li>
+            <li>Engage with the Page Replacement Deep-Dives (Clock, Aging, Working Set).</li>
+            <li>Complete <strong>Theory Tutorial 07/09</strong> (Multi-Level Page Table Footprints &amp; EMAT).</li>
+            <li>Complete <strong>Practical Tutorial 07/09</strong> (Simulating Free List Allocation Policies in C).</li>
+            <li>Prepare for <strong>Quiz 4</strong> (covering Virtual Memory, Paging, and Address Translation).</li>
+          </ul>
         </div>
       </div>
     </div>
 
+    <!-- Core Foundational Modules -->
+    <div class="modules-heading">
+      <span>&#128194;</span> Foundational Memory Virtualization Modules
+    </div>
+
+    <div class="modules-grid">
+      <!-- Module 01 -->
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 01</div>
+          <h2 class="module-title">Physical Address Spaces &amp; Monoprogramming</h2>
+          <p class="module-desc">Trace the evolution from early bare-metal execution to dynamic hardware relocation using Base and Limit registers, swapping, and memory overlays.</p>
+          <div class="module-tags">
+            <span class="tag">Monoprogramming</span>
+            <span class="tag">Base &amp; Limit</span>
+            <span class="tag">Address Relocation</span>
+            <span class="tag">Fragmentation</span>
+          </div>
+        </div>
+        <a href="01-physical-memory-abstractions.html" class="launch-btn">Launch Module 01 &rarr;</a>
+      </div>
+
+      <!-- Module 02 -->
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 02</div>
+          <h2 class="module-title">Dynamic Partitioning &amp; Free Space Management</h2>
+          <p class="module-desc">Analyze contiguous memory allocation policies (First-Fit, Best-Fit, Worst-Fit), bitmap tracking vs. free linked lists, and power-of-two buddy allocators.</p>
+          <div class="module-tags">
+            <span class="tag">Dynamic Partitioning</span>
+            <span class="tag">Free Lists</span>
+            <span class="tag">Buddy Allocator</span>
+            <span class="tag">Compaction</span>
+          </div>
+        </div>
+        <a href="02-dynamic-partitioning-free-lists.html" class="launch-btn">Launch Module 02 &rarr;</a>
+      </div>
+
+      <!-- Module 03 -->
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 03</div>
+          <h2 class="module-title">Virtual Memory &amp; Paging Architectures</h2>
+          <p class="module-desc">Examine the Memory Management Unit (MMU), virtual address split ($p, d$), Page Table Entries (PTE flags), and 64-bit multi-level hierarchical page tables.</p>
+          <div class="module-tags">
+            <span class="tag">Virtual Memory</span>
+            <span class="tag">MMU Translation</span>
+            <span class="tag">Page Tables</span>
+            <span class="tag">PTE Flags</span>
+          </div>
+        </div>
+        <a href="03-virtual-memory-paging-tables.html" class="launch-btn">Launch Module 03 &rarr;</a>
+      </div>
+
+      <!-- Module 04 -->
+      <div class="module-card">
+        <div>
+          <div class="module-num">Module 04</div>
+          <h2 class="module-title">TLB Acceleration &amp; Inverted Page Tables</h2>
+          <p class="module-desc">Study hardware TLB caching, associative address matching, hardware vs. software walks, EMAT calculations, and inverted page tables with hash anchors.</p>
+          <div class="module-tags">
+            <span class="tag">TLB Cache</span>
+            <span class="tag">EMAT Formula</span>
+            <span class="tag">Inverted Page Tables</span>
+            <span class="tag">Hardware Walk</span>
+          </div>
+        </div>
+        <a href="04-tlb-hardware-inverted-page-tables.html" class="launch-btn">Launch Module 04 &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Page Replacement Algorithms Deep-Dives -->
+    <div class="modules-heading">
+      <span>&#9881;</span> Page Replacement &amp; Thrashing Subsystems
+    </div>
+
+    <div class="modules-grid">
+      <div class="module-card">
+        <div>
+          <div class="module-num">Algorithm 07</div>
+          <h2 class="module-title">Clock Page Replacement</h2>
+          <p class="module-desc">The circular first-in, first-out buffer using hardware referenced bits to approximate Least Recently Used (LRU) eviction with minimal software overhead.</p>
+          <div class="module-tags">
+            <span class="tag">Clock Pointer</span>
+            <span class="tag">Reference Bit</span>
+            <span class="tag">Second-Chance</span>
+          </div>
+        </div>
+        <a href="07-clock.html" class="launch-btn">Explore Clock Algorithm &rarr;</a>
+      </div>
+
+      <div class="module-card">
+        <div>
+          <div class="module-num">Algorithm 08</div>
+          <h2 class="module-title">Aging Algorithm in Software</h2>
+          <p class="module-desc">Simulating true LRU eviction through shift registers updated at timer clock ticks, tracking recent page reference recency.</p>
+          <div class="module-tags">
+            <span class="tag">Aging Registers</span>
+            <span class="tag">Shift Vectors</span>
+            <span class="tag">LRU Approximation</span>
+          </div>
+        </div>
+        <a href="08-aging-algorithm.html" class="launch-btn">Explore Aging Algorithm &rarr;</a>
+      </div>
+
+      <div class="module-card">
+        <div>
+          <div class="module-num">Algorithm 09 &amp; 10</div>
+          <h2 class="module-title">Working Set &amp; WSClock</h2>
+          <p class="module-desc">Peter Denning's working set principle: calculating page sets referenced in virtual time window $\tau$ to prevent thrashing and maintain multiprogramming equilibrium.</p>
+          <div class="module-tags">
+            <span class="tag">Working Set W(t, &tau;)</span>
+            <span class="tag">WSClock</span>
+            <span class="tag">Thrashing Control</span>
+          </div>
+        </div>
+        <a href="10-wsclock.html" class="launch-btn">Explore WSClock &rarr;</a>
+      </div>
+
+      <div class="module-card">
+        <div>
+          <div class="module-num">Policy 11</div>
+          <h2 class="module-title">Local vs. Global Allocation Policies</h2>
+          <p class="module-desc">Contrasting fixed process partition boundaries with dynamic page stealing across competing processes, Page Fault Frequency (PFF), and load control.</p>
+          <div class="module-tags">
+            <span class="tag">Local Allocation</span>
+            <span class="tag">Global Allocation</span>
+            <span class="tag">PFF Tracing</span>
+          </div>
+        </div>
+        <a href="11-local-vs-global.html" class="launch-btn">Explore Allocation Policies &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Interactive Sandboxes -->
+    <div class="modules-heading">
+      <span>&#128302;</span> Interactive Visualizers &amp; Simulation Laboratories
+    </div>
+
+    <div class="lab-grid">
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">PTE Sandbox</h3>
+          <p class="lab-desc">Inspect bitfields, protection flags, and dirty/accessed states in Page Table Entries.</p>
+        </div>
+        <a href="pte-sandbox.html" class="lab-link">Open PTE Sandbox &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">TLB Sandbox</h3>
+          <p class="lab-desc">Trace associative TLB lookups, cache misses, and multi-level page table walks.</p>
+        </div>
+        <a href="03-tlb-sandbox.html" class="lab-link">Open TLB Sandbox &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Buddy Allocator</h3>
+          <p class="lab-desc">Interactive visualization of block splitting and power-of-two buddy coalescing.</p>
+        </div>
+        <a href="buddy-allocator-tutorial.html" class="lab-link">Open Allocator &rarr;</a>
+      </div>
+      <div class="lab-card">
+        <div>
+          <h3 class="lab-title">Multi-Level Page Tables</h3>
+          <p class="lab-desc">Step through x86-64 4-level hierarchical page walks (PML4 &rarr; PDPT &rarr; PD &rarr; PT).</p>
+        </div>
+        <a href="multilevel-pt.html" class="lab-link">Open Hierarchy Lab &rarr;</a>
+      </div>
+    </div>
+
     <nav class="nav-bar">
-      <a href="01-files-abstraction.html" class="nav-btn">&larr; Module 01: Files Abstraction</a>
-      <a href="index.html" class="nav-btn">&#127968; Week 10 Hub</a>
-      <a href="03-filesystem-implementation.html" class="nav-btn">Module 03: FS Implementation &rarr;</a>
+      <a href="../week06-synchronization-and-deadlock/index.html" class="nav-btn">&larr; Week 6: Synchronization &amp; Deadlock</a>
+      <a href="../index.html" class="nav-btn">&#127968; Course Index</a>
+      <a href="../week10-file-management/index.html" class="nav-btn">Week 10: File Management &rarr;</a>
     </nav>
   </div>
-
-  <script>
-    // --- Hierarchical Tree Simulator Logic ---
-    const fsNodes = {
-      1: { name: "/", type: "DIR", inode: 1, parent: 1, children: [2, 3, 4] },
-      2: { name: "bin", type: "DIR", inode: 2, parent: 1, children: [5, 6] },
-      3: { name: "etc", type: "DIR", inode: 3, parent: 1, children: [7] },
-      4: { name: "home", type: "DIR", inode: 4, parent: 1, children: [8, 9] },
-      5: { name: "cat", type: "FILE", inode: 5, parent: 2 },
-      6: { name: "ls", type: "FILE", inode: 6, parent: 2 },
-      7: { name: "passwd", type: "FILE", inode: 7, parent: 3 },
-      8: { name: "alice", type: "DIR", inode: 8, parent: 4, children: [10, 11, 12] },
-      9: { name: "bob", type: "DIR", inode: 9, parent: 4, children: [13] },
-      10: { name: "docs", type: "DIR", inode: 10, parent: 8, children: [14] },
-      11: { name: "src", type: "DIR", inode: 11, parent: 8, children: [15] },
-      12: { name: "notes.txt", type: "FILE", inode: 12, parent: 8 },
-      13: { name: "build.sh", type: "FILE", inode: 13, parent: 9 },
-      14: { name: "thesis.pdf", type: "FILE", inode: 14, parent: 10 },
-      15: { name: "main.c", type: "FILE", inode: 15, parent: 11 }
-    };
-
-    let currentInode = 1;
-
-    function getPathString(inode) {
-      if (inode === 1) return "/";
-      let segments = [];
-      let curr = fsNodes[inode];
-      while (curr && curr.inode !== 1) {
-        segments.unshift(curr.name);
-        curr = fsNodes[curr.parent];
-      }
-      return "/" + segments.join("/");
-    }
-
-    function renderTree() {
-      const treeEl = document.getElementById("treeDisplay");
-      let out = "";
-
-      function walk(inode, depth, prefix) {
-        const node = fsNodes[inode];
-        const isDir = node.type === "DIR";
-        const isActive = inode === currentInode;
-        const label = node.name + (isDir && inode !== 1 ? "/" : "");
-
-        let clickAttr = isDir ? `onclick="selectNode(${inode})"` : "";
-        let cls = `fs-node ${isDir ? "dir" : "file"} ${isActive ? "active" : ""}`;
-
-        out += `<div>${prefix}<span class="${cls}" ${clickAttr}>${label}</span></div>`;
-
-        if (isDir && node.children) {
-          node.children.forEach((childInode, idx) => {
-            const isLast = idx === node.children.length - 1;
-            const nextPrefix = prefix + (depth === 0 ? "  " : (isLast ? "    " : "│   "));
-            walk(childInode, depth + 1, nextPrefix);
-          });
-        }
-      }
-
-      walk(1, 0, "");
-      treeEl.innerHTML = out;
-    }
-
-    function renderDirTable() {
-      const curr = fsNodes[currentInode];
-      const pathStr = getPathString(currentInode);
-      document.getElementById("activeTableTitle").textContent = `On-Disk Table for: ${pathStr} (i-node #${curr.inode})`;
-
-      const tbody = document.getElementById("dirTableBody");
-      tbody.innerHTML = "";
-
-      tbody.innerHTML += `
-        <tr>
-          <td style="color:#38bdf8; font-weight:700;">.</td>
-          <td>DIR</td>
-          <td>#${curr.inode}</td>
-          <td>Points to self (${curr.name})</td>
-        </tr>
-        <tr>
-          <td style="color:#38bdf8; font-weight:700;">..</td>
-          <td>DIR</td>
-          <td>#${curr.parent}</td>
-          <td>Points to parent (${fsNodes[curr.parent].name})</td>
-        </tr>
-      `;
-
-      if (curr.children) {
-        curr.children.forEach(cid => {
-          const cnode = fsNodes[cid];
-          tbody.innerHTML += `
-            <tr>
-              <td>${cnode.name}${cnode.type === "DIR" ? "/" : ""}</td>
-              <td>${cnode.type}</td>
-              <td>#${cnode.inode}</td>
-              <td>${cnode.type === "DIR" ? "Subdirectory entry" : "File record reference"}</td>
-            </tr>
-          `;
-        });
-      }
-    }
-
-    function updateSimUI(logMessage) {
-      renderTree();
-      renderDirTable();
-      const pathStr = getPathString(currentInode);
-      document.getElementById("promptPath").textContent = `${pathStr === "/" ? "" : pathStr}/ $`;
-      if (logMessage) {
-        document.getElementById("termLog").textContent = logMessage;
-      }
-    }
-
-    function selectNode(inode) {
-      currentInode = inode;
-      updateSimUI(`$ chdir("${getPathString(inode)}");\n[Kernel] CWD updated to i-node #${inode}.`);
-    }
-
-    function resolvePath(pathInput) {
-      let raw = pathInput.trim();
-      if (!raw) return null;
-
-      let targetInode = raw.startsWith("/") ? 1 : currentInode;
-      let parts = raw.split("/").filter(p => p.length > 0);
-
-      for (let i = 0; i < parts.length; i++) {
-        let part = parts[i];
-        let curr = fsNodes[targetInode];
-
-        if (curr.type !== "DIR") {
-          return { error: `ENOTDIR: Component '${curr.name}' is not a directory.` };
-        }
-
-        if (part === ".") {
-          continue;
-        } else if (part === "..") {
-          targetInode = curr.parent;
-        } else {
-          let foundChild = curr.children ? curr.children.find(cid => fsNodes[cid].name === part) : null;
-          if (!foundChild) {
-            return { error: `ENOENT: No such file or directory component: '${part}'.` };
-          }
-          targetInode = foundChild;
-        }
-      }
-
-      return { inode: targetInode };
-    }
-
-    function execCd(targetPath) {
-      const res = resolvePath(targetPath);
-      if (!res) return;
-
-      if (res.error) {
-        updateSimUI(`$ cd ${targetPath}\n[Kernel Error] ${res.error}`);
-        return;
-      }
-
-      const node = fsNodes[res.inode];
-      if (node.type !== "DIR") {
-        updateSimUI(`$ cd ${targetPath}\n[Kernel Error] ENOTDIR: '${node.name}' is a regular file, cannot change directory.`);
-        return;
-      }
-
-      currentInode = res.inode;
-      const resolvedPath = getPathString(currentInode);
-      updateSimUI(`$ cd ${targetPath}\n[Kernel] Path resolved successfully via hierarchical traversal.\nNew CWD: ${resolvedPath} (i-node #${currentInode})`);
-    }
-
-    document.getElementById("cmdInput").addEventListener("keydown", function(e) {
-      if (e.key === "Enter") {
-        const line = this.value.trim();
-        this.value = "";
-        if (!line) return;
-
-        if (line === "ls") {
-          const curr = fsNodes[currentInode];
-          let items = [".", ".."];
-          if (curr.children) {
-            curr.children.forEach(cid => items.push(fsNodes[cid].name + (fsNodes[cid].type === "DIR" ? "/" : "")));
-          }
-          updateSimUI(`$ ls\n${items.join("    ")}`);
-        } else if (line.startsWith("cd ") || line === "cd") {
-          const arg = line.substring(3).trim() || "/";
-          execCd(arg);
-        } else {
-          updateSimUI(`$ ${line}\n[Shell] Unknown command. Supported commands: 'cd <path>', 'ls'`);
-        }
-      }
-    });
-
-    // --- Directory Operations Lifecycle Stepper Logic ---
-    let dirStep = 1;
-    const dirTotalSteps = 5;
-
-    const dirStepData = [
-      {
-        preview: "<strong>Step 1: Directory Created.</strong> Kernel executes <code>mkdir(\"/home/project\")</code>. Allocates directory inode #115 and formats initial <code>.</code> and <code>..</code> entries.",
-        phase: "1/5", inode: "#115 (DIR)", nlink: "nlink = 2", blocks: "1 Block",
-        what: "The kernel allocates directory inode #115 and immediately formats data block with entries . (self) and .. (parent).",
-        why: "Directories are never truly empty; self and parent bindings guarantee that relative path resolution works recursively across all subtrees.",
-        banner: "Status: <strong>Directory /home/project formatted with . and ..</strong>",
-        s0: { text: ". → Inode #115 (Self)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s1: { text: ".. → Inode #4 (Parent)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s2: { text: "[Unallocated Slot 2]", fill: "#f8fafc", stroke: "#cbd5e1" },
-        s3: { text: "[Unallocated Slot 3]", fill: "#f8fafc", stroke: "#cbd5e1" },
-        inodeText: "Inode #120 (Regular)", inodeLink: "nlink = 0", inodeBlocks: "Blocks: 0",
-        statusText: "UNALLOCATED", statusFill: "#fef2f2", statusStroke: "#dc2626", statusColor: "#dc2626"
-      },
-      {
-        preview: "<strong>Step 2: File Created (creat).</strong> Process creates <code>main.c</code>. Inode #120 is allocated with 3 data blocks (12 KB). Reference count initialized to <code>nlink = 1</code>.",
-        phase: "2/5", inode: "#120 (FILE)", nlink: "nlink = 1", blocks: "3 Blocks",
-        what: "Kernel binds name 'main.c' to inode #120 in slot 2. Storage blocks are assigned and reference count set to 1.",
-        why: "File names are simply lookup table bindings; the inode holds actual storage and permission state.",
-        banner: "Status: <strong>Entry 'main.c' bound to Inode #120 (nlink = 1)</strong>",
-        s0: { text: ". → Inode #115 (Self)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s1: { text: ".. → Inode #4 (Parent)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s2: { text: "main.c → Inode #120", fill: "#dcfce7", stroke: "#16a34a" },
-        s3: { text: "[Unallocated Slot 3]", fill: "#f8fafc", stroke: "#cbd5e1" },
-        inodeText: "Inode #120 (Regular)", inodeLink: "nlink = 1", inodeBlocks: "Blocks: 3 (12 KB)",
-        statusText: "ALLOCATED", statusFill: "#dcfce7", statusStroke: "#16a34a", statusColor: "#15803d"
-      },
-      {
-        preview: "<strong>Step 3: Hard Link Created (link).</strong> Process calls <code>link(\"main.c\", \"backup.c\")</code>. Slot 3 binds 'backup.c' to Inode #120. Inode reference count increments to <code>nlink = 2</code>.",
-        phase: "3/5", inode: "#120 (FILE)", nlink: "nlink = 2", blocks: "3 Blocks",
-        what: "A second name 'backup.c' is added pointing to the existing inode #120. Reference count increments to 2.",
-        why: "Hard links create multiple directory entries pointing to the exact same physical storage blocks without copying data.",
-        banner: "Status: <strong>Hard link established. Zero data copied; nlink = 2.</strong>",
-        s0: { text: ". → Inode #115 (Self)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s1: { text: ".. → Inode #4 (Parent)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s2: { text: "main.c → Inode #120", fill: "#dcfce7", stroke: "#16a34a" },
-        s3: { text: "backup.c → Inode #120", fill: "#dcfce7", stroke: "#16a34a" },
-        inodeText: "Inode #120 (Regular)", inodeLink: "nlink = 2", inodeBlocks: "Blocks: 3 (12 KB)",
-        statusText: "SHARED (2 LINKS)", statusFill: "#e0f2fe", statusStroke: "#0284c7", statusColor: "#0369a1"
-      },
-      {
-        preview: "<strong>Step 4: Emptiness Invariant Guard (rmdir).</strong> Calling <code>rmdir(\"/home/project\")</code> fails with <code>ENOTEMPTY</code> because active child files remain.",
-        phase: "4/5", inode: "#115 (DIR)", nlink: "nlink = 2", blocks: "1 Block",
-        what: "The kernel inspects project directory table, detects entries beyond . and .., and denies deletion.",
-        why: "Prevents orphaned inodes and lost disk blocks by requiring users to empty subtrees first.",
-        banner: "Fault Protected: <strong>ENOTEMPTY &mdash; rmdir denied to prevent orphans</strong>",
-        s0: { text: ". → Inode #115 (Self)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s1: { text: ".. → Inode #4 (Parent)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s2: { text: "main.c → Inode #120", fill: "#fee2e2", stroke: "#dc2626" },
-        s3: { text: "backup.c → Inode #120", fill: "#fee2e2", stroke: "#dc2626" },
-        inodeText: "Inode #120 (Regular)", inodeLink: "nlink = 2", inodeBlocks: "Blocks: 3 (12 KB)",
-        statusText: "PROTECTED", statusFill: "#fef3c7", statusStroke: "#d97706", statusColor: "#b45309"
-      },
-      {
-        preview: "<strong>Step 5: Unlink &amp; Storage Reclamation.</strong> Both <code>main.c</code> and <code>backup.c</code> are unlinked. When <code>nlink</code> hits 0, the kernel frees inode #120 and recycles disk blocks.",
-        phase: "5/5", inode: "#120 (FREED)", nlink: "nlink = 0", blocks: "0 Blocks",
-        what: "Unlinking 'main.c' dropped nlink to 1. Unlinking 'backup.c' dropped nlink to 0, triggering physical deallocation.",
-        why: "Storage is safely reclaimed only when zero directory paths and zero active open file handles reference the inode.",
-        banner: "Reclaimed: <strong>nlink reached 0 &mdash; Physical data blocks returned to free pool</strong>",
-        s0: { text: ". → Inode #115 (Self)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s1: { text: ".. → Inode #4 (Parent)", fill: "#e0f2fe", stroke: "#0284c7" },
-        s2: { text: "[Slot 2 Unlinked]", fill: "#f8fafc", stroke: "#cbd5e1" },
-        s3: { text: "[Slot 3 Unlinked]", fill: "#f8fafc", stroke: "#cbd5e1" },
-        inodeText: "Inode #120 (Purged)", inodeLink: "nlink = 0", inodeBlocks: "Blocks: 0 (Freed)",
-        statusText: "DEALLOCATED", statusFill: "#fef2f2", statusStroke: "#dc2626", statusColor: "#dc2626"
-      }
-    ];
-
-    function changeDirStep(dir) {
-      dirStep += dir;
-      if (dirStep < 1) dirStep = 1;
-      if (dirStep > dirTotalSteps) dirStep = dirTotalSteps;
-      updateDirUI();
-    }
-
-    function resetDirStepper() {
-      dirStep = 1;
-      updateDirUI();
-    }
-
-    function updateDirUI() {
-      const data = dirStepData[dirStep - 1];
-
-      document.getElementById("dir-preview-text").innerHTML = data.preview;
-      document.getElementById("dir-tel-phase").innerText = data.phase;
-      document.getElementById("dir-tel-inode").innerText = data.inode;
-      document.getElementById("dir-tel-nlink").innerText = data.nlink;
-      document.getElementById("dir-tel-blocks").innerText = data.blocks;
-
-      document.getElementById("dir-pane-what").innerHTML = data.what;
-      document.getElementById("dir-pane-why").innerHTML = data.why;
-      document.getElementById("dir-canvas-banner").innerHTML = data.banner;
-
-      // Update SVG slots
-      const s0 = document.getElementById("slot-0");
-      const t0 = document.getElementById("txt-slot-0");
-      s0.setAttribute("fill", data.s0.fill);
-      s0.setAttribute("stroke", data.s0.stroke);
-      t0.textContent = data.s0.text;
-
-      const s1 = document.getElementById("slot-1");
-      const t1 = document.getElementById("txt-slot-1");
-      s1.setAttribute("fill", data.s1.fill);
-      s1.setAttribute("stroke", data.s1.stroke);
-      t1.textContent = data.s1.text;
-
-      const s2 = document.getElementById("slot-2");
-      const t2 = document.getElementById("txt-slot-2");
-      s2.setAttribute("fill", data.s2.fill);
-      s2.setAttribute("stroke", data.s2.stroke);
-      t2.textContent = data.s2.text;
-
-      const s3 = document.getElementById("slot-3");
-      const t3 = document.getElementById("txt-slot-3");
-      s3.setAttribute("fill", data.s3.fill);
-      s3.setAttribute("stroke", data.s3.stroke);
-      t3.textContent = data.s3.text;
-
-      // Update Inode visual box
-      document.getElementById("inode-id").textContent = data.inodeText;
-      document.getElementById("inode-links").textContent = data.inodeLink;
-      document.getElementById("inode-blocks").textContent = data.inodeBlocks;
-
-      const stBox = document.getElementById("inode-status-box");
-      const stTxt = document.getElementById("inode-status-txt");
-      stBox.setAttribute("fill", data.statusFill);
-      stBox.setAttribute("stroke", data.statusStroke);
-      stTxt.textContent = data.statusText;
-      stTxt.setAttribute("fill", data.statusColor);
-
-      document.getElementById("dir-prev-btn").disabled = (dirStep === 1);
-      document.getElementById("dir-next-btn").disabled = (dirStep === dirTotalSteps);
-    }
-
-    // Initialize Tree & Stepper
-    updateSimUI();
-    updateDirUI();
-  </script>
 </body>
 </html>
 """
 
-def apply_harmonization():
-    if not os.path.exists(TARGET_FILE):
-        print(f"Error: {TARGET_FILE} does not exist.")
-        return False
+def execute_merge():
+    # 1. Move the 4 authored modules from week07 into week09
+    files_to_move = [
+        "01-physical-memory-abstractions.html",
+        "02-dynamic-partitioning-free-lists.html",
+        "03-virtual-memory-paging-tables.html",
+        "04-tlb-hardware-inverted-page-tables.html"
+    ]
 
-    with open(TARGET_FILE, "w", encoding="utf-8") as f:
-        f.write(HARMONIZED_CONTENT.strip() + "\n")
+    for fname in files_to_move:
+        src_path = os.path.join(SRC_DIR, fname)
+        dest_path = os.path.join(DEST_DIR, fname)
+        if os.path.exists(src_path):
+            with open(src_path, "r", encoding="utf-8") as f:
+                content = f.read()
 
-    print(f"--> Successfully harmonized {TARGET_FILE}")
+            # Harmonize internal links:
+            content = content.replace("Week 7 Hub", "Week 9 Hub")
+            content = content.replace('href="../week09-memory-management/index.html"', 'href="../week10-file-management/index.html"')
+            content = content.replace('Week 9 Hub &rarr;', 'Week 10 Hub &rarr;')
+            content = content.replace('href="../week06-synchronization-and-deadlock/index.html"', 'href="index.html"')
+            content = content.replace('&larr; Week 6: Synchronization &amp; Deadlock', '&larr; Week 9 Hub')
+
+            with open(dest_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print(f"--> Transferred and harmonized {fname} into {DEST_DIR}")
+
+    # 2. Write the comprehensive Week 9 Index
+    week09_index_path = os.path.join(DEST_DIR, "index.html")
+    with open(week09_index_path, "w", encoding="utf-8") as f:
+        f.write(WEEK09_INDEX_CONTENT.strip() + "\n")
+    print(f"--> Successfully created consolidated {week09_index_path}")
+
+    # 3. Remove week07 directory
+    if os.path.exists(SRC_DIR):
+        shutil.rmtree(SRC_DIR)
+        print(f"--> Removed redundant {SRC_DIR}")
+
+    # 4. Update Week 6 links to point directly to Week 9
+    week06_index_path = os.path.join("week06-synchronization-and-deadlock", "index.html")
+    if os.path.exists(week06_index_path):
+        with open(week06_index_path, "r", encoding="utf-8") as f:
+            w6_content = f.read()
+        w6_content = w6_content.replace("../week07-memory-management-virtual-memory/index.html", "../week09-memory-management/index.html")
+        w6_content = w6_content.replace("Week 7 Hub &rarr;", "Week 9 Hub &rarr;")
+        with open(week06_index_path, "w", encoding="utf-8") as f:
+            f.write(w6_content)
+        print(f"--> Updated links in {week06_index_path} to point to Week 9")
+
+    # Also check week 6 module 04
+    w6_mod04 = os.path.join("week06-synchronization-and-deadlock", "04-classic-synchronization-real-world-defenses.html")
+    if os.path.exists(w6_mod04):
+        with open(w6_mod04, "r", encoding="utf-8") as f:
+            w6_m4_content = f.read()
+        w6_m4_content = w6_m4_content.replace("../week07-memory-management-virtual-memory/index.html", "../week09-memory-management/index.html")
+        w6_m4_content = w6_m4_content.replace("Week 7 &rarr;", "Week 9 &rarr;")
+        with open(w6_mod04, "w", encoding="utf-8") as f:
+            f.write(w6_m4_content)
+        print(f"--> Updated links in {w6_mod04}")
+
     return True
 
 if __name__ == "__main__":
-    if apply_harmonization():
+    if execute_merge():
         try:
-            subprocess.run(["git", "add", "fix.py", TARGET_FILE], check=True)
+            subprocess.run(["git", "add", "fix.py", DEST_DIR, "week06-synchronization-and-deadlock"], check=True)
+            # Remove deleted directory from git index
+            subprocess.run(["git", "rm", "-r", "--ignore-unmatch", SRC_DIR], check=True)
             commit_msg = (
-                "Harmonize Module 02 Directories with Week 10 curriculum standards\n\n"
-                "Migrate from MathJax to KaTeX, adopt canonical card and navbar styling,\n"
-                "fix math callouts, and re-engineer interactive stepper to the standard."
+                "Merge Week 7 into Week 9 Memory Management and update curriculum links\n\n"
+                "Consolidate modules 01-04 into week09-memory-management, update Week 9 hub\n"
+                "index with full syllabus and sandboxes, and repoint Week 6 links to Week 9."
             )
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push", "origin", "main"], check=True)
